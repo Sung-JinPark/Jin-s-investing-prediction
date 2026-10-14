@@ -188,14 +188,15 @@ process.stdout.write(JSON.stringify({
  missingIsNotCandle:!svg.includes(`data-trend-bar="${d.gaps[0].session}"`),
  quote:(svg.match(/data-trend-quote-point=/g)||[]).length,
  quoteWithinAxis:m.y(m.quote.price)>m.T&&m.y(m.quote.price)<m.H-m.B,
- discloses:markup.includes('원천 검증 미완료')&&markup.includes('과거 이탈·복귀 신호를 판정하지 않습니다'),
- quoteSeparated:markup.includes('별도 장중 관측 · 일봉 종가 아님'),
- stale:markup.includes('최근 마감 일봉 누락'),
+ discloses:markup.includes('참고선 · 가격 조정 검증 전'),
+ quoteSeparated:markup.includes('장중 관측')&&markup.includes('일봉'),
+ folded:markup.startsWith('<details')&&!markup.includes('<details open'),
+ noDateList:!markup.includes(d.gaps[0].session),
  unsafeLink:trendSourceUrl('javascript:alert(1)')
 }));''')
     assert out == {'valid': True, 'same': True, 'gaps': 1, 'candles': 63,
                    'missingIsNotCandle': True, 'quote': 1, 'quoteWithinAxis': True,
-                   'discloses': True, 'quoteSeparated': True, 'stale': True, 'unsafeLink': None}
+                   'discloses': True, 'quoteSeparated': True, 'folded': True, 'noDateList': True, 'unsafeLink': None}
 
 
 def test_quote_date_borders_use_axis_formula_and_nearest_price_order(tmp_path):
@@ -209,6 +210,79 @@ for(const axis of ['linear','log']){
 }
 process.stdout.write(JSON.stringify({checks,unchanged:before===JSON.stringify(d)}));''')
     assert out == {'checks': [True, True], 'unchanged': True}
+
+
+@pytest.mark.parametrize('axis', ['linear', 'log'])
+@pytest.mark.parametrize('quote_offset', [-1, 0, 5])
+def test_clean_insights_use_latest_reference_and_independent_nearest_distances(tmp_path, axis, quote_offset):
+    import math
+    detail = research_detail_fixture()
+    last = detail['bars'][-1]
+    detail['intraday_quote']['session_index'] = last['session_index'] + quote_offset
+    detail['intraday_quote']['date'] = last['session'] if quote_offset <= 0 else '2026-01-02'
+    reference = detail['intraday_quote']['price'] if quote_offset > 0 else last['close']
+    if quote_offset > 0:
+        rows = []
+        for line in detail['analyses'][axis]['63']['lines']:
+            value = line['intercept'] + line['slope'] * (detail['intraday_quote']['session_index'] - line['coordinate_origin_index'])
+            price = math.exp(value) if axis == 'log' else value
+            if math.isfinite(price) and price > 0:
+                rows.append((price, line['line_id']))
+        down = max((row for row in rows if row[0] <= reference), default=None)
+        up = min((row for row in rows if row[0] > reference), default=None)
+    else:
+        borders = detail['analyses'][axis]['63']['borders']
+        down = (borders['down'][0]['price'], borders['down'][0]['line_id']) if borders['down'] else None
+        up = (borders['up'][0]['price'], borders['up'][0]['line_id']) if borders['up'] else None
+    out = run(tmp_path, 'const d=' + json.dumps(detail) + ';const axis=' + json.dumps(axis) + r''';
+const before=JSON.stringify(d),m=trendInsightModel(d,63,axis),markup=trendInsightMarkup(d,63,axis,{currency:'KRW'});
+process.stdout.write(JSON.stringify({m,unchanged:before===JSON.stringify(d),bounded:(markup.match(/data-trend-insight=/g)||[]).length,notConfirmed:markup.includes('추세 이탈을 확정하지 않습니다')}));''')
+    assert out['unchanged'] and out['bounded'] == 2 and out['notConfirmed']
+    assert out['m']['reference']['price'] == reference and out['m']['reference']['quote'] == (quote_offset > 0)
+    for side, expected in [('down', down), ('up', up)]:
+        row = out['m'][side]
+        if expected is None:
+            assert row is None
+        else:
+            assert row['line_id'] == expected[1]
+            assert row['price'] == pytest.approx(expected[0], abs=1e-6)
+            assert row['distance_percent'] == pytest.approx((expected[0] / reference - 1) * 100, abs=1e-10)
+
+
+@pytest.mark.parametrize('asset,phase', [('sk-hynix', 'checking'), ('sk-hynix', 'offline'), ('sk-hynix', 'invalid'), ('mag7', 'idle')])
+def test_clean_empty_loading_and_validation_states_never_claim_ready_or_show_technical_controls(tmp_path, asset, phase):
+    out = run(tmp_path, 'process.stdout.write(JSON.stringify({markup:trendEmptyMarkup(' + json.dumps(asset) + ',' + json.dumps(phase) + ')}));')
+    text = out['markup']
+    assert '<button' not in text and '<svg' not in text
+    assert not any(term in text for term in ('로컬', '개인', '파일', '매수', '매도', '예측', '확정 이탈'))
+    assert ('시세를 확인하고 있습니다' in text) == (phase == 'checking')
+    if phase == 'invalid':
+        assert '자료 검증 보류' in text
+
+
+@pytest.mark.parametrize('missing_anchors', [False, True])
+def test_clean_render_orders_chart_before_explanation_insights_and_folded_source(tmp_path, missing_anchors):
+    projection = fixture()
+    if missing_anchors:
+        line = projection['details']['sk-hynix']['analyses']['linear']['63']['lines'][0]
+        line['first_anchor'] = None
+        line.pop('second_anchor')
+    program = local_browser_stub() + 'globalThis.DATA={trendlines:' + json.dumps(projection) + r'''};
+const rendered={};const box=()=>({innerHTML:'',clientWidth:1000,querySelector(){return null}});
+const pieces={'.trend-content':box(),'.trend-chart':box(),'[data-trend-insights]':box(),'[data-trend-line-details]':box(),'[data-trend-local-message]':nodes['[data-trend-local-message]']};
+globalThis.el=html=>{rendered.outer=html;return {isConnected:true,querySelector:key=>pieces[key]??null,querySelectorAll:()=>[]}};
+globalThis.mount=()=>{};bindTrendChart=()=>{};TREND_LOCAL_ENABLED=false;
+renderTrendlinePage({asset:'sk-hynix'});stopTrendLocalSession();
+process.stdout.write(JSON.stringify({outer:rendered.outer,body:pieces['.trend-content'].innerHTML,chart:pieces['.trend-chart'].innerHTML,insights:pieces['[data-trend-insights]'].innerHTML,lines:pieces['[data-trend-line-details]'].innerHTML}));'''
+    out = run(tmp_path, program)
+    combined = out['outer'] + out['body']
+    assert not any(token in combined for token in ('data-trend-local-connect', 'data-trend-private', 'trend-research"', 'trend-gap-note', 'input type="file"'))
+    body = out['body']
+    assert body.index('class="trend-title"') < body.index('class="trend-controls"') < body.index('class="trend-chart"')
+    assert body.index('class="trend-chart"') < body.index('class="trend-explanation"') < body.index('data-trend-insights') < body.index('class="trend-data-meta"')
+    assert '<svg' in out['chart'] and out['insights'].count('data-trend-insight=') == 2
+    assert '<details class="trend-data-meta">' in body and '<details open' not in body
+    assert 'NaN' not in out['lines'] and 'undefined' not in out['lines']
 
 
 def test_actual_research_capture_projection_is_renderable_without_source_approval(tmp_path):
@@ -382,38 +456,38 @@ globalThis.localStorage={getItem:key=>storage[key]??null,setItem:(key,value)=>st
 globalThis.document={visibilityState:'visible',addEventListener:(key,fn)=>listeners[key]=fn,removeEventListener:key=>delete listeners[key]};
 globalThis.window={addEventListener:(key,fn)=>listeners[key]=fn,removeEventListener:key=>delete listeners[key]};
 globalThis.crypto=require('node:crypto').webcrypto;
-const node=()=>({textContent:'',hidden:false,disabled:false,attrs:{},classList:{toggle(){}},setAttribute(key,value){this.attrs[key]=value},addEventListener(key,fn){this[key]=fn}});
-for(const key of ['[data-trend-local-message]','[data-trend-local-connect]','[data-trend-local-disconnect]'])nodes[key]=node();
+const node=()=>({textContent:'',innerHTML:'',dataset:{},attrs:{},classList:{toggle(){}},setAttribute(key,value){this.attrs[key]=value},addEventListener(key,fn){this[key]=fn}});
+nodes['[data-trend-local-message]']=node();
 const root={isConnected:true,querySelector:key=>nodes[key]??null};
 const response=(raw,status=200)=>({ok:status===200,status,headers:{get:()=>null},text:async()=>raw});
 '''
 
 
 @pytest.mark.parametrize('origin,stored,expected', [
-    ('https://sung-jinpark.github.io', None, False), ('http://127.0.0.1:8878', None, True),
+    ('https://sung-jinpark.github.io', None, True), ('http://127.0.0.1:8878', None, True),
     ('http://127.0.0.1:8879', None, False), ('http://localhost:8878', None, False),
-    ('http://127.0.0.1:8878', {'schema_version': 1, 'enabled': False}, False),
+    ('http://127.0.0.1:8878', {'schema_version': 1, 'enabled': False}, True),
     ('https://sung-jinpark.github.io', {'schema_version': 1, 'enabled': True}, True),
-    ('https://sung-jinpark.github.io', {'schema_version': 1, 'enabled': 'true'}, False),
+    ('https://sung-jinpark.github.io', {'schema_version': 1, 'enabled': 'true'}, True),
 ])
-def test_local_autorefresh_default_and_preference_are_exact_and_price_free(tmp_path, origin, stored, expected):
-    program = local_browser_stub() + 'globalThis.location={origin:' + json.dumps(origin) + '};storage[TREND_LOCAL_PREF_KEY]=' + json.dumps(json.dumps(stored) if stored is not None else None) + r''';
-const initial=readTrendLocalPreference();TREND_LOCAL_ENABLED=false;setTrendLocalPreference(true);
-process.stdout.write(JSON.stringify({initial,saved:JSON.parse(storage[TREND_LOCAL_PREF_KEY]),keys:Object.keys(storage)}));'''
+def test_auto_entry_uses_only_exact_trusted_origins_and_never_reads_or_writes_preferences(tmp_path, origin, stored, expected):
+    program = local_browser_stub() + 'globalThis.location={origin:' + json.dumps(origin) + '};storage.legacy=' + json.dumps(stored) + r''';
+const before=JSON.stringify(storage);globalThis.localStorage={getItem(){throw new Error('no storage read')},setItem(){throw new Error('no storage write')}};
+process.stdout.write(JSON.stringify({initial:readTrendLocalPreference(),unchanged:before===JSON.stringify(storage)}));'''
     out = run(tmp_path, program)
-    assert out == {'initial': expected, 'saved': {'schema_version': 1, 'enabled': True}, 'keys': ['ai_fc.trendlines.local.v1']}
+    assert out == {'initial': expected, 'unchanged': True}
 
 
-def test_local_poll_is_opt_in_bounded_fixed_readonly_and_keeps_public_data(tmp_path, private_import_envelope):
+def test_automatic_entry_is_bounded_fixed_readonly_and_keeps_public_data(tmp_path, private_import_envelope):
     envelope, status = private_import_envelope, local_status_fixture(private_import_envelope)
     program = local_browser_stub() + 'const raw=' + json.dumps(json.dumps(envelope)) + ';const status=' + json.dumps(status) + r''';
 const requests=[],publicData={trendlines:{status:'hold'}},before=JSON.stringify(publicData);
 globalThis.DATA=publicData;globalThis.fetch=async(url,options)=>{requests.push({url,method:options.method,credentials:options.credentials,mode:options.mode,cache:options.cache,redirect:options.redirect,space:options.targetAddressSpace});return response(url.endsWith('/status')?JSON.stringify(status):raw);};
-(async()=>{TREND_LOCAL_ENABLED=false;const session=bindTrendLocalConnection(root,{asset:'bitcoin'});let paints=0;session.onData=()=>paints++;TREND_VIEW_OPTIONS.set('bitcoin',{period:252,scale:'log'});await Promise.resolve();const disabledRequests=requests.length;nodes['[data-trend-local-connect]'].click();await session.inflight;const data=TREND_PRIVATE_DETAILS.get('bitcoin'),saved=JSON.parse(storage[TREND_LOCAL_PREF_KEY]);stopTrendLocalSession();process.stdout.write(JSON.stringify({disabledRequests,requests,paints,status:data.status,hash:data.content_hash,saved,view:TREND_VIEW_OPTIONS.get('bitcoin'),unchanged:before===JSON.stringify(publicData)}));})();'''
+(async()=>{globalThis.location={origin:'https://sung-jinpark.github.io'};TREND_LOCAL_ENABLED=readTrendLocalPreference();const session=bindTrendLocalConnection(root,{asset:'bitcoin'});let paints=0;session.onData=()=>paints++;TREND_VIEW_OPTIONS.set('bitcoin',{period:252,scale:'log'});await Promise.resolve();await session.inflight;const data=TREND_PRIVATE_DETAILS.get('bitcoin');stopTrendLocalSession();process.stdout.write(JSON.stringify({requests,paints,status:data.status,hash:data.content_hash,storageKeys:Object.keys(storage),view:TREND_VIEW_OPTIONS.get('bitcoin'),unchanged:before===JSON.stringify(publicData)}));})();'''
     out = run(tmp_path, program)
-    assert out['disabledRequests'] == 0 and out['paints'] == 1 and out['unchanged']
+    assert out['paints'] == 1 and out['unchanged']
     assert out['status'] == 'unverified_display' and out['hash'] == envelope['payload_sha256']
-    assert out['view'] == {'period': 252, 'scale': 'log'} and out['saved'] == {'schema_version': 1, 'enabled': True}
+    assert out['view'] == {'period': 252, 'scale': 'log'} and out['storageKeys'] == []
     assert out['requests'] == [{'url': f'http://127.0.0.1:8878/api/private-trendlines/{suffix}', 'method': 'GET',
                                'credentials': 'omit', 'mode': 'cors', 'cache': 'no-store', 'redirect': 'error', 'space': 'loopback'}
                               for suffix in ('status', 'bitcoin')]
@@ -423,16 +497,15 @@ def test_local_overlap_abort_and_old_reply_do_not_change_another_route(tmp_path,
     status = local_status_fixture(private_import_envelope)
     program = local_browser_stub() + 'const status=' + json.dumps(status) + r''';
 let calls=0,finish;globalThis.fetch=()=>{calls++;return new Promise(resolve=>finish=resolve);};
-(async()=>{TREND_LOCAL_ENABLED=false;const session=bindTrendLocalConnection(root,{asset:'bitcoin'});await Promise.resolve();setTrendLocalPreference(true);const one=refreshTrendLocalSession(session);const two=refreshTrendLocalSession(session);const inflight=calls,signal=session.controller.signal;stopTrendLocalSession();setTrendLocalPreference(false);const next=bindTrendLocalConnection(root,{asset:'soxx'});await Promise.resolve();finish(response(JSON.stringify(status)));await Promise.all([one,two]);stopTrendLocalSession();process.stdout.write(JSON.stringify({inflight,calls,aborted:signal.aborted,details:TREND_PRIVATE_DETAILS.size,nextAsset:next.assetId}));})();'''
+(async()=>{TREND_LOCAL_ENABLED=false;const session=bindTrendLocalConnection(root,{asset:'bitcoin'});await Promise.resolve();TREND_LOCAL_ENABLED=true;const one=refreshTrendLocalSession(session);const two=refreshTrendLocalSession(session);const inflight=calls,signal=session.controller.signal;stopTrendLocalSession();TREND_LOCAL_ENABLED=false;const next=bindTrendLocalConnection(root,{asset:'soxx'});await Promise.resolve();finish(response(JSON.stringify(status)));await Promise.all([one,two]);stopTrendLocalSession();process.stdout.write(JSON.stringify({inflight,calls,aborted:signal.aborted,details:TREND_PRIVATE_DETAILS.size,nextAsset:next.assetId}));})();'''
     assert run(tmp_path, program) == {'inflight': 1, 'calls': 1, 'aborted': True, 'details': 0, 'nextAsset': 'soxx'}
 
 
-def test_local_failure_retains_last_good_and_clear_disconnect_stops_polling(tmp_path, private_import_envelope):
+def test_invalid_reply_retains_last_good_and_route_cleanup_stops_polling(tmp_path, private_import_envelope):
     envelope, status = private_import_envelope, local_status_fixture(private_import_envelope)
     program = local_browser_stub() + 'const envelope=' + json.dumps(envelope) + ';const status=' + json.dumps(status) + r''';
-(async()=>{const original=await parseTrendPrivateImport(JSON.stringify(envelope),'bitcoin');TREND_PRIVATE_DETAILS.set('bitcoin',original);TREND_PRIVATE_ORIGINS.set('bitcoin','local');TREND_LOCAL_ENABLED=false;const session=bindTrendLocalConnection(root,{asset:'bitcoin'});session.onData=()=>{throw new Error('bad reply must not repaint')};await Promise.resolve();setTrendLocalPreference(true);const broken={...envelope,payload_json:envelope.payload_json+' '};let calls=0;globalThis.fetch=async url=>{calls++;return response(url.endsWith('/status')?JSON.stringify(status):JSON.stringify(broken));};await refreshTrendLocalSession(session);const phase=session.phase,kept=TREND_PRIVATE_DETAILS.get('bitcoin')===original,notice=nodes['[data-trend-local-message]'].textContent;nodes['[data-trend-local-disconnect]'].click();await refreshTrendLocalSession(session);const saved=JSON.parse(storage[TREND_LOCAL_PREF_KEY]);stopTrendLocalSession();process.stdout.write(JSON.stringify({phase,kept,calls,saved,notice:notice.includes('마지막 정상 차트를 표시합니다')}));})();'''
-    assert run(tmp_path, program) == {'phase': 'offline', 'kept': True, 'calls': 2,
-                                     'saved': {'schema_version': 1, 'enabled': False}, 'notice': True}
+(async()=>{const original=await parseTrendPrivateImport(JSON.stringify(envelope),'bitcoin');TREND_PRIVATE_DETAILS.set('bitcoin',original);TREND_LOCAL_ENABLED=false;const session=bindTrendLocalConnection(root,{asset:'bitcoin'});session.onData=()=>{throw new Error('bad reply must not repaint')};await Promise.resolve();TREND_LOCAL_ENABLED=true;const broken={...envelope,payload_json:envelope.payload_json+' '};let calls=0;globalThis.fetch=async url=>{calls++;return response(url.endsWith('/status')?JSON.stringify(status):JSON.stringify(broken));};await refreshTrendLocalSession(session);const phase=session.phase,kept=TREND_PRIVATE_DETAILS.get('bitcoin')===original,notice=nodes['[data-trend-local-message]'].textContent;stopTrendLocalSession();await refreshTrendLocalSession(session);process.stdout.write(JSON.stringify({phase,kept,calls,storageKeys:Object.keys(storage),notice:notice.includes('자료 검증 보류')&&notice.includes('확인 자료 유지')}));})();'''
+    assert run(tmp_path, program) == {'phase': 'invalid', 'kept': True, 'calls': 2, 'storageKeys': [], 'notice': True}
 
 
 def test_local_source_refresh_failure_uses_plain_reason_and_keeps_valid_chart(tmp_path, private_import_envelope):
@@ -441,7 +514,7 @@ def test_local_source_refresh_failure_uses_plain_reason_and_keeps_valid_chart(tm
     row.update(status='stale', stale=True, error='refresh_failed')
     program = local_browser_stub() + 'const envelope=' + json.dumps(private_import_envelope) + ';const status=' + json.dumps(status) + r''';
 globalThis.fetch=async url=>response(url.endsWith('/status')?JSON.stringify(status):JSON.stringify(envelope));
-(async()=>{TREND_LOCAL_ENABLED=false;const session=bindTrendLocalConnection(root,{asset:'bitcoin'});session.onData=()=>{};await Promise.resolve();setTrendLocalPreference(true);await refreshTrendLocalSession(session);const notice=nodes['[data-trend-local-message]'].textContent;const out={phase:session.phase,chart:TREND_PRIVATE_DETAILS.has('bitcoin'),plain:notice.includes('새 시세 수집을 보류해 마지막 정상 자료를 유지합니다'),noCode:!notice.includes('refresh_failed')};stopTrendLocalSession();process.stdout.write(JSON.stringify(out));})();'''
+(async()=>{TREND_LOCAL_ENABLED=false;const session=bindTrendLocalConnection(root,{asset:'bitcoin'});session.onData=()=>{};await Promise.resolve();TREND_LOCAL_ENABLED=true;await refreshTrendLocalSession(session);const notice=nodes['[data-trend-local-message]'].textContent;const out={phase:session.phase,chart:TREND_PRIVATE_DETAILS.has('bitcoin'),plain:notice.includes('마지막 확인 자료를 표시합니다'),noCode:!notice.includes('refresh_failed')};stopTrendLocalSession();process.stdout.write(JSON.stringify(out));})();'''
     assert run(tmp_path, program) == {'phase': 'stale', 'chart': True, 'plain': True, 'noCode': True}
 
 
@@ -449,7 +522,7 @@ def test_local_hidden_pause_resumes_without_overlap_and_uses_8s_timeout(tmp_path
     program = local_browser_stub() + r''';
 const timers=new Map();let next=0;globalThis.setTimeout=(fn,delay)=>{const id=++next;timers.set(id,{fn,delay});return id};globalThis.clearTimeout=id=>timers.delete(id);
 let calls=0;globalThis.fetch=async(_url,options)=>{calls++;return new Promise((_resolve,reject)=>options.signal.addEventListener('abort',()=>reject(new DOMException('Aborted','AbortError')),{once:true}));};
-(async()=>{TREND_LOCAL_ENABLED=false;const session=bindTrendLocalConnection(root,{asset:'bitcoin'});await Promise.resolve();setTrendLocalPreference(true);document.visibilityState='hidden';await refreshTrendLocalSession(session);const hiddenCalls=calls;document.visibilityState='visible';const pending=refreshTrendLocalSession(session);const deadline=[...timers.values()].find(row=>row.delay===8000);deadline.fn();await pending;const phase=session.phase,poll=[...timers.values()].some(row=>row.delay===60000);document.visibilityState='hidden';listeners.visibilitychange();const paused=session.phase,pausedTimers=timers.size;stopTrendLocalSession();process.stdout.write(JSON.stringify({hiddenCalls,calls,phase,poll,paused,pausedTimers}));})();'''
+(async()=>{TREND_LOCAL_ENABLED=false;const session=bindTrendLocalConnection(root,{asset:'bitcoin'});await Promise.resolve();TREND_LOCAL_ENABLED=true;document.visibilityState='hidden';await refreshTrendLocalSession(session);const hiddenCalls=calls;document.visibilityState='visible';const pending=refreshTrendLocalSession(session);const deadline=[...timers.values()].find(row=>row.delay===8000);deadline.fn();await pending;const phase=session.phase,poll=[...timers.values()].some(row=>row.delay===60000);document.visibilityState='hidden';listeners.visibilitychange();const paused=session.phase,pausedTimers=timers.size;stopTrendLocalSession();process.stdout.write(JSON.stringify({hiddenCalls,calls,phase,poll,paused,pausedTimers}));})();'''
     assert run(tmp_path, program) == {'hiddenCalls': 0, 'calls': 1, 'phase': 'offline', 'poll': True, 'paused': 'paused', 'pausedTimers': 0}
 
 

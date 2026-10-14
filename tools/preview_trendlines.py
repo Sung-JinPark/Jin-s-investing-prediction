@@ -211,7 +211,7 @@ def capture_preview(output: Path, *, research=False):
                 assert page.locator('[data-trend-bar]').count() == 63
                 assert page.locator('.trend-fixture').count() == (0 if research else 1)
                 if research:
-                    assert page.locator('[data-trend-research]').count() == 1
+                    assert page.locator('.trend-data-meta').count() == 1
                 assert page.evaluate('document.documentElement.scrollWidth <= innerWidth'), "body overflow"
                 linear_points = page.locator('[data-trend-projection]').first.get_attribute('points')
                 page.get_by_role('button', name='로그', exact=True).click()
@@ -236,7 +236,7 @@ def capture_preview(output: Path, *, research=False):
                 page.wait_for_function("document.querySelector('.skip-link').getBoundingClientRect().bottom < 0")
                 page.screenshot(path=str(output / f'trendlines__{width}.png'), full_page=True)
                 page.get_by_role('link', name='SOXX', exact=True).click()
-                assert page.locator('.trend-hold').count() == 1
+                assert page.locator('.trend-empty').count() == 1
                 assert page.locator('.trend-chart svg').count() == 0
                 assert not errors, errors
                 results.append({"width": width, "page_errors": errors, "period_counts": [63, 252, 756], "keyboard_and_pointer": True, "hold_without_chart": True, "overflow": False})

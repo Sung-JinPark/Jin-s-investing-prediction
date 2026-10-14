@@ -45,13 +45,21 @@ HOLD without its exact source. Collection attempts do not imply that every
 source succeeded: errors retain the last verified personal chart and are shown
 with its original acquisition date and current missing-session status.
 
-On the published page, enable the personal automatic connection once. The
-browser reads the companion at `http://127.0.0.1:8878`; it stores only the
-connection preference. Prices remain in memory and are not uploaded to GitHub,
-the public site, or another server. Turning the connection off stops polling.
-The browser may show its normal local/loopback-network permission prompt. Grant
-it for the intended website if you want the connection; denial leaves the
-public state and manual local-file import available.
+Opening the trendline page on the published website or the companion's local
+preview automatically checks `http://127.0.0.1:8878`. Select an asset to see its
+available price, date, chart and nearest upper and lower boundaries. There is
+no separate connection button or file-opening step. Source metadata is available
+under **자료 정보**. The distance percentages compare a boundary with the
+displayed observation price; they are not forecast probabilities.
+
+Prices remain in memory and are not uploaded to GitHub, the public site, or
+another server. The page does not store chart data or a connection preference
+in browser storage. Leaving the trendline page stops its polling, and a hidden
+page pauses checks until it becomes visible again. The browser may show its
+normal local/loopback-network permission prompt. Grant it for the intended
+website if you want the connection. If access is denied or the companion is
+unavailable, the page shows a loading or unavailable state, or retains the last
+validated chart with its original date when one has already been loaded.
 
 For foreground operation, or to start from existing files without an immediate
 acquisition:
@@ -118,14 +126,16 @@ python tools/refresh_private_trendlines.py --fetch --allow-rejected-rows
 python tools/run_private_trendlines.py --port 8878 --no-startup-refresh
 ```
 
-Open `http://127.0.0.1:8878/#future/trendlines/sk-hynix` and enable its personal
-connection. The companion schedules subsequent refreshes; a plain static HTTP
-server does not collect or refresh sources. The updater also writes
-`outputs/trendlines/private-research-view/sk-hynix.trendlines.json`, which the
-public site's **개인 연구 차트 열기** control reads locally using the browser's
-File API. File contents are held in memory; they are not uploaded or persisted.
-Reloading or resetting returns to the official public state. The local updater
-can be rerun after market close without changing the approved-source publisher.
+Open `http://127.0.0.1:8878/#future/trendlines/sk-hynix`; the page checks the
+companion automatically. The companion schedules subsequent refreshes; a plain
+static HTTP server does not collect or refresh sources. The updater also writes
+`outputs/trendlines/private-research-view/sk-hynix.trendlines.json` as a local
+transport file. The companion validates that file and serves it through its
+fixed read-only route. The browser hashes the exact payload before rendering
+and holds the resulting chart only in memory. Reloading begins with the
+official public state and checks for validated personal data again. The local
+updater can be rerun after market close without changing the approved-source
+publisher.
 
 An existing HTML capture is independently replayable:
 
