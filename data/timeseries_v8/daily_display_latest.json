@@ -1,6 +1,6 @@
 {
   "as_of": "2026-10-13",
-  "content_hash": "335cc02162e70a509e615167a028c0c876b5aea33e1304f044df4a2786e8aad6",
+  "content_hash": "a0fe0d407fbc8426ffc8fb94be8b4eb4af75529eb8089c47ccfc11768d0c2926",
   "daily": {
     "anchor": {
       "provisional": true,
@@ -21,7 +21,7 @@
         "series_id": "DTWEXBGS"
       }
     ],
-    "display_id": "tsv8-daily-c29c8bc4915e710adc183a24",
+    "display_id": "tsv8-daily-ccb944c4d65ed34feac2ba69",
     "display_only": true,
     "input_state": "provisional",
     "provisional_inputs": [
@@ -30,19 +30,12 @@
         "series_id": "NASDAQCOM",
         "source": "nasdaq_quote_api_comp",
         "value": 27204.38
-      },
-      {
-        "observation_time": "2026-10-13",
-        "series_id": "VIX",
-        "source": "cboe_delayed_quote",
-        "value": 15.27
       }
     ],
     "provisional_series": [
-      "NASDAQCOM",
-      "VIX"
+      "NASDAQCOM"
     ],
-    "row_knowledge_cutoff": "2026-10-13T23:00:38+00:00",
+    "row_knowledge_cutoff": "2026-10-14T01:18:06+00:00",
     "scoring_excluded": true
   },
   "display_state": "research_reference",
@@ -87,13 +80,13 @@
       "probability_up": 0.725
     }
   },
-  "knowledge_cutoff": "2026-10-14T00:26:39+00:00",
+  "knowledge_cutoff": "2026-10-14T02:45:47+00:00",
   "model_id": "shadow.mf_dfm_varx_calibrated_v8",
   "model_version": 8,
   "operational": {
     "freshness": [
       {
-        "age_hours": 0.44457032444444444,
+        "age_hours": 2.7634766533333335,
         "group": "NASDAQCOM",
         "limit_hours": 48.0,
         "observation_time": "2026-10-13",
@@ -101,15 +94,15 @@
         "status": "fresh"
       },
       {
-        "age_hours": 0.44457032444444444,
+        "age_hours": 2.7634766533333335,
         "group": "VIX",
         "limit_hours": 48.0,
         "observation_time": "2026-10-13",
-        "provisional": true,
+        "provisional": false,
         "status": "fresh"
       },
       {
-        "age_hours": 0.44457032444444444,
+        "age_hours": 2.7634766533333335,
         "group": "DGS2",
         "limit_hours": 48.0,
         "observation_time": "2026-10-13",
@@ -117,7 +110,7 @@
         "status": "fresh"
       },
       {
-        "age_hours": 0.44457032444444444,
+        "age_hours": 2.7634766533333335,
         "group": "DGS10",
         "limit_hours": 48.0,
         "observation_time": "2026-10-13",
@@ -125,7 +118,7 @@
         "status": "fresh"
       },
       {
-        "age_hours": 96.44457032444444,
+        "age_hours": 98.76347665333333,
         "group": "DTWEXBGS_or_DTWEXB",
         "limit_hours": 216.0,
         "observation_time": "2026-10-09",
