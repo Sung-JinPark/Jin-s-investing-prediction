@@ -13,7 +13,7 @@ from urllib.error import URLError
 
 import pytest
 
-from ai_fc.trendlines import contracts as C, research as R
+from ai_fc.trendlines import contracts as C, research as R, critical as K
 
 REPOSITORY = Path(__file__).resolve().parents[2]
 FETCHED = "2024-01-03T00:30:00+00:00"
@@ -25,7 +25,7 @@ def tool(tmp_path, monkeypatch):
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     checkout = tmp_path / "checkout"
-    for relative in (C.CONTRACT_RELATIVE, C.ASSET_REGISTRY_RELATIVE, C.SOURCE_POLICY_RELATIVE):
+    for relative in (C.CONTRACT_RELATIVE, C.ASSET_REGISTRY_RELATIVE, C.SOURCE_POLICY_RELATIVE, K.POLICY_RELATIVE):
         target = checkout / relative
         target.parent.mkdir(parents=True, exist_ok=True)
         shutil.copyfile(REPOSITORY / relative, target)
@@ -90,6 +90,7 @@ def test_private_output_outside_ignored_outputs_is_rejected_before_network(tool,
 
 @pytest.mark.parametrize("relative", ["data/contracts", "data/trendlines", "data/trendlines_research", "data/trendlines_research/raw",
                                       "data/trendlines_research_full", "data/trendlines_research_full/exports",
+                                      "data/trendlines_research_critical", "data/trendlines_research_critical/exports",
                                       "outputs/trendlines"])
 def test_nested_redirected_contract_and_research_destinations_are_rejected(tool, tmp_path, relative):
     output = tool.PROJECT / "outputs/private"
@@ -122,6 +123,11 @@ def test_raw_receipt_replay_never_calls_network_and_writes_only_private_outputs(
     assert source_bytes(tool.PROJECT) == before and request.raw.read_bytes() == raw
     originals = list((request.out / R.ROOT / "raw").glob("*.bin"))
     assert len(originals) == 1 and originals[0].read_bytes() == raw
+    assert result["critical"]["status"] == "ready"
+    core = K.decode_envelope(K.load_detail(request.out, "bitcoin", now=FETCHED))
+    assert core["reference_close"] == 102 and core["atr14"] is None
+    assert len(core["projection_sessions"]) == 30
+    assert all(not view["boundaries"] for views in core["analyses"].values() for view in views.values())
     assert tool.run(request)["changed"] is False
 
 
@@ -160,9 +166,37 @@ def test_full_calculation_failure_preserves_valid_current_export(tool, tmp_path,
     monkeypatch.setattr(tool.F, "refresh", failed_full)
     result = tool.run(request)
     assert result["full_history"]["status"] == "unavailable"
+    assert result["critical"]["status"] == "unavailable"
     assert result["independent_replay"]["ok"] is True
     current = R.decode_private_import(json.loads(Path(result["browser_import_file"]).read_text(encoding="utf-8")))
     assert len(current["bars"]) == 2 and current["official_forecast_write"] is False
+
+
+def test_critical_failure_preserves_verified_current_and_full_results(tool, tmp_path, monkeypatch):
+    request = options(tool, tmp_path)
+    monkeypatch.setattr(tool.F, "refresh", lambda *_args, **_kwargs: {"status": "ready", "changed": False})
+    def failed_critical(*_args, **_kwargs):
+        raise C.TrendlinesError("critical_numeric_replay_failed")
+    monkeypatch.setattr(tool.K, "refresh", failed_critical)
+    result = tool.run(request)
+    assert result["critical"]["status"] == "unavailable"
+    assert result["full_history"]["status"] == "ready"
+    assert result["independent_replay"]["ok"] is True
+    current = R.decode_private_import(json.loads(Path(result["browser_import_file"]).read_text(encoding="utf-8")))
+    assert len(current["bars"]) == 2 and current["official_forecast_write"] is False
+
+
+def test_source_corruption_during_critical_work_stops_delivery_publication(tool, tmp_path, monkeypatch):
+    request = options(tool, tmp_path)
+    monkeypatch.setattr(tool.F, "refresh", lambda *_args, **_kwargs: {"status": "ready", "changed": False})
+    def corrupted_critical(root, *_args, **_kwargs):
+        raw_path = next((root / R.ROOT / "raw").glob("*.bin"))
+        raw_path.write_bytes(raw_path.read_bytes() + b"corrupted disposable critical fixture")
+        raise C.TrendlinesError("critical_source_integrity_failed")
+    monkeypatch.setattr(tool.K, "refresh", corrupted_critical)
+    with pytest.raises(C.TrendlinesError, match="original-to-chart replay failed"):
+        tool.run(request)
+    assert not (request.out / "bitcoin.trendlines.json").exists()
 
 
 def test_source_corruption_during_full_work_stops_current_publication(tool, tmp_path, monkeypatch):

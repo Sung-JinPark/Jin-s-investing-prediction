@@ -100,6 +100,158 @@ process.stdout.write(JSON.stringify({minimumTick:m.ticks[0],unchanged:before===J
     assert out['smallPricePreserved'] == pytest.approx(20, abs=1e-6)
 
 
+@pytest.fixture
+def critical_ui_fixture(full_history_fixture):
+    """A disposable constant BTC zone with three non-overlapping confirmations."""
+    from ai_fc.trendlines import critical as K
+    current = copy.deepcopy(full_history_fixture['current'])
+    for bar in current['bars']:
+        bar.update(open=101.0, high=104.0, low=100.0, close=102.0)
+    current['intraday_quote'] = None
+    last = current['bars'][-1]
+    sessions = [{'offset': i, 'index': last['session_index'] + i,
+                 'session': (date.fromisoformat(last['session']) + timedelta(days=i)).isoformat()}
+                for i in range(1, 31)]
+    contacts = []
+    for bar in (current['bars'][-50], current['bars'][-30], current['bars'][-10]):
+        contacts.append({'index': bar['session_index'], 'session': bar['session'], 'price': bar['low'],
+                         'bar_id': bar['bar_id'], 'confirmed_at': current['as_of'],
+                         'confirmation_session': current['bars'][current['bars'].index(bar) + 3]['session'],
+                         'confirmation_start_index': bar['session_index'] - 3,
+                         'confirmation_end_index': bar['session_index'] + 3})
+    analyses = {}
+    for axis in ('linear', 'log'):
+        line_id = 'critical-zone-' + hashlib.sha256(axis.encode()).hexdigest()[:32]
+        anchor = lambda c: {key: c[key] for key in ('index', 'session', 'price', 'bar_id')}
+        line = {'boundary_id': line_id, 'line_id': line_id, 'kind': 'horizontal_zone', 'role': 'support',
+                'axis': axis, 'slope': 0.0, 'intercept': math.log(100) if axis == 'log' else 100.0,
+                'coordinate_origin_index': contacts[0]['index'], 'first_anchor': anchor(contacts[0]),
+                'second_anchor': anchor(contacts[1]), 'direction': 'horizontal', 'current_price': 100.0,
+                'structural_state': 'active', 'independent_contacts': contacts, 'contact_count': 3,
+                'latest_touch_index': contacts[-1]['index'], 'contact_error': 0.0,
+                'zone_low': 100.0, 'zone_high': 100.0, 'level': 100.0, 'center': 100.0,
+                'points': [{'index': c['index'], 'session': c['session'], 'price': 100.0, 'future': False}
+                           for c in contacts[:2]] + [{'index': last['session_index'], 'session': last['session'],
+                                                     'price': 100.0, 'future': False}]
+                          + [{**sessions[-1], 'price': 100.0, 'future': True}]}
+        analyses[axis] = {key: {'status': 'ready' if key in ('63', 'full') else 'no_verified_boundaries',
+                               'boundaries': [copy.deepcopy(line)] if key in ('63', 'full') else [],
+                               'parameters': {'left': 3, 'right': 3}, 'candidate_count': 9, 'eligible_count': 1,
+                               'rejection_counts': {}}
+                          for key in ('63', '252', '756', 'full')}
+    body = {'schema_version': 1, 'contract_id': 'trendlines_private_critical_v1', 'policy_version': 'critical_v1',
+            'policy_sha256': K.C.canonical_hash(K.POLICY), 'publication_scope': 'private_only',
+            'official_forecast_write': False, 'verified_source': False, 'historical_signals_available': False,
+            'rights_status': 'uncertified_research_source', 'source_context': 'user_authorized_public_html_research',
+            'as_of': current['as_of'], 'asset_id': current['asset_id'], 'snapshot_id': 'critical-snapshot-' + 'f' * 64,
+            'source_snapshot_id': current['snapshot_id'], 'source_engine_content_hash': current['source_snapshot_hash'],
+            'source_full_snapshot_id': full_history_fixture['manifest']['snapshot_id'],
+            'source_full_content_hash': 'a' * 64, 'full_manifest_payload_sha256': 'b' * 64,
+            'reference_close': last['close'], 'reference_index': last['session_index'],
+            'reference_session': last['session'], 'atr14': 4.0, 'projection_sessions': sessions, 'analyses': analyses}
+    return {'current': current, 'body': body}
+
+
+@pytest.mark.parametrize('problem', [None, 'two_contacts', 'overlapping_confirmation', 'later_confirmation',
+                                    'role', 'far_atr', 'far_percent', 'old_contact', 'point', 'source', 'asof',
+                                    'policy', 'approval', 'forecast', 'history', 'zone', 'duplicate_role', 'atr'])
+def test_critical_contract_rejects_invalid_selection_and_preserves_candles(tmp_path, critical_ui_fixture, problem):
+    f = copy.deepcopy(critical_ui_fixture)
+    body, current = f['body'], f['current']
+    line = body['analyses']['linear']['63']['boundaries'][0]
+    if problem == 'two_contacts':
+        line['independent_contacts'].pop(); line['contact_count'] = 2
+    elif problem == 'overlapping_confirmation':
+        line['independent_contacts'][1]['confirmation_start_index'] = line['independent_contacts'][0]['confirmation_end_index']
+    elif problem == 'later_confirmation': line['independent_contacts'][-1]['confirmation_end_index'] = body['reference_index'] + 1
+    elif problem == 'role': line['role'] = 'resistance'
+    elif problem == 'far_atr': line['intercept'] = line['current_price'] = 70
+    elif problem == 'far_percent': line['intercept'] = line['current_price'] = 80
+    elif problem == 'old_contact': line['latest_touch_index'] = body['reference_index'] - 64
+    elif problem == 'point': line['points'][0]['price'] += 1
+    elif problem == 'source': body['source_snapshot_id'] = 'research-snapshot-' + 'e' * 64
+    elif problem == 'asof': body['as_of'] = '2026-10-13T00:00:00Z'
+    elif problem == 'policy': body['policy_sha256'] = 'c' * 64
+    elif problem == 'approval': body['verified_source'] = True
+    elif problem == 'forecast': body['official_forecast_write'] = True
+    elif problem == 'history': body['historical_signals_available'] = True
+    elif problem == 'zone': line['zone_high'] = 99
+    elif problem == 'duplicate_role': body['analyses']['linear']['63']['boundaries'].append(copy.deepcopy(line))
+    elif problem == 'atr': body['atr14'] += 1
+    out = run(tmp_path, 'const f=' + json.dumps(f) + r''';
+const before=JSON.stringify(f.current);let rejected=false;try{validateTrendCritical(f.body,f.current);}catch(_){rejected=true;}
+TREND_CRITICAL_DETAILS.set(f.current.asset_id,f.body);const view=trendCriticalAnalysis(f.current,null,63,'linear');
+const m=trendCriticalPlotModel(f.current,view,f.current.bars.slice(-63),'linear',390);
+ process.stdout.write(JSON.stringify({rejected,lines:m.lines.length,bars:m.bars.length,reference:view.critical_reference,future:view.projection_sessions.length,unchanged:before===JSON.stringify(f.current)}));''')
+    assert out['rejected'] == (problem is not None)
+    assert out['lines'] == (0 if problem else 1)
+    assert out['bars'] == 63 and out['unchanged']
+    assert out['reference'] is not None if problem is None else out['reference'] is None
+    assert out['future'] == (30 if problem is None else 0)
+
+
+@pytest.mark.parametrize('axis,width', [('linear', 390), ('log', 390), ('linear', 1280), ('log', 1280)])
+def test_critical_line_hover_uses_equation_and_css_pixel_hit_width(tmp_path, critical_ui_fixture, axis, width):
+    f = critical_ui_fixture
+    out = run(tmp_path, 'const f=' + json.dumps(f) + ';const axis=' + json.dumps(axis) + ';const width=' + str(width) + r''';
+validateTrendCritical(f.body,f.current);TREND_CRITICAL_DETAILS.set(f.current.asset_id,f.body);
+const view=trendCriticalAnalysis(f.current,null,63,axis),m=trendPlotModel(f.current,view,f.current.bars.slice(-63),axis,width),line=m.lines[0],index=m.last-2;
+const sx=.5,sy=.5,x=m.x(index),y=m.y(trendLinePrice(line,index,axis));
+const hit=trendHoverAt(m,x,y,{sx,sy,scale:axis}),mouseInside=trendLineHit(m,x,y+5.9/sy,6,sx,sy),mouseOutside=trendLineHit(m,x,y+6.1/sy,6,sx,sy),touchInside=trendLineHit(m,x,y+11.9/sy,12,sx,sy),touchOutside=trendLineHit(m,x,y+12.1/sy,12,sx,sy);
+const future=trendHoverAt(m,m.x(m.last+3),y,{sx,sy,scale:axis}),svg=trendSvg(f.current,m,{label:'TEST FIXTURE',currency:'USD'},'expanded-test');
+process.stdout.write(JSON.stringify({kind:hit.kind,price:hit.row.price,close:hit.row.close,text:trendHoverText(hit,{currency:'USD'}),mouseInside:!!mouseInside,mouseOutside:!!mouseOutside,touchInside:!!touchInside,touchOutside:!!touchOutside,future,textFuture:trendHoverText(future,{currency:'USD'}),svg,unchanged:line.current_price===100}));''')
+    assert out['kind'] == 'line' and out['price'] == pytest.approx(100) and out['close'] == 102
+    assert '실제 종가' in out['text'] and '차이' in out['text'] and '가격대' in out['text']
+    assert out['mouseInside'] and not out['mouseOutside'] and out['touchInside'] and not out['touchOutside']
+    assert out['future']['kind'] == 'line' and out['future']['future'] and out['future']['row']['close'] is None
+    assert out['future']['row']['session'] == f['body']['projection_sessions'][2]['session']
+    assert '추세선 연장값' in out['textFuture'] and '실제 종가 없음' in out['textFuture']
+    assert 'stroke-width="1.1"' in out['svg'] and 'stroke-width="1"' in out['svg']
+    assert 'vector-effect="non-scaling-stroke"' in out['svg'] and 'expanded-test' in out['svg'] and out['unchanged']
+
+
+def test_critical_full_context_and_zoom_never_change_selection_or_fabricate_future_on_past_pan(tmp_path, critical_ui_fixture):
+    out = run(tmp_path, 'const f=' + json.dumps(critical_ui_fixture) + r''';
+TREND_CRITICAL_DETAILS.set(f.current.asset_id,f.body);const view=trendCriticalAnalysis(f.current,null,63,'linear'),before=JSON.stringify(view),context=trendFullViewport(f.current,view),empty=trendFullViewport(f.current,{critical:true,lines:[]});
+const state={factor:100,offset:0},rows=trendZoomViewport(f.current.bars,state),m=trendPlotModel(f.current,view,rows,'linear',390),right={factor:2,offset:999},rightRows=trendZoomViewport(f.current.bars,right),reset={factor:1,offset:45},all=trendZoomViewport(f.current.bars,reset);
+process.stdout.write(JSON.stringify({contextStart:context[0].session_index,expectedStart:view.lines[0].first_anchor.index-10,empty:empty.length,factor:state.factor,count:rows.length,first:rows[0].session_index,end:m.end,last:m.last,sourceLast:m.sourceLast,rightEnd:rightRows.at(-1).session_index,sourceEnd:f.current.bars.at(-1).session_index,resetCount:all.length,resetOffset:reset.offset,unchanged:JSON.stringify(view)===before}));''')
+    assert out['contextStart'] == out['expectedStart'] and out['empty'] == 100
+    assert out['factor'] == 5 and out['count'] == 20
+    assert out['end'] == out['last'] < out['sourceLast'] and out['rightEnd'] == out['sourceEnd']
+    assert out['resetCount'] == 100 and out['resetOffset'] == 0 and out['unchanged']
+
+
+def test_critical_keyboard_cycles_candles_and_lines_and_tooltip_accounts_for_toolbar(tmp_path, critical_ui_fixture):
+    out = run(tmp_path, 'const f=' + json.dumps(critical_ui_fixture) + r''';
+TREND_CRITICAL_DETAILS.set(f.current.asset_id,f.body);const asset={currency:'USD'},view=trendCriticalAnalysis(f.current,null,63,'linear'),m=trendPlotModel(f.current,view,f.current.bars.slice(-63),'linear',390);
+const nodes={},node=()=>({hidden:true,textContent:'',dataset:{},style:{},attrs:{},offsetWidth:180,offsetHeight:110,setAttribute(k,v){this.attrs[k]=v},addEventListener(k,v){this[k]=v}}),svg=node();svg.getBoundingClientRect=()=>({left:100,top:240,width:m.W,height:m.H});nodes.svg=svg;
+const host={getBoundingClientRect:()=>({left:100,top:200,width:m.W,height:m.H+40}),querySelector(key){return nodes[key]??(nodes[key]=node());},querySelectorAll:()=>[]};bindTrendChart(host,f.current,m,asset,'linear');let prevented=0;const key=k=>svg.keydown({key:k,preventDefault(){prevented++;}});
+svg.focus();const candle=nodes['[data-trend-tooltip]'].dataset.trendKind;key('ArrowUp');const line={kind:nodes['[data-trend-tooltip]'].dataset.trendKind,price:nodes['[data-trend-tooltip-price]'].textContent};key('ArrowLeft');const earlier=nodes['[data-trend-tooltip-date]'].textContent;key('ArrowDown');const restored={kind:nodes['[data-trend-tooltip]'].dataset.trendKind,price:nodes['[data-trend-tooltip-price]'].textContent};
+svg.pointermove({clientX:100+m.x(m.last-2),clientY:240+m.y(100),pointerType:'mouse'});const top=parseFloat(nodes['[data-trend-tooltip]'].style.top),expected=40+Math.max(4,Math.min(m.H-114,m.y(100)-55));
+process.stdout.write(JSON.stringify({candle,line,earlier,expectedEarlier:f.current.bars.at(-2).session,restored,top,expected,prevented}));''')
+    assert out['candle'] == 'bar' and out['line'] == {'kind': 'line', 'price': '100달러'}
+    assert out['earlier'] == out['expectedEarlier'] and out['restored'] == {'kind': 'bar', 'price': '102달러'}
+    assert out['top'] == pytest.approx(out['expected']) and out['prevented'] == 3
+
+
+def test_critical_hit_ignores_line_segments_hidden_by_svg_clip(tmp_path):
+    out = run(tmp_path, r'''
+const m={L:0,R:0,T:0,B:0,W:100,H:100,x:x=>x,y:y=>y,lines:[{line_id:'hidden',points:[{index:0,price:-2},{index:100,price:-2}]}]};
+const hidden=trendLineHit(m,50,1,6),crossing=trendVisibleSegment(m,{x:0,y:-10},{x:100,y:40}),outside=trendVisibleSegment(m,{x:-10,y:50},{x:-2,y:50});
+process.stdout.write(JSON.stringify({hidden,crossing,outside}));''')
+    assert out['hidden'] is None and out['outside'] is None
+    assert out['crossing'] == [{'x': 20, 'y': 0}, {'x': 100, 'y': 40}]
+
+
+def test_future_label_requires_fifty_css_pixels_without_changing_extension_geometry(tmp_path, critical_ui_fixture):
+    out = run(tmp_path, 'const f=' + json.dumps(critical_ui_fixture) + r''';
+TREND_CRITICAL_DETAILS.set(f.current.asset_id,f.body);const analysis=trendCriticalAnalysis(f.current,null,63,'linear'),m=trendPlotModel(f.current,analysis,f.current.bars.slice(-63),'linear',390),before=JSON.stringify(m.lines);
+const svg=width=>trendSvg(f.current,{...m,cssWidth:width},{label:'TEST FIXTURE',currency:'USD'},'expanded-test'),wide=svg(390),narrow=svg(160),line=m.lines[0],last=line.points.at(-1),endpoint=`${m.x(last.index).toFixed(3)},${m.y(last.price).toFixed(3)}`;
+process.stdout.write(JSON.stringify({wideLabel:wide.includes('>선 연장</text>'),narrowLabel:narrow.includes('>선 연장</text>'),wideProjection:wide.includes('data-trend-projection='),narrowProjection:narrow.includes('data-trend-projection='),sameEndpoint:wide.includes(endpoint)&&narrow.includes(endpoint),unchanged:before===JSON.stringify(m.lines)}));''')
+    assert out == {'wideLabel': True, 'narrowLabel': False, 'wideProjection': True,
+                   'narrowProjection': True, 'sameEndpoint': True, 'unchanged': True}
+
+
 @pytest.mark.parametrize('problem', ['ohlc', 'unit', 'order', 'point', 'equation', 'current', 'border', 'hold'])
 def test_invalid_price_or_line_fails_instead_of_clipping(problem, tmp_path):
     detail = fixture()['details']['sk-hynix']
@@ -798,10 +950,12 @@ for(const key of ['.trend-content','[data-trend-current-chart]','[data-trend-ful
 globalThis.el=html=>{rendered.outer=html;return {isConnected:true,querySelector:key=>pieces[key]??null,querySelectorAll:()=>[]}};globalThis.mount=()=>{};bindTrendChart=()=>{};TREND_LOCAL_ENABLED=false;
 renderTrendlinePage({asset:'bitcoin'});stopTrendLocalSession();process.stdout.write(JSON.stringify({body:pieces['.trend-content'].innerHTML,full:pieces['[data-trend-full-chart]'].innerHTML,current:pieces['[data-trend-current-chart]'].innerHTML,coverage:pieces['[data-trend-full-coverage]'].textContent,fullInsightCount:(pieces['[data-trend-full-insights]'].innerHTML.match(/data-trend-insight=/g)||[]).length,currentInsightCount:(pieces['[data-trend-insights]'].innerHTML.match(/data-trend-insight=/g)||[]).length,view:TREND_VIEW_OPTIONS.get('bitcoin')}));'''
     out = run(tmp_path, program)
-    earliest = min(line['first_anchor']['index'] for line in full_history_fixture['manifest']['analyses']['linear']['full']['lines'])
-    assert out['full'].count('data-trend-bar=') == 900 - earliest and out['current'].count('data-trend-bar=') == 63
+    # A missing critical read model keeps candles and cannot restore old candidate overlays.
+    earliest = 900 - 252
+    assert out['full'].count('data-trend-bar=') == 252 and out['current'].count('data-trend-bar=') == 63
+    assert 'data-trend-line=' not in out['full'] and 'data-trend-line=' not in out['current']
     assert '<svg' in out['full'] and '<svg' in out['current']
-    assert f'{900 - earliest}개 일봉' in out['coverage'] and full_history_fixture['bars'][earliest]['session'] in out['coverage']
+    assert '252개 일봉' in out['coverage'] and full_history_fixture['bars'][earliest]['session'] in out['coverage']
     assert out['fullInsightCount'] == out['currentInsightCount'] == 2
     assert out['view'] == {'period': 63, 'scale': 'linear', 'direction': 'all', 'fullScope': 'anchors'}
     assert '전체 추세선' in out['body'] and '현재 상·하방 추세선' in out['body']
@@ -823,8 +977,8 @@ buttons.find(row=>row.dataset.trendFullView==='anchors').onclick();const anchors
 renderTrendlinePage({asset:'bitcoin'});const restored=(pieces['[data-trend-full-chart]'].innerHTML.match(/data-trend-bar=/g)||[]).length;
 stopTrendLocalSession();process.stdout.write(JSON.stringify({initial,all,anchors,restored,allView,anchorView,unchanged:before===JSON.stringify({full,current:f.current}),sameCurrent:current===pieces['[data-trend-current-chart]'].innerHTML,allPressed:buttons[1].attrs['aria-pressed'],anchorPressed:buttons[0].attrs['aria-pressed'],body:pieces['.trend-content'].innerHTML}));'''
     out = run(tmp_path, program)
-    assert out['initial'] == (840 if initial_scope == 'anchors' else 900)
-    assert out['all'] == 900 and out['anchors'] == out['restored'] == 840
+    assert out['initial'] == (252 if initial_scope == 'anchors' else 900)
+    assert out['all'] == 900 and out['anchors'] == out['restored'] == 252
     assert out['allView'] == {'period': 63, 'scale': 'log', 'direction': 'rising', 'fullScope': 'all'}
     assert out['anchorView'] == {'period': 63, 'scale': 'log', 'direction': 'rising', 'fullScope': 'anchors'}
     assert out['unchanged'] and out['sameCurrent']

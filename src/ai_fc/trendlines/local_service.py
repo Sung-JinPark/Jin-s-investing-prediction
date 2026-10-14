@@ -167,7 +167,7 @@ class LocalTrendlinesService:
         self._claimed_slot = None
         self._pending = False
         self._preview_error = False
-        self._assets = {asset_id: {"last_attempt": None, "last_success": None, "error": None, "full_error": None,
+        self._assets = {asset_id: {"last_attempt": None, "last_success": None, "error": None, "full_error": None, "critical_error": None,
                                    "refreshing": False} for asset_id in ASSET_IDS}
         self._load_state()
 
@@ -200,13 +200,15 @@ class LocalTrendlinesService:
                     self._assets[asset_id]["error"] = "refresh_failed"
                 if row.get("full_error") == "full_refresh_failed":
                     self._assets[asset_id]["full_error"] = "full_refresh_failed"
+                if row.get("critical_error") == "critical_refresh_failed":
+                    self._assets[asset_id]["critical_error"] = "critical_refresh_failed"
         except (OSError, ValueError, KeyError, TypeError, AttributeError):
             return
 
     def _save_state(self):
         with self._lock:
             state = {"schema_version": 1, "contract_id": "trendlines_local_worker_state_v1",
-                     "assets": {asset_id: {key: row[key] for key in ("last_attempt", "last_success", "error", "full_error")}
+                     "assets": {asset_id: {key: row[key] for key in ("last_attempt", "last_success", "error", "full_error", "critical_error")}
                                 for asset_id, row in self._assets.items()}}
         raw = S.encode(state)
         if len(raw) > STATUS_BUDGET:
@@ -235,6 +237,29 @@ class LocalTrendlinesService:
         body = F.decode_envelope(envelope, expected_contract="trendlines_private_full_bars_v1")
         if body.get("asset_id") != asset_id or body.get("snapshot_id") != snapshot_id or body.get("chunk_index") != chunk_index:
             raise LocalServiceError("private_full_history_chunk_mismatch")
+        return S.encode(envelope)
+
+    def read_critical_detail(self, asset_id: str) -> bytes:
+        """Serve a verified selection without collecting or calculating on GET."""
+        from . import critical as K, full_history as F
+        _raw, current = self._read_asset_detail(asset_id)
+        envelope = K.load_detail(self.root, asset_id, now=self._now())
+        if envelope is None:
+            raise FileNotFoundError("private_critical_missing")
+        body = K.decode_envelope(envelope)
+        full_envelope = F.load_manifest(self.root, asset_id, now=self._now())
+        if full_envelope is None:
+            raise FileNotFoundError("private_critical_full_source_missing")
+        full = F.decode_envelope(full_envelope, expected_contract="trendlines_private_full_manifest_v1")
+        if (body.get("asset_id") != asset_id or body.get("source_snapshot_id") != current["snapshot_id"]
+                or body.get("source_full_snapshot_id") != full["snapshot_id"]
+                or full.get("source_snapshot_id") != current["snapshot_id"]
+                or body.get("as_of") != current["as_of"] or full.get("as_of") != current["as_of"]
+                or body.get("source_engine_content_hash") != current["source_snapshot_hash"]
+                or body.get("reference_session") != current["bars"][-1]["session"]
+                or body.get("reference_index") != current["bars"][-1]["session_index"]
+                or body.get("reference_close") != current["bars"][-1]["close"]):
+            raise LocalServiceError("private_critical_capture_mismatch")
         return S.encode(envelope)
 
     def _read_asset_detail(self, asset_id: str) -> tuple[bytes, dict[str, Any]]:
@@ -325,7 +350,8 @@ class LocalTrendlinesService:
                         self.read_asset_envelope(asset_id)
                         with self._lock:
                             self._assets[asset_id].update({"last_success": self._now().isoformat(), "error": None,
-                                "full_error": "full_refresh_failed" if report.get("full_history", {}).get("status") == "unavailable" else None})
+                                "full_error": "full_refresh_failed" if report.get("full_history", {}).get("status") == "unavailable" else None,
+                                "critical_error": "critical_refresh_failed" if report.get("critical", {}).get("status") == "unavailable" else None})
                     except Exception:
                         # Only this replaceable delivery file can be restored.
                         # Immutable source/archive history is never altered.
@@ -413,7 +439,8 @@ class LocalTrendlinesService:
             rows.append({"asset_id": asset_id, "status": status, "last_success": row["last_success"],
                          "last_attempt": row["last_attempt"], "source_asof": detail.get("as_of") if detail else None,
                          "observation_through": detail.get("observation_through") if detail else None,
-                         "stale": stale, "reason": failure, "error": row["error"], "full_error": row["full_error"], "next_refresh_kst": next_due})
+                         "stale": stale, "reason": failure, "error": row["error"], "full_error": row["full_error"],
+                         "critical_error": row["critical_error"], "next_refresh_kst": next_due})
         rows.append({"asset_id": "mag7", "status": "hold", "last_success": None, "last_attempt": None,
                      "source_asof": None, "observation_through": None, "stale": False,
                      "reason": "source_instrument_unavailable", "error": None, "next_refresh_kst": next_due})
@@ -490,6 +517,8 @@ def make_http_server(service: LocalTrendlinesService, *, host: str = HOST, port:
                 return self.path
             if self.path in {"/api/private-trendlines/" + asset_id for asset_id in ASSET_IDS}:
                 return self.path
+            if self.path in {"/api/private-trendlines/" + asset_id + "/critical" for asset_id in ASSET_IDS}:
+                return self.path
             prefix = "/api/private-trendlines/(" + "|".join(ASSET_IDS) + ")/full"
             if re.fullmatch(prefix, self.path) or re.fullmatch(prefix + r"/research-full-snapshot-[a-f0-9]{64}/bars/(?:0|[1-7])", self.path):
                 return self.path
@@ -504,6 +533,8 @@ def make_http_server(service: LocalTrendlinesService, *, host: str = HOST, port:
             try:
                 if route == "/api/private-trendlines/status":
                     return self._reply(200, S.encode(service.status()))
+                if route.endswith("/critical"):
+                    return self._reply(200, service.read_critical_detail(route.split("/")[3]))
                 if route.endswith("/full"):
                     return self._reply(200, service.read_full_manifest(route.split("/")[3]))
                 if "/full/" in route:
