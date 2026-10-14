@@ -574,6 +574,134 @@ process.stdout.write(JSON.stringify({count:d.bars.length,current:current.bars.le
     assert out['first'] == fixture['bars'][0]['session']
 
 
+@pytest.mark.parametrize('scale', ['linear', 'log'])
+def test_full_viewport_starts_at_earliest_visible_anchor_without_changing_source_or_prices(tmp_path, full_history_fixture, scale):
+    f = full_history_fixture
+    analysis = f['manifest']['analyses'][scale]['full']
+    first_index = min(line['first_anchor']['index'] for line in analysis['lines'])
+    expected = [row for row in f['bars'] if row['session_index'] >= first_index]
+    out = run(tmp_path, 'const f=' + json.dumps(f) + ';const scale=' + json.dumps(scale) + r''';
+const d=buildTrendFullDetail(f.manifest,f.bars,f.current),before=JSON.stringify(d),analysis=d.analyses[scale].full;
+const selected=trendFullViewport(d,analysis),all=trendFullViewport(d,analysis,'all'),m=trendPlotModel(d,analysis,selected,scale,390);
+const svg=trendSvg(d,m,{label:'TEST FIXTURE',currency:'USD',price_unit:'USD_per_BTC'},'full');
+process.stdout.write(JSON.stringify({bars:selected,allCount:all.length,first:m.first,barCount:(svg.match(/data-trend-bar=/g)||[]).length,
+  allInput:before===JSON.stringify(d),sameAnalysis:m.analysis===analysis,sameLineObjects:m.lines===analysis.lines,sourceCount:d.bar_count,
+  anchors:analysis.lines.every(line=>line.first_anchor.index>=m.first),current:analysis.lines.map(line=>({id:line.line_id,price:line.current_price})),
+  last:selected.at(-1),points:m.lines.map(line=>line.points)}));''')
+    assert out['bars'] == expected
+    assert out['allCount'] == out['sourceCount'] == len(f['bars'])
+    assert out['first'] == first_index and out['barCount'] == len(expected)
+    assert out['allInput'] and out['sameAnalysis'] and out['sameLineObjects'] and out['anchors']
+    assert out['last'] == f['bars'][-1]
+    assert out['current'] == [{'id': line['line_id'], 'price': line['current_price']} for line in analysis['lines']]
+    # The existing full-detail decoder independently evaluates log equations;
+    # viewport selection must retain those validated point objects exactly.
+    for actual_points, line in zip(out['points'], analysis['lines'], strict=True):
+        for actual, expected_point in zip(actual_points, line['points'], strict=True):
+            assert {key: value for key, value in actual.items() if key != 'price'} == {
+                key: value for key, value in expected_point.items() if key != 'price'}
+            assert actual['price'] == pytest.approx(expected_point['price'], abs=1e-6, rel=1e-10)
+
+
+def test_full_viewport_without_displayed_lines_falls_back_to_all_captured_candles(tmp_path, full_history_fixture):
+    out = run(tmp_path, 'const f=' + json.dumps(full_history_fixture) + r''';
+const d=buildTrendFullDetail(f.manifest,f.bars,f.current),before=JSON.stringify(d),empty={...d.analyses.linear.full,lines:[]};
+const rows=trendFullViewport(d,empty),all=trendFullViewport(d,empty,'all');
+process.stdout.write(JSON.stringify({rows,all,unchanged:before===JSON.stringify(d)}));''')
+    assert out['rows'] == out['all'] == full_history_fixture['bars']
+    assert out['unchanged']
+
+
+@pytest.mark.parametrize('asset,unit', [
+    ({'currency': 'KRW', 'price_unit': 'KRW_per_share'}, '원'),
+    ({'currency': 'USD', 'price_unit': 'USD_per_share'}, '달러'),
+    ({'currency': 'USD', 'price_unit': 'index_points'}, ' pt'),
+])
+@pytest.mark.parametrize('width', [390, 1280])
+def test_hover_uses_observed_daily_close_and_native_price_unit(tmp_path, asset, unit, width):
+    detail = research_detail_fixture()
+    expected = detail['bars'][-8]
+    out = run(tmp_path, 'const d=' + json.dumps(detail) + ';const asset=' + json.dumps(asset) + ';const width=' + str(width) + r''';
+const before=JSON.stringify(d),m=trendChartModel(d,63,'linear',width),row=m.bars.at(-8),hit=trendHoverAt(m,m.x(row.session_index),m.y(row.close));
+process.stdout.write(JSON.stringify({kind:hit.kind,row:hit.row,text:trendHoverText(hit,asset),expected:trendPrice(row.close,asset),unchanged:before===JSON.stringify(d)}));''')
+    assert out['kind'] == 'bar' and out['row'] == expected
+    assert expected['session'] in out['text'] and out['expected'] in out['text']
+    assert '종가' in out['text'] and unit in out['text'] and out['unchanged']
+    if unit == ' pt':
+        assert '달러' not in out['text']
+
+
+def test_hover_quote_requires_actual_marker_hit_and_preserves_daily_close(tmp_path):
+    detail = research_detail_fixture()
+    out = run(tmp_path, 'const d=' + json.dumps(detail) + r''';
+const before=JSON.stringify(d),asset={currency:'KRW',price_unit:'KRW_per_share'},m=trendChartModel(d,63,'linear',390),quote=m.quote,last=m.bars.at(-1);
+const hit=trendHoverAt(m,m.x(quote.session_index),m.y(quote.price)),bar=trendHoverAt(m,m.x(last.session_index),m.H-m.B-3);
+process.stdout.write(JSON.stringify({quote:hit,quoteText:trendHoverText(hit,asset),expected:trendPrice(quote.price,asset),bar:bar,barText:trendHoverText(bar,asset),unchanged:before===JSON.stringify(d)}));''')
+    assert out['quote']['kind'] == 'quote' and out['quote']['row'] == detail['intraday_quote']
+    assert detail['intraday_quote']['date'] in out['quoteText'] and out['expected'] in out['quoteText']
+    assert '장중' in out['quoteText'] and '종가 아님' in out['quoteText']
+    assert out['bar']['kind'] == 'bar' and out['bar']['row'] == detail['bars'][-1]
+    assert '종가' in out['barText'] and '장중' not in out['barText'] and out['unchanged']
+
+
+def test_hover_missing_and_future_sessions_never_reuse_nearest_market_price(tmp_path):
+    detail = research_detail_fixture()
+    out = run(tmp_path, 'const d=' + json.dumps(detail) + r''';
+const before=JSON.stringify(d),asset={currency:'KRW',price_unit:'KRW_per_share'},m=trendChartModel(d,63,'linear',390),gap=m.gaps[0];
+const missing=trendHoverAt(m,m.x(gap.session_index),m.T+20),future=trendHoverAt(m,m.x(m.last+3),m.T+20);
+process.stdout.write(JSON.stringify({gap:missing,gapText:trendHoverText(missing,asset),future,futureText:trendHoverText(future,asset),unchanged:before===JSON.stringify(d)}));''')
+    assert out['gap']['kind'] == 'gap' and out['gap']['row'] == detail['gaps'][0]
+    assert detail['gaps'][0]['session'] in out['gapText'] and '미표시' in out['gapText']
+    assert out['future']['kind'] == 'future'
+    assert '선 연장' in out['futureText'] and '시세 없음' in out['futureText']
+    assert '원' not in out['futureText'] and '종가' not in out['futureText'] and out['unchanged']
+
+
+def test_hover_unlisted_historical_hole_and_plot_margins_do_not_snap_to_an_observed_price(tmp_path):
+    detail = research_detail_fixture()
+    missing = detail['bars'].pop(-5)
+    out = run(tmp_path, 'const d=' + json.dumps(detail) + ';const missing=' + json.dumps(missing) + r''';
+const m=trendChartModel(d,63,'log',390),hit=trendHoverAt(m,m.x(missing.session_index),m.T+20),asset={currency:'USD',price_unit:'index_points'};
+const margins=[[m.L-1,m.T+20],[m.W-m.R+1,m.T+20],[m.L+20,m.T-1],[m.L+20,m.H-m.B+1]].map(([x,y])=>trendHoverAt(m,x,y));
+process.stdout.write(JSON.stringify({kind:hit.kind,text:trendHoverText(hit,asset),row:hit.row,margins}));''')
+    assert out['kind'] == 'gap' and '미표시' in out['text']
+    assert ' pt' not in out['text'] and '종가' not in out['text']
+    assert out['margins'] == [None] * 4
+    assert out['row'] is None or all(key not in out['row'] for key in ('open', 'high', 'low', 'close', 'price'))
+
+
+@pytest.mark.parametrize('width', [390, 1280])
+def test_chart_local_tooltip_tracks_pointer_touch_and_keyboard_without_mutating_other_chart(tmp_path, width):
+    detail = research_detail_fixture()
+    out = run(tmp_path, 'const d=' + json.dumps(detail) + ';const width=' + str(width) + r''';
+const before=JSON.stringify(d),asset={currency:'KRW',price_unit:'KRW_per_share',label:'TEST FIXTURE'},m=trendChartModel(d,63,'linear',width);
+function chartHost(){const nodes={};const node=()=>({hidden:true,textContent:'',dataset:{},style:{},attrs:{},offsetWidth:180,offsetHeight:110,setAttribute(k,v){this.attrs[k]=v},addEventListener(k,v){this[k]=v}});
+const svg=node();svg.getBoundingClientRect=()=>({left:100,top:200,width:m.W,height:m.H});nodes.svg=svg;
+return {nodes,querySelector(key){return nodes[key]??(nodes[key]=node());}};}
+const host=chartHost(),other=chartHost();bindTrendChart(host,d,m,asset,'linear');bindTrendChart(other,d,m,asset,'linear');
+const tip=host.nodes['[data-trend-tooltip]'],svg=host.nodes.svg,row=m.bars.at(-8),event=index=>({clientX:100+m.x(index),clientY:200+m.y(row.close),pointerType:'mouse'});
+const initialHidden=tip.hidden&&other.nodes['[data-trend-tooltip]'].hidden;svg.pointermove(event(row.session_index));
+const pointer={hidden:tip.hidden,date:host.nodes['[data-trend-tooltip-date]'].textContent,price:host.nodes['[data-trend-tooltip-price]'].textContent,kind:tip.dataset.trendKind,readout:host.nodes['[data-trend-readout]'].textContent,reference:host.nodes['[data-trend-tooltip-current]'].textContent,left:parseFloat(tip.style.left),top:parseFloat(tip.style.top),cross:host.nodes['[data-trend-cross]'].attrs.visibility,horizontal:host.nodes['[data-trend-cross-price]'].attrs.visibility,otherHidden:other.nodes['[data-trend-tooltip]'].hidden};
+svg.pointerleave({pointerType:'mouse'});const leaveHidden=tip.hidden;svg.focus();const focusVisible=!tip.hidden;
+let prevented=0;svg.keydown({key:'ArrowLeft',preventDefault(){prevented++;}});const keyboard={date:host.nodes['[data-trend-tooltip-date]'].textContent,price:host.nodes['[data-trend-tooltip-price]'].textContent};
+svg.keydown({key:'Escape',preventDefault(){prevented++;}});const escapeHidden=tip.hidden;
+svg.pointerdown({clientX:100+m.x(m.quote.session_index),clientY:200+m.y(m.quote.price),pointerType:'touch'});svg.pointerleave({pointerType:'touch'});const touch={visible:!tip.hidden,kind:tip.dataset.trendKind,price:host.nodes['[data-trend-tooltip-price]'].textContent};svg.blur();
+const fullSvg=trendSvg(d,m,asset,'full'),currentSvg=trendSvg(d,m,asset,'current');
+process.stdout.write(JSON.stringify({initialHidden,pointer,leaveHidden,focusVisible,keyboard,escapeHidden,touch,blurHidden:tip.hidden,prevented,unchanged:before===JSON.stringify(d),separateIds:fullSvg.includes('id="trend-tooltip-sk-hynix-full"')&&currentSvg.includes('id="trend-tooltip-sk-hynix-current"'),expected:{pointer:trendPrice(row.close,asset),keyboard:trendPrice(m.bars.at(-9).close,asset),quote:trendPrice(m.quote.price,asset),reference:trendPrice(trendReference(d).price,asset)}}));''')
+    assert out['initialHidden'] and not out['pointer']['hidden'] and out['pointer']['otherHidden']
+    assert out['pointer']['date'] == detail['bars'][-8]['session']
+    assert out['pointer']['price'] == out['expected']['pointer'] and out['pointer']['kind'] == 'bar'
+    assert out['expected']['reference'] in out['pointer']['reference'] and '최근 관측' in out['pointer']['reference']
+    assert '종가' in out['pointer']['readout']
+    assert out['pointer']['cross'] == out['pointer']['horizontal'] == 'visible'
+    assert 4 <= out['pointer']['left'] <= width - 184 and 4 <= out['pointer']['top'] <= 330
+    assert out['leaveHidden'] and out['focusVisible'] and out['escapeHidden'] and out['blurHidden']
+    assert out['keyboard']['date'] == detail['bars'][-9]['session']
+    assert out['keyboard']['price'] == out['expected']['keyboard']
+    assert out['touch'] == {'visible': True, 'kind': 'quote', 'price': out['expected']['quote']}
+    assert out['prevented'] == 2 and out['unchanged'] and out['separateIds']
+
+
 @pytest.mark.parametrize('problem', ['wire', 'asset', 'snapshot', 'scope', 'source', 'count', 'pin', 'chunk_order',
                                     'chunk_width', 'chunk_hash', 'ohlc', 'overlap', 'anchor', 'window', 'point', 'projection', 'approved',
                                     'border_side', 'gap_metadata', 'unavailable_positive'])
@@ -670,12 +798,38 @@ for(const key of ['.trend-content','[data-trend-current-chart]','[data-trend-ful
 globalThis.el=html=>{rendered.outer=html;return {isConnected:true,querySelector:key=>pieces[key]??null,querySelectorAll:()=>[]}};globalThis.mount=()=>{};bindTrendChart=()=>{};TREND_LOCAL_ENABLED=false;
 renderTrendlinePage({asset:'bitcoin'});stopTrendLocalSession();process.stdout.write(JSON.stringify({body:pieces['.trend-content'].innerHTML,full:pieces['[data-trend-full-chart]'].innerHTML,current:pieces['[data-trend-current-chart]'].innerHTML,coverage:pieces['[data-trend-full-coverage]'].textContent,fullInsightCount:(pieces['[data-trend-full-insights]'].innerHTML.match(/data-trend-insight=/g)||[]).length,currentInsightCount:(pieces['[data-trend-insights]'].innerHTML.match(/data-trend-insight=/g)||[]).length,view:TREND_VIEW_OPTIONS.get('bitcoin')}));'''
     out = run(tmp_path, program)
-    assert out['full'].count('data-trend-bar=') == 900 and out['current'].count('data-trend-bar=') == 63
+    earliest = min(line['first_anchor']['index'] for line in full_history_fixture['manifest']['analyses']['linear']['full']['lines'])
+    assert out['full'].count('data-trend-bar=') == 900 - earliest and out['current'].count('data-trend-bar=') == 63
     assert '<svg' in out['full'] and '<svg' in out['current']
-    assert '900개 일봉' in out['coverage'] and full_history_fixture['bars'][0]['session'] in out['coverage']
+    assert f'{900 - earliest}개 일봉' in out['coverage'] and full_history_fixture['bars'][earliest]['session'] in out['coverage']
     assert out['fullInsightCount'] == out['currentInsightCount'] == 2
-    assert out['view'] == {'period': 63, 'scale': 'linear', 'direction': 'all'}
+    assert out['view'] == {'period': 63, 'scale': 'linear', 'direction': 'all', 'fullScope': 'anchors'}
     assert '전체 추세선' in out['body'] and '현재 상·하방 추세선' in out['body']
+
+
+@pytest.mark.parametrize('initial_scope', ['anchors', 'all'])
+def test_full_scope_toggle_restores_all_source_dates_and_persists_without_resetting_current_chart(tmp_path, full_history_fixture, initial_scope):
+    program = local_browser_stub() + 'const f=' + json.dumps(full_history_fixture) + ';const initialScope=' + json.dumps(initial_scope) + r''';
+const full=buildTrendFullDetail(f.manifest,f.bars,f.current),before=JSON.stringify({full,current:f.current});TREND_PRIVATE_DETAILS.set('bitcoin',f.current);TREND_FULL_DETAILS.set('bitcoin',full);
+globalThis.DATA={trendlines:{assets:[{asset_id:'bitcoin',label:'TEST FIXTURE',status:'hold',currency:'USD',price_unit:'USD_per_BTC'}]}};
+const box=()=>({innerHTML:'',textContent:'',clientWidth:390,querySelector(){return null}}),pieces={};
+for(const key of ['.trend-content','[data-trend-current-chart]','[data-trend-full-chart]','[data-trend-full-coverage]','[data-trend-full-insights]','[data-trend-full-line-details]','[data-trend-direction-controls]','[data-trend-insights]','[data-trend-line-details]'])pieces[key]=box();pieces['[data-trend-local-message]']=nodes['[data-trend-local-message]'];
+const buttons=['anchors','all'].map(value=>({dataset:{trendFullView:value},attrs:{},setAttribute(key,value){this.attrs[key]=value}}));
+globalThis.el=()=>({isConnected:true,querySelector:key=>pieces[key]??null,querySelectorAll:key=>key==='[data-trend-full-view]'?buttons:[]});globalThis.mount=()=>{};bindTrendChart=()=>{};TREND_LOCAL_ENABLED=false;
+TREND_VIEW_OPTIONS.set('bitcoin',{period:63,scale:'log',direction:'rising',fullScope:initialScope});
+renderTrendlinePage({asset:'bitcoin'});const initial=(pieces['[data-trend-full-chart]'].innerHTML.match(/data-trend-bar=/g)||[]).length,current=pieces['[data-trend-current-chart]'].innerHTML;
+buttons.find(row=>row.dataset.trendFullView==='all').onclick();const all=(pieces['[data-trend-full-chart]'].innerHTML.match(/data-trend-bar=/g)||[]).length,allView={...TREND_VIEW_OPTIONS.get('bitcoin')};
+buttons.find(row=>row.dataset.trendFullView==='anchors').onclick();const anchors=(pieces['[data-trend-full-chart]'].innerHTML.match(/data-trend-bar=/g)||[]).length,anchorView={...TREND_VIEW_OPTIONS.get('bitcoin')};
+renderTrendlinePage({asset:'bitcoin'});const restored=(pieces['[data-trend-full-chart]'].innerHTML.match(/data-trend-bar=/g)||[]).length;
+stopTrendLocalSession();process.stdout.write(JSON.stringify({initial,all,anchors,restored,allView,anchorView,unchanged:before===JSON.stringify({full,current:f.current}),sameCurrent:current===pieces['[data-trend-current-chart]'].innerHTML,allPressed:buttons[1].attrs['aria-pressed'],anchorPressed:buttons[0].attrs['aria-pressed'],body:pieces['.trend-content'].innerHTML}));'''
+    out = run(tmp_path, program)
+    assert out['initial'] == (840 if initial_scope == 'anchors' else 900)
+    assert out['all'] == 900 and out['anchors'] == out['restored'] == 840
+    assert out['allView'] == {'period': 63, 'scale': 'log', 'direction': 'rising', 'fullScope': 'all'}
+    assert out['anchorView'] == {'period': 63, 'scale': 'log', 'direction': 'rising', 'fullScope': 'anchors'}
+    assert out['unchanged'] and out['sameCurrent']
+    assert out['allPressed'] == 'false' and out['anchorPressed'] == 'true'
+    assert 'data-trend-full-view="anchors"' in out['body'] and 'data-trend-full-view="all"' in out['body']
 
 
 @pytest.mark.parametrize('raw', ['{"a":1,"a":2}', '{"a":1,"\\u0061":2}', '{"a":{"b":1,"b":2}}', '[{"a":1,"a":2}]', '{"a":[1,]}'])
