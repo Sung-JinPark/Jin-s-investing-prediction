@@ -1,55 +1,55 @@
 {
-  "as_of": "2026-10-14T01:17:27.707016+00:00",
+  "as_of": "2026-10-14T06:15:59.952885+00:00",
   "combined_with_existing_models": false,
-  "content_hash": "f07df91bdf32a18cc0de1c3089aa89c98d485e0627637f8fc7ce059a202394a1",
+  "content_hash": "604c3a44634a48b2c672ba42487fb7f3e5a2e856e73edbd7dc1a388d3e5d099f",
   "evidence": {
     "predictive_validation": "not_established",
     "research_only": true,
     "source_freshness": [
       {
-        "age_hours": 25.291308,
-        "available_at": "2026-10-13T03:59:59+00:00",
+        "age_hours": 6.266931,
+        "available_at": "2026-10-14T03:59:59+00:00",
         "group": "NASDAQCOM",
         "limit_hours": 48,
-        "observation_time": "2026-10-12",
+        "observation_time": "2026-10-13",
         "series_id": "NASDAQCOM",
         "status": "fresh"
       },
       {
-        "age_hours": 25.291308,
-        "available_at": "2026-10-13T03:59:59+00:00",
+        "age_hours": 6.266931,
+        "available_at": "2026-10-14T01:14:43.467030+00:00",
         "group": "VIX",
         "limit_hours": 48,
-        "observation_time": "2026-10-12",
+        "observation_time": "2026-10-13",
         "series_id": "VIXCLS",
         "status": "fresh"
       },
       {
-        "age_hours": 121.291308,
-        "available_at": "2026-10-10T03:59:59+00:00",
+        "age_hours": 102.266931,
+        "available_at": "2026-10-14T03:59:59+00:00",
         "group": "DGS2",
         "limit_hours": 48,
-        "observation_time": "2026-10-08",
+        "observation_time": "2026-10-09",
         "series_id": "DGS2",
         "status": "stale"
       },
       {
-        "age_hours": 97.291308,
-        "available_at": "2026-10-10T03:59:59+00:00",
+        "age_hours": 6.266931,
+        "available_at": "2026-10-14T03:59:59+00:00",
         "group": "curve",
         "limit_hours": 48,
-        "observation_time": "2026-10-09",
+        "observation_time": "2026-10-13",
         "series_id": "T10Y2Y",
-        "status": "stale"
+        "status": "fresh"
       },
       {
-        "age_hours": 265.291308,
-        "available_at": "2026-10-06T03:59:59+00:00",
+        "age_hours": 102.266931,
+        "available_at": "2026-10-14T03:59:59+00:00",
         "group": "dollar",
         "limit_hours": 216,
-        "observation_time": "2026-10-02",
+        "observation_time": "2026-10-09",
         "series_id": "DTWEXBGS",
-        "status": "stale"
+        "status": "fresh"
       }
     ],
     "strict_historical_pit": "not_established"
@@ -59,9 +59,7 @@
     "pass": false,
     "reasons": [
       "no independent daily6m forecast exists",
-      "required source DGS2 stale",
-      "required source curve stale",
-      "required source dollar stale"
+      "required source DGS2 stale"
     ]
   },
   "model_id": "research.nasdaq_daily6m_varx_v1",
