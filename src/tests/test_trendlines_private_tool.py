@@ -89,6 +89,7 @@ def test_private_output_outside_ignored_outputs_is_rejected_before_network(tool,
 
 
 @pytest.mark.parametrize("relative", ["data/contracts", "data/trendlines", "data/trendlines_research", "data/trendlines_research/raw",
+                                      "data/trendlines_research_full", "data/trendlines_research_full/exports",
                                       "outputs/trendlines"])
 def test_nested_redirected_contract_and_research_destinations_are_rejected(tool, tmp_path, relative):
     output = tool.PROJECT / "outputs/private"
@@ -150,3 +151,27 @@ def test_acquisition_error_never_creates_public_or_price_exports(tool, tmp_path,
         tool.run(request)
     assert source_bytes(tool.PROJECT) == before
     assert not (request.out / R.ROOT).exists() and not (request.out / "bitcoin.trendlines.json").exists()
+
+
+def test_full_calculation_failure_preserves_valid_current_export(tool, tmp_path, monkeypatch):
+    request = options(tool, tmp_path)
+    def failed_full(*_args, **_kwargs):
+        raise C.TrendlinesError("full_history_numeric_replay_failed")
+    monkeypatch.setattr(tool.F, "refresh", failed_full)
+    result = tool.run(request)
+    assert result["full_history"]["status"] == "unavailable"
+    assert result["independent_replay"]["ok"] is True
+    current = R.decode_private_import(json.loads(Path(result["browser_import_file"]).read_text(encoding="utf-8")))
+    assert len(current["bars"]) == 2 and current["official_forecast_write"] is False
+
+
+def test_source_corruption_during_full_work_stops_current_publication(tool, tmp_path, monkeypatch):
+    request = options(tool, tmp_path)
+    def corrupted_full(root, *_args, **_kwargs):
+        raw_path = next((root / R.ROOT / "raw").glob("*.bin"))
+        raw_path.write_bytes(raw_path.read_bytes() + b"corrupted disposable fixture")
+        raise C.TrendlinesError("full_history_source_integrity_failed")
+    monkeypatch.setattr(tool.F, "refresh", corrupted_full)
+    with pytest.raises(C.TrendlinesError, match="original-to-chart replay failed"):
+        tool.run(request)
+    assert not (request.out / "bitcoin.trendlines.json").exists()

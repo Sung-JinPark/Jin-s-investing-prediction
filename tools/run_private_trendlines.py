@@ -38,6 +38,9 @@ def run(options) -> None:
             raise
         logger.info("Private refresh %s", json.dumps({key: report.get(key) for key in
                     ("asset_id", "changed", "snapshot_id", "observation_through", "bars")}, ensure_ascii=False))
+        if report.get("full_history", {}).get("status") == "unavailable":
+            logger.warning("Full-series refresh unavailable for %s: %s", asset_id,
+                           report["full_history"].get("error", "full_refresh_failed"))
         return report
 
     def build_preview():

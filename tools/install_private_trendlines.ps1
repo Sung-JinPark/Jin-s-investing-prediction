@@ -13,6 +13,7 @@ param(
     [string]$PythonExecutable,
     [switch]$NoStart,
     [switch]$NoStartupRegistration,
+    [switch]$SkipStartupRefresh,
     [switch]$Disable
 )
 
@@ -63,13 +64,15 @@ if (-not (Test-Path -LiteralPath $pythonPath -PathType Leaf) -or
     -not (Test-Path -LiteralPath $pythonWindowless -PathType Leaf)) {
     throw 'An existing Python installation with python.exe and pythonw.exe is required.'
 }
-$arguments = '-u "' + $launcherPath + '" --out "' + $privateDirectory + '"'
+$baseArguments = '-u "' + $launcherPath + '" --out "' + $privateDirectory + '"'
+$arguments = $baseArguments
+if ($SkipStartupRefresh) { $arguments += ' --no-startup-refresh' }
 
 function Get-OwnedTask {
     $existing = Get-ScheduledTask -TaskName $taskName -ErrorAction SilentlyContinue
     if ($existing) {
         if ($existing.Actions.Count -ne 1 -or $existing.Actions[0].Execute -ne $pythonWindowless -or
-            $existing.Actions[0].Arguments -ne $arguments) {
+            $existing.Actions[0].Arguments -notin @($baseArguments, ($baseArguments + ' --no-startup-refresh'))) {
             throw 'A differently configured task already uses this name; it was left unchanged.'
         }
     }

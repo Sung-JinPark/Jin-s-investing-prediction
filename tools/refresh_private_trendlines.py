@@ -18,7 +18,7 @@ from urllib.request import Request, urlopen
 
 PROJECT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(PROJECT / "src"))
-from ai_fc.trendlines import contracts as C, research as R, storage as S
+from ai_fc.trendlines import contracts as C, research as R, storage as S, full_history as F
 
 
 def private_root(output: Path) -> Path:
@@ -31,6 +31,7 @@ def private_root(output: Path) -> Path:
     destinations = [C.CONTRACT_RELATIVE, C.ASSET_REGISTRY_RELATIVE, C.SOURCE_POLICY_RELATIVE,
                     R.ROOT, R.ROOT / "raw", R.ROOT / "receipts", R.ROOT / "snapshots",
                     R.ROOT / "failures", R.ROOT / "latest.json",
+                    F.ROOT, F.ROOT / "snapshots", F.ROOT / "exports", F.ROOT / "latest.json",
                     Path("outputs/trendlines/.writer.lock")]
     if any(not (output / path).resolve().is_relative_to(output) for path in destinations):
         raise C.TrendlinesError("private chart output contains a redirected data path")
@@ -77,11 +78,20 @@ def run(options) -> dict:
     if not audit["ok"]:
         raise C.TrendlinesError("private original-to-chart replay failed: " + "; ".join(audit["errors"]))
     exported = R.export_private_import(root, options.asset)
+    # A full-series failure is isolated from a valid current-range export.
+    # Source corruption still prevents publication at the final replay gate.
+    try:
+        full = F.refresh(root, options.asset, now=acquired)
+    except (OSError, ValueError, TypeError, KeyError) as exc:
+        full = {"status": "unavailable", "error": str(exc)[:256], "changed": False}
+    audit = R.verify(root, replay=True)
+    if not audit["ok"]:
+        raise C.TrendlinesError("private original-to-chart replay failed: " + "; ".join(audit["errors"]))
     destination = root / (options.asset + ".trendlines.json")
     S.atomic_json(destination, exported)
     return {**result, "publication_scope": "private_only", "public_prices_published": False,
             "independent_replay": audit, "browser_import_file": str(destination),
-            "import_file_bytes": destination.stat().st_size}
+            "import_file_bytes": destination.stat().st_size, "full_history": full}
 
 
 def main() -> None:
