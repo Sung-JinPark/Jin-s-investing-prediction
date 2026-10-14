@@ -1433,7 +1433,7 @@ def render_html(read_model: dict, mode: str = "embed") -> str:
     if mode == "pages":
         # 관리자 게이트 문구("토큰은 goatcounter.com 외 어디로도 전송되지 않습니다")를 실제로
         # 강제하는 장치가 CSP다. 스크립트는 자기 자신과 GoatCounter 카운터, 스타일·글꼴은
-        # jsDelivr(Wanted Sans), 네트워크는 자기 origin과 GoatCounter API로만 제한한다.
+        # jsDelivr(Wanted Sans), 네트워크는 자기 origin·GoatCounter·명시적으로 연결한 고정 로컬 읽기 서비스로 제한한다.
         # 자기완결 감사 HTML(embed)에는 넣지 않는다 — 외부 호스트명이 들어가면 안 된다.
         gc_host = f"https://{GOATCOUNTER_CODE}.goatcounter.com" if GOATCOUNTER_CODE else ""
         csp = "; ".join(filter(None, (
@@ -1442,7 +1442,7 @@ def render_html(read_model: dict, mode: str = "embed") -> str:
             "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net",
             "font-src https://cdn.jsdelivr.net data:",
             "img-src 'self' data: blob:" + (f" {gc_host}" if gc_host else ""),
-            "connect-src 'self'" + (f" {gc_host}" if gc_host else ""),
+            "connect-src 'self' http://127.0.0.1:8878" + (f" {gc_host}" if gc_host else ""),
             "manifest-src 'self'",
             "base-uri 'none'",
             "form-action 'none'",

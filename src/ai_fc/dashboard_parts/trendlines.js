@@ -27,15 +27,113 @@ async function ensureTrendlineData(assetId){
 }
 const TREND_ASSETS=[['sk-hynix','SK하이닉스'],['soxx','SOXX'],['nasdaq','나스닥 종합'],['sp500','S&P 500'],['bitcoin','비트코인'],['dow','다우존스'],['mag7','빅테크 7']];
 const TREND_PRIVATE_IDENTITIES={'sk-hynix':['KRX:000660','000660.KS','KRW','XKRX','KRW_per_share','Asia/Seoul','equity','exchange_close'],soxx:['NASDAQ:SOXX','SOXX','USD','XNAS','USD_per_share','America/New_York','etf','exchange_close'],nasdaq:['NASDAQ_COMPOSITE_PRICE_INDEX','^IXIC','USD','XNAS','index_points','America/New_York','index','exchange_close'],sp500:['SP500_PRICE_INDEX','^GSPC','USD','XNYS','index_points','America/New_York','index','exchange_close'],bitcoin:['BTC_USD_SPOT_SOURCE_MUST_BE_DECLARED','BTC-USD','USD','24/7','USD_per_BTC','UTC','crypto','UTC_00_00_next_day'],dow:['DOW_JONES_INDUSTRIAL_AVERAGE_PRICE_INDEX','^DJI','USD','XNYS','index_points','America/New_York','index','exchange_close']};
+const TREND_LOCAL_BASE='http://127.0.0.1:8878/api/private-trendlines/';
+const TREND_LOCAL_PREF_KEY='ai_fc.trendlines.local.v1';
+const TREND_IMPORT_TRANSPORT=Symbol('private_import_transport');
+const TREND_VIEW_OPTIONS=new Map(),TREND_PRIVATE_ORIGINS=new Map();
+let TREND_LOCAL_ENABLED=readTrendLocalPreference(),TREND_LOCAL_SESSION=null,TREND_LOCAL_EPOCH=0;
+function readTrendLocalPreference(){const localDefault=globalThis.location?.origin==='http://127.0.0.1:8878';try{const value=JSON.parse(localStorage.getItem(TREND_LOCAL_PREF_KEY)||'null');return value?.schema_version===1&&typeof value.enabled==='boolean'?value.enabled:localDefault;}catch(_){return localDefault;}}
+function setTrendLocalPreference(enabled){if(TREND_LOCAL_ENABLED===enabled)return;TREND_LOCAL_ENABLED=enabled;try{localStorage.setItem(TREND_LOCAL_PREF_KEY,JSON.stringify({schema_version:1,enabled}));}catch(_){} }
+function trendLocalVisible(){return typeof document==='undefined'||document.visibilityState!=='hidden';}
+function trendLocalCurrent(session,sequence=session.sequence){return TREND_LOCAL_SESSION===session&&session.epoch===TREND_LOCAL_EPOCH&&session.active&&session.root.isConnected&&sequence===session.sequence&&TREND_LOCAL_ENABLED;}
+function trendLocalKst(value){return value?new Intl.DateTimeFormat('ko-KR',{timeZone:'Asia/Seoul',dateStyle:'short',timeStyle:'medium'}).format(new Date(value)):'확인 대기';}
+function validateTrendLocalStatus(value,assetId){
+  const aware=value=>value===null||typeof value==='string'&&/(?:Z|[+-]\d{2}:\d{2})$/.test(value)&&Number.isFinite(Date.parse(value));
+  if(value?.schema_version!==1||value.contract_id!=='trendlines_local_status_v1'||value.publication_scope!=='private_only'||typeof value.running!=='boolean'||typeof value.refresh_in_progress!=='boolean'||!aware(value.next_refresh_kst)||!Array.isArray(value.assets)||value.assets.length!==7)throw new Error('로컬 갱신 상태를 확인하지 못했습니다');
+  const ids=new Set();
+  for(const row of value.assets){
+    if(!TREND_ASSETS.some(asset=>asset[0]===row?.asset_id)||ids.has(row.asset_id)||!['ready','stale','missing','hold','refreshing'].includes(row.status)||typeof row.stale!=='boolean'||!['last_success','last_attempt','source_asof','next_refresh_kst'].every(key=>aware(row[key]))||row.observation_through!==null&&!/^\d{4}-\d{2}-\d{2}$/.test(row.observation_through||'')||!['reason','error'].every(key=>row[key]===null||typeof row[key]==='string'&&row[key].length<=256))throw new Error('로컬 갱신 상태의 자산 기준이 올바르지 않습니다');
+    ids.add(row.asset_id);
+  }
+  if(ids.size!==7)throw new Error('로컬 갱신 상태의 자산이 누락됐습니다');
+  return value.assets.find(row=>row.asset_id===assetId);
+}
+async function readTrendLocalResponse(response,limit){
+  if(!response.ok)throw new Error(response.status===404?'이 자산의 로컬 자료를 준비하고 있습니다':'로컬 갱신 서비스가 응답하지 않습니다');
+  const stated=response.headers?.get('content-length');
+  if(stated!==null&&stated!==undefined&&(!/^\d+$/.test(stated)||Number(stated)>limit))throw new Error('로컬 응답이 크기 제한을 넘었습니다');
+  if(!response.body?.getReader){const raw=await response.text();if(new TextEncoder().encode(raw).length>limit)throw new Error('로컬 응답이 크기 제한을 넘었습니다');return raw;}
+  const reader=response.body.getReader(),decoder=new TextDecoder('utf-8',{fatal:true});let raw='',size=0;
+  try{while(true){const part=await reader.read();if(part.done)break;size+=part.value.byteLength;if(size>limit)throw new Error('로컬 응답이 크기 제한을 넘었습니다');raw+=decoder.decode(part.value,{stream:true});}return raw+decoder.decode();}catch(error){await reader.cancel().catch(()=>{});throw error;}
+}
+function assertTrendLocalRevision(current,incoming,status){
+  const stamp=value=>BigInt(Date.parse(value))*1000000n+BigInt((value.match(/\.(\d+)(?:Z|[+-]\d{2}:\d{2})$/)?.[1]||'').padEnd(9,'0').slice(3,9)||'0');
+  if(current&&stamp(incoming.as_of)<stamp(current.as_of)||status.source_asof&&stamp(incoming.as_of)<stamp(status.source_asof))throw new Error('이전 기준의 응답을 받아 마지막 정상 차트를 유지합니다');
+}
+function paintTrendLocalStatus(session){
+  const host=session.root.querySelector('[data-trend-local-message]');if(!host)return;
+  const detail=TREND_PRIVATE_DETAILS.get(session.assetId),source=detail?.as_of||session.row?.source_asof;
+  const labels={idle:'연결하면 이 PC의 개인 자료로 자동 갱신합니다',manual:'개인 파일 모드 · 자동갱신 연결 해제',disconnected:'로컬 연결 해제',checking:'로컬 갱신 상태 확인 중',connected:'로컬 자동갱신 연결됨',stale:'연결됨 · 최근 수집 보류',paused:'화면을 다시 열면 갱신을 확인합니다',offline:'로컬 자동갱신 연결을 확인해 주세요'};
+  host.textContent=[labels[session.phase]||labels.idle,session.problem,source?`자료 기준 ${trendLocalKst(source)}`:null,session.row?.next_refresh_kst?`다음 수집 ${trendLocalKst(session.row.next_refresh_kst)}`:null,detail&&['offline','disconnected','paused','stale'].includes(session.phase)?'마지막 정상 차트를 표시합니다':null].filter(Boolean).join(' · ');
+  host.classList.toggle('trend-local-warning',['offline','stale','disconnected'].includes(session.phase));
+  const connect=session.root.querySelector('[data-trend-local-connect]'),disconnect=session.root.querySelector('[data-trend-local-disconnect]');
+  if(connect){connect.textContent=TREND_LOCAL_ENABLED?'연결 다시 확인':'로컬 자동갱신 연결';connect.disabled=session.inflight!==null;connect.setAttribute('aria-pressed',String(TREND_LOCAL_ENABLED));}
+  if(disconnect)disconnect.hidden=!TREND_LOCAL_ENABLED;
+}
+function pauseTrendLocalSession(session){clearTimeout(session.timer);session.timer=null;session.sequence++;session.controller?.abort();}
+function stopTrendLocalSession(){const session=TREND_LOCAL_SESSION;if(!session)return;session.active=false;pauseTrendLocalSession(session);document.removeEventListener('visibilitychange',session.visibility);window.removeEventListener('pagehide',session.unload);TREND_LOCAL_SESSION=null;TREND_LOCAL_EPOCH++;}
+function scheduleTrendLocalRefresh(session,delay=60000){if(!trendLocalCurrent(session)||!trendLocalVisible())return;clearTimeout(session.timer);session.timer=setTimeout(()=>refreshTrendLocalSession(session),delay);}
+async function refreshTrendLocalSession(session){
+  if(!trendLocalCurrent(session)||!trendLocalVisible())return;
+  if(session.inflight!==null){session.resumePending=true;return session.inflight;}
+  const sequence=++session.sequence,controller=new AbortController();session.controller=controller;session.phase='checking';session.problem=null;
+  const deadline=setTimeout(()=>controller.abort(),8000),options={method:'GET',mode:'cors',credentials:'omit',cache:'no-store',redirect:'error',targetAddressSpace:'loopback',signal:controller.signal};
+  const pending=(async()=>{
+    const status=JSON.parse(await readTrendLocalResponse(await fetch(TREND_LOCAL_BASE+'status',options),32768));
+    if(!trendLocalCurrent(session,sequence))return;if(controller.signal.aborted)throw new DOMException('Aborted','AbortError');
+    const row=validateTrendLocalStatus(status,session.assetId);session.row=row;
+    if(!status.running)throw new Error('이 PC의 로컬 갱신 서비스를 실행해 주세요');
+    const raw=await readTrendLocalResponse(await fetch(TREND_LOCAL_BASE+session.assetId,options),524288),incoming=await parseTrendPrivateImport(raw,session.assetId);
+    if(!trendLocalCurrent(session,sequence))return;if(controller.signal.aborted)throw new DOMException('Aborted','AbortError');
+    const current=TREND_PRIVATE_DETAILS.get(session.assetId);assertTrendLocalRevision(current,incoming,row);
+    const changed=current?.content_hash!==incoming.content_hash;
+    TREND_PRIVATE_DETAILS.set(session.assetId,incoming);TREND_PRIVATE_ORIGINS.set(session.assetId,'local');
+    session.phase=row.stale||row.error?'stale':'connected';session.problem=row.error?'새 시세 수집을 보류해 마지막 정상 자료를 유지합니다':null;
+    if(changed)session.onData();
+  })().catch(error=>{
+    if(!trendLocalCurrent(session,sequence))return;
+    session.phase=trendLocalVisible()?'offline':'paused';session.problem=error instanceof TypeError||error.name==='AbortError'?'로컬 서비스 실행 또는 브라우저의 로컬 접근 허용을 확인해 주세요':String(error.message||'로컬 연결을 확인해 주세요');
+  }).finally(()=>{
+    clearTimeout(deadline);
+    if(session.inflight===pending)session.inflight=null;
+    if(!session.active||TREND_LOCAL_SESSION!==session)return;
+    paintTrendLocalStatus(session);const resume=session.resumePending;session.resumePending=false;scheduleTrendLocalRefresh(session,resume?0:60000);
+  });
+  session.inflight=pending;paintTrendLocalStatus(session);return pending;
+}
+function bindTrendLocalConnection(root,initial,reuse=null){
+  const assetId=initial.asset||'sk-hynix';if(!Object.hasOwn(TREND_PRIVATE_IDENTITIES,assetId))return null;
+  let session=reuse;
+  if(!session||session!==TREND_LOCAL_SESSION||!session.active){
+    stopTrendLocalSession();
+    session={assetId,initial,root,epoch:++TREND_LOCAL_EPOCH,active:true,sequence:0,inflight:null,controller:null,timer:null,row:null,problem:null,resumePending:false,phase:TREND_LOCAL_ENABLED?'checking':TREND_PRIVATE_ORIGINS.get(assetId)==='local'?'disconnected':TREND_PRIVATE_DETAILS.has(assetId)?'manual':'idle'};
+    TREND_LOCAL_SESSION=session;
+    session.visibility=()=>{if(!session.active||!TREND_LOCAL_ENABLED)return;if(!trendLocalVisible()){pauseTrendLocalSession(session);session.phase='paused';paintTrendLocalStatus(session);}else if(TREND_LOCAL_ENABLED)refreshTrendLocalSession(session);};
+    session.unload=()=>stopTrendLocalSession();document.addEventListener('visibilitychange',session.visibility);window.addEventListener('pagehide',session.unload);
+    Promise.resolve().then(()=>{if(TREND_LOCAL_ENABLED&&trendLocalCurrent(session))refreshTrendLocalSession(session);});
+  }
+  session.root=root;session.initial=initial;session.onData=()=>renderTrendlinePage(initial,null,session);
+  root.querySelector('[data-trend-local-connect]').addEventListener('click',()=>{setTrendLocalPreference(true);refreshTrendLocalSession(session);});
+  root.querySelector('[data-trend-local-disconnect]').addEventListener('click',()=>{setTrendLocalPreference(false);pauseTrendLocalSession(session);session.phase='disconnected';session.problem=null;paintTrendLocalStatus(session);});
+  paintTrendLocalStatus(session);return session;
+}
 async function parseTrendPrivateImport(raw,assetId){
   const encoder=new TextEncoder(),sha=/^[a-f0-9]{64}$/;
   if(typeof raw!=='string'||encoder.encode(raw).length>524288)throw new Error('개인 연구 파일이 512KiB 제한을 넘었습니다');
-  const envelope=JSON.parse(raw);
-  if(envelope?.schema_version!==1||envelope.contract_id!=='trendlines_private_import_v1'||envelope.publication_scope!=='private_only'||envelope.asset_id!==assetId||!Object.hasOwn(TREND_PRIVATE_IDENTITIES,assetId)||typeof envelope.payload_json!=='string'||!sha.test(envelope.payload_sha256||'')||encoder.encode(envelope.payload_json).length>262144)throw new Error('현재 자산의 개인 연구 파일 형식이 아닙니다');
+  const envelope=JSON.parse(raw),v1=envelope?.schema_version===1&&envelope.contract_id==='trendlines_private_import_v1',v2=envelope?.schema_version===2&&envelope.contract_id==='trendlines_private_import_v2';
+  if((!v1&&!v2)||envelope.publication_scope!=='private_only'||envelope.asset_id!==assetId||!Object.hasOwn(TREND_PRIVATE_IDENTITIES,assetId)||typeof envelope.payload_json!=='string'||!sha.test(envelope.payload_sha256||'')||encoder.encode(envelope.payload_json).length>262144)throw new Error('현재 자산의 개인 연구 파일 형식이 아닙니다');
   if(!globalThis.crypto?.subtle)throw new Error('이 브라우저에서 파일의 무결성을 확인할 수 없습니다');
   const digest=await crypto.subtle.digest('SHA-256',encoder.encode(envelope.payload_json)),hash=[...new Uint8Array(digest)].map(value=>value.toString(16).padStart(2,'0')).join('');
   if(hash!==envelope.payload_sha256)throw new Error('개인 연구 파일 내용이 저장된 검수 기준과 다릅니다');
-  const detail=JSON.parse(envelope.payload_json),identity=TREND_PRIVATE_IDENTITIES[assetId],asset=detail?.asset;
+  const detail=JSON.parse(envelope.payload_json),identity=TREND_PRIVATE_IDENTITIES[assetId];let originalHash=hash;
+  if(v2){
+    const packed=detail?.bars_packed,columns=['session','session_index','open','high','low','close','bar_id'];
+    const prefix=packed&&Object.hasOwn(packed,'bar_id_prefix'),keys=prefix?'bar_id_prefix,columns,rows':'columns,rows';
+    if(typeof envelope.original_detail_sha256!=='string'||!sha.test(envelope.original_detail_sha256)||detail?.original_detail_sha256!==envelope.original_detail_sha256||Object.hasOwn(detail,'bars')||Object.hasOwn(detail,'content_hash')||!packed||Array.isArray(packed)||Object.keys(packed).sort().join(',')!==keys||prefix&&packed.bar_id_prefix!=='research-bar-'||!Array.isArray(packed.columns)||packed.columns.length!==columns.length||packed.columns.some((name,index)=>name!==columns[index])||!Array.isArray(packed.rows)||packed.rows.length>756||packed.rows.some(row=>!Array.isArray(row)||row.length!==columns.length||prefix&&(typeof row[6]!=='string'||!sha.test(row[6]))))throw new Error('압축된 개인 연구 파일의 일봉 기준이 올바르지 않습니다');
+    detail.bars=packed.rows.map(row=>Object.fromEntries(columns.map((key,index)=>[key,prefix&&index===6?packed.bar_id_prefix+row[index]:row[index]])));
+    originalHash=envelope.original_detail_sha256;delete detail.bars_packed;delete detail.original_detail_sha256;
+  }else if(Object.hasOwn(detail||{},'bars_packed')||Object.hasOwn(detail||{},'original_detail_sha256'))throw new Error('개인 연구 파일의 전송 형식이 올바르지 않습니다');
+  const asset=detail?.asset;
   if(!detail||Object.hasOwn(detail,'content_hash')||detail.asset_id!==assetId||detail.snapshot_id!==envelope.snapshot_id||detail.status!=='unverified_display'||detail.publication_scope!=='private_only'||!/^research-snapshot-[a-f0-9]{64}$/.test(detail.snapshot_id||'')||!/^research-receipt-[a-f0-9]{64}$/.test(detail.receipt_id||'')||!sha.test(detail.raw_sha256||'')||!sha.test(detail.research_archive_sha256||'')||!sha.test(detail.source_snapshot_hash||'')||asset?.asset_id!==assetId||asset.identity!==identity[0]||asset.provider_symbol!==identity[1]||asset.currency!==identity[2]||asset.calendar_id!==identity[3]||detail.source_identity?.source_id!=='yahoo_public_history_html'||detail.source_identity?.provider_symbol!==identity[1]||detail.source_identity?.calendar_id!==identity[3])throw new Error('개인 연구 파일의 자산 또는 원문 근거가 올바르지 않습니다');
   const source=trendSourceUrl(detail.source_url),sourceUrl=source?new URL(source):null;
   const secrets=new Set(['api_key','apikey','api-key','key','token','access_token','accesstoken','api_token','secret','client_secret','password','registrationkey','user_id','userid','authorization']);
@@ -43,7 +141,8 @@ async function parseTrendPrivateImport(raw,assetId){
   const aware=value=>typeof value==='string'&&/(?:Z|[+-]\d{2}:\d{2})$/.test(value)&&Number.isFinite(Date.parse(value));
   if(!aware(detail.as_of)||!aware(detail.knowledge_cutoff)||!aware(detail.retrieved_at)||Date.parse(detail.knowledge_cutoff)!==Date.parse(detail.as_of)||Date.parse(detail.retrieved_at)>Date.parse(detail.as_of)||Date.parse(detail.as_of)>Date.now())throw new Error('개인 연구 파일의 기준 시각이 올바르지 않습니다');
   if(detail.intraday_quote&&(!aware(detail.intraday_quote.observed_at)||!aware(detail.intraday_quote.retrieved_at)||Date.parse(detail.intraday_quote.observed_at)>Date.parse(detail.intraday_quote.retrieved_at)||Date.parse(detail.intraday_quote.retrieved_at)>Date.parse(detail.as_of)||detail.intraday_quote.currency!==identity[2]||!Number.isInteger(detail.intraday_quote.session_index)||trendSourceUrl(detail.intraday_quote.source_url)!==source))throw new Error('개인 연구 파일의 별도 관측 근거가 올바르지 않습니다');
-  detail.content_hash=hash;
+  detail.content_hash=originalHash;
+  Object.defineProperty(detail,TREND_IMPORT_TRANSPORT,{value:{schema_version:envelope.schema_version,payload_sha256:hash,original_detail_sha256:originalHash},enumerable:false});
   trendValidateDetail(detail);
   if(detail.bars.length>756||detail.observation_through!==(detail.bars.at(-1).session||detail.bars.at(-1).session_date)||detail.quality?.latest_completed_observation!==detail.observation_through||detail.bars.some(bar=>!/^research-bar-[a-f0-9]{64}$/.test(bar.bar_id||'')))throw new Error('개인 연구 파일의 일봉 기준이 올바르지 않습니다');
   if(asset.unit!==identity[4]||asset.timezone!==identity[5]||asset.kind!==identity[6]||asset.source_day_cutoff!==identity[7]||asset.source_id!=='yahoo_public_history_html')throw new Error('개인 연구 파일의 가격 단위 또는 세션 기준이 올바르지 않습니다');
@@ -79,8 +178,8 @@ async function parseTrendPrivateImport(raw,assetId){
 function bindTrendPrivateImport(root,initial){
   const input=root.querySelector('[data-trend-private-file]'),button=root.querySelector('[data-trend-private-open]'),message=root.querySelector('[data-trend-private-message]'),assetId=initial.asset||'sk-hynix';
   button.addEventListener('click',()=>input.click());
-  input.addEventListener('change',async()=>{const file=input.files?.[0];if(!file)return;button.disabled=true;message.textContent='개인 연구 파일을 확인하고 있습니다';try{if(file.size>524288)throw new Error('개인 연구 파일이 512KiB 제한을 넘었습니다');const detail=await parseTrendPrivateImport(await file.text(),assetId);if(!root.isConnected)return;TREND_PRIVATE_DETAILS.set(assetId,detail);globalThis.TrendlineUI.cleanup();renderTrendlinePage(initial);}catch(error){message.textContent=String(error.message||'개인 연구 파일을 읽지 못했습니다');}finally{button.disabled=false;input.value='';}});
-  root.querySelector('[data-trend-private-clear]')?.addEventListener('click',()=>{TREND_PRIVATE_DETAILS.delete(assetId);globalThis.TrendlineUI.cleanup();renderTrendlinePage(initial);});
+  input.addEventListener('change',async()=>{const file=input.files?.[0];if(!file)return;button.disabled=true;message.textContent='개인 연구 파일을 확인하고 있습니다';try{if(file.size>524288)throw new Error('개인 연구 파일이 512KiB 제한을 넘었습니다');const detail=await parseTrendPrivateImport(await file.text(),assetId);if(!root.isConnected)return;setTrendLocalPreference(false);TREND_PRIVATE_DETAILS.set(assetId,detail);TREND_PRIVATE_ORIGINS.set(assetId,'manual');globalThis.TrendlineUI.cleanup();renderTrendlinePage(initial);}catch(error){message.textContent=String(error.message||'개인 연구 파일을 읽지 못했습니다');}finally{button.disabled=false;input.value='';}});
+  root.querySelector('[data-trend-private-clear]')?.addEventListener('click',()=>{setTrendLocalPreference(false);TREND_PRIVATE_DETAILS.delete(assetId);TREND_PRIVATE_ORIGINS.delete(assetId);globalThis.TrendlineUI.cleanup();renderTrendlinePage(initial);});
 }
 const TREND_BASES={split_adjusted:'주식분할 조정 시세',split_adjusted_price:'주식분할 조정 시세',published_spot_price:'일별 현물 시세',published_price_index:'공식 가격 지수',provider_reported_ohlc_current_vintage:'현재 공개된 일별 시세 이력'};
 const TREND_STATES={active:'유지',break_pending:'이탈 확인 중',broken:'이탈',reclaim_pending:'복귀 확인 중',reclaimed:'복귀',research_reference:'현재 자료로 그린 참고선'};
@@ -125,14 +224,16 @@ function trendValidateDetail(detail){
         lastIndex=point.index;
       }
       const expectedCurrent=trendLinePrice(line,detail.bars.at(-1).session_index,scale);
-      if(typeof line.current_price!=='number'||!Number.isFinite(line.current_price)||line.current_price<=0||Math.abs(line.current_price-expectedCurrent)>Math.max(1e-6,Math.abs(expectedCurrent)*1e-10))throw new Error('빗각선 기준일 가격이 계산과 다릅니다');
+      const available=Number.isFinite(expectedCurrent)&&expectedCurrent>0;
+      if(available?(typeof line.current_price!=='number'||!Number.isFinite(line.current_price)||line.current_price<=0||Math.abs(line.current_price-expectedCurrent)>Math.max(1e-6,Math.abs(expectedCurrent)*1e-10)):(line.current_price!==null||line.points.some(point=>point.index===detail.bars.at(-1).session_index)))throw new Error('빗각선 기준일 가격이 계산과 다릅니다');
     }
     for(const key of ['down','up','broken'])if(!Array.isArray(analysis.borders[key])||analysis.borders[key].some(row=>typeof row.price!=='number'||!Number.isFinite(row.price)||row.price<=0))throw new Error('가격 경계가 올바르지 않습니다');
-    for(const key of ['down','up','broken'])for(const row of analysis.borders[key]){const line=analysis.lines.find(line=>line.line_id===row.line_id);if(!line||Math.abs(row.price-line.current_price)>Math.max(1e-6,Math.abs(row.price)*1e-10))throw new Error('가격 경계가 빗각선과 다릅니다');}
+    for(const key of ['down','up','broken'])for(const row of analysis.borders[key]){const line=analysis.lines.find(line=>line.line_id===row.line_id);if(!line||typeof line.current_price!=='number'||!Number.isFinite(line.current_price)||line.current_price<=0||Math.abs(row.price-line.current_price)>Math.max(1e-6,Math.abs(row.price)*1e-10))throw new Error('가격 경계가 빗각선과 다릅니다');}
   }
   return detail;
 }
 function trendLinePrice(line,index,scale){const value=line.intercept+line.slope*(index-line.coordinate_origin_index);return scale==='log'?Math.exp(value):value;}
+function trendLineReadout(line,index,scale,asset){const price=trendLinePrice(line,index,scale);return `${line.side==='support'?'지지':'저항'} ${Number.isFinite(price)&&price>0?trendPrice(price,asset):'연장값 없음'}`;}
 function trendQuoteBorders(analysis,quote,scale){
   const rows=analysis.lines.map(line=>({...line,price:trendLinePrice(line,quote.session_index,scale)})).filter(row=>Number.isFinite(row.price)&&row.price>0);
   return {down:rows.filter(row=>row.price<=quote.price).sort((a,b)=>b.price-a.price||a.line_id.localeCompare(b.line_id)).slice(0,3),up:rows.filter(row=>row.price>quote.price).sort((a,b)=>a.price-b.price||a.line_id.localeCompare(b.line_id)).slice(0,3)};
@@ -172,7 +273,7 @@ function bindTrendChart(host,detail,m,asset,scale){
   const svg=host.querySelector('svg'),cross=host.querySelector('[data-trend-cross]'),readout=host.querySelector('[data-trend-readout]');
   const entries=[...m.bars.map(row=>({kind:'bar',row})),...m.gaps.map(row=>({kind:'gap',row})),...(m.quote?[{kind:'quote',row:m.quote}]:[])].sort((a,b)=>a.row.session_index-b.row.session_index||Number(a.kind==='quote')-Number(b.kind==='quote'));
   let selected=entries.findIndex(entry=>entry.kind==='bar'&&entry.row===m.bars.at(-1));
-  const paint=index=>{selected=Math.max(0,Math.min(entries.length-1,index));const {kind,row}=entries[selected];cross.setAttribute('x1',m.x(row.session_index));cross.setAttribute('x2',m.x(row.session_index));if(kind==='gap'){readout.textContent=`${row.session} · ${row.reason==='unfinished_session_not_a_final_candle'?'장중 관측은 일봉 종가로 사용하지 않습니다':'원천 결측 · 일봉 미표시'}`;return;}const lineRows=m.lines.slice(0,6).map(line=>`${line.side==='support'?'지지':'저항'} ${trendPrice(trendLinePrice(line,row.session_index,scale),asset)}`).join(' · ');readout.textContent=kind==='quote'?`${row.date} ${row.time||''} · 별도 장중 관측 ${trendPrice(row.price,asset)} · 일봉 종가 아님${lineRows?' | 해당 날짜의 선 연장: '+lineRows:''}`:`${row.session||row.session_date} · 시가 ${trendPrice(row.open,asset)} · 고가 ${trendPrice(row.high,asset)} · 저가 ${trendPrice(row.low,asset)} · 종가 ${trendPrice(row.close,asset)}${lineRows?' | '+lineRows:''}`;};
+  const paint=index=>{selected=Math.max(0,Math.min(entries.length-1,index));const {kind,row}=entries[selected];cross.setAttribute('x1',m.x(row.session_index));cross.setAttribute('x2',m.x(row.session_index));if(kind==='gap'){readout.textContent=`${row.session} · ${row.reason==='unfinished_session_not_a_final_candle'?'장중 관측은 일봉 종가로 사용하지 않습니다':'원천 결측 · 일봉 미표시'}`;return;}const lineRows=m.lines.slice(0,6).map(line=>trendLineReadout(line,row.session_index,scale,asset)).join(' · ');readout.textContent=kind==='quote'?`${row.date} ${row.time||''} · 별도 장중 관측 ${trendPrice(row.price,asset)} · 일봉 종가 아님${lineRows?' | 해당 날짜의 선 연장: '+lineRows:''}`:`${row.session||row.session_date} · 시가 ${trendPrice(row.open,asset)} · 고가 ${trendPrice(row.high,asset)} · 저가 ${trendPrice(row.low,asset)} · 종가 ${trendPrice(row.close,asset)}${lineRows?' | '+lineRows:''}`;};
   const pointer=event=>{const bounds=svg.getBoundingClientRect(),x=(event.clientX-bounds.left)/bounds.width*m.W,y=(event.clientY-bounds.top)/bounds.height*m.H,index=m.first+(x-m.L)/(m.W-m.L-m.R)*(m.end-m.first);let nearest=entries.reduce((best,entry,i)=>Math.abs(entry.row.session_index-index)<Math.abs(entries[best].row.session_index-index)?i:best,0);if(m.quote&&Math.abs(m.quote.session_index-index)<.5&&Math.abs(m.y(m.quote.price)-y)<20)nearest=entries.findIndex(entry=>entry.kind==='quote');paint(nearest);};
   svg.addEventListener('pointermove',pointer);svg.addEventListener('pointerdown',pointer);
   svg.addEventListener('focus',()=>paint(selected));
@@ -180,21 +281,23 @@ function bindTrendChart(host,detail,m,asset,scale){
   paint(selected);
 }
 let TRENDLINES_RESIZE=null;
-function renderTrendlinePage(initial={},loadState=null){
+function renderTrendlinePage(initial={},loadState=null,localSession=null){
+  if(localSession&&TRENDLINES_RESIZE){TRENDLINES_RESIZE.disconnect();TRENDLINES_RESIZE=null;}
   const assetId=initial?.asset||'sk-hynix',projection=DATA?.trendlines||{},officialAsset=projection.assets?.find(row=>row.asset_id===assetId),localDetail=TREND_PRIVATE_DETAILS.get(assetId),asset=localDetail?{...officialAsset,asset_id:assetId,label:TREND_ASSETS.find(row=>row[0]===assetId)?.[1],currency:localDetail.asset.currency,price_unit:localDetail.asset.unit,status:'unverified_display',last_session:localDetail.observation_through}:officialAsset,detail=localDetail||projection.details?.[assetId];
+  if(localDetail)loadState=null;
   const nav=TREND_ASSETS.map(([id,label])=>`<a href="#future/trendlines/${id}"${id===assetId?' aria-current="page"':''}>${esc(label)}</a>`).join('');
   const fixture=detail?.fixture_only===true?'<p class="trend-fixture" role="alert">검토용 가상 시세 · 실제 시장 분석이 아닙니다</p>':'';
-  const root=el(`<div class="trend-page"><header class="page-heading"><div><p class="eyebrow">미래 탐색 · 05</p><h1>상·하방 추세선</h1><p class="page-lede">실제 일봉의 고점·저점을 잇는 빗각선과 기준 종가 위·아래의 경계를 확인합니다.</p></div></header><nav class="trend-assets" aria-label="추세선 자산 선택">${nav}</nav>${Object.hasOwn(TREND_PRIVATE_IDENTITIES,assetId)?`<section class="trend-private-controls"><button type="button" data-trend-private-open>개인 연구 차트 열기</button>${localDetail?'<button type="button" data-trend-private-clear>개인 자료 지우기</button>':''}<span>파일은 이 브라우저에서만 읽습니다</span><input type="file" accept=".json,application/json" data-trend-private-file hidden><p data-trend-private-message role="status"></p></section>`:''}${fixture}<section class="trend-body"></section></div>`),body=root.querySelector('.trend-body');
-  if(root.querySelector('[data-trend-private-file]'))bindTrendPrivateImport(root,initial);
+  const root=el(`<div class="trend-page"><header class="page-heading"><div><p class="eyebrow">미래 탐색 · 05</p><h1>상·하방 추세선</h1><p class="page-lede">실제 일봉의 고점·저점을 잇는 빗각선과 기준 종가 위·아래의 경계를 확인합니다.</p></div></header><nav class="trend-assets" aria-label="추세선 자산 선택">${nav}</nav>${Object.hasOwn(TREND_PRIVATE_IDENTITIES,assetId)?`<section class="trend-local-controls"><div><button type="button" data-trend-local-connect aria-pressed="false">로컬 자동갱신 연결</button><button type="button" data-trend-local-disconnect hidden>연결 해제</button></div><p data-trend-local-message role="status"></p></section><section class="trend-private-controls"><button type="button" data-trend-private-open>개인 연구 차트 열기</button>${localDetail?'<button type="button" data-trend-private-clear>개인 자료 지우기</button>':''}<span>파일은 이 브라우저에서만 읽습니다</span><input type="file" accept=".json,application/json" data-trend-private-file hidden><p data-trend-private-message role="status"></p></section>`:''}${fixture}<section class="trend-body"></section></div>`),body=root.querySelector('.trend-body');
+  if(root.querySelector('[data-trend-private-file]')){bindTrendPrivateImport(root,initial);bindTrendLocalConnection(root,initial,localSession);}
   const held=!asset||!['ready','stale','unverified_display'].includes(asset.status)||!detail||!['ready','stale','unverified_display'].includes(detail.status);
   if(loadState||held){const error=loadState?.error,loading=loadState?.loading;body.innerHTML=`<div class="trend-hold" role="status"><span>${esc(asset?.label||'자산 확인')}</span><h2>${loading?'일봉과 빗각선을 불러오고 있습니다':error?'추세선을 불러오지 못했습니다':'추세선 확인 보류'}</h2><p>${esc(error?String(error.message||error):!asset?'요청한 자산을 찾을 수 없습니다. 위에서 자산을 선택해 주세요.':trendReasons(asset.reason_codes))}</p>${error?'<button type="button" data-trend-retry>다시 불러오기</button>':''}${asset?.last_session?`<small>확인된 마지막 시세 ${esc(asset.last_session)}</small>`:''}</div>`;mount(root);root.querySelector('[data-trend-retry]')?.addEventListener('click',()=>route());return;}
   try{trendValidateDetail(detail);}catch(error){renderTrendlinePage(initial,{error});return;}
-  let period=63,scale='linear';
+  const previousView=TREND_VIEW_OPTIONS.get(assetId);let period=previousView?.period||63,scale=previousView?.scale||'linear';
   const stale=asset.status==='stale',research=asset.status==='unverified_display';
   body.innerHTML=`${research?trendResearchMarkup(detail,asset):''}${stale?`<p class="trend-stale" role="status">마지막 검수: ${esc(asset.last_session)} · 갱신 보류<br><small>기준 종가와 당시 경계를 표시합니다. ${esc(trendReasons(asset.reason_codes))}</small></p>`:''}<div class="trend-title"><div><span>${esc(asset.last_session)} · ${research?'공개 일봉 종가':stale?'기준 종가':'마감 기준'}</span><h2>${esc(asset.label)}</h2></div><strong>${esc(trendPrice(detail.bars.at(-1).close,asset))}</strong></div><div class="trend-controls"><div role="group" aria-label="추세선 기간">${[[63,'3개월'],[252,'1년'],[756,'3년']].map(([value,label])=>`<button type="button" data-trend-period="${value}" aria-pressed="${value===63}">${label}</button>`).join('')}</div><div role="group" aria-label="가격 축"><button type="button" data-trend-scale="linear" aria-pressed="true">선형</button><button type="button" data-trend-scale="log" aria-pressed="false">로그</button></div></div><div class="trend-chart"></div><div class="trend-legend">${research&&detail.intraday_quote?'<span><i class="trend-quote-dot"></i>별도 장중 관측</span>':''}<span><i class="trend-support"></i>지지 빗각선</span><span><i class="trend-resistance"></i>저항 빗각선</span><span><i class="trend-broken"></i>${research?'후보선은 점선':'이탈·후보선은 점선'}</span></div><div class="trend-borders"${research?' data-research="true"':''}></div>${research&&detail.intraday_quote?'<div data-trend-quote-borders></div>':''}<p class="trend-note">선의 연장은 가격 예상이나 도달 확률이 아닙니다. 접촉한 날짜와 기준 축이 달라지면 경계 가격도 달라집니다.</p><details class="trend-method"><summary>선을 확인하는 기준</summary><p>${research?'현재 확보한 공개 일봉에서 고점·저점을 찾아 선을 그립니다. 결측을 가로질러 고점·저점을 확정하지 않습니다. 과거 당시의 이탈·복귀 신호를 판정하지 않습니다.':'확정된 고점·저점으로 계산한 선을 그립니다. 종가 이탈과 복귀는 별도로 확인합니다.'} 접촉 횟수는 기하학적 근거이며 지지 성공 확률이 아닙니다.</p><p>기준 시각 ${esc(detail.as_of)} · ${esc(TREND_BASES[detail.source_identity?.price_basis]||'시세 기준 확인 중')}</p></details>`;
   mount(root);
   const host=root.querySelector('.trend-chart'),borders=root.querySelector('.trend-borders'),quoteBorders=root.querySelector('[data-trend-quote-borders]');let drawnWidth=0;
-  const paint=()=>{const m=trendChartModel(detail,period,scale,host.clientWidth||1000),analysis=detail.analyses[scale][String(period)];drawnWidth=host.clientWidth;
+  const paint=()=>{TREND_VIEW_OPTIONS.set(assetId,{period,scale});const m=trendChartModel(detail,period,scale,host.clientWidth||1000),analysis=detail.analyses[scale][String(period)];drawnWidth=host.clientWidth;
     root.querySelectorAll('[data-trend-period]').forEach(button=>button.setAttribute('aria-pressed',String(Number(button.dataset.trendPeriod)===period)));root.querySelectorAll('[data-trend-scale]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.trendScale===scale)));
     if(!m){host.innerHTML=`<p class="trend-hold">${esc(trendReasons(analysis.reason_codes))}</p>`;borders.innerHTML='';if(quoteBorders)quoteBorders.innerHTML='';return;}
     host.innerHTML=trendSvg(detail,m,asset)+'<p data-trend-readout class="trend-readout" aria-live="polite"></p>';bindTrendChart(host,detail,m,asset,scale);
@@ -202,6 +305,6 @@ function renderTrendlinePage(initial={},loadState=null){
   root.querySelectorAll('[data-trend-period]').forEach(button=>button.onclick=()=>{period=Number(button.dataset.trendPeriod);paint();});root.querySelectorAll('[data-trend-scale]').forEach(button=>button.onclick=()=>{scale=button.dataset.trendScale;paint();});paint();
   if(globalThis.ResizeObserver){TRENDLINES_RESIZE=new ResizeObserver(()=>{if(!root.isConnected){TRENDLINES_RESIZE?.disconnect();TRENDLINES_RESIZE=null;return;}if(Math.abs(host.clientWidth-drawnWidth)>2)paint();});TRENDLINES_RESIZE.observe(host);}
 }
-globalThis.TrendlineUI={ensure:ensureTrendlineData,render:renderTrendlinePage,validate:trendValidateDetail,cleanup(){if(TRENDLINES_RESIZE){TRENDLINES_RESIZE.disconnect();TRENDLINES_RESIZE=null;}}};
+globalThis.TrendlineUI={ensure:ensureTrendlineData,render:renderTrendlinePage,validate:trendValidateDetail,cleanup(){stopTrendLocalSession();if(TRENDLINES_RESIZE){TRENDLINES_RESIZE.disconnect();TRENDLINES_RESIZE=null;}}};
 
 })();

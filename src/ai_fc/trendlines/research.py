@@ -10,6 +10,10 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+import threading
+from collections import OrderedDict
+from contextlib import contextmanager
+from contextvars import ContextVar
 from copy import deepcopy
 from datetime import datetime, timedelta
 from pathlib import Path
@@ -28,7 +32,75 @@ SYMBOLS = {"sk-hynix": "000660.KS", "soxx": "SOXX", "nasdaq": "^IXIC",
 MAX_RAW_BYTES = 20 * 1024 * 1024
 MAX_PRIVATE_PAYLOAD_BYTES = 256 * 1024
 MAX_PRIVATE_ENVELOPE_BYTES = 512 * 1024
+PRIVATE_BAR_COLUMNS = ("session", "session_index", "open", "high", "low", "close", "bar_id")
+PRIVATE_BAR_ID_PREFIX = "research-bar-"
 REJECTABLE_OHLC_ERRORS = {"OHLC must be finite positive numbers; close fallback forbidden", "OHLC containment violation"}
+_ACTIVE_REPLAY_CACHE: ContextVar[VerifiedReplayCache | None] = ContextVar("private_verified_replay_cache", default=None)
+
+
+class VerifiedReplayCache:
+    """Bounded, process-local proofs populated only by a successful full audit.
+
+    There is no persisted proof, caller-supplied verified flag, or preloaded
+    entry API. Each hit still requires fresh raw and receipt hashes, canonical
+    archives, current identity checks, revision chains and latest bindings.
+    """
+
+    __slots__ = ("__limit", "__entries", "__lock")
+
+    def __init__(self, *, max_entries: int = 16384):
+        if type(max_entries) is not int or not 1 <= max_entries <= 65536:
+            raise C.TrendlinesError("private_replay_cache_capacity_invalid")
+        self.__limit = max_entries
+        self.__entries = OrderedDict()
+        self.__lock = threading.Lock()
+
+    @property
+    def max_entries(self) -> int:
+        return self.__limit
+
+    @property
+    def entry_count(self) -> int:
+        with self.__lock:
+            return len(self.__entries)
+
+    def _contains(self, key, functions) -> bool:
+        with self.__lock:
+            prior = self.__entries.get(key)
+            if prior is None or len(prior) != len(functions) or any(a is not b for a, b in zip(prior, functions)):
+                return False
+            self.__entries.move_to_end(key)
+            return True
+
+    def _remember(self, keys) -> None:
+        # Retain function objects as well as their IDs, so object-ID reuse cannot
+        # revive a proof for a different validator after a monkeypatch or reload.
+        with self.__lock:
+            for key, functions in keys.items():
+                self.__entries[key] = functions
+                self.__entries.move_to_end(key)
+                while len(self.__entries) > self.__limit:
+                    self.__entries.popitem(last=False)
+
+
+@contextmanager
+def use_verified_replay_cache(cache: VerifiedReplayCache):
+    """Opt a private refresh worker into this cache for its current context only."""
+    if type(cache) is not VerifiedReplayCache:
+        raise C.TrendlinesError("private_replay_cache_instance_required")
+    token = _ACTIVE_REPLAY_CACHE.set(cache)
+    try:
+        yield
+    finally:
+        _ACTIVE_REPLAY_CACHE.reset(token)
+
+
+def _replay_functions():
+    from .research_html import parse_yahoo_history
+
+    return (verify, _prepare, E.verify_research_asset_snapshot, parse_yahoo_history,
+            C.validate_bar, C.validate_config, C.validate_research_source, C.session_schedule,
+            C.latest_completed_session, C._finite_number, C.canonical_hash)
 
 
 def asset_definition(root: Path, asset_id: str) -> dict[str, Any]:
@@ -282,12 +354,15 @@ def verify(root: Path, *, replay: bool = True) -> dict[str, Any]:
     """Reparse immutable HTML and replay every research archive, never official DBs."""
     root = Path(root)
     errors, snapshots = [], {}
+    cache = _ACTIVE_REPLAY_CACHE.get() if replay is True else None
+    pending = OrderedDict()
+    functions = _replay_functions() if cache is not None else ()
     try:
         pointer = _latest(root)
         for path in sorted((root / ROOT / "raw").glob("*.bin")):
             if path.stem != hashlib.sha256(path.read_bytes()).hexdigest():
                 raise C.TrendlinesError("research_original_raw_sha_mismatch")
-        receipts = {}
+        receipts, receipt_file_hashes = {}, {}
         for path in sorted((root / ROOT / "receipts").glob("*.json")):
             receipt = _checked(path)
             asset = asset_definition(root, receipt["asset_id"])
@@ -301,6 +376,8 @@ def verify(root: Path, *, replay: bool = True) -> dict[str, Any]:
             if receipt != rebuilt or path.name != receipt["receipt_id"] + ".json":
                 raise C.TrendlinesError("research_receipt_binding_invalid")
             receipts[receipt["receipt_id"]] = receipt
+            if cache is not None:
+                receipt_file_hashes[receipt["receipt_id"]] = hashlib.sha256(path.read_bytes()).hexdigest()
         for path in sorted((root / ROOT / "snapshots").glob("*.json")):
             archive = _checked(path)
             sid = archive["snapshot_id"]
@@ -323,16 +400,27 @@ def verify(root: Path, *, replay: bool = True) -> dict[str, Any]:
                     or archive["raw_sha256"] != receipt["raw_sha256"] or receipt["asset_id"] != archive["asset_id"]):
                 raise C.TrendlinesError("research_snapshot_receipt_binding_invalid")
             raw = S.safe_path(root, receipt["raw_path"]).read_bytes()
-            bars, meta, gaps = _prepare(raw, receipt, asset, archive["capture_asof"], config=archive["config"],
-                                        allow_rejected_rows=archive["row_validation_policy"]["allow_rejected_rows"])
-            if bars != archive["bars"] or meta != archive["metadata"] or gaps != archive["gaps"]:
-                raise C.TrendlinesError("research_snapshot_differs_from_original_html")
+            actual_raw_sha = hashlib.sha256(raw).hexdigest()
+            if actual_raw_sha != receipt["raw_sha256"]:
+                raise C.TrendlinesError("research_original_raw_sha_mismatch")
             if archive["engine_snapshot"].get("knowledge_cutoff") != archive["capture_asof"]:
                 raise C.TrendlinesError("research_snapshot_cutoff_binding_invalid")
-            checked = E.verify_research_asset_snapshot(archive["engine_snapshot"], bars, asset,
-                                                      config=archive["config"], source_policy=archive["source_policy"], replay=replay)
-            if checked["ok"] is not True:
-                raise C.TrendlinesError("research_numeric_replay_failed: " + "; ".join(checked["errors"]))
+            key = (str(root.resolve()), archive["content_hash"], hashlib.sha256(path.read_bytes()).hexdigest(),
+                   archive["receipt_sha256"], receipt_file_hashes[archive["receipt_id"]], actual_raw_sha, C.ENGINE_VERSION,
+                   tuple(id(function) for function in functions)) if cache is not None else None
+            if cache is None or not cache._contains(key, functions):
+                bars, meta, gaps = _prepare(raw, receipt, asset, archive["capture_asof"], config=archive["config"],
+                                            allow_rejected_rows=archive["row_validation_policy"]["allow_rejected_rows"])
+                if bars != archive["bars"] or meta != archive["metadata"] or gaps != archive["gaps"]:
+                    raise C.TrendlinesError("research_snapshot_differs_from_original_html")
+                checked = E.verify_research_asset_snapshot(archive["engine_snapshot"], bars, asset,
+                                                          config=archive["config"], source_policy=archive["source_policy"], replay=replay)
+                if checked["ok"] is not True:
+                    raise C.TrendlinesError("research_numeric_replay_failed: " + "; ".join(checked["errors"]))
+                if cache is not None:
+                    pending[key] = functions
+                    while len(pending) > cache.max_entries:
+                        pending.popitem(last=False)
             snapshots[sid] = archive
         for sid, archive in snapshots.items():
             prior = archive.get("supersedes_snapshot_id")
@@ -360,6 +448,8 @@ def verify(root: Path, *, replay: bool = True) -> dict[str, Any]:
                 raise C.TrendlinesError("research_failure_receipt_binding_invalid")
     except (OSError, ValueError, KeyError, TypeError) as exc:
         errors.append(str(exc))
+    if not errors and cache is not None:
+        cache._remember(pending)
     return {"ok": not errors, "errors": errors, "snapshots": len(snapshots), "replay": replay}
 
 
@@ -378,7 +468,8 @@ def _load_verified_detail(root: Path, asset_id: str, *, now=None) -> dict[str, A
     if not row:
         return None
     archive = _checked(S.safe_path(Path(root), row["snapshot_path"]))
-    if S.aware_time(archive["capture_asof"]) > S.aware_time(now):
+    current = S.aware_time(now)
+    if S.aware_time(archive["capture_asof"]) > current:
         return None
     receipt = _checked(S.safe_path(Path(root), archive["receipt_path"]))
     detail = D.compact_snapshot(archive["engine_snapshot"])
@@ -397,6 +488,27 @@ def _load_verified_detail(root: Path, asset_id: str, *, now=None) -> dict[str, A
                                     "current_capture_vintage_not_historical_publication_receipts",
                                     "displayed_ohlc_without_split_adjustment_vintage_guarantee",
                                     "missing_and_unfinished_candles_are_never_filled"]})
+    # Freshness describes this read, not the frozen geometry's issuance time.
+    # Reusing a capture must not leave yesterday's missing close marked fresh.
+    calendar_asset = deepcopy(archive["asset"])
+    source = archive["source_policy"]["sources"][calendar_asset["source_id"]]
+    calendar_asset["publication_lag_minutes"] = C.publication_lag(calendar_asset, source)
+    expected = C.latest_completed_session(calendar_asset, current,
+                                         buffer_minutes=archive["config"]["settlement_buffer_minutes"])
+    quality = deepcopy(detail["quality"])
+    missing = set(quality["missing_session_dates"])
+    if expected is not None and expected >= detail["observation_through"]:
+        missing.update(day for day, _opened, _closed in C.session_schedule(
+            calendar_asset["calendar_id"], detail["observation_through"], expected)
+                       if day > detail["observation_through"])
+    stale = detail["observation_through"] != expected
+    other_reasons = [reason for reason in quality["reasons"]
+                     if reason not in {"missing_latest_completed_session", "missing_completed_sessions"}]
+    quality.update({"expected_completed_session": expected, "stale": stale,
+                    "missing_session_dates": sorted(missing),
+                    "reasons": (["missing_latest_completed_session"] if stale else [])
+                               + (["missing_completed_sessions"] if missing else []) + other_reasons})
+    detail["quality"] = quality
     quote = archive["metadata"].get("quote") or {}
     if quote.get("observed_at") and C._finite_number(quote.get("price")) and quote["price"] > 0:
         stamp = S.aware_time(quote["observed_at"])
@@ -452,6 +564,82 @@ def attach_projection(root: Path, official_projection: dict[str, Any], *,
     return _hash(merged)
 
 
+def decode_private_import(envelope: dict[str, Any]) -> dict[str, Any]:
+    """Verify the exact wire bytes and losslessly restore a V1 or V2 body.
+
+    This is a transport check, not source approval or an archive replay. Callers
+    retain their identity, source qualification, OHLC and point-in-time gates.
+    The returned body excludes its hash, just as the original V1 payload did.
+    """
+    try:
+        version = envelope.get("schema_version") if isinstance(envelope, dict) else None
+        if (type(version) is not int or version not in (1, 2)
+                or envelope.get("contract_id") != f"trendlines_private_import_v{version}"
+                or envelope.get("publication_scope") != "private_only"
+                or envelope.get("asset_id") not in SYMBOLS
+                or not isinstance(envelope.get("payload_json"), str)):
+            raise C.TrendlinesError("private_research_envelope_contract_invalid")
+        if len(S.encode(envelope)) > MAX_PRIVATE_ENVELOPE_BYTES:
+            raise C.TrendlinesError("private_research_envelope_exceeds_512KiB")
+        encoded = envelope["payload_json"].encode("utf-8")
+        if not 0 < len(encoded) <= MAX_PRIVATE_PAYLOAD_BYTES:
+            raise C.TrendlinesError("private_research_payload_exceeds_256KiB")
+        if hashlib.sha256(encoded).hexdigest() != envelope.get("payload_sha256"):
+            raise C.TrendlinesError("private_research_payload_hash_binding_invalid")
+
+        def reject_constant(_value):
+            raise C.TrendlinesError("private_research_nonfinite_json")
+
+        def unique_object(pairs):
+            value = {}
+            for key, item in pairs:
+                if key in value:
+                    raise C.TrendlinesError("private_research_duplicate_json_key")
+                value[key] = item
+            return value
+
+        body = json.loads(encoded, parse_constant=reject_constant, object_pairs_hook=unique_object)
+        if (not isinstance(body, dict) or "content_hash" in body
+                or body.get("asset_id") != envelope["asset_id"]
+                or body.get("snapshot_id") != envelope.get("snapshot_id")):
+            raise C.TrendlinesError("private_research_detail_binding_invalid")
+        if version == 1:
+            if "bars_packed" in body or "original_detail_sha256" in body or "original_detail_sha256" in envelope:
+                raise C.TrendlinesError("private_research_v1_packed_fields_forbidden")
+            original_hash = envelope["payload_sha256"]
+        else:
+            original_hash = envelope.get("original_detail_sha256")
+            if (not isinstance(original_hash, str) or not C.SHA256.fullmatch(original_hash)
+                    or body.get("original_detail_sha256") != original_hash or "bars" in body):
+                raise C.TrendlinesError("private_research_original_detail_hash_binding_invalid")
+            packed = body.get("bars_packed")
+            if (not isinstance(packed, dict)
+                    or set(packed) not in ({"columns", "rows"}, {"columns", "rows", "bar_id_prefix"})
+                    or packed.get("columns") != list(PRIVATE_BAR_COLUMNS)
+                    or not isinstance(packed.get("rows"), list) or not 2 <= len(packed["rows"]) <= 756
+                    or any(not isinstance(row, list) or len(row) != len(PRIVATE_BAR_COLUMNS)
+                           for row in packed["rows"])):
+                raise C.TrendlinesError("private_research_packed_bars_contract_invalid")
+            has_prefix = "bar_id_prefix" in packed
+            if has_prefix and (packed["bar_id_prefix"] != PRIVATE_BAR_ID_PREFIX
+                               or any(not isinstance(row[-1], str) or not C.SHA256.fullmatch(row[-1])
+                                      for row in packed["rows"])):
+                raise C.TrendlinesError("private_research_packed_bar_identity_invalid")
+            body = {key: item for key, item in body.items()
+                    if key not in {"bars_packed", "original_detail_sha256"}}
+            body["bars"] = [dict(zip(PRIVATE_BAR_COLUMNS, row)) for row in packed["rows"]]
+            if has_prefix:
+                for bar in body["bars"]:
+                    bar["bar_id"] = PRIVATE_BAR_ID_PREFIX + bar["bar_id"]
+        if C.canonical_hash(body) != original_hash:
+            raise C.TrendlinesError("private_research_original_detail_hash_binding_invalid")
+        return body
+    except C.TrendlinesError:
+        raise
+    except (ValueError, TypeError, KeyError, UnicodeError, RecursionError) as exc:
+        raise C.TrendlinesError("private_research_import_json_invalid") from exc
+
+
 def export_private_import(root: Path, asset_id: str, now: str | datetime | None = None) -> dict[str, Any]:
     """An exact locally imported payload; no source prices are publicly exported.
 
@@ -470,11 +658,32 @@ def export_private_import(root: Path, asset_id: str, now: str | datetime | None 
     digest = hashlib.sha256(encoded).hexdigest()
     if digest != detail["content_hash"]:
         raise C.TrendlinesError("private_research_payload_hash_binding_invalid")
-    if len(encoded) > MAX_PRIVATE_PAYLOAD_BYTES:
-        raise C.TrendlinesError("private_research_payload_exceeds_256KiB")
     envelope = {"schema_version": 1, "contract_id": "trendlines_private_import_v1",
                 "publication_scope": "private_only", "asset_id": asset_id, "snapshot_id": detail["snapshot_id"],
                 "payload_json": payload, "payload_sha256": digest}
+    if len(encoded) > MAX_PRIVATE_PAYLOAD_BYTES:
+        bars = body.get("bars")
+        if (not isinstance(bars, list) or not 2 <= len(bars) <= 756
+                or any(not isinstance(bar, dict) or set(bar) != set(PRIVATE_BAR_COLUMNS) for bar in bars)
+                or "bars_packed" in body or "original_detail_sha256" in body):
+            raise C.TrendlinesError("private_research_packed_bars_contract_invalid")
+        if any(not isinstance(bar["bar_id"], str) or not bar["bar_id"].startswith(PRIVATE_BAR_ID_PREFIX)
+               or not C.SHA256.fullmatch(bar["bar_id"][len(PRIVATE_BAR_ID_PREFIX):]) for bar in bars):
+            raise C.TrendlinesError("private_research_packed_bar_identity_invalid")
+        packed_body = {key: item for key, item in body.items() if key != "bars"}
+        packed_body.update({"original_detail_sha256": digest,
+                            "bars_packed": {"columns": list(PRIVATE_BAR_COLUMNS),
+                                            "bar_id_prefix": PRIVATE_BAR_ID_PREFIX,
+                                            "rows": [[bar[key] for key in PRIVATE_BAR_COLUMNS[:-1]]
+                                                     + [bar["bar_id"][len(PRIVATE_BAR_ID_PREFIX):]] for bar in bars]}})
+        packed_payload = json.dumps(packed_body, ensure_ascii=False, sort_keys=True,
+                                    separators=(",", ":"), allow_nan=False)
+        packed_bytes = packed_payload.encode("utf-8")
+        if len(packed_bytes) > MAX_PRIVATE_PAYLOAD_BYTES:
+            raise C.TrendlinesError("private_research_payload_exceeds_256KiB")
+        envelope.update({"schema_version": 2, "contract_id": "trendlines_private_import_v2",
+                         "original_detail_sha256": digest, "payload_json": packed_payload,
+                         "payload_sha256": hashlib.sha256(packed_bytes).hexdigest()})
     if len(S.encode(envelope)) > MAX_PRIVATE_ENVELOPE_BYTES:
         raise C.TrendlinesError("private_research_envelope_exceeds_512KiB")
     return envelope

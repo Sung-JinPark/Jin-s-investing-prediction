@@ -62,7 +62,7 @@ def run(tmp_path, program, extra=''):
     helpers = source[source.index('const TREND_ASSETS='):source.index('globalThis.TrendlineUI=')]
     path = tmp_path / 'trend_probe.cjs'
     path.write_text("const esc=s=>String(s??'');\n" + helpers + '\n' + extra + '\n' + program, encoding='utf-8')
-    result = subprocess.run([node, str(path)], capture_output=True, text=True, encoding='utf-8')
+    result = subprocess.run([node, str(path)], capture_output=True, text=True, encoding='utf-8', timeout=20)
     assert result.returncode == 0, result.stderr[:3000]
     return json.loads(result.stdout)
 
@@ -327,6 +327,29 @@ def test_private_import_rejects_bad_files_without_network_or_storage(tmp_path, p
     assert out['rejected']
 
 
+@pytest.mark.parametrize('problem', [None, 'zero', 'negative', 'missing', 'phantom_border', 'positive_formula'])
+def test_unavailable_current_extension_keeps_past_geometry_without_inventing_price(tmp_path, problem):
+    program = 'const d=' + json.dumps(fixture()['details']['sk-hynix']) + ';const problem=' + json.dumps(problem) + r''';
+const a=d.analyses.linear['63'],line=a.lines[0],last=d.bars.at(-1).session_index;
+line.slope=-30000;line.intercept=1400000;line.direction='falling';line.current_price=null;
+line.points=line.points.slice(0,2).map(point=>({...point,price:trendLinePrice(line,point.index,'linear')}));
+line.first_anchor={...line.first_anchor,price:line.points[0].price};line.second_anchor={...line.second_anchor,price:line.points[1].price};
+for(const side of ['down','up','broken'])a.borders[side]=a.borders[side].filter(row=>row.line_id!==line.line_id);
+if(problem==='zero')line.current_price=0;
+if(problem==='negative')line.current_price=trendLinePrice(line,last,'linear');
+if(problem==='missing')delete line.current_price;
+if(problem==='phantom_border')a.borders.down.push({line_id:line.line_id,price:1e-8});
+if(problem==='positive_formula'){line.slope=0;for(const point of line.points)point.price=line.intercept;}
+const before=JSON.stringify(d);let rejected=false,proof=null;
+try{const m=trendChartModel(d,63,'linear',390);proof={unchanged:before===JSON.stringify(d),linePreserved:m.lines.includes(line),pastPoints:line.points.length,unavailable:trendLineReadout(line,last,'linear',{currency:'KRW'}),past:trendLineReadout(line,line.points[0].index,'linear',{currency:'KRW'}),svg:trendSvg(d,m,{label:'TEST FIXTURE',currency:'KRW'}).includes(`data-trend-line="${line.line_id}"`)}}catch(_){rejected=true}
+process.stdout.write(JSON.stringify({rejected,proof}));'''
+    out = run(tmp_path, program)
+    assert out['rejected'] == (problem is not None)
+    if problem is None:
+        assert out['proof'] == {'unchanged': True, 'linePreserved': True, 'pastPoints': 2,
+                                'unavailable': '지지 연장값 없음', 'past': '지지 1,400,000원', 'svg': True}
+
+
 @pytest.mark.parametrize('asset_id', ['constructor', '__proto__', 'toString', 'mag7'])
 def test_private_import_accepts_only_own_exact_registered_research_assets(tmp_path, asset_id):
     envelope = {'schema_version': 1, 'contract_id': 'trendlines_private_import_v1', 'publication_scope': 'private_only',
@@ -334,6 +357,188 @@ def test_private_import_accepts_only_own_exact_registered_research_assets(tmp_pa
     out = run(tmp_path, 'globalThis.crypto=require("node:crypto").webcrypto;const raw=' + json.dumps(json.dumps(envelope)) + ';const asset=' + json.dumps(asset_id) + r''';
 (async()=>{let rejected=false;try{await parseTrendPrivateImport(raw,asset);}catch(error){rejected=true;}process.stdout.write(JSON.stringify({rejected}));})();''')
     assert out['rejected']
+
+
+def local_status_fixture(envelope):
+    detail = json.loads(envelope['payload_json'])
+    rows = []
+    for asset_id in ('sk-hynix', 'soxx', 'nasdaq', 'sp500', 'bitcoin', 'dow', 'mag7'):
+        ready = asset_id == detail['asset_id']
+        rows.append({'asset_id': asset_id, 'status': 'ready' if ready else 'hold' if asset_id == 'mag7' else 'missing',
+                     'last_success': detail['as_of'] if ready else None, 'last_attempt': detail['as_of'] if ready else None,
+                     'source_asof': detail['as_of'] if ready else None,
+                     'observation_through': detail['observation_through'] if ready else None,
+                     'stale': not ready and asset_id != 'mag7', 'reason': None, 'error': None,
+                     'next_refresh_kst': '2027-01-01T07:30:00+09:00'})
+    return {'schema_version': 1, 'contract_id': 'trendlines_local_status_v1', 'publication_scope': 'private_only',
+            'running': True, 'refresh_in_progress': False, 'next_refresh_kst': '2027-01-01T07:30:00+09:00', 'assets': rows}
+
+
+def local_browser_stub():
+    return r'''
+const TREND_PRIVATE_DETAILS=new Map();
+const storage={},listeners={},nodes={};
+globalThis.localStorage={getItem:key=>storage[key]??null,setItem:(key,value)=>storage[key]=value};
+globalThis.document={visibilityState:'visible',addEventListener:(key,fn)=>listeners[key]=fn,removeEventListener:key=>delete listeners[key]};
+globalThis.window={addEventListener:(key,fn)=>listeners[key]=fn,removeEventListener:key=>delete listeners[key]};
+globalThis.crypto=require('node:crypto').webcrypto;
+const node=()=>({textContent:'',hidden:false,disabled:false,attrs:{},classList:{toggle(){}},setAttribute(key,value){this.attrs[key]=value},addEventListener(key,fn){this[key]=fn}});
+for(const key of ['[data-trend-local-message]','[data-trend-local-connect]','[data-trend-local-disconnect]'])nodes[key]=node();
+const root={isConnected:true,querySelector:key=>nodes[key]??null};
+const response=(raw,status=200)=>({ok:status===200,status,headers:{get:()=>null},text:async()=>raw});
+'''
+
+
+@pytest.mark.parametrize('origin,stored,expected', [
+    ('https://sung-jinpark.github.io', None, False), ('http://127.0.0.1:8878', None, True),
+    ('http://127.0.0.1:8879', None, False), ('http://localhost:8878', None, False),
+    ('http://127.0.0.1:8878', {'schema_version': 1, 'enabled': False}, False),
+    ('https://sung-jinpark.github.io', {'schema_version': 1, 'enabled': True}, True),
+    ('https://sung-jinpark.github.io', {'schema_version': 1, 'enabled': 'true'}, False),
+])
+def test_local_autorefresh_default_and_preference_are_exact_and_price_free(tmp_path, origin, stored, expected):
+    program = local_browser_stub() + 'globalThis.location={origin:' + json.dumps(origin) + '};storage[TREND_LOCAL_PREF_KEY]=' + json.dumps(json.dumps(stored) if stored is not None else None) + r''';
+const initial=readTrendLocalPreference();TREND_LOCAL_ENABLED=false;setTrendLocalPreference(true);
+process.stdout.write(JSON.stringify({initial,saved:JSON.parse(storage[TREND_LOCAL_PREF_KEY]),keys:Object.keys(storage)}));'''
+    out = run(tmp_path, program)
+    assert out == {'initial': expected, 'saved': {'schema_version': 1, 'enabled': True}, 'keys': ['ai_fc.trendlines.local.v1']}
+
+
+def test_local_poll_is_opt_in_bounded_fixed_readonly_and_keeps_public_data(tmp_path, private_import_envelope):
+    envelope, status = private_import_envelope, local_status_fixture(private_import_envelope)
+    program = local_browser_stub() + 'const raw=' + json.dumps(json.dumps(envelope)) + ';const status=' + json.dumps(status) + r''';
+const requests=[],publicData={trendlines:{status:'hold'}},before=JSON.stringify(publicData);
+globalThis.DATA=publicData;globalThis.fetch=async(url,options)=>{requests.push({url,method:options.method,credentials:options.credentials,mode:options.mode,cache:options.cache,redirect:options.redirect,space:options.targetAddressSpace});return response(url.endsWith('/status')?JSON.stringify(status):raw);};
+(async()=>{TREND_LOCAL_ENABLED=false;const session=bindTrendLocalConnection(root,{asset:'bitcoin'});let paints=0;session.onData=()=>paints++;TREND_VIEW_OPTIONS.set('bitcoin',{period:252,scale:'log'});await Promise.resolve();const disabledRequests=requests.length;nodes['[data-trend-local-connect]'].click();await session.inflight;const data=TREND_PRIVATE_DETAILS.get('bitcoin'),saved=JSON.parse(storage[TREND_LOCAL_PREF_KEY]);stopTrendLocalSession();process.stdout.write(JSON.stringify({disabledRequests,requests,paints,status:data.status,hash:data.content_hash,saved,view:TREND_VIEW_OPTIONS.get('bitcoin'),unchanged:before===JSON.stringify(publicData)}));})();'''
+    out = run(tmp_path, program)
+    assert out['disabledRequests'] == 0 and out['paints'] == 1 and out['unchanged']
+    assert out['status'] == 'unverified_display' and out['hash'] == envelope['payload_sha256']
+    assert out['view'] == {'period': 252, 'scale': 'log'} and out['saved'] == {'schema_version': 1, 'enabled': True}
+    assert out['requests'] == [{'url': f'http://127.0.0.1:8878/api/private-trendlines/{suffix}', 'method': 'GET',
+                               'credentials': 'omit', 'mode': 'cors', 'cache': 'no-store', 'redirect': 'error', 'space': 'loopback'}
+                              for suffix in ('status', 'bitcoin')]
+
+
+def test_local_overlap_abort_and_old_reply_do_not_change_another_route(tmp_path, private_import_envelope):
+    status = local_status_fixture(private_import_envelope)
+    program = local_browser_stub() + 'const status=' + json.dumps(status) + r''';
+let calls=0,finish;globalThis.fetch=()=>{calls++;return new Promise(resolve=>finish=resolve);};
+(async()=>{TREND_LOCAL_ENABLED=false;const session=bindTrendLocalConnection(root,{asset:'bitcoin'});await Promise.resolve();setTrendLocalPreference(true);const one=refreshTrendLocalSession(session);const two=refreshTrendLocalSession(session);const inflight=calls,signal=session.controller.signal;stopTrendLocalSession();setTrendLocalPreference(false);const next=bindTrendLocalConnection(root,{asset:'soxx'});await Promise.resolve();finish(response(JSON.stringify(status)));await Promise.all([one,two]);stopTrendLocalSession();process.stdout.write(JSON.stringify({inflight,calls,aborted:signal.aborted,details:TREND_PRIVATE_DETAILS.size,nextAsset:next.assetId}));})();'''
+    assert run(tmp_path, program) == {'inflight': 1, 'calls': 1, 'aborted': True, 'details': 0, 'nextAsset': 'soxx'}
+
+
+def test_local_failure_retains_last_good_and_clear_disconnect_stops_polling(tmp_path, private_import_envelope):
+    envelope, status = private_import_envelope, local_status_fixture(private_import_envelope)
+    program = local_browser_stub() + 'const envelope=' + json.dumps(envelope) + ';const status=' + json.dumps(status) + r''';
+(async()=>{const original=await parseTrendPrivateImport(JSON.stringify(envelope),'bitcoin');TREND_PRIVATE_DETAILS.set('bitcoin',original);TREND_PRIVATE_ORIGINS.set('bitcoin','local');TREND_LOCAL_ENABLED=false;const session=bindTrendLocalConnection(root,{asset:'bitcoin'});session.onData=()=>{throw new Error('bad reply must not repaint')};await Promise.resolve();setTrendLocalPreference(true);const broken={...envelope,payload_json:envelope.payload_json+' '};let calls=0;globalThis.fetch=async url=>{calls++;return response(url.endsWith('/status')?JSON.stringify(status):JSON.stringify(broken));};await refreshTrendLocalSession(session);const phase=session.phase,kept=TREND_PRIVATE_DETAILS.get('bitcoin')===original,notice=nodes['[data-trend-local-message]'].textContent;nodes['[data-trend-local-disconnect]'].click();await refreshTrendLocalSession(session);const saved=JSON.parse(storage[TREND_LOCAL_PREF_KEY]);stopTrendLocalSession();process.stdout.write(JSON.stringify({phase,kept,calls,saved,notice:notice.includes('마지막 정상 차트를 표시합니다')}));})();'''
+    assert run(tmp_path, program) == {'phase': 'offline', 'kept': True, 'calls': 2,
+                                     'saved': {'schema_version': 1, 'enabled': False}, 'notice': True}
+
+
+def test_local_source_refresh_failure_uses_plain_reason_and_keeps_valid_chart(tmp_path, private_import_envelope):
+    status = local_status_fixture(private_import_envelope)
+    row = next(row for row in status['assets'] if row['asset_id'] == 'bitcoin')
+    row.update(status='stale', stale=True, error='refresh_failed')
+    program = local_browser_stub() + 'const envelope=' + json.dumps(private_import_envelope) + ';const status=' + json.dumps(status) + r''';
+globalThis.fetch=async url=>response(url.endsWith('/status')?JSON.stringify(status):JSON.stringify(envelope));
+(async()=>{TREND_LOCAL_ENABLED=false;const session=bindTrendLocalConnection(root,{asset:'bitcoin'});session.onData=()=>{};await Promise.resolve();setTrendLocalPreference(true);await refreshTrendLocalSession(session);const notice=nodes['[data-trend-local-message]'].textContent;const out={phase:session.phase,chart:TREND_PRIVATE_DETAILS.has('bitcoin'),plain:notice.includes('새 시세 수집을 보류해 마지막 정상 자료를 유지합니다'),noCode:!notice.includes('refresh_failed')};stopTrendLocalSession();process.stdout.write(JSON.stringify(out));})();'''
+    assert run(tmp_path, program) == {'phase': 'stale', 'chart': True, 'plain': True, 'noCode': True}
+
+
+def test_local_hidden_pause_resumes_without_overlap_and_uses_8s_timeout(tmp_path, private_import_envelope):
+    program = local_browser_stub() + r''';
+const timers=new Map();let next=0;globalThis.setTimeout=(fn,delay)=>{const id=++next;timers.set(id,{fn,delay});return id};globalThis.clearTimeout=id=>timers.delete(id);
+let calls=0;globalThis.fetch=async(_url,options)=>{calls++;return new Promise((_resolve,reject)=>options.signal.addEventListener('abort',()=>reject(new DOMException('Aborted','AbortError')),{once:true}));};
+(async()=>{TREND_LOCAL_ENABLED=false;const session=bindTrendLocalConnection(root,{asset:'bitcoin'});await Promise.resolve();setTrendLocalPreference(true);document.visibilityState='hidden';await refreshTrendLocalSession(session);const hiddenCalls=calls;document.visibilityState='visible';const pending=refreshTrendLocalSession(session);const deadline=[...timers.values()].find(row=>row.delay===8000);deadline.fn();await pending;const phase=session.phase,poll=[...timers.values()].some(row=>row.delay===60000);document.visibilityState='hidden';listeners.visibilitychange();const paused=session.phase,pausedTimers=timers.size;stopTrendLocalSession();process.stdout.write(JSON.stringify({hiddenCalls,calls,phase,poll,paused,pausedTimers}));})();'''
+    assert run(tmp_path, program) == {'hiddenCalls': 0, 'calls': 1, 'phase': 'offline', 'poll': True, 'paused': 'paused', 'pausedTimers': 0}
+
+
+@pytest.mark.parametrize('problem', ['scope', 'duplicate', 'state', 'timestamp', 'stale_type'])
+def test_invalid_local_status_cannot_enable_a_price_reply(tmp_path, private_import_envelope, problem):
+    status = local_status_fixture(private_import_envelope)
+    if problem == 'scope':
+        status['publication_scope'] = 'public'
+    elif problem == 'duplicate':
+        status['assets'][0]['asset_id'] = 'bitcoin'
+    elif problem == 'state':
+        status['assets'][0]['status'] = 'approved'
+    elif problem == 'timestamp':
+        status['assets'][0]['source_asof'] = '2026-01-01'
+    else:
+        status['assets'][0]['stale'] = 'false'
+    out = run(tmp_path, 'const status=' + json.dumps(status) + r''';let rejected=false;try{validateTrendLocalStatus(status,'bitcoin')}catch(error){rejected=true}process.stdout.write(JSON.stringify({rejected}));''')
+    assert out['rejected']
+
+
+def test_local_revision_never_rolls_back_current_or_status_source_time(tmp_path):
+    out = run(tmp_path, r'''
+const tests=[['2026-10-14T00:00:00+00:00','2026-10-13T00:00:00+00:00',null],['2026-10-13T00:00:00+00:00','2026-10-14T00:00:00+00:00','2026-10-15T00:00:00+00:00'],['2026-10-13T00:00:00+00:00','2026-10-14T00:00:00+00:00','2026-10-13T00:00:00+00:00'],['2026-10-14T00:00:00.000400+00:00','2026-10-14T00:00:00.000300+00:00',null]];
+process.stdout.write(JSON.stringify(tests.map(([old,next,status])=>{try{assertTrendLocalRevision({as_of:old},{as_of:next},{source_asof:status});return true}catch(_){return false}})));''')
+    assert out == [False, False, True, False]
+
+
+def packed_import(envelope, *, prefix=False):
+    original = json.loads(envelope['payload_json'])
+    columns = ['session', 'session_index', 'open', 'high', 'low', 'close', 'bar_id']
+    bars = original.pop('bars')
+    original['bars_packed'] = {'columns': columns, 'rows': [[bar[key] for key in columns] for bar in bars]}
+    if prefix:
+        original['bars_packed']['bar_id_prefix'] = 'research-bar-'
+        for row in original['bars_packed']['rows']:
+            row[6] = row[6].removeprefix('research-bar-')
+    original['original_detail_sha256'] = envelope['payload_sha256']
+    payload = json.dumps(original, ensure_ascii=False, sort_keys=True, separators=(',', ':'), allow_nan=False)
+    return {**envelope, 'schema_version': 2, 'contract_id': 'trendlines_private_import_v2',
+            'payload_json': payload, 'payload_sha256': hashlib.sha256(payload.encode()).hexdigest(),
+            'original_detail_sha256': envelope['payload_sha256']}
+
+
+@pytest.mark.parametrize('prefix', [False, True])
+def test_v2_exact_transport_hash_restores_all_bars_and_separates_original_hash(tmp_path, private_import_envelope, prefix):
+    envelope = packed_import(private_import_envelope, prefix=prefix)
+    program = local_browser_stub() + 'const v1=' + json.dumps(json.dumps(private_import_envelope)) + ';const v2=' + json.dumps(json.dumps(envelope)) + r''';
+(async()=>{const one=await parseTrendPrivateImport(v1,'bitcoin'),two=await parseTrendPrivateImport(v2,'bitcoin');process.stdout.write(JSON.stringify({same:JSON.stringify(one)===JSON.stringify(two),bars:two.bars.length,original:two.content_hash,metadata:two[TREND_IMPORT_TRANSPORT],packedFields:Object.hasOwn(two,'bars_packed')||Object.hasOwn(two,'original_detail_sha256')}));})();'''
+    out = run(tmp_path, program)
+    # Object insertion order changes while exact decoded values remain equivalent.
+    assert out['bars'] == 100 and out['original'] == private_import_envelope['payload_sha256']
+    assert out['metadata'] == {'schema_version': 2, 'payload_sha256': envelope['payload_sha256'],
+                               'original_detail_sha256': private_import_envelope['payload_sha256']}
+    assert not out['packedFields']
+    values = run(tmp_path, local_browser_stub() + 'const v1=' + json.dumps(json.dumps(private_import_envelope)) + ';const v2=' + json.dumps(json.dumps(envelope)) + r''';
+(async()=>{const one=await parseTrendPrivateImport(v1,'bitcoin'),two=await parseTrendPrivateImport(v2,'bitcoin'),keys=['session','session_index','open','high','low','close','bar_id'];process.stdout.write(JSON.stringify({bars:one.bars.length===two.bars.length&&one.bars.every((row,i)=>keys.every(key=>row[key]===two.bars[i][key])),analyses:JSON.stringify(one.analyses)===JSON.stringify(two.analyses),receipt:one.receipt_id===two.receipt_id}));})();''')
+    assert values == {'bars': True, 'analyses': True, 'receipt': True}
+
+
+@pytest.mark.parametrize('problem', ['checksum', 'original_hash', 'columns', 'width', 'extra_packed', 'duplicate_bars', 'ohlc', 'prefix', 'prefix_suffix', 'prefix_full_id'])
+def test_v2_rejects_corruption_or_lossy_packed_shape(tmp_path, private_import_envelope, problem):
+    envelope = packed_import(private_import_envelope, prefix=problem.startswith('prefix'))
+    body = json.loads(envelope['payload_json'])
+    if problem == 'checksum':
+        envelope['payload_json'] += ' '
+    elif problem == 'original_hash':
+        envelope['original_detail_sha256'] = '0' * 64
+    elif problem == 'columns':
+        body['bars_packed']['columns'][2] = 'adjusted_open'
+    elif problem == 'width':
+        body['bars_packed']['rows'][0].pop()
+    elif problem == 'extra_packed':
+        body['bars_packed']['clip'] = True
+    elif problem == 'duplicate_bars':
+        body['bars'] = []
+    elif problem == 'prefix':
+        body['bars_packed']['bar_id_prefix'] = 'approved-bar-'
+    elif problem == 'prefix_suffix':
+        body['bars_packed']['rows'][0][6] = '0' * 63
+    elif problem == 'prefix_full_id':
+        body['bars_packed']['rows'][0][6] = 'research-bar-' + body['bars_packed']['rows'][0][6]
+    else:
+        body['bars_packed']['rows'][0][3] = 1
+    if problem not in {'checksum', 'original_hash'}:
+        envelope['payload_json'] = json.dumps(body, ensure_ascii=False, sort_keys=True, separators=(',', ':'), allow_nan=False)
+        envelope['payload_sha256'] = hashlib.sha256(envelope['payload_json'].encode()).hexdigest()
+    program = local_browser_stub() + 'const raw=' + json.dumps(json.dumps(envelope)) + r''';
+(async()=>{let rejected=false;try{await parseTrendPrivateImport(raw,'bitcoin')}catch(_){rejected=true}process.stdout.write(JSON.stringify({rejected}));})();'''
+    assert run(tmp_path, program)['rejected']
 
 
 @pytest.mark.parametrize('problem', ['approved', 'contract', 'class', 'rights', 'official',
