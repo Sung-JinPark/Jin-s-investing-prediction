@@ -127,9 +127,9 @@ foreach ($relative in @('tools\run_private_trendlines.py', 'tools\refresh_privat
     $source = Join-Path $projectDirectory $relative
     Copy-CodeFile $source $relative
 }
-# Read only the three registered path constants, without initializing a database.
-$contractPaths = & $pythonPath -c "import sys,json;sys.path.insert(0,sys.argv[1]+'/src');from ai_fc.trendlines import contracts as c;print(json.dumps([str(c.CONTRACT_RELATIVE),str(c.ASSET_REGISTRY_RELATIVE),str(c.SOURCE_POLICY_RELATIVE)]))" $projectDirectory
-if ($LASTEXITCODE -ne 0) { throw 'Cannot locate the three trendline contracts.' }
+# Read registered path constants without initializing a database.
+$contractPaths = & $pythonPath -c "import sys,json;sys.path.insert(0,sys.argv[1]+'/src');from ai_fc.trendlines import contracts as c,critical as k;print(json.dumps([str(c.CONTRACT_RELATIVE),str(c.ASSET_REGISTRY_RELATIVE),str(c.SOURCE_POLICY_RELATIVE),str(k.POLICY_RELATIVE)]))" $projectDirectory
+if ($LASTEXITCODE -ne 0) { throw 'Cannot locate the trendline contracts.' }
 foreach ($relative in ($contractPaths | ConvertFrom-Json)) {
     Copy-CodeFile (Join-Path $projectDirectory $relative) $relative
 }

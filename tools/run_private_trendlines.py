@@ -41,6 +41,9 @@ def run(options) -> None:
         if report.get("full_history", {}).get("status") == "unavailable":
             logger.warning("Full-series refresh unavailable for %s: %s", asset_id,
                            report["full_history"].get("error", "full_refresh_failed"))
+        if report.get("critical", {}).get("status") == "unavailable":
+            logger.warning("Critical selection unavailable for %s: %s", asset_id,
+                           report["critical"].get("error", "critical_refresh_failed"))
         return report
 
     def build_preview():

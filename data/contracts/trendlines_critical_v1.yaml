@@ -1,0 +1,22 @@
+schema_version: 1
+contract_id: trendlines_private_critical_policy_v1
+policy_version: critical_v1
+publication_scope: private_only
+official_forecast_write: false
+minimum_independent_contacts: 3
+maximum_distance_atr: 4.0
+maximum_distance_fraction: 0.2
+maximum_contact_age_sessions: 63
+duplicate_distance_atr: 0.5
+maximum_per_role: 1
+contact_independence: disjoint_pivot_confirmation_windows
+independent_contact_tie_break: latest_session_desc
+horizontal_center: median_independent_pivot_prices
+horizontal_membership: existing_per_pivot_touch_tolerance
+role_transition: no_automatic_flip
+structural_state: reconstructed_current_vintage_not_historical_signal
+rank_order: [distance_asc, latest_contact_desc, independent_contacts_desc, contact_error_asc, boundary_id_asc]
+projection_sessions: {exchange: 21, crypto: 30}
+default_context_bars: 10
+empty_context_bars: 252
+comparison_tolerance: {absolute: 0.000001, relative: 0.0000000001}
