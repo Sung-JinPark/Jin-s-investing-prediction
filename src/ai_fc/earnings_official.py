@@ -390,6 +390,27 @@ def _release_links(event: dict[str, Any], text: str, base: str) -> list[str]:
     return result[:3]
 
 
+def _usable_discovery(event: dict[str, Any], text: str, source: str) -> bool:
+    """A 200 challenge/error page cannot establish a legitimate pending state."""
+    ticker, year, quarter = _identity(event)
+    parsed = urlparse(source)
+    doc = _Document(text)
+    headline = " ".join(doc.headings)
+    if ticker == "TSM":
+        if parsed.path == f"/english/quarterly-results/{year}/q{quarter}":
+            period = re.search(fr"(?:{year}\s*Q{quarter}|Q{quarter}\s*{year})", headline, re.I)
+            return bool(period and (re.search(r"Financial Results", headline, re.I)
+                        or ("TSMC" in headline and re.search(r"guidance|earnings conference", doc.text, re.I))))
+        if parsed.path.rstrip("/") in {"/english", "/english/latest-news"}:
+            return any(re.search(r"/english/news/\d+(?:$|[?#])", urljoin(source, href))
+                       and re.search(r"\bTSMC\b", label) for href, label in doc.links)
+        return False
+    if parsed.hostname == "live.euronext.com" and parsed.path == "/en/listview/company-press-release/058805":
+        return any(re.search(r"ASML\s+reports\b", label, re.I) for _, label in doc.node_links)
+    return (parsed.path.rstrip("/") == "/quarterly-results" and "ASML" in doc.text
+            and bool(re.search(r"Quarterly Results", headline, re.I)))
+
+
 def discover_issuer_release(event: dict[str, Any], *, fetch_text: Callable[[str], Any],
                             now: datetime | None = None) -> dict[str, Any]:
     """Fetch a bounded set of issuer HTML sources, retaining raw source receipts.
@@ -407,6 +428,8 @@ def discover_issuer_release(event: dict[str, Any], *, fetch_text: Callable[[str]
     candidates: list[dict[str, Any]] = []
     errors: list[dict[str, str]] = []
     attempt_failures: list[dict[str, str]] = []
+    usable_urls: list[str] = []
+    linked_releases: set[str] = set()
     while queue and len(visited) < _MAX_FETCHES:
         requested = queue.pop(0)
         if requested in visited:
@@ -433,9 +456,13 @@ def discover_issuer_release(event: dict[str, Any], *, fetch_text: Callable[[str]
             rows = parse_official(event, text, source_url=source, captured_at=captured,
                                   as_of=cutoff if cutoff is not None else completed)
             candidates.extend(rows)
+            if rows or _usable_discovery(event, text, source):
+                usable_urls.append(source)
             if rows:
                 break
-            queue[0:0] = [link for link in _release_links(event, text, source) if link not in visited]
+            links = [link for link in _release_links(event, text, source) if link not in visited]
+            linked_releases.update(links)
+            queue[0:0] = links
         except Exception as exc:  # A failed issuer fetch is explicit, never an invented actual.
             failure = {"source_url": requested, "reason": str(exc), "error_type": type(exc).__name__}
             if isinstance(exc, OfficialEarningsError):
@@ -445,7 +472,12 @@ def discover_issuer_release(event: dict[str, Any], *, fetch_text: Callable[[str]
     candidates = _deduplicate(candidates)
     if errors:
         candidates = []  # A parse-integrity failure cannot be hidden by another source.
-    return {"status": "failed" if errors else ("released" if candidates else (
-                "failed" if attempt_failures else "pending")),
+    pending = bool(usable_urls) and not linked_releases
+    status = "failed" if errors else "released" if candidates else "pending" if pending else "failed"
+    if status == "failed" and not errors and not attempt_failures:
+        errors.append({"source_url": "", "reason": "no usable registered issuer discovery receipt",
+                       "error_type": "OfficialEarningsError"})
+    return {"status": status,
             "candidates": candidates, "receipts": receipts, "errors": errors,
-            "attempt_failures": attempt_failures}
+            "attempt_failures": attempt_failures,
+            "usable_discovery_receipts": len(usable_urls), "usable_discovery_urls": usable_urls}
