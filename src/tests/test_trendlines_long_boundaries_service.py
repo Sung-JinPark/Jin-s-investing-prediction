@@ -24,7 +24,7 @@ def server(representative_server,monkeypatch):
     module=types.ModuleType('ai_fc.trendlines.long_boundaries');module.load_detail=load;module.decode_envelope=store.decode_envelope
     # The service's decoder takes no expected-contract keyword.
     module.decode_envelope=lambda envelope:store.decode_envelope(envelope,'trendlines_private_long_boundaries_v1')
-    monkeypatch.setitem(sys.modules,module.__name__,module);monkeypatch.setattr(package,'long_boundaries',module)
+    monkeypatch.setitem(sys.modules,module.__name__,module);monkeypatch.setattr(package,'long_boundaries',module,raising=False)
     return original,store,supplement,calls
 
 
