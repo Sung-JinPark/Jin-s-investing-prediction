@@ -90,7 +90,16 @@ def _validate_lineage_availability(lineage: dict[str, Any], issued: datetime) ->
         if lineage.get(key) is not None and _timestamp(lineage[key]) > issued:
             raise Daily6mContractError("input availability is after forecast issuance")
     for group in ("market_rows", "factor_rows", "issuance_factor_lineage"):
-        for row in lineage.get(group, ()):
+        rows = lineage.get(group)
+        if rows is None:
+            rows = ()
+        if group == "issuance_factor_lineage" and isinstance(rows, dict):
+            rows = (rows,)
+        if not isinstance(rows, (list, tuple)):
+            raise Daily6mContractError(f"{group} must contain explicit lineage mappings")
+        for row in rows:
+            if not isinstance(row, dict):
+                raise Daily6mContractError(f"{group} must contain explicit lineage mappings")
             for key in ("available_at", "vintage_start", "cutoff", "retrieved_at", "built_at", "cache_materialized_at"):
                 if row.get(key) is not None and _timestamp(row[key]) > issued:
                     raise Daily6mContractError(f"{group} {key} is after forecast issuance")

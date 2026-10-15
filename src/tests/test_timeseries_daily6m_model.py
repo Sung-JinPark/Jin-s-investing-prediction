@@ -197,13 +197,15 @@ def test_source_provenance_only_change_keeps_identical_numerical_joint_paths(
 
 
 @pytest.mark.usefixtures("quick_selector")
+@pytest.mark.parametrize("lineage_shape", ["mapping", "list"])
 def test_issuance_macro_state_is_used_without_overwriting_historical_training(
-    bundle: SimpleNamespace, monkeypatch: pytest.MonkeyPatch,
+    bundle: SimpleNamespace, monkeypatch: pytest.MonkeyPatch, lineage_shape: str,
 ) -> None:
     dates, _, _ = M.future_session_dates(bundle.dates[-1])
     original_training = bundle.exogenous.copy()
     bundle.issuance_exogenous = np.array([2.0, -3.0, 1.0])
-    bundle.issuance_factor_lineage = [{"cutoff": "2026-10-12T12:00:00+00:00"}]
+    factor = {"cutoff": "2026-10-12T12:00:00+00:00", "cache_materialized_at": "2026-10-12T12:00:00+00:00"}
+    bundle.issuance_factor_lineage = factor if lineage_shape == "mapping" else [factor]
     simulate = M.simulate_correlated_paths_v2
 
     def capture(fits, **kwargs):
@@ -216,8 +218,19 @@ def test_issuance_macro_state_is_used_without_overwriting_historical_training(
     np.testing.assert_array_equal(bundle.exogenous, original_training)
     assert payload["model_config"]["issuance_exogenous"]["growth_factor"] == 2.0
     assert payload["comparison"]["v8_raw_identity"]["pass"]
-    bundle.issuance_factor_lineage = [{"cutoff": "2026-10-12T15:00:00+00:00"}]
-    with pytest.raises(Daily6mContractError, match="issuance_factor_lineage"):
+    for field in ("cutoff", "cache_materialized_at"):
+        future = {**factor, field: "2026-10-12T15:00:00+00:00"}
+        bundle.issuance_factor_lineage = future if lineage_shape == "mapping" else [future]
+        with pytest.raises(Daily6mContractError, match="issuance_factor_lineage"):
+            M.generate_forecast(bundle, anchor=102, as_of="2026-10-12T14:00:00+00:00",
+                                future_dates=dates, path_count=64)
+
+
+@pytest.mark.parametrize("malformed", ["cutoff", ["cutoff"], 1, 0, False, ""])
+def test_malformed_issuance_factor_lineage_fails_before_fitting(bundle: SimpleNamespace, malformed) -> None:
+    dates, _, _ = M.future_session_dates(bundle.dates[-1])
+    bundle.issuance_factor_lineage = malformed
+    with pytest.raises(Daily6mContractError, match="explicit lineage mappings"):
         M.generate_forecast(bundle, anchor=102, as_of="2026-10-12T14:00:00+00:00",
                             future_dates=dates, path_count=64)
 
