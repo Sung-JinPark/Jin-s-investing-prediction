@@ -276,6 +276,271 @@ def test_invalid_price_or_line_fails_instead_of_clipping(problem, tmp_path):
     assert out['rejected']
 
 
+@pytest.fixture
+def representative_ui_fixture(full_history_fixture):
+    """Three real OLS fits over disposable source OHLC; no fabricated touch points."""
+    from ai_fc.trendlines import representative as V
+    f = copy.deepcopy(full_history_fixture)
+    current = f['current']
+    full = {**f['manifest'], 'bars': f['bars'],
+            'critical_manifest_sha256': json.loads(f['raw_manifest'])['payload_sha256']}
+    last = full['bars'][-1]
+    future = [{'offset': i, 'index': last['session_index'] + i,
+               'session': (date.fromisoformat(last['session']) + timedelta(days=i)).isoformat()}
+              for i in range(1, 31)]
+    analyses = {}
+    for axis in ('linear', 'log'):
+        representatives = []
+        for slot, requested in (('regression_200', 200), ('current_structure', 63), ('major_structure', 252)):
+            inputs = full['bars'][-requested:]
+            origin = inputs[0]['session_index']
+            x = [bar['session_index'] - origin for bar in inputs]
+            y = [math.log(bar['close']) if axis == 'log' else bar['close'] for bar in inputs]
+            x_mean, y_mean = math.fsum(x) / requested, math.fsum(y) / requested
+            sxx = math.fsum((value - x_mean) ** 2 for value in x)
+            sxy = math.fsum((value - x_mean) * (y[i] - y_mean) for i, value in enumerate(x))
+            slope = sxy / sxx
+            intercept = y_mean - slope * x_mean
+            sse = math.fsum((value - (intercept + slope * x[i])) ** 2 for i, value in enumerate(y))
+            syy = math.fsum((value - y_mean) ** 2 for value in y)
+            price = lambda index: math.exp(intercept + slope * (index - origin)) if axis == 'log' else intercept + slope * (index - origin)
+            fit = {'n': requested, 'requested_observations': requested, 'start_index': origin,
+                   'end_index': last['session_index'], 'start_session': inputs[0]['session'],
+                   'end_session': last['session'], 'x_mean': x_mean, 'y_mean': y_mean,
+                   'sxx': sxx, 'sxy': sxy, 'r_squared': 1 - sse / syy if syy else None,
+                   'rmse': math.sqrt(sse / requested), 'session_span': last['session_index']-origin+1, 'missing_sessions': last['session_index']-origin+1-requested,
+                   'input_bar_ids_hash': V.C.canonical_hash([bar['bar_id'] for bar in inputs]), 'fit_bar_ids_hash': V.C.canonical_hash([bar['bar_id'] for bar in inputs])}
+            line = {'slot': slot, 'status': 'ready', 'line_id': 'representative-line-' + hashlib.sha256(f'{axis}-{slot}'.encode()).hexdigest()[:32],
+                    'axis': axis, 'kind': 'regression', 'role': 'direction_only', 'origin_role': None, 'verified_boundary': False,
+                    'direction': 'rising' if slope > 0 else 'falling' if slope < 0 else 'flat',
+                    'geometry_status': 'descriptive', 'structural_state': 'descriptive',
+                    'coordinate_origin_index': origin, 'intercept': intercept, 'slope': slope,
+                    'current_price': price(last['session_index']), 'current_price_status': 'ready', 'fit': fit, 'first_anchor': None,
+                    'second_anchor': None, 'contacts': [], 'markers': [], 'contact_count': 0,
+                    'display_start_index': origin, 'display_end_index': future[-1]['index'],
+                    'selection_reason': 'descriptive_ols', 'fallback_reason': None if slot == 'regression_200' else 'no_pivot_pair'}
+            line['points'] = [{'index': index, 'session': session, 'price': price(index), 'future': False}
+                              for index, session in ((origin, inputs[0]['session']), (last['session_index'], last['session']))]
+            line['points'] += [{**row, 'price': price(row['index']), 'future': True} for row in (future[0], future[-1])]
+            line['projections'] = [{**row, 'price': price(row['index']), 'status': 'ready'} for row in future]
+            representatives.append(line)
+        analyses[axis] = {'representatives': representatives}
+    body = {'schema_version': 1, 'contract_id': 'trendlines_private_representative_v1',
+            'policy_version': 'representative_v1', 'policy_sha256': V.C.canonical_hash(V.POLICY),
+            'publication_scope': 'private_only', 'official_forecast_write': False, 'verified_source': False, 'verified_boundary': False, 'events': [],
+            'historical_signals_available': False, 'rights_status': 'uncertified_research_source',
+            'source_context': 'user_authorized_public_html_research', 'asset_id': current['asset_id'],
+            'snapshot_id': 'representative-snapshot-' + 'd' * 64, 'as_of': current['as_of'],
+            'source_snapshot_id': current['snapshot_id'], 'source_engine_snapshot_id': current['engine_snapshot_id'],
+            'source_archive_sha256': current['research_archive_sha256'], 'source_content_hash': 'c' * 64,
+            'source_engine_content_hash': current['source_snapshot_hash'], 'source_full_snapshot_id': full['snapshot_id'],
+            'source_full_content_hash': 'e' * 64, 'full_manifest_payload_sha256': full['critical_manifest_sha256'],
+            'input_hash': 'f' * 64, 'input_bar_ids_hash': V.C.canonical_hash([bar['bar_id'] for bar in full['bars']]), 'reference_close': last['close'], 'reference_session': last['session'],
+            'reference_index': last['session_index'], 'atr14': math.fsum(max(bar['high']-bar['low'],abs(bar['high']-full['bars'][-15+i]['close']),abs(bar['low']-full['bars'][-15+i]['close'])) for i,bar in enumerate(full['bars'][-14:]))/14, 'projection_sessions': future, 'analyses': analyses}
+    return {'current': current, 'full': full, 'body': body}
+
+
+def representative_transport(body):
+    raw = json.dumps(body, ensure_ascii=False, sort_keys=True, separators=(',', ':'), allow_nan=False)
+    return json.dumps({'schema_version': 1, 'contract_id': 'trendlines_private_representative_transport_v1',
+                       'publication_scope': 'private_only', 'asset_id': body['asset_id'],
+                       'snapshot_id': body['snapshot_id'], 'payload_json': raw,
+                       'payload_sha256': hashlib.sha256(raw.encode()).hexdigest()}, ensure_ascii=False)
+
+
+@pytest.mark.parametrize('axis', ['linear', 'log'])
+def test_representative_three_ols_lines_recompute_from_source_without_fictional_pivots(tmp_path, representative_ui_fixture, axis):
+    f = representative_ui_fixture
+    out = run(tmp_path, "globalThis.crypto=require('node:crypto').webcrypto;const f=" + json.dumps(f) + ';const raw=' + json.dumps(representative_transport(f['body'])) + ';const axis=' + json.dumps(axis) + r''';
+(async()=>{const before=JSON.stringify(f),body=await parseTrendRepresentativeTransport(raw,f.current,f.full);TREND_REPRESENTATIVE_DETAILS.set(f.current.asset_id,body);const analysis=trendRepresentativeAnalysis(f.current,f.full,axis),bars=trendRepresentativeViewport(f.full,analysis),m=trendPlotModel(f.full,analysis,bars,axis,390),svg=trendSvg(f.current,m,{label:'TEST FIXTURE',currency:'USD'},'representative');
+const fits=m.lines.map(line=>({slot:line.slot,first:line.points[0].index,start:line.fit.start_index,anchors:[line.first_anchor,line.second_anchor],contacts:line.contact_count,current:line.current_price,expected:trendLinePrice(line,m.last,axis)}));
+process.stdout.write(JSON.stringify({fits,count:m.lines.length,bars:m.bars.length,ids:m.lines.map(line=>line.line_id),markers:(svg.match(/data-trend-marker=/g)||[]).length,slots:(svg.match(/data-trend-slot=/g)||[]).length,unchanged:before===JSON.stringify(f),cards:trendRepresentativeCards(analysis,{currency:'USD'}),noPriorBackcast:m.lines.every(line=>line.points.every(point=>point.index>=line.fit.start_index))}));})();''')
+    assert out['count'] == out['slots'] == 3 and len(set(out['ids'])) == 3
+    assert out['bars'] == 252 and out['markers'] == 0 and out['unchanged'] and out['noPriorBackcast']
+    for line in out['fits']:
+        assert line['anchors'] == [None, None] and line['contacts'] == 0 and line['first'] >= line['start']
+        assert line['current'] == pytest.approx(line['expected'], rel=1e-10, abs=1e-6)
+    assert out['cards'].count('data-trend-representative-card=') == 3
+    assert '63일 회귀' in out['cards'] and '252일 회귀' in out['cards']
+
+
+@pytest.mark.parametrize('problem', ['hash', 'duplicate_json', 'asof', 'current_source', 'full_source', 'full_manifest',
+                                    'policy', 'approval', 'input_ids', 'fit_n', 'fit_start', 'slope', 'stat', 'anchors',
+                                    'contacts', 'duplicate_slot', 'negative', 'point', 'future', 'future_ohlc',
+                                    'policy_hash', 'archive_hash', 'events', 'boundary_claim', 'line_claim',
+                                    'fit_gap', 'full_ids', 'source_close', 'availability'])
+def test_representative_invalid_wire_or_arithmetic_is_rejected_without_mutating_source(tmp_path, representative_ui_fixture, problem):
+    f = copy.deepcopy(representative_ui_fixture)
+    body = f['body']
+    line = body['analyses']['linear']['representatives'][0]
+    if problem == 'asof': body['as_of'] = '2025-01-01T00:00:00Z'
+    elif problem == 'current_source': body['source_snapshot_id'] = 'research-snapshot-' + 'b' * 64
+    elif problem == 'full_source': body['source_full_snapshot_id'] = 'research-full-snapshot-' + 'b' * 64
+    elif problem == 'full_manifest': body['full_manifest_payload_sha256'] = 'a' * 64
+    elif problem == 'policy': body['policy_version'] = 'unknown'
+    elif problem == 'approval': body['verified_source'] = True
+    elif problem == 'input_ids': line['fit']['input_bar_ids_hash'] = 'b' * 64
+    elif problem == 'fit_n': line['fit']['n'] = 199
+    elif problem == 'fit_start': line['fit']['start_index'] -= 1
+    elif problem == 'slope': line['slope'] += .001
+    elif problem == 'stat': line['fit']['sxx'] += 1
+    elif problem == 'anchors': line['first_anchor'] = {'index': line['display_start_index']}
+    elif problem == 'contacts': line['contacts'] = [{}]
+    elif problem == 'duplicate_slot': body['analyses']['linear']['representatives'][1]['slot'] = 'regression_200'
+    elif problem == 'negative': line['current_price'] = -1
+    elif problem == 'point': line['points'][0]['price'] += 1
+    elif problem == 'future': body['projection_sessions'][0]['session'] = '2030-01-01'
+    elif problem == 'future_ohlc': body['projection_sessions'][0]['close'] = 1
+    elif problem == 'policy_hash': body['policy_sha256'] = 'a' * 64
+    elif problem == 'archive_hash': body['source_archive_sha256'] = 'a' * 64
+    elif problem == 'events': body['events'] = [{'state': 'broken'}]
+    elif problem == 'boundary_claim': body['verified_boundary'] = True
+    elif problem == 'line_claim': line['verified_boundary'] = True
+    elif problem == 'fit_gap': line['fit']['missing_sessions'] += 1
+    elif problem == 'full_ids': body['input_bar_ids_hash'] = 'a' * 64
+    elif problem == 'source_close':
+        f['full']['bars'][-150]['close'] += .001
+    elif problem == 'availability': line['current_price_status'] = 'unavailable_nonpositive_projection'
+    raw = representative_transport(body)
+    if problem == 'hash':
+        envelope = json.loads(raw); envelope['payload_json'] += ' '; raw = json.dumps(envelope)
+    elif problem == 'duplicate_json': raw = raw[:-1] + ',"schema_version":1}'
+    out = run(tmp_path, "globalThis.crypto=require('node:crypto').webcrypto;const f=" + json.dumps(f) + ';const raw=' + json.dumps(raw) + r''';
+(async()=>{const before=JSON.stringify([f.current,f.full]);let rejected=false;try{const body=await parseTrendRepresentativeTransport(raw,f.current,f.full);TREND_REPRESENTATIVE_DETAILS.set(f.current.asset_id,body);}catch(_){rejected=true;}
+const analysis=trendRepresentativeAnalysis(f.current,f.full,'linear'),m=trendPlotModel(f.full,analysis,f.full.bars.slice(-252),'linear',390);process.stdout.write(JSON.stringify({rejected,lines:m.lines.length,bars:m.bars.length,sourceUnchanged:before===JSON.stringify([f.current,f.full])}));})();''')
+    assert out == {'rejected': True, 'lines': 0, 'bars': 252, 'sourceUnchanged': True}
+
+
+def test_representative_default_is_one_chart_and_family_scope_axis_do_not_recalculate(tmp_path, representative_ui_fixture):
+    f = representative_ui_fixture
+    program = local_browser_stub() + 'const f=' + json.dumps(f) + ';const raw=' + json.dumps(representative_transport(f['body'])) + r''';
+(async()=>{const body=await parseTrendRepresentativeTransport(raw,f.current,f.full);TREND_REPRESENTATIVE_DETAILS.set('bitcoin',body);TREND_PRIVATE_DETAILS.set('bitcoin',f.current);TREND_FULL_DETAILS.set('bitcoin',f.full);const before=JSON.stringify(f);
+globalThis.DATA={trendlines:{assets:[{asset_id:'bitcoin',label:'비트코인',status:'hold',currency:'USD',price_unit:'USD_per_BTC'}]}};
+const pieces={},box=()=>({innerHTML:'',textContent:'',clientWidth:390,querySelector:()=>null});for(const key of ['.trend-content','[data-trend-representative-chart]','[data-trend-representative-coverage]','[data-trend-representative-insights]','[data-trend-representative-details]'])pieces[key]=box();pieces['[data-trend-local-message]']=nodes['[data-trend-local-message]'];
+const button=(key,value)=>({dataset:{[key]:value},attrs:{},setAttribute(key,value){this.attrs[key]=value}}),families=['all',...TREND_REPRESENTATIVE_SLOTS].map(value=>button('trendFamily',value)),scopes=['recent','anchors','all'].map(value=>button('trendScope',value)),axes=['linear','log'].map(value=>button('trendScale',value)),attrs={};
+globalThis.el=()=>({isConnected:true,setAttribute(key,value){attrs[key]=value},querySelector:key=>pieces[key]??null,querySelectorAll:key=>key==='[data-trend-family]'?families:key==='[data-trend-scope]'?scopes:key==='[data-trend-scale]'?axes:[]});globalThis.mount=()=>{};bindTrendChart=()=>{};TREND_LOCAL_ENABLED=false;
+renderTrendlinePage({asset:'bitcoin'});const html=pieces['.trend-content'].innerHTML,chart=pieces['[data-trend-representative-chart]'],initial={lines:(chart.innerHTML.match(/data-trend-line=/g)||[]).length,bars:(chart.innerHTML.match(/data-trend-bar=/g)||[]).length,cards:(pieces['[data-trend-representative-insights]'].innerHTML.match(/data-trend-representative-card=/g)||[]).length};
+families.find(row=>row.dataset.trendFamily==='current_structure').onclick();const current={lines:(chart.innerHTML.match(/data-trend-line=/g)||[]).length,bars:(chart.innerHTML.match(/data-trend-bar=/g)||[]).length};scopes.find(row=>row.dataset.trendScope==='all').onclick();const allBars=(chart.innerHTML.match(/data-trend-bar=/g)||[]).length;axes[1].onclick();const selectedLog=chart.innerHTML.includes(body.analyses.log.representatives[1].line_id),view={...TREND_REPRESENTATIVE_VIEW_OPTIONS.get('bitcoin')};
+renderTrendlinePage({asset:'bitcoin'});stopTrendLocalSession();process.stdout.write(JSON.stringify({html,initial,current,allBars,selectedLog,view,restored:TREND_REPRESENTATIVE_VIEW_OPTIONS.get('bitcoin'),snapshot:attrs['data-trend-representative-snapshot'],noCriticalFetch:!TREND_CRITICAL_DETAILS.size,unchanged:before===JSON.stringify(f)}));})();'''
+    out = run(tmp_path, program)
+    assert out['html'].count('class="trend-chart"') == 1 and 'data-trend-version="representative"' in out['html']
+    assert 'data-trend-current-chart' not in out['html'] and 'data-trend-full-chart' not in out['html']
+    assert out['initial'] == {'lines': 3, 'bars': 252, 'cards': 3}
+    assert out['current'] == {'lines': 1, 'bars': 126} and out['allBars'] == 900
+    assert out['selectedLog'] and out['view'] == out['restored'] == {'family': 'current_structure', 'scope': 'all', 'scale': 'log'}
+    assert out['snapshot'] == f['body']['snapshot_id'] and out['noCriticalFetch'] and out['unchanged']
+
+
+@pytest.mark.parametrize('axis', ['linear', 'log'])
+def test_representative_hover_reports_named_equation_price_instead_of_invented_resistance(tmp_path, representative_ui_fixture, axis):
+    f = representative_ui_fixture
+    out = run(tmp_path, "globalThis.crypto=require('node:crypto').webcrypto;const f=" + json.dumps(f) + ';const raw=' + json.dumps(representative_transport(f['body'])) + ';const axis=' + json.dumps(axis) + r''';
+(async()=>{const body=await parseTrendRepresentativeTransport(raw,f.current,f.full);TREND_REPRESENTATIVE_DETAILS.set(f.current.asset_id,body);const analysis=trendRepresentativeAnalysis(f.current,f.full,axis,'regression_200'),m=trendPlotModel(f.full,analysis,trendRepresentativeViewport(f.full,analysis),axis,390),line=m.lines[0],index=m.last-5,price=trendLinePrice(line,index,axis),hit=trendHoverAt(m,m.x(index),m.y(price),{scale:axis}),future=trendHoverAt(m,m.x(m.last+3),m.y(trendLinePrice(line,m.last+3,axis)),{scale:axis});
+process.stdout.write(JSON.stringify({hit,text:trendHoverText(hit,{currency:'USD'}),future,futureText:trendHoverText(future,{currency:'USD'}),price}));})();''')
+    assert out['hit']['kind'] == 'line' and out['hit']['row']['price'] == pytest.approx(out['price'])
+    assert '200일 가격추세' in out['text'] and '실제 종가' in out['text'] and '차이' in out['text']
+    assert '저항' not in out['text'] and '지지' not in out['text']
+    assert out['future']['kind'] == 'line' and out['future']['future'] and out['future']['row']['close'] is None
+    assert '추세선 연장값' in out['futureText'] and '실제 종가 없음' in out['futureText']
+
+
+def test_representative_poll_uses_exact_readonly_route_and_invalid_reply_removes_lines(tmp_path, representative_ui_fixture):
+    f = representative_ui_fixture
+    program = local_browser_stub() + 'const f=' + json.dumps(f) + ';const raw=' + json.dumps(representative_transport(f['body'])) + r''';
+(async()=>{TREND_PRIVATE_DETAILS.set('bitcoin',f.current);TREND_FULL_DETAILS.set('bitcoin',f.full);TREND_LOCAL_ENABLED=false;const session=bindTrendLocalConnection(root,{asset:'bitcoin'});await Promise.resolve();session.fullMounted=true;session.representativeMounted=true;let paints=0;session.onRepresentativeData=()=>paints++;TREND_REPRESENTATIVE_VIEW_OPTIONS.set('bitcoin',{family:'major_structure',scope:'all',scale:'log'});TREND_LOCAL_ENABLED=true;
+const requests=[];let corrupt=false;globalThis.fetch=async(url,options)=>{requests.push({url,method:options.method,credentials:options.credentials});return response(corrupt?'{}':raw)};await refreshTrendRepresentativeSession(session);const valid=trendRepresentativeAnalysis(f.current,f.full,'linear').lines.length;await refreshTrendRepresentativeSession(session);const samePaints=paints;corrupt=true;await refreshTrendRepresentativeSession(session);const invalid=trendRepresentativeAnalysis(f.current,f.full,'linear');stopTrendLocalSession();process.stdout.write(JSON.stringify({requests,valid,invalid:invalid.lines.length,noFuture:invalid.projection_sessions.length,noReference:invalid.critical_reference,paints,samePaints,view:TREND_REPRESENTATIVE_VIEW_OPTIONS.get('bitcoin')}));})();'''
+    out = run(tmp_path, program)
+    assert out['valid'] == 3 and out['invalid'] == 0 and out['noFuture'] == 0 and out['noReference'] is None
+    assert out['samePaints'] == 1 and out['paints'] == 2
+    assert len(out['requests']) == 3 and all(row == {'url': 'http://127.0.0.1:8878/api/private-trendlines/bitcoin/representative', 'method': 'GET', 'credentials': 'omit'} for row in out['requests'])
+    assert out['view'] == {'family': 'major_structure', 'scope': 'all', 'scale': 'log'}
+
+
+@pytest.mark.parametrize('completion', ['after_eight_seconds', 'current_changed', 'full_changed', 'route_abort', 'timeout'])
+def test_representative_cold_request_keeps_candles_and_rejects_late_source_changes(tmp_path, representative_ui_fixture, completion):
+    f = representative_ui_fixture
+    program = local_browser_stub() + 'const f=' + json.dumps(f) + ';const raw=' + json.dumps(representative_transport(f['body'])) + ';const completion=' + json.dumps(completion) + r''';
+const timers=new Map();let clock=0,next=0;globalThis.setTimeout=(fn,delay)=>{const id=++next;timers.set(id,{fn,delay,at:clock+delay});return id;};globalThis.clearTimeout=id=>timers.delete(id);const advance=ms=>{clock+=ms;for(const [id,row] of [...timers])if(row.at<=clock){timers.delete(id);row.fn();}};
+let finish;globalThis.fetch=(_url,options)=>new Promise((resolve,reject)=>{finish=()=>resolve(response(raw));options.signal.addEventListener('abort',()=>reject(new DOMException('Aborted','AbortError')),{once:true});});
+(async()=>{TREND_LOCAL_ENABLED=false;const session=bindTrendLocalConnection(root,{asset:'bitcoin'});await Promise.resolve();TREND_PRIVATE_DETAILS.set('bitcoin',f.current);TREND_FULL_DETAILS.set('bitcoin',f.full);session.fullMounted=true;session.representativeMounted=true;TREND_LOCAL_ENABLED=true;let paints=0;session.onRepresentativeData=()=>paints++;const pending=refreshTrendRepresentativeSession(session),deadline=[...timers.values()].find(row=>row.delay===20000);advance(8100);const waiting={bars:trendChartModel(f.current,63).bars.length,lines:trendRepresentativeAnalysis(f.current,f.full,'linear').lines.length,aborted:session.representativeController.signal.aborted};if(completion==='current_changed')TREND_PRIVATE_DETAILS.set('bitcoin',{...f.current,snapshot_id:'research-snapshot-'+'b'.repeat(64)});if(completion==='full_changed')TREND_FULL_DETAILS.set('bitcoin',{...f.full,snapshot_id:'research-full-snapshot-'+'c'.repeat(64)});if(completion==='route_abort')stopTrendLocalSession();if(completion==='timeout')advance(11900);else finish();await pending;const loaded=TREND_REPRESENTATIVE_DETAILS.has('bitcoin'),bars=trendChartModel(f.current,63).bars.length;stopTrendLocalSession();process.stdout.write(JSON.stringify({deadline:deadline.delay,waiting,loaded,bars,paints}));})();'''
+    out = run(tmp_path, program)
+    assert out['deadline'] == 20000 and out['waiting'] == {'bars': 63, 'lines': 0, 'aborted': False}
+    assert out['loaded'] == (completion == 'after_eight_seconds') and out['bars'] == 63
+    assert out['paints'] == (1 if completion == 'after_eight_seconds' else 0)
+
+
+def test_representative_nonpositive_ols_slot_is_isolated_and_other_two_remain_visible(tmp_path, representative_ui_fixture):
+    from ai_fc.trendlines import representative as V
+    f = copy.deepcopy(representative_ui_fixture)
+    bars = f['full']['bars']
+    for index, bar in enumerate(bars):
+        close = 1000.0 if len(bars) - 200 <= index < len(bars) - 150 else 100.0
+        bar.update(open=close, high=close, low=close, close=close)
+    f['current']['bars'] = copy.deepcopy(bars[-len(f['current']['bars']):])
+    rows = [{**bar, 'session_date': bar['session']} for bar in bars]
+    for axis in ('linear', 'log'):
+        f['body']['analyses'][axis]['representatives'] = [V._ols(rows, n, axis, slot, f['body']['projection_sessions'])
+                                                        for slot, n in (('regression_200', 200), ('current_structure', 63), ('major_structure', 252))]
+    f['body'].update(reference_close=100.0, atr14=0.0)
+    out = run(tmp_path, "globalThis.crypto=require('node:crypto').webcrypto;const f=" + json.dumps(f) + ';const raw=' + json.dumps(representative_transport(f['body'])) + r''';
+(async()=>{const body=await parseTrendRepresentativeTransport(raw,f.current,f.full);TREND_REPRESENTATIVE_DETAILS.set(f.current.asset_id,body);const linear=trendRepresentativeAnalysis(f.current,f.full,'linear'),log=trendRepresentativeAnalysis(f.current,f.full,'log'),cards=trendRepresentativeCards(linear,{currency:'USD'});process.stdout.write(JSON.stringify({lines:linear.lines.length,current:linear.lines.map(line=>line.current_price),logCurrent:log.lines[0].current_price,cards,sourcePositive:f.full.bars.every(bar=>bar.close>0),r2:linear.lines[1].fit.r_squared}));})();''')
+    assert out['sourcePositive'] and out['lines'] == 3 and out['current'][0] is None
+    assert out['current'][1] == 100 and out['current'][2] > 0 and out['logCurrent'] > 0
+    assert out['r2'] is None and '현재 선 값 미산출' in out['cards']
+    assert '-100.00%' not in out['cards'] and '>0달러<' not in out['cards']
+
+
+@pytest.mark.parametrize('problem', [None, 'anchor_price', 'later_confirmation', 'window', 'unconfirmed_tie'])
+def test_representative_real_pivots_and_context_extrema_keep_raw_ohlc_and_anchor_scope(tmp_path, representative_ui_fixture, problem):
+    from ai_fc.trendlines import representative as V
+    f = copy.deepcopy(representative_ui_fixture)
+    rows = [{**bar, 'session_date': bar['session'], 'available_at': f['current']['as_of'], 'fetched_at': f['current']['as_of']} for bar in f['full']['bars']]
+    atr = V.E._atr(rows, 14, segmented=True)
+    for axis in ('linear', 'log'):
+        for slot, left, gap in (('current_structure', 3, 10), ('major_structure', 10, 60)):
+            pivots = V._pivots(rows, left, left)
+            lows = [p for p in pivots if p['side'] == 'support']
+            second = lows[-1]
+            first = next(p for p in reversed(lows[:-1]) if second['index'] - p['index'] >= gap)
+            line = V._pivot_line(first, second, pivots, rows, atr, f['current']['asset'], V.C.load_contract(ROOT), axis,
+                                 slot, f['body']['projection_sessions'])
+            if slot == 'major_structure':
+                peak = next(p for p in reversed(pivots) if p['side'] == 'resistance')
+                line['markers'].append(peak)
+            f['body']['analyses'][axis]['representatives'][1 if slot == 'current_structure' else 2] = line
+    line = f['body']['analyses']['linear']['representatives'][2]
+    if problem == 'anchor_price': line['first_anchor']['price'] += .1
+    elif problem == 'later_confirmation': line['markers'][-1]['confirmed_at'] = '2099-01-01T00:00:00Z'
+    elif problem == 'window': line['parameters']['right'] -= 1
+    elif problem == 'unconfirmed_tie':
+        line['markers'][-1]['price'] = f['full']['bars'][line['markers'][-1]['index'] - 1]['high']
+    out = run(tmp_path, "globalThis.crypto=require('node:crypto').webcrypto;const f=" + json.dumps(f) + ';const raw=' + json.dumps(representative_transport(f['body'])) + r''';
+(async()=>{let rejected=false,body;try{body=await parseTrendRepresentativeTransport(raw,f.current,f.full);}catch(_){rejected=true;}if(body)TREND_REPRESENTATIVE_DETAILS.set(f.current.asset_id,body);const analysis=trendRepresentativeAnalysis(f.current,f.full,'linear'),scoped=trendRepresentativeViewport(f.full,analysis,'anchors'),major=analysis.lines.find(line=>line.slot==='major_structure');
+process.stdout.write(JSON.stringify({rejected,lines:analysis.lines.length,scopeStart:scoped[0].session_index,expectedStart:major?major.first_anchor.index-10:null,markers:major?.markers.map(point=>({side:point.side,price:point.price,index:point.index})),rawValid:major?.markers.every(point=>point.price===f.full.bars.find(bar=>bar.session_index===point.index)[point.side==='support'?'low':'high'])}));})();''')
+    assert out['rejected'] == (problem is not None)
+    if problem is None:
+        assert out['lines'] == 3 and out['scopeStart'] == out['expectedStart'] and out['rawValid']
+        assert any(marker['side'] == 'resistance' for marker in out['markers'])
+    else:
+        assert out['lines'] == 0
+
+
+def test_representative_short_history_keeps_one_computable_slot_and_renders_holds(tmp_path, representative_ui_fixture):
+    from ai_fc.trendlines import representative as V
+    f = copy.deepcopy(representative_ui_fixture)
+    f['full']['bars'] = f['full']['bars'][-126:]
+    rows = [{**bar, 'session_date': bar['session']} for bar in f['full']['bars']]
+    for axis in ('linear', 'log'):
+        f['body']['analyses'][axis]['representatives'] = [V._ols(rows, n, axis, slot, f['body']['projection_sessions'])
+                                                        for slot, n in (('regression_200', 200), ('current_structure', 63), ('major_structure', 252))]
+    f['body']['input_bar_ids_hash'] = V.C.canonical_hash([row['bar_id'] for row in rows])
+    out = run(tmp_path, "globalThis.crypto=require('node:crypto').webcrypto;const f=" + json.dumps(f) + ';const raw=' + json.dumps(representative_transport(f['body'])) + r''';
+(async()=>{const body=await parseTrendRepresentativeTransport(raw,f.current,f.full);TREND_REPRESENTATIVE_DETAILS.set(f.current.asset_id,body);const analysis=trendRepresentativeAnalysis(f.current,f.full,'linear'),cards=trendRepresentativeCards(analysis,{currency:'USD'}),m=trendPlotModel(f.full,analysis,trendRepresentativeViewport(f.full,analysis),'linear',390);process.stdout.write(JSON.stringify({lines:m.lines.length,bars:m.bars.length,cards,slots:analysis.representatives.map(line=>line.status)}));})();''')
+    assert out['lines'] == 1 and out['bars'] == 126 and out['slots'] == ['hold', 'ready', 'hold']
+    assert out['cards'].count('data-trend-representative-card=') == 3
+    assert out['cards'].count('확정 일봉이 더 필요합니다.') == 2
+
+
 def test_independent_route_keeps_future_data_failure_from_blocking_trendlines(tmp_path):
     source = MAIN_SOURCE.read_text(encoding='utf-8')
     routes = source[source.index('function parseCanonicalRoute'):source.index('function renderFuturePathsLoadState')]
@@ -426,7 +691,7 @@ const rendered={};const box=()=>({innerHTML:'',clientWidth:1000,querySelector(){
 const pieces={'.trend-content':box(),'[data-trend-current-chart]':box(),'[data-trend-full-chart]':box(),'[data-trend-full-coverage]':box(),'[data-trend-full-insights]':box(),'[data-trend-full-line-details]':box(),'[data-trend-direction-controls]':box(),'[data-trend-insights]':box(),'[data-trend-line-details]':box(),'[data-trend-local-message]':nodes['[data-trend-local-message]']};
 globalThis.el=html=>{rendered.outer=html;return {isConnected:true,querySelector:key=>pieces[key]??null,querySelectorAll:()=>[]}};
 globalThis.mount=()=>{};bindTrendChart=()=>{};TREND_LOCAL_ENABLED=false;
-renderTrendlinePage({asset:'sk-hynix'});stopTrendLocalSession();
+renderCriticalTrendlinePage({asset:'sk-hynix'});stopTrendLocalSession();
 process.stdout.write(JSON.stringify({outer:rendered.outer,body:pieces['.trend-content'].innerHTML,chart:pieces['[data-trend-current-chart]'].innerHTML,full:pieces['[data-trend-full-chart]'].innerHTML,insights:pieces['[data-trend-insights]'].innerHTML,lines:pieces['[data-trend-line-details]'].innerHTML}));'''
     out = run(tmp_path, program)
     combined = out['outer'] + out['body']
@@ -948,7 +1213,7 @@ globalThis.DATA={trendlines:{assets:[{asset_id:'bitcoin',label:'비트코인',st
 const rendered={},box=()=>({innerHTML:'',textContent:'',clientWidth:390,querySelector(){return null}}),pieces={};
 for(const key of ['.trend-content','[data-trend-current-chart]','[data-trend-full-chart]','[data-trend-full-coverage]','[data-trend-full-insights]','[data-trend-full-line-details]','[data-trend-direction-controls]','[data-trend-insights]','[data-trend-line-details]'])pieces[key]=box();pieces['[data-trend-local-message]']=nodes['[data-trend-local-message]'];
 globalThis.el=html=>{rendered.outer=html;return {isConnected:true,querySelector:key=>pieces[key]??null,querySelectorAll:()=>[]}};globalThis.mount=()=>{};bindTrendChart=()=>{};TREND_LOCAL_ENABLED=false;
-renderTrendlinePage({asset:'bitcoin'});stopTrendLocalSession();process.stdout.write(JSON.stringify({body:pieces['.trend-content'].innerHTML,full:pieces['[data-trend-full-chart]'].innerHTML,current:pieces['[data-trend-current-chart]'].innerHTML,coverage:pieces['[data-trend-full-coverage]'].textContent,fullInsightCount:(pieces['[data-trend-full-insights]'].innerHTML.match(/data-trend-insight=/g)||[]).length,currentInsightCount:(pieces['[data-trend-insights]'].innerHTML.match(/data-trend-insight=/g)||[]).length,view:TREND_VIEW_OPTIONS.get('bitcoin')}));'''
+renderCriticalTrendlinePage({asset:'bitcoin'});stopTrendLocalSession();process.stdout.write(JSON.stringify({body:pieces['.trend-content'].innerHTML,full:pieces['[data-trend-full-chart]'].innerHTML,current:pieces['[data-trend-current-chart]'].innerHTML,coverage:pieces['[data-trend-full-coverage]'].textContent,fullInsightCount:(pieces['[data-trend-full-insights]'].innerHTML.match(/data-trend-insight=/g)||[]).length,currentInsightCount:(pieces['[data-trend-insights]'].innerHTML.match(/data-trend-insight=/g)||[]).length,view:TREND_VIEW_OPTIONS.get('bitcoin')}));'''
     out = run(tmp_path, program)
     # A missing critical read model keeps candles and cannot restore old candidate overlays.
     earliest = 900 - 252
@@ -971,10 +1236,10 @@ for(const key of ['.trend-content','[data-trend-current-chart]','[data-trend-ful
 const buttons=['anchors','all'].map(value=>({dataset:{trendFullView:value},attrs:{},setAttribute(key,value){this.attrs[key]=value}}));
 globalThis.el=()=>({isConnected:true,querySelector:key=>pieces[key]??null,querySelectorAll:key=>key==='[data-trend-full-view]'?buttons:[]});globalThis.mount=()=>{};bindTrendChart=()=>{};TREND_LOCAL_ENABLED=false;
 TREND_VIEW_OPTIONS.set('bitcoin',{period:63,scale:'log',direction:'rising',fullScope:initialScope});
-renderTrendlinePage({asset:'bitcoin'});const initial=(pieces['[data-trend-full-chart]'].innerHTML.match(/data-trend-bar=/g)||[]).length,current=pieces['[data-trend-current-chart]'].innerHTML;
+renderCriticalTrendlinePage({asset:'bitcoin'});const initial=(pieces['[data-trend-full-chart]'].innerHTML.match(/data-trend-bar=/g)||[]).length,current=pieces['[data-trend-current-chart]'].innerHTML;
 buttons.find(row=>row.dataset.trendFullView==='all').onclick();const all=(pieces['[data-trend-full-chart]'].innerHTML.match(/data-trend-bar=/g)||[]).length,allView={...TREND_VIEW_OPTIONS.get('bitcoin')};
 buttons.find(row=>row.dataset.trendFullView==='anchors').onclick();const anchors=(pieces['[data-trend-full-chart]'].innerHTML.match(/data-trend-bar=/g)||[]).length,anchorView={...TREND_VIEW_OPTIONS.get('bitcoin')};
-renderTrendlinePage({asset:'bitcoin'});const restored=(pieces['[data-trend-full-chart]'].innerHTML.match(/data-trend-bar=/g)||[]).length;
+renderCriticalTrendlinePage({asset:'bitcoin'});const restored=(pieces['[data-trend-full-chart]'].innerHTML.match(/data-trend-bar=/g)||[]).length;
 stopTrendLocalSession();process.stdout.write(JSON.stringify({initial,all,anchors,restored,allView,anchorView,unchanged:before===JSON.stringify({full,current:f.current}),sameCurrent:current===pieces['[data-trend-current-chart]'].innerHTML,allPressed:buttons[1].attrs['aria-pressed'],anchorPressed:buttons[0].attrs['aria-pressed'],body:pieces['.trend-content'].innerHTML}));'''
     out = run(tmp_path, program)
     assert out['initial'] == (252 if initial_scope == 'anchors' else 900)

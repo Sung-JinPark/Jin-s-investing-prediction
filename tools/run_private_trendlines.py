@@ -44,6 +44,9 @@ def run(options) -> None:
         if report.get("critical", {}).get("status") == "unavailable":
             logger.warning("Critical selection unavailable for %s: %s", asset_id,
                            report["critical"].get("error", "critical_refresh_failed"))
+        if report.get("representative", {}).get("status") == "unavailable":
+            logger.warning("Representative lines unavailable for %s: %s", asset_id,
+                           report["representative"].get("error", "representative_refresh_failed"))
         return report
 
     def build_preview():
