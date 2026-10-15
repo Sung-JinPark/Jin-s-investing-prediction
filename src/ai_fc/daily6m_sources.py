@@ -36,6 +36,7 @@ CBOE_URL = "https://cdn.cboe.com/api/global/us_indices/daily_prices/VIX_History.
 CBOE_RESPONSE_URL = "https://cdn-api.cboe.com/api/global/us_indices/daily_prices/VIX_History.csv"
 TREASURY_URL = "https://home.treasury.gov/resource-center/data-chart-center/interest-rates/pages/xml?data=daily_treasury_yield_curve&field_tdr_date_value={year}"
 SOURCE_SERIES = {"nasdaq_comp_official": "NASDAQCOM", "cboe_vix_archive": "VIX", "us_treasury_yield_archive": "DGS2"}
+NATIVE_SOURCE_SERIES = frozenset({"NASDAQCOM", "VIXCLS", "DGS2"})
 
 
 class Daily6mSourcesError(ValueError):
@@ -120,6 +121,52 @@ def treasury_closed_session(day: str) -> bool:
     return bool(len(USFederalHolidayCalendar().holidays(start=day, end=day)))
 
 
+def _native_source_rows(root: Path) -> list[dict[str, Any]]:
+    """Read the three immutable source series without parsing unrelated chunks.
+
+    The native manifest already partitions by series. Preserve every revision
+    of a selected series and the native reader's containment/hash/count guards;
+    an issuance cutoff is applied only after reading its complete history.
+    """
+    from .timeseries import ledger as native_ledger
+    ledger = root / native_ledger.LEDGER_RELATIVE
+    rows = []
+    legacy = ledger / native_ledger.OBSERVATIONS_NAME
+    if legacy.is_file():
+        with legacy.open(encoding="utf-8") as handle:
+            for line in handle:
+                if line.strip():
+                    row = json.loads(line)
+                    if row.get("series_id") in NATIVE_SOURCE_SERIES:
+                        rows.append(row)
+    manifest = ledger / native_ledger.OBSERVATION_MANIFEST_NAME
+    if manifest.is_file():
+        chunk_root = (root / native_ledger.FACTS_RELATIVE / native_ledger.OBSERVATION_CHUNKS_DIRECTORY).resolve()
+        with manifest.open(encoding="utf-8") as handle:
+            for line in handle:
+                if not line.strip():
+                    continue
+                item = json.loads(line)
+                if item.get("series_id") not in NATIVE_SOURCE_SERIES:
+                    continue
+                path = (root / str(item["chunk_path"])).resolve()
+                if not path.is_relative_to(chunk_root):
+                    raise Daily6mSourcesError("selected native chunk escapes its registered root")
+                if not path.is_file():
+                    raise Daily6mSourcesError("selected native chunk is missing")
+                body = gzip.decompress(path.read_bytes())
+                digest = _hash(body)
+                if digest != item["content_sha256"] or digest != item["chunk_id"]:
+                    raise Daily6mSourcesError("selected native chunk hash mismatch")
+                chunk_rows = [json.loads(value) for value in body.decode("utf-8").splitlines() if value]
+                if type(item["row_count"]) is not int or len(chunk_rows) != item["row_count"]:
+                    raise Daily6mSourcesError("selected native chunk row count mismatch")
+                if any(row.get("series_id") != item["series_id"] for row in chunk_rows):
+                    raise Daily6mSourcesError("selected native chunk series metadata mismatch")
+                rows.extend(chunk_rows)
+    return rows
+
+
 def _native_at(root: Path, as_of: datetime) -> dict[str, dict[str, dict[str, Any]]]:
     from .timeseries import ledger as native_ledger
     ledger = root / native_ledger.LEDGER_RELATIVE
@@ -127,7 +174,7 @@ def _native_at(root: Path, as_of: datetime) -> dict[str, dict[str, dict[str, Any
         # The Parquet view selects today's latest same-vintage correction. Its
         # earlier captured revision remains in immutable chunks, and is required
         # to replay an older source receipt without later revision leakage.
-        records = native_ledger.read_fact_rows(root)
+        records = _native_source_rows(root)
     else:
         import pyarrow.parquet as pq
         path = root / "data/timeseries/facts/observations.parquet"

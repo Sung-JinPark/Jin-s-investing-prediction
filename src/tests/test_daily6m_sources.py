@@ -298,3 +298,68 @@ def test_legacy_direct_receipt_identity_preserved_without_invented_final_uri(roo
     verified = S.load_verified_source_observations(root, as_of=NOW)
     assert len(verified) == 4 and all(r["receipt_response_uri"] is None and r["receipt_response_uri_recorded"] is False for r in verified)
     assert (root / S.RECEIPTS).read_bytes() == prefix
+
+
+def native_chunks(root):
+    from ai_fc.timeseries import ledger as N
+    baseline = pq.read_table(root / "data/timeseries/facts/observations.parquet").to_pylist()
+    grouped = {sid: [r for r in baseline if r["series_id"] == sid] for sid in S.NATIVE_SOURCE_SERIES}
+    old = next(r for r in baseline if r["series_id"] == "NASDAQCOM" and r["observation_time"] == "2026-10-13")
+    correction = {**old, "value": 27200.0, "retrieved_at": (NOW + timedelta(minutes=1)).isoformat(), "revision_seq": 1}
+    grouped["NASDAQCOM"].append(correction)
+    grouped["UNRATE"] = [{**old, "series_id": "UNRATE", "value": 4.0}]
+    manifest = []
+    for sid, rows in grouped.items():
+        body = ("\n".join(json.dumps(r) for r in rows) + "\n").encode()
+        digest = S._hash(body)
+        path = N.FACTS_RELATIVE / N.OBSERVATION_CHUNKS_DIRECTORY / (digest + ".jsonl.gz")
+        (root / path).parent.mkdir(parents=True, exist_ok=True)
+        (root / path).write_bytes(gzip.compress(body, mtime=0))
+        manifest.append({"series_id": sid, "chunk_id": digest, "content_sha256": digest, "chunk_path": path.as_posix(), "row_count": len(rows)})
+    location = root / N.LEDGER_RELATIVE / N.OBSERVATION_MANIFEST_NAME
+    location.parent.mkdir(parents=True, exist_ok=True)
+    location.write_text("\n".join(json.dumps(r) for r in manifest) + "\n")
+    legacy = root / N.LEDGER_RELATIVE / N.OBSERVATIONS_NAME
+    legacy.write_text(json.dumps({**old, "series_id": "PAYEMS"}) + "\n" + json.dumps({**old, "series_id": "VIXCLS", "value": 15.27}) + "\n")
+    return manifest, location
+
+
+def test_selected_immutable_reader_equals_full_native_reader_at_each_cutoff(root, monkeypatch):
+    from ai_fc.timeseries import ledger as N
+    native_chunks(root)
+    full = N.read_fact_rows(root)
+    selected = S._native_source_rows(root)
+    assert selected == [r for r in full if r["series_id"] in S.NATIVE_SOURCE_SERIES]
+    for cutoff in (NOW, NOW + timedelta(minutes=2)):
+        actual = S._native_at(root, cutoff)
+        with monkeypatch.context() as context:
+            context.setattr(S, "_native_source_rows", lambda _root: full)
+            expected = S._native_at(root, cutoff)
+        assert actual == expected
+    assert S._native_at(root, NOW)["NASDAQCOM"]["2026-10-13"]["value"] == 27204.38
+    assert S._native_at(root, NOW + timedelta(minutes=2))["NASDAQCOM"]["2026-10-13"]["value"] == 27200.0
+
+
+def test_unrelated_native_chunks_are_not_opened(root, monkeypatch):
+    from pathlib import Path
+    manifest, _ = native_chunks(root)
+    unrelated = (root / next(r["chunk_path"] for r in manifest if r["series_id"] == "UNRATE")).resolve()
+    read_bytes = Path.read_bytes
+    def guarded(path):
+        assert path.resolve() != unrelated, "unrelated native chunk was opened"
+        return read_bytes(path)
+    monkeypatch.setattr(Path, "read_bytes", guarded)
+    assert S._native_source_rows(root)
+
+
+@pytest.mark.parametrize("mutation", ["hash", "path", "count", "series"])
+def test_selected_native_chunk_integrity_guards(root, mutation):
+    manifest, location = native_chunks(root)
+    item = next(r for r in manifest if r["series_id"] == "NASDAQCOM")
+    if mutation == "hash": item["content_sha256"] = "0" * 64
+    elif mutation == "path": item["chunk_path"] = "../outside.gz"
+    elif mutation == "count": item["row_count"] += 1
+    else: item["series_id"] = "DGS2"
+    location.write_text("\n".join(json.dumps(r) for r in manifest) + "\n")
+    with pytest.raises(S.Daily6mSourcesError):
+        S._native_source_rows(root)
