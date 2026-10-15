@@ -356,7 +356,7 @@ def test_representative_three_ols_lines_recompute_from_source_without_fictional_
 const fits=m.lines.map(line=>({slot:line.slot,first:line.points[0].index,start:line.fit.start_index,anchors:[line.first_anchor,line.second_anchor],contacts:line.contact_count,current:line.current_price,expected:trendLinePrice(line,m.last,axis)}));
 process.stdout.write(JSON.stringify({fits,count:m.lines.length,bars:m.bars.length,ids:m.lines.map(line=>line.line_id),markers:(svg.match(/data-trend-marker=/g)||[]).length,slots:(svg.match(/data-trend-slot=/g)||[]).length,unchanged:before===JSON.stringify(f),cards:trendRepresentativeCards(analysis,{currency:'USD'}),noPriorBackcast:m.lines.every(line=>line.points.every(point=>point.index>=line.fit.start_index))}));})();''')
     assert out['count'] == out['slots'] == 3 and len(set(out['ids'])) == 3
-    assert out['bars'] == 252 and out['markers'] == 0 and out['unchanged'] and out['noPriorBackcast']
+    assert out['bars'] == 900 and out['markers'] == 0 and out['unchanged'] and out['noPriorBackcast']
     for line in out['fits']:
         assert line['anchors'] == [None, None] and line['contacts'] == 0 and line['first'] >= line['start']
         assert line['current'] == pytest.approx(line['expected'], rel=1e-10, abs=1e-6)
@@ -425,7 +425,7 @@ renderTrendlinePage({asset:'bitcoin'});stopTrendLocalSession();process.stdout.wr
     out = run(tmp_path, program)
     assert out['html'].count('class="trend-chart"') == 1 and 'data-trend-version="representative"' in out['html']
     assert 'data-trend-current-chart' not in out['html'] and 'data-trend-full-chart' not in out['html']
-    assert out['initial'] == {'lines': 3, 'bars': 252, 'cards': 3}
+    assert out['initial'] == {'lines': 3, 'bars': 900, 'cards': 3}
     assert out['current'] == {'lines': 1, 'bars': 126} and out['allBars'] == 900
     assert out['selectedLog'] and out['view'] == out['restored'] == {'family': 'current_structure', 'scope': 'all', 'scale': 'log'}
     assert out['snapshot'] == f['body']['snapshot_id'] and out['noCriticalFetch'] and out['unchanged']
