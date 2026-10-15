@@ -1,0 +1,44 @@
+{
+  "anchor": null,
+  "as_of": "2026-10-15",
+  "backtest": {
+    "gate_pass": false,
+    "metrics": {},
+    "reasons": [
+      "PIT common sample has fewer than 800 completed sessions"
+    ],
+    "run_id": null
+  },
+  "combined_with_existing_models": false,
+  "contributions_1d": {},
+  "display_state": "validation_pending",
+  "ensemble": {},
+  "forecast_id": "ts-a503468c7d5bc2dcb925",
+  "freshness": {
+    "missing_features": [],
+    "required_daily_sla_hours": 48
+  },
+  "generated_at": "2026-10-15T07:48:08+00:00",
+  "hashes": {
+    "content": "9e0b6df8f50eeb7ab6563313bdbb8bd0fc149e0aa11a8ce7b2fc7cd9b6bff128",
+    "contract": "0ca655293c7b91812a3e6e68393a66667281864f81936a014e7382c4d68b776d",
+    "model": null,
+    "sources": null
+  },
+  "horizons": {},
+  "knowledge_cutoff": "2026-10-15T07:48:08+00:00",
+  "model_id": "shadow.mf_dfm_ridge_varx_v1",
+  "model_version": 1,
+  "path": {},
+  "probability_space": "research_timeseries_conditional",
+  "probability_unit": "fraction",
+  "publication": {
+    "automatic_champion_promotion": false,
+    "customer_numbers_visible": false,
+    "minimum_shadow_sessions": 126
+  },
+  "schema_version": 1,
+  "status": "shadow",
+  "target": "NASDAQCOM",
+  "transform": "daily_log_return"
+}
