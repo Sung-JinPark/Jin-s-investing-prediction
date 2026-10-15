@@ -806,6 +806,96 @@ console.log(JSON.stringify({tone:evAfpTone({metric:'eps',actual:'$14',consensus:
     assert "&lt;bad&gt;" in result["table"]
 
 
+def _asml_usd_display_fixture() -> str:
+    return r"""
+const rows=DATA.event_consensus.asml;
+Object.assign(rows.find(row=>row.metric==='eps'),{row_id:'nasdaq-asml-2026q3',currency:'USD',share_basis:'listed_share',eps_basis:'vendor_reported',accounting_basis:'vendor_reported'});
+const fx={currency:'USD',original_currency:'EUR',rate:1.1195,rate_date:'2026-10-14',source:'ECB',source_url:'https://ecb.example/eur-usd',captured_at:'2026-10-14T14:05:00Z',available_at:'2026-10-14T14:00:00Z',display_only:true};
+Object.assign(rows.find(row=>row.metric==='eps_reported'),{note:'통화·주식 단위 변환 및 예상과의 직접 비교를 하지 않습니다.',display_conversion:{...fx,actual:'$14.50',actual_value:14.497525,original_actual:'EUR 12.95',consensus_row_id:'nasdaq-asml-2026q3'}});
+rows.find(row=>row.metric==='revenue_reported').display_conversion={...fx,actual:'$13,056M',actual_value:13055.609,original_actual:'EUR 11,662M'};
+"""
+
+
+def test_usd_display_projection_merges_only_the_explicit_consensus_row() -> None:
+    result = _run_earnings_js(_asml_usd_display_fixture() + r"""
+const before=JSON.stringify(rows),display=evDisplayRows(rows),eps=display.find(row=>row.metric==='eps_reported'),revenue=display.find(row=>row.metric==='revenue_reported');
+console.log(JSON.stringify({eps,revenue,metrics:display.map(row=>row.metric),tone:evAfpTone(eps),unchanged:before===JSON.stringify(rows),idempotent:JSON.stringify(display)===JSON.stringify(evDisplayRows(display))}));
+""")
+    assert result["metrics"] == ["eps_reported", "revenue_reported", "gross_margin_reported"]
+    eps, revenue = result["eps"], result["revenue"]
+    assert (eps["currency"], eps["actual"], eps["actual_value"]) == ("USD", "$14.50", 14.497525)
+    assert (eps["consensus"], eps["previous"]) == ("$12.47", "$8.81")
+    assert eps["label"] == "기본 EPS · USD 환산"
+    assert (eps["share_basis"], eps["eps_basis"], eps["accounting_basis"]) == ("ordinary_share", "basic", "US_GAAP")
+    assert "원문 EUR 12.95" in eps["note"] and "원문 이전 EUR 7.59" in eps["note"]
+    assert "ECB 2026-10-14 · 1 EUR = 1.1195 USD" in eps["note"]
+    assert "예상·이전: Nasdaq 기준" in eps["note"]
+    assert "공식 기본 EPS와 제공업체 EPS는 산출 기준이 다를 수 있습니다." in eps["note"]
+    assert "변환 및 예상과의 직접 비교를 하지 않습니다" not in eps["note"]
+    assert eps["comparison_allowed"] is False and result["tone"] == ""
+    assert revenue["actual"] == "$13,056M" and revenue["currency"] == "USD"
+    assert revenue["label"] == "매출 · USD 환산"
+    assert result["unchanged"] and result["idempotent"]
+
+
+def test_usd_display_preserves_all_sources_and_uses_dollars_in_primary_cells() -> None:
+    result = _run_earnings_js(_asml_usd_display_fixture() + r"""
+renderEventForecast('asml');
+console.log(JSON.stringify({table:evAfpTable(rows),projectedTable:evAfpTable(evDisplayRows(rows)),detail:mounted,board:renderEventBoard(DATA.calendar_events,generatedDay())}));
+""")
+    for key in ("table", "projectedTable", "detail"):
+        html = result[key]
+        assert all(url in html for url in ("https://asml.example/release", "https://nasdaq.example/asml", "https://ecb.example/eur-usd"))
+        assert "원문 EUR 12.95" in html and "1 EUR = 1.1195 USD" in html
+        assert "수집 2026-10-14 14:05 UTC" in html
+        assert "is-beat" not in html and "is-miss" not in html
+        assert "통화·주식 기준이 다른" not in html
+        details = re.findall(r'<tr class="afp-conversion-row"><td colspan="4" class="afp-conversion-note"><details><summary>환산 기준·원문</summary><p>(.*?)</p></details></td></tr>', html)
+        assert len(details) == 2
+        assert "원문 EUR 12.95" in details[0] and "보통주 · 기본 EPS · US GAAP" in details[0]
+        assert "금액 단위: 백만 USD" in details[1]
+        assert "<details open" not in html
+        assert '<th scope="row">기본 EPS · USD 환산</th>' in html
+        primary = re.findall(r'<td class="afp-actual">(.*?)</td>', html)
+        assert "$14.50" in primary and "$13,056M" in primary
+        assert not any("EUR" in value for value in primary)
+    board = result["board"]
+    primary = re.findall(r'data-afp-label="실제" class="afp-actual">(.*?)</b>', board)
+    assert "$14.50" in primary and "$13,056M" in primary
+    assert not any("EUR" in value for value in primary)
+    assert board.count("$12.47") == board.count("$8.81") == 1
+    assert "EPS 환산 · USD" in board and "매출 환산 · USD" in board
+    assert "is-beat" not in board and "is-miss" not in board
+
+
+def test_usd_projection_keeps_unlinked_or_incompatible_consensus_separate() -> None:
+    result = _run_earnings_js(_asml_usd_display_fixture() + r"""
+const cases={};
+for(const mode of ['missing-link','wrong-id','non-usd','actual-present','duplicate-id']){
+  const copy=JSON.parse(JSON.stringify(rows)),native=copy.find(row=>row.metric==='eps_reported'),forecast=copy.find(row=>row.metric==='eps');
+  if(mode==='missing-link')delete native.display_conversion.consensus_row_id;
+  if(mode==='wrong-id')native.display_conversion.consensus_row_id='other-period';
+  if(mode==='non-usd')forecast.currency='EUR';
+  if(mode==='actual-present')forecast.actual='$13.00';
+  if(mode==='duplicate-id')copy.push({...forecast});
+  const display=evDisplayRows(copy),eps=display.find(row=>row.metric==='eps_reported');
+  cases[mode]={count:display.length,forecastCount:display.filter(row=>row.metric==='eps').length,actual:eps.actual,consensus:eps.consensus,previous:eps.previous};
+}
+const legacy=JSON.parse(JSON.stringify(rows));legacy.forEach(row=>delete row.display_conversion);
+const disabled=JSON.parse(JSON.stringify(rows));disabled.forEach(row=>{if(row.display_conversion)row.display_conversion.display_only=false;});
+console.log(JSON.stringify({cases,legacy:evDisplayRows(legacy),disabled:evDisplayRows(disabled)}));
+""")
+    for mode, projected in result["cases"].items():
+        assert projected["actual"] == "$14.50", mode
+        assert projected["consensus"] is None and projected["previous"] is None, mode
+        assert projected["forecastCount"] == (2 if mode == "duplicate-id" else 1), mode
+        assert projected["count"] == (5 if mode == "duplicate-id" else 4), mode
+    for key in ("legacy", "disabled"):
+        eps = next(row for row in result[key] if row["metric"] == "eps_reported")
+        assert eps["actual"] == "EUR 12.95" and eps["previous"] == "EUR 7.59"
+        assert eps["currency"] == "EUR" and len(result[key]) == 4
+
+
 def test_weekly_earnings_detail_separates_each_company_release_state() -> None:
     result = _run_earnings_js(r"""
 renderEventForecast('asml');

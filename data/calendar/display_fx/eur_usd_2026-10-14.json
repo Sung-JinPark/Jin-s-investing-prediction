@@ -1,0 +1,14 @@
+{
+  "base_currency": "EUR",
+  "quote_currency": "USD",
+  "unit": "USD_per_EUR",
+  "rate": "1.1195",
+  "rate_date": "2026-10-14",
+  "source": "ECB euro foreign exchange reference rates",
+  "source_url": "https://www.ecb.europa.eu/stats/eurofxref/eurofxref-hist-90d.xml",
+  "source_hash": "e4a3cb0a1c3534ba629d19ddc19c12dbd20551cb9980d6d0fc24383fc6cb6d4e",
+  "raw_path": "data/calendar/display_fx/e4a3cb0a1c3534ba629d19ddc19c12dbd20551cb9980d6d0fc24383fc6cb6d4e.xml.gz",
+  "captured_at": "2026-10-15T06:45:18.663171+00:00",
+  "available_at": "2026-10-15T06:45:18.663171+00:00",
+  "policy": "Frozen release-date ECB rate for display only. Availability is capture time; never use as a historical model or scoring input."
+}

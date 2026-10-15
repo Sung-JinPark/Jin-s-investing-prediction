@@ -1991,6 +1991,11 @@ body[data-view="future"] .page-heading .page-lede{margin:6px 0 0;font-size:12px}
 .afp-table thead th:not(:first-child),.afp-table td{width:92px}
 .afp-table tbody th{background:none;font-family:var(--sans);letter-spacing:0;color:#11110f}
 .afp-table thead th{font-family:var(--sans);letter-spacing:0}
+.afp-table.has-conversion tbody th{min-width:85px}
+.afp-table td.afp-conversion-note{width:auto;white-space:normal;text-align:left;font:400 12px/1.5 var(--sans);color:#706d65;overflow-wrap:anywhere}
+.afp-conversion-note summary{cursor:pointer;font-weight:600}
+.afp-conversion-note p{margin:8px 0 0}
+@media(max-width:799px){.afp-table.has-conversion thead th:not(:first-child),.afp-table.has-conversion td:not(.afp-conversion-note){width:70px;min-width:60px;padding:10px 6px}}
 .ev-afp.is-multi{display:grid;grid-template-columns:1fr;gap:2px}
 .ev-afp-head,.ev-afp-row{display:grid;grid-template-columns:44px repeat(3,minmax(0,1fr));gap:4px;align-items:baseline;text-align:right}
 .ev-afp-head i:first-child,.ev-afp-row em{text-align:left}

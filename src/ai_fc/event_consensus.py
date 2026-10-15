@@ -29,6 +29,7 @@ from __future__ import annotations
 
 import html
 import calendar
+import gzip
 import hashlib
 import json
 import math
@@ -36,6 +37,7 @@ import re
 import urllib.request
 from contextlib import contextmanager
 from datetime import date, datetime, timedelta, timezone
+from decimal import Decimal, InvalidOperation, ROUND_HALF_UP
 from pathlib import Path
 from typing import Any, Callable, Optional
 from zoneinfo import ZoneInfo
@@ -437,4 +439,77 @@ def load_event_consensus(root: Path, as_of: datetime) -> dict[str, list[dict[str
              "source", "source_url", "note", "captured_at", "available_at", "row_id", "revision_id", "supersedes", "source_hash", "source_receipts", *METADATA_KEYS)})
     for rows in result.values():
         rows.sort(key=lambda item: METRIC_ORDER.get(item["metric"], 99))
+    _attach_display_fx(root, result, cutoff)
     return result
+
+
+def _attach_display_fx(root: Path, events: dict[str, list[dict[str, Any]]], cutoff: datetime) -> None:
+    """Attach auditable USD presentation metadata; preserve every source/scoring field."""
+    for path in sorted((root / "data/calendar/display_fx").glob("*.json")):
+        fx = json.loads(path.read_text(encoding="utf-8"))
+        if fx.get("base_currency") != "EUR" or fx.get("quote_currency") != "USD" or fx.get("unit") != "USD_per_EUR":
+            raise ConsensusError("display FX requires explicit EUR/USD units")
+        try:
+            rate = Decimal(str(fx["rate"]))
+            rate_day = date.fromisoformat(fx["rate_date"])
+        except (KeyError, ValueError, InvalidOperation) as exc:
+            raise ConsensusError("invalid display FX rate/date") from exc
+        if not rate.is_finite() or rate <= 0:
+            raise ConsensusError("display FX rate must be finite and positive")
+        captured, available = _aware(fx["captured_at"]), _aware(fx["available_at"])
+        if available != captured or rate_day > captured.date():
+            raise ConsensusError("display FX availability must equal its actual capture")
+        if captured > cutoff:
+            continue
+        # Verify the frozen public ECB receipt, including date and quote direction.
+        raw_path = (root / fx["raw_path"]).resolve()
+        if not raw_path.is_relative_to((root / "data/calendar/display_fx").resolve()):
+            raise ConsensusError("display FX receipt path escapes its directory")
+        raw = gzip.decompress(raw_path.read_bytes())
+        if hashlib.sha256(raw).hexdigest() != fx["source_hash"]:
+            raise ConsensusError("display FX receipt hash mismatch")
+        from xml.etree import ElementTree
+        document = ElementTree.fromstring(raw)
+        quotes = [quote.attrib.get("rate") for day in document.iter()
+                  if day.attrib.get("time") == rate_day.isoformat()
+                  for quote in day if quote.attrib.get("currency") == "USD"]
+        if quotes != [str(fx["rate"])]:
+            raise ConsensusError("display FX rate/date differs from ECB receipt")
+        for event_id, rows in events.items():
+            if not event_id.startswith("asml_"):
+                continue
+            for row in rows:
+                if (row.get("currency") != "EUR" or row.get("published_date") != rate_day.isoformat()
+                        or row.get("metric") not in {"eps_reported", "revenue_reported"}):
+                    continue
+                expected_unit = "currency_per_share" if row["metric"] == "eps_reported" else "million_currency"
+                if row.get("unit") != expected_unit:
+                    raise ConsensusError("display FX source unit mismatch")
+                try:
+                    value = Decimal(str(row["actual_value"])) * rate
+                except (KeyError, InvalidOperation) as exc:
+                    raise ConsensusError("display FX requires an explicit numeric actual") from exc
+                if not value.is_finite():
+                    raise ConsensusError("display FX actual must be finite")
+                precision = Decimal("0.01") if row["metric"] == "eps_reported" else Decimal("1")
+                rounded = value.quantize(precision, rounding=ROUND_HALF_UP)
+                actual = f"${rounded:,.2f}" if row["metric"] == "eps_reported" else f"${rounded:,.0f}M"
+                conversion = {"currency": "USD", "actual": actual, "actual_value": float(value),
+                              "original_currency": "EUR", "original_actual": row["actual"],
+                              "rate": float(rate), "rate_date": rate_day.isoformat(),
+                              "source": fx["source"], "source_url": fx["source_url"],
+                              "source_hash": fx["source_hash"], "raw_path": fx["raw_path"],
+                              "captured_at": fx["captured_at"], "available_at": fx["available_at"],
+                              "display_only": True}
+                if row["metric"] == "eps_reported":
+                    # Provider calendar quarter-end may differ from the issuer's fiscal day.
+                    # Match explicit fiscal quarters, never the size of a number or a $ prefix.
+                    for consensus in rows:
+                        period = fiscal_end(consensus.get("period_end"))
+                        if (consensus.get("metric") == "eps" and consensus.get("currency") == "USD"
+                                and consensus.get("actual") is None and consensus.get("consensus") is not None
+                                and consensus.get("row_id") and period is not None
+                                and period.year == row.get("fiscal_year")
+                                and (period.month - 1) // 3 + 1 == row.get("fiscal_quarter")):
+                            conversion["consensus_row_id"] = consensus["row_id"]
+                row["display_conversion"] = conversion
