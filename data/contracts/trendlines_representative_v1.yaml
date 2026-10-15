@@ -1,0 +1,42 @@
+schema_version: 1
+contract_id: trendlines_private_representative_policy_v1
+policy_version: representative_v1
+publication_scope: private_only
+official_forecast_write: false
+verified_boundary: false
+regression:
+  observations: 200
+  method: ordinary_least_squares
+  response: {linear: close, log: natural_log_close}
+  coordinates: original_calendar_session_index
+  close_alignment: forbidden
+current:
+  observations: 63
+  left: 3
+  right: 3
+  minimum_anchor_gap: 10
+  maximum_anchor_age: 63
+  maximum_distance_atr: 4.0
+  maximum_distance_fraction: 0.2
+  fallback_observations: 63
+  rank: [second_anchor_desc, first_anchor_desc, line_id_asc]
+major:
+  left: 10
+  right: 10
+  minimum_anchor_gap: 60
+  maximum_second_anchor_age: 252
+  prominence_window: 756
+  top_prominence_per_side: 3
+  prominence: minimum_left_right_reversal_divided_by_pivot_atr14
+  dominant_cycle_extremum: same_side_extreme_price_in_latest_756_sessions_latest_tie
+  maximum_distance_atr: 8.0
+  maximum_distance_fraction: 0.5
+  minimum_current_price_fraction: 0.5
+  maximum_current_price_fraction: 1.5
+  fallback_observations: 252
+  rank: [dominant_cycle_extremum_contains_desc, second_anchor_desc, maximum_prominence_desc, summed_prominence_desc, line_id_asc]
+role_transition: no_automatic_flip
+contact_independence: disjoint_pivot_confirmation_windows_latest_first
+structural_state: reconstructed_current_vintage_not_historical_signal
+projection_sessions: {exchange: 21, crypto: 30}
+comparison_tolerance: {absolute: 0.000001, relative: 0.0000000001}
