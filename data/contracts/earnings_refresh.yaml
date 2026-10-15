@@ -1,0 +1,52 @@
+schema_version: 1
+contract_id: earnings_capture_v1
+purpose: display_only_actual_consensus_previous
+probability_linkage: forbidden
+official_forecast_or_resolution_writes: forbidden
+cadence:
+  poll_minutes: 5
+  schedule_service: github_actions_best_effort
+  warm_watch:
+    confirmed_before_hours: 6
+    confirmed_after_hours: 3
+    poll_seconds: 60
+    max_seconds: 19800
+    stop: semantic_change_or_source_failure_or_window_end
+    continuation: dispatch_after_publication_or_budget_exhaustion_within_pending_window
+    unchanged_partial_failure: report_failure_without_unbounded_self_dispatch
+  confirmed_window: {before_hours: 24, after_hours: 72}
+  estimated_window: {before_days: 7, after_days: 7}
+  changed_results: append_then_dispatch_pages
+  unchanged_results: no_canonical_write_or_deployment
+sources:
+  eligibility: registered_us_listed_ticker_or_explicit_issuer_adapter
+  unsupported_events: report_explicitly_without_calling_an_unrelated_vendor
+  nasdaq:
+    currency: USD
+    metric: diluted_eps_vendor_consensus
+    fiscal_period_match_required: true
+  issuer:
+    tickers: [ASML, TSM]
+    authority: company_published_earnings_release
+    fallback: issuer_distributed_release_with_verified_origin
+    explicit_metadata: [fiscal_year, fiscal_quarter, currency, unit, share_basis, accounting_basis]
+    foreign_exchange_conversion: forbidden
+    guidance_as_actual: forbidden
+    native_eps_as_usd_adr_consensus_comparison: forbidden
+integrity:
+  cutoff: available_at_lte_as_of
+  captured_at: actual_response_completion_utc
+  preserve: [source_url, source_hash, raw_response, published_at_if_known]
+  ledger: data/calendar/event_consensus.jsonl
+  raw_receipts: data/calendar/earnings_raw
+  corrections: append_new_revision_with_explicit_supersedes
+  legacy_rows: preserve_bytes_and_derive_immutable_identity
+  replay: reparse_immutable_capture_against_fresh_main
+  optimistic_push_attempts: 3
+  invalid_bundle: block_all_appends
+  unavailable_source: preserve_valid_source_results_and_report_partial_failure
+publication:
+  raw_artifact_retention_days: 3
+  report_budget_bytes: 16384
+  deploy: explicit_changed_only_pages_dispatch
+  global_market_close_lock: forbidden

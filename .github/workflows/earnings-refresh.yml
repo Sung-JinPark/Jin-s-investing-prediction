@@ -1,0 +1,211 @@
+name: earnings-refresh
+
+# Keyless, display-only polling around registered earnings. GitHub schedules are
+# best effort: five minutes is the requested cadence, not a publication-time SLA.
+# Near a confirmed release a warm runner checks every minute, so the next cron
+# delay does not interrupt an already started watch. No-change polls do not deploy.
+on:
+  schedule:
+    - cron: "2-59/5 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: earnings-refresh
+  cancel-in-progress: false
+
+jobs:
+  capture:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    permissions:
+      contents: read
+      actions: write
+    env:
+      PYTHONUTF8: "1"
+    outputs:
+      bundle_ready: ${{ steps.bundle.outputs.bundle_ready }}
+      changed_hint: ${{ steps.bundle.outputs.changed_hint }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install already declared collection dependencies
+        run: pip install -e .
+      - name: Capture public earnings around their registered release
+        id: capture
+        continue-on-error: true
+        run: python -m ai_fc earnings-watch --out .tmp/earnings-capture --report .tmp/earnings-capture-report.json
+      - name: Read the immutable bundle and semantic change hint
+        id: bundle
+        if: ${{ always() }}
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          from datetime import datetime, timezone
+          from pathlib import Path
+          manifest = Path('.tmp/earnings-capture/manifest.json')
+          report = Path('.tmp/earnings-capture-report.json')
+          ready, changed, pending = False, False, False
+          if manifest.is_file() and report.is_file():
+              result = json.loads(report.read_text(encoding='utf-8'))
+              if any(type(result.get(key)) is not bool for key in ('changed_hint', 'watch_pending')):
+                  raise SystemExit('earnings capture requires explicit boolean decisions')
+              ready, changed = True, result['changed_hint']
+              if result['watch_pending']:
+                  pending = datetime.fromisoformat(result['watch_until']) > datetime.now(timezone.utc)
+          with Path(os.environ['GITHUB_OUTPUT']).open('a', encoding='utf-8') as output:
+              output.write(f'bundle_ready={str(ready).lower()}\nchanged_hint={str(changed).lower()}\nwatch_pending={str(pending).lower()}\n')
+          PY
+      - uses: actions/upload-artifact@v4
+        if: ${{ always() && steps.bundle.outputs.bundle_ready == 'true' }}
+        with:
+          name: earnings-capture-${{ github.run_id }}
+          path: |
+            .tmp/earnings-capture/
+            .tmp/earnings-capture-report.json
+          include-hidden-files: true
+          retention-days: 3
+          if-no-files-found: error
+      - name: Continue an unchanged watch that reached its runner budget
+        if: ${{ steps.capture.outcome == 'success' && steps.bundle.outputs.changed_hint == 'false' && steps.bundle.outputs.watch_pending == 'true' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run earnings-refresh.yml --repo "$GITHUB_REPOSITORY" --ref main
+      - name: Report a missing or partial capture after preserving its receipt
+        if: ${{ always() && (steps.bundle.outputs.bundle_ready != 'true' || steps.capture.outcome == 'failure') }}
+        run: |
+          echo "Earnings capture failed or a source was unavailable; any valid checkpoint remains replayable."
+          exit 1
+
+  publish:
+    needs: capture
+    if: ${{ always() && needs.capture.outputs.bundle_ready == 'true' && needs.capture.outputs.changed_hint == 'true' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+      actions: write
+    # The market-mood writer can wait hours for the US close. Earnings use a
+    # short lock and immutable replay against a fresh main on every push retry.
+    concurrency:
+      group: earnings-publisher
+      cancel-in-progress: false
+    env:
+      PYTHONUTF8: "1"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install already declared replay dependencies
+        run: pip install -e .
+      - uses: actions/download-artifact@v4
+        with:
+          name: earnings-capture-${{ github.run_id }}
+          path: .tmp
+      - name: Replay and publish against a fresh main for each attempt
+        shell: bash
+        run: |
+          capture_bundle="$GITHUB_WORKSPACE/.tmp/earnings-capture"
+          report_path="$GITHUB_WORKSPACE/.tmp/earnings-report.json"
+          for attempt in 1 2 3; do
+            git fetch --no-tags origin main
+            attempt_root="$RUNNER_TEMP/earnings-publish-attempt-$attempt"
+            git worktree add --detach "$attempt_root" origin/main
+            PYTHONPATH="$attempt_root/src" python -m ai_fc earnings-apply --root "$attempt_root" --bundle "$capture_bundle" --report "$report_path"
+            changed="$(python - "$report_path" <<'PY'
+          import json
+          import sys
+          from pathlib import Path
+          report = json.loads(Path(sys.argv[1]).read_text(encoding='utf-8'))
+          if type(report.get('changed')) is not bool:
+              raise SystemExit('earnings replay requires explicit boolean changed')
+          print(str(report['changed']).lower())
+          PY
+            )"
+            if [ "$changed" = "false" ]; then
+              echo "No semantic earnings change; no commit or deployment."
+              break
+            fi
+            (
+              cd "$attempt_root"
+              for path in data/calendar/event_consensus.jsonl data/calendar/earnings_raw; do
+                if [ -e "$path" ]; then git add -- "$path"; fi
+              done
+              unexpected="$(git diff --cached --name-only | grep -Ev '^data/calendar/(event_consensus\.jsonl|earnings_raw/.*)$' || true)"
+              test -z "$unexpected" || { echo "unexpected earnings paths: $unexpected"; exit 1; }
+              deleted="$(git diff --cached --name-only --diff-filter=D)"
+              test -z "$deleted" || { echo "earnings replay cannot delete tracked data: $deleted"; exit 1; }
+              if git diff --cached --quiet; then
+                echo "Earnings change reported without a staged result or receipt."
+                exit 1
+              fi
+              git config user.name "github-actions[bot]"
+              git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+              git commit -m "data: capture published earnings and source receipts"
+            )
+            if git -C "$attempt_root" push origin HEAD:main; then
+              break
+            fi
+            if [ "$attempt" -eq 3 ]; then
+              echo "Earnings publication failed after three fresh-tip attempts."
+              exit 1
+            fi
+            sleep 15
+          done
+      - name: Read the verified change and capture status
+        id: decision
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          from datetime import datetime, timezone
+          from pathlib import Path
+          report = json.loads(Path('.tmp/earnings-report.json').read_text(encoding='utf-8'))
+          if type(report.get('changed')) is not bool or report.get('status') not in ('ready', 'partial'):
+              raise SystemExit('invalid earnings replay decision')
+          capture = json.loads(Path('.tmp/earnings-capture-report.json').read_text(encoding='utf-8'))
+          if type(capture.get('watch_pending')) is not bool:
+              raise SystemExit('invalid earnings continuation decision')
+          pending = capture['watch_pending'] and datetime.fromisoformat(capture['watch_until']) > datetime.now(timezone.utc)
+          with Path(os.environ['GITHUB_OUTPUT']).open('a', encoding='utf-8') as output:
+              output.write(f"changed={str(report['changed']).lower()}\nstatus={report['status']}\nwatch_pending={str(pending).lower()}\n")
+          PY
+      - name: Deploy verified earnings changes
+        if: ${{ steps.decision.outputs.changed == 'true' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run pages.yml --repo "$GITHUB_REPOSITORY" --ref main
+      - name: Resume watching other confirmed earnings after publication
+        if: ${{ always() && steps.decision.outputs.watch_pending == 'true' && (steps.decision.outputs.status == 'ready' || steps.decision.outputs.changed == 'true') }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run earnings-refresh.yml --repo "$GITHUB_REPOSITORY" --ref main
+      - name: Preserve replay decisions for audit
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: earnings-report-${{ github.run_id }}
+          path: .tmp/earnings-report.json
+          include-hidden-files: true
+          retention-days: 3
+          if-no-files-found: ignore
+      - name: Report unavailable sources after publishing valid results
+        if: ${{ always() && steps.decision.outputs.status == 'partial' }}
+        run: |
+          echo "Valid earnings were preserved; another source failed and requires retry."
+          exit 1

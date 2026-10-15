@@ -28,12 +28,17 @@
 from __future__ import annotations
 
 import html
+import calendar
+import hashlib
 import json
+import math
 import re
 import urllib.request
+from contextlib import contextmanager
 from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, Callable, Optional
+from zoneinfo import ZoneInfo
 
 LEDGER_RELATIVE = Path("data/calendar/event_consensus.jsonl")
 ECON_URL = "https://api.nasdaq.com/api/calendar/economicevents?date={day}"
@@ -98,7 +103,8 @@ def parse_number(text: Optional[str]) -> Optional[float]:
     if not match:
         return None
     value = float(match.group(1).replace(",", ""))
-    return value * _SUFFIX.get(match.group(2), 1.0)
+    value *= _SUFFIX.get(match.group(2), 1.0)
+    return value if math.isfinite(value) else None
 
 
 def _get_json(url: str, *, timeout: int = 20) -> dict[str, Any]:
@@ -159,7 +165,39 @@ def _eps_text(value: Any) -> Optional[str]:
     return None if number is None else f"${number:.2f}"
 
 
-def earnings_rows(event: dict[str, Any], fetch: Callable[[str], dict[str, Any]]) -> list[dict[str, Any]]:
+def fiscal_end(raw: Any) -> Optional[date]:
+    """Parse the provider's fiscal month without guessing a different quarter."""
+    text = str(raw or "").strip()
+    for form in ("%b %Y", "%b-%Y", "%Y-%m-%d", "%m/%d/%Y"):
+        try:
+            parsed = datetime.strptime(text, form).date()
+            return date(parsed.year, parsed.month, calendar.monthrange(parsed.year, parsed.month)[1])
+        except ValueError:
+            continue
+    return None
+
+
+def expected_period(event: dict[str, Any]) -> Optional[date]:
+    explicit = event.get("period_end")
+    if explicit:
+        return date.fromisoformat(str(explicit))
+    match = re.fullmatch(r"(?:asml|tsmc)_(\d{4})_q([1-4])", str(event.get("event_id", "")))
+    if match:
+        year, quarter = map(int, match.groups())
+        month = quarter * 3
+        return date(year, month, calendar.monthrange(year, month)[1])
+    return None
+
+
+def _period_matches(event: dict[str, Any], raw: Any) -> bool:
+    period = fiscal_end(raw)
+    target = expected_period(event)
+    day = date.fromisoformat(event["date"])
+    return period == target if target else period is not None and day - timedelta(days=120) <= period <= day
+
+
+def earnings_rows(event: dict[str, Any], fetch: Callable[[str], dict[str, Any]], *,
+                  as_of: Optional[datetime] = None) -> list[dict[str, Any]]:
     """EPS 세 칸. 발표 뒤면 발표 실적·당시 컨센서스, 발표 전이면 다음 분기 컨센서스."""
     ticker = (event.get("ticker") or "").strip().upper()
     if not ticker:
@@ -172,29 +210,42 @@ def earnings_rows(event: dict[str, Any], fetch: Callable[[str], dict[str, Any]])
                       reverse=True)
     page = EPS_PAGE_URL.format(ticker=ticker.lower())
     # 일정의 실적일은 월 패턴 추정이라 실제 발표가 앞뒤로 몇 주 어긋난다 — 3주 창으로 맞춘다.
-    after = [(when, row) for when, row in reported if when >= day - timedelta(days=21)]
+    last_day = min(day + timedelta(days=21), as_of.astimezone(ZoneInfo("America/New_York")).date()) if as_of else day + timedelta(days=21)
+    after = [(when, row) for when, row in reported if day - timedelta(days=21) <= when <= last_day
+             and _period_matches(event, row.get("fiscalQtrEnd"))]
     if after:
         when, row = after[-1]
         index = reported.index((when, row))
         prior = reported[index + 1][1] if index + 1 < len(reported) else None
-        return [_row(event, "eps", "주당순이익(EPS)", actual=_eps_text(row.get("eps")),
+        result = _row(event, "eps", "주당순이익(EPS)", actual=_eps_text(row.get("eps")),
                      consensus=_eps_text(row.get("consensusForecast")),
                      previous=_eps_text(prior.get("eps")) if prior else None,
                      period=f"{row.get('fiscalQtrEnd') or ''} 분기".strip(),
                      source=EPS_SOURCE, source_url=page,
-                     note=f"{when.isoformat()} 발표")]
+                     note=f"{when.isoformat()} 발표")
+        return [_nasdaq_metadata(event, result, row.get("fiscalQtrEnd"))]
     forecast = ((fetch(EPS_FORECAST_URL.format(ticker=ticker)).get("data") or {})
                 .get("quarterlyForecast") or {}).get("rows") or []
+    forecast = [row for row in forecast if _period_matches(event, row.get("fiscalEnd"))]
     if not forecast:
         return []
     upcoming = forecast[0]
     estimates = upcoming.get("noOfEstimates")
-    return [_row(event, "eps", "주당순이익(EPS)", actual=None,
+    result = _row(event, "eps", "주당순이익(EPS)", actual=None,
                  consensus=_eps_text(upcoming.get("consensusEPSForecast")),
                  previous=_eps_text(reported[0][1].get("eps")) if reported else None,
                  period=f"{upcoming.get('fiscalEnd') or ''} 분기".strip(),
                  source=EPS_SOURCE, source_url=page,
-                 note=f"애널리스트 {estimates}명" if estimates else "")]
+                 note=f"애널리스트 {estimates}명" if estimates else "")
+    return [_nasdaq_metadata(event, result, upcoming.get("fiscalEnd"))]
+
+
+def _nasdaq_metadata(event: dict[str, Any], row: dict[str, Any], raw_period: Any) -> dict[str, Any]:
+    period = fiscal_end(raw_period)
+    return {**row, "unit": "currency_per_share", "currency": "USD",
+            "share_basis": "ADR" if event.get("ticker") == "TSM" else "listed_share",
+            "eps_basis": "vendor_reported", "accounting_basis": "vendor_reported",
+            "comparison_allowed": True, "period_end": period.isoformat() if period else None}
 
 
 def _read_ledger(path: Path) -> list[dict[str, Any]]:
@@ -203,17 +254,137 @@ def _read_ledger(path: Path) -> list[dict[str, Any]]:
     return [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines() if line.strip()]
 
 
-VALUE_KEYS = ("actual", "consensus", "previous", "period", "label", "note")
+METADATA_KEYS = ("unit", "currency", "share_basis", "eps_basis", "accounting_basis",
+                 "comparison_allowed", "fiscal_year", "fiscal_quarter", "period_end", "published_at", "published_date", "actual_value")
+VALUE_KEYS = ("actual", "consensus", "previous", "period", "label", "note", "source", "source_url", *METADATA_KEYS)
+
+
+def canonical_hash(value: Any) -> str:
+    return hashlib.sha256(json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":"), allow_nan=False).encode()).hexdigest()
+
+
+def record_id(row: dict[str, Any]) -> str:
+    return str(row.get("row_id") or row.get("revision_id") or "legacy-" + canonical_hash(row))
+
+
+def _aware(value: Any) -> datetime:
+    parsed = datetime.fromisoformat(str(value).replace("Z", "+00:00")) if not isinstance(value, datetime) else value
+    if parsed.tzinfo is None or parsed.utcoffset() is None:
+        raise ConsensusError("consensus timestamps must be timezone-aware")
+    return parsed.astimezone(timezone.utc)
+
+
+def semantic_change(prior: Optional[dict[str, Any]], row: dict[str, Any]) -> bool:
+    if prior is None:
+        return True
+    if prior.get("actual") is not None and row.get("actual") is None:
+        return False
+    return any(prior.get(key) != row.get(key) for key in VALUE_KEYS)
+
+
+def _ledger_latest(rows: list[dict[str, Any]]) -> dict[tuple[str, str], dict[str, Any]]:
+    latest: dict[tuple[str, str], dict[str, Any]] = {}
+    seen: dict[str, dict[str, Any]] = {}
+    for row in rows:
+        key = (row["event_id"], row["metric"])
+        _aware(row["captured_at"])
+        identity = record_id(row)
+        if identity in seen:
+            raise ConsensusError("duplicate consensus revision identity")
+        if row.get("row_id") or row.get("revision_id"):
+            body = {k: v for k, v in row.items() if k not in {"row_id", "revision_id"}}
+            expected = "ec-" + canonical_hash(body)
+            if row.get("row_id") != expected or row.get("revision_id") != expected:
+                raise ConsensusError("consensus revision hash mismatch")
+            prior = latest.get(key)
+            if row.get("supersedes") != (record_id(prior) if prior else None):
+                raise ConsensusError("invalid consensus supersedes chain")
+            if prior and _aware(row["captured_at"]) < _aware(prior["captured_at"]):
+                raise ConsensusError("consensus revision predates its predecessor")
+        seen[identity] = row
+        latest[key] = row
+    return latest
+
+
+@contextmanager
+def consensus_writer_lock(root: Path):
+    path = root / "outputs/earnings_refresh/.writer.lock"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("a+b") as handle:
+        if handle.tell() == 0:
+            handle.write(b"0")
+            handle.flush()
+        handle.seek(0)
+        try:
+            if __import__("os").name == "nt":
+                import msvcrt
+                msvcrt.locking(handle.fileno(), msvcrt.LK_NBLCK, 1)
+            else:
+                import fcntl
+                fcntl.flock(handle.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except OSError as exc:
+            raise ConsensusError("consensus writer is busy") from exc
+        try:
+            yield
+        finally:
+            handle.seek(0)
+            if __import__("os").name == "nt":
+                import msvcrt
+                msvcrt.locking(handle.fileno(), msvcrt.LK_UNLCK, 1)
+            else:
+                import fcntl
+                fcntl.flock(handle.fileno(), fcntl.LOCK_UN)
+
+
+def append_consensus_rows(root: Path, rows: list[dict[str, Any]], *,
+                          before_append: Optional[Callable[[list[dict[str, Any]]], None]] = None) -> dict[str, Any]:
+    """Append explicit revisions while preserving every legacy source byte."""
+    path = root / LEDGER_RELATIVE
+    with consensus_writer_lock(root):
+        latest = _ledger_latest(_read_ledger(path))
+        pending, stale = [], 0
+        for row in rows:
+            if not row.get("event_id") or not row.get("metric"):
+                raise ConsensusError("consensus row needs event and metric")
+            stamp = _aware(row["captured_at"])
+            if row.get("available_at") and _aware(row["available_at"]) > stamp:
+                raise ConsensusError("consensus availability exceeds capture")
+            if row.get("published_at") and _aware(row["published_at"]) > stamp:
+                raise ConsensusError("consensus publication exceeds capture")
+            key = (row["event_id"], row["metric"])
+            prior = latest.get(key)
+            if prior and stamp < _aware(prior["captured_at"]):
+                stale += 1
+                continue
+            if not semantic_change(prior, row):
+                continue
+            if prior and stamp == _aware(prior["captured_at"]):
+                raise ConsensusError("different consensus revisions share the same capture time")
+            body = {**row, "supersedes": record_id(prior) if prior else None,
+                    "revision_seq": int(prior.get("revision_seq", 0)) + 1 if prior else 0}
+            identity = "ec-" + canonical_hash(body)
+            record = {**body, "row_id": identity, "revision_id": identity}
+            pending.append(record)
+            latest[key] = record
+        if pending:
+            if before_append:
+                before_append(pending)
+            path.parent.mkdir(parents=True, exist_ok=True)
+            with path.open("a", encoding="utf-8", newline="\n") as handle:
+                for record in pending:
+                    handle.write(json.dumps(record, ensure_ascii=False, sort_keys=True, allow_nan=False) + "\n")
+        return {"appended": len(pending), "changed": bool(pending), "records": pending, "stale_ignored": stale}
 
 
 def refresh(root: Path, *, now: Optional[datetime] = None,
-            fetch: Callable[[str], dict[str, Any]] = _get_json) -> dict[str, Any]:
+            fetch: Callable[[str], dict[str, Any]] = _get_json,
+            earnings_only: bool = False, clock: Optional[Callable[[], datetime]] = None) -> dict[str, Any]:
     """창 안의 이벤트마다 세 값을 받아, 바뀐 행만 원장에 덧붙인다."""
     from .event_calendar import load_events
 
     now = now or datetime.now(timezone.utc)
     today = now.date()
-    events = [row for row in load_events(root)
+    events = [row for row in load_events(root) if (not earnings_only or row.get("kind") == "earnings")
               if today - timedelta(days=LOOKBACK_DAYS) <= date.fromisoformat(row["date"])
               <= today + timedelta(days=LOOKAHEAD_DAYS)]
     cache: dict[str, dict[str, Any]] = {}
@@ -223,15 +394,10 @@ def refresh(root: Path, *, now: Optional[datetime] = None,
             cache[url] = fetch(url)
         return cache[url]
 
-    path = root / LEDGER_RELATIVE
-    latest: dict[tuple[str, str], dict[str, Any]] = {}
-    for row in _read_ledger(path):
-        latest[(row["event_id"], row["metric"])] = row
     appended, failures, seen = [], [], 0
-    captured = now.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
     for event in events:
         try:
-            rows = (earnings_rows(event, cached) if event.get("kind") == "earnings"
+            rows = (earnings_rows(event, cached, as_of=now) if event.get("kind") == "earnings"
                     else macro_rows(event, cached))
         except ConsensusError as exc:
             failures.append(f"{event['event_id']}: {exc}")
@@ -240,18 +406,13 @@ def refresh(root: Path, *, now: Optional[datetime] = None,
             if row["actual"] is None and row["consensus"] is None and row["previous"] is None:
                 continue
             seen += 1
-            prior = latest.get((row["event_id"], row["metric"]))
-            if prior and all(prior.get(key) == row.get(key) for key in VALUE_KEYS):
-                continue
-            record = {"captured_at": captured, **row}
+            # Injected historical fixtures retain their explicit test cutoff;
+            # real network captures use the actual response-completion clock.
+            captured = _aware(clock() if clock else datetime.now(timezone.utc) if fetch is _get_json else now).isoformat()
+            record = {"captured_at": captured, "available_at": captured, **row}
             appended.append(record)
-            latest[(row["event_id"], row["metric"])] = record
-    if appended:
-        path.parent.mkdir(parents=True, exist_ok=True)
-        with path.open("a", encoding="utf-8", newline="\n") as handle:
-            for record in appended:
-                handle.write(json.dumps(record, ensure_ascii=False, sort_keys=True) + "\n")
-    return {"events": len(events), "rows_seen": seen, "appended": len(appended),
+    result = append_consensus_rows(root, appended)
+    return {"events": len(events), "rows_seen": seen, "appended": result["appended"],
             "failures": failures}
 
 
@@ -261,9 +422,11 @@ def load_event_consensus(root: Path, as_of: datetime) -> dict[str, list[dict[str
         raise ConsensusError("consensus cutoff must be timezone-aware")
     cutoff = as_of.astimezone(timezone.utc)
     latest: dict[tuple[str, str], dict[str, Any]] = {}
-    for row in _read_ledger(root / LEDGER_RELATIVE):
+    rows = _read_ledger(root / LEDGER_RELATIVE)
+    _ledger_latest(rows)
+    for row in rows:
         captured = datetime.fromisoformat(str(row["captured_at"]).replace("Z", "+00:00"))
-        if captured > cutoff:
+        if captured > cutoff or (row.get("available_at") and _aware(row["available_at"]) > cutoff):
             continue
         latest[(row["event_id"], row["metric"])] = row
     result: dict[str, list[dict[str, Any]]] = {}
@@ -271,7 +434,7 @@ def load_event_consensus(root: Path, as_of: datetime) -> dict[str, list[dict[str
         result.setdefault(event_id, []).append({
             key: row.get(key) for key in
             ("metric", "label", "actual", "consensus", "previous", "period",
-             "source", "source_url", "note", "captured_at")})
+             "source", "source_url", "note", "captured_at", "available_at", "row_id", "revision_id", "supersedes", "source_hash", "source_receipts", *METADATA_KEYS)})
     for rows in result.values():
         rows.sort(key=lambda item: METRIC_ORDER.get(item["metric"], 99))
     return result

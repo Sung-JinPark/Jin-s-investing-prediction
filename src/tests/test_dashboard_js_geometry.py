@@ -719,6 +719,120 @@ console.log(JSON.stringify({tickers:semi.clusterTickers,dates:semi.clusterDates,
     assert semi == {"tickers": ["ASML", "TSM"], "dates": ["2026-10-14", "2026-10-15"], "count": 2}
 
 
+def _earnings_display_helpers() -> str:
+    source = (Path(__file__).parents[1] / "ai_fc" / "dashboard_parts" / "dashboard.js").read_text(encoding="utf-8")
+    helpers = [source[source.index("const EV_WEEKDAY="):source.index("/* 히어로 요약줄")]]
+    for name in ("generatedDay", "dayDiff", "earningsGroup", "earningsCompanyName", "earningsMemberNames", "flowCalendarEventLabel", "eventBoardKindKey", "groupFlowCalendarEvents", "renderEventForecast", "earningsQuestionEvent", "earningsQuestionPending", "earningsQuestionNotice", "questionStatusLabel"):
+        start = source.index(f"function {name}(")
+        # Some small existing helpers have a single authored line.
+        line_end = source.index(NL, start)
+        end = line_end if source[start:line_end].endswith("}") else source.index(NL + "}" + NL, start) + 2
+        helpers.append(source[start:end])
+    return NL.join(helpers) + r"""
+const esc=value=>String(value??'').replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
+const el=value=>value;
+let mounted='';
+const mount=value=>{mounted=value;};
+const DATA={meta:{generated:'2026-10-15T00:40:00Z'},calendar_events:[
+ {event_id:'asml',kind:'earnings',ticker:'ASML',date:'2026-10-14',time_et:'01:00',status:'confirmed',source_url:'https://asml.example/results'},
+ {event_id:'tsmc',kind:'earnings',ticker:'TSM',date:'2026-10-15',time_et:'02:00',status:'confirmed',source_url:'https://tsmc.example/results'}
+],event_consensus:{asml:[
+ {metric:'eps',label:'USD 컨센서스 EPS',actual:null,consensus:'$12.47',previous:'$8.81',captured_at:'2026-10-11T09:43:03Z',source:'Nasdaq',source_url:'https://nasdaq.example/asml'},
+ {metric:'revenue_reported',label:'매출 (백만 EUR)',actual:'EUR 11,662M',consensus:null,currency:'EUR',unit:'million_currency',share_basis:'not_applicable',accounting_basis:'US_GAAP',comparison_allowed:false,available_at:'2026-10-14T06:00:00Z',source:'ASML IR',source_url:'https://asml.example/release'},
+ {metric:'gross_margin_reported',label:'매출총이익률 (%)',actual:'57.5%',consensus:null,unit:'percent',share_basis:'not_applicable',accounting_basis:'US_GAAP',comparison_allowed:false,available_at:'2026-10-14T06:00:00Z',source:'ASML IR',source_url:'https://asml.example/release'},
+ {metric:'eps_reported',label:'공식 기본 EPS',actual:'EUR 12.95',consensus:null,previous:'EUR 7.59',unit:'currency_per_share',currency:'EUR',share_basis:'ordinary_share',eps_basis:'basic',accounting_basis:'US_GAAP',comparison_allowed:false,published_at:'2026-10-14T05:00:00Z',available_at:'2026-10-14T06:00:00Z',captured_at:'2026-10-14T06:00:00Z',source:'ASML IR',source_url:'https://asml.example/release'}
+],tsmc:[{metric:'eps',label:'EPS',actual:null,consensus:'$4.45',previous:'$4.31',captured_at:'2026-10-07T06:06:56Z'}]}};
+"""
+
+
+def _run_earnings_js(program: str) -> dict:
+    completed = subprocess.run(["node", "-e", _earnings_display_helpers() + program], check=True, capture_output=True, text=True, encoding="utf-8")
+    return json.loads(completed.stdout)
+
+
+def test_earnings_release_state_uses_aware_time_and_kst_day() -> None:
+    result = _run_earnings_js(r"""
+const asml=DATA.calendar_events[0],tsmc=DATA.calendar_events[1];
+const before={day:generatedDay(),asml:evReleaseState(asml),tsmc:evReleaseState(tsmc)};
+DATA.meta.generated='2026-10-15T06:01:00Z';
+const awaiting=evReleaseState(tsmc);
+DATA.event_consensus.tsmc.push({published_at:'2026-10-15T06:00:00Z',actual:null});
+const announced=evReleaseState(tsmc);
+DATA.event_consensus.tsmc.push({actual:'NT$22',available_at:'2026-10-16T06:00:00Z'});
+const future=evReleaseState(tsmc);
+DATA.meta.generated='2026-10-14T23:40:00Z';
+console.log(JSON.stringify({before,awaiting,announced,future,kst:generatedDay(),summer:new Date(evScheduledAt(tsmc)).toISOString(),winter:new Date(evScheduledAt({...tsmc,date:'2027-01-15'})).toISOString(),naive:evTimestamp('2026-10-15T06:00:00')}));
+""")
+    assert result["before"]["day"] == result["kst"] == "2026-10-15"
+    assert result["before"]["asml"]["code"] == "reported"
+    assert result["before"]["tsmc"]["code"] == "scheduled"
+    assert result["awaiting"]["code"] == "awaiting"
+    assert result["announced"]["code"] == result["future"]["code"] == "announced"
+    assert result["summer"] == "2026-10-15T06:00:00.000Z"
+    assert result["winter"] == "2027-01-15T07:00:00.000Z"
+    assert result["naive"] is None
+
+
+def test_recent_earnings_remain_visible_without_retaining_past_macro_events() -> None:
+    result = _run_earnings_js(r"""
+const rows=[...DATA.calendar_events,{...DATA.calendar_events[0],event_id:'old',date:'2026-10-07'},{kind:'cpi',date:'2026-10-14',event_id:'past-cpi'}];
+const visible=evFuture(rows,generatedDay());
+console.log(JSON.stringify({ids:visible.map(row=>row.event_id),board:renderEventBoard(rows,generatedDay())}));
+""")
+    assert result["ids"] == ["asml", "tsmc"]
+    board = result["board"]
+    assert 'href="#today/event/asml"' in board and 'href="#today/event/tsmc"' in board
+    assert "ASML · 발표값 확인" in board and "TSMC · 발표 예정" in board
+    assert "EUR 12.95" in board and "$12.47" in board and "$4.45" in board
+    assert "EUR 11,662M" in board and "57.5%" in board
+    assert board.index("EUR 12.95") < board.index("$12.47")
+    assert board.index("EUR 12.95") < board.index("EUR 11,662M")
+    assert 'data-afp-label="실제"' in board and 'data-afp-label="예상"' in board
+    assert "D--" not in board and "1일 전" in board
+
+
+def test_incompatible_earnings_basis_has_no_beat_colour_and_keeps_sources() -> None:
+    result = _run_earnings_js(r"""
+const rows=DATA.event_consensus.asml;
+const native=rows.find(row=>row.metric==='eps_reported');
+console.log(JSON.stringify({tone:evAfpTone({metric:'eps',actual:'$14',consensus:'$12',comparison_allowed:false}),native:evAfpTone(native),adr:evRowBasis({currency:'USD',unit:'currency_per_adr',share_basis:'ADR_unit',eps_basis:'diluted',accounting_basis:'TIFRS'}),table:evAfpTable([...rows,{...native,source_url:'https://asml.example/statements',label:'<bad>'}])}));
+""")
+    assert result["tone"] == result["native"] == ""
+    assert "is-beat" not in result["table"] and "is-miss" not in result["table"]
+    assert "EUR · 보통주 · 기본 EPS · US GAAP" in result["table"]
+    assert result["adr"] == "USD · ADR · 희석 EPS · 대만 IFRS"
+    assert "직접 비교하지 않습니다" in result["table"]
+    assert "https://asml.example/release" in result["table"] and "https://asml.example/statements" in result["table"]
+    assert "&lt;bad&gt;" in result["table"]
+
+
+def test_weekly_earnings_detail_separates_each_company_release_state() -> None:
+    result = _run_earnings_js(r"""
+renderEventForecast('asml');
+console.log(JSON.stringify({html:mounted}));
+""")
+    html = result["html"]
+    assert "반도체 실적 2건 (ASML · TSMC)" in html
+    assert 'data-earnings-id="asml"' in html and 'data-earnings-id="tsmc"' in html
+    assert "ASML · 발표값 확인" in html and "TSMC · 발표 예정" in html
+    assert "15:00 KST" in html and "EUR 12.95" in html
+    assert "USD 컨센서스 EPS" in html and "공식 기본 EPS" in html
+
+
+def test_earnings_question_waits_for_comparable_evidence_without_changing_outcomes() -> None:
+    result = _run_earnings_js(r"""
+const asml={id:'asml-eps-beat-2026q3',domain:'earnings',status:'active',resolved:false,deadline:'2026-10-14',latest_prob:60};
+const tsmc={...asml,id:'tsmc-eps-beat-2026q3',deadline:'2026-10-15',latest_prob:83};
+const before=JSON.stringify([asml,tsmc]);
+console.log(JSON.stringify({asml:questionStatusLabel(asml),tsmc:questionStatusLabel(tsmc),notice:earningsQuestionNotice(asml),futureNotice:earningsQuestionNotice(tsmc),resolved:questionStatusLabel({...asml,status:'resolved',resolved:true}),unchanged:before===JSON.stringify([asml,tsmc])}));
+""")
+    assert result["asml"]["text"] == "판정 대기"
+    assert result["tsmc"]["text"] == "진행 중" and result["futureNotice"] == ""
+    assert "USD ADR 컨센서스를 직접 비교하지 않습니다" in result["notice"]
+    assert 'href="#today/event/asml"' in result["notice"]
+    assert result["resolved"]["text"] == "완료" and result["unchanged"] is True
+
+
 def _original_daily_flow_helpers() -> str:
     source = _dashboard_source()
     model = re.search(

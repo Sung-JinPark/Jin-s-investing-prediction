@@ -23,6 +23,67 @@ from .scenario import refresh_scenario
 app = typer.Typer(add_completion=False, help="AI Superforecaster P1 scaffold")
 
 
+def _earnings_report(result: dict, report: Path | None = None) -> None:
+    output = json.dumps(result, ensure_ascii=False, indent=2, allow_nan=False) + "\n"
+    if len(output.encode("utf-8")) > 16 * 1024:
+        raise ValueError("earnings report exceeds its 16KiB contract")
+    if report is not None:
+        report.parent.mkdir(parents=True, exist_ok=True)
+        temporary = report.with_suffix(report.suffix + ".tmp")
+        temporary.write_text(output, encoding="utf-8")
+        os.replace(temporary, report)
+    typer.echo(output.rstrip())
+
+
+@app.command("earnings-capture")
+def cmd_earnings_capture(
+    root: Path | None = typer.Option(None, "--root", help="실적 캘린더가 있는 체크아웃"),
+    out: Path = typer.Option(Path(".tmp/earnings-capture"), "--out", help="공개 원문 불변 캡처 묶음"),
+    report: Path | None = typer.Option(None, "--report", help="변경 후보·수집 상태 JSON"),
+) -> None:
+    """발표 전후 실적 원문만 수집한다. 예측·판정·정본 원장은 쓰지 않는다."""
+    from .earnings_refresh import capture_earnings
+
+    result = capture_earnings(root or config.ROOT, output_dir=out)
+    if type(result.get("changed_hint")) is not bool:
+        raise ValueError("earnings capture requires an explicit boolean changed_hint")
+    _earnings_report(result, report)
+    if result.get("status") != "captured":
+        raise typer.Exit(code=1)
+
+
+@app.command("earnings-apply")
+def cmd_earnings_apply(
+    bundle: Path = typer.Option(..., "--bundle", help="검증 후 재생할 공개 원문 묶음"),
+    root: Path | None = typer.Option(None, "--root", help="최신 main의 별도 체크아웃"),
+    report: Path | None = typer.Option(None, "--report", help="추가 행·배포 여부 JSON"),
+) -> None:
+    """원문을 다시 검증하고 표시용 실적만 append한다. 부분 수집은 보고서로 남긴다."""
+    from .earnings_refresh import apply_earnings
+
+    result = apply_earnings(root or config.ROOT, bundle_dir=bundle)
+    if type(result.get("changed")) is not bool:
+        raise ValueError("earnings replay requires an explicit boolean changed")
+    _earnings_report(result, report)
+
+
+@app.command("earnings-watch")
+def cmd_earnings_watch(
+    root: Path | None = typer.Option(None, "--root", help="등록 실적 일정이 있는 체크아웃"),
+    out: Path = typer.Option(Path(".tmp/earnings-capture"), "--out"),
+    report: Path | None = typer.Option(None, "--report"),
+) -> None:
+    """확정 발표가 가까우면 같은 배치에서 1분마다 확인하고 새 값에 즉시 반환한다."""
+    from .earnings_watch import watch_earnings
+
+    result = watch_earnings(root or config.ROOT, output_dir=out)
+    if type(result.get("changed_hint")) is not bool:
+        raise ValueError("earnings watch requires an explicit boolean changed_hint")
+    _earnings_report(result, report)
+    if result.get("status") != "captured":
+        raise typer.Exit(code=1)
+
+
 def _trendlines_report(result: dict, report: Path | None = None) -> None:
     """Keep operational decisions explicit, bounded and credential-free."""
     output = json.dumps(result, ensure_ascii=False, indent=2) + "\n"

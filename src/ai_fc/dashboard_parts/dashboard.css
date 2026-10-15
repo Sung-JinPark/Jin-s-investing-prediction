@@ -1718,6 +1718,8 @@ abbr[title]{text-decoration:underline dotted 1px;text-underline-offset:2px;curso
   border-radius:999px;font:750 9px/1 var(--mono);font-style:normal}
 
 .ev-meta{min-width:0;color:#8a877e;font:500 10px/1.3 var(--mono);word-break:keep-all}
+.ev-company-links{display:grid;gap:4px;font:600 10px/1.4 var(--sans);word-break:keep-all}
+.ev-company-links a{color:#525b68;text-decoration:underline;text-underline-offset:2px}
 .ev-dday{color:#6f6c65;font-weight:800}
 .ev-card.is-near .ev-dday{color:#db351b}
 
@@ -2007,6 +2009,18 @@ body[data-view="future"] .page-heading .page-lede{margin:6px 0 0;font-size:12px}
 .ev-afp.is-multi{grid-auto-rows:max-content}
 .ev-afp-head,.ev-afp-row{min-width:0}
 .ev-afp-row b,.ev-afp-row em{min-width:0;white-space:nowrap}
+.ev-afp-row em small{display:block;font:500 9px/1.35 var(--sans);white-space:normal;overflow-wrap:anywhere}
+@media(max-width:620px){
+  .ev-cards{grid-auto-rows:auto}
+  .ev-card{grid-template-rows:auto 1fr}
+  @supports(grid-template-rows:subgrid){.ev-card{grid-row:span 2;grid-template-rows:subgrid}}
+  .ev-card.is-earnings .ev-afp.is-multi>.ev-afp-head{display:none}
+  .ev-card.is-earnings .ev-afp-row{grid-template-columns:repeat(3,minmax(0,1fr));row-gap:4px;padding-top:6px}
+  .ev-card.is-earnings .ev-afp-row>em{grid-column:1/-1;white-space:normal}
+  .ev-card.is-earnings .ev-afp-row>em small{display:inline;margin-left:4px}
+  .ev-card.is-earnings .ev-afp-row>b{display:grid;gap:3px;white-space:normal;overflow:visible;overflow-wrap:anywhere}
+  .ev-card.is-earnings .ev-afp-row>b::before{content:attr(data-afp-label);color:#8a877e;font:500 9px/1.2 var(--sans)}
+}
 @media(max-width:620px){.ev-card{padding:8px 9px 11px}}
 .ev-card .ev-meta{display:flex;align-items:center;justify-content:space-between;gap:6px;flex-wrap:wrap}
 .ev-afp.is-metrics .ev-afp-head,.ev-afp.is-metrics .ev-afp-row{grid-template-columns:58px repeat(3,minmax(0,1fr))}
