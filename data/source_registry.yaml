@@ -165,3 +165,14 @@ sources:
     license_status: review_required
     enabled: false
     contract: data/contracts/iea_eia_capacity.yaml
+  - id: nasdaq_comp_official
+    name: Nasdaq Composite completed-session official capture
+    provider: Nasdaq
+    tier: official
+    endpoint: https://api.nasdaq.com/api/quote/COMP/info?assetclass=index
+    cadence: business-daily
+    freshness_sla_hours: 48
+    vintage_capability: captured
+    license_status: review_required
+    enabled: true
+    contract: data/contracts/daily6m_official_sources_v1.yaml

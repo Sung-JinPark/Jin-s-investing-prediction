@@ -55,7 +55,7 @@ class Daily6mFeatureBundle:
 
 
 def read_native_frame(root: Path, *, as_of: str | datetime) -> pd.DataFrame:
-    """Read registered native facts and the explicitly registered live VIX tail."""
+    """Read native facts plus verified registered forward source tails."""
     import pyarrow.parquet as pq
     path = root / "data/timeseries/facts/observations.parquet"
     if not path.is_file():
@@ -64,6 +64,8 @@ def read_native_frame(root: Path, *, as_of: str | datetime) -> pd.DataFrame:
     frame = pq.read_table(path, columns=columns, filters=[("series_id", "in", list(SERIES))]).to_pandas()
     selected = eligible_frame(frame, as_of=as_of)
     completed = last_completed_session(as_of)
+    from .live_tail import overlay_live_tails
+    selected = eligible_frame(overlay_live_tails(root, selected, as_of=as_of, completed=completed), as_of=as_of)
     nasdaq = selected[selected["series_id"] == "NASDAQCOM"]
     vix = selected[(selected["series_id"] == "VIXCLS") & (selected["day"] == completed)]
     if not nasdaq.empty and str(nasdaq["day"].max()) == completed and vix.empty:
@@ -128,7 +130,7 @@ def captured_vix_tail(root: Path, *, session: str, as_of: str | datetime) -> dic
     source_values = [value for day, value in parse_cboe_vix_csv(payload) if day == session]
     if len(source_values) != 1 or float(observation["value"]) != source_values[0]:
         raise Daily6mFeatureError("official VIX observation differs from its raw source close")
-    return {"source_id": "cboe_vix_archive", "series_id": "VIXCLS", "observation_time": session, "value": observation["value"], "value_status": "ok", "available_at": observation["available_at"], "vintage_start": observation["vintage_start"], "vintage_end": observation.get("vintage_end"), "retrieved_at": receipt["retrieved_at"], "source_hash": observation["raw_sha256"], "raw_sha256": observation["raw_sha256"], "data_grade": "captured_forward", "receipt_id": receipt["receipt_id"], "receipt_raw_path": receipt["raw_path"], "receipt_verified": True, "observation_id": observation["observation_id"], "source_unit": observation["unit"], "logical_mapping": "VIX_to_VIXCLS"}
+    return {"source_id": "cboe_vix_archive", "series_id": "VIXCLS", "observation_time": session, "value": observation["value"], "value_status": "ok", "available_at": observation["available_at"], "vintage_start": observation["vintage_start"], "vintage_end": observation.get("vintage_end"), "retrieved_at": receipt["retrieved_at"], "source_hash": observation["raw_sha256"], "raw_sha256": observation["raw_sha256"], "data_grade": "captured_forward", "receipt_id": receipt["receipt_id"], "receipt_raw_path": receipt["raw_path"], "receipt_source_uri": receipt["source_uri"], "receipt_http_status": receipt["http_status"], "receipt_verified": True, "observation_id": observation["observation_id"], "source_unit": observation["unit"], "logical_mapping": "VIX_to_VIXCLS"}
 
 
 def eligible_frame(rows: pd.DataFrame | Iterable[dict[str, Any]], *, as_of: str | datetime) -> pd.DataFrame:
@@ -148,9 +150,11 @@ def eligible_frame(rows: pd.DataFrame | Iterable[dict[str, Any]], *, as_of: str 
         required_tail = {"raw_sha256", "receipt_id", "receipt_verified"}
         if not required_tail.issubset(frame.columns):
             raise Daily6mFeatureError("registered captured VIX tail receipt metadata missing")
-        completed = last_completed_session(cutoff)
-        if not ((tails["source_id"] == "cboe_vix_archive") & (tails["series_id"] == "VIXCLS") & (tails["observation_time"] == completed) & (tails["data_grade"] == "captured_forward") & (tails["receipt_verified"] == True) & (tails["source_hash"] == tails["raw_sha256"])).all():
-            raise Daily6mFeatureError("captured market values are restricted to the registered latest-session CBOE VIX tail")
+        from .live_tail import validate_tail_lineage_rows
+        try:
+            validate_tail_lineage_rows([{**row, "session": row["observation_time"]} for row in tails.to_dict("records")], last_completed_session(cutoff))
+        except RuntimeError as exc:
+            raise Daily6mFeatureError(str(exc)) from exc
     if not frame["source_hash"].map(lambda value: isinstance(value, str) and re.fullmatch(r"[0-9a-f]{64}", value) is not None).all():
         raise Daily6mFeatureError("native market source SHA256 is missing or invalid")
     for key in ("available_at", "vintage_start"):
@@ -312,8 +316,11 @@ def build_bundle(root: Path, *, as_of: str | datetime, rows: Iterable[dict[str, 
         levels.append([float(selected[sid]["value"]) for sid in ("NASDAQCOM", "VIXCLS", "DGS2", "T10Y2Y")] + [float(selected[fx_sid]["value"])])
         for sid, row in selected.items():
             source_row = {"session": day, "series_id": sid, "source_id": str(row["source_id"]), "observation_time": str(row["observation_time"]), "available_at": row["available_at_utc"].isoformat(), "vintage_start": row["vintage_start_utc"].isoformat(), "retrieved_at": row["retrieved_at_utc"].isoformat(), "source_hash": str(row["source_hash"]), "data_grade": str(row["data_grade"]), "carried": str(row.name) != day}
-            if row["source_id"] == "cboe_vix_archive":
-                source_row.update({key: row[key] for key in ("raw_sha256", "receipt_id", "receipt_raw_path", "receipt_verified", "observation_id", "source_unit", "logical_mapping")})
+            if row["source_id"] != "alfred":
+                from .live_tail import SOURCE_METADATA
+                source_row.update({key: row[key] for key in SOURCE_METADATA if key in row and row[key] is not None and not (isinstance(row[key], float) and math.isnan(row[key]))})
+                if "native_overlap_count" in source_row:
+                    source_row["native_overlap_count"] = int(source_row["native_overlap_count"])
             provenance.append(source_row)
     data = np.asarray(levels, dtype=float)
     changes = np.column_stack((np.diff(np.log(data[:, 0])), np.diff(np.log(data[:, 1])), np.diff(data[:, 2]) * 100, np.diff(data[:, 3]) * 100, np.diff(np.log(data[:, 4])))) if len(data) > 1 else np.empty((0, 5))
@@ -362,6 +369,6 @@ def build_bundle(root: Path, *, as_of: str | datetime, rows: Iterable[dict[str, 
     if age >= 10:
         issues.append("forecast origin age reaches 10 completed sessions")
     history_rows = nasdaq.sort_index().tail(63)
-    tail_used = bool((frame["source_id"] == "cboe_vix_archive").any())
+    tail_used = bool((frame["source_id"] != "alfred").any())
     lineage = {"source": "native_alfred_vintages_plus_official_captured_tail" if tail_used else "native_alfred_vintages", "market_rows": provenance, "factor_rows": factor_lineage, "mapping": {"vix_change": "VIXCLS", "curve_change_bps": "T10Y2Y", "dollar_bridge": FX_BRIDGE}, "captured_tail_used": tail_used, "carry_policy": "price_and_vix_exact_session; yield_curve_fx_known_levels; factors_latest_ready_cutoff", "historical_pit_validation": "not_established", "available_at_max": str(frame["available_at_utc"].max().isoformat()), "retrieved_at_max": str(frame["retrieved_at_utc"].max().isoformat()), "initial_unavailable_sessions": first, "initial_missing_daily_inputs": initial_daily_gaps, "training_start": retained_start, "reconstruction_used": False}
     return Daily6mFeatureBundle(tuple(kept_days), endogenous, exogenous, ENDOG_NAMES, EXOG_NAMES, anchor, {"dates": list(history_rows.index), "index": [float(value) for value in history_rows["value"]]}, lineage, tuple(dict.fromkeys(issues)), freshness, age, current_exog[0], issuance_lineage)

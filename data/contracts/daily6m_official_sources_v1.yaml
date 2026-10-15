@@ -1,0 +1,73 @@
+schema_version: 1
+contract_id: daily6m_official_sources_v1
+scope: separate_daily6m_research_inputs
+cadence:
+  schedule_utc: "4-59/5 * * * *"
+  best_effort: true
+  changed_sources: recheck_separate_weekly_daily6m_forecast
+  unchanged_sources: no_commit_no_forecast_no_deployment
+sources:
+  nasdaq_comp_official:
+    series_id: NASDAQCOM
+    unit: index
+    identity: Nasdaq_Composite_COMP
+    current_url: https://api.nasdaq.com/api/quote/COMP/info?assetclass=index
+    overlap_url: https://api.nasdaq.com/api/quote/COMP/historical
+    history_window_days: 30
+    current_session: latest_completed_XNAS_only
+    maximum_sessions: 1
+    market_status: [Closed, After-Hours]
+    require_previous_native_close_match: true
+    require_completed_session_date_match: true
+    overlap_minimum: 5
+    overlap_tolerance: exact_reported_decimal
+  cboe_vix_archive:
+    series_id: VIX
+    logical_series_id: VIXCLS
+    unit: index
+    url: https://cdn.cboe.com/api/global/us_indices/daily_prices/VIX_History.csv
+    allowed_https_redirect:
+      from: https://cdn.cboe.com/api/global/us_indices/daily_prices/VIX_History.csv
+      to: https://cdn-api.cboe.com/api/global/us_indices/daily_prices/VIX_History.csv
+      scope: exact_directed_pair_only
+    preserve_response_uri: true
+    current_session: latest_completed_XNAS_only
+    maximum_sessions: 1
+  us_treasury_yield_archive:
+    series_id: DGS2
+    unit: percent
+    numeric_representation: annual_percent_rate_4_82_means_4_82_percent
+    identity: nominal_two_year_constant_maturity_par_yield
+    url: https://home.treasury.gov/resource-center/data-chart-center/interest-rates/pages/xml
+    query: {data: daily_treasury_yield_curve, field_tdr_date_value: current_year}
+    maximum_bridge_XNAS_sessions: 5
+    bridge: actual_source_rows_after_last_eligible_native_through_origin
+    missing_Treasury_holiday: explicit_level_carry_without_synthetic_observation
+    require_native_overlap_match: true
+availability:
+  grade: captured_forward
+  available_at: actual_response_completion
+  vintage_start: actual_response_completion
+  maximum: forecast_as_of
+  prohibit_native_relabelling: true
+  historical_backfill: false
+integrity:
+  require_raw_sha256: true
+  require_raw_reparse: true
+  require_registered_https_source: true
+  require_explicit_units: true
+  reject_future_or_uncompleted_quote: true
+  reject_internal_price_and_volatility_gaps: true
+  corrections: append_with_explicit_supersedes
+store:
+  receipts: data/timeseries_daily6m/source_receipts.jsonl
+  observations: data/timeseries_daily6m/source_observations.jsonl
+  raw: data/timeseries_daily6m/raw
+  existing_native_and_frozen_model_ledgers: read_only
+publication:
+  research_only: true
+  official_forecast_write: false
+  predictive_validation: not_established
+  native_outcome_scoring: unchanged
+  forward_quote_values_are_not_native_outcomes: true
+  raw_web_delivery: false

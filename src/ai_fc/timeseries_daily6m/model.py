@@ -11,7 +11,6 @@ from __future__ import annotations
 import calendar
 import hashlib
 import importlib.metadata
-import re
 from datetime import date, datetime, timedelta
 from typing import Any
 
@@ -98,23 +97,11 @@ def _validate_lineage_availability(lineage: dict[str, Any], issued: datetime) ->
 
 
 def _validate_registered_captured_tail(lineage: dict[str, Any], origin: str) -> None:
-    captured = []
-    for row in lineage.get("market_rows", ()):
-        if row.get("data_grade") == "captured_forward" or row.get("source_id") == "cboe_vix_archive":
-            captured.append(row)
-            raw_hash = row.get("raw_sha256")
-            if (row.get("series_id") != "VIXCLS" or row.get("source_id") != "cboe_vix_archive"
-                    or row.get("data_grade") != "captured_forward"
-                    or row.get("session") != origin or str(row.get("observation_time", ""))[:10] != origin
-                    or not isinstance(raw_hash, str) or re.fullmatch(r"[0-9a-f]{64}", raw_hash) is None
-                    or row.get("source_hash") != raw_hash or not row.get("receipt_id")
-                    or row.get("receipt_verified") is not True or not row.get("retrieved_at")
-                    or not row.get("available_at") or not row.get("vintage_start")
-                    or _timestamp(row["available_at"]) != _timestamp(row["retrieved_at"])
-                    or _timestamp(row["vintage_start"]) != _timestamp(row["retrieved_at"])):
-                raise Daily6mContractError("only a fully linked current-origin captured VIX tail is allowed")
-    if len(captured) > 1:
-        raise Daily6mContractError("captured VIX tail may contain only one origin session")
+    from .live_tail import validate_tail_lineage_rows
+    try:
+        validate_tail_lineage_rows(lineage.get("market_rows", ()), origin)
+    except Daily6mContractError as exc:
+        raise Daily6mContractError("captured VIX tail or registered source tail invalid: " + str(exc)) from exc
 
 
 def summarize_joint_paths(

@@ -21,6 +21,7 @@ on:
       - trendlines-refresh
       - timeseries-inputs-refresh
       - earnings-refresh
+      - daily6m-sources-refresh
       - timeseries-v13-vol-live
       - scenario-refresh
       - ai-regime-refresh

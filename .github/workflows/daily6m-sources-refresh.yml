@@ -1,0 +1,162 @@
+name: daily6m-sources-refresh
+
+# Current-session official captures are separate from native ALFRED vintages.
+# Polling never changes the frozen models or their source/forecast ledgers.
+on:
+  schedule:
+    - cron: "4-59/5 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: daily6m-sources-refresh
+  cancel-in-progress: false
+
+jobs:
+  capture:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    outputs:
+      bundle_ready: ${{ steps.bundle.outputs.bundle_ready }}
+    env:
+      PYTHONUTF8: "1"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Prepare the already declared collection dependencies
+        run: pip install -e ".[pit,timeseries]" "exchange-calendars>=4.6,<5"
+      - name: Capture official completed-session sources without ledger writes
+        id: capture
+        continue-on-error: true
+        run: python -m ai_fc timeseries-daily6m-sources-capture --out .tmp/daily6m-sources-capture --report .tmp/daily6m-sources-capture-report.json
+      - name: Preserve only a complete immutable capture bundle
+        id: bundle
+        if: ${{ always() }}
+        shell: bash
+        run: |
+          if test -f .tmp/daily6m-sources-capture/manifest.json; then
+            echo "bundle_ready=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "bundle_ready=false" >> "$GITHUB_OUTPUT"
+          fi
+      - uses: actions/upload-artifact@v4
+        if: ${{ always() && steps.bundle.outputs.bundle_ready == 'true' }}
+        with:
+          name: daily6m-sources-${{ github.run_id }}
+          path: |
+            .tmp/daily6m-sources-capture/
+            .tmp/daily6m-sources-capture-report.json
+          include-hidden-files: true
+          retention-days: 3
+          if-no-files-found: error
+      - name: Report an incomplete capture after preserving its public evidence
+        if: ${{ always() && (steps.bundle.outputs.bundle_ready != 'true' || steps.capture.outcome == 'failure') }}
+        run: |
+          echo "A daily6m source was unavailable. Any complete capture remains auditable."
+          exit 1
+
+  publish:
+    needs: capture
+    if: ${{ !cancelled() && needs.capture.outputs.bundle_ready == 'true' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+      actions: write
+    concurrency:
+      group: daily6m-sources-publisher
+      cancel-in-progress: false
+    env:
+      PYTHONUTF8: "1"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Prepare the already declared replay dependencies
+        run: pip install -e ".[pit,timeseries]" "exchange-calendars>=4.6,<5"
+      - uses: actions/download-artifact@v4
+        with:
+          name: daily6m-sources-${{ github.run_id }}
+          path: .tmp
+      - name: Replay official source receipts against a fresh main
+        shell: bash
+        run: |
+          capture_bundle="$GITHUB_WORKSPACE/.tmp/daily6m-sources-capture"
+          report_path="$GITHUB_WORKSPACE/.tmp/daily6m-sources-report.json"
+          for attempt in 1 2 3; do
+            git fetch --no-tags origin main
+            attempt_root="$RUNNER_TEMP/daily6m-sources-publish-$attempt"
+            git worktree add --detach "$attempt_root" origin/main
+            PYTHONPATH="$attempt_root/src" python -m ai_fc timeseries-daily6m-sources-apply --root "$attempt_root" --bundle "$capture_bundle" --report "$report_path"
+            changed="$(python - "$report_path" <<'PY'
+          import json
+          import sys
+          from pathlib import Path
+          report=json.loads(Path(sys.argv[1]).read_text(encoding='utf-8'))
+          if type(report.get('changed')) is not bool:
+              raise SystemExit('source replay requires an explicit boolean changed')
+          print(str(report['changed']).lower())
+          PY
+            )"
+            if test "$changed" = false; then break; fi
+            (
+              cd "$attempt_root"
+              for path in data/timeseries_daily6m/raw data/timeseries_daily6m/source_receipts.jsonl data/timeseries_daily6m/source_observations.jsonl; do
+                if test -e "$path"; then git add -- "$path"; fi
+              done
+              unexpected="$(git diff --cached --name-only | grep -Ev '^data/timeseries_daily6m/(raw/.*|source_(receipts|observations)\.jsonl)$' || true)"
+              test -z "$unexpected" || { echo "unexpected research source paths: $unexpected"; exit 1; }
+              deleted="$(git diff --cached --name-only --diff-filter=D)"
+              test -z "$deleted" || { echo "research source replay cannot delete history: $deleted"; exit 1; }
+              if git diff --cached --quiet; then echo "changed result lacks a staged source append"; exit 1; fi
+              git config user.name "github-actions[bot]"
+              git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+              git commit -m "data: append official live inputs for daily6m research"
+            )
+            if git -C "$attempt_root" push origin HEAD:main; then break; fi
+            if test "$attempt" -eq 3; then echo "research source push failed after fresh-tip retries"; exit 1; fi
+            sleep 15
+          done
+      - name: Read the verified source change
+        id: decision
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+          result=json.loads(Path('.tmp/daily6m-sources-report.json').read_text(encoding='utf-8'))
+          if type(result.get('changed')) is not bool or result.get('status') not in ('applied','partial'):
+              raise SystemExit('invalid research source publication decision')
+          with Path(os.environ['GITHUB_OUTPUT']).open('a',encoding='utf-8') as output:
+              output.write(f"changed={str(result['changed']).lower()}\nstatus={result['status']}\n")
+          PY
+      - name: Recheck and regenerate the separate weekly research forecast
+        if: ${{ steps.decision.outputs.changed == 'true' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run timeseries-daily6m.yml --repo "$GITHUB_REPOSITORY" --ref main
+      - uses: actions/upload-artifact@v4
+        if: ${{ always() }}
+        with:
+          name: daily6m-source-report-${{ github.run_id }}
+          path: .tmp/daily6m-sources-report.json
+          include-hidden-files: true
+          retention-days: 3
+          if-no-files-found: ignore
+      - name: Report a partial source checkpoint after preserving valid appends
+        if: ${{ always() && steps.decision.outputs.status == 'partial' }}
+        run: |
+          echo "A source remains unavailable; validated appends were preserved."
+          exit 1

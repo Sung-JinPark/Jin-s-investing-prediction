@@ -218,6 +218,48 @@ def cmd_timeseries_inputs_apply(
     typer.echo(output.rstrip())
 
 
+def _daily6m_sources_report(result: dict, report: Path | None = None) -> None:
+    output = json.dumps(result, ensure_ascii=False, indent=2, allow_nan=False) + "\n"
+    if len(output.encode("utf-8")) > 16 * 1024:
+        raise ValueError("daily6m source report exceeds its 16KiB contract")
+    if type(result.get("changed")) is not bool:
+        raise ValueError("daily6m sources require an explicit boolean changed")
+    if report is not None:
+        report.parent.mkdir(parents=True, exist_ok=True)
+        temporary = report.with_suffix(report.suffix + ".tmp")
+        temporary.write_text(output, encoding="utf-8")
+        os.replace(temporary, report)
+    typer.echo(output.rstrip())
+
+
+@app.command("timeseries-daily6m-sources-capture")
+def cmd_daily6m_sources_capture(
+    out: Path = typer.Option(Path(".tmp/daily6m-sources-capture"), "--out"),
+    root: Path | None = typer.Option(None, "--root"),
+    report: Path | None = typer.Option(None, "--report"),
+) -> None:
+    """최신 완료 세션의 공식 원문만 캡처한다. 모델·원장은 수정하지 않는다."""
+    from .daily6m_sources import capture_daily6m_sources
+
+    result = _timeseries_exit(capture_daily6m_sources, root or config.ROOT, output_dir=out)
+    _daily6m_sources_report(result, report)
+    if result.get("status") != "captured":
+        raise typer.Exit(code=1)
+
+
+@app.command("timeseries-daily6m-sources-apply")
+def cmd_daily6m_sources_apply(
+    bundle: Path = typer.Option(..., "--bundle"),
+    root: Path | None = typer.Option(None, "--root"),
+    report: Path | None = typer.Option(None, "--report"),
+) -> None:
+    """원문을 재검증해 별도 연구 입력만 append하고 변경 여부를 보고한다."""
+    from .daily6m_sources import apply_daily6m_sources
+
+    result = _timeseries_exit(apply_daily6m_sources, root or config.ROOT, bundle_dir=bundle)
+    _daily6m_sources_report(result, report)
+
+
 @app.command("timeseries-collect-series")
 def cmd_timeseries_collect_series(
     series: str = typer.Option(..., "--series", help="쉼표 구분 시리즈 ID (로스터 등록분만)"),

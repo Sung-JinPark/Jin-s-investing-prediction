@@ -193,9 +193,14 @@ def validate_run(run: dict[str, Any]) -> None:
     for row in run.get("sample_paths") or []:
         if len(row["values"]) != len(dates) or not all(math.isfinite(float(value)) and float(value) > 0 for value in row["values"]):
             raise Daily6mPipelineError("sample path length or level invalid")
+    from .live_tail import validate_tail_lineage_rows
+    try:
+        validate_tail_lineage_rows(run.get("source_lineage", {}).get("market_rows", []), run["anchor_date"])
+    except (ValueError, RuntimeError) as exc:
+        raise Daily6mPipelineError(str(exc)) from exc
     for row in run.get("source_lineage", {}).get("market_rows", []):
         native = row.get("source_id") == "alfred"
-        tail = (row.get("source_id") == "cboe_vix_archive" and row.get("series_id") == "VIXCLS" and row.get("session") == run["anchor_date"] and row.get("observation_time") == run["anchor_date"] and row.get("data_grade") == "captured_forward" and row.get("receipt_verified") is True and bool(row.get("receipt_id")) and row.get("raw_sha256") == row.get("source_hash"))
+        tail = row.get("data_grade") == "captured_forward"
         if (not native and not tail) or not isinstance(row.get("source_hash"), str) or re.fullmatch(r"[0-9a-f]{64}", row["source_hash"]) is None:
             raise Daily6mPipelineError("forecast native source identity or SHA256 provenance missing")
         if F.aware_time(row["available_at"]) > F.aware_time(run["as_of"]) or F.aware_time(row["vintage_start"]) > F.aware_time(run["as_of"]):
@@ -424,7 +429,9 @@ def forecast_timeseries_daily6m(root: Path, *, as_of: str | datetime | None = No
 def resolve_timeseries_daily6m(root: Path, *, as_of: str | datetime | None = None) -> dict[str, Any]:
     cutoff = F.aware_time(as_of)
     frame = F.read_native_frame(root, as_of=cutoff)
-    observed = frame[frame["series_id"] == "NASDAQCOM"].set_index("day")
+    # Live quotes may support a current forecast or its visual overlay. Scoring
+    # remains pinned to the separately published native outcome vintages.
+    observed = frame[(frame["series_id"] == "NASDAQCOM") & (frame["source_id"] == "alfred")].set_index("day")
     forecasts = read_chain(root, C.FORECAST_LEDGER)
     resolved = read_chain(root, C.RESOLUTION_LEDGER)
     runs = {forecast["forecast_id"]: load_run(root, forecast) for forecast in forecasts}
