@@ -77,6 +77,14 @@ const low=f.long.analyses.linear.boundaries[1],major={...low,slot:'major_structu
     assert out=={'merged':1,'aliases':['major_structure','long_lower'],'alone':1,'slot':'long_lower','near':2}
 
 
+@pytest.mark.parametrize('reverse',[False,True])
+def test_merged_reference_keeps_its_warning_without_mutating_original_line(tmp_path,fixture,reverse):
+    out=run(tmp_path,setup(fixture)+'const reverse='+json.dumps(reverse)+r''';
+const low={...f.long.analyses.linear.boundaries[1],classification:'reference_structure'},major={...low,slot:'major_structure',line_id:'older-major'};delete major.classification;const merged=trendMergeSelectedLines(reverse?[low,major]:[major,low]);process.stdout.write(JSON.stringify({count:merged.length,reference:merged[0].classification,name:trendRepresentativeName(merged[0]),original:Object.hasOwn(major,'classification')}));''')
+    assert out['count']==1 and out['reference']=='reference_structure' and not out['original']
+    assert '구조 참고선' in out['name'] and '장기 저점 연결선' in out['name'] and '장기 주요 고저점' in out['name']
+
+
 @pytest.mark.parametrize('axis',['linear','log'])
 def test_anchor_view_and_enlarged_hover_use_selected_first_anchor(tmp_path,fixture,axis):
     out=run(tmp_path,setup(fixture)+'const axis='+json.dumps(axis)+r''';(async()=>{const v=await parseTrendRepresentativeTransport(f.raw_v,f.current,f.full),l=await parseTrendLongTransport(f.raw_long,f.current,f.full,v);TREND_REPRESENTATIVE_DETAILS.set('bitcoin',v);TREND_LONG_DETAILS.set('bitcoin',l);const a=trendRepresentativeAnalysis(f.current,f.full,axis,'long_boundaries'),bars=trendRepresentativeViewport(f.full,a,'anchors'),start=Math.min(...a.lines.map(p=>p.first_anchor.index)),m=trendPlotModel(f.full,a,bars,axis,1280),line=m.lines[0],index=m.sourceLast+5,price=trendLinePrice(line,index,axis),hit=trendHoverAt(m,m.x(index),m.y(price),{scale:axis});process.stdout.write(JSON.stringify({first:bars[0].session_index,expected:Math.max(0,start-10),kind:hit.kind,price:hit.row.price,expectedPrice:price,future:hit.future,text:trendHoverText(hit,{currency:'USD'}),baseSource:f.body.snapshot_id}));})();''')
