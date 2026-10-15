@@ -87,9 +87,32 @@ def test_changed_first_attempt_does_not_wait(tmp_path):
 
 def test_partial_capture_returns_without_hiding_operational_failure(tmp_path):
     failures = [{"kind": "nasdaq", "reason": "fixture unavailable"}]
-    report, clock, _, _ = run(tmp_path, [{"status": "partial", "source_failures": failures}])
+    report, clock, _, _ = run(tmp_path, [{"status": "partial", "source_failures": failures,
+                                        "statuses": [source(kind="nasdaq", status="failed"), source(status="failed")]}])
     assert report["status"] == "partial" and report["source_failures"] == failures
     assert report["watch_attempts"] == 1 and clock.sleeps == []
+    assert report["watch_pending"] is False
+
+
+def test_one_blocked_issuer_does_not_stop_the_healthy_nasdaq_release_watch(tmp_path):
+    partial = {"status": "partial", "source_failures": [{"kind": "official", "reason": "HTTPError"}],
+               "statuses": [source(kind="nasdaq"), source(status="failed")]}
+    released = {**partial, "changed": True,
+                "statuses": [source(kind="nasdaq", status="reported"), source(status="failed")]}
+    report, clock, _, _ = run(tmp_path, [partial, partial, released])
+    assert report["status"] == "partial" and report["changed_hint"] is True
+    assert report["source_failures"] == partial["source_failures"]
+    assert report["watch_attempts"] == 3 and clock.sleeps == [60, 60]
+    assert report["watch_pending"] is False
+
+
+def test_partial_watch_budget_continues_only_with_a_healthy_registered_source(tmp_path):
+    partial = {"status": "partial", "source_failures": [{"kind": "official", "reason": "HTTPError"}],
+               "statuses": [source(kind="nasdaq"), source(status="failed")]}
+    report, clock, _, _ = run(tmp_path, [partial], max_seconds=90)
+    assert report["status"] == "partial" and report["changed_hint"] is False
+    assert report["watch_attempts"] == 3 and clock.sleeps == [60, 30]
+    assert report["watch_pending"] is True
 
 
 @pytest.mark.parametrize("kind", ["nasdaq", "official"])

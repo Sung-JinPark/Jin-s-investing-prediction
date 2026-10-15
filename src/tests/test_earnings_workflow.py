@@ -115,11 +115,11 @@ def test_changed_results_deploy_before_partial_failure_is_reported():
 def test_completed_publication_and_budget_limit_rearm_the_remaining_window():
     capture = _step("Continue an unchanged watch that reached its runner budget", job="capture")
     publish = _step("Resume watching other confirmed earnings after publication")
-    assert "steps.capture.outcome == 'success'" in capture["if"]
+    assert "bundle_ready == 'true'" in capture["if"]
     assert "changed_hint == 'false'" in capture["if"]
     assert "watch_pending == 'true'" in capture["if"]
     assert "watch_pending == 'true'" in publish["if"]
-    assert "status == 'ready' || steps.decision.outputs.changed == 'true'" in publish["if"]
+    assert publish["if"] == "${{ always() && steps.decision.outputs.watch_pending == 'true' }}"
     for step in (capture, publish):
         assert 'gh workflow run earnings-refresh.yml --repo "$GITHUB_REPOSITORY" --ref main' == step["run"]
     assert _workflow()["concurrency"]["cancel-in-progress"] is False

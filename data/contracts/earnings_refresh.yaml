@@ -11,9 +11,10 @@ cadence:
     confirmed_after_hours: 3
     poll_seconds: 60
     max_seconds: 19800
-    stop: semantic_change_or_source_failure_or_window_end
+    stop: semantic_change_or_all_source_failure_or_window_end
     continuation: dispatch_after_publication_or_budget_exhaustion_within_pending_window
-    unchanged_partial_failure: report_failure_without_unbounded_self_dispatch
+    partial_failure: retain_failure_and_watch_a_healthy_registered_source_until_window_end
+    all_sources_failed: report_failure_without_self_dispatch
   confirmed_window: {before_hours: 24, after_hours: 72}
   estimated_window: {before_days: 7, after_days: 7}
   changed_results: append_then_dispatch_pages

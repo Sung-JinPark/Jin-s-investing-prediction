@@ -31,6 +31,7 @@ def _watch_remaining(manifest: dict[str, Any], now: datetime) -> float:
     if not isinstance(events, list) or not isinstance(statuses, list):
         raise EarningsRefreshError("watch bundle lacks registered events/source statuses")
     reported: set[str] = set()
+    healthy_pending: set[str] = set()
     for status in statuses:
         if (not isinstance(status, dict) or status.get("kind") not in {"nasdaq", "official"}
                 or status.get("status") not in {"reported", "pending", "failed"}
@@ -38,13 +39,15 @@ def _watch_remaining(manifest: dict[str, Any], now: datetime) -> float:
             raise EarningsRefreshError("invalid watch source status")
         if status["status"] == "reported":
             reported.add(status["event_id"])
+        elif status["status"] == "pending":
+            healthy_pending.add(status["event_id"])
     deadlines = []
     for event in events:
         if not isinstance(event, dict) or not event.get("event_id"):
             raise EarningsRefreshError("invalid watch registered event")
         if event.get("kind") != "earnings" or event.get("status") != "confirmed":
             continue
-        if event["event_id"] in reported:
+        if event["event_id"] in reported or event["event_id"] not in healthy_pending:
             continue
         scheduled = _time(event.get("scheduled_at")) if event.get("scheduled_at") else None
         if scheduled is None:
@@ -63,8 +66,10 @@ def watch_earnings(root: Path, *, output_dir: Path | str,
     """Capture immediately, then poll pending confirmed releases on this runner.
 
     Each attempt has a fresh immutable directory. Only the selected final bundle
-    is renamed to ``output_dir``; temporary attempts are discarded. A changed or
-    partial capture returns immediately. No existing output can be reused.
+    is renamed to ``output_dir``; temporary attempts are discarded. A changed
+    capture returns immediately. A partial capture keeps polling when another
+    registered source remains healthy for that event. All-source failures return
+    immediately. No existing output can be reused.
     """
     budget = _duration(max_seconds, "max_seconds", maximum=MAX_WATCH_SECONDS, zero=True)
     interval = _duration(poll_seconds, "poll_seconds", maximum=60, zero=False)
@@ -121,7 +126,7 @@ def watch_earnings(root: Path, *, output_dir: Path | str,
             manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
             remaining_window = _watch_remaining(manifest, finished)
             elapsed = (finished - started).total_seconds()
-            final = (report["changed_hint"] or report["status"] != "captured"
+            final = (report["changed_hint"] or report["status"] == "failed"
                      or elapsed >= budget or remaining_window <= 0)
             if final:
                 # Recheck resolved parent and target immediately before rename.
@@ -134,11 +139,13 @@ def watch_earnings(root: Path, *, output_dir: Path | str,
                 attempt.rename(destination)
                 return {**report, "bundle_path": str(destination),
                         "watch_attempts": attempts, "watch_seconds": elapsed,
-                        "watch_pending": remaining_window > 0,
-                        "watch_until": (finished + timedelta(seconds=remaining_window)).isoformat() if remaining_window > 0 else None}
+                        "watch_pending": remaining_window > 0 and report["status"] != "failed",
+                        "watch_until": (finished + timedelta(seconds=remaining_window)).isoformat()
+                        if remaining_window > 0 and report["status"] != "failed" else None}
             delay = min(interval, budget - elapsed, remaining_window)
         # Discard the prior immutable attempt before waiting; only the selected
         # final attempt is retained. No durable source or ledger is modified.
         print(f"Earnings watch: attempt {attempts}, no new result; next check in {delay:.0f}s "
-              f"({elapsed:.0f}s elapsed).", file=sys.stderr, flush=True)
+              f"({elapsed:.0f}s elapsed, source failures: {len(report.get('source_failures', []))}).",
+              file=sys.stderr, flush=True)
         pause(delay)

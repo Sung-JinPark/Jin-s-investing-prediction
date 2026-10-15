@@ -8,6 +8,9 @@ import json
 import math
 import os
 import re
+import subprocess
+import tempfile
+import urllib.error
 import urllib.request
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -24,6 +27,8 @@ CONTRACT_ID = "earnings_capture_v1"
 MAX_REPORT_BYTES = 16384
 _AUTH = {"api_key", "apikey", "token", "access_token", "authorization", "key", "signature"}
 NASDAQ_SOURCE_IDS = {"issuer_ir", "nvidia_ir", "micron_ir", "asml_ir", "tsmc_ir"}
+MAX_TEXT_BYTES = 8_000_000
+TEXT_HEADERS = {"User-Agent": E.USER_AGENT, "Accept": "text/html,application/xhtml+xml;q=0.9,*/*;q=0.8", "Accept-Encoding": "identity"}
 
 
 class EarningsRefreshError(E.ConsensusError):
@@ -99,9 +104,86 @@ def _fetch_json(url: str) -> dict[str, Any]:
     return {"body": body, "captured_at": datetime.now(timezone.utc).isoformat(), "source_url": url}
 
 
+def _text_url(url: str, *, requested: str | None = None) -> None:
+    parts = urlsplit(url)
+    if (parts.scheme != "https" or not parts.hostname or parts.port not in (None, 443)
+            or parts.username or parts.password or parts.fragment
+            or any(k.lower() in _AUTH for k, _ in parse_qsl(parts.query))):
+        raise EarningsRefreshError("earnings text transport requires public HTTPS")
+    if requested is not None and parts.hostname != urlsplit(requested).hostname:
+        raise EarningsRefreshError("earnings text redirect changed its source host")
+
+
+class _TextRedirect(urllib.request.HTTPRedirectHandler):
+    max_redirections = 3
+    max_repeats = 3
+
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        _text_url(newurl, requested=req.full_url)
+        return super().redirect_request(req, fp, code, msg, headers, newurl)
+
+
+def _text_decode(payload: bytes) -> str:
+    if not isinstance(payload, bytes) or not payload or len(payload) > MAX_TEXT_BYTES:
+        raise EarningsRefreshError("earnings HTML is empty or exceeds eight million bytes")
+    try:
+        result = payload.decode("utf-8", errors="strict")
+    except UnicodeDecodeError as exc:
+        raise EarningsRefreshError("earnings HTML is not valid UTF-8") from exc
+    if not result.strip():
+        raise EarningsRefreshError("earnings HTML is empty")
+    return result
+
+
 def _fetch_text(url: str) -> str:
-    from .quant.feed import get_with_curl_fallback
-    return get_with_curl_fallback(url, timeout=20)
+    """Try each URL independently; a failed host never disables another host."""
+    _text_url(url)
+    request = urllib.request.Request(url, headers=TEXT_HEADERS)
+    try:
+        opener = urllib.request.build_opener(_TextRedirect())
+        with opener.open(request, timeout=20) as response:
+            status = getattr(response, "status", None)
+            if status is None:
+                status = response.getcode()
+            if status != 200:
+                raise EarningsRefreshError("earnings HTML response is not HTTP 200")
+            _text_url(response.geturl(), requested=url)
+            payload = response.read(MAX_TEXT_BYTES + 1)
+    except (OSError, urllib.error.URLError) as exc:
+        # This fallback changes the transport, never the URL or source policy.
+        command = ["curl", "--silent", "--show-error", "--fail", "--location", "--max-redirs", "3",
+                   "--proto", "=https", "--proto-redir", "=https", "--connect-timeout", "10",
+                   "--max-time", "20", "--retry", "1", "--retry-delay", "1", "--retry-max-time", "30",
+                   "--max-filesize", str(MAX_TEXT_BYTES)]
+        for key, value in TEXT_HEADERS.items():
+            command.extend(["--header", f"{key}: {value}"])
+        # A seekable output lets curl discard an interrupted attempt on retry;
+        # stdout would concatenate partial and complete response bodies.
+        with tempfile.TemporaryDirectory(prefix="earnings-html-") as scratch:
+            output = Path(scratch) / "response.html"
+            command.extend(["--output", str(output), "--write-out", "%{http_code}\n%{url_effective}", url])
+            try:
+                result = subprocess.run(command, capture_output=True, timeout=45, check=False)
+            except (OSError, subprocess.SubprocessError) as fallback:
+                raise EarningsRefreshError("earnings HTTPS transports were unavailable") from fallback
+            if result.returncode != 0:
+                raise EarningsRefreshError(f"earnings HTTPS curl failed ({result.returncode})") from exc
+            if not isinstance(result.stdout, bytes):
+                raise EarningsRefreshError("earnings curl response metadata must be bytes")
+            try:
+                status, effective = result.stdout.rsplit(b"\n", 1)
+                final_url = effective.decode("utf-8", errors="strict")
+            except (ValueError, UnicodeDecodeError) as malformed:
+                raise EarningsRefreshError("earnings curl response metadata is malformed") from malformed
+            if status != b"200":
+                raise EarningsRefreshError("earnings HTML response is not HTTP 200")
+            _text_url(final_url, requested=url)
+            try:
+                with output.open("rb") as handle:
+                    payload = handle.read(MAX_TEXT_BYTES + 1)
+            except OSError as missing:
+                raise EarningsRefreshError("earnings curl response body is unavailable") from missing
+    return _text_decode(payload)
 
 
 def _response(value: Any, *, kind: str, url: str, tick: Callable[[], datetime]) -> tuple[bytes, datetime]:
@@ -242,16 +324,18 @@ def capture_earnings(root: Path, *, output_dir: Path | str, now: datetime | str 
                 rows = result["candidates"] if result else _nasdaq(event, fetch, lambda: _time(tick()))
                 errors = result.get("errors", []) if result else []
                 attempts = result.get("attempt_failures", []) if result else []
+                usable = bool(result and result.get("status") in {"released", "pending"}
+                              and (rows or result.get("usable_discovery_receipts", 0) > 0))
                 for error in errors:
                     audit = {"event_id": event["event_id"], "ticker": event["ticker"], "kind": kind, "reason": error.get("error_type", "OfficialEarningsError")}
                     failures.append(audit)
                 for error in attempts:
                     audit = {"event_id": event["event_id"], "ticker": event["ticker"], "kind": kind, "reason": error.get("error_type", "OfficialEarningsError")}
-                    (diagnostics if rows else failures).append(audit)
+                    (diagnostics if usable else failures).append(audit)
                 rows = _attach(rows, event_receipts)
                 _validate_rows(event, rows, max([_time(r["captured_at"]) for r in event_receipts] or [start]))
                 candidates.extend(rows)
-                statuses.append({"event_id": event["event_id"], "kind": kind, "status": "reported" if any(r.get("actual") is not None for r in rows) else "failed" if errors or attempts else "pending"})
+                statuses.append({"event_id": event["event_id"], "kind": kind, "status": "reported" if any(r.get("actual") is not None for r in rows) else "failed" if errors or (attempts and not usable) else "pending"})
             except (OSError, ValueError, RuntimeError, KeyError, TypeError) as exc:
                 failures.append({"event_id": event["event_id"], "ticker": event["ticker"], "kind": kind, "reason": type(exc).__name__})
                 statuses.append({"event_id": event["event_id"], "kind": kind, "status": "failed"})
@@ -344,9 +428,12 @@ def _load_bundle(root: Path, bundle: Path, now: datetime) -> tuple[dict[str, Any
                 return json.loads(text) if _kind == "nasdaq" else {"text": text, "source_url": url, "captured_at": receipt["captured_at"]}
             if kind == "official":
                 official = _official(event, fetch, end)
-                if official.get("errors") and not (failures or diagnostics):
+                if official.get("errors") and not failures:
                     raise EarningsRefreshError("official earnings replay failed without captured failure")
                 rows = official["candidates"]
+                replay_status = {"released": "reported", "pending": "pending", "failed": "failed"}.get(official.get("status"))
+                if replay_status != status["status"]:
+                    raise EarningsRefreshError("official discovery status differs from immutable-source replay")
             else:
                 try:
                     rows = _nasdaq(event, fetch, end)
