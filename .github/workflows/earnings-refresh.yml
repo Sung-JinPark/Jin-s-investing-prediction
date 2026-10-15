@@ -1,42 +1,110 @@
-name: earnings-refresh
-on: workflow_dispatch
+name: daily6m-artifact-transfer-probe
+on:
+  workflow_dispatch:
 permissions:
   contents: read
+concurrency:
+  group: daily6m-artifact-transfer-probe
+  cancel-in-progress: false
 jobs:
-  probe:
+  capture:
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    env:
+      PYTHONUTF8: "1"
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: codex/daily6m-live-inputs
+          ref: 9affd7fa6b9042c16c29d6d8984544fb9f8117ea
+          persist-credentials: false
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Prepare the existing declared replay dependencies
+          cache: pip
+      - name: Install the existing declared collection dependencies
         run: pip install -e ".[pit,timeseries]" "exchange-calendars>=4.6,<5"
-      - name: Capture and replay real official inputs in a disposable research store
+      - name: Capture four public raw responses without canonical writes
         run: |
+          test "$(git rev-parse HEAD)" = 9affd7fa6b9042c16c29d6d8984544fb9f8117ea
+          python -m ai_fc timeseries-daily6m-sources-capture --out .tmp/daily6m-sources-capture --report .tmp/daily6m-sources-capture-report.json
           python - <<'PY'
           import json
           from pathlib import Path
-          from datetime import datetime, timezone
-          from ai_fc.daily6m_sources import capture_daily6m_sources, apply_daily6m_sources, load_verified_source_observations
-          root=Path.cwd()
-          disposable=root/'.tmp/collector-probe'
-          (disposable/'data').mkdir(parents=True)
-          (disposable/'data/timeseries').symlink_to(root/'data/timeseries',target_is_directory=True)
-          report=capture_daily6m_sources(disposable,output_dir=disposable/'.tmp/capture')
-          print('CAPTURE',json.dumps(report),flush=True)
-          assert report['status']=='captured' and not report['source_failures'] and not report.get('source_pending')
-          applied=apply_daily6m_sources(disposable,bundle_dir=disposable/'.tmp/capture')
-          print('APPLY',json.dumps(applied),flush=True)
-          assert applied['status']=='applied' and applied['changed'] is True
-          rows=load_verified_source_observations(disposable,as_of=datetime.now(timezone.utc))
-          assert {row['source_id'] for row in rows}=={'nasdaq_comp_official','cboe_vix_archive','us_treasury_yield_archive'}
-          print('VERIFIED_ROWS',json.dumps([{k:r[k] for k in ['source_id','series_id','observation_time','value','available_at','raw_sha256']} for r in rows]),flush=True)
-          replay=apply_daily6m_sources(disposable,bundle_dir=disposable/'.tmp/capture')
-          assert replay['changed'] is False and replay['appended']==0
-          print('REAL_OFFICIAL_CAPTURE_REPLAY_NOOP_PASS',flush=True)
+          report=json.loads(Path('.tmp/daily6m-sources-capture-report.json').read_text())
+          assert report['status']=='captured',report
+          assert report['receipts']==4 and report['observations']==4,report
+          assert not report['source_failures'] and not report['source_pending'],report
+          assert Path('.tmp/daily6m-sources-capture/manifest.json').is_file()
+          print(json.dumps({'capture_proof':report},sort_keys=True))
           PY
-          git diff --exit-code -- data
+          test -z "$(git status --porcelain -- data)"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: daily6m-sources-${{ github.run_id }}
+          path: |
+            .tmp/daily6m-sources-capture/
+            .tmp/daily6m-sources-capture-report.json
+          include-hidden-files: true
+          retention-days: 3
+          if-no-files-found: error
+  replay:
+    needs: capture
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      PYTHONUTF8: "1"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: 9affd7fa6b9042c16c29d6d8984544fb9f8117ea
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install the existing declared replay dependencies
+        run: pip install -e ".[pit,timeseries]" "exchange-calendars>=4.6,<5"
+      - uses: actions/download-artifact@v4
+        with:
+          name: daily6m-sources-${{ github.run_id }}
+          path: .tmp
+      - name: Verify actual transferred layout and replay only into disposable root
+        run: |
+          test "$(git rev-parse HEAD)" = 9affd7fa6b9042c16c29d6d8984544fb9f8117ea
+          test -f .tmp/daily6m-sources-capture/manifest.json
+          test -f .tmp/daily6m-sources-capture-report.json
+          python - <<'PY'
+          import json,tempfile
+          from pathlib import Path
+          from ai_fc.daily6m_sources import apply_daily6m_sources,load_verified_source_observations
+          from datetime import datetime,timezone
+          checkout=Path.cwd()
+          bundle=checkout/'.tmp/daily6m-sources-capture'
+          layout=sorted(str(p.relative_to(checkout/'.tmp')) for p in (checkout/'.tmp').rglob('*') if p.is_file())
+          assert 'daily6m-sources-capture/manifest.json' in layout
+          assert 'daily6m-sources-capture-report.json' in layout
+          scratch=Path(tempfile.mkdtemp(prefix='daily6m-transfer-'))
+          (scratch/'data').mkdir()
+          (scratch/'data/timeseries').symlink_to(checkout/'data/timeseries',target_is_directory=True)
+          first=apply_daily6m_sources(scratch,bundle_dir=bundle)
+          assert first['status']=='applied' and first['changed'] is True and first['appended']==4,first
+          assert not first['source_failures'] and not first['source_pending'],first
+          prefix=(scratch/'data/timeseries_daily6m/source_observations.jsonl').read_bytes()
+          second=apply_daily6m_sources(scratch,bundle_dir=bundle)
+          assert second['status']=='applied' and second['changed'] is False and second['appended']==0 and second['receipts']==0,second
+          assert (scratch/'data/timeseries_daily6m/source_observations.jsonl').read_bytes()==prefix
+          verified=load_verified_source_observations(scratch,as_of=datetime.now(timezone.utc))
+          assert len(verified)==4 and all(r['receipt_verified'] for r in verified)
+          assert not (scratch/'data/timeseries_v2').exists()
+          proof={'code_head':'9affd7fa6b9042c16c29d6d8984544fb9f8117ea','layout':layout,'manifest_path':'daily6m-sources-capture/manifest.json','first_apply':first,'second_apply':second,'verified_observations':len(verified),'native_history_is_readonly_input':True,'canonical_data_changed':False}
+          (checkout/'.tmp/daily6m-transfer-proof.json').write_text(json.dumps(proof,sort_keys=True,indent=2)+'\n')
+          print(json.dumps(proof,sort_keys=True))
+          PY
+          test -z "$(git status --porcelain -- data)"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: daily6m-transfer-proof-${{ github.run_id }}
+          path: .tmp/daily6m-transfer-proof.json
+          include-hidden-files: true
+          retention-days: 3
+          if-no-files-found: error
