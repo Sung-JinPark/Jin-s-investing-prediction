@@ -583,6 +583,7 @@ function trendRepresentativeViewport(detail,analysis,scope='recent'){
   const major=analysis.lines.filter(line=>line.kind==='pivot_structure'&&line.first_anchor).sort((a,b)=>a.first_anchor.index-b.first_anchor.index)[0];
   if(scope==='anchors'&&major?.first_anchor){const position=detail.bars.findIndex(bar=>bar.session_index===major.first_anchor.index);if(position>=0)return detail.bars.slice(Math.max(0,position-10));}
   if(scope==='anchors')return detail.bars.slice(-252);
+  if(detail.asset_id==='bitcoin'&&analysis.family==='all')return detail.bars.slice(-1095);
   if(analysis.family==='current_structure')return detail.bars.slice(-126);
   if(analysis.family==='regression_200')return detail.bars.slice(-252);
   if(['major_structure','long_boundaries'].includes(analysis.family)&&major?.first_anchor){const position=detail.bars.findIndex(bar=>bar.session_index===major.first_anchor.index);if(position>=0)return detail.bars.slice(Math.max(0,position-10));}
