@@ -300,6 +300,24 @@ class LocalTrendlinesService:
             raise LocalServiceError("private_representative_original_binding_mismatch")
         return S.encode(envelope)
 
+    def read_long_boundaries_detail(self, asset_id: str) -> bytes:
+        """Read only the separately verified supplement; never collect on GET."""
+        from . import long_boundaries as B
+        _raw, current = self._read_asset_detail(asset_id)
+        envelope = B.load_detail(self.root, asset_id, now=self._now())
+        if envelope is None:
+            raise FileNotFoundError("private_long_boundaries_missing")
+        body = B.decode_envelope(envelope)
+        if (body["asset_id"] != asset_id or body["source_snapshot_id"] != current["snapshot_id"]
+                or body["as_of"] != current["as_of"] or body["reference_close"] != current["bars"][-1]["close"]
+                or body["reference_session"] != current["observation_through"]
+                or body["reference_index"] != current["bars"][-1]["session_index"]
+                or body["source_archive_sha256"] != current.get("research_archive_sha256")
+                or body["source_engine_snapshot_id"] != current.get("engine_snapshot_id")
+                or body["source_engine_content_hash"] != current.get("source_snapshot_hash")):
+            raise LocalServiceError("private_long_boundaries_capture_mismatch")
+        return S.encode(envelope)
+
     def _slots(self, now):
         local = now.astimezone(KST)
         return [datetime.combine(local.date() + timedelta(days=offset), at, KST)
@@ -551,6 +569,8 @@ def make_http_server(service: LocalTrendlinesService, *, host: str = HOST, port:
                 return self.path
             if self.path in {"/api/private-trendlines/" + asset_id + "/representative" for asset_id in ASSET_IDS}:
                 return self.path
+            if self.path in {"/api/private-trendlines/" + asset_id + "/long-boundaries" for asset_id in ASSET_IDS}:
+                return self.path
             prefix = "/api/private-trendlines/(" + "|".join(ASSET_IDS) + ")/full"
             if re.fullmatch(prefix, self.path) or re.fullmatch(prefix + r"/research-full-snapshot-[a-f0-9]{64}/bars/(?:0|[1-7])", self.path):
                 return self.path
@@ -569,6 +589,8 @@ def make_http_server(service: LocalTrendlinesService, *, host: str = HOST, port:
                     return self._reply(200, service.read_critical_detail(route.split("/")[3]))
                 if route.endswith("/representative"):
                     return self._reply(200, service.read_representative_detail(route.split("/")[3]))
+                if route.endswith("/long-boundaries"):
+                    return self._reply(200, service.read_long_boundaries_detail(route.split("/")[3]))
                 if route.endswith("/full"):
                     return self._reply(200, service.read_full_manifest(route.split("/")[3]))
                 if "/full/" in route:

@@ -18,7 +18,7 @@ from urllib.request import Request, urlopen
 
 PROJECT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(PROJECT / "src"))
-from ai_fc.trendlines import contracts as C, research as R, storage as S, full_history as F, critical as K, representative as V
+from ai_fc.trendlines import contracts as C, research as R, storage as S, full_history as F, critical as K, representative as V, long_boundaries as B
 
 
 def private_root(output: Path) -> Path:
@@ -28,16 +28,17 @@ def private_root(output: Path) -> Path:
     output = output.resolve()
     if not output.is_relative_to(container):
         raise C.TrendlinesError("private chart output must stay below this checkout's outputs directory")
-    destinations = [C.CONTRACT_RELATIVE, C.ASSET_REGISTRY_RELATIVE, C.SOURCE_POLICY_RELATIVE, K.POLICY_RELATIVE, V.POLICY_RELATIVE,
+    destinations = [C.CONTRACT_RELATIVE, C.ASSET_REGISTRY_RELATIVE, C.SOURCE_POLICY_RELATIVE, K.POLICY_RELATIVE, V.POLICY_RELATIVE, B.POLICY_RELATIVE,
                     R.ROOT, R.ROOT / "raw", R.ROOT / "receipts", R.ROOT / "snapshots",
                     R.ROOT / "failures", R.ROOT / "latest.json",
                     F.ROOT, F.ROOT / "snapshots", F.ROOT / "exports", F.ROOT / "latest.json",
                     K.ROOT, K.ROOT / "snapshots", K.ROOT / "exports", K.ROOT / "latest.json",
                     V.ROOT, V.ROOT / "snapshots", V.ROOT / "exports", V.ROOT / "latest.json",
+                    B.ROOT, B.ROOT / "snapshots", B.ROOT / "exports", B.ROOT / "latest.json",
                     Path("outputs/trendlines/.writer.lock")]
     if any(not (output / path).resolve().is_relative_to(output) for path in destinations):
         raise C.TrendlinesError("private chart output contains a redirected data path")
-    for relative in (C.CONTRACT_RELATIVE, C.ASSET_REGISTRY_RELATIVE, C.SOURCE_POLICY_RELATIVE, K.POLICY_RELATIVE, V.POLICY_RELATIVE):
+    for relative in (C.CONTRACT_RELATIVE, C.ASSET_REGISTRY_RELATIVE, C.SOURCE_POLICY_RELATIVE, K.POLICY_RELATIVE, V.POLICY_RELATIVE, B.POLICY_RELATIVE):
         target = output / relative
         target.parent.mkdir(parents=True, exist_ok=True)
         if not target.is_file():
@@ -98,6 +99,12 @@ def run(options) -> dict:
         representative = V.refresh(root, options.asset, now=acquired)
     except (OSError, ValueError, TypeError, KeyError) as exc:
         representative = {"status": "unavailable", "error": str(exc)[:256], "changed": False}
+    try:
+        if representative.get("status") == "unavailable":
+            raise C.TrendlinesError("long boundaries representative source is unavailable")
+        long_boundaries = B.refresh(root, options.asset, now=acquired)
+    except (OSError, ValueError, TypeError, KeyError) as exc:
+        long_boundaries = {"status": "unavailable", "error": str(exc)[:256], "changed": False}
     audit = R.verify(root, replay=True)
     if not audit["ok"]:
         raise C.TrendlinesError("private original-to-chart replay failed: " + "; ".join(audit["errors"]))
@@ -106,7 +113,7 @@ def run(options) -> dict:
     return {**result, "publication_scope": "private_only", "public_prices_published": False,
             "independent_replay": audit, "browser_import_file": str(destination),
             "import_file_bytes": destination.stat().st_size, "full_history": full, "critical": critical,
-            "representative": representative}
+            "representative": representative, "long_boundaries": long_boundaries}
 
 
 def main() -> None:

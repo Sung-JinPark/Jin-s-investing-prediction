@@ -897,7 +897,7 @@ const MID_CATEGORIES={
     {key:'history',label:'과거 사이클',hash:'#future/history',hint:'혁신 사이클 참고 비교'},
     {key:'cross-asset',label:'교차자산 비교',hash:'#future/cross-asset',hint:'NASDAQ·리츠·주택주'},
     {key:'liquidity',label:'유동성',hash:'#future/liquidity',hint:'시장 자금 흐름'},
-    {key:'trendlines',label:'상·하방 추세선',hash:'#future/trendlines',hint:'7개 자산의 빗각선과 가격 경계'}
+    {key:'trendlines',label:'상·하방 추세선',hash:'#future/trendlines',hint:'6개 자산의 빗각선과 가격 경계'}
   ],
   statistics:[
     {key:'all',label:'전체',hash:'#statistics',hint:'모든 비교 지표',railHidden:true},
@@ -2745,7 +2745,7 @@ async function route(){
   if(TIMESERIES_DAILY_RESIZE){TIMESERIES_DAILY_RESIZE.disconnect();TIMESERIES_DAILY_RESIZE=null;}
   globalThis.TrendlineUI?.cleanup();
   const epoch=++ROUTE_EPOCH;
-  const enteredHash=location.hash||'#today',rawHash=legacyRouteRedirect(enteredHash);
+  const enteredHash=location.hash||'#today',legacyHash=legacyRouteRedirect(enteredHash),rawHash=legacyHash==='#future/trendlines/mag7'?'#future/trendlines/sk-hynix':legacyHash;
   if(rawHash!==enteredHash)history.replaceState(null,'',rawHash);
   const parsed=parseCanonicalRoute(rawHash),v=parsed.view,arg=parsed.arg,navView=parsed.section;
   closeQuickPeek();closeChartZoom(false);if(!briefingLayer.hidden)setBriefing(false,false);if(!shareLayer.hidden)setShare(false,false);

@@ -47,6 +47,9 @@ def run(options) -> None:
         if report.get("representative", {}).get("status") == "unavailable":
             logger.warning("Representative lines unavailable for %s: %s", asset_id,
                            report["representative"].get("error", "representative_refresh_failed"))
+        if report.get("long_boundaries", {}).get("status") == "unavailable":
+            logger.warning("Long boundaries unavailable for %s: %s", asset_id,
+                           report["long_boundaries"].get("error", "long_boundaries_refresh_failed"))
         return report
 
     def build_preview():
