@@ -89,14 +89,25 @@ def load_contract(root: Path) -> dict[str, Any]:
         raise Daily6mContractError("daily6m FHS benchmark settings disagree with v1 implementation")
     tail = contract.get("data_policy", {}).get("captured_forward_tail", {})
     tail_policy = {
-        "series_id": "VIXCLS", "raw_series_id": "VIX", "source_id": "cboe_vix_archive",
-        "allowed_session": "latest_completed_origin_only", "maximum_sessions": 1,
         "require_receipt": True, "require_raw_sha256": True,
         "availability": "actual_capture_before_issuance", "prohibit_native_relabelling": True,
-        "historical_backfill": False,
+        "historical_backfill": False, "eligible_native_precedence": True,
+        "independent_source_store": "data/timeseries_daily6m",
+        "minimum_native_overlap": 5, "maximum_native_overlap_abs_difference": 0.0,
+        "price_and_vix": {
+            "allowed_session": "latest_completed_origin_only", "maximum_sessions": 1,
+            "sources": {"NASDAQCOM": "nasdaq_comp_official", "VIXCLS": "cboe_vix_archive"},
+            "vix_raw_series_id": "VIX", "legacy_verified_v2_vix_fallback": True,
+        },
+        "treasury": {
+            "series_id": "DGS2", "source_id": "us_treasury_yield_archive", "source_unit": "percent",
+            "allowed_sessions": "contiguous_after_latest_eligible_native_through_origin",
+            "maximum_xnas_sessions": 5, "closed_session_policy": "US_FED_holidays_with_explicit_level_carry",
+            "missing_required_open_session": "hold", "fabricate_holiday_observations": False,
+        },
     }
     if tail != tail_policy:
-        raise Daily6mContractError("daily6m permits only the registered current-session captured VIX tail")
+        raise Daily6mContractError("daily6m captured sources differ from the registered current-origin/contiguous bridge policy")
     resolution_policy = {
         "ledger": "resolutions", "revision_policy": "append_with_supersedes_for_changed_published_close",
         "revision_key": ["source_id", "series_id", "observation_time", "value", "available_at", "vintage_start", "source_hash"],
@@ -119,7 +130,11 @@ def model_code_hash(root: Path) -> str:
         root / "src/ai_fc/timeseries_daily6m/contracts.py",
         root / "src/ai_fc/timeseries_daily6m/model.py",
         root / "src/ai_fc/timeseries_daily6m/features.py",
+        root / "src/ai_fc/timeseries_daily6m/live_tail.py",
+        root / "src/ai_fc/daily6m_sources.py",
+        root / "data/contracts/daily6m_official_sources_v1.yaml",
         root / "src/ai_fc/timeseries_daily6m/pipeline.py",
+        root / "src/ai_fc/timeseries/ledger.py",
         root / "src/ai_fc/timeseries/model.py",
         root / "src/ai_fc/timeseries/backtest.py",
         root / "src/ai_fc/timeseries_v2/model.py",

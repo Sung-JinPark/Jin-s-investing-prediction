@@ -80,6 +80,9 @@ def test_captured_vix_tail_is_current_only_fully_linked_and_never_native_relabel
     tail = {"series_id": "VIXCLS", "source_id": "cboe_vix_archive", "data_grade": "captured_forward",
             "session": "2026-10-09", "observation_time": "2026-10-09", "raw_sha256": "a" * 64,
             "source_hash": "a" * 64, "receipt_id": "raw-receipt-vix", "receipt_verified": True,
+            "receipt_raw_path": "data/timeseries_v2/raw/market/cboe_vix_archive/a.gz",
+            "receipt_source_uri": "https://cdn.cboe.com/api/global/us_indices/daily_prices/VIX_History.csv",
+            "receipt_http_status": 200, "source_unit": "index",
             "retrieved_at": "2026-10-10T07:48:15+00:00", "available_at": "2026-10-10T07:48:15+00:00",
             "vintage_start": "2026-10-10T07:48:15+00:00"}
     M._validate_registered_captured_tail({"market_rows": [tail]}, "2026-10-09")
@@ -118,11 +121,12 @@ def quick_selector(monkeypatch: pytest.MonkeyPatch) -> None:
         return replace(fitted, selection_score=0.0)
 
     monkeypatch.setattr(M, "select_ridge_varx_v2", select)
-    monkeypatch.setattr(M, "select_distribution_parameters_v2", lambda residuals, seed: (10, 0.97, {"selected": 1.0}))
+    monkeypatch.setattr(M, "select_distribution_parameters_v2", lambda _residuals, **_kwargs: (10, 0.97, {"selected": 1.0}))
 
 
+@pytest.mark.usefixtures("quick_selector")
 def test_reproducible_forecast_keeps_multivariate_paths_primary_and_comparator_separate(
-    bundle: SimpleNamespace, quick_selector: None,
+    bundle: SimpleNamespace,
 ) -> None:
     dates, end, _ = M.future_session_dates(bundle.dates[-1])
     kwargs = dict(anchor=102, as_of="2026-10-12T00:00:00+00:00", future_dates=dates, path_count=64)
@@ -167,13 +171,41 @@ def test_bad_availability_missing_features_and_truncated_dates_fail_before_fitti
         M.generate_forecast(bundle, anchor=102, as_of="2026-10-12T00:00:00+00:00", future_dates=dates)
 
 
+@pytest.mark.usefixtures("quick_selector")
+def test_source_provenance_only_change_keeps_identical_numerical_joint_paths(
+    bundle: SimpleNamespace,
+) -> None:
+    dates, _, _ = M.future_session_dates(bundle.dates[-1])
+    native = SimpleNamespace(**vars(bundle))
+    native.lineage = {"market_rows": [{"source_id": "alfred", "series_id": "VIXCLS",
+        "available_at": "2026-10-10T07:48:15+00:00"}]}
+    tail = SimpleNamespace(**vars(bundle))
+    tail.lineage = {"market_rows": [{"series_id": "VIXCLS", "source_id": "cboe_vix_archive",
+        "session": bundle.dates[-1], "observation_time": bundle.dates[-1], "data_grade": "captured_forward",
+        "raw_sha256": "a" * 64, "source_hash": "a" * 64, "receipt_id": "shadow-receipt",
+        "receipt_verified": True, "receipt_http_status": 200, "source_unit": "index",
+        "receipt_raw_path": "data/timeseries_daily6m/raw/cboe_vix_archive/a.gz",
+        "receipt_source_uri": "https://cdn.cboe.com/api/global/us_indices/daily_prices/VIX_History.csv",
+        "retrieved_at": "2026-10-10T07:48:15+00:00", "available_at": "2026-10-10T07:48:15+00:00",
+        "vintage_start": "2026-10-10T07:48:15+00:00"}]}
+    kwargs = dict(anchor=102, as_of="2026-10-12T00:00:00+00:00", future_dates=dates, path_count=32)
+    old, old_paths = M.generate_forecast_with_paths(native, **kwargs)
+    new, new_paths = M.generate_forecast_with_paths(tail, **kwargs)
+    np.testing.assert_array_equal(old_paths, new_paths)
+    assert old["records"] == new["records"] and old["sample_paths"] == new["sample_paths"]
+    assert new["comparison"]["v8_raw_identity"]["pass"] is True
+
+
+@pytest.mark.usefixtures("quick_selector")
+@pytest.mark.parametrize("lineage_shape", ["mapping", "list"])
 def test_issuance_macro_state_is_used_without_overwriting_historical_training(
-    bundle: SimpleNamespace, quick_selector: None, monkeypatch: pytest.MonkeyPatch,
+    bundle: SimpleNamespace, monkeypatch: pytest.MonkeyPatch, lineage_shape: str,
 ) -> None:
     dates, _, _ = M.future_session_dates(bundle.dates[-1])
     original_training = bundle.exogenous.copy()
     bundle.issuance_exogenous = np.array([2.0, -3.0, 1.0])
-    bundle.issuance_factor_lineage = [{"cutoff": "2026-10-12T12:00:00+00:00"}]
+    factor = {"cutoff": "2026-10-12T12:00:00+00:00", "cache_materialized_at": "2026-10-12T12:00:00+00:00"}
+    bundle.issuance_factor_lineage = factor if lineage_shape == "mapping" else [factor]
     simulate = M.simulate_correlated_paths_v2
 
     def capture(fits, **kwargs):
@@ -186,8 +218,19 @@ def test_issuance_macro_state_is_used_without_overwriting_historical_training(
     np.testing.assert_array_equal(bundle.exogenous, original_training)
     assert payload["model_config"]["issuance_exogenous"]["growth_factor"] == 2.0
     assert payload["comparison"]["v8_raw_identity"]["pass"]
-    bundle.issuance_factor_lineage = [{"cutoff": "2026-10-12T15:00:00+00:00"}]
-    with pytest.raises(Daily6mContractError, match="issuance_factor_lineage"):
+    for field in ("cutoff", "cache_materialized_at"):
+        future = {**factor, field: "2026-10-12T15:00:00+00:00"}
+        bundle.issuance_factor_lineage = future if lineage_shape == "mapping" else [future]
+        with pytest.raises(Daily6mContractError, match="issuance_factor_lineage"):
+            M.generate_forecast(bundle, anchor=102, as_of="2026-10-12T14:00:00+00:00",
+                                future_dates=dates, path_count=64)
+
+
+@pytest.mark.parametrize("malformed", ["cutoff", ["cutoff"], 1, 0, False, ""])
+def test_malformed_issuance_factor_lineage_fails_before_fitting(bundle: SimpleNamespace, malformed) -> None:
+    dates, _, _ = M.future_session_dates(bundle.dates[-1])
+    bundle.issuance_factor_lineage = malformed
+    with pytest.raises(Daily6mContractError, match="explicit lineage mappings"):
         M.generate_forecast(bundle, anchor=102, as_of="2026-10-12T14:00:00+00:00",
                             future_dates=dates, path_count=64)
 

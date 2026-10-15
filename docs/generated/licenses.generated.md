@@ -22,6 +22,7 @@
 | `fear_greed_index` | feargreedmeter.com (CNN Business 지수 재공표) | [https://feargreedmeter.com/](https://feargreedmeter.com/) | `review_required` | 파생 통계 표시 가능; 원시 재배포 금지 |
 | `btc_etf_flows` | pending two-source review | [pending](pending) | `review_required` | 파생 통계 표시 가능; 원시 재배포 금지 |
 | `iea_eia_capacity` | IEA and EIA | [pending-machine-readable-contract](pending-machine-readable-contract) | `review_required` | 파생 통계 표시 가능; 원시 재배포 금지 |
+| `nasdaq_comp_official` | Nasdaq | [https://api.nasdaq.com/api/quote/COMP/info?assetclass=index](https://api.nasdaq.com/api/quote/COMP/info?assetclass=index) | `review_required` | 파생 통계 표시 가능; 원시 재배포 금지 |
 
 ## Pending manual reviews
 

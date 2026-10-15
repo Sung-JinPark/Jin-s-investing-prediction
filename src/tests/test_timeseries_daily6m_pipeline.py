@@ -314,10 +314,38 @@ def _pin_native_resolution_facts(root, frame):
     existing = {C.canonical_hash(row) for row in P._rows(path)}
     with path.open("a", encoding="utf-8") as handle:
         for _, source in frame.iterrows():
+            if source["source_id"] != "alfred":
+                continue
             fact = {**P._outcome_source(source), "value_status": "ok"}
             if C.canonical_hash(fact) not in existing:
                 handle.write(json.dumps(fact, sort_keys=True, allow_nan=False) + "\n")
                 existing.add(C.canonical_hash(fact))
+
+
+def test_captured_official_close_cannot_resolve_until_native_actual_is_published(published, monkeypatch):
+    root, run, _ = published
+    as_of = "2026-09-15T12:00:00+00:00"
+    native = F.eligible_frame([
+        _fact("NASDAQCOM", run["anchor_date"], 100),
+        _fact("NASDAQCOM", run["dates"][0], 102, available="2026-09-15T00:00:00+00:00"),
+    ], as_of=as_of)
+    captured = native.copy()
+    current = captured["day"] == run["dates"][0]
+    captured.loc[current, "source_id"] = "nasdaq_comp_official"
+    captured.loc[current, "data_grade"] = "captured_forward"
+    _pin_native_resolution_facts(root, captured)
+    pinned = P._rows(root / "data/timeseries/ledgers/observations.jsonl")
+    assert len(pinned) == 1 and pinned[0]["observation_time"] == run["anchor_date"]
+    monkeypatch.setattr(F, "read_native_frame", lambda *_args, **_kwargs: captured.copy())
+    assert P.resolve_timeseries_daily6m(root, as_of=as_of)["resolved"] == 0
+    assert not (root / C.RESOLUTION_LEDGER).exists()
+
+    _pin_native_resolution_facts(root, native)
+    monkeypatch.setattr(F, "read_native_frame", lambda *_args, **_kwargs: native.copy())
+    assert P.resolve_timeseries_daily6m(root, as_of=as_of)["resolved"] == 1
+    resolution = P.read_chain(root, C.RESOLUTION_LEDGER)[0]
+    assert resolution["actual_source"]["source_id"] == "alfred"
+    assert P.verify_timeseries_daily6m(root)["ok"]
 
 
 def _resolve_fixture(published, monkeypatch, *, actual=100, previous=100, as_of="2026-09-15T12:00:00+00:00", revised=None):

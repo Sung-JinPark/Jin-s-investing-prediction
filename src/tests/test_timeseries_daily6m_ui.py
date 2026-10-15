@@ -309,7 +309,7 @@ process.stdout.write(JSON.stringify({
     assert all(out.values())
 
 
-def test_zoom_copy_hides_hover_markers_but_keeps_forecast_lines(tmp_path: Path) -> None:
+def test_hover_markers_preserve_pointer_selection_and_stay_out_of_zoom(tmp_path: Path) -> None:
     playwright = pytest.importorskip("playwright.sync_api")
     out = _run(tmp_path, "const ts=" + json.dumps(_projection()) + """;
 process.stdout.write(JSON.stringify({html:timeseriesDailySvg(ts,tsDailyChartModel(ts))}));
@@ -326,7 +326,16 @@ process.stdout.write(JSON.stringify({html:timeseriesDailySvg(ts,tsDailyChartMode
             page.locator("[data-daily-price-dot],[data-daily-prob-dot]").evaluate_all("nodes=>nodes.forEach(node=>node.setAttribute('opacity','1'))")
             for marker in ("[data-daily-price-dot]", "[data-daily-prob-dot]"):
                 assert page.locator("#normal " + marker).evaluate("node=>getComputedStyle(node).display") != "none"
+                assert page.locator("#normal " + marker).evaluate("node=>getComputedStyle(node).pointerEvents") == "none"
                 assert page.locator("#zoom " + marker).evaluate("node=>getComputedStyle(node).display") == "none"
+            # Visible selection markers sit above the pointer overlay in SVG
+            # order. Hit testing must still reach the overlay at their centers.
+            page.locator("#normal [data-daily-price-dot],#normal [data-daily-prob-dot]").evaluate_all("nodes=>nodes.forEach(node=>{node.setAttribute('cx','100');node.setAttribute('cy','100');})")
+            assert page.locator("#normal svg").evaluate("""svg=>{
+                const point=svg.createSVGPoint();point.x=100;point.y=100;
+                const screen=point.matrixTransform(svg.getScreenCTM());
+                return document.elementFromPoint(screen.x,screen.y)?.hasAttribute('data-ts-overlay');
+            }""")
             for line in (".ts-median-line", ".ts-daily-prob-line"):
                 assert page.locator("#zoom " + line).evaluate("node=>getComputedStyle(node).display") != "none"
         finally:
