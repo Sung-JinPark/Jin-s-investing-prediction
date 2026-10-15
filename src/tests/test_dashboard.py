@@ -87,6 +87,7 @@ def test_read_model_shape(repo: Path) -> None:
 
 def test_forecast_body_dictionary_round_trip() -> None:
     import re
+    import subprocess
 
     phrase = dashboard.FORECAST_BODY_DICTIONARY[0]
     body = phrase.replace(phrase, chr(0xE000))
@@ -95,7 +96,28 @@ def test_forecast_body_dictionary_round_trip() -> None:
     assert "decodeForecastBody" in script
     js_dictionary = re.search(r"const BODY_DICTIONARY=\[(.*?)\];", script, re.S)
     assert js_dictionary is not None
-    assert tuple(re.findall(r"'([^']*)'", js_dictionary.group(1))) == dashboard.FORECAST_BODY_DICTIONARY
+    # Exercise the complete Python -> browser transport, including overlapping
+    # repeated prose and source URLs. Compression must restore every character.
+    expanded = []
+    for index, entry in enumerate(dashboard.FORECAST_BODY_DICTIONARY):
+        for character in entry:
+            if 0xE000 <= ord(character) <= 0xF8FF:
+                assert ord(character) - 0xE000 < index, "dictionary token references must be acyclic"
+        for previous in range(index - 1, -1, -1):
+            entry = entry.replace(chr(0xE000 + previous), dashboard.FORECAST_BODY_DICTIONARY[previous])
+        expanded.append(entry)
+    original = "\n".join(expanded) + "\nUSD $12.47 · EUR €12.95 · **원문 유지**"
+    encoded = original
+    for index, entry in enumerate(dashboard.FORECAST_BODY_DICTIONARY):
+        encoded = encoded.replace(entry, chr(0xE000 + index))
+    decoder = re.search(r"function decodeForecastBody\(text\)\{[^\n]+", script)
+    assert decoder is not None
+    program = "const BODY_DICTIONARY=[" + js_dictionary.group(1) + "];\n" + decoder.group(0)
+    program += "\nprocess.stdout.write(JSON.stringify({dictionary:BODY_DICTIONARY,restored:decodeForecastBody(require('fs').readFileSync(0,'utf8'))}));"
+    restored = subprocess.run(["node", "-e", program], input=encoded.encode("utf-8"), check=True, capture_output=True)
+    payload = json.loads(restored.stdout)
+    assert tuple(payload["dictionary"]) == dashboard.FORECAST_BODY_DICTIONARY
+    assert payload["restored"] == original
 
 
 def test_embed_compaction_keeps_latest_body_and_superseded_source_link() -> None:

@@ -20,6 +20,7 @@ on:
       - timeseries-daily6m
       - trendlines-refresh
       - timeseries-inputs-refresh
+      - earnings-refresh
       - timeseries-v13-vol-live
       - scenario-refresh
       - ai-regime-refresh

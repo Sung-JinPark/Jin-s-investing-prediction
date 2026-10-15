@@ -365,7 +365,10 @@ const DOMAIN_LABELS=Object.freeze({
 });
 function humanDomain(value){return DOMAIN_LABELS[value]||String(value||'기타').replaceAll('-',' ');}
 function humanDriver(value){return DRIVER_LABELS[value]||String(value||'기타').replaceAll('-',' ');}
-function generatedDay(){return String(DATA?.meta?.generated||'').slice(0,10);}
+function generatedDay(){
+  const stamp=Date.parse(DATA?.meta?.generated||'');
+  return Number.isFinite(stamp)?new Date(stamp+9*3600000).toISOString().slice(0,10):'';
+}
 function dayDiff(from,to){
   const a=Date.parse(`${from}T00:00:00Z`),b=Date.parse(`${to}T00:00:00Z`);
   return Number.isFinite(a)&&Number.isFinite(b)?Math.round((b-a)/86400000):null;
@@ -2709,9 +2712,27 @@ function renderFuturePathsLoadState(summary,error=null){
 /* 질문 상태는 레지스트리 status가 1차 축, 원장 행 유무가 2차 축이다 — 표·카드·⌘K가 같은 규칙을 쓴다.
    status를 두고 x.resolved로만 배지를 그리면 폐기 질문이 '진행 중'으로, 무예측 만료가 '완료' 필터에 '진행 중'
    배지로 섞여 나온다. */
+function earningsQuestionEvent(q){
+  if(q.domain!=='earnings')return null;
+  const company=String(q.id||'').split('-')[0].toUpperCase();
+  return (DATA.calendar_events||[]).find(event=>event.kind==='earnings'&&event.date===q.deadline
+    &&(String(event.ticker||'').toUpperCase()===company||earningsCompanyName(event).toUpperCase()===company))||null;
+}
+function earningsQuestionPending(q){
+  if(q.domain!=='earnings'||q.status!=='active'||q.resolved)return false;
+  const event=earningsQuestionEvent(q);
+  return !!((q.deadline&&q.deadline<generatedDay())||(event&&evReleaseState(event).code!=='scheduled'));
+}
+function earningsQuestionNotice(q){
+  if(!earningsQuestionPending(q))return '';
+  const event=earningsQuestionEvent(q);
+  const native=event&&evConsensusRows(event.event_id).some(row=>row.comparison_allowed===false&&row.currency&&row.currency!=='USD'&&['ordinary_share','ordinary'].includes(row.share_basis));
+  return `<section class="question-criteria" aria-label="실적 질문 판정 대기"><div><span>판정 대기</span><p>발표 EPS와 사전 컨센서스의 통화·주식 단위를 같은 기준으로 확인한 뒤 판정합니다. 기존 예측 확률은 발표 전 기록입니다.</p></div><div><span>실적 자료</span><p>${native?'공식 보통주 EPS와 USD ADR 컨센서스를 직접 비교하지 않습니다.':'같은 통화와 주식 단위가 확인된 자료만 판정에 사용합니다.'}${event?` <a href="#today/event/${encodeURIComponent(event.event_id)}">발표값과 출처 확인 ↗</a>`:''}</p></div></section>`;
+}
 function questionStatusLabel(q){
   if(q.status==='void')return {cls:'status-void',text:'폐기',title:'폐기된 질문 — 기한까지 예측 미실행, 채점 대상 아님'};
   if(q.status==='resolved')return q.resolved?{cls:'status-resolved',text:'완료',title:'원장에 채점 기록이 있는 질문'}:{cls:'status-resolved is-unscored',text:'완료 · 무예측',title:'기한 내 예측 미실행 — 원장 미기록, 캘리브레이션 표본 아님'};
+  if(earningsQuestionPending(q))return {cls:'status-active',text:'판정 대기',title:'동일 통화·주식 단위의 발표값과 사전 컨센서스 확인 대기'};
   return {cls:'status-active',text:'진행 중',title:'예측 진행 중'};
 }
 const questionStatusBadge=q=>{const s=questionStatusLabel(q);return `<span class="status ${s.cls}" title="${esc(s.title)}">${s.text}</span>`;};
@@ -3060,7 +3081,8 @@ const EV_WEEKDAY='일월화수목금토';          // LOOKUP_WEEKDAYS(js:2709)�
 const EV_KIND_COLOR={fomc:'#3f4248',cpi:'#717780',nfp:'#969ba2',gdp:'#555b63',earnings:'#20242a',question:'#6f6c65',other:'#747981'};
 const EV_BOARD_CAP=6;                       // 3 으로도 2 로도 나누어떨어져 어느 열 수에서도 고아 카드가 없다
 
-const evFuture=(rows,today)=>(rows||[]).filter(r=>String(r.date||'').slice(0,10)>=today)
+const evFuture=(rows,today)=>(rows||[]).filter(r=>String(r.date||'').slice(0,10)>=today
+  ||(r.kind==='earnings'&&dayDiff(r.date,today)>=0&&dayDiff(r.date,today)<=7&&evReleaseState(r).code!=='scheduled'))
   .sort((a,b)=>String(a.date).localeCompare(String(b.date)));
 const evMd=iso=>`${Number(String(iso).slice(5,7))}/${Number(String(iso).slice(8,10))}`;
 /* 날짜 문자열이 ISO 이므로 요일도 UTC 로 뽑는다 — 로컬 시간대로 읽으면 하루가 밀린다 */
@@ -3130,22 +3152,60 @@ function evPick(list,cap){
    실적(EPS)만 예상 대비 상회·하회를 색으로 말한다. 경제지표는 높고 낮음의 좋고 나쁨이 지표마다
    달라(CPI 상회는 악재, 고용 상회는 호재) 색을 칠하지 않는다. */
 const evConsensusRows=id=>(DATA.event_consensus||{})[id]||[];
+function evTimestamp(value){
+  const text=String(value||'');
+  return /T.*(?:Z|[+-]\d{2}:\d{2})$/.test(text)?Date.parse(text):NaN;
+}
+function evScheduledAt(event){
+  const explicit=evTimestamp(event.scheduled_at);
+  if(Number.isFinite(explicit))return explicit;
+  if(event.status!=='confirmed'||!/^\d{4}-\d{2}-\d{2}$/.test(event.date||'')||!/^\d{2}:\d{2}$/.test(event.time_et||''))return NaN;
+  const target=Date.parse(`${event.date}T${event.time_et}:00Z`);
+  if(!Number.isFinite(target))return NaN;
+  const parts=new Intl.DateTimeFormat('en-CA',{timeZone:'America/New_York',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).formatToParts(new Date(target));
+  const values=Object.fromEntries(parts.map(part=>[part.type,part.value]));
+  const local=Date.parse(`${values.year}-${values.month}-${values.day}T${values.hour}:${values.minute}:00Z`);
+  return target+(target-local);
+}
+function evReleaseState(event){
+  const now=evTimestamp(DATA?.meta?.generated),rows=evConsensusRows(event.event_id);
+  const known=value=>{const stamp=evTimestamp(value);return Number.isFinite(stamp)&&stamp<=now;};
+  if(rows.some(row=>row.actual!=null&&row.actual!==''&&known(row.available_at||row.captured_at)))return {code:'reported',label:'발표값 확인'};
+  if(rows.some(row=>known(row.published_at)))return {code:'announced',label:'발표 · 값 확인 중'};
+  const scheduled=evScheduledAt(event);
+  if(Number.isFinite(scheduled)&&scheduled<=now)return {code:'awaiting',label:'발표값 확인 중'};
+  return {code:'scheduled',label:Number.isFinite(scheduled)?'발표 예정':'발표 시각 확인 필요'};
+}
+function evKstTime(stamp){
+  if(!Number.isFinite(stamp))return '';
+  return new Intl.DateTimeFormat('ko-KR',{timeZone:'Asia/Seoul',month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit',hour12:false}).format(new Date(stamp))+' KST';
+}
+function evDisplayRows(rows){
+  return [...rows].sort((a,b)=>Number(b.actual!=null&&b.actual!=='')-Number(a.actual!=null&&a.actual!=='')||Number(b.metric==='eps_reported')-Number(a.metric==='eps_reported'));
+}
+function evRowBasis(row){
+  const share={ordinary_share:'보통주',ordinary:'보통주',ADR_unit:'ADR',ADR:'ADR',adr:'ADR',listed_share:'상장 주식',not_applicable:''};
+  const accounting={US_GAAP:'US GAAP',TIFRS:'대만 IFRS',vendor_reported:'제공업체 기준'};
+  return [row.currency,share[row.share_basis]??row.share_basis,
+    row.eps_basis==='basic'?'기본 EPS':row.eps_basis==='diluted'?'희석 EPS':row.eps_basis==='vendor_reported'?'제공업체 EPS':row.eps_basis,
+    accounting[row.accounting_basis]||row.accounting_basis].filter(Boolean).join(' · ');
+}
 const evAfpNum=text=>{const m=String(text||'').replace(/[$,\s]/g,'').match(/^([+-]?\d*\.?\d+)([KMBT%]?)$/);if(!m)return null;return Number(m[1])*({K:1e3,M:1e6,B:1e9,T:1e12}[m[2]]||1);};
 function evAfpTone(row){
-  if(row.metric!=='eps')return '';
+  if(row.metric!=='eps'||row.comparison_allowed===false)return '';
   const a=evAfpNum(row.actual),c=evAfpNum(row.consensus);
   return a==null||c==null||a===c?'':a>c?' is-beat':' is-miss';
 }
 const evAfpCell=v=>v==null||v===''?'<span class="afp-empty">—</span>':esc(v);
 function evAfpStrip(row){
   if(!row)return '';
-  return `<span class="ev-afp" aria-label="${esc(row.label)} 실제 ${esc(row.actual||'미발표')}, 예상 ${esc(row.consensus||'없음')}, 이전 ${esc(row.previous||'없음')}"><span><i>실제</i><b class="afp-actual${evAfpTone(row)}">${evAfpCell(row.actual)}</b></span><span><i>예상</i><b>${evAfpCell(row.consensus)}</b></span><span><i>이전</i><b>${evAfpCell(row.previous)}</b></span></span>`;
+  return `<span class="ev-afp" aria-label="${esc(row.label)} 실제 ${esc(row.actual||'확인 전')}, 예상 ${esc(row.consensus||'없음')}, 이전 ${esc(row.previous||'없음')}"><span><i>실제</i><b class="afp-actual${evAfpTone(row)}">${evAfpCell(row.actual)}</b></span><span><i>예상</i><b>${evAfpCell(row.consensus)}</b></span><span><i>이전</i><b>${evAfpCell(row.previous)}</b></span></span>`;
 }
 /* 묶음 실적 카드(같은 날 여러 회사)는 회사마다 한 줄 — 첫 회사 값만 보이면 나머지를 숨긴다. */
 /* 카드 안 행 이름 — 상세 화면은 전체 라벨(title 속성에도 실림), 카드는 좁아서 짧게. */
 const EV_AFP_SHORT={headline_cpi_mom:'전월',headline_cpi_yoy:'전년',core_cpi_mom:'근원 전월',core_cpi_yoy:'근원 전년',
   payroll_change:'고용',unemployment_rate:'실업률',avg_hourly_earnings_mom:'임금 전월',
-  real_gdp:'GDP',gdp_price_index:'물가지수',policy_rate:'기준금리',eps:'EPS'};
+  real_gdp:'GDP',gdp_price_index:'물가지수',policy_rate:'기준금리',eps:'EPS',eps_reported:'공식 EPS',eps_reported_adr:'공식 ADR EPS',revenue_reported:'공식 매출',gross_margin_reported:'매출총이익률'};
 function evAfpCluster(item){
   /* 값이 없어도 칸은 그린다 — 모든 카드의 가운데 선이 같은 높이에 오도록(사용자 지시 2026-10-07). */
   const empty=`<span class="ev-afp is-empty" aria-label="발표값 없음"><span><i>실제</i><b><span class="afp-empty">—</span></b></span><span><i>예상</i><b><span class="afp-empty">—</span></b></span><span><i>이전</i><b><span class="afp-empty">—</span></b></span></span>`;
@@ -3153,20 +3213,20 @@ function evAfpCluster(item){
   if(!ids){
     /* 한 이벤트의 지표가 여럿이면(CPI 전월·전년·근원 전월·근원 전년 등) 전부 행으로 — 첫 지표만 보이면
        나머지가 숨는다(사용자 지시 2026-10-11). */
-    const all=item.event_id?evConsensusRows(item.event_id):[];
+    const all=item.event_id?evDisplayRows(evConsensusRows(item.event_id)):[];
     if(!all.length)return empty;
     if(all.length===1)return evAfpStrip(all[0]);
-    return `<span class="ev-afp is-multi is-metrics"><span class="ev-afp-head"><i></i><i>실제</i><i>예상</i><i>이전</i></span>${all.map(row=>`<span class="ev-afp-row" title="${esc(row.label)}"><em>${esc(EV_AFP_SHORT[row.metric]||row.label)}</em><b class="afp-actual${evAfpTone(row)}">${evAfpCell(row.actual)}</b><b>${evAfpCell(row.consensus)}</b><b>${evAfpCell(row.previous)}</b></span>`).join('')}</span>`;
+    return `<span class="ev-afp is-multi is-metrics"><span class="ev-afp-head"><i></i><i>실제</i><i>예상</i><i>이전</i></span>${all.map(row=>`<span class="ev-afp-row" title="${esc(row.label)}"><em>${esc(EV_AFP_SHORT[row.metric]||row.label)}</em><b data-afp-label="실제" class="afp-actual${evAfpTone(row)}">${evAfpCell(row.actual)}</b><b data-afp-label="예상">${evAfpCell(row.consensus)}</b><b data-afp-label="이전">${evAfpCell(row.previous)}</b></span>`).join('')}</span>`;
   }
   const byId=new Map((DATA.calendar_events||[]).map(r=>[r.event_id,r]));
-  const rows=ids.map(id=>[byId.get(id),evConsensusRows(id)[0]]).filter(([ev,row])=>ev&&row);
+  const rows=ids.flatMap(id=>evDisplayRows(evConsensusRows(id)).map(row=>[byId.get(id),row])).filter(([ev,row])=>ev&&row);
   if(!rows.length)return empty;
-  return `<span class="ev-afp is-multi"><span class="ev-afp-head"><i></i><i>실제</i><i>예상</i><i>이전</i></span>${rows.map(([ev,row])=>`<span class="ev-afp-row"><em>${esc(ev.ticker||'')}</em><b class="afp-actual${evAfpTone(row)}">${evAfpCell(row.actual)}</b><b>${evAfpCell(row.consensus)}</b><b>${evAfpCell(row.previous)}</b></span>`).join('')}</span>`;
+  return `<span class="ev-afp is-multi"><span class="ev-afp-head"><i></i><i>실제</i><i>예상</i><i>이전</i></span>${rows.map(([ev,row])=>`<span class="ev-afp-row" title="${esc([row.label,evRowBasis(row)].filter(Boolean).join(' · '))}"><em>${esc(ev.ticker||'')}<small>${esc(EV_AFP_SHORT[row.metric]||row.label)}${row.currency?` · ${esc(row.currency)}`:''}</small></em><b data-afp-label="실제" class="afp-actual${evAfpTone(row)}">${evAfpCell(row.actual)}</b><b data-afp-label="예상">${evAfpCell(row.consensus)}</b><b data-afp-label="이전">${evAfpCell(row.previous)}</b></span>`).join('')}</span>`;
 }
 function evAfpTable(rows){
   if(!rows.length)return '';
-  const src=[...new Map(rows.map(r=>[r.source,r])).values()];
-  return `<div class="afp-table-wrap"><table class="afp-table"><thead><tr><th scope="col">지표</th><th scope="col">실제</th><th scope="col">예상</th><th scope="col">이전</th></tr></thead><tbody>${rows.map(r=>`<tr><th scope="row">${esc(r.label)}${r.period||r.note?`<small>${esc([r.period,r.note].filter(Boolean).join(' · '))}</small>`:''}</th><td class="afp-actual${evAfpTone(r)}">${evAfpCell(r.actual)}</td><td>${evAfpCell(r.consensus)}</td><td>${evAfpCell(r.previous)}</td></tr>`).join('')}</tbody></table></div>`
+  const src=[...new Map(rows.map(r=>[`${r.source}|${r.source_url}`,r])).values()];
+  return `<div class="afp-table-wrap"><table class="afp-table"><thead><tr><th scope="col">지표</th><th scope="col">실제</th><th scope="col">예상</th><th scope="col">이전</th></tr></thead><tbody>${evDisplayRows(rows).map(r=>`<tr><th scope="row">${esc(r.label)}${r.period||r.note||evRowBasis(r)?`<small>${esc([r.period,evRowBasis(r),r.note].filter(Boolean).join(' · '))}</small>`:''}${r.comparison_allowed===false?`<small>${String(r.metric).includes('eps')?'통화·주식 기준이 다른 예상값과 직접 비교하지 않습니다.':'같은 지표·단위의 예상값이 없어 상회·하회를 비교하지 않습니다.'}</small>`:''}</th><td class="afp-actual${evAfpTone(r)}">${evAfpCell(r.actual)}</td><td>${evAfpCell(r.consensus)}</td><td>${evAfpCell(r.previous)}</td></tr>`).join('')}</tbody></table></div>`
     +`<p class="afp-source">${src.map(r=>`<a href="${esc(r.source_url)}" target="_blank" rel="noopener noreferrer">${esc(r.source)} ↗</a>`).join(' · ')} · 수집 ${esc(String(rows.map(r=>r.captured_at).sort().at(-1)||'').slice(0,16).replace('T',' '))} UTC · 외부 공개값 · 참고 의견</p>`;
 }
 function renderEventBoard(rows,today){
@@ -3186,15 +3246,18 @@ function renderEventBoard(rows,today){
     /* 공식 일정 event_id로 해당 발표의 예측치 화면에 연결한다. 질문 폴백만 질문 상세로 간다. */
     const href=item.event_id?`#today/event/${encodeURIComponent(item.event_id)}`
       :item.id?`#records/question/${encodeURIComponent(item.id)}`:'#today';
-    return `<li class="ev-card${near?' is-near':''}${ok?'':' is-estimated'}" style="--k:${EV_KIND_COLOR[kindKey]||EV_KIND_COLOR.other}">
+    const members=item.kind==='earnings'?(item.clusterIds||[item.event_id]).map(id=>(DATA.calendar_events||[]).find(row=>row.event_id===id)).filter(Boolean):[];
+    const releases=members.map(event=>`<a href="#today/event/${encodeURIComponent(event.event_id)}">${esc(earningsCompanyName(event))} · ${esc(evReleaseState(event).label)}</a>`).join('');
+    return `<li class="ev-card${item.kind==='earnings'?' is-earnings':''}${near?' is-near':''}${ok?'':' is-estimated'}" style="--k:${EV_KIND_COLOR[kindKey]||EV_KIND_COLOR.other}">
       <time class="ev-date" datetime="${esc(iso)}"><span class="sr-only">${mo}월 ${day}일 ${esc(wd)}요일 · ${esc(word)}</span>
         <b aria-hidden="true">${mo}월</b><strong aria-hidden="true">${day}</strong><i aria-hidden="true">${esc(wd)}</i></time>
       <span class="ev-body">
         <span class="ev-line"><a class="ev-title" href="${esc(href)}"
           ><b>${esc(evFullLabel(item))}</b><em>${esc(evShortLabel(item))}</em></a
           ></span>
-        <span class="ev-meta"><span><b class="ev-dday">${d==null?'—':d===0?'오늘':`D-${d}`}</b> · ${(item.clusterDates||[]).length>1?esc(item.clusterDates.map(x=>`${Number(x.slice(5,7))}/${Number(x.slice(8,10))}`).join(' · ')):item.time_et?`${esc(item.time_et)} ET`:'시각 미정'}</span
+        <span class="ev-meta"><span><b class="ev-dday">${d==null?'—':d===0?'오늘':d<0?`${-d}일 전`:`D-${d}`}</b> · ${(item.clusterDates||[]).length>1?esc(item.clusterDates.map(x=>`${Number(x.slice(5,7))}/${Number(x.slice(8,10))}`).join(' · ')):item.time_et?`${esc(item.time_et)} ET`:'시각 미정'}</span
           >${ok?'':`<em class="ev-tag is-estimated">${esc(word)}</em>`}</span>
+        ${releases?`<span class="ev-company-links">${releases}</span>`:''}
       </span>${evAfpCluster(item)}</li>`;}).join('');
   return `<ol class="ev-cards">${cards}</ol>`;
 }
@@ -3224,7 +3287,7 @@ function renderOverview(){
   const today=generatedDay();
   /* .slice(0,4) 를 뗐다 — 46건이 이미 payload 안에 있는데 홈이 42건을 버리고 있었다(추가 바이트 0).
      몇 장을 보일지는 evPick 이 종류 인덱스로 정한다. */
-  const calendar=(DATA.calendar_events||[]).filter(item=>item.date>=today).sort((a,b)=>a.date.localeCompare(b.date));
+  const calendar=evFuture(DATA.calendar_events,today);
   const events=calendar.length?calendar
     :upcoming(EV_BOARD_CAP).map(item=>({date:item.deadline,title:item.title,status:'question',id:item.id}));
   /* 카드는 라벨·숫자·한 줄만 싣는다. 경고는 산문에 이어 붙이지 않고 칩으로 빼서,
@@ -3258,7 +3321,7 @@ function renderOverview(){
     </div>
     ${renderMarketMood()}
     <section class="today-agenda" aria-labelledby="today-events">
-      <div class="today-section-head"><h2 id="today-events">다음 이벤트</h2><a href="#future">전체 일정</a></div>
+      <div class="today-section-head"><h2 id="today-events">다음 이벤트 · 최근 실적</h2><a href="#future">전체 일정</a></div>
       ${renderEventBoard(events,today)}
     </section>
   </section></div>`);
@@ -3276,12 +3339,17 @@ function renderEventForecast(eventId){
   const event=(DATA.calendar_events||[]).find(row=>row.event_id===eventId);
   if(!event){mount(el('<div class="event-forecast-page"><a class="event-forecast-back" href="#today">← 오늘로</a><h1>이벤트를 찾을 수 없습니다</h1></div>'));return;}
   const estimates=DATA.event_forecasts?.[eventId]||[];
-  /* 같은 날 같은 묶음의 실적은 한 화면에 — 홈 카드가 묶어 보여 주는 단위와 같다. */
-  const peers=event.kind==='earnings'?(DATA.calendar_events||[]).filter(r=>r.kind==='earnings'&&r.date===event.date&&earningsGroup(r)===earningsGroup(event)):[event];
+  /* 홈의 주간 실적 묶음과 같은 회사들을 보여 주되, 회사별 발표 상태와 시각을 구분한다. */
+  const peers=event.kind==='earnings'?(DATA.calendar_events||[]).filter(r=>r.kind==='earnings'&&evWeekStart(r.date)===evWeekStart(event.date)&&earningsGroup(r)===earningsGroup(event)).sort((a,b)=>String(a.date).localeCompare(String(b.date))):[event];
   const afp=peers.flatMap(peer=>evConsensusRows(peer.event_id).map(row=>peers.length>1?{...row,label:`${earningsCompanyName(peer)} · ${row.label}`}:row));
-  const heading=peers.length>1?evFullLabel(groupFlowCalendarEvents(peers)[0]):evFullLabel(event);
+  const heading=peers.length>1?evFullLabel(evMergeWeekEarnings(groupFlowCalendarEvents(peers))[0]):evFullLabel(event);
   const date=String(event.date||'');
   const past=date<generatedDay();
+  const release=evReleaseState(event),scheduled=evScheduledAt(event);
+  const earningsPanels=event.kind==='earnings'?peers.map(peer=>{
+    const rows=evConsensusRows(peer.event_id),state=evReleaseState(peer),when=evKstTime(evScheduledAt(peer));
+    return `<section class="event-forecast-panel event-afp-panel" data-earnings-id="${esc(peer.event_id)}" aria-label="${esc(earningsCompanyName(peer))} 발표값"><h2>${esc(earningsCompanyName(peer))} · ${esc(state.label)}</h2><p class="event-forecast-note">발표 일정 · ${esc(when||`${peer.date} · 시각 미정`)}${state.code==='awaiting'?' · 예정 시각은 지났지만 공식 발표값 수집을 아직 확인하지 못했습니다.':''}</p>${rows.length?evAfpTable(rows):'<p class="event-forecast-empty">확인된 공개값이 아직 없습니다.</p>'}<a class="event-forecast-official" href="${esc(peer.source_url)}" target="_blank" rel="noopener noreferrer">${esc(earningsCompanyName(peer))} 공식 실적 자료 ↗</a></section>`;
+  }).join(''):'';
   const cards=estimates.length?estimates.map(row=>`<article class="event-forecast-card">
     <span>${esc(row.label)}</span><strong>${esc(eventForecastValue(row))}</strong>
     <small>${esc(row.source_name)} 전망 · ${esc(row.published_on)} 기준</small>
@@ -3289,14 +3357,14 @@ function renderEventForecast(eventId){
   </article>`).join(''):'<p class="event-forecast-empty">확인된 공개 예상값이 아직 없습니다. 값이 확인되면 출처와 기준일을 함께 표시합니다.</p>';
   const root=el(`<div class="event-forecast-page" data-event-id="${esc(eventId)}">
     <a class="event-forecast-back" href="#today">← 오늘로</a>
-    <div class="page-heading"><div><p class="eyebrow">${past?'지난 이벤트':'다음 이벤트'} · ${esc(date)}</p><h1>${esc(heading)}</h1>
-      <p class="page-lede">${esc(date)} ${event.time_et?`${esc(event.time_et)} ET`:''} ${past?'발표':'발표 예정'}</p></div></div>
-    ${afp.length?`<section class="event-forecast-panel event-afp-panel" aria-label="${esc(evFullLabel(event))} 발표값"><h2>발표값</h2>${evAfpTable(afp)}</section>`:''}
-    ${estimates.length||!afp.length?`<section class="event-forecast-panel" aria-label="${esc(evFullLabel(event))} 예측치">
+    <div class="page-heading"><div><p class="eyebrow">${event.kind==='earnings'?'실적 발표':past?'지난 이벤트':'다음 이벤트'} · ${esc(date)}</p><h1>${esc(heading)}</h1>
+      <p class="page-lede">${event.kind==='earnings'?`${esc(evKstTime(scheduled)||date)} · ${esc(release.label)}`:`${esc(date)} ${event.time_et?`${esc(event.time_et)} ET`:''} ${past?'발표':'발표 예정'}`}</p></div></div>
+    ${earningsPanels|| (afp.length?`<section class="event-forecast-panel event-afp-panel" aria-label="${esc(evFullLabel(event))} 발표값"><h2>발표값</h2>${evAfpTable(afp)}</section>`:'')}
+    ${estimates.length||(!afp.length&&event.kind!=='earnings')?`<section class="event-forecast-panel" aria-label="${esc(evFullLabel(event))} 예측치">
       <h2>${afp.length?'기관 전망':'발표 예상값'}</h2><div class="event-forecast-grid">${cards}</div>
       <p class="event-forecast-note">${event.kind==='cpi'?'클리블랜드 연은의 물가 나우캐스트입니다. 시장 컨센서스나 확정 CPI가 아닙니다.':event.kind==='fomc'&&estimates.length?'점도표는 연준 참가자의 연말 적정금리 판단이며 10월 회의 확률이 아닙니다. 예측시장 수치는 거래 호가로, 공식 전망이나 확률 보장이 아닙니다.':estimates.length?'한 기관의 공개 전망입니다. 시장 컨센서스나 확정 발표값이 아닙니다.':'공식 발표 전 예상값을 임의로 만들지 않습니다.'}</p>
     </section>`:''}
-    <a class="event-forecast-official" href="${esc(event.source_url)}" target="_blank" rel="noopener noreferrer">공식 발표 일정 확인 ↗</a>
+    ${event.kind==='earnings'?'':`<a class="event-forecast-official" href="${esc(event.source_url)}" target="_blank" rel="noopener noreferrer">공식 발표 일정 확인 ↗</a>`}
   </div>`);
   mount(root);
 }
@@ -4974,9 +5042,396 @@ const BODY_DICTIONARY=[
   'general(종합) + devil(데블스 애드버킷) 서브에이전트 2개 병렬 — 증거 부록:',
   '증거 부록(`_r1_evidence.md`)','| ↓ | −2%p |','| ↓ | −3%p |','| ↓ | −1%p |','| ↑ | +2%p |',
   'CME FedWatch','- **직전 대비**:','| ↓ | −4%p |','| base rate | 값 |','| ↑ | +1%p |','| ↑ | +3%p |','| ↑ | +4%p |',
-  '가이던스','컨센서스','서프라이즈','미검증','조건부','인상'
+  '가이던스','컨센서스','서프라이즈','미검증','조건부','인상',
+  // Same append-only phrase order as FORECAST_BODY_DICTIONARY in dashboard.py.
+  'https://advantage.factset.com/hubfs/Website/Resources%20Section/Research%20Desk/Earnings%20Insight/EarningsInsight_082826.pdf',
+  '잭슨홀 연설 2026-08-28 — https://www.federalreserve.gov/newsevents/speech/warsh20260828a.htm',
+  'Amazon IR, 2026-07-30; https://ir.aboutamazon.com/news-release/news-release-details/2026/Amazon-com-Announces-Second-Quarter-Results/default.aspx',
+  '2026-08-28) — https://www.cnbc.com/2026/08/28/-september-fed-decision-now-a-coin-flip-as-rate-hike-odds-increase.html',
+  'Premortem — 틀릴 이유 3가지',
+  '2026',
+  '으로',
+  '다.',
+  'https://nvidianews.nvidia.com/news/nvidia-announces-financial-results-for-second-quarter-fiscal-2027',
+  '에서',
+  '기저율',
+  'https://www.marketbeat.com/stocks/NASDAQ/AMZN/earnings/',
+  '3. **반대 방향',
+  'https://www.bls.gov/news.release/empsit.nr0.htm',
+  '변동성',
+  'FactSet Earnings Insight',
+  '상향',
+  '매출',
+  '공개 전환',
+  'source:',
+  'https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm',
+  '가능',
+  '- 저장소 내부:',
+  '미드텀',
+  '거래일',
+  '최초 공표',
+  '이상',
+  '확인',
+  '종가',
+  '경우.',
+  '반영',
+  '구조',
+  '발표',
+  'finance.yahoo.com',
+  '가 아니라',
+  '직전',
+  '최근',
+  '사이클',
+  'anchor',
+  '하향',
+  '이며',
+  '애널리스트',
+  '드리프트',
+  'investing.com',
+  '대비',
+  '헤드라인',
+  '마이너스',
+  '비공개 제출',
+  'https://www.usinflationcalculator.com/inflation/consumer-price-index-release-schedule/',
+  '이후',
+  '반대',
+  'https://www.chicagofed.org/research/data/nfci/current-data',
+  'https://fred.stlouisfed.org/series/NASDAQCOM',
+  '방향',
+  '실제',
+  '보다',
+  '임계',
+  '이므로',
+  '윈도우',
+  '이라',
+  '상장',
+  '항목',
+  '까지',
+  '필요',
+  '그대로',
+  '경로',
+  '12월',
+  '/api/global/us_indices/daily_prices/VIX_History.csv',
+  '하는',
+  '이미',
+  '밸류에이션',
+  '근원 PCE 3.3%',
+  '자사주 매입',
+  '추정',
+  '연속',
+  '고용',
+  '26.5%는 Alphabet(지분증권 미실현이익',
+  '80% CI:',
+  '밑돈다 — 워크다운이 약해 **다음',
+  '드로다운',
+  '10월',
+  'earnings',
+  'cnbc.com',
+  '이면',
+  '회사',
+  '영업이익',
+  '미스',
+  '비트율 86%/78%/76%, 동률 3%',
+  '9월',
+  '평균',
+  '실업률',
+  '상방',
+  '메모리',
+  '매파',
+  'base_rates',
+  '자체',
+  '증거 부록:',
+  '지분평가',
+  '사실상',
+  '공개',
+  'FOMC 일정 (9/15-16, 10/27-28',
+  '컨센',
+  '초과',
+  '하방',
+  '하면',
+  '표본',
+  '인플레',
+  '이 아니라',
+  '터치',
+  '이고',
+  '회의',
+  '유지',
+  '앙상블',
+  '비트',
+  '2027년',
+  '확정',
+  '조건',
+  '여부',
+  '동결',
+  '달러',
+  '국면',
+  '가격',
+  'MarketBeat',
+  '회차',
+  '호르무즈',
+  '직접',
+  '이벤트',
+  '불일치',
+  '레짐',
+  '공급',
+  '가이드',
+  'NFP −23,000',
+  'Investing.com',
+  'FRED NASDAQCOM',
+  '상태',
+  '3%로 **별도 집계**하므로',
+  '표기:',
+  '전환',
+  '이력',
+  '에너지',
+  '스냅샷',
+  '상회',
+  '불확실',
+  '부분',
+  '다만',
+  '계절성',
+  '3개월',
+  '않는',
+  '스프레드',
+  '보도',
+  '최고',
+  '실현',
+  '산출',
+  '모멘텀',
+  'research general',
+  'Morgan Stanley',
+  'https://fred.stlouisfed.org/series/VIXCLS',
+  '허들이 높아졌다**. (2',
+  '결정',
+  '12개월',
+  '- CNBC',
+  'https://www.sec.gov/cgi-bin/browse-edgar',
+  '합계',
+  '총이익률',
+  '앵커',
+  '시점',
+  '수요',
+  '상단',
+  '나스닥',
+  '기여',
+  '98B)·Amazon($53.4B) 회계',
+  '8월',
+  '2025',
+  '- NVIDIA FQ2 2027',
+  '크게',
+  '정점',
+  '정의',
+  '신호',
+  '목록',
+  '36%, Mag7 ex-2종목 +4.4%',
+  '시카고연준 NFCI',
+  '주요 동인인 직원 유동성을',
+  '점도표',
+  '오히려',
+  '연말',
+  '역사적',
+  '여전히',
+  '비율이 **36%**로 5년',
+  '가장',
+  'FactSet은 동률(tie)을',
+  '78% + 종목 프리미엄',
+  '7월',
+  '와 정합.',
+  'Forbes / Bill Stone',
+  '프리모템',
+  '있다',
+  '없음',
+  '기저효과',
+  '구간',
+  'ml_auto.md',
+  'FOMC',
+  '충격',
+  '최대',
+  '중앙값',
+  '중복 보정',
+  '정상',
+  '저변동',
+  '수치',
+  '비둘기',
+  '마진',
+  '두 가지 주의를 [2',
+  '데이터',
+  '결과',
+  'Yahoo Finance',
+  '4개 메가캡 중',
+  '쓰면 심각한 과대평가가',
+  '11월',
+  '제외 시 +10.8%, Mag',
+  '이번',
+  '모델',
+  '급등',
+  '공식',
+  '경유',
+  '개정',
+  '약 56~58%',
+  'TrendForce',
+  '4개월',
+  'may be a while',
+  '존재',
+  '잭슨홀',
+  '재현',
+  '재개',
+  '이하로',
+  '이는',
+  '선거',
+  '상반기',
+  '부정',
+  '모두',
+  '만장일치',
+  '되므로',
+  '돌파',
+  '공표',
+  '2027',
+  '5세션',
+  '- Warsh',
+  '확대',
+  '허들',
+  '하단',
+  '폭이',
+  '집계',
+  '종점',
+  '제공',
+  '실증',
+  '수준',
+  // Token sequences refer only to earlier entries.
+  " — https://",
+  " https://www.",
+  " — ",
+  " https://",
+  " | \ue022 | −",
+  "이 ",
+  "가 ",
+  "\ue045-0",
+  " | \ue021 | +",
+  " | \ue022 | ",
+  " | \ue021 | ",
+  "는 ",
+  "로 ",
+  "은 ",
+  "\ue045-",
+  " | 0.",
+  " | −",
+  " \ue045",
+  "\ue047 ",
+  "의 ",
+  "\ue045년 ",
+  "에 ",
+  "한\ue047",
+  " → ",
+  "을 ",
+  " −",
+  "\ue003 (\ue066: ",
+  "**[\ue03d]** \ue0c8 ",
+  "를 ",
+  "| \ue0e2 | | | **",
+  " \ue05d** ",
+  " \ue022 ",
+  " \ue021 ",
+  "이\ue047",
+  "\ue046 ",
+  "%p |",
+  " 수 있\ue047",
+  "하지 ",
+  "\ue004 (\ue07d별)",
+  "%** (\ue08d ",
+  " [\ue053 ",
+  " 수 있",
+  " \ue03f ",
+  " 이",
+  " | 0",
+  " \ue03e | \ue0e9 |",
+  "www.\ue092/\ue045/0",
+  " 있\ue047",
+  ".com/",
+  "\ue049 ",
+  "년 ",
+  "\ue05d** ",
+  "\ue03e | \ue0e9 |",
+  "**[\ue03d]**",
+  "했\ue047",
+  "지 않",
+  " \ue03a ",
+  "## [4] \ue044",
+  "도 ",
+  " \ue03b",
+  "순 \ue027 **",
+  "## \ue01b \ue0f2",
+  " `forecasts/\ue045/",
+  " | +",
+  " \ue022",
+  " 약 ",
+  " \ue081 | \ue018 | ",
+  " \ue03f",
+  ".com",
+  " \ue021",
+  "  1. ",
+  "  2. ",
+  "www.",
+  "한 ",
+  "/\ue045/",
+  "sec.gov/Archives/",
+  "federalreserve.go",
+  "[\ue053 ",
+  "면 ",
+  " \ue098 ",
+  "- \ue015: **",
+  "지 ",
+  "\ue02c ",
+  " | \ue018 | ",
+  " \ue018 ",
+  " 전",
+  "s/articles/",
+  " \ue064 ",
+  "고, ",
+  " \ue01f",
+  "고 ",
+  "월 ",
+  "\ue00c---|",
+  ". **",
+  " \ue03a",
+  "\ue03d]**",
+  " 수 ",
+  "_evidence.md`",
+  "release",
+  " 시 ",
+  "된\ue047",
+  " 중",
+  "), devil(\ue01b ",
+  " 미",
+  "\ue03f ",
+  "| **",
+  " 고정",
+  " 있",
+  " \ue071 ",
+  " 시",
+  " 지",
+  " 약",
+  " 정",
+  "−2%p",
+  " **−",
+  "/news",
+  " \ue018",
+  " 사",
+  "general(\ue01b ",
+  " \ue05f적",
+  "약 ",
+  " \ue098",
+  " \ue03c ",
+  " `data/\ue09e/",
+  "boj.or.jp/en/mopo",
+  " \ue02a ",
+  "%** ",
+  "\ue01c \ue055",
+  "일 ",
+  " \ue050",
+  "과 ",
 ];
-function decodeForecastBody(text){return BODY_DICTIONARY.reduce((value,phrase,index)=>value.split(String.fromCharCode(0xE000+index)).join(phrase),text||'');}
+function decodeForecastBody(text){return BODY_DICTIONARY.reduceRight((value,phrase,index)=>value.split(String.fromCharCode(0xE000+index)).join(phrase),text||'');}
 function signedPoint(value){
   if(!hasNumeric(value))return '기록 없음';
   const rounded=Math.round(Number(value)*10)/10;
@@ -5048,8 +5503,9 @@ function renderDetail(qid){
       <div class="tag-list" style="justify-content:flex-start">${(q.drivers||[]).map(d=>`<span class="tag">${esc(humanDriver(d))}</span>`).join(' ')}</div>
       <div class="detail-actions"><button type="button" data-pin-q="${esc(q.id)}" aria-pressed="false"><span data-pin-icon>☆</span> MY RADAR</button><button type="button" data-compare-q="${esc(q.id)}" aria-pressed="false">⇄ 비교 선택</button>${q.deadline?`<button type="button" data-calendar-q="${esc(q.id)}">CAL 판정일 저장</button>`:''}</div>
     </div>
-    <div class="prob-orb${available?'':' is-pending'}" style="--prob:${available?Number(latest):0}"><strong>${available?latest:'산출 전'}</strong>${available?'<span>%</span>':''}<small>최신 예측 확률${ciText}</small></div>
+    <div class="prob-orb${available?'':' is-pending'}" style="--prob:${available?Number(latest):0}"><strong>${available?latest:'산출 전'}</strong>${available?'<span>%</span>':''}<small>${earningsQuestionPending(q)?'발표 전 예측 기록':'최신 예측 확률'}${ciText}</small></div>
   </div>`));
+  const earningsNotice=earningsQuestionNotice(q);if(earningsNotice)root.appendChild(el(earningsNotice));
   /* 판정기준·판정출처는 질문의 정체성이다(첫 예측 이후 변경 금지). 확률만 있고 '무엇을 어떻게
      판정하는가'가 없으면 독자는 숫자를 검증할 수 없다. 레지스트리 원문 그대로 전재한다. */
   if(q.resolution||q.resolution_source)root.appendChild(el(`<section class="question-criteria" aria-label="판정 기준과 출처"><div><span>판정 기준 · 첫 예측 이후 변경 금지</span><p>${esc(q.resolution||'기록 없음')}</p></div><div><span>판정 출처</span><p>${esc(q.resolution_source||'기록 없음')}</p></div></section>`));

@@ -100,9 +100,10 @@ jobs:
           git pull --rebase origin main
           git push
       - name: Report refresh failure
-        if: ${{ always() && steps.mood.outcome == 'failure' }}
+        if: ${{ always() && (steps.mood.outcome == 'failure' || steps.consensus.outcome == 'failure') }}
         shell: bash
         run: |
           echo "signals=${{ steps.mood.outcome }}"
-          echo "One of the mood surfaces failed to refresh; the screen shows no number rather than a stale one."
+          echo "consensus=${{ steps.consensus.outcome }}"
+          echo "A market or event source failed; valid results were preserved and the failure requires retry."
           exit 1

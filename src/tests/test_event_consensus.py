@@ -44,7 +44,7 @@ def test_parse_number_and_blank_cells() -> None:
     assert ec.parse_number("n/a") is None
 
 
-def test_macro_rows_use_the_next_day_page_and_match_time(tmp_path: Path) -> None:
+def test_macro_rows_use_the_next_day_page_and_match_time() -> None:
     """Nasdaq date 파라미터는 하루 밀려 있다(10-02 금 고용 → date=10-03)."""
     event = {"event_id": "nfp_x", "kind": "nfp", "date": "2026-10-02", "time_et": "08:30"}
     fetch, calls = _stub({
@@ -179,7 +179,7 @@ def test_event_card_shows_every_metric_of_a_single_event() -> None:
     """2026-10-11 사용자 지시: CPI 카드는 전월만이 아니라 전년·근원 전월·근원 전년까지 전부."""
     js = (ROOT / "src/ai_fc/dashboard_parts/dashboard.js").read_text(encoding="utf-8")
     cluster = js[js.index("function evAfpCluster"):js.index("function evAfpTable")]
-    assert "evConsensusRows(item.event_id):[]" in cluster and "all.map(row=>" in cluster
+    assert "evDisplayRows(evConsensusRows(item.event_id)):[]" in cluster and "all.map(row=>" in cluster
     short = js[js.index("const EV_AFP_SHORT="):js.index("function evAfpCluster")]
     for rows in ec.MACRO_METRICS.values():
         for metric, *_ in rows:
