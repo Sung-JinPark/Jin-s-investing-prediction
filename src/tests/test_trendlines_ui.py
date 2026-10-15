@@ -444,6 +444,44 @@ process.stdout.write(JSON.stringify({hit,text:trendHoverText(hit,{currency:'USD'
     assert '추세선 연장값' in out['futureText'] and '실제 종가 없음' in out['futureText']
 
 
+@pytest.mark.parametrize('axis', ['linear', 'log'])
+@pytest.mark.parametrize('target', ['future', 'gap'])
+@pytest.mark.parametrize('pointer_type', ['touch', 'mouse'])
+def test_representative_first_pointer_then_focus_preserves_future_or_gap_line_date(tmp_path, representative_ui_fixture, axis, target, pointer_type):
+    from ai_fc.trendlines import representative as V
+    f = copy.deepcopy(representative_ui_fixture)
+    if target == 'gap':
+        missing = f['full']['bars'].pop(-25)
+        f['current']['bars'] = [bar for bar in f['current']['bars'] if bar['bar_id'] != missing['bar_id']]
+        gap = {'session': missing['session'], 'session_index': missing['session_index'], 'reason': 'source_session_missing_no_fill'}
+        for detail in (f['current'], f['full']):
+            detail['gaps'] = [*detail.get('gaps', []), gap]
+        rows = [{**bar, 'session_date': bar['session']} for bar in f['full']['bars']]
+        f['body']['input_bar_ids_hash'] = V.C.canonical_hash([bar['bar_id'] for bar in rows])
+        for scale in ('linear', 'log'):
+            f['body']['analyses'][scale]['representatives'] = [V._ols(rows, n, scale, slot, f['body']['projection_sessions'])
+                                                            for slot, n in (('regression_200', 200), ('current_structure', 63), ('major_structure', 252))]
+        expected_index, expected_date = missing['session_index'], missing['session']
+    else:
+        projection = f['body']['projection_sessions'][4]
+        expected_index, expected_date = projection['index'], projection['session']
+    line = f['body']['analyses'][axis]['representatives'][2]
+    equation_value = line['intercept'] + line['slope'] * (expected_index - line['coordinate_origin_index'])
+    expected_price = math.exp(equation_value) if axis == 'log' else equation_value
+    out = run(tmp_path, "globalThis.crypto=require('node:crypto').webcrypto;const f=" + json.dumps(f) + ';const raw=' + json.dumps(representative_transport(f['body'])) + ';const axis=' + json.dumps(axis) + ';const target=' + json.dumps(target) + ';const pointerType=' + json.dumps(pointer_type) + ';const index=' + str(expected_index) + r''';
+(async()=>{const before=JSON.stringify(f),body=await parseTrendRepresentativeTransport(raw,f.current,f.full);TREND_REPRESENTATIVE_DETAILS.set(f.current.asset_id,body);const analysis=trendRepresentativeAnalysis(f.current,f.full,axis,'major_structure'),state={factor:3,offset:null},bars=trendZoomViewport(trendRepresentativeViewport(f.full,analysis),state),m=trendPlotModel(f.full,analysis,bars,axis,390),asset={currency:'USD'};m.quote=null;
+const nodes={},node=()=>({hidden:true,textContent:'',dataset:{},style:{},attrs:{},offsetWidth:180,offsetHeight:110,setAttribute(k,v){this.attrs[k]=v;},addEventListener(k,v){this[k]=v;}}),svg=node();nodes.svg=svg;svg.getBoundingClientRect=()=>({left:100,top:240,width:m.W,height:m.H});const host={getBoundingClientRect:()=>({left:100,top:200,width:m.W,height:m.H+40}),querySelector(key){return nodes[key]??(nodes[key]=node());},querySelectorAll:()=>[]};bindTrendChart(host,f.full,m,asset,axis);
+const line=m.lines[0],price=trendLinePrice(line,index,axis),snapshot=()=>({kind:nodes['[data-trend-tooltip]'].dataset.trendKind,hidden:nodes['[data-trend-tooltip]'].hidden,date:nodes['[data-trend-tooltip-date]'].textContent,price:nodes['[data-trend-tooltip-price]'].textContent,text:nodes['[data-trend-readout]'].textContent});svg.pointerdown({clientX:100+m.x(index),clientY:240+m.y(price),pointerType});const touched=snapshot();svg.focus();const focused=snapshot();svg.keydown({key:'ArrowRight',preventDefault(){}});const next=snapshot();process.stdout.write(JSON.stringify({touched,focused,next,price,expectedPriceText:trendPrice(price,asset),unchanged:before===JSON.stringify(f),gapHasCandle:m.bars.some(bar=>bar.session_index===index),sourceLast:m.sourceLast}));})();''')
+    assert out['touched']['kind'] == 'line' and not out['touched']['hidden']
+    assert out['touched']['date'] == expected_date and out['price'] == pytest.approx(expected_price, rel=1e-10, abs=1e-6)
+    assert out['touched']['price'] == out['expectedPriceText']
+    assert '실제 종가 없음' in out['touched']['text']
+    assert ('추세선 연장값' in out['touched']['text']) == (target == 'future')
+    assert out['focused'] == out['touched']
+    assert out['next']['date'] != expected_date and out['unchanged']
+    assert not out['gapHasCandle']
+
+
 def test_representative_poll_uses_exact_readonly_route_and_invalid_reply_removes_lines(tmp_path, representative_ui_fixture):
     f = representative_ui_fixture
     program = local_browser_stub() + 'const f=' + json.dumps(f) + ';const raw=' + json.dumps(representative_transport(f['body'])) + r''';
