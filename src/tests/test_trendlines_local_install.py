@@ -38,6 +38,8 @@ def test_offline_installer_is_independent_and_preserves_existing_evidence(tmp_pa
     assert (app / 'data/contracts/trendlines_critical_v1.yaml').is_file()
     assert (app / 'src/ai_fc/trendlines/representative.py').is_file()
     assert (app / 'data/contracts/trendlines_representative_v1.yaml').is_file()
+    assert (app / 'src/ai_fc/trendlines/long_boundaries.py').is_file()
+    assert (app / 'data/contracts/trendlines_long_boundaries_v1.yaml').is_file()
     assert not list(app.rglob('*.sqlite*'))
     assert not list(app.rglob('.env*'))
     assert not list(app.glob('data/forecasts*'))

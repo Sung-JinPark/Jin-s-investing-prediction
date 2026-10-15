@@ -1,0 +1,20 @@
+schema_version: 1
+contract_id: trendlines_private_long_boundaries_policy_v1
+policy_version: long_boundaries_v1
+publication_scope: private_only
+official_forecast_write: false
+verified_boundary: false
+left: 10
+right: 10
+lookback_sessions: 756
+minimum_anchor_gap: 60
+maximum_second_anchor_age: 252
+maximum_distance_atr: 8.0
+maximum_distance_fraction: 0.5
+slots: [long_upper, long_lower]
+intact_rank: [independent_contacts_desc, latest_touch_age_asc, distance_atr_asc, anchor_gap_desc, line_id_asc]
+reference_rank: [formation_complete_desc, penetration_asc, second_anchor_desc, distance_atr_asc, line_id_asc]
+role_transition: no_automatic_flip
+fallback: labeled_pivot_structure_only
+contact_independence: disjoint_confirmation_windows_latest_first
+comparison_tolerance: {absolute: 0.000001, relative: 0.0000000001}
