@@ -4,20 +4,16 @@
   "source": "Cboe Global Markets official VIX daily prices",
   "source_url": "https://cdn.cboe.com/api/global/us_indices/daily_prices/VIX_History.csv",
   "source_field": "CLOSE",
-  "observed_date": "2026-10-14",
-  "generated_at": "2026-10-14T20:55:46+00:00",
-  "level": 16.87,
+  "observed_date": "2026-10-15",
+  "generated_at": "2026-10-15T20:30:04+00:00",
+  "level": 16.46,
   "band": "calm",
   "band_label": "평시",
-  "change_1d": 1.6,
-  "week_ago": 15.08,
-  "month_ago": 17.1,
-  "year_ago": 20.81,
+  "change_1d": -0.41,
+  "week_ago": 15.41,
+  "month_ago": 17.2,
+  "year_ago": 20.64,
   "trail": [
-    {
-      "d": "2026-04-14",
-      "v": 18.36
-    },
     {
       "d": "2026-04-15",
       "v": 18.17
@@ -541,6 +537,10 @@
     {
       "d": "2026-10-14",
       "v": 16.87
+    },
+    {
+      "d": "2026-10-15",
+      "v": 16.46
     }
   ],
   "trail_min": 14.21,
@@ -585,7 +585,7 @@
   ],
   "hard_rule": {
     "level": 25.0,
-    "distance": 8.13,
+    "distance": 8.54,
     "breached": false
   },
   "stale_days": 1,
