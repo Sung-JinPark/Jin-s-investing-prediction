@@ -13,7 +13,7 @@ from urllib.error import URLError
 
 import pytest
 
-from ai_fc.trendlines import contracts as C, research as R, critical as K
+from ai_fc.trendlines import contracts as C, research as R, critical as K, representative as V
 
 REPOSITORY = Path(__file__).resolve().parents[2]
 FETCHED = "2024-01-03T00:30:00+00:00"
@@ -25,7 +25,7 @@ def tool(tmp_path, monkeypatch):
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     checkout = tmp_path / "checkout"
-    for relative in (C.CONTRACT_RELATIVE, C.ASSET_REGISTRY_RELATIVE, C.SOURCE_POLICY_RELATIVE, K.POLICY_RELATIVE):
+    for relative in (C.CONTRACT_RELATIVE, C.ASSET_REGISTRY_RELATIVE, C.SOURCE_POLICY_RELATIVE, K.POLICY_RELATIVE, V.POLICY_RELATIVE):
         target = checkout / relative
         target.parent.mkdir(parents=True, exist_ok=True)
         shutil.copyfile(REPOSITORY / relative, target)
@@ -167,6 +167,7 @@ def test_full_calculation_failure_preserves_valid_current_export(tool, tmp_path,
     result = tool.run(request)
     assert result["full_history"]["status"] == "unavailable"
     assert result["critical"]["status"] == "unavailable"
+    assert result["representative"]["status"] == "unavailable"
     assert result["independent_replay"]["ok"] is True
     current = R.decode_private_import(json.loads(Path(result["browser_import_file"]).read_text(encoding="utf-8")))
     assert len(current["bars"]) == 2 and current["official_forecast_write"] is False
@@ -206,6 +207,48 @@ def test_source_corruption_during_full_work_stops_current_publication(tool, tmp_
         raw_path.write_bytes(raw_path.read_bytes() + b"corrupted disposable fixture")
         raise C.TrendlinesError("full_history_source_integrity_failed")
     monkeypatch.setattr(tool.F, "refresh", corrupted_full)
+    with pytest.raises(C.TrendlinesError, match="original-to-chart replay failed"):
+        tool.run(request)
+    assert not (request.out / "bitcoin.trendlines.json").exists()
+
+
+def test_three_representative_refresh_runs_after_legacy_models_without_changing_official_files(tool, tmp_path, monkeypatch):
+    request = options(tool, tmp_path)
+    before = source_bytes(tool.PROJECT)
+    calls = []
+    monkeypatch.setattr(tool.F, "refresh", lambda root, asset, **_kwargs: calls.append(("full", root, asset)) or {"status": "ready"})
+    monkeypatch.setattr(tool.K, "refresh", lambda root, asset, **_kwargs: calls.append(("critical", root, asset)) or {"status": "ready"})
+    monkeypatch.setattr(tool.V, "refresh", lambda root, asset, **_kwargs: calls.append(("representative", root, asset)) or
+                        {"status": "ready", "changed": True, "snapshot_id": "representative-fixture"})
+    result = tool.run(request)
+    assert [c[0] for c in calls] == ["full", "critical", "representative"]
+    assert all(c[1:] == (request.out.resolve(), "bitcoin") for c in calls)
+    assert result["representative"]["status"] == "ready" and result["independent_replay"]["ok"]
+    assert result["public_prices_published"] is False and source_bytes(tool.PROJECT) == before
+
+
+def test_representative_failure_preserves_current_and_legacy_models(tool, tmp_path, monkeypatch):
+    request = options(tool, tmp_path)
+    monkeypatch.setattr(tool.F, "refresh", lambda *_args, **_kwargs: {"status": "ready"})
+    monkeypatch.setattr(tool.K, "refresh", lambda *_args, **_kwargs: {"status": "ready"})
+    def failed(*_args, **_kwargs):
+        raise C.TrendlinesError("representative fixture numeric mismatch")
+    monkeypatch.setattr(tool.V, "refresh", failed)
+    result = tool.run(request)
+    assert result["representative"]["status"] == "unavailable"
+    assert result["critical"]["status"] == result["full_history"]["status"] == "ready"
+    assert result["independent_replay"]["ok"] and Path(result["browser_import_file"]).is_file()
+
+
+def test_original_corruption_during_representative_work_blocks_delivery(tool, tmp_path, monkeypatch):
+    request = options(tool, tmp_path)
+    monkeypatch.setattr(tool.F, "refresh", lambda *_args, **_kwargs: {"status": "ready"})
+    monkeypatch.setattr(tool.K, "refresh", lambda *_args, **_kwargs: {"status": "ready"})
+    def corrupt(root, *_args, **_kwargs):
+        raw_path = next((root / R.ROOT / "raw").glob("*.bin"))
+        raw_path.write_bytes(raw_path.read_bytes() + b"disposable representative corruption")
+        raise C.TrendlinesError("representative source hash mismatch")
+    monkeypatch.setattr(tool.V, "refresh", corrupt)
     with pytest.raises(C.TrendlinesError, match="original-to-chart replay failed"):
         tool.run(request)
     assert not (request.out / "bitcoin.trendlines.json").exists()
