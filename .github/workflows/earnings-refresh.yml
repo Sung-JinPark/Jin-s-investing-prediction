@@ -25,6 +25,10 @@ jobs:
               'https://pr.tsmc.com/english',
               'https://pr.tsmc.com/english/news/3326',
               'https://live.euronext.com/en/listview/company-press-release/058805',
+              'https://investor.cld.tsmc.com/english/quarterly-results/2026/q3',
+              'https://pr.cld.tsmc.com/english/latest-news',
+              'https://pr.cld.tsmc.com/english/news/3326',
+              'https://pr.tsmc.com/english/latest-news',
           ]
           def probe(url):
               rows=[]
