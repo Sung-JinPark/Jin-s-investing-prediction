@@ -119,7 +119,8 @@ def test_completed_publication_and_budget_limit_rearm_the_remaining_window():
     assert "changed_hint == 'false'" in capture["if"]
     assert "watch_pending == 'true'" in capture["if"]
     assert "watch_pending == 'true'" in publish["if"]
-    assert publish["if"] == "${{ always() && steps.decision.outputs.watch_pending == 'true' }}"
+    assert "!cancelled()" in capture["if"]
+    assert publish["if"] == "${{ !cancelled() && steps.decision.outputs.watch_pending == 'true' }}"
     for step in (capture, publish):
         assert 'gh workflow run earnings-refresh.yml --repo "$GITHUB_REPOSITORY" --ref main' == step["run"]
     assert _workflow()["concurrency"]["cancel-in-progress"] is False

@@ -76,7 +76,7 @@ jobs:
           retention-days: 3
           if-no-files-found: error
       - name: Continue an unchanged watch that reached its runner budget
-        if: ${{ always() && steps.bundle.outputs.bundle_ready == 'true' && steps.bundle.outputs.changed_hint == 'false' && steps.bundle.outputs.watch_pending == 'true' }}
+        if: ${{ !cancelled() && steps.bundle.outputs.bundle_ready == 'true' && steps.bundle.outputs.changed_hint == 'false' && steps.bundle.outputs.watch_pending == 'true' }}
         env:
           GH_TOKEN: ${{ github.token }}
         run: gh workflow run earnings-refresh.yml --repo "$GITHUB_REPOSITORY" --ref main
@@ -191,7 +191,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: gh workflow run pages.yml --repo "$GITHUB_REPOSITORY" --ref main
       - name: Resume watching other confirmed earnings after publication
-        if: ${{ always() && steps.decision.outputs.watch_pending == 'true' }}
+        if: ${{ !cancelled() && steps.decision.outputs.watch_pending == 'true' }}
         env:
           GH_TOKEN: ${{ github.token }}
         run: gh workflow run earnings-refresh.yml --repo "$GITHUB_REPOSITORY" --ref main
