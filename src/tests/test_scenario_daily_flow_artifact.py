@@ -280,16 +280,34 @@ def test_daily_route_has_an_independent_fixed_budget() -> None:
 
 def test_real_forecast_bodies_round_trip_losslessly_with_extended_dictionary() -> None:
     import frontmatter
+    import re
+    import subprocess
 
     encoded = dashboard._forecast_bodies(ROOT)
     assert encoded
-    for row in encoded.values():
-        decoded = row["body"]
-        for index, phrase in enumerate(dashboard.FORECAST_BODY_DICTIONARY):
-            decoded = decoded.replace(chr(0xE000 + index), phrase)
+    script = dashboard.DASHBOARD_SCRIPT.read_text(encoding="utf-8")
+    dictionary = re.search(r"const BODY_DICTIONARY=\[(.*?)\];", script, re.S)
+    decoder = re.search(r"function decodeForecastBody\(text\)\{[^\n]+", script)
+    assert dictionary is not None and decoder is not None
+    # Run the shipped browser decoder once for every production-encoded body.
+    # Binary stdin preserves exact newlines on Windows as well as Linux.
+    program = "const BODY_DICTIONARY=[" + dictionary.group(1) + "];\n" + decoder.group(0)
+    program += "\nconst rows=JSON.parse(require('fs').readFileSync(0,'utf8'));"
+    program += "\nprocess.stdout.write(JSON.stringify(rows.map(row=>({...row,body:decodeForecastBody(row.body)}))));"
+    rows = [{"source_uri": row["source_uri"], "body": row["body"]} for row in encoded.values()]
+    restored = subprocess.run(
+        ["node", "-e", program],
+        input=json.dumps(rows, ensure_ascii=False).encode("utf-8"),
+        check=True, capture_output=True,
+    )
+    decoded = json.loads(restored.stdout)
+    assert len(decoded) == len(rows)
+    assert [row["source_uri"] for row in decoded] == [row["source_uri"] for row in rows]
+    for row in decoded:
         original = frontmatter.load(str(ROOT / row["source_uri"])).content.strip()
-        assert decoded == original, row["source_uri"]
-    assert dashboard.FORECAST_BODY_DICTIONARY[-6:] == (
+        assert row["body"] == original, row["source_uri"]
+    # These origin/main token identities predate the appended dictionary entries.
+    assert dashboard.FORECAST_BODY_DICTIONARY[58:64] == (
         "가이던스", "컨센서스", "서프라이즈", "미검증", "조건부", "인상")
 
 
