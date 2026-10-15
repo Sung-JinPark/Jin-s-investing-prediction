@@ -1,38 +1,42 @@
-name: daily6m-live-sources-probe
+name: earnings-refresh
 on: workflow_dispatch
 permissions:
   contents: read
 jobs:
   probe:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 10
     steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: codex/daily6m-live-inputs
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Check the four public official sources without any ledger writes
+      - name: Prepare the existing declared replay dependencies
+        run: pip install -e ".[pit,timeseries]" "exchange-calendars>=4.6,<5"
+      - name: Capture and replay real official inputs in a disposable research store
         run: |
           python - <<'PY'
-          import concurrent.futures,hashlib,json,urllib.request
-          urls=[
-            'https://api.nasdaq.com/api/quote/COMP/info?assetclass=index',
-            'https://api.nasdaq.com/api/quote/COMP/historical?assetclass=index&fromdate=2026-09-15&todate=2026-10-15&limit=100',
-            'https://cdn.cboe.com/api/global/us_indices/daily_prices/VIX_History.csv',
-            'https://home.treasury.gov/resource-center/data-chart-center/interest-rates/pages/xml?data=daily_treasury_yield_curve&field_tdr_date_value=2026',
-          ]
-          headers={'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126 Safari/537.36','Accept':'application/json,text/csv,application/xml,text/xml','Accept-Encoding':'identity'}
-          def fetch(url):
-              try:
-                  with urllib.request.urlopen(urllib.request.Request(url,headers=headers),timeout=20) as response:
-                      body=response.read(8_000_001)
-                      result={'url':url,'status':response.status,'bytes':len(body),'sha256':hashlib.sha256(body).hexdigest()}
-                  if '/info?' in url:
-                      data=json.loads(body)['data']
-                      result.update(symbol=data.get('symbol'),marketStatus=data.get('marketStatus'),primaryData=data.get('primaryData'))
-                  return result
-              except Exception as exc:return {'url':url,'status':'failed','reason':str(exc)[:250]}
-          with concurrent.futures.ThreadPoolExecutor(max_workers=4) as pool:results=list(pool.map(fetch,urls))
-          for result in results:print(json.dumps(result),flush=True)
-          assert all(row['status']==200 for row in results),'a required official source is unavailable on this runner'
-          print('OFFICIAL_DAILY6M_TRANSPORT_PASS',flush=True)
+          import json
+          from pathlib import Path
+          from datetime import datetime, timezone
+          from ai_fc.daily6m_sources import capture_daily6m_sources, apply_daily6m_sources, load_verified_source_observations
+          root=Path.cwd()
+          disposable=root/'.tmp/collector-probe'
+          (disposable/'data').mkdir(parents=True)
+          (disposable/'data/timeseries').symlink_to(root/'data/timeseries',target_is_directory=True)
+          report=capture_daily6m_sources(disposable,output_dir=disposable/'.tmp/capture')
+          print('CAPTURE',json.dumps(report),flush=True)
+          assert report['status']=='captured' and not report['source_failures'] and not report.get('source_pending')
+          applied=apply_daily6m_sources(disposable,bundle_dir=disposable/'.tmp/capture')
+          print('APPLY',json.dumps(applied),flush=True)
+          assert applied['status']=='applied' and applied['changed'] is True
+          rows=load_verified_source_observations(disposable,as_of=datetime.now(timezone.utc))
+          assert {row['source_id'] for row in rows}=={'nasdaq_comp_official','cboe_vix_archive','us_treasury_yield_archive'}
+          print('VERIFIED_ROWS',json.dumps([{k:r[k] for k in ['source_id','series_id','observation_time','value','available_at','raw_sha256']} for r in rows]),flush=True)
+          replay=apply_daily6m_sources(disposable,bundle_dir=disposable/'.tmp/capture')
+          assert replay['changed'] is False and replay['appended']==0
+          print('REAL_OFFICIAL_CAPTURE_REPLAY_NOOP_PASS',flush=True)
           PY
+          git diff --exit-code -- data
