@@ -50,10 +50,11 @@ def _projection() -> dict:
         "anchor": {"date": "2026-01-30", "value": 100.0},
         "forecast_end_date": "2026-07-30",
         "content_hash": "fixture-content-hash",
+        "path_count": 20000,
         "dates": dates,
         "records": records,
         "sample_paths": [
-            {"path_id": f"simulation-{member}", "values": [
+            {"path_id": f"simulation-{member}", "endpoint_percentile": [0.1, 0.25, 0.5, 0.75, 0.9][member], "values": [
                 row["median_index"] * (1 + (member - 2) * 0.02 + ((index % 3) - 1) * 0.01)
                 for index, row in enumerate(records)
             ]}
@@ -87,6 +88,7 @@ def test_calendar_controls_slice_the_same_daily_bundle_without_reforecast(tmp_pa
     projection = _projection()
     out = _run(tmp_path, "const ts=" + json.dumps(projection) + r""";
 const before=JSON.stringify(ts),one=tsDailyChartModel(ts,1),three=tsDailyChartModel(ts,3),six=tsDailyChartModel(ts);
+const resized=tsDailyChartModel(ts,6,375),reloaded=tsDailyChartModel(JSON.parse(JSON.stringify(ts)));
 process.stdout.write(JSON.stringify({
   monthEnd:tsDailyMonthEnd('2026-01-31',1),
   aprilMonthEnd:tsDailyMonthEnd('2026-04-30',6),
@@ -94,6 +96,9 @@ process.stdout.write(JSON.stringify({
   one:one.endDate,three:three.endDate,six:six.endDate,
   counts:[one.records.length,three.records.length,six.records.length],
   sameRows:one.records.every((row,i)=>row===six.records[i]),
+  primaryIds:[one,three,six,resized,reloaded].map(model=>model.primary.path_id),
+  samePrimaryPrefix:[one,three,resized,reloaded].every(model=>model.primary.values.every((value,i)=>value===six.primary.values[i])),
+  sourcePrimary:six.primary.values.every((value,i)=>value===ts.sample_paths[2].values[i]),
   samplesUnchanged:six.samples.every((row,i)=>JSON.stringify(row.values)===JSON.stringify(ts.sample_paths[i].values)),
   inputUnchanged:before===JSON.stringify(ts),
   probability:tsDailyDescribe(ts,six,six.origin+1).rows.find(row=>row.name==='전 거래일보다 오를 가능성').value,
@@ -108,11 +113,25 @@ process.stdout.write(JSON.stringify({
     assert [out["one"], out["three"], out["six"]] == ["2026-02-27", "2026-04-30", "2026-07-30"]
     assert out["counts"][0] < out["counts"][1] < out["counts"][2] == len(projection["records"])
     assert out["sameRows"] and out["samplesUnchanged"] and out["inputUnchanged"]
+    assert out["primaryIds"] == ["simulation-2"] * 5
+    assert out["samePrimaryPrefix"] and out["sourcePrimary"]
     assert out["probability"] == "55.0%" and out["originProbability"] == 0.70
     assert out["realized"] == projection["realized"]["dates"]
     assert out["rangeOne"] == out["probT"]
     assert out["rangeHalf"] == out["probT"] + out["probH"] / 2
     assert out["rangeZero"] == out["probT"] + out["probH"]
+
+
+def test_primary_selection_uses_exact_endpoint_metadata_not_array_position(tmp_path: Path) -> None:
+    out = _run(tmp_path, "const ts=" + json.dumps(_projection()) + """;
+const source=ts.sample_paths[2];ts.sample_paths=[source,ts.sample_paths[4],ts.sample_paths[0],ts.sample_paths[3],ts.sample_paths[1]];
+const before=JSON.stringify(ts),m=tsDailyChartModel(ts),html=timeseriesDailySvg(ts,m,true);
+process.stdout.write(JSON.stringify({id:m.primary.path_id,percentile:m.primary.endpoint_percentile,
+  values:JSON.stringify(m.primary.values)===JSON.stringify(source.values),unchanged:before===JSON.stringify(ts),
+  overlay:(html.match(/data-daily-sample=/g)||[]).length,excluded:!html.includes('data-daily-sample="simulation-2"')}));
+""")
+    assert out["id"] == "simulation-2" and out["percentile"] == 0.5
+    assert out["values"] and out["unchanged"] and out["excluded"] and out["overlay"] == 4
 
 
 def test_issue_time_is_kst_while_source_asof_remains_unchanged(tmp_path: Path) -> None:
@@ -235,11 +254,19 @@ process.stdout.write(JSON.stringify({v8,legacy,unchanged}));
     assert out["unchanged"]
 
 
-@pytest.mark.parametrize("problem", ["probability", "crossing", "date", "sample", "hold"])
+@pytest.mark.parametrize("problem", ["probability", "probability_unit", "path_count_missing", "path_count_type", "path_count_small", "crossing", "date", "sample", "hold"])
 def test_invalid_daily_inputs_fail_instead_of_clipping_or_hiding(tmp_path: Path, problem: str) -> None:
     ts = _projection()
     if problem == "probability":
         ts["records"][0]["probability_up_from_previous"] = 55
+    elif problem == "probability_unit":
+        ts["probability_unit"] = "percent"
+    elif problem == "path_count_missing":
+        ts.pop("path_count")
+    elif problem == "path_count_type":
+        ts["path_count"] = "20000"
+    elif problem == "path_count_small":
+        ts["path_count"] = 4
     elif problem == "crossing":
         ts["records"][0]["band_index"]["p25"] = 110
     elif problem == "date":
@@ -256,27 +283,108 @@ process.stdout.write(JSON.stringify({rejected}));
     assert out["rejected"]
 
 
+@pytest.mark.parametrize("problem", [
+    "missing", "duplicate", "metadata_absent", "wrong_type", "near_half", "length", "nonfinite",
+])
+def test_invalid_representative_member_fails_without_silent_fallback(tmp_path: Path, problem: str) -> None:
+    projection = _projection()
+    if problem == "missing":
+        projection["sample_paths"][2]["endpoint_percentile"] = 0.6
+    elif problem == "duplicate":
+        projection["sample_paths"][0]["endpoint_percentile"] = 0.5
+    elif problem == "metadata_absent":
+        projection["sample_paths"][2].pop("endpoint_percentile")
+    elif problem == "wrong_type":
+        projection["sample_paths"][2]["endpoint_percentile"] = "0.5"
+    elif problem == "near_half":
+        projection["sample_paths"][2]["endpoint_percentile"] = 0.5000000000001
+    elif problem == "length":
+        projection["sample_paths"][2]["values"].pop()
+    program = "const ts=" + json.dumps(projection) + ";\n"
+    if problem == "nonfinite":
+        program += "ts.sample_paths[2].values[4]=Infinity;\n"
+    out = _run(tmp_path, program + """
+const before=JSON.stringify(ts);let rejected=false,message='';
+try{tsDailyChartModel(ts);}catch(error){rejected=true;message=String(error.message);}
+process.stdout.write(JSON.stringify({rejected,message,unchanged:before===JSON.stringify(ts)}));
+""")
+    assert out["rejected"] and out["unchanged"]
+    assert out["message"], "The invalid representative member must have a visible failure reason"
+
+
 def test_chart_preserves_daily_points_and_only_toggles_real_simulated_samples(tmp_path: Path) -> None:
     out = _run(tmp_path, "const ts=" + json.dumps(_projection()) + r""";
 const m=tsDailyChartModel(ts,6,375),plain=timeseriesDailySvg(ts,m),sampled=timeseriesDailySvg(ts,m,true);
 const match=sampled.match(/data-daily-sample="simulation-0" points="([^"]+)"/),points=match[1].split(' ');
 const probability=plain.match(/data-daily-probability="previous_session" points="([^"]+)"/)[1].split(' ');
+const primary=plain.match(/data-daily-primary="simulation-2" points="([^"]+)"/)[1].split(' ');
+const primarySource=ts.sample_paths.find(row=>row.endpoint_percentile===0.5);
 process.stdout.write(JSON.stringify({
   defaultSamples:(plain.match(/data-daily-sample=/g)||[]).length,
   displayedSamples:(sampled.match(/data-daily-sample=/g)||[]).length,
   memberPoints:points.length,probabilityPoints:probability.length,
+  primaryPoints:primary.length,
+  exactPrimaryPoints:primary.every((point,i)=>point===`${m.x(m.origin+i).toFixed(2)},${m.y(i?primarySource.values[i-1]:ts.anchor.value).toFixed(2)}`),
+  samePrimaryWhenSamplesEnabled:sampled.includes(`data-daily-primary="simulation-2" points="${primary.join(' ')}"`),
+  noDuplicatedPrimary:!sampled.includes('data-daily-sample="simulation-2"'),
   exactSamplePoint:points[4]===`${m.x(m.origin+4).toFixed(2)},${m.y(ts.sample_paths[0].values[3]).toFixed(2)}`,
   ticks:m.tickIndices.map(index=>m.x(index)),width:m.W,
   noPathTouchProbability:!sampled.includes('누적 터치확률'),
   disclosure:plain.includes('80%/50%')&&plain.includes('2026-07-30')
 }));
 """)
-    assert out["defaultSamples"] == 0 and out["displayedSamples"] == 5
+    assert out["defaultSamples"] == 0 and out["displayedSamples"] == 4
     assert out["memberPoints"] == out["probabilityPoints"] + 1
+    assert out["primaryPoints"] == out["memberPoints"]
+    assert out["exactPrimaryPoints"] and out["samePrimaryWhenSamplesEnabled"] and out["noDuplicatedPrimary"]
     assert out["probabilityPoints"] == len(_projection()["records"])
     assert out["exactSamplePoint"] and out["noPathTouchProbability"] and out["disclosure"]
     assert all(0 <= tick <= out["width"] for tick in out["ticks"])
     assert all(right - left >= 82 for left, right in zip(out["ticks"], out["ticks"][1:]))
+
+
+def test_representative_display_preserves_source_distribution_and_payload_hash(tmp_path: Path) -> None:
+    out = _run(tmp_path, "const ts=" + json.dumps(_projection()) + r""";
+const digest=value=>require('node:crypto').createHash('sha256').update(JSON.stringify(value)).digest('hex');
+const before=digest(ts),contentHash=ts.content_hash,records=JSON.stringify(ts.records);
+const m=tsDailyChartModel(ts),html=timeseriesDailySvg(ts,m);
+const points=rows=>rows.map(([x,y])=>`${x.toFixed(2)},${y.toFixed(2)}`).join(' ');
+const seq=[{position:m.origin,q:Object.fromEntries(['p10','p25','p50','p75','p90'].map(key=>[key,ts.anchor.value]))},
+  ...ts.records.map((row,i)=>({position:m.origin+i+1,q:row.band_index}))];
+const expectedBand=(hi,lo)=>points([...seq.map(row=>[m.x(row.position),m.y(row.q[hi])]),...[...seq].reverse().map(row=>[m.x(row.position),m.y(row.q[lo])])]);
+const median=html.match(/class="[^"]*\bts-daily-median-line\b[^"]*" points="([^"]+)"/)[1];
+const probability=html.match(/data-daily-probability="previous_session" points="([^"]+)"/)[1];
+const outer=html.match(/class="ts-band-outer" points="([^"]+)"/)[1];
+const inner=html.match(/class="ts-band-inner" points="([^"]+)"/)[1];
+process.stdout.write(JSON.stringify({
+  payloadHash:before===digest(ts),contentHash:contentHash===ts.content_hash,
+  recordsUnchanged:records===JSON.stringify(ts.records),
+  median:median===points(seq.map(row=>[m.x(row.position),m.y(row.q.p50)])),
+  probability:probability===points(ts.records.map((row,i)=>[m.x(m.origin+i+1),m.py(row.probability_up_from_previous)])),
+  outer:outer===expectedBand('p90','p10'),inner:inner===expectedBand('p75','p25')
+}));
+""")
+    assert all(out.values())
+
+
+def test_tooltip_and_accessible_readout_distinguish_primary_change_from_ensemble_probability(tmp_path: Path) -> None:
+    out = _run(tmp_path, "const ts=" + json.dumps(_projection()) + r""";
+const m=tsDailyChartModel(ts),d=tsDailyDescribe(ts,m,m.origin+1),html=timeseriesDailySvg(ts,m);
+const primary=d.rows.find(row=>row.name==='대표 시나리오'),median=d.rows.find(row=>row.name==='날짜별 중앙값');
+const probability=d.rows.find(row=>row.name==='전 거래일보다 오를 가능성');
+const next=tsDailyDescribe(ts,m,m.origin+2),nextPrimary=next.rows.find(row=>row.name==='대표 시나리오');
+const detail=rows=>rows.map(row=>`${row.name} ${row.value} ${row.sub||''}`).join(' ');
+process.stdout.write(JSON.stringify({
+  values:primary?.value===tsLevel(ts.sample_paths[2].values[0])&&median?.value===tsLevel(ts.records[0].median_index),
+  primaryChange:detail(d.rows).includes(tsPct(ts.sample_paths[2].values[0]/ts.anchor.value-1)),
+  nextPrimaryChange:detail(next.rows).includes(tsPct(ts.sample_paths[2].values[1]/ts.sample_paths[2].values[0]-1)),
+  probability:probability?.value==='55.0%'&&probability.sub.includes('전체')&&probability.sub.includes('20,000'),
+  accessible:d.speak.includes('대표 시나리오')&&d.speak.includes('날짜별 중앙값')&&d.speak.includes('55.0%'),
+  aria:html.includes('대표 시나리오')&&html.includes('날짜별 중앙값'),
+  differentValues:primary?.value!==median?.value
+}));
+""")
+    assert all(out.values())
 
 
 def test_keyboard_and_touch_link_both_charts_to_the_same_real_daily_row(tmp_path: Path) -> None:
@@ -294,13 +402,15 @@ bindTimeseriesDailyChart(host,ts,m);
 svg.listeners.focus();const historicalHidden=prob.attrs.opacity==='0';
 const key={key:'ArrowRight',preventDefault(){}};
 for(let i=0;i<=m.origin;i++)svg.listeners.keydown(key);
-const first={cross:cross.attrs.x1,priceX:price.attrs.cx,probX:prob.attrs.cx,probY:prob.attrs.cy,text:readout.textContent};
+const first={cross:cross.attrs.x1,priceX:price.attrs.cx,priceY:price.attrs.cy,probX:prob.attrs.cx,probY:prob.attrs.cy,text:readout.textContent};
 const touchIndex=m.origin+10;
 overlay.listeners.pointerdown({clientX:m.x(touchIndex),clientY:m.py(0.5)});
 process.stdout.write(JSON.stringify({
   historicalHidden,
   sameX:first.cross===first.priceX&&first.priceX===first.probX,
   probabilityIsSource:Number(first.probY)===m.py(ts.records[0].probability_up_from_previous),
+  primaryIsSource:Number(first.priceY)===m.y(ts.sample_paths[2].values[0]),
+  bothValues:first.text.includes('대표 시나리오')&&first.text.includes('날짜별 중앙값'),
   firstDate:first.text.includes(ts.records[0].date),
   touchDate:readout.textContent.includes(ts.records[9].date),
   touchX:Number(prob.attrs.cx)===m.x(touchIndex)
@@ -322,7 +432,7 @@ process.stdout.write(JSON.stringify({html:timeseriesDailySvg(ts,tsDailyChartMode
             pytest.skip(f"installed Chrome not available: {exc}")
         try:
             page = browser.new_page()
-            page.set_content(f'<style>{css}</style><div id="normal">{out["html"]}</div><div id="zoom" class="chart-zoom-content">{out["html"]}</div>')
+            page.set_content(f'<style>{css}</style><div id="normal" class="ts-daily-page">{out["html"]}</div><div id="zoom" class="chart-zoom-content">{out["html"]}</div>')
             page.locator("[data-daily-price-dot],[data-daily-prob-dot]").evaluate_all("nodes=>nodes.forEach(node=>node.setAttribute('opacity','1'))")
             for marker in ("[data-daily-price-dot]", "[data-daily-prob-dot]"):
                 assert page.locator("#normal " + marker).evaluate("node=>getComputedStyle(node).display") != "none"
@@ -336,8 +446,15 @@ process.stdout.write(JSON.stringify({html:timeseriesDailySvg(ts,tsDailyChartMode
                 const screen=point.matrixTransform(svg.getScreenCTM());
                 return document.elementFromPoint(screen.x,screen.y)?.hasAttribute('data-ts-overlay');
             }""")
-            for line in (".ts-median-line", ".ts-daily-prob-line"):
+            for line in (".ts-daily-primary-line", ".ts-daily-median-line", ".ts-daily-prob-line"):
                 assert page.locator("#zoom " + line).evaluate("node=>getComputedStyle(node).display") != "none"
+            for container in ("#normal", "#zoom"):
+                primary = page.locator(container + " .ts-daily-primary-line")
+                median = page.locator(container + " .ts-daily-median-line")
+                assert primary.evaluate("node=>getComputedStyle(node).fill") == "none"
+                assert primary.evaluate("node=>getComputedStyle(node).stroke") != "none"
+                assert primary.evaluate("node=>parseFloat(getComputedStyle(node).strokeWidth)") > median.evaluate("node=>parseFloat(getComputedStyle(node).strokeWidth)")
+                assert median.evaluate("node=>getComputedStyle(node).strokeDasharray") != "none"
         finally:
             browser.close()
 
