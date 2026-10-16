@@ -1,12 +1,12 @@
 {
-  "as_of": "2026-10-15",
-  "content_hash": "c98084766ea689947601920d0bf133f6da256f66ecce1beabf1b2eb01197a043",
+  "as_of": "2026-10-16",
+  "content_hash": "420c360cbfc5433a154fc6c492725bd97188fcaa4fb249d062b78adf937ca1e1",
   "daily": {
     "anchor": {
-      "provisional": false,
+      "provisional": true,
       "series_id": "NASDAQCOM",
-      "source": "fred_api_nasdaqcom_archive",
-      "value": 26713.03
+      "source": "nasdaq_quote_api_comp",
+      "value": 26140.03
     },
     "cadence": "daily",
     "carried_forward": [
@@ -29,14 +29,49 @@
         "carried_from": "2026-10-09",
         "observation_time": "2026-10-15",
         "series_id": "DTWEXBGS"
+      },
+      {
+        "carried_from": "2026-10-09",
+        "observation_time": "2026-10-16",
+        "series_id": "DTWEXBGS"
       }
     ],
-    "display_id": "tsv8-daily-3b43e50905257b093ecbf247",
+    "display_id": "tsv8-daily-f7f23977aba0b115c83a3496",
     "display_only": true,
-    "input_state": "confirmed",
-    "provisional_inputs": [],
-    "provisional_series": [],
-    "row_knowledge_cutoff": "2026-10-16T13:31:04+00:00",
+    "input_state": "provisional",
+    "provisional_inputs": [
+      {
+        "observation_time": "2026-10-16",
+        "series_id": "DGS10",
+        "source": "us_treasury_daily_par_yield_curve",
+        "value": 5.09
+      },
+      {
+        "observation_time": "2026-10-16",
+        "series_id": "DGS2",
+        "source": "us_treasury_daily_par_yield_curve",
+        "value": 4.74
+      },
+      {
+        "observation_time": "2026-10-16",
+        "series_id": "NASDAQCOM",
+        "source": "nasdaq_quote_api_comp",
+        "value": 26140.03
+      },
+      {
+        "observation_time": "2026-10-16",
+        "series_id": "VIX",
+        "source": "cboe_delayed_quote",
+        "value": 20.09
+      }
+    ],
+    "provisional_series": [
+      "DGS10",
+      "DGS2",
+      "NASDAQCOM",
+      "VIX"
+    ],
+    "row_knowledge_cutoff": "2026-10-16T20:20:39+00:00",
     "scoring_excluded": true
   },
   "display_state": "research_reference",
@@ -49,77 +84,77 @@
   },
   "horizons": {
     "1": {
-      "p10": -0.012978359057855002,
-      "p25": -0.004579403058309452,
-      "p50": 0.0013079733181183687,
-      "p75": 0.0073098101078551475,
-      "p90": 0.01306674921379156,
-      "probability_up": 0.56
+      "p10": -0.010981841297622677,
+      "p25": -0.003250075673308919,
+      "p50": 0.0024122852198325932,
+      "p75": 0.008032104945643243,
+      "p90": 0.013204866510831737,
+      "probability_up": 0.62
     },
     "21": {
-      "p10": -0.05146097915648637,
-      "p25": -0.01595883636313786,
-      "p50": 0.017971974991271417,
-      "p75": 0.04120277605872284,
-      "p90": 0.06016969246337293,
-      "probability_up": 0.655
+      "p10": -0.04807508466525285,
+      "p25": -0.014483137097707655,
+      "p50": 0.01742778381484117,
+      "p75": 0.039328462190498896,
+      "p90": 0.05713089135514608,
+      "probability_up": 0.66
     },
     "5": {
-      "p10": -0.02731696110969302,
-      "p25": -0.010749806689258212,
-      "p50": 0.004927969684448457,
-      "p75": 0.01860985294052842,
-      "p90": 0.030122655428288063,
-      "probability_up": 0.585
+      "p10": -0.025652844223797842,
+      "p25": -0.010069134958361543,
+      "p50": 0.005058527369702022,
+      "p75": 0.017632551717589456,
+      "p90": 0.02878951501943343,
+      "probability_up": 0.595
     },
     "63": {
-      "p10": -0.0776592958079905,
-      "p25": -0.00873630235732828,
-      "p50": 0.04208446107703636,
-      "p75": 0.08035071513565889,
-      "p90": 0.11084044081263722,
+      "p10": -0.06993526738966069,
+      "p25": -0.00718033924139494,
+      "p50": 0.040770636305699,
+      "p75": 0.07659675554087755,
+      "p90": 0.10580246039700231,
       "probability_up": 0.72
     }
   },
-  "knowledge_cutoff": "2026-10-16T16:46:38+00:00",
+  "knowledge_cutoff": "2026-10-16T21:44:04+00:00",
   "model_id": "shadow.mf_dfm_varx_calibrated_v8",
   "model_version": 8,
   "operational": {
     "freshness": [
       {
-        "age_hours": 16.7777105125,
+        "age_hours": 0.0,
         "group": "NASDAQCOM",
         "limit_hours": 48.0,
-        "observation_time": "2026-10-15",
-        "provisional": false,
+        "observation_time": "2026-10-16",
+        "provisional": true,
         "status": "fresh"
       },
       {
-        "age_hours": 16.7777105125,
+        "age_hours": 0.0,
         "group": "VIX",
         "limit_hours": 48.0,
-        "observation_time": "2026-10-15",
-        "provisional": false,
+        "observation_time": "2026-10-16",
+        "provisional": true,
         "status": "fresh"
       },
       {
-        "age_hours": 16.7777105125,
+        "age_hours": 0.0,
         "group": "DGS2",
         "limit_hours": 48.0,
-        "observation_time": "2026-10-15",
-        "provisional": false,
+        "observation_time": "2026-10-16",
+        "provisional": true,
         "status": "fresh"
       },
       {
-        "age_hours": 16.7777105125,
+        "age_hours": 0.0,
         "group": "DGS10",
         "limit_hours": 48.0,
-        "observation_time": "2026-10-15",
-        "provisional": false,
+        "observation_time": "2026-10-16",
+        "provisional": true,
         "status": "fresh"
       },
       {
-        "age_hours": 160.7777105125,
+        "age_hours": 165.73482095333333,
         "group": "DTWEXBGS_or_DTWEXB",
         "limit_hours": 216.0,
         "observation_time": "2026-10-09",
