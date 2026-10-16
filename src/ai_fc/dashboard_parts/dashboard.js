@@ -2741,11 +2741,6 @@ function questionStatusLabel(q){
 }
 const questionStatusBadge=q=>{const s=questionStatusLabel(q);return `<span class="status ${s.cls}" title="${esc(s.title)}">${s.text}</span>`;};
 let ROUTE_EPOCH=0;
-function trendlineAppNavigation(origin,view,hash,asset='sk-hynix'){
-  if(origin==='https://sung-jinpark.github.io'&&view==='trendlines')return 'http://127.0.0.1:8878/#future/trendlines/'+encodeURIComponent(asset);
-  if(origin==='http://127.0.0.1:8878'&&view!=='trendlines')return 'https://sung-jinpark.github.io/Jin-s-investing-prediction/'+hash;
-  return null;
-}
 async function route(){
   if(TIMESERIES_DAILY_RESIZE){TIMESERIES_DAILY_RESIZE.disconnect();TIMESERIES_DAILY_RESIZE=null;}
   globalThis.TrendlineUI?.cleanup();
@@ -2753,7 +2748,6 @@ async function route(){
   const enteredHash=location.hash||'#today',legacyHash=legacyRouteRedirect(enteredHash),rawHash=legacyHash==='#future/trendlines/mag7'?'#future/trendlines/sk-hynix':legacyHash;
   if(rawHash!==enteredHash)history.replaceState(null,'',rawHash);
   const parsed=parseCanonicalRoute(rawHash),v=parsed.view,arg=parsed.arg,navView=parsed.section;
-  const chartNavigation=trendlineAppNavigation(location.origin,v,rawHash,arg?.asset);if(chartNavigation){location.replace(chartNavigation);return;}
   closeQuickPeek();closeChartZoom(false);if(!briefingLayer.hidden)setBriefing(false,false);if(!shareLayer.hidden)setShare(false,false);
   document.querySelector('.future-lookup-layer')?.remove();document.body.classList.remove('future-lookup-open');
   document.body.dataset.view=navView;

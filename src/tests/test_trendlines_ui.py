@@ -69,6 +69,49 @@ def run(tmp_path, program, extra=''):
     return json.loads(result.stdout)
 
 
+def test_first_party_chart_navigation_is_exact_and_has_no_loop(tmp_path):
+    result = run(tmp_path, r'''
+const publicOrigin='https://sung-jinpark.github.io',localOrigin='http://127.0.0.1:8878',assets=['sk-hynix','soxx','nasdaq','sp500','bitcoin','dow'];
+const charts=assets.map(asset=>({asset,entry:trendlineAppNavigation(publicOrigin,'trendlines','#future/trendlines/'+asset,asset),inside:trendlineAppNavigation(localOrigin,'trendlines','#future/trendlines/'+asset,asset)}));
+const pages=['#today','#future','#statistics','#timeseries','#records/journal'].map(hash=>({hash,target:trendlineAppNavigation(localOrigin,'overview',hash),public:trendlineAppNavigation(publicOrigin,'overview',hash)}));
+const otherOrigins=['https://example.com','http://localhost:8878','http://127.0.0.1:8879','http://sung-jinpark.github.io'].map(origin=>trendlineAppNavigation(origin,'trendlines','#future/trendlines/bitcoin','bitcoin'));
+process.stdout.write(JSON.stringify({charts,pages,otherOrigins}));''')
+    for row in result['charts']:
+        assert row['entry'] == 'http://127.0.0.1:8878/#future/trendlines/' + row['asset']
+        assert row['inside'] is None
+    for row in result['pages']:
+        assert row['target'] == 'https://sung-jinpark.github.io/Jin-s-investing-prediction/' + row['hash']
+        assert row['public'] is None
+    assert result['otherOrigins'] == [None] * 4
+
+
+def test_public_held_chart_enters_first_party_app_before_cross_origin_fetch(tmp_path):
+    out = run(tmp_path, r'''
+const TREND_PRIVATE_DETAILS=new Map(),assets=['sk-hynix','soxx','nasdaq','sp500','bitcoin','dow'],targets=[];
+globalThis.DATA={trendlines:{assets:assets.map(asset_id=>({asset_id,status:'hold'}))}};const before=JSON.stringify(DATA);
+globalThis.location={origin:'https://sung-jinpark.github.io',replace:url=>targets.push(url)};
+globalThis.fetch=()=>{throw new Error('chart entry must not depend on a cross-origin request')};
+for(const asset of [...assets,'mag7'])renderTrendlinePage({asset});
+process.stdout.write(JSON.stringify({targets,unchanged:before===JSON.stringify(DATA),privateCache:TREND_PRIVATE_DETAILS.size}));''')
+    assert out['targets'] == ['http://127.0.0.1:8878/#future/trendlines/' + asset for asset in
+                              ['sk-hynix', 'soxx', 'nasdaq', 'sp500', 'bitcoin', 'dow', 'sk-hynix']]
+    assert out['unchanged'] and out['privateCache'] == 0
+
+
+@pytest.mark.parametrize('origin,hash_value,redirect', [
+    ('http://127.0.0.1:8878', '#statistics', True),
+    ('http://127.0.0.1:8878', '#future', True),
+    ('http://127.0.0.1:8878', '#future/trendlines/bitcoin', False),
+    ('http://127.0.0.1:8878', '#app', False),
+    ('https://sung-jinpark.github.io', '#statistics', False),
+])
+def test_leaving_chart_returns_to_dashboard_before_local_render(tmp_path, origin, hash_value, redirect):
+    out = run(tmp_path, 'const replaced=[],origin=' + json.dumps(origin) + ',hash=' + json.dumps(hash_value) + r''';
+let stopped=0,cleaned=0;globalThis.location={origin,hash,replace:url=>replaced.push(url)};globalThis.TrendlineUI={cleanup:()=>cleaned++};leaveTrendlineApp({stopImmediatePropagation:()=>stopped++});process.stdout.write(JSON.stringify({replaced,stopped,cleaned}));''')
+    assert out == {'replaced': ['https://sung-jinpark.github.io/Jin-s-investing-prediction/' + hash_value] if redirect else [],
+                   'stopped': int(redirect), 'cleaned': int(redirect)}
+
+
 def test_svg_endpoints_and_tooltip_equations_keep_backend_values(tmp_path):
     detail = fixture()['details']['sk-hynix']
     out = run(tmp_path, 'const d=' + json.dumps(detail) + r''';

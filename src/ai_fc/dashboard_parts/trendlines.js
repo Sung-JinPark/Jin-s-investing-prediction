@@ -762,10 +762,21 @@ function trendRepresentativeDetails(analysis,asset){
   if(!analysis.representative_body)return '<p>같은 기준의 전체 일봉과 추세선 계산을 확인하고 있습니다.</p>';
   return analysis.representatives.map(line=>`<p><strong>${esc(TREND_REPRESENTATIVE_LABELS[line.slot])}</strong> · ${line.status!=='ready'?'계산에 필요한 일봉 부족':line.kind==='regression'?`${line.fit.n}개 확정 종가 · ${line.axis==='log'?'로그 가격':'가격'} 회귀 · 결정계수 ${line.fit.r_squared===null?'정의되지 않음':Number(line.fit.r_squared).toFixed(3)}`:`${line.origin_role==='support'?'확정 저점':'확정 고점'} 연결 · ${line.geometry_status==='two_anchor'?'2개 앵커 참고선':'3회 이상 접촉선'} · ${esc(line.first_anchor.session)} ${esc(trendPrice(line.first_anchor.price,asset))} → ${esc(line.second_anchor.session)} ${esc(trendPrice(line.second_anchor.price,asset))}`}</p>`).join('');
 }
+function trendlineAppNavigation(origin,view,hash,asset='sk-hynix'){
+  if(origin==='https://sung-jinpark.github.io'&&view==='trendlines')return 'http://127.0.0.1:8878/#future/trendlines/'+encodeURIComponent(asset);
+  if(origin==='http://127.0.0.1:8878'&&view!=='trendlines')return 'https://sung-jinpark.github.io/Jin-s-investing-prediction/'+hash;
+  return null;
+}
+function leaveTrendlineApp(event){
+  if(globalThis.location?.origin!=='http://127.0.0.1:8878')return;
+  const hash=globalThis.location.hash||'#today';if(hash==='#app'||/^#(?:future\/)?trendlines(?:\/|$)/.test(hash))return;
+  const target=trendlineAppNavigation(globalThis.location.origin,'other',hash);event.stopImmediatePropagation();globalThis.TrendlineUI?.cleanup();globalThis.location.replace(target);
+}
 function renderTrendlinePage(initial={},loadState=null,localSession=null){
   if(initial?.asset==='mag7'){globalThis.history?.replaceState(null,'','#future/trendlines/sk-hynix');initial={...initial,asset:'sk-hynix'};}
   if(TREND_ZOOM)closeTrendZoom(false);if(TRENDLINES_RESIZE){TRENDLINES_RESIZE.disconnect();TRENDLINES_RESIZE=null;}
   const assetId=initial?.asset||'sk-hynix',projection=DATA?.trendlines||{},officialAsset=projection.assets?.find(row=>row.asset_id===assetId),localDetail=TREND_PRIVATE_DETAILS.get(assetId);let detail=localDetail||projection.details?.[assetId],validationError=null;
+  const chartNavigation=!['ready','stale'].includes(officialAsset?.status)&&trendlineAppNavigation(globalThis.location?.origin,'trendlines','',assetId);if(chartNavigation){globalThis.location.replace(chartNavigation);return;}
   if(!localSession){TREND_REPRESENTATIVE_VIEW_OPTIONS.delete(assetId);for(const key of TREND_CHART_VIEWS.keys())if(key.startsWith(assetId+':representative:'))TREND_CHART_VIEWS.delete(key);}
   if(detail&&['ready','stale','unverified_display'].includes(detail.status)){try{trendValidateDetail(detail);}catch(error){validationError=error;detail=null;}}
   const asset=localDetail&&detail?{...officialAsset,asset_id:assetId,label:TREND_ASSETS.find(row=>row[0]===assetId)?.[1],currency:detail.asset.currency,price_unit:detail.asset.unit,status:'unverified_display',last_session:detail.observation_through}:officialAsset;if(localDetail&&detail)loadState=null;
@@ -786,6 +797,7 @@ function renderTrendlinePage(initial={},loadState=null,localSession=null){
   if(session){session.fullMounted=true;session.representativeMounted=true;session.longMounted=true;session.onRepresentativeData=paint;session.onFullData=()=>{paint();refreshTrendRepresentativeSession(session);};Promise.resolve().then(()=>{refreshTrendFullSession(session);refreshTrendRepresentativeSession(session);});}
   if(globalThis.ResizeObserver){TRENDLINES_RESIZE=new ResizeObserver(()=>{if(!root.isConnected){TRENDLINES_RESIZE?.disconnect();TRENDLINES_RESIZE=null;return;}if(Math.abs(host.clientWidth-drawnWidth)>2)paint();});TRENDLINES_RESIZE.observe(host);}
 }
+if(globalThis.window?.addEventListener)window.addEventListener('hashchange',leaveTrendlineApp,true);
 globalThis.TrendlineUI={ensure:ensureTrendlineData,render:renderTrendlinePage,validate:trendValidateDetail,cleanup(){closeTrendZoom(false);stopTrendLocalSession();if(TRENDLINES_RESIZE){TRENDLINES_RESIZE.disconnect();TRENDLINES_RESIZE=null;}}};
 
 })();

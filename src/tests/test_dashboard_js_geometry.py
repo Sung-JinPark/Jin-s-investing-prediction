@@ -8,26 +8,6 @@ from pathlib import Path
 NL = chr(10)
 
 
-def test_trendline_first_party_navigation_is_exact_and_has_no_redirect_loop() -> None:
-    source = (Path(__file__).parents[1] / 'ai_fc/dashboard_parts/dashboard.js').read_text(encoding='utf-8')
-    helper = source[source.index('function trendlineAppNavigation('):source.index('async function route()')]
-    result = _run_js_file(helper + r'''
-const publicOrigin='https://sung-jinpark.github.io',localOrigin='http://127.0.0.1:8878',assets=['sk-hynix','soxx','nasdaq','sp500','bitcoin','dow'];
-const charts=assets.map(asset=>({asset,entry:trendlineAppNavigation(publicOrigin,'trendlines','#future/trendlines/'+asset,asset),inside:trendlineAppNavigation(localOrigin,'trendlines','#future/trendlines/'+asset,asset)}));
-const pages=['#today','#future','#statistics','#timeseries','#records/journal'].map(hash=>({hash,target:trendlineAppNavigation(localOrigin,'overview',hash),public:trendlineAppNavigation(publicOrigin,'overview',hash)}));
-const otherOrigins=['https://example.com','http://localhost:8878','http://127.0.0.1:8879','http://sung-jinpark.github.io'].map(origin=>trendlineAppNavigation(origin,'trendlines','#future/trendlines/bitcoin','bitcoin'));
-console.log(JSON.stringify({charts,pages,otherOrigins,defaultAsset:trendlineAppNavigation(publicOrigin,'trendlines','#future/trendlines')}));
-''')
-    for row in result['charts']:
-        assert row['entry'] == 'http://127.0.0.1:8878/#future/trendlines/' + row['asset']
-        assert row['inside'] is None
-    for row in result['pages']:
-        assert row['target'] == 'https://sung-jinpark.github.io/Jin-s-investing-prediction/' + row['hash']
-        assert row['public'] is None
-    assert result['otherOrigins'] == [None] * 4
-    assert result['defaultAsset'] == 'http://127.0.0.1:8878/#future/trendlines/sk-hynix'
-
-
 def test_statistics_profile_rows_supports_dotcom_and_current_bars() -> None:
     script_path = (
         Path(__file__).parents[1]
