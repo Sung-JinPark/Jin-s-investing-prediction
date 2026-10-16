@@ -1,0 +1,28 @@
+schema_version: 1
+contract_id: trendlines_bitcoin_cycle_display_policy_v1
+version: bitcoin_2023_structure_v1
+asset_id: bitcoin
+slot: cycle_2023
+publication_scope: private_only
+official_forecast_write: false
+verified_boundary: false
+input: verified_full_history_and_long_supplement_same_snapshot_cohort
+calculation: additive_browser_read_model_rebuilt_on_full_snapshot_change
+anchor_year: 2023
+origin_role: support
+left: 10
+right: 10
+minimum_anchor_gap: 180
+maximum_second_anchor_age: 365
+second_anchor_not_before: '2024-01-01'
+maximum_distance_atr: 8
+maximum_distance_fraction: 0.5
+touch_and_break: unchanged_long_supplement_calculation_settings
+axes: [linear, log]
+intact_rank: [independent_contacts_desc, latest_touch_age_asc, distance_atr_asc, anchor_gap_desc, line_id_asc]
+reference_rank: [formation_complete_desc, penetration_asc, second_anchor_desc, distance_atr_asc, line_id_asc]
+fallback: labeled_confirmed_pivot_reference_or_hold
+role_transition: no_automatic_flip
+projection_sessions: 30
+contact_independence: disjoint_confirmation_windows_latest_first
+comparison_tolerance: {absolute: 0.000001, relative: 0.0000000001}

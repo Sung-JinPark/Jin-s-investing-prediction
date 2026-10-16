@@ -36,8 +36,10 @@ const TREND_CRITICAL_DETAILS=new Map();
 const TREND_REPRESENTATIVE_DETAILS=new Map(),TREND_REPRESENTATIVE_VIEW_OPTIONS=new Map();
 const TREND_REPRESENTATIVE_PROOF=Symbol('representative_source_and_arithmetic_proof');
 const TREND_REPRESENTATIVE_SLOTS=['regression_200','current_structure','major_structure'];
-const TREND_REPRESENTATIVE_LABELS={regression_200:'200일 가격추세',current_structure:'현재 추세',major_structure:'장기 주요 고저점',long_upper:'장기 고점 연결선',long_lower:'장기 저점 연결선'};
-const TREND_REPRESENTATIVE_COLORS={regression_200:'#32799c',current_structure:'#bc632d',major_structure:'#72649b',long_upper:'#a85454',long_lower:'#357a61'};
+const TREND_REPRESENTATIVE_LABELS={regression_200:'200일 가격추세',current_structure:'현재 추세',major_structure:'장기 주요 고저점',long_upper:'장기 고점 연결선',long_lower:'장기 저점 연결선',cycle_2023:'2023년 장기 추세선'};
+const TREND_REPRESENTATIVE_COLORS={regression_200:'#32799c',current_structure:'#bc632d',major_structure:'#72649b',long_upper:'#a85454',long_lower:'#357a61',cycle_2023:'#a47823'};
+const TREND_BITCOIN_CYCLE_POLICY=Object.freeze({version:'bitcoin_2023_structure_v1',anchor_year:2023,left:10,right:10,minimum_anchor_gap:180,maximum_second_anchor_age:365,maximum_distance_atr:8,maximum_distance_fraction:.5});
+const TREND_BITCOIN_CYCLE_CACHE=new WeakMap();
 const TREND_LONG_DETAILS=new Map(),TREND_LONG_PROOF=Symbol('long_boundaries_source_and_arithmetic_proof');
 const TREND_LONG_SLOTS=['long_upper','long_lower'];
 const TREND_LONG_POLICY_SHA256='4097093809bbf8f3d362c4eacdac545dac7dd65e22490f0ed02aba7b0af8ecb2';
@@ -468,10 +470,10 @@ async function refreshTrendRepresentativeSession(session){
 }
 function trendLongNear(a,b){return typeof a==='number'&&Number.isFinite(a)&&typeof b==='number'&&Number.isFinite(b)&&Math.abs(a-b)<=Math.max(1e-6,Math.abs(b)*1e-10);}
 function trendLongTime(value){const stamp=Date.parse(value);if(!Number.isFinite(stamp))throw new Error('장기선 공개 시각이 올바르지 않습니다');return BigInt(stamp)*1000000n+BigInt((String(value).match(/\.(\d+)(?:Z|[+-]\d{2}:\d{2})$/)?.[1]||'').padEnd(9,'0').slice(3,9)||'0');}
-function trendLongInputs(bars){
+function trendLongInputs(bars,lookback=756){
   const byIndex=new Map(bars.map(bar=>[bar.session_index,bar])),atr=new Map(),ranges=[],pivots=[];
   bars.forEach((bar,i)=>{if(!i||bar.session_index!==bars[i-1].session_index+1){ranges.length=0;atr.set(bar.session_index,null);return;}const prior=bars[i-1];ranges.push(Math.max(bar.high-bar.low,Math.abs(bar.high-prior.close),Math.abs(bar.low-prior.close)));atr.set(bar.session_index,ranges.length>=14?trendAccurateSum(ranges.slice(-14))/14:null);});
-  for(const bar of bars){if(bar.session_index<bars.at(-1).session_index-755)continue;const neighbors=Array.from({length:21},(_,i)=>byIndex.get(bar.session_index-10+i));if(neighbors.some(row=>!row))continue;for(const [side,field] of [['support','low'],['resistance','high']]){if(neighbors.every((row,i)=>{if(i===10)return true;return side==='support'?(i<10?bar[field]<row[field]:bar[field]<=row[field]):(i<10?bar[field]>row[field]:bar[field]>=row[field]);}))pivots.push({index:bar.session_index,side,price:bar[field],bar_id:bar.bar_id});}}
+  for(const bar of bars){if(bar.session_index<bars.at(-1).session_index-lookback+1)continue;const neighbors=Array.from({length:21},(_,i)=>byIndex.get(bar.session_index-10+i));if(neighbors.some(row=>!row))continue;for(const [side,field] of [['support','low'],['resistance','high']]){if(neighbors.every((row,i)=>{if(i===10)return true;return side==='support'?(i<10?bar[field]<row[field]:bar[field]<=row[field]):(i<10?bar[field]>row[field]:bar[field]>=row[field]);}))pivots.push({index:bar.session_index,side,price:bar[field],bar_id:bar.bar_id});}}
   return {byIndex,atr,pivots};
 }
 function trendLongReview(line,inputs,bars,settings,tick){
@@ -485,6 +487,32 @@ function trendLongReview(line,inputs,bars,settings,tick){
   const valid=!missing&&!unavailable&&penetration<=1+1e-10,intact=valid&&['active','reclaimed'].includes(state),reasons=[];
   if(missing)reasons.push('missing_formation_sessions');if(unavailable)reasons.push('formation_atr_unavailable');if(penetration>1+1e-10)reasons.push('formation_penetration');if(!['active','reclaimed'].includes(state))reasons.push('original_role_not_reestablished');
   return {missing,unavailable,penetration,contacts,valid,intact,state,breaks,reclaims,reasons};
+}
+// Additive view of the verified full-history cohort; no source or ledger writes.
+// Cache only within that immutable cohort so zoom/hover never recalculate a line.
+function trendBitcoinCycle(full,context,axis){
+  if(full?.asset_id!=='bitcoin'||!context||!['linear','log'].includes(axis))return [];
+  let cache=TREND_BITCOIN_CYCLE_CACHE.get(full);if(!cache){cache=new Map();TREND_BITCOIN_CYCLE_CACHE.set(full,cache);}if(cache.has(axis))return cache.get(axis);
+  const policy=TREND_BITCOIN_CYCLE_POLICY,hold=reason=>[{slot:'cycle_2023',axis,status:'hold',reason_codes:[reason]}],bars=full.bars,last=bars.at(-1),future=context.projection_sessions;
+  if(!last||!future?.length||typeof context.calculation_settings_json!=='string')return hold('verified_full_history_required');
+  const settings=JSON.parse(context.calculation_settings_json),tick=context.calculation_tick_size,inputs=trendLongInputs(bars,Infinity),at=inputs.atr.get(last.session_index),pool=inputs.pivots.filter(p=>p.side==='support'),candidates=[];
+  if(!settings.touch||!settings.break||!Number.isFinite(tick)||tick<0)return hold('verified_calculation_settings_required');
+  if(!(at>0))return hold('latest_contiguous_atr14_unavailable');
+  const over=(value,limit)=>value>limit+Math.max(1e-6,Math.abs(limit)*1e-10),anchor=p=>({...p,session:inputs.byIndex.get(p.index).session||inputs.byIndex.get(p.index).session_date,confirmation_start_index:p.index-10,confirmation_end_index:p.index+10}),transform=p=>axis==='log'?Math.log(p):p;
+  for(const first of pool){const a=anchor(first);if(!a.session.startsWith(policy.anchor_year+'-'))continue;
+    for(const second of pool){const b=anchor(second),gap=b.index-a.index;if(gap<policy.minimum_anchor_gap||b.session<'2024-01-01'||last.session_index-b.index>policy.maximum_second_anchor_age)continue;
+      const line={slot:'cycle_2023',axis,status:'ready',kind:'pivot_structure',origin_role:'support',side:'support',first_anchor:a,second_anchor:b,coordinate_origin_index:a.index,intercept:transform(a.price),slope:(transform(b.price)-transform(a.price))/gap,display_start_index:a.index,display_end_index:future.at(-1).index,activation_index:b.index+10,verified_boundary:false,
+        line_id:`bitcoin-cycle-v1-${axis}-${a.bar_id.slice(-32)}-${b.bar_id.slice(-32)}`,policy_version:policy.version,source_snapshot_id:full.source_snapshot_id,source_full_snapshot_id:full.snapshot_id,source_full_manifest_sha256:full.critical_manifest_sha256};
+      const price=trendLinePrice(line,last.session_index,axis),distance=Math.abs(price-last.close);
+      if(!(price>0)||!Number.isFinite(price)||future.some(p=>{const value=trendLinePrice(line,p.index,axis);return !(value>0)||!Number.isFinite(value);})||over(price,last.close)||over(distance,policy.maximum_distance_atr*at)||over(distance,policy.maximum_distance_fraction*last.close))continue;
+      const review=trendLongReview(line,inputs,bars,settings,tick),contacts=review.contacts.map(anchor);
+      Object.assign(line,{current_price:price,current_price_status:'ready',direction:line.slope>0?'rising':line.slope<0?'falling':'flat',role:review.intact?'support':'direction_only',classification:review.intact?'intact_structure':'reference_structure',structural_state:review.state,formation_valid:review.valid,formation_complete:!review.missing&&!review.unavailable,formation_missing_sessions:review.missing,formation_atr_unavailable:review.unavailable,formation_penetration:review.penetration,reference_reasons:review.reasons,contact_count:contacts.length,geometry_status:contacts.length>=3?'three_contact':'two_anchor',markers:contacts,independent_contacts:contacts,latest_touch_age_sessions:last.session_index-(contacts.at(-1)?.index??b.index),distance_atr:distance/at,break_sessions:review.breaks,reclaim_sessions:review.reclaims,equivalent_to_line_ids:[],points:[{index:a.index,session:a.session,price:a.price,future:false},{index:last.session_index,session:last.session||last.session_date,price,future:false}],projections:future.map(p=>({...p,price:trendLinePrice(line,p.index,axis),status:'ready'}))});
+      candidates.push(line);
+    }
+  }
+  const rank=line=>line.classification==='intact_structure'?[0,-line.contact_count,line.latest_touch_age_sessions,line.distance_atr,-(line.second_anchor.index-line.first_anchor.index)]:[1,-Number(line.formation_complete),line.formation_penetration,-line.second_anchor.index,line.distance_atr];
+  candidates.sort((a,b)=>{const ar=rank(a),br=rank(b);for(let i=0;i<ar.length;i++)if(ar[i]!==br[i])return ar[i]-br[i];return a.line_id.localeCompare(b.line_id);});
+  const selected=candidates.length?[candidates[0]]:hold('no_eligible_2023_confirmed_low_pair');cache.set(axis,selected);return selected;
 }
 function trendSameGeometry(a,b){return a.kind==='pivot_structure'&&b.kind==='pivot_structure'&&a.axis===b.axis&&a.origin_role===b.origin_role&&['first_anchor','second_anchor'].every(k=>a[k]?.bar_id===b[k]?.bar_id&&a[k]?.price===b[k]?.price)&&a.display_start_index===b.display_start_index&&a.display_end_index===b.display_end_index&&trendLongNear(a.slope,b.slope)&&trendLongNear(a.intercept,b.intercept);}
 async function parseTrendLongTransport(raw,current,full,representative){
@@ -539,17 +567,17 @@ function trendMergeSelectedLines(selected){
 }
 function trendLongBoundaryRows(analysis,asset){
   if(!['all','long_boundaries'].includes(analysis.family))return '';
-  const lines=analysis.long_boundaries.length?analysis.long_boundaries:TREND_LONG_SLOTS.map(slot=>({slot,status:'hold'}));
+  const lines=[...(analysis.long_boundaries.length?analysis.long_boundaries:TREND_LONG_SLOTS.map(slot=>({slot,status:'hold'}))),...(analysis.cycle_2023||[])];
   return `<div class="trend-long-rows" aria-label="장기 고점·저점 연결선">${lines.map(line=>{const ready=line.status==='ready',intact=line.classification==='intact_structure',status=!ready?'추가선 미산출':intact?`${line.contact_count>=3?'3회 이상 접촉':'2점 연결'} · 형성·현재 역할 충족`:`구조 참고선 · ${!line.formation_complete?'형성구간 자료 부족':line.structural_state!=='active'&&line.structural_state!=='reclaimed'?'이탈 이력':'과거 관통'}`,alias=line.equivalent_to_line_ids?.length?' · 같은 선은 차트에서 통합 표시':'';return `<article data-trend-long-row="${line.slot}" style="--trend-slot:${TREND_REPRESENTATIVE_COLORS[line.slot]}"><div><span>${esc(TREND_REPRESENTATIVE_LABELS[line.slot])}</span><small>${esc(status)}</small></div><strong${ready?` data-trend-long-price="${esc(line.line_id)}"`:''}>${ready?esc(trendPrice(line.current_price,asset)):'—'}</strong><p>${ready?`${esc(line.first_anchor.session)} ${esc(trendPrice(line.first_anchor.price,asset))} → ${esc(line.second_anchor.session)} ${esc(trendPrice(line.second_anchor.price,asset))}${esc(alias)}`:'확정 고저점과 추가선 자료를 확인합니다.'}</p></article>`;}).join('')}</div>`;
 }
 function trendLongBoundaryDetails(analysis,asset){
-  return analysis.long_boundaries.map(line=>`<p><strong>${esc(TREND_REPRESENTATIVE_LABELS[line.slot])}</strong> · ${line.status!=='ready'?'적격 확정 고저점 연결선 미산출':`${line.contact_count}개 독립 접촉 · 확정 피벗 10·10 · ${esc(line.first_anchor.session)} ${esc(trendPrice(line.first_anchor.price,asset))} → ${esc(line.second_anchor.session)} ${esc(trendPrice(line.second_anchor.price,asset))} · ${line.classification==='intact_structure'?'형성·현재 역할 충족':'구조 참고선'} · 형성구간 결측 ${line.formation_missing_sessions}개 · ATR 확인 불가 ${line.formation_atr_unavailable}개`}</p>`).join('');
+  return [...analysis.long_boundaries,...(analysis.cycle_2023||[])].map(line=>`<p><strong>${esc(TREND_REPRESENTATIVE_LABELS[line.slot])}</strong> · ${line.status!=='ready'?'적격 확정 고저점 연결선 미산출':`${line.contact_count}개 독립 접촉 · 확정 피벗 10·10 · ${esc(line.first_anchor.session)} ${esc(trendPrice(line.first_anchor.price,asset))} → ${esc(line.second_anchor.session)} ${esc(trendPrice(line.second_anchor.price,asset))} · ${line.classification==='intact_structure'?'형성·현재 역할 충족':'구조 참고선'} · 형성구간 결측 ${line.formation_missing_sessions}개 · ATR 확인 불가 ${line.formation_atr_unavailable}개${line.slot==='cycle_2023'?` · ${esc(line.policy_version)} · 종가 2회 이탈 ${line.break_sessions.length}회 · 재진입 ${line.reclaim_sessions.length}회`:''}`}</p>`).join('');
 }
 function trendRepresentativeAnalysis(current,full,axis,family='all'){
   const body=TREND_REPRESENTATIVE_DETAILS.get(current.asset_id),proof=body?.[TREND_REPRESENTATIVE_PROOF],valid=!!(full&&proof&&proof.source===current.snapshot_id&&proof.sourceHash===current.content_hash&&proof.full===full.snapshot_id&&proof.manifest===full.critical_manifest_sha256&&body.as_of===current.as_of);
   const representatives=valid?body.analyses[axis].representatives:[],supplement=TREND_LONG_DETAILS.get(current.asset_id),longProof=supplement?.[TREND_LONG_PROOF],longValid=valid&&longProof&&longProof.source===current.snapshot_id&&longProof.full===full.snapshot_id&&longProof.representative===body.snapshot_id&&longProof.representativePayload===proof.payload;
-  const long_boundaries=longValid?supplement.analyses[axis].boundaries:[],selected=[...representatives,...long_boundaries].filter(line=>line.status==='ready'&&(family==='all'||family==='long_boundaries'&&TREND_LONG_SLOTS.includes(line.slot)||line.slot===family)),lines=trendMergeSelectedLines(selected);
-  return {status:'ready',critical:true,representative:true,axis,family,lines,representatives,long_boundaries,long_body:longValid?supplement:null,projection_sessions:valid?body.projection_sessions:[],representative_body:valid?body:null,critical_reference:valid?{price:body.reference_close,atr14:body.atr14,date:body.reference_session,index:body.reference_index}:null};
+  const long_boundaries=longValid?supplement.analyses[axis].boundaries:[],cycle_2023=longValid?trendBitcoinCycle(full,supplement,axis):[],selected=[...representatives,...long_boundaries,...cycle_2023].filter(line=>line.status==='ready'&&(family==='all'||family==='long_boundaries'&&[...TREND_LONG_SLOTS,'cycle_2023'].includes(line.slot)||line.slot===family)),lines=trendMergeSelectedLines(selected);
+  return {status:'ready',critical:true,representative:true,axis,family,lines,representatives,long_boundaries,cycle_2023,long_body:longValid?supplement:null,projection_sessions:valid?body.projection_sessions:[],representative_body:valid?body:null,critical_reference:valid?{price:body.reference_close,atr14:body.atr14,date:body.reference_session,index:body.reference_index}:null};
 }
 function trendLineStart(line){return line.display_start_index??line.first_anchor?.index;}
 function trendRepresentativeName(line){return `${line.alias_labels?.join(' · ')||TREND_REPRESENTATIVE_LABELS[line.slot]||'추세선'}${line.classification==='reference_structure'?' · 구조 참고선':''}${line.kind==='regression'&&line.slot!=='regression_200'?` · ${line.fit.n}일 회귀`:''}`;}
