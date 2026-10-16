@@ -1,0 +1,173 @@
+{
+  "schema_version": 1,
+  "reviewed_at_utc": "2026-10-16T00:43:38.382906+00:00",
+  "reviewer": "comparison_design agent; final independent review of parent phase report",
+  "verdict": "pass_for_conditional_descriptive_phase_research",
+  "blocking_findings": [],
+  "reviewed_files": [
+    "report.md",
+    "report.html",
+    "phase_support.json",
+    "phase_support.py",
+    "build_phase_report.py",
+    "prices/phase_analysis.json",
+    "prices/all_candidates.csv",
+    "fundamentals/condition_matrix.json",
+    "fundamentals/validation.json"
+  ],
+  "snapshot_sha256": {
+    "report.md": "25cd70aa77eb3f94a2a5fa610c8173284e441a121fd379b9afe42e6bf57cd9b8",
+    "report.html": "83627e688a80ce3fda4f09d1b508258323a4574ca0245c403a9060953d7a3390",
+    "phase_support.json": "3085f0a74f651ba302dd44b16b212b3e1ffb3b8abb222daec36a3586151b9509",
+    "phase_support.py": "3a219628d08ba0218c343065e33ca919fe0c9d8b2a3b6b9dee8a9c491cc3cb8b",
+    "build_phase_report.py": "d2a640d5c98331114cfd0001783257a0084ab0966147d2ea5e39c358aea05d47",
+    "prices/phase_analysis.json": "a6657c2845be81bc5a7fb0582cff625d1773a6ec39003400b7446d7cfe9592aa",
+    "prices/method_contract.json": "01f9f04061d91997225dd1c6b31134236edebb076a2f270389ee3ac20990bc0a"
+  },
+  "independent_calculation_method": "Directly read frozen original CSV; use Python statistics.correlation and independently written formulas. No phase-support correlation, path-risk, distance or match helpers were called.",
+  "equal_postpeak_age_correlation": {
+    "historical_start": "2007-10-16",
+    "historical_end": "2008-02-04",
+    "current_start": "2026-06-22",
+    "current_end": "2026-10-15",
+    "n_actual_closes": 78,
+    "n_actual_log_return_intervals": 77,
+    "independent_closing_level_pearson": 0.7109905932976662,
+    "independent_daily_log_return_pearson": -0.02845000435089781,
+    "matches_phase_support_within_1e_12": true,
+    "interpretation": "Retrospective observed-peak alignment. Level correlation can reflect common nonstationary decline; does not establish return predictability. Earlier weekly/calendar correlation is a different transform/frequency/alignment and cannot be called a quantitative improvement."
+  },
+  "candidate_matching_audit": {
+    "recomputed_from": "all_candidates.csv feature values only, not saved distance or matching columns",
+    "extended_shape_intersections": {
+      "0.10": {
+        "strict": 0,
+        "base": 0,
+        "loose": 12
+      },
+      "0.15": {
+        "strict": 0,
+        "base": 0,
+        "loose": 0
+      },
+      "0.20": {
+        "strict": 0,
+        "base": 0,
+        "loose": 0
+      }
+    },
+    "strict_base_zero_interpretation": "No historical candidate jointly satisfies those chosen tolerances. This is not proof of no structural analogy or a zero event probability.",
+    "loose_ten_percent_interpretation": "Twelve overlapping dates between2008-02-01 and2008-04-01 from one Chinese path; not twelve independent episodes or a probability denominator.",
+    "january_analogy": "Acceptable conditional qualitative comparison when ordering and elapsed sessions are prioritized: first trough, rebound, prior-trough breach;68 vs77 sessions. It is not a scalar-ranking winner and shallower Chinese drawdown25.15% versus39.06% is clearly disclosed.",
+    "threshold_dependence": "Initial Chinese14.46% rebound fails15/20% thresholds; larger April-May rebound leads to later comparison stages. Report discloses this and June10 breach is not conflated with20% confirmation.",
+    "final_peak_assumption": "Candidate pool is conditional on the retrospective October2007 peak. Report does not infer that the observed Korean June high must be the final cycle high."
+  },
+  "historical_126_session_cases_independently_verified": [
+    {
+      "date": "2007-07-05",
+      "end_date": "2008-01-08",
+      "end_price_return_fraction": 0.4896912776178346,
+      "best_origin_return_fraction": 0.6848116774109689,
+      "worst_origin_return_fraction": 0.0,
+      "max_drawdown_fraction": -0.21153271635538717
+    },
+    {
+      "date": "2008-01-22",
+      "end_date": "2008-07-29",
+      "end_price_return_fraction": -0.37489774658698394,
+      "best_origin_return_fraction": 0.044287515762925445,
+      "worst_origin_return_fraction": -0.4184746970776906,
+      "max_drawdown_fraction": -0.4431367854690246
+    },
+    {
+      "date": "2008-03-18",
+      "end_date": "2008-09-17",
+      "end_price_return_fraction": -0.47421570497969423,
+      "best_origin_return_fraction": 0.036836654037994965,
+      "worst_origin_return_fraction": -0.47421570497969423,
+      "max_drawdown_fraction": -0.49289572955139915
+    },
+    {
+      "date": "2008-06-10",
+      "end_date": "2008-12-11",
+      "end_price_return_fraction": -0.338716869607106,
+      "best_origin_return_fraction": 0.0,
+      "worst_origin_return_fraction": -0.4444932673247991,
+      "max_drawdown_fraction": -0.4444932673247991
+    }
+  ],
+  "case_presentation_verdict": {
+    "bullish_counterexample_included": true,
+    "all_case_extrema_include_origin": true,
+    "future_intervals_count": 126,
+    "dividends_included": false,
+    "no_scenario_weights_or_empirical_probabilities": true,
+    "warning": "Cases are deliberately selected contrasting outcomes and overlap. They cannot define Korean expected return, outcome bounds or probability. Report says this explicitly."
+  },
+  "current_levels_arithmetic": {
+    "sma_20_60_120_and_required_returns_independently_match": true,
+    "prior_trough_breach_trailing_observations": 1,
+    "five_day_gate_not_yet_satisfied": true,
+    "heuristics_are_explicitly_unvalidated": true,
+    "missing_data_is_not_pass_or_fail": true,
+    "moving_averages_are_dynamic_not_fixed_future_resistance": true
+  },
+  "tests": {
+    "phase_root_unittest": {
+      "tests_run": 5,
+      "passed": 5,
+      "exit_code": 0
+    },
+    "phase_prices_unittest": {
+      "tests_run": 11,
+      "passed": 11,
+      "exit_code": 0
+    },
+    "independent_data_checks": [
+      "78/77 equal-age alignment and both correlations",
+      "SMA20/60/120 and required return arithmetic",
+      "Four126-session full-path outcomes and endpoint dates",
+      "Extended-shape intersections recomputed directly from features"
+    ],
+    "code_defect_failures": [],
+    "environment_dependency_failures": []
+  },
+  "source_grade": {
+    "frozen_original_prices_unchanged": true,
+    "fundamentals_stored_source_sha256_independently_verified": 23,
+    "fundamentals_conditions": 7,
+    "fundamentals_original_claim_recognition": "SamsungQ3 is preliminary and current; generic memory prices are not HBM orders; strong realized earnings are not a measured FY2027 EPS revision series.",
+    "economic_claim_limit": "This review checks report/source classification and arithmetic, not independent authentication of every economic release. Fundamentals agent source validation passes; exact historical publication vintages and some future schedule publication times remain uncertified and disclosed.",
+    "benchmark_relative_claims_suppressed": true
+  },
+  "resolved_review_findings": [
+    {
+      "issue": "Cross-metric wording said level correlation rises, inviting comparison to earlier weekly-return correlation.",
+      "resolution": "Parent regenerated report.md and report.html with separate metrics and explicit transform/frequency/alignment distinction.",
+      "verified": true
+    },
+    {
+      "issue": "Condition-matrix path omitted fundamentals/ prefix.",
+      "resolution": "Parent regenerated report references to fundamentals/condition_matrix.json.",
+      "verified": true
+    },
+    {
+      "issue": "January representative analogy could sound like a quantitative best-match rank.",
+      "resolution": "Parent added explicit priority on ordering/time and denies a scalar similarity-ranking winner.",
+      "verified": true
+    },
+    {
+      "issue": "Own method contract said total return despite dividend exclusion.",
+      "resolution": "Corrected to price return and regenerated own outputs; no numeric results changed.",
+      "verified": true
+    }
+  ],
+  "remaining_limitations": [
+    "Two selected market episodes and overlapping historical cases",
+    "Retrospective anchor choice and prior knowledge of2008 outcomes; not blind validation",
+    "Tolerance and risk-observation thresholds are research choices without fitted or validated hit rates",
+    "One daily prior-trough breach does not certify a persistent bear continuation",
+    "Strong current fundamentals and price deterioration can coexist without proving why prices fell"
+  ],
+  "write_scope": "Only phase_alignment_v1/prices/independent_review_parent.json was written for this review record; own method wording/output regeneration separately disclosed. Parent report/source files were not edited."
+}

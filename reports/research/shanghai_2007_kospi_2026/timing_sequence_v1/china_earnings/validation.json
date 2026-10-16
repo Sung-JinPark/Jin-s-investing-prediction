@@ -1,0 +1,75 @@
+{
+  "created_at_utc": "2026-10-16T01:03:10.419461+00:00",
+  "status": "passed",
+  "checks_count": 37,
+  "checks": [
+    "source_hash:orient_daily_20071101",
+    "source_hash:orient_daily_200801",
+    "source_hash:mof_2007_early_annual",
+    "source_hash:csrc_2008_annual",
+    "source_hash:sse_2007_annual",
+    "source_hash:szse_2008q1",
+    "source_hash:cicc_200805_strategy_reprint",
+    "source_hash:pingan_20080506",
+    "source_hash:icbc_2007q3",
+    "source_hash:scfund_2008h2",
+    "source_hash:greatwall_20080121",
+    "source_hash:greatwall_chart_ZQBC0030121C001_b",
+    "source_hash:greatwall_chart_ZQBC0030121C002_b",
+    "source_hash:greatwall_chart_ZQBC0030121C003_b",
+    "source_hash:greatwall_chart_ZQBC0030121C004_b",
+    "source_hash:greatwall_20080121_page_pdf",
+    "source_hash:cicc_20080507_original_article",
+    "evidence_units_and_source:CNQ3_01",
+    "evidence_units_and_source:CNQ3_02",
+    "evidence_units_and_source:CNQ3_03",
+    "evidence_units_and_source:CNQ3_04",
+    "evidence_units_and_source:ICBC_01",
+    "evidence_units_and_source:OPTIMISM_01",
+    "evidence_units_and_source:REVISION_01",
+    "evidence_units_and_source:OPTIMISM_02",
+    "evidence_units_and_source:QUALITY_01",
+    "evidence_units_and_source:ANNUAL_01",
+    "evidence_units_and_source:ANNUAL_02",
+    "evidence_units_and_source:ANNUAL_03",
+    "evidence_units_and_source:Q108_01",
+    "evidence_units_and_source:Q108_02",
+    "evidence_units_and_source:Q108_03",
+    "evidence_units_and_source:REVISION_02",
+    "evidence_units_and_source:Q108_04",
+    "evidence_units_and_source:QUALITY_02",
+    "evidence_units_and_source:OPTIMISM_03",
+    "evidence_units_and_source:ACTUAL08_01"
+  ],
+  "excluded_download_failures": [
+    {
+      "source_id": "huaw_micro_q3_analyst",
+      "error": "Failed to open file 'C:\\\\workspace\\\\ai-investing\\\\reports\\\\research\\\\shanghai_2007_kospi_2026\\\\timing_sequence_v1\\\\china_earnings\\\\sources\\\\huaw_micro_q3_analyst.pdf' as type pdf."
+    }
+  ],
+  "initial_validation_failure": {
+    "classification": "code_defect_in_derivative_hash_only",
+    "cause": "In-memory LF text hashed before Windows newline translation.",
+    "resolution": "Hash actual saved derivative bytes; collector fixed; original download hashes unchanged.",
+    "corrected_source_ids": [
+      "orient_daily_20071101",
+      "orient_daily_200801",
+      "mof_2007_early_annual",
+      "csrc_2008_annual",
+      "sse_2007_annual",
+      "szse_2008q1",
+      "cicc_200805_strategy_reprint",
+      "pingan_20080506",
+      "icbc_2007q3",
+      "scfund_2008h2",
+      "greatwall_20080121",
+      "greatwall_20080121_page_pdf",
+      "cicc_20080507_original_article"
+    ]
+  },
+  "notes": [
+    "Failed broker PDF is excluded; returned HTML cannot authenticate a broker report.",
+    "No exact values digitized from low-resolution consensus chart.",
+    "No forecast, probability, ledger or parent artifact written."
+  ]
+}

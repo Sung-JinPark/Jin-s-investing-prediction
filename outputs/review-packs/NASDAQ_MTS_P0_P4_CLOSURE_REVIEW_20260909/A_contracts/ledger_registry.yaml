@@ -1,0 +1,402 @@
+version: 1
+calendar_contract: data/contracts/nyse_holidays.yaml
+ledgers:
+  - id: forecast_records
+    path: forecasts/**/*.md
+    exclude: [forecasts/TEMPLATE.md, forecasts/**/TEMPLATE.md, forecasts/**/*_evidence.md]
+    kind: immutable_files
+    cadence: event
+    criticality: high
+    schema_ref: forecast_frontmatter
+  - id: forecast_evidence
+    path: forecasts/**/*_evidence.md
+    kind: immutable_files
+    cadence: event
+    criticality: medium
+    schema_ref: markdown
+  - id: ml_market_history
+    path: data/ml_history/*.jsonl
+    kind: jsonl
+    cadence: weekly
+    criticality: medium
+    schema_ref: jsonl
+  - id: method_changes
+    path: data/method_changes.jsonl
+    kind: jsonl
+    cadence: event
+    criticality: medium
+    schema_ref: jsonl
+  - id: calibration_ledger
+    path: calibration/ledger.csv
+    kind: append_csv
+    cadence: event
+    criticality: high
+    schema_ref: csv
+    timestamp_field: resolved_date
+  - id: corrections_ledger
+    path: calibration/corrections.csv
+    kind: append_csv
+    cadence: event
+    criticality: high
+    schema_ref: csv
+  - id: benchmark_ledger
+    path: calibration/benchmark_ledger.csv
+    kind: append_csv
+    cadence: event
+    criticality: medium
+    schema_ref: csv
+  - id: cost_ledger
+    path: calibration/cost_log.csv
+    kind: append_csv
+    cadence: event
+    criticality: low
+    schema_ref: csv
+  - id: provider_shadow_ledger
+    path: calibration/provider_shadow_ledger.csv
+    kind: append_csv
+    cadence: event
+    criticality: low
+    schema_ref: csv
+  - id: scenario_archive
+    path: data/scenarios/archive/*.json
+    kind: archive_dir
+    cadence: trading_daily
+    criticality: high
+    schema_ref: scenario_archive
+  - id: scenario_latest
+    path: data/scenarios/nasdaq_latest.json
+    kind: singleton
+    cadence: trading_daily
+    criticality: high
+    schema_ref: scenario_latest
+  - id: cross_asset_archive
+    path: data/cross_asset/archive/*.json
+    kind: archive_dir
+    cadence: trading_daily
+    criticality: high
+    schema_ref: cross_asset_archive
+  - id: cross_asset_latest
+    path: data/cross_asset/cross_asset_latest.json
+    kind: singleton
+    cadence: trading_daily
+    criticality: high
+    schema_ref: cross_asset_latest
+  - id: cross_asset_path_tracking
+    path: data/cross_asset/path_tracking.csv
+    kind: append_csv
+    cadence: trading_daily
+    criticality: medium
+    schema_ref: csv
+    expected_state: frozen
+  - id: cross_asset_path_tracking_v2
+    path: data/cross_asset/path_tracking_v2.csv
+    kind: append_csv
+    cadence: trading_daily
+    criticality: high
+    schema_ref: csv
+    timestamp_field: asof
+  - id: scenario_band_calibration
+    path: data/scenarios/band_calibration.csv
+    kind: append_csv
+    cadence: trading_daily
+    criticality: medium
+    schema_ref: csv
+    timestamp_field: asof
+    allow_empty_accumulating: true
+  - id: market_event_calendar
+    path: data/calendar/events.csv
+    kind: append_csv
+    cadence: event
+    criticality: medium
+    schema_ref: csv
+    timestamp_field: registered_at
+  - id: signal_archive
+    path: data/signals/archive/*.json
+    kind: archive_dir
+    cadence: weekly
+    criticality: medium
+    schema_ref: json_object
+  - id: liquidity_archive
+    path: data/liquidity/archive/*.json
+    kind: archive_dir
+    cadence: weekly
+    criticality: medium
+    schema_ref: json_object
+  - id: rate_event_archive
+    path: data/rate_events/archive/*.json
+    kind: archive_dir
+    cadence: monthly
+    criticality: medium
+    schema_ref: json_object
+  - id: realty_rate_sensitivity_archive
+    path: data/realty_income/rate_sensitivity_archive/*.json
+    kind: archive_dir
+    cadence: monthly
+    criticality: medium
+    schema_ref: json_object
+  - id: realty_dividends
+    path: data/realty_income/dividends.csv
+    kind: append_csv
+    cadence: monthly
+    criticality: medium
+    schema_ref: csv
+    timestamp_field: available_at
+  - id: realty_o_entry_cohort_archive
+    path: data/realty_income/o_entry_cohort_archive/*.json
+    kind: archive_dir
+    cadence: monthly
+    criticality: high
+    schema_ref: json_object
+    timestamp_field: generated_at
+  - id: ai_capital_archives
+    path: data/ai_capital_cycle/*_archive/*.json
+    kind: archive_dir
+    cadence: monthly
+    criticality: medium
+    schema_ref: json_object
+  - id: dualdb_model_runs
+    path: dualdb/db/dualdb.sqlite
+    kind: singleton
+    cadence: weekly
+    criticality: high
+    schema_ref: dualdb_model_run
+    timestamp_field: model_run.asof
+  - id: source_monitoring
+    path: data/source_monitoring/defillama_stablecoins/*.json
+    kind: archive_dir
+    cadence: trading_daily
+    criticality: low
+    schema_ref: json_object
+  - id: source_monitoring_status
+    path: data/source_monitoring/defillama_stablecoins_status.json
+    kind: mutable_snapshot
+    cadence: trading_daily
+    criticality: low
+    schema_ref: json_object
+  - id: ipo_reference_batch_receipts
+    path: data/statistics/ipo/reference_batch_receipts/*.json
+    kind: archive_dir
+    cadence: weekly
+    criticality: medium
+    schema_ref: json_object
+    timestamp_field: checked_at
+  - id: ipo_reference_batch_status
+    path: data/statistics/ipo/reference_batch_status.json
+    kind: mutable_snapshot
+    cadence: weekly
+    criticality: medium
+    schema_ref: json_object
+    timestamp_field: checked_at
+  - id: ipo_edgar_candidates
+    path: data/statistics/ipo/edgar_candidates.json
+    kind: mutable_snapshot
+    cadence: biweekly
+    criticality: medium
+    schema_ref: json_object
+    timestamp_field: checked_at
+  - id: statistics_alert_notify_state
+    path: data/statistics/alert_notify_state.json
+    kind: mutable_snapshot
+    cadence: event
+    criticality: low
+    schema_ref: json_object
+    timestamp_field: checked_at
+  - id: timeseries_raw_receipts
+    path: data/timeseries/ledgers/raw_receipts.jsonl
+    kind: jsonl
+    cadence: trading_daily
+    criticality: high
+    schema_ref: jsonl
+    allow_empty_accumulating: true
+  - id: timeseries_observation_facts
+    path: data/timeseries/ledgers/observation_chunks.jsonl
+    kind: jsonl
+    cadence: trading_daily
+    criticality: high
+    schema_ref: jsonl
+    allow_empty_accumulating: true
+  - id: timeseries_event_facts
+    path: data/timeseries/ledgers/events.jsonl
+    kind: jsonl
+    cadence: event
+    criticality: medium
+    schema_ref: jsonl
+    allow_empty_accumulating: true
+  - id: timeseries_event_raw_receipts
+    path: data/timeseries/ledgers/event_raw_receipts.jsonl
+    kind: jsonl
+    cadence: event
+    criticality: medium
+    schema_ref: jsonl
+    allow_empty_accumulating: true
+  - id: timeseries_shadow_forecasts
+    path: data/timeseries/ledgers/forecasts.jsonl
+    kind: jsonl
+    cadence: trading_daily
+    criticality: high
+    schema_ref: jsonl
+    timestamp_field: as_of
+  - id: timeseries_shadow_resolutions
+    path: data/timeseries/ledgers/resolutions.jsonl
+    kind: jsonl
+    cadence: trading_daily
+    criticality: high
+    schema_ref: jsonl
+    allow_empty_accumulating: true
+  - id: timeseries_shadow_corrections
+    path: data/timeseries/ledgers/corrections.jsonl
+    kind: jsonl
+    cadence: event
+    criticality: high
+    schema_ref: jsonl
+    allow_empty_accumulating: true
+  - id: timeseries_model_runs
+    path: data/timeseries/models/ts-fit-*.json
+    kind: immutable_files
+    cadence: weekly
+    criticality: high
+    schema_ref: json_object
+    allow_empty_accumulating: true
+  - id: timeseries_backtest_runs
+    path: data/timeseries/runs/ts-backtest-*.json
+    kind: immutable_files
+    cadence: monthly
+    criticality: high
+    schema_ref: json_object
+    allow_empty_accumulating: true
+  - id: raw_receipts
+    path: data/raw/manifest.jsonl
+    kind: jsonl
+    cadence: event
+    criticality: medium
+    schema_ref: json_object
+    expected_state: planned
+  - id: quarantine
+    path: data/quarantine/**/*.json
+    kind: archive_dir
+    cadence: event
+    criticality: medium
+    schema_ref: json_object
+    expected_state: planned
+  - id: bitemporal_facts
+    path: data/facts/**/*.jsonl
+    kind: jsonl
+    cadence: event
+    criticality: high
+    schema_ref: json_object
+    expected_state: planned
+  - id: forecast_timestamp_proof
+    path: forecasts/.hashes.ots
+    kind: singleton
+    cadence: weekly
+    criticality: high
+    schema_ref: binary
+  - id: research_pack
+    path: exports/research_pack_*/manifest.json
+    kind: archive_dir
+    cadence: monthly
+    criticality: medium
+    schema_ref: json_object
+    expected_state: planned
+  - id: scenario_v5_2_distinctness_shadow
+    path: reports/diagnostics/scenario_v5_2/distinctness_shadow.jsonl
+    kind: jsonl
+    cadence: trading_daily
+    criticality: medium
+    schema_ref: jsonl
+    allow_empty_accumulating: true
+  - id: scenario_v5_2_sensitivity_grid
+    path: reports/diagnostics/v52_distinctness_baseline_*/A_B_sensitivity_grid.json
+    kind: immutable_files
+    cadence: event
+    criticality: medium
+    schema_ref: json_object
+  # V8 다변량 시계열 원장 5종 — 발행 중인데 등록돼 있지 않아 신뢰 페이지의 원장 감사에서
+  # 빠져 있었다(검수 2차). 봉인 평가·홀드아웃·개발 실험은 사건 단위, 섀도 예측·해소는 주간.
+  - id: timeseries_v8_sealed_evaluations
+    path: data/timeseries_v8/ledgers/sealed_evaluations.jsonl
+    kind: jsonl
+    cadence: event
+    criticality: high
+    schema_ref: jsonl
+  - id: timeseries_v8_shadow_forecasts
+    path: data/timeseries_v8/ledgers/shadow_forecasts.jsonl
+    kind: jsonl
+    cadence: weekly
+    criticality: high
+    schema_ref: jsonl
+  - id: timeseries_v8_shadow_resolutions
+    path: data/timeseries_v8/ledgers/shadow_resolutions.jsonl
+    kind: jsonl
+    cadence: weekly
+    criticality: high
+    schema_ref: jsonl
+    allow_empty_accumulating: true
+  - id: timeseries_v8_holdout_scorings
+    path: data/timeseries_v8/ledgers/holdout_scorings.jsonl
+    kind: jsonl
+    cadence: event
+    criticality: medium
+    schema_ref: jsonl
+  - id: timeseries_v8_development_experiments
+    path: data/timeseries_v8/ledgers/development_experiments.jsonl
+    kind: jsonl
+    cadence: event
+    criticality: medium
+    schema_ref: jsonl
+  # V13-VOL 변동성 이벤트 확률 트랙 원장 — 트랙 개시(2026-09-07) 뒤 미등록 상태였다(V13-D2′ 2026-09-08).
+  # 실험·승인은 사건 단위, 홀드아웃은 사용자 승인 뒤 1회(planned), 라이브 포인터 원장은 거래일 단위(Phase E 뒤 생성).
+  - id: timeseries_v13_vol_experiments
+    path: data/timeseries_v13/ledgers/vol_experiments.jsonl
+    kind: jsonl
+    cadence: event
+    criticality: medium
+    schema_ref: jsonl
+    timestamp_field: knowledge_cutoff
+  - id: timeseries_v13_holdout_scorings
+    path: data/timeseries_v13/ledgers/holdout_scorings.jsonl
+    kind: jsonl
+    cadence: event
+    criticality: high
+    schema_ref: jsonl
+    expected_state: planned
+  - id: timeseries_v13_approvals
+    path: data/timeseries_v13/ledgers/approvals.jsonl
+    kind: jsonl
+    cadence: event
+    criticality: high
+    schema_ref: jsonl
+    timestamp_field: approved_at
+  - id: timeseries_v13_vol_live
+    path: data/timeseries_v13/ledgers/vol_live.jsonl
+    kind: jsonl
+    cadence: trading_daily
+    criticality: high
+    schema_ref: jsonl
+    allow_empty_accumulating: true
+    expected_state: planned
+    # as_of 는 구조적으로 한 세션 뒤(T+1 아카이브)라 as_of 로 재면 만성 stalled — 행 생성 시각으로 성장을 잰다.
+    timestamp_field: knowledge_cutoff
+  - id: timeseries_v13_vol_live_resolutions
+    path: data/timeseries_v13/ledgers/vol_live_resolutions.jsonl
+    kind: jsonl
+    cadence: trading_daily
+    criticality: high
+    schema_ref: jsonl
+    allow_empty_accumulating: true
+    expected_state: planned
+    timestamp_field: resolved_session
+  - id: timeseries_v13_vol_ladder_results
+    path: data/timeseries_v13/vol/ladder_*.json
+    kind: immutable_files
+    cadence: event
+    criticality: medium
+    schema_ref: json_object
+  # 동결 계수(Phase C 2026-09-08, finalist V13VOL_champion_aec80c65038b) — 바이트 변경은 violation(재적합 금지의 기계적 강제).
+  - id: timeseries_v13_vol_coefficients
+    path: data/timeseries_v13/vol/champion_coefficients.json
+    kind: immutable_files
+    cadence: event
+    criticality: high
+    schema_ref: json_object
+    expected_state: frozen

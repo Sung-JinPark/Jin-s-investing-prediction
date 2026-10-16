@@ -1,0 +1,194 @@
+{
+  "as_of": "2026-10-16T09:00:00+09:00",
+  "price_cutoff": "2026-10-15",
+  "origin_index_points": 5554.22,
+  "horizon_future_return_intervals": 126,
+  "fraction_unit_explicit": true,
+  "probability_output": false,
+  "levels": [
+    {
+      "level": "prior_trough",
+      "value_index_points": 5593.56,
+      "required_return_fraction": 0.007082902729816265,
+      "role": "frozen historical price reference"
+    },
+    {
+      "level": "last_pre_break_close",
+      "value_index_points": 6008.81,
+      "required_return_fraction": 0.08184587574852986,
+      "role": "frozen historical price reference"
+    },
+    {
+      "level": "observed_rebound_high",
+      "value_index_points": 7080.92,
+      "required_return_fraction": 0.2748720792478512,
+      "role": "frozen historical price reference"
+    },
+    {
+      "level": "observed_peak",
+      "value_index_points": 9114.55,
+      "required_return_fraction": 0.6410134996453145,
+      "role": "frozen historical price reference"
+    },
+    {
+      "level": "sma_20",
+      "value_index_points": 6683.6655,
+      "required_return_fraction": 0.20334907511765832,
+      "role": "moving average at cutoff; recompute each future day, not a fixed resistance forecast"
+    },
+    {
+      "level": "sma_60",
+      "value_index_points": 6654.110333333333,
+      "required_return_fraction": 0.19802786589896204,
+      "role": "moving average at cutoff; recompute each future day, not a fixed resistance forecast"
+    },
+    {
+      "level": "sma_120",
+      "value_index_points": 7193.395833333333,
+      "required_return_fraction": 0.2951225974724323,
+      "role": "moving average at cutoff; recompute each future day, not a fixed resistance forecast"
+    }
+  ],
+  "price_gates": [
+    {
+      "id": "price_reclaim",
+      "condition_ko": "이전 저점 위 5거래일 연속 종가",
+      "side": "above",
+      "level": 5593.56,
+      "observed_consecutive": 0,
+      "required": 5,
+      "meaning_ko": "초기 이탈 실패와 가격 안정의 관찰 기준. 상승 추세 확정은 아님.",
+      "satisfied": false,
+      "calibration": "unvalidated research heuristic; not fitted, not a trading rule or probability"
+    },
+    {
+      "id": "price_break",
+      "condition_ko": "이전 저점 아래 5거래일 연속 종가",
+      "side": "below",
+      "level": 5593.56,
+      "observed_consecutive": 1,
+      "required": 5,
+      "meaning_ko": "하루짜리 이탈과 지속적인 저점 이탈을 구분하는 관찰 기준.",
+      "satisfied": false,
+      "calibration": "unvalidated research heuristic; not fitted, not a trading rule or probability"
+    }
+  ],
+  "valuation_arithmetic": [
+    {
+      "label_ko": "이익 증가와 배수 유지",
+      "eps_change_fraction": 0.2,
+      "pe_change_fraction": 0,
+      "price_return_fraction": 0.19999999999999996,
+      "illustrative_index_points": 6665.064,
+      "role": "arithmetic assumptions, not a six-month price target or expected return; EPS must use the same index and forecast period"
+    },
+    {
+      "label_ko": "이익 증가와 배수 축소",
+      "eps_change_fraction": 0.2,
+      "pe_change_fraction": -0.2,
+      "price_return_fraction": -0.040000000000000036,
+      "illustrative_index_points": 5332.0512,
+      "role": "arithmetic assumptions, not a six-month price target or expected return; EPS must use the same index and forecast period"
+    },
+    {
+      "label_ko": "이익 유지와 배수 축소",
+      "eps_change_fraction": 0,
+      "pe_change_fraction": -0.2,
+      "price_return_fraction": -0.19999999999999996,
+      "illustrative_index_points": 4443.376,
+      "role": "arithmetic assumptions, not a six-month price target or expected return; EPS must use the same index and forecast period"
+    },
+    {
+      "label_ko": "이익 하향과 배수 축소",
+      "eps_change_fraction": -0.2,
+      "pe_change_fraction": -0.2,
+      "price_return_fraction": -0.3599999999999999,
+      "illustrative_index_points": 3554.700800000001,
+      "role": "arithmetic assumptions, not a six-month price target or expected return; EPS must use the same index and forecast period"
+    },
+    {
+      "label_ko": "이익 감소와 배수 회복",
+      "eps_change_fraction": -0.1,
+      "pe_change_fraction": 0.2,
+      "price_return_fraction": 0.08000000000000007,
+      "illustrative_index_points": 5998.557600000001,
+      "role": "arithmetic assumptions, not a six-month price target or expected return; EPS must use the same index and forecast period"
+    }
+  ],
+  "contrasting_historical_cases": [
+    {
+      "date": "2007-07-05",
+      "label_ko": "상승 중간의 전저점 이탈 뒤 회복한 반례",
+      "origin_index_points": 3615.87,
+      "prior_observed_high": 4334.92,
+      "initial_drawdown_fraction": -0.16587388002546766,
+      "end_date": "2008-01-08",
+      "end_126_return_fraction": 0.4896912776178346,
+      "worst_origin_return_fraction": 0.0,
+      "best_origin_return_fraction": 0.6848116774109689,
+      "future_max_drawdown_fraction": -0.21153271635538717,
+      "extrema_definition": "origin and 126 subsequent actual closes included; no clipping of returns",
+      "recovered_prior_observed_high": true,
+      "role": "Deliberately contrasting historical episodes; overlapping dates and paths, not independent samples, probabilities, targets or Korean projection"
+    },
+    {
+      "date": "2008-01-22",
+      "label_ko": "첫 하락 뒤 반등 실패와 전저점 이탈",
+      "origin_index_points": 4559.75,
+      "prior_observed_high": 6092.06,
+      "initial_drawdown_fraction": -0.2515257564764628,
+      "end_date": "2008-07-29",
+      "end_126_return_fraction": -0.37489774658698394,
+      "worst_origin_return_fraction": -0.4184746970776906,
+      "best_origin_return_fraction": 0.044287515762925445,
+      "future_max_drawdown_fraction": -0.4431367854690246,
+      "extrema_definition": "origin and 126 subsequent actual closes included; no clipping of returns",
+      "recovered_prior_observed_high": false,
+      "role": "Deliberately contrasting historical episodes; overlapping dates and paths, not independent samples, probabilities, targets or Korean projection"
+    },
+    {
+      "date": "2008-03-18",
+      "label_ko": "현재 한국 낙폭 문턱의 최초 하회",
+      "origin_index_points": 3668.9,
+      "prior_observed_high": 6092.06,
+      "initial_drawdown_fraction": -0.3977570805277689,
+      "end_date": "2008-09-17",
+      "end_126_return_fraction": -0.47421570497969423,
+      "worst_origin_return_fraction": -0.47421570497969423,
+      "best_origin_return_fraction": 0.036836654037994965,
+      "future_max_drawdown_fraction": -0.49289572955139915,
+      "extrema_definition": "origin and 126 subsequent actual closes included; no clipping of returns",
+      "recovered_prior_observed_high": false,
+      "role": "Deliberately contrasting historical episodes; overlapping dates and paths, not independent samples, probabilities, targets or Korean projection"
+    },
+    {
+      "date": "2008-06-10",
+      "label_ko": "깊은 하락 중 큰 반등 뒤 저점 재이탈",
+      "origin_index_points": 3072.33,
+      "prior_observed_high": 6092.06,
+      "initial_drawdown_fraction": -0.4956829052898363,
+      "end_date": "2008-12-11",
+      "end_126_return_fraction": -0.338716869607106,
+      "worst_origin_return_fraction": -0.4444932673247991,
+      "best_origin_return_fraction": 0.0,
+      "future_max_drawdown_fraction": -0.4444932673247991,
+      "extrema_definition": "origin and 126 subsequent actual closes included; no clipping of returns",
+      "recovered_prior_observed_high": false,
+      "role": "Deliberately contrasting historical episodes; overlapping dates and paths, not independent samples, probabilities, targets or Korean projection"
+    }
+  ],
+  "postpeak_equal_age_correlation": {
+    "n_return_pairs": 77,
+    "n_closes": 78,
+    "historical_end": "2008-02-04",
+    "closing_level_pearson": 0.7109905932976662,
+    "daily_log_return_pearson": -0.02845000435089781,
+    "role": "retrospective observed-peak alignment for equal elapsed actual sessions; level correlation does not establish predictive skill"
+  },
+  "additional_20pct_loss_threshold_index_points": 4443.376,
+  "extra_20pct_loss_is_not_future_max_drawdown": true,
+  "earnings_revision_series": null,
+  "earnings_revision_missing_reason": "No original-vintage, common-provider fixed-FY2027 index EPS series acquired; current revision sign cannot be inferred from strong realized sales or profit guidance",
+  "benchmark": null,
+  "benchmark_reason": "Original study MSCI World source conflict remains unresolved; no benchmark-relative claim"
+}

@@ -1,0 +1,49 @@
+{
+ "alpha_per_cell": 0.05,
+ "cells": [
+  "vix25_h5",
+  "vix25_h21",
+  "vix25_h63",
+  "vix30_h5",
+  "vix30_h21",
+  "vix30_h63",
+  "rv_h5",
+  "rv_h21",
+  "rv_h63"
+ ],
+ "content_hash": "db91e023c83cbddfd2eb796372d1d9a7f158da6c9fe86f9921564fef12d35b89",
+ "draws": 200000,
+ "holdout_read": false,
+ "independent_binomial": {
+  "0": 1.0,
+  "1": 0.369751,
+  "2": 0.071211,
+  "3": 0.008361,
+  "4": 0.000643,
+  "5": 3.3e-05,
+  "6": 1e-06,
+  "7": 0.0,
+  "8": 0.0,
+  "9": 0.0
+ },
+ "k_obs_holdout": 3,
+ "method": "가우시안 코퓰러 · 설계창 손실차 상관행렬(최근접 PSD 보정) · 셀당 귀무 통과확률 0.05",
+ "official_family_p_unchanged": 0.008361039546874999,
+ "p_k_ge_3_independent_binomial": 0.008361,
+ "p_k_ge_3_under_measured_dependence": 0.041515,
+ "purpose": "S2-1 보강 — 측정된 셀 상관(설계창) 아래 family 귀무 분포. 공식 판정 대체 아님.",
+ "schema": "v13_vol_family_null_under_measured_dependence",
+ "seed": 20260907,
+ "tail_probabilities": {
+  "0": 1.0,
+  "1": 0.28052,
+  "2": 0.103255,
+  "3": 0.041515,
+  "4": 0.01663,
+  "5": 0.00595,
+  "6": 0.00166,
+  "7": 0.000365,
+  "8": 4.5e-05,
+  "9": 0.0
+ }
+}

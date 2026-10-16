@@ -1,0 +1,324 @@
+{
+  "research_as_of": "2026-10-12T10:38:50+09:00",
+  "database": "dualdb/db/dualdb.sqlite",
+  "sqlite_mode": "ro",
+  "query_only": true,
+  "sha256_before": "2d4865c7e260de94e5616b776aeb7ac7449d216e9db64705fdbc0c57573bdc1c",
+  "sha256_after": "2d4865c7e260de94e5616b776aeb7ac7449d216e9db64705fdbc0c57573bdc1c",
+  "unchanged": true,
+  "columns": [
+    "series",
+    "date",
+    "open",
+    "high",
+    "low",
+    "close",
+    "adj_close",
+    "volume",
+    "source",
+    "ingested_at"
+  ],
+  "series": [
+    {
+      "series": "AMAT",
+      "n": 11691,
+      "first_date": "1980-03-17",
+      "last_date": "2026-08-05",
+      "latest_ingested_at": "2026-08-06T09:18:03"
+    },
+    {
+      "series": "AMD",
+      "n": 11691,
+      "first_date": "1980-03-17",
+      "last_date": "2026-08-05",
+      "latest_ingested_at": "2026-08-06T09:18:03"
+    },
+    {
+      "series": "AMZN",
+      "n": 7351,
+      "first_date": "1997-05-15",
+      "last_date": "2026-08-05",
+      "latest_ingested_at": "2026-08-06T09:18:03"
+    },
+    {
+      "series": "ASML",
+      "n": 7900,
+      "first_date": "1995-03-15",
+      "last_date": "2026-08-05",
+      "latest_ingested_at": "2026-08-06T09:18:03"
+    },
+    {
+      "series": "AVGO",
+      "n": 4275,
+      "first_date": "2009-08-06",
+      "last_date": "2026-08-05",
+      "latest_ingested_at": "2026-08-06T09:18:03"
+    },
+    {
+      "series": "BTC-USD",
+      "n": 4349,
+      "first_date": "2014-09-17",
+      "last_date": "2026-08-13",
+      "latest_ingested_at": "2026-08-13T17:35:34"
+    },
+    {
+      "series": "CEG",
+      "n": 1140,
+      "first_date": "2022-01-19",
+      "last_date": "2026-08-05",
+      "latest_ingested_at": "2026-08-06T09:18:03"
+    },
+    {
+      "series": "CSCO",
+      "n": 9182,
+      "first_date": "1990-02-16",
+      "last_date": "2026-08-05",
+      "latest_ingested_at": "2026-08-06T09:18:03"
+    },
+    {
+      "series": "EQIX",
+      "n": 6533,
+      "first_date": "2000-08-11",
+      "last_date": "2026-08-05",
+      "latest_ingested_at": "2026-08-06T09:18:03"
+    },
+    {
+      "series": "GOOGL",
+      "n": 5525,
+      "first_date": "2004-08-19",
+      "last_date": "2026-08-05",
+      "latest_ingested_at": "2026-08-06T09:18:03"
+    },
+    {
+      "series": "IBB",
+      "n": 6412,
+      "first_date": "2001-02-12",
+      "last_date": "2026-08-12",
+      "latest_ingested_at": "2026-08-13T17:35:34"
+    },
+    {
+      "series": "IBM",
+      "n": 14269,
+      "first_date": "1970-01-02",
+      "last_date": "2026-08-05",
+      "latest_ingested_at": "2026-08-06T09:18:03"
+    },
+    {
+      "series": "INTC",
+      "n": 11691,
+      "first_date": "1980-03-17",
+      "last_date": "2026-08-05",
+      "latest_ingested_at": "2026-08-06T09:18:03"
+    },
+    {
+      "series": "KLAC",
+      "n": 11548,
+      "first_date": "1980-10-08",
+      "last_date": "2026-08-05",
+      "latest_ingested_at": "2026-08-06T09:18:03"
+    },
+    {
+      "series": "META",
+      "n": 3573,
+      "first_date": "2012-05-18",
+      "last_date": "2026-08-05",
+      "latest_ingested_at": "2026-08-06T09:18:03"
+    },
+    {
+      "series": "MRVL",
+      "n": 6562,
+      "first_date": "2000-06-30",
+      "last_date": "2026-08-05",
+      "latest_ingested_at": "2026-08-06T09:18:03"
+    },
+    {
+      "series": "MSFT",
+      "n": 10177,
+      "first_date": "1986-03-13",
+      "last_date": "2026-08-05",
+      "latest_ingested_at": "2026-08-06T09:18:03"
+    },
+    {
+      "series": "MU",
+      "n": 10626,
+      "first_date": "1984-06-01",
+      "last_date": "2026-08-05",
+      "latest_ingested_at": "2026-08-06T09:18:03"
+    },
+    {
+      "series": "NVDA",
+      "n": 6926,
+      "first_date": "1999-01-22",
+      "last_date": "2026-08-05",
+      "latest_ingested_at": "2026-08-06T09:18:03"
+    },
+    {
+      "series": "ORCL",
+      "n": 10178,
+      "first_date": "1986-03-12",
+      "last_date": "2026-08-05",
+      "latest_ingested_at": "2026-08-06T09:18:03"
+    },
+    {
+      "series": "PLTR",
+      "n": 1468,
+      "first_date": "2020-09-30",
+      "last_date": "2026-08-05",
+      "latest_ingested_at": "2026-08-06T09:18:03"
+    },
+    {
+      "series": "QCOM",
+      "n": 8721,
+      "first_date": "1991-12-13",
+      "last_date": "2026-08-05",
+      "latest_ingested_at": "2026-08-06T09:18:03"
+    },
+    {
+      "series": "SMH",
+      "n": 6581,
+      "first_date": "2000-06-05",
+      "last_date": "2026-08-05",
+      "latest_ingested_at": "2026-08-06T09:18:03"
+    },
+    {
+      "series": "TSM",
+      "n": 7249,
+      "first_date": "1997-10-09",
+      "last_date": "2026-08-05",
+      "latest_ingested_at": "2026-08-06T09:18:03"
+    },
+    {
+      "series": "TXN",
+      "n": 13657,
+      "first_date": "1972-06-01",
+      "last_date": "2026-08-05",
+      "latest_ingested_at": "2026-08-06T09:18:03"
+    },
+    {
+      "series": "VRT",
+      "n": 2012,
+      "first_date": "2018-08-02",
+      "last_date": "2026-08-05",
+      "latest_ingested_at": "2026-08-06T09:18:03"
+    },
+    {
+      "series": "^IXIC",
+      "n": 13996,
+      "first_date": "1971-02-05",
+      "last_date": "2026-08-12",
+      "latest_ingested_at": "2026-08-13T17:35:34"
+    },
+    {
+      "series": "^N225",
+      "n": 13920,
+      "first_date": "1970-01-05",
+      "last_date": "2026-08-13",
+      "latest_ingested_at": "2026-08-13T17:35:34"
+    },
+    {
+      "series": "^NDX",
+      "n": 10295,
+      "first_date": "1985-10-01",
+      "last_date": "2026-08-12",
+      "latest_ingested_at": "2026-08-13T17:35:34"
+    },
+    {
+      "series": "^SOX",
+      "n": 8123,
+      "first_date": "1994-05-04",
+      "last_date": "2026-08-12",
+      "latest_ingested_at": "2026-08-13T17:35:34"
+    },
+    {
+      "series": "^SPX",
+      "n": 14274,
+      "first_date": "1970-01-02",
+      "last_date": "2026-08-12",
+      "latest_ingested_at": "2026-08-13T17:35:34"
+    },
+    {
+      "series": "^TNX",
+      "n": 14172,
+      "first_date": "1970-01-02",
+      "last_date": "2026-08-12",
+      "latest_ingested_at": "2026-08-13T17:35:34"
+    },
+    {
+      "series": "^VIX",
+      "n": 9222,
+      "first_date": "1990-01-02",
+      "last_date": "2026-08-13",
+      "latest_ingested_at": "2026-08-13T17:35:34"
+    }
+  ],
+  "internal_pair_missing": [
+    "SOXX",
+    "IGV"
+  ],
+  "internal_available_at_missing": true,
+  "external_histories": [
+    {
+      "symbol": "SOXX",
+      "url": "https://finance.yahoo.com/quote/SOXX/history/?period1=1199145600&period2=1791590400",
+      "retrieved_at": "2026-10-12T01:41:07.995509+00:00",
+      "rows": 4723,
+      "first_session": "2008-01-02",
+      "last_session": "2026-10-09",
+      "last_close": 559.4000244140625,
+      "last_adj_close": 559.4000244140625,
+      "adjustment_definition": "Yahoo history page: adjusted close includes splits and dividend/capital-gain distributions",
+      "available_at": null,
+      "historical_original_vintage_verified": false,
+      "as_of_eligibility": "retrospective research only; archived delivery timestamp unavailable",
+      "source_html": "source_html/SOXX_history.html",
+      "source_sha256": "8b16d5f8640ef7169990f1e3ffd82567ff55aa2553886f1b82785968a7847c10",
+      "csv": "price_inputs/SOXX_adjusted_history.csv",
+      "csv_sha256": "0717b0045cd621945c05a0e1fcbb0142f8f00d15adf5ace84c1f1cc29aed9314",
+      "dividend_event_count": 69,
+      "split_event_count": 1
+    },
+    {
+      "symbol": "IGV",
+      "url": "https://finance.yahoo.com/quote/IGV/history/?period1=1199145600&period2=1791590400",
+      "retrieved_at": "2026-10-12T01:41:07.571684+00:00",
+      "rows": 4723,
+      "first_session": "2008-01-02",
+      "last_session": "2026-10-09",
+      "last_close": 112.66999816894531,
+      "last_adj_close": 112.66999816894531,
+      "adjustment_definition": "Yahoo history page: adjusted close includes splits and dividend/capital-gain distributions",
+      "available_at": null,
+      "historical_original_vintage_verified": false,
+      "as_of_eligibility": "retrospective research only; archived delivery timestamp unavailable",
+      "source_html": "source_html/IGV_history.html",
+      "source_sha256": "8087c134070807b612a602bf8d66d3f40f43b1ad9d1027ed76b6281a62340c1f",
+      "csv": "price_inputs/IGV_adjusted_history.csv",
+      "csv_sha256": "6ed25f73ea3b42f6abb0edb4a89ec009e36386bfce368f5ef379f350e3818259",
+      "dividend_event_count": 34,
+      "split_event_count": 1
+    },
+    {
+      "symbol": "SPY",
+      "url": "https://finance.yahoo.com/quote/SPY/history/?period1=1199145600&period2=1791590400",
+      "retrieved_at": "2026-10-12T01:41:09.074582+00:00",
+      "rows": 4723,
+      "first_session": "2008-01-02",
+      "last_session": "2026-10-09",
+      "last_close": 778.5700073242188,
+      "last_adj_close": 778.5700073242188,
+      "adjustment_definition": "Yahoo history page: adjusted close includes splits and dividend/capital-gain distributions",
+      "available_at": null,
+      "historical_original_vintage_verified": false,
+      "as_of_eligibility": "retrospective research only; archived delivery timestamp unavailable",
+      "source_html": "source_html/SPY_history.html",
+      "source_sha256": "ce2376dadee43c1e4e2a2436cbd76a17a93b58e9c68d80fb7e0faad08d438455",
+      "csv": "price_inputs/SPY_adjusted_history.csv",
+      "csv_sha256": "bee700f2d8c21a9477516ed0af27acdec1df752afe60f398e1a49bee7e292163",
+      "dividend_event_count": 75,
+      "split_event_count": 0
+    }
+  ],
+  "original_vintage_gate": "blocked",
+  "gate_reason": "No original historical available_at or adjustment vintages; public HTML collected after study cutoff.",
+  "retrospective_research_allowed": true
+}

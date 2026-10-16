@@ -1,0 +1,1051 @@
+{
+  "as_of": "2026-10-12T10:38:50+09:00",
+  "baseline_as_of": "2026-10-12T09:16:14+09:00",
+  "price_date": "2026-10-09",
+  "horizon": "2026-12-31",
+  "role": "hypothetical_paired_research_not_calibrated_forecast",
+  "return_unit": "fraction",
+  "probability_unit": "fraction",
+  "official_forecast": false,
+  "summary": {
+    "judgment": "실적 반도체 우선 · 최근 가격 소프트웨어 우세 · 연말 우열 미검증",
+    "semi_expected_assumption": 0.046059589041095944,
+    "software_expected_assumption": 0.029365890410958925,
+    "mean_spread": 0.01669369863013702,
+    "confidence": "사업 수요 판단 중간 이상; 연말 상대수익 수치·승률의 검증은 부족",
+    "calibrated_winner_probability": null
+  },
+  "comparison": {
+    "semi": {
+      "ticker": "SOXX",
+      "close": 559.4,
+      "close_date": "2026-10-09",
+      "pe": 51.42,
+      "pe_date": "2026-10-08",
+      "pe_definition": "각 보유종목의 최신 종가를 최근 확정 회계연도 EPS로 나누는 issuer P/E. 음수 P/E 제외. TTM 또는 forward P/E로 표기하지 않음. HTML infoBubble 원문을 별도로 검증.",
+      "nav_ytd_fraction": 0.8902,
+      "nav_1m_fraction": 0.11230000000000001,
+      "nav_3m_fraction": -0.11259999999999999,
+      "performance_date": "2026-09-30",
+      "top5_weight_fraction": 0.4022,
+      "holdings_count": 30,
+      "source_url": "https://www.ishares.com/us/products/239705/ishares-phlx-semiconductor-etf",
+      "source_id": "TECH-SOXX-ETF",
+      "available_at": null,
+      "pit_certified": false,
+      "classification": "observed_public_reference_publication_vintage_unverified",
+      "return_unit": "fraction",
+      "price_unit": "USD_per_share",
+      "performance_definition": "Issuer month-end NAV total return: distributions reinvested and fund expenses reflected"
+    },
+    "software": {
+      "ticker": "IGV",
+      "close": 112.67,
+      "close_date": "2026-10-09",
+      "pe": 36.83,
+      "pe_date": "2026-10-08",
+      "pe_definition": "각 보유종목의 최신 종가를 최근 확정 회계연도 EPS로 나누는 issuer P/E. 음수 P/E 제외. TTM 또는 forward P/E로 표기하지 않음. HTML infoBubble 원문을 별도로 검증.",
+      "nav_ytd_fraction": 0.0068000000000000005,
+      "nav_1m_fraction": -0.0338,
+      "nav_3m_fraction": 0.1746,
+      "performance_date": "2026-09-30",
+      "top5_weight_fraction": 0.4294,
+      "holdings_count": 106,
+      "source_url": "https://www.ishares.com/us/products/239771/ishares-north-american-techsoftware-etf",
+      "source_id": "TECH-IGV-ETF",
+      "available_at": null,
+      "pit_certified": false,
+      "classification": "observed_public_reference_publication_vintage_unverified",
+      "return_unit": "fraction",
+      "price_unit": "USD_per_share",
+      "performance_definition": "Issuer month-end NAV total return: distributions reinvested and fund expenses reflected"
+    }
+  },
+  "scenarios": [
+    {
+      "state": "bull",
+      "name": "상승",
+      "weight": 0.3,
+      "semi": {
+        "ticker": "SOXX",
+        "g": 0.12,
+        "m": 0.1,
+        "g_width": 0.02,
+        "m_width": 0.04,
+        "return": 0.2319095890410961,
+        "low": 0.16590958904109604,
+        "high": 0.299509589041096,
+        "dividend_remaining": 0.00066,
+        "fee_annual": 0.0033
+      },
+      "software": {
+        "ticker": "IGV",
+        "g": 0.06,
+        "m": 0.14,
+        "g_width": 0.03,
+        "m_width": 0.05,
+        "return": 0.20753589041095905,
+        "low": 0.12183589041095894,
+        "high": 0.29623589041095905,
+        "dividend_remaining": 0,
+        "fee_annual": 0.0038
+      },
+      "spread": 0.024373698630137053,
+      "relative_wealth_return": 0.020184657717992938,
+      "log_relative_wealth": 0.019983647889387918,
+      "spread_possible_low": -0.130326301369863,
+      "spread_possible_high": 0.17767369863013704,
+      "software_extra_multiple_to_tie": 0.02299405531145005
+    },
+    {
+      "state": "base",
+      "name": "기준",
+      "weight": 0.45,
+      "semi": {
+        "ticker": "SOXX",
+        "g": 0.07,
+        "m": 0,
+        "g_width": 0.02,
+        "m_width": 0.04,
+        "return": 0.06990958904109594,
+        "low": 0.007909589041095899,
+        "high": 0.13350958904109606,
+        "dividend_remaining": 0.00066,
+        "fee_annual": 0.0033
+      },
+      "software": {
+        "ticker": "IGV",
+        "g": 0.04,
+        "m": 0.02,
+        "g_width": 0.02,
+        "m_width": 0.04,
+        "return": 0.05993589041095887,
+        "low": -0.0012641095890410519,
+        "high": 0.12273589041095906,
+        "dividend_remaining": 0,
+        "fee_annual": 0.0038
+      },
+      "spread": 0.00997369863013707,
+      "relative_wealth_return": 0.009409718757867669,
+      "log_relative_wealth": 0.009365723129969618,
+      "spread_possible_low": -0.11482630136986316,
+      "spread_possible_high": 0.1347736986301371,
+      "software_extra_multiple_to_tie": 0.00959009483667026
+    },
+    {
+      "state": "bear",
+      "name": "하락",
+      "weight": 0.25,
+      "semi": {
+        "ticker": "SOXX",
+        "g": -0.06,
+        "m": -0.17,
+        "g_width": 0.02,
+        "m_width": 0.04,
+        "return": -0.21989041095890421,
+        "low": -0.273290410958904,
+        "high": -0.16489041095890417,
+        "dividend_remaining": 0.00066,
+        "fee_annual": 0.0033
+      },
+      "software": {
+        "ticker": "IGV",
+        "g": -0.06,
+        "m": -0.19,
+        "g_width": 0.04,
+        "m_width": 0.05,
+        "return": -0.23946410958904113,
+        "low": -0.31686410958904104,
+        "high": -0.1580641095890411,
+        "dividend_remaining": 0,
+        "fee_annual": 0.0038
+      },
+      "spread": 0.019573698630136915,
+      "relative_wealth_return": 0.02573671916990028,
+      "log_relative_wealth": 0.025411104822657266,
+      "spread_possible_low": -0.1152263013698629,
+      "spread_possible_high": 0.15197369863013688,
+      "software_extra_multiple_to_tie": 0.020823083649081826
+    }
+  ],
+  "pair_analysis": {
+    "spread_formula": "R_SOXX - R_IGV (percentage points at output boundary)",
+    "relative_wealth_formula": "(1+R_SOXX)/(1+R_IGV)-1",
+    "return_formula": "(1+g)*(1+m)-1+dividend-fee*83/365",
+    "software_extra_multiple_to_tie": 0.01635034145948778,
+    "software_extra_growth_to_tie": 0.01663547446949379,
+    "software_m_delta_slope": 1.021,
+    "software_g_delta_slope": 1.0035,
+    "fixed_center_simplex_min_spread": 0.00997369863013707,
+    "fixed_center_simplex_max_spread": 0.024373698630137053,
+    "fixed_center_dominance": true,
+    "range_robust_dominance": false,
+    "nav_ytd_relative_wealth_observed": 0.8774334525228449,
+    "nav_q3_relative_wealth_observed": -0.24450876894261886,
+    "historical_fiscal_pe_ratio": 1.3961444474613087,
+    "interpretation": "작은 우위는 기존 연구 가정에서 나온다. 검증된 예측 정밀도나 하방 손실 한도를 뜻하지 않는다."
+  },
+  "monte_carlo": {
+    "role": "conditional_assumption_distribution_not_market_forecast",
+    "n": 200000,
+    "seed": 20261012,
+    "semi_superiority_frequency": 0.831895,
+    "frequency_unit": "fraction",
+    "numeric_mc_standard_error": 0.0008361988668223604,
+    "standard_error_role": "simulation_sampling_error_only_not_model_confidence",
+    "mean_spread": 0.01670356164962135,
+    "spread_quantiles": {
+      "0.05": -0.01087173698582984,
+      "0.5": 0.01610462371774546,
+      "0.95": 0.04646958220138554
+    },
+    "mean_returns": {
+      "SOXX": 0.0458827553179629,
+      "IGV": 0.029179193668341555
+    },
+    "histogram": {
+      "edges": [
+        -0.11,
+        -0.1056,
+        -0.1012,
+        -0.0968,
+        -0.0924,
+        -0.088,
+        -0.08360000000000001,
+        -0.07919999999999999,
+        -0.0748,
+        -0.07039999999999999,
+        -0.066,
+        -0.061599999999999995,
+        -0.0572,
+        -0.0528,
+        -0.0484,
+        -0.044,
+        -0.039599999999999996,
+        -0.035199999999999995,
+        -0.030799999999999994,
+        -0.026399999999999993,
+        -0.021999999999999992,
+        -0.01759999999999999,
+        -0.01319999999999999,
+        -0.008799999999999988,
+        -0.004400000000000001,
+        0.0,
+        0.004400000000000001,
+        0.008800000000000002,
+        0.013200000000000003,
+        0.01760000000000002,
+        0.022000000000000006,
+        0.02640000000000002,
+        0.030800000000000008,
+        0.035199999999999995,
+        0.03960000000000001,
+        0.044,
+        0.04840000000000001,
+        0.0528,
+        0.057200000000000015,
+        0.0616,
+        0.06600000000000002,
+        0.0704,
+        0.07480000000000002,
+        0.0792,
+        0.08360000000000002,
+        0.08800000000000001,
+        0.09240000000000002,
+        0.09680000000000001,
+        0.1012,
+        0.10560000000000001,
+        0.11
+      ],
+      "counts": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        6,
+        32,
+        77,
+        211,
+        429,
+        975,
+        2013,
+        3535,
+        5762,
+        8663,
+        11916,
+        15133,
+        17927,
+        19979,
+        20150,
+        19633,
+        17586,
+        15090,
+        11982,
+        9180,
+        6791,
+        4838,
+        3291,
+        2015,
+        1275,
+        740,
+        393,
+        204,
+        104,
+        35,
+        20,
+        9,
+        2,
+        1,
+        1,
+        0
+      ],
+      "x_unit": "return_fraction_difference"
+    },
+    "g_copula_rho": 0.6,
+    "m_copula_rho": 0.75,
+    "width_scale": 1,
+    "assumptions": {
+      "n": 200000,
+      "seed": 20261012,
+      "g_copula_rho": 0.6,
+      "m_copula_rho": 0.75,
+      "distribution": "Symmetric triangular research ranges; independent g/m drivers within each asset; Gaussian copula across sectors",
+      "parameter_role": "assumptions_not_estimated_or_calibrated",
+      "correlation_is_latent_gaussian_not_return_correlation": true
+    }
+  },
+  "sensitivity": {
+    "weights": [
+      {
+        "weights": {
+          "bull": 0.15,
+          "base": 0.7,
+          "bear": 0.15
+        },
+        "spread": 0.013573698630137044,
+        "winner": "SOXX"
+      },
+      {
+        "weights": {
+          "bull": 0.15,
+          "base": 0.6,
+          "bear": 0.25
+        },
+        "spread": 0.014533698630137029,
+        "winner": "SOXX"
+      },
+      {
+        "weights": {
+          "bull": 0.15,
+          "base": 0.5,
+          "bear": 0.35
+        },
+        "spread": 0.015493698630137012,
+        "winner": "SOXX"
+      },
+      {
+        "weights": {
+          "bull": 0.15,
+          "base": 0.39999999999999997,
+          "bear": 0.45
+        },
+        "spread": 0.016453698630136997,
+        "winner": "SOXX"
+      },
+      {
+        "weights": {
+          "bull": 0.25,
+          "base": 0.6,
+          "bear": 0.15
+        },
+        "spread": 0.015013698630137042,
+        "winner": "SOXX"
+      },
+      {
+        "weights": {
+          "bull": 0.25,
+          "base": 0.5,
+          "bear": 0.25
+        },
+        "spread": 0.015973698630137027,
+        "winner": "SOXX"
+      },
+      {
+        "weights": {
+          "bull": 0.25,
+          "base": 0.4,
+          "bear": 0.35
+        },
+        "spread": 0.016933698630137013,
+        "winner": "SOXX"
+      },
+      {
+        "weights": {
+          "bull": 0.25,
+          "base": 0.3,
+          "bear": 0.45
+        },
+        "spread": 0.017893698630136998,
+        "winner": "SOXX"
+      },
+      {
+        "weights": {
+          "bull": 0.35,
+          "base": 0.5,
+          "bear": 0.15
+        },
+        "spread": 0.01645369863013704,
+        "winner": "SOXX"
+      },
+      {
+        "weights": {
+          "bull": 0.35,
+          "base": 0.4,
+          "bear": 0.25
+        },
+        "spread": 0.017413698630137024,
+        "winner": "SOXX"
+      },
+      {
+        "weights": {
+          "bull": 0.35,
+          "base": 0.30000000000000004,
+          "bear": 0.35
+        },
+        "spread": 0.01837369863013701,
+        "winner": "SOXX"
+      },
+      {
+        "weights": {
+          "bull": 0.35,
+          "base": 0.2,
+          "bear": 0.45
+        },
+        "spread": 0.019333698630136995,
+        "winner": "SOXX"
+      },
+      {
+        "weights": {
+          "bull": 0.45,
+          "base": 0.4,
+          "bear": 0.15
+        },
+        "spread": 0.01789369863013704,
+        "winner": "SOXX"
+      },
+      {
+        "weights": {
+          "bull": 0.45,
+          "base": 0.30000000000000004,
+          "bear": 0.25
+        },
+        "spread": 0.018853698630137024,
+        "winner": "SOXX"
+      },
+      {
+        "weights": {
+          "bull": 0.45,
+          "base": 0.20000000000000007,
+          "bear": 0.35
+        },
+        "spread": 0.01981369863013701,
+        "winner": "SOXX"
+      },
+      {
+        "weights": {
+          "bull": 0.45,
+          "base": 0.10000000000000003,
+          "bear": 0.45
+        },
+        "spread": 0.020773698630136995,
+        "winner": "SOXX"
+      }
+    ],
+    "software_multiple_delta": [
+      {
+        "software_extra_m": -0.05,
+        "mean_spread": 0.06774369863013702
+      },
+      {
+        "software_extra_m": -0.049,
+        "mean_spread": 0.06672269863013702
+      },
+      {
+        "software_extra_m": -0.048,
+        "mean_spread": 0.06570169863013701
+      },
+      {
+        "software_extra_m": -0.047,
+        "mean_spread": 0.064680698630137
+      },
+      {
+        "software_extra_m": -0.046,
+        "mean_spread": 0.06365969863013701
+      },
+      {
+        "software_extra_m": -0.045000000000000005,
+        "mean_spread": 0.06263869863013702
+      },
+      {
+        "software_extra_m": -0.044000000000000004,
+        "mean_spread": 0.06161769863013702
+      },
+      {
+        "software_extra_m": -0.043000000000000003,
+        "mean_spread": 0.060596698630137016
+      },
+      {
+        "software_extra_m": -0.042,
+        "mean_spread": 0.059575698630137015
+      },
+      {
+        "software_extra_m": -0.041,
+        "mean_spread": 0.058554698630137014
+      },
+      {
+        "software_extra_m": -0.04,
+        "mean_spread": 0.05753369863013701
+      },
+      {
+        "software_extra_m": -0.03900000000000001,
+        "mean_spread": 0.05651269863013702
+      },
+      {
+        "software_extra_m": -0.038000000000000006,
+        "mean_spread": 0.05549169863013702
+      },
+      {
+        "software_extra_m": -0.037000000000000005,
+        "mean_spread": 0.054470698630137024
+      },
+      {
+        "software_extra_m": -0.036000000000000004,
+        "mean_spread": 0.05344969863013702
+      },
+      {
+        "software_extra_m": -0.035,
+        "mean_spread": 0.05242869863013702
+      },
+      {
+        "software_extra_m": -0.034,
+        "mean_spread": 0.05140769863013702
+      },
+      {
+        "software_extra_m": -0.033,
+        "mean_spread": 0.05038669863013702
+      },
+      {
+        "software_extra_m": -0.032,
+        "mean_spread": 0.04936569863013702
+      },
+      {
+        "software_extra_m": -0.031000000000000003,
+        "mean_spread": 0.04834469863013702
+      },
+      {
+        "software_extra_m": -0.030000000000000002,
+        "mean_spread": 0.04732369863013702
+      },
+      {
+        "software_extra_m": -0.029,
+        "mean_spread": 0.046302698630137015
+      },
+      {
+        "software_extra_m": -0.028000000000000004,
+        "mean_spread": 0.04528169863013702
+      },
+      {
+        "software_extra_m": -0.027000000000000003,
+        "mean_spread": 0.04426069863013702
+      },
+      {
+        "software_extra_m": -0.026000000000000002,
+        "mean_spread": 0.04323969863013702
+      },
+      {
+        "software_extra_m": -0.025,
+        "mean_spread": 0.04221869863013702
+      },
+      {
+        "software_extra_m": -0.024,
+        "mean_spread": 0.04119769863013702
+      },
+      {
+        "software_extra_m": -0.023000000000000003,
+        "mean_spread": 0.04017669863013702
+      },
+      {
+        "software_extra_m": -0.022000000000000002,
+        "mean_spread": 0.039155698630137015
+      },
+      {
+        "software_extra_m": -0.021,
+        "mean_spread": 0.03813469863013702
+      },
+      {
+        "software_extra_m": -0.020000000000000004,
+        "mean_spread": 0.03711369863013702
+      },
+      {
+        "software_extra_m": -0.019000000000000003,
+        "mean_spread": 0.03609269863013702
+      },
+      {
+        "software_extra_m": -0.018000000000000002,
+        "mean_spread": 0.035071698630137024
+      },
+      {
+        "software_extra_m": -0.017,
+        "mean_spread": 0.034050698630137016
+      },
+      {
+        "software_extra_m": -0.016,
+        "mean_spread": 0.03302969863013702
+      },
+      {
+        "software_extra_m": -0.015,
+        "mean_spread": 0.032008698630137014
+      },
+      {
+        "software_extra_m": -0.013999999999999999,
+        "mean_spread": 0.030987698630137017
+      },
+      {
+        "software_extra_m": -0.013000000000000005,
+        "mean_spread": 0.029966698630137022
+      },
+      {
+        "software_extra_m": -0.012000000000000004,
+        "mean_spread": 0.02894569863013702
+      },
+      {
+        "software_extra_m": -0.011000000000000003,
+        "mean_spread": 0.02792469863013702
+      },
+      {
+        "software_extra_m": -0.010000000000000002,
+        "mean_spread": 0.02690369863013702
+      },
+      {
+        "software_extra_m": -0.009000000000000001,
+        "mean_spread": 0.02588269863013702
+      },
+      {
+        "software_extra_m": -0.008,
+        "mean_spread": 0.02486169863013702
+      },
+      {
+        "software_extra_m": -0.006999999999999999,
+        "mean_spread": 0.02384069863013702
+      },
+      {
+        "software_extra_m": -0.006000000000000005,
+        "mean_spread": 0.022819698630137025
+      },
+      {
+        "software_extra_m": -0.0050000000000000044,
+        "mean_spread": 0.021798698630137024
+      },
+      {
+        "software_extra_m": -0.0040000000000000036,
+        "mean_spread": 0.020777698630137023
+      },
+      {
+        "software_extra_m": -0.0030000000000000027,
+        "mean_spread": 0.019756698630137022
+      },
+      {
+        "software_extra_m": -0.0020000000000000018,
+        "mean_spread": 0.01873569863013702
+      },
+      {
+        "software_extra_m": -0.0010000000000000009,
+        "mean_spread": 0.01771469863013702
+      },
+      {
+        "software_extra_m": 0.0,
+        "mean_spread": 0.01669369863013702
+      },
+      {
+        "software_extra_m": 0.0010000000000000009,
+        "mean_spread": 0.015672698630137018
+      },
+      {
+        "software_extra_m": 0.0020000000000000018,
+        "mean_spread": 0.014651698630137017
+      },
+      {
+        "software_extra_m": 0.0029999999999999957,
+        "mean_spread": 0.013630698630137023
+      },
+      {
+        "software_extra_m": 0.003999999999999997,
+        "mean_spread": 0.012609698630137021
+      },
+      {
+        "software_extra_m": 0.0049999999999999975,
+        "mean_spread": 0.011588698630137022
+      },
+      {
+        "software_extra_m": 0.005999999999999998,
+        "mean_spread": 0.010567698630137021
+      },
+      {
+        "software_extra_m": 0.006999999999999999,
+        "mean_spread": 0.00954669863013702
+      },
+      {
+        "software_extra_m": 0.008,
+        "mean_spread": 0.008525698630137019
+      },
+      {
+        "software_extra_m": 0.009000000000000001,
+        "mean_spread": 0.007504698630137018
+      },
+      {
+        "software_extra_m": 0.009999999999999995,
+        "mean_spread": 0.0064836986301370254
+      },
+      {
+        "software_extra_m": 0.010999999999999996,
+        "mean_spread": 0.005462698630137024
+      },
+      {
+        "software_extra_m": 0.011999999999999997,
+        "mean_spread": 0.004441698630137023
+      },
+      {
+        "software_extra_m": 0.012999999999999998,
+        "mean_spread": 0.0034206986301370222
+      },
+      {
+        "software_extra_m": 0.013999999999999999,
+        "mean_spread": 0.002399698630137021
+      },
+      {
+        "software_extra_m": 0.015,
+        "mean_spread": 0.00137869863013702
+      },
+      {
+        "software_extra_m": 0.016,
+        "mean_spread": 0.000357698630137019
+      },
+      {
+        "software_extra_m": 0.017,
+        "mean_spread": -0.0006633013698629821
+      },
+      {
+        "software_extra_m": 0.018000000000000002,
+        "mean_spread": -0.0016843013698629831
+      },
+      {
+        "software_extra_m": 0.019000000000000003,
+        "mean_spread": -0.0027053013698629808
+      },
+      {
+        "software_extra_m": 0.020000000000000004,
+        "mean_spread": -0.003726301369862982
+      },
+      {
+        "software_extra_m": 0.021000000000000005,
+        "mean_spread": -0.004747301369862983
+      },
+      {
+        "software_extra_m": 0.022000000000000006,
+        "mean_spread": -0.005768301369862984
+      },
+      {
+        "software_extra_m": 0.022999999999999993,
+        "mean_spread": -0.006789301369862971
+      },
+      {
+        "software_extra_m": 0.023999999999999994,
+        "mean_spread": -0.007810301369862972
+      },
+      {
+        "software_extra_m": 0.024999999999999994,
+        "mean_spread": -0.008831301369862973
+      },
+      {
+        "software_extra_m": 0.025999999999999995,
+        "mean_spread": -0.009852301369862974
+      },
+      {
+        "software_extra_m": 0.026999999999999996,
+        "mean_spread": -0.010873301369862975
+      },
+      {
+        "software_extra_m": 0.027999999999999997,
+        "mean_spread": -0.011894301369862977
+      },
+      {
+        "software_extra_m": 0.028999999999999998,
+        "mean_spread": -0.012915301369862978
+      },
+      {
+        "software_extra_m": 0.03,
+        "mean_spread": -0.013936301369862979
+      },
+      {
+        "software_extra_m": 0.031,
+        "mean_spread": -0.01495730136986298
+      },
+      {
+        "software_extra_m": 0.032,
+        "mean_spread": -0.01597830136986298
+      },
+      {
+        "software_extra_m": 0.033,
+        "mean_spread": -0.016999301369862982
+      },
+      {
+        "software_extra_m": 0.034,
+        "mean_spread": -0.018020301369862983
+      },
+      {
+        "software_extra_m": 0.035,
+        "mean_spread": -0.019041301369862984
+      },
+      {
+        "software_extra_m": 0.036000000000000004,
+        "mean_spread": -0.020062301369862985
+      },
+      {
+        "software_extra_m": 0.037000000000000005,
+        "mean_spread": -0.021083301369862986
+      },
+      {
+        "software_extra_m": 0.03799999999999999,
+        "mean_spread": -0.022104301369862966
+      },
+      {
+        "software_extra_m": 0.03899999999999999,
+        "mean_spread": -0.023125301369862968
+      },
+      {
+        "software_extra_m": 0.039999999999999994,
+        "mean_spread": -0.02414630136986297
+      },
+      {
+        "software_extra_m": 0.040999999999999995,
+        "mean_spread": -0.02516730136986297
+      },
+      {
+        "software_extra_m": 0.041999999999999996,
+        "mean_spread": -0.02618830136986297
+      },
+      {
+        "software_extra_m": 0.043,
+        "mean_spread": -0.027209301369862972
+      },
+      {
+        "software_extra_m": 0.044,
+        "mean_spread": -0.028230301369862973
+      },
+      {
+        "software_extra_m": 0.045,
+        "mean_spread": -0.029251301369862974
+      },
+      {
+        "software_extra_m": 0.046,
+        "mean_spread": -0.030272301369862975
+      },
+      {
+        "software_extra_m": 0.047,
+        "mean_spread": -0.031293301369862976
+      },
+      {
+        "software_extra_m": 0.048,
+        "mean_spread": -0.03231430136986298
+      },
+      {
+        "software_extra_m": 0.049,
+        "mean_spread": -0.03333530136986298
+      },
+      {
+        "software_extra_m": 0.05,
+        "mean_spread": -0.03435630136986298
+      }
+    ],
+    "distribution": [
+      {
+        "g_copula_rho": 0.0,
+        "m_copula_rho": 0.0,
+        "width_scale": 1.0,
+        "n": 50000,
+        "semi_superiority_frequency": 0.7038,
+        "mean_spread": 0.016356538333104922
+      },
+      {
+        "g_copula_rho": 0.0,
+        "m_copula_rho": 0.0,
+        "width_scale": 2.0,
+        "n": 50000,
+        "semi_superiority_frequency": 0.60512,
+        "mean_spread": 0.01599814007991285
+      },
+      {
+        "g_copula_rho": 0.5,
+        "m_copula_rho": 0.5,
+        "width_scale": 1.0,
+        "n": 50000,
+        "semi_superiority_frequency": 0.77054,
+        "mean_spread": 0.016472940662426334
+      },
+      {
+        "g_copula_rho": 0.5,
+        "m_copula_rho": 0.5,
+        "width_scale": 2.0,
+        "n": 50000,
+        "semi_superiority_frequency": 0.64806,
+        "mean_spread": 0.016231727330982413
+      },
+      {
+        "g_copula_rho": 0.9,
+        "m_copula_rho": 0.9,
+        "width_scale": 1.0,
+        "n": 50000,
+        "semi_superiority_frequency": 0.9266,
+        "mean_spread": 0.01662339875067323
+      },
+      {
+        "g_copula_rho": 0.9,
+        "m_copula_rho": 0.9,
+        "width_scale": 2.0,
+        "n": 50000,
+        "semi_superiority_frequency": 0.77506,
+        "mean_spread": 0.016532025580805656
+      }
+    ]
+  },
+  "calendar": {
+    "calendar_days": 83,
+    "remaining_us_sessions": 57,
+    "holidays": [
+      "2026-11-26",
+      "2026-12-25"
+    ],
+    "source_url": "https://www.nyse.com/trade/hours-calendars",
+    "early_close_counts_as_session": true
+  },
+  "assets": {
+    "SOXX": {
+      "id": "SOXX",
+      "name": "AI 반도체",
+      "class": "industry",
+      "priority": true,
+      "fee_annual": 0.0033,
+      "dividend_remaining": 0.00066,
+      "dividend_basis": "Issuer trailing annual yield 0.29% * 83/365, rounded; forward proxy only.",
+      "dividend_proxy_source": {
+        "url": "https://www.ishares.com/us/products/239705/ishares-phlx-semiconductor-etf",
+        "metric": "12m trailing yield",
+        "source_value": 0.29,
+        "source_unit": "percent_per_year",
+        "data_as_of": "2026-08-31",
+        "availability": "dynamic publication time unverified; source header inspected"
+      },
+      "source_ids": [
+        "TECH-SOXX-ETF",
+        "TECH-NVDA-FY27Q2",
+        "TECH-AVGO-FY26Q3",
+        "TECH-TSMC-2026SEP-SALES",
+        "TECH-SOXX-SPLIT"
+      ],
+      "rationale": "Confirmed AI chip demand and strong forward company revenue guides support earnings-power upside; YTD appreciation and high volatility require large derating stress.",
+      "cases": {
+        "bull": {
+          "g": 0.12,
+          "m": 0.1,
+          "g_width": 0.02,
+          "m_width": 0.04
+        },
+        "base": {
+          "g": 0.07,
+          "m": 0,
+          "g_width": 0.02,
+          "m_width": 0.04
+        },
+        "bear": {
+          "g": -0.06,
+          "m": -0.17,
+          "g_width": 0.02,
+          "m_width": 0.04
+        }
+      },
+      "split_ratio": 3
+    },
+    "IGV": {
+      "id": "IGV",
+      "name": "선별 소프트웨어",
+      "class": "industry",
+      "priority": false,
+      "fee_annual": 0.0038,
+      "dividend_remaining": 0,
+      "dividend_basis": "Explicit zero remaining dividend assumption, not a claim that the fund never pays distributions.",
+      "source_ids": [
+        "TECH-IGV-ETF",
+        "TECH-CRM-FY27Q2",
+        "TECH-CRWD-FY27Q2"
+      ],
+      "rationale": "AI implementation/security demand can support selected businesses; prior-quarter rebound, SBC and disruption risk make broad software a conditional rates-relief alternative.",
+      "cases": {
+        "bull": {
+          "g": 0.06,
+          "m": 0.14,
+          "g_width": 0.03,
+          "m_width": 0.05
+        },
+        "base": {
+          "g": 0.04,
+          "m": 0.02,
+          "g_width": 0.02,
+          "m_width": 0.04
+        },
+        "bear": {
+          "g": -0.06,
+          "m": -0.19,
+          "g_width": 0.04,
+          "m_width": 0.05
+        }
+      },
+      "split_ratio": 1
+    }
+  },
+  "weights": {
+    "bull": 0.3,
+    "base": 0.45,
+    "bear": 0.25
+  },
+  "limitations": [
+    "Growth/multiple ranges and common regime weights were chosen by the analyst, not fitted to sector returns.",
+    "Simulation frequencies are conditional on invented distributions; they are not validated market winning probabilities.",
+    "Issuer historical-fiscal-year P/E excludes loss-making holdings; normalized forward earnings not obtained.",
+    "No tax, FX, spread, trading costs or automatic orders are modeled.",
+    "Prior study remains unchanged; this is separate paired shadow research, without promotion."
+  ],
+  "validation": {
+    "arithmetic": "pass",
+    "shadow_comparison": "same midpoints as previous study",
+    "max_midpoint_difference": 6.938893903907228e-18,
+    "sources_certified_pit": false,
+    "assumption_frequency_is_forecast_probability": false,
+    "old_study_modified": false,
+    "source_hashes": {
+      "assumptions.json": "1eb0a6377f33d641e729a6873e7d4ac1a13191d61e8e6f33fc5f54b2f7caeb06",
+      "scenario_results.json": "fa4e1192c2a805756a1391a8c1c3b063d7af483025466b54b64b7edb1693d5d4",
+      "evidence_us_tech.json": "7f8b7cad32ab64e7bf2ef4881746ffec190e67b842f7e705a6d8b5c69aa3e259",
+      "internal_audit.json": "3fb1149a4ac10e26313233f55035549f11e6b6a31c4e61c145954784e86b6a04"
+    }
+  }
+}

@@ -1,0 +1,4 @@
+2026-08-28T07:42:09Z loop started (pid 8345, SMOKE=1)
+2026-08-28T07:42:15Z holdout ledger absent; large python process alive - waiting
+2026-08-28T07:42:16Z SMOKE cycle done (wait branch)
+2026-08-28T07:42:16Z loop exited

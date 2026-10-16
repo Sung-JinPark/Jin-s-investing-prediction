@@ -1,0 +1,4 @@
+﻿state,weight,semi_return,software_return,spread,relative_wealth_return,software_extra_multiple_to_tie,return_unit,role
+bull,0.3,0.2319095890410961,0.20753589041095905,0.024373698630137053,0.020184657717992938,0.02299405531145005,fraction,hypothetical_paired_research_not_calibrated_forecast
+base,0.45,0.06990958904109594,0.05993589041095887,0.00997369863013707,0.009409718757867669,0.00959009483667026,fraction,hypothetical_paired_research_not_calibrated_forecast
+bear,0.25,-0.21989041095890421,-0.23946410958904113,0.019573698630136915,0.02573671916990028,0.020823083649081826,fraction,hypothetical_paired_research_not_calibrated_forecast

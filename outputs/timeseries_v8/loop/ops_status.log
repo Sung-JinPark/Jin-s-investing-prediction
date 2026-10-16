@@ -1,0 +1,130 @@
+C:\Users\91ssj\AppData\Local\Programs\Python\Python312\python.exe: can't open file 'C:\\workspace\\ai-investing\\tools\\ops_status.py': [Errno 2] No such file or directory
+ops status @ 2026-08-28T08:35:50+00:00
+  gh unavailable: Unknown JSON field: "htmlUrl"
+Available fields:
+  attempt
+  conclusion
+  createdAt
+  databaseId
+  displayTitle
+  event
+  headBranch
+  headSha
+  name
+  number
+  startedAt
+  status
+  updatedAt
+  url
+  workflowDatabaseId
+  workflowName
+
+== latest bot data commits (origin/main)
+  2026-08-28 04:48 data: refresh NASDAQ time-series V2 shadow
+  2026-08-28 04:43 data: append V2 PIT and market archive observations
+  2026-08-28 04:12 data: refresh NASDAQ time-series shadow 2026-08-28
+  2026-08-28 04:08 data: checkpoint ALFRED PIT history 2026-08-28
+  2026-08-27 13:07 data: checkpoint ALFRED PIT history 2026-08-27
+
+== V2 status: shadow_validation_hold (gate pass: False)
+  - 21·63일 평균 CRPS 개선이 2% 미만
+  - great_financial_crisis_2008 p10-p90 coverage가 70% 미만
+  - 21·63일 결합 CRPS 차이의 stationary-bootstrap 90% CI 상단이 0 초과
+  - 봉인평가: 21·63일 평균 CRPS 개선이 2% 미만
+  - 봉인평가: 21·63일 결합 CRPS 차이의 stationary-bootstrap 90% CI 상단이 0 초과
+  - 최근 26개 원점 CRPS가 기준선보다 5% 이상 악화
+  - 최근 21일 p10-p90 적중률이 계약 범위를 이탈
+  - 최근 63일 p10-p90 적중률이 계약 범위를 이탈
+  - 필수 시장 입력 48시간 SLA 초과: NASDAQCOM
+  - 필수 시장 입력 48시간 SLA 초과: DTWEXBGS_or_DTWEXB
+  NASDAQCOM: obs 2026-08-19 age 191h (limit 48h) -> stale
+  VIX: obs 2026-08-27 age 4h (limit 48h) -> fresh
+  DGS2: obs 2026-08-27 age 4h (limit 48h) -> fresh
+  DGS10: obs 2026-08-27 age 4h (limit 48h) -> fresh
+  DTWEXBGS_or_DTWEXB: obs 2026-08-14 age 191h (limit 216h) -> fresh
+ops status @ 2026-08-29T08:36:39+00:00
+  gh unavailable: Unknown JSON field: "htmlUrl"
+Available fields:
+  attempt
+  conclusion
+  createdAt
+  databaseId
+  displayTitle
+  event
+  headBranch
+  headSha
+  name
+  number
+  startedAt
+  status
+  updatedAt
+  url
+  workflowDatabaseId
+  workflowName
+
+== latest bot data commits (origin/main)
+  2026-08-28 04:48 data: refresh NASDAQ time-series V2 shadow
+  2026-08-28 04:43 data: append V2 PIT and market archive observations
+  2026-08-28 04:12 data: refresh NASDAQ time-series shadow 2026-08-28
+  2026-08-28 04:08 data: checkpoint ALFRED PIT history 2026-08-28
+  2026-08-27 13:07 data: checkpoint ALFRED PIT history 2026-08-27
+
+== V2 status: shadow_validation_hold (gate pass: False)
+  - 21·63일 평균 CRPS 개선이 2% 미만
+  - great_financial_crisis_2008 p10-p90 coverage가 70% 미만
+  - 21·63일 결합 CRPS 차이의 stationary-bootstrap 90% CI 상단이 0 초과
+  - 봉인평가: 21·63일 평균 CRPS 개선이 2% 미만
+  - 봉인평가: 21·63일 결합 CRPS 차이의 stationary-bootstrap 90% CI 상단이 0 초과
+  - 최근 26개 원점 CRPS가 기준선보다 5% 이상 악화
+  - 최근 21일 p10-p90 적중률이 계약 범위를 이탈
+  - 최근 63일 p10-p90 적중률이 계약 범위를 이탈
+  - 필수 시장 입력 48시간 SLA 초과: NASDAQCOM
+  - 필수 시장 입력 48시간 SLA 초과: DTWEXBGS_or_DTWEXB
+  NASDAQCOM: obs 2026-08-19 age 215h (limit 48h) -> stale
+  VIX: obs 2026-08-27 age 28h (limit 48h) -> fresh
+  DGS2: obs 2026-08-27 age 28h (limit 48h) -> fresh
+  DGS10: obs 2026-08-27 age 28h (limit 48h) -> fresh
+  DTWEXBGS_or_DTWEXB: obs 2026-08-14 age 215h (limit 216h) -> fresh
+ops status @ 2026-08-30T05:52:40+00:00
+  gh unavailable: Unknown JSON field: "htmlUrl"
+Available fields:
+  attempt
+  conclusion
+  createdAt
+  databaseId
+  displayTitle
+  event
+  headBranch
+  headSha
+  name
+  number
+  startedAt
+  status
+  updatedAt
+  url
+  workflowDatabaseId
+  workflowName
+
+== latest bot data commits (origin/main)
+  2026-08-29 09:24 data: checkpoint ALFRED PIT history 2026-08-29
+  2026-08-29 09:09 data: automated investing refresh 2026-08-29
+  2026-08-29 08:31 data: refresh NASDAQ time-series V2 shadow
+  2026-08-29 08:26 data: append V2 PIT and market archive observations
+  2026-08-29 08:00 data: refresh Nasdaq scenario 2026-08-27
+
+== V2 status: shadow_validation_hold (gate pass: False)
+  - 21·63일 평균 CRPS 개선이 2% 미만
+  - great_financial_crisis_2008 p10-p90 coverage가 70% 미만
+  - 21·63일 결합 CRPS 차이의 stationary-bootstrap 90% CI 상단이 0 초과
+  - 봉인평가: 21·63일 평균 CRPS 개선이 2% 미만
+  - 봉인평가: 21·63일 결합 CRPS 차이의 stationary-bootstrap 90% CI 상단이 0 초과
+  - 최근 26개 원점 CRPS가 기준선보다 5% 이상 악화
+  - 최근 21일 p10-p90 적중률이 계약 범위를 이탈
+  - 최근 63일 p10-p90 적중률이 계약 범위를 이탈
+  - 필수 시장 입력 48시간 SLA 초과: NASDAQCOM
+  - 필수 시장 입력 48시간 SLA 초과: DTWEXBGS_or_DTWEXB
+  NASDAQCOM: obs 2026-08-19 age 237h (limit 48h) -> stale
+  VIX: obs 2026-08-27 age 49h (limit 48h) -> stale
+  DGS2: obs 2026-08-27 age 49h (limit 48h) -> stale
+  DGS10: obs 2026-08-27 age 49h (limit 48h) -> stale
+  DTWEXBGS_or_DTWEXB: obs 2026-08-14 age 237h (limit 216h) -> stale

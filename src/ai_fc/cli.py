@@ -481,6 +481,115 @@ def cmd_timeseries_v8_verify() -> None:
         raise typer.Exit(code=1)
 
 
+@app.command("timeseries-daily6m-forecast")
+def cmd_timeseries_daily6m_forecast(
+    as_of: str | None = typer.Option(None, "--as-of", help="시간대가 있는 발행 시각"),
+    supersedes: str | None = typer.Option(None, "--supersedes", help="정정할 기존 연구 forecast ID"),
+) -> None:
+    """주간 6개월 공동 일별 경로를 별도 연구 원장에 추가한다 (기존 모델 불변)."""
+    from .timeseries_daily6m.pipeline import forecast_timeseries_daily6m
+
+    result = _timeseries_exit(forecast_timeseries_daily6m, config.ROOT, as_of=as_of, supersedes=supersedes)
+    typer.echo(json.dumps({key: result.get(key) for key in (
+        "status", "run_id", "forecast_id", "as_of", "anchor_date", "forecast_end_date", "skipped", "gate",
+    )}, ensure_ascii=False, indent=2))
+
+
+@app.command("timeseries-daily6m-resolve")
+def cmd_timeseries_daily6m_resolve(
+    as_of: str | None = typer.Option(None, "--as-of"),
+) -> None:
+    """완료되고 관측이 공개된 일별 결과만 별도 append-only 연구 원장에 채점한다."""
+    from .timeseries_daily6m.pipeline import resolve_timeseries_daily6m
+
+    result = _timeseries_exit(resolve_timeseries_daily6m, config.ROOT, as_of=as_of)
+    typer.echo(json.dumps(result, ensure_ascii=False, indent=2))
+
+
+@app.command("timeseries-daily6m-latest")
+def cmd_timeseries_daily6m_latest(
+    as_of: str | None = typer.Option(None, "--as-of"),
+) -> None:
+    """주간 일별 연구 프리뷰의 입력·재현성·비교·신선도 게이트를 재확인한다."""
+    from .timeseries_daily6m.pipeline import publish_latest_timeseries_daily6m
+
+    result = _timeseries_exit(publish_latest_timeseries_daily6m, config.ROOT, as_of=as_of)
+    typer.echo(json.dumps({key: result.get(key) for key in (
+        "status", "numbers_visible", "as_of", "anchor_date", "gate",
+    )}, ensure_ascii=False, indent=2))
+
+
+@app.command("timeseries-daily6m-verify")
+def cmd_timeseries_daily6m_verify() -> None:
+    """새 연구 원장의 해시체인·정정 연결·계약·불변 산출물을 검증한다."""
+    from .timeseries_daily6m.pipeline import verify_timeseries_daily6m
+
+    result = _timeseries_exit(verify_timeseries_daily6m, config.ROOT)
+    typer.echo(json.dumps(result, ensure_ascii=False, indent=2))
+    if not result.get("ok"):
+        raise typer.Exit(code=1)
+
+
+@app.command("market-context-collect")
+def cmd_market_context_collect() -> None:
+    """공개 원천만 수집해 독립 시황 원장에 원문·사건·관측을 추가한다 (시크릿 불필요)."""
+    from .market_context.collectors import collect_context
+    from .market_context.pipeline import writer_lock
+
+    with writer_lock(config.ROOT):
+        result = _timeseries_exit(collect_context, config.ROOT)
+    typer.echo(json.dumps(result, ensure_ascii=False, indent=2))
+
+
+@app.command("market-context-fit")
+def cmd_market_context_fit(
+    train_cutoff: str | None = typer.Option(None, "--train-cutoff", help="시간대가 있는 학습 정보 마감"),
+) -> None:
+    """성숙한 전진 시황·결과만 학습하고 적격 월별 계수를 불변 저장한다."""
+    from .market_context.pipeline import fit_context
+
+    result = _timeseries_exit(fit_context, config.ROOT, train_cutoff=train_cutoff)
+    typer.echo(json.dumps(result, ensure_ascii=False, indent=2))
+
+
+@app.command("market-context-build")
+def cmd_market_context_build(
+    as_of: str | None = typer.Option(None, "--as-of", help="수집 후 고정한 시간대 포함 발행 시각"),
+    supersedes: str | None = typer.Option(None, "--supersedes", help="명시적으로 정정할 당일 연구 forecast ID"),
+) -> None:
+    """252세션 시황 조건부 경로를 독립 연구 발행본으로 추가한다. 기존 S1은 불변이다."""
+    from .market_context.pipeline import build_context
+
+    result = _timeseries_exit(build_context, config.ROOT, as_of=as_of, supersedes=supersedes)
+    typer.echo(json.dumps({key: result.get(key) for key in (
+        "status", "forecast_id", "as_of", "anchor_date", "numerical_context_applied", "score", "skipped", "gate",
+    )}, ensure_ascii=False, indent=2))
+
+
+@app.command("market-context-verify")
+def cmd_market_context_verify(
+    replay: bool = typer.Option(False, "--replay", help="동결 입력에서 전체 경로·집계를 재생성"),
+) -> None:
+    """독립 원장 해시체인·정정 관계·모델·경로 재현을 검증한다."""
+    from .market_context.pipeline import verify_context
+
+    result = _timeseries_exit(verify_context, config.ROOT, replay=replay)
+    typer.echo(json.dumps(result, ensure_ascii=False, indent=2))
+    if not result["ok"]:
+        raise typer.Exit(code=1)
+
+
+@app.command("market-context-resolve")
+def cmd_market_context_resolve(
+    as_of: str | None = typer.Option(None, "--as-of"),
+) -> None:
+    """실제 종료·공개된 미래 관측만 별도 연구 원장에 채점한다."""
+    from .market_context.pipeline import resolve_context
+
+    result = _timeseries_exit(resolve_context, config.ROOT, as_of=as_of)
+    typer.echo(json.dumps(result, ensure_ascii=False, indent=2))
+
+
 @app.command("timeseries-v13-vol-latest")
 def cmd_timeseries_v13_vol_latest() -> None:
     """V13-VOL 동결 계수로 최신 변동성 이벤트 기준율 포인터를 fail-closed 발행한다 (재적합 없음)."""

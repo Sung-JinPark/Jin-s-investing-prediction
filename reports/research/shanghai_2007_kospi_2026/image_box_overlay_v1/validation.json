@@ -1,0 +1,13 @@
+{
+  "status": "passed",
+  "previous_files_checked": 420,
+  "previous_files_changed": [],
+  "box_boundaries_first_recovery_verified": true,
+  "KOSPI_span": 37,
+  "SSE_A_span": 42,
+  "SSE_A_time_scale": 0.8809523809523809,
+  "price_source_sha256": "77049dd7d90c981b73000d78e0c4897171941451f24e814b865acdb9a9940715",
+  "transformed_rows": 1188,
+  "Korean_future_points": 0,
+  "probability_outputs": []
+}

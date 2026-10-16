@@ -1,0 +1,21 @@
+{
+  "retrieved_at_utc": "2026-10-16T01:03:45.821917+00:00",
+  "method": "Web search/open plus direct unauthenticated static-document retrieval with verifiedTLS.",
+  "primary_sources_web_checked": [
+    "https://www.mof.gov.cn/zhengwuxinxi/zhengcejiedu/2008/200805/t20080519_28811.htm",
+    "https://www.csrc.gov.cn/csrc/c100028/c1002724/content.shtml",
+    "https://www.orient-fund.com/UserFiles/File/11727/11727.pdf",
+    "https://epaper.cs.com.cn/zgzqb/html/2008-01/21/nw.D110000zgzqb_20080121_2-C03.htm?div=-1",
+    "https://paper.cnstock.com/html/2008-05/07/node_3.htm",
+    "https://www.pingan.com/cms-tmplt/stock/marketReview/pingAnInvestigate/74206.html"
+  ],
+  "direct_retrieval_where_web_render_failed": [
+    "https://www.szse.cn/aboutus/trends/news/t20080430_517692.html",
+    "https://paper.cnstock.com/html/2008-05/07/content_61438820.htm",
+    "https://epaper.cs.com.cn/zgzqb/images/2008-01/21/C03/ZQBC0030121C.pdf",
+    "https://www.orient-fund.com/UserFiles/File/11822/11822.pdf"
+  ],
+  "negative_search_result": "Did not recover authenticated same-provider fixed-universe2008 EPS level revision series spanning before/afterOctober16 2007. Quantified CICC net-profit growth revision and qualitative CSI300 growth chart are narrower substitutes, explicitly not full-series verification.",
+  "paid_or_auth_access_used": false,
+  "live_securities_api_used": false
+}

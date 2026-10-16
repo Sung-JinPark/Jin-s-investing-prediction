@@ -416,3 +416,93 @@ ledgers:
     criticality: high
     schema_ref: json_object
     expected_state: frozen
+  - id: market_context_events
+    path: data/market_context/events.jsonl
+    kind: jsonl
+    cadence: event
+    criticality: medium
+    schema_ref: jsonl
+    timestamp_field: available_at
+    allow_empty_accumulating: true
+    expected_state: planned
+  - id: market_context_observations
+    path: data/market_context/market_observations.jsonl
+    kind: jsonl
+    cadence: daily
+    criticality: medium
+    schema_ref: jsonl
+    timestamp_field: retrieved_at
+    allow_empty_accumulating: true
+    expected_state: planned
+  - id: market_context_receipts
+    path: data/market_context/raw_receipts.jsonl
+    kind: jsonl
+    cadence: event
+    criticality: medium
+    schema_ref: jsonl
+    timestamp_field: retrieved_at
+    allow_empty_accumulating: true
+    expected_state: planned
+  - id: market_context_research_forecasts
+    path: data/market_context/ledgers/forecasts.jsonl
+    kind: jsonl
+    cadence: daily
+    criticality: medium
+    schema_ref: jsonl
+    timestamp_field: as_of
+    allow_empty_accumulating: true
+    expected_state: planned
+  - id: market_context_research_resolutions
+    path: data/market_context/ledgers/resolutions.jsonl
+    kind: jsonl
+    cadence: event
+    criticality: medium
+    schema_ref: jsonl
+    timestamp_field: resolved_at
+    allow_empty_accumulating: true
+    expected_state: planned
+  - id: market_context_coefficients
+    path: data/market_context/models/*.json
+    kind: immutable_files
+    cadence: event
+    criticality: medium
+    schema_ref: json_object
+    timestamp_field: available_at
+    allow_empty_accumulating: true
+    expected_state: planned
+  - id: market_context_model_ledger
+    path: data/market_context/ledgers/models.jsonl
+    kind: jsonl
+    cadence: event
+    criticality: medium
+    schema_ref: jsonl
+    timestamp_field: available_at
+    allow_empty_accumulating: true
+    expected_state: planned
+  - id: market_context_source_status
+    path: data/market_context/source_status.jsonl
+    kind: jsonl
+    cadence: daily
+    criticality: medium
+    schema_ref: jsonl
+    timestamp_field: retrieved_at
+    allow_empty_accumulating: true
+    expected_state: planned
+  - id: market_context_rejected_observations
+    path: data/market_context/rejected_observations.jsonl
+    kind: jsonl
+    cadence: event
+    criticality: medium
+    schema_ref: jsonl
+    timestamp_field: retrieved_at
+    allow_empty_accumulating: true
+    expected_state: planned
+  - id: market_context_research_runs
+    path: data/market_context/runs/*.json
+    kind: immutable_files
+    cadence: daily
+    criticality: medium
+    schema_ref: json_object
+    timestamp_field: as_of
+    allow_empty_accumulating: true
+    expected_state: planned

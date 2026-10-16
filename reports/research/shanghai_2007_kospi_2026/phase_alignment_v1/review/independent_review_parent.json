@@ -1,0 +1,178 @@
+{
+  "schema_version": 1,
+  "reviewed_at_utc": "2026-10-16T00:42:10.393227+00:00",
+  "reviewer": "Independent China history/method reviewer",
+  "scope": "Chinese historical stages and source-backed facts; parent phase report, phase-support arithmetic and report generation; conditional interpretation and absence of Korean future-path substitution. Korean company/credit source facts are covered by a separate specialist review, not reauthenticated here.",
+  "status": "passed",
+  "blocking_findings": [],
+  "reviewed_snapshots": [
+    {
+      "path": "../report.md",
+      "sha256": "25cd70aa77eb3f94a2a5fa610c8173284e441a121fd379b9afe42e6bf57cd9b8"
+    },
+    {
+      "path": "../report.html",
+      "sha256": "83627e688a80ce3fda4f09d1b508258323a4574ca0245c403a9060953d7a3390"
+    },
+    {
+      "path": "../phase_support.json",
+      "sha256": "3085f0a74f651ba302dd44b16b212b3e1ffb3b8abb222daec36a3586151b9509"
+    },
+    {
+      "path": "../build_phase_report.py",
+      "sha256": "d2a640d5c98331114cfd0001783257a0084ab0966147d2ea5e39c358aea05d47"
+    },
+    {
+      "path": "../phase_support.py",
+      "sha256": "3a219628d08ba0218c343065e33ca919fe0c9d8b2a3b6b9dee8a9c491cc3cb8b"
+    },
+    {
+      "path": "../prices/phase_analysis.py",
+      "sha256": "f1d94a911cf72716eda4b0d8457aa0d2e2500f98fd17f5dda7b6c474c167e1e5"
+    },
+    {
+      "path": "../prices/method_contract.json",
+      "sha256": "01f9f04061d91997225dd1c6b31134236edebb076a2f270389ee3ac20990bc0a"
+    },
+    {
+      "path": "../prices/phase_analysis.json",
+      "sha256": "a6657c2845be81bc5a7fb0582cff625d1773a6ec39003400b7446d7cfe9592aa"
+    },
+    {
+      "path": "../render_phase.py",
+      "sha256": "b58b5b2afc0e48fe134ac6859cad5956cb732003fe4708a095f09c6ea61e9e78"
+    }
+  ],
+  "checks": [
+    {
+      "id": "observed_anchors",
+      "status": "passed",
+      "detail": "Korea June22 peak9114.55→July30 trough5593.56→Sept23 rebound7080.92→Oct15 first marginal low5554.22 agrees with canonical closes.27/38/12 observed return intervals,26.59% rebound,42.24% point-loss recovery and0.70% prior-low breach match independent calculations."
+    },
+    {
+      "id": "conditional_january_stage",
+      "status": "passed_with_boundary",
+      "detail": "January2008 is presented as a representative event-order/time analogy, not a complete numerical match or a certified final top. Early China depth25.15% differs from Korea39.06%, and14.46% Chinese rebound fails15/20% confirmation. Strict/base matches are zero; large-bounce alternatives and depth-onlyMarch18 are separately disclosed."
+    },
+    {
+      "id": "bull_counterexample",
+      "status": "passed",
+      "detail": "May29→June4→June19→July5 Chinese sequence,90.16% prior-loss recovery,1.49% marginal first-trough breach andJuly26 recovery correctly show that a failed first rebound/new low did not establish the final cycle top. This selected same-cycle control is explicitly outside post-Oct2007 ranking."
+    },
+    {
+      "id": "equal126_outcomes",
+      "status": "passed",
+      "detail": "All four126-session endpoint returns, origin-upside and running-peak drawdowns agree with independent direct arithmetic. Endpoint dates are Jan8/Jul29/Sep17/Dec11,2008 respectively. Origin observation is explicitly included in path extrema. Outcomes are labelled deliberately contrasting and overlapping, not probabilities, bounds or Korean targets."
+    },
+    {
+      "id": "price_level_vs_return_correlation",
+      "status": "passed_with_wording_note",
+      "detail": "Independent calculations give level r0.7109905933 and daily log-return r-0.02845000435 on78closes/77returns. Report warns common trend can inflate level correlation. Earlier0.00089 was a different weekly-return statistic; its numerical increase should not be implied."
+    },
+    {
+      "id": "confirmation_timing",
+      "status": "passed",
+      "detail": "Prior independent implementation matched26directional turns for2markets×3thresholds. Each turn is absent in the prefix before confirmation and present on confirmation. Rebound-pair chronology and1026candidate gain/recovery calculations passed independent checks."
+    },
+    {
+      "id": "candidate_scope_and_selection",
+      "status": "passed",
+      "detail": "Report limits exhaustive search to post-Oct2007 China, retains all candidates and10/15/20sensitivities, avoids aggregate scores, and discloses hindsight anchors and prior exposure to2008 outcomes. Candidate counts are not independent sample sizes."
+    },
+    {
+      "id": "no_korean_future_substitution",
+      "status": "passed",
+      "detail": "Report explicitly rejects fixing Korea to March18 or any historical date and labels future-case outcomes as historical only. render_phase.py uses observed KOSPI throughOct15 only; event-summary plot says time gaps omitted and not a future path. No Korean forecast path, probability or scenario weight is generated."
+    },
+    {
+      "id": "arithmetic_and_research_gates",
+      "status": "passed",
+      "detail": "Five EPS/PER arithmetic cases and seven reference-level required-return formulas match direct arithmetic.5/10day persistence and earnings/credit thresholds are explicitly unvalidated research assumptions; unavailable series remain unclassified. Current prior-low breach is reported as only one close."
+    },
+    {
+      "id": "economic_limits",
+      "status": "passed",
+      "detail": "Good lagging earnings are distinguished from unavailable fixed-period forward EPS revisions. Global financial crisis and changed policy/funding conditions are not treated as a deterministic consequence of megatrend popularity."
+    }
+  ],
+  "independent_numeric_evidence": "final_numeric_check.json",
+  "prefix_confirmation_evidence": "prefix_confirmation_check.json",
+  "rebound_pair_evidence": "rebound_pair_check.json",
+  "non_blocking_clarifications": [
+    {
+      "id": "qualitative_representative_not_numeric_winner",
+      "priority": "P2",
+      "location": "Opening conclusion and representative January2008 comparison",
+      "observed": "Report privileges event order/time when saying closer toJanuary, while no strict/base multi-feature match exists. Full body already explains this boundary.",
+      "suggestion": "Add one sentence that this is an interpretation prioritizing order/time, not the first-ranked result of a composite quantitative similarity measure.",
+      "status": "resolved_and_verified_in_final_source_markdown_and_html"
+    },
+    {
+      "id": "rebound_duration_wording",
+      "priority": "P3",
+      "location": "January2008 representative comparison paragraph",
+      "observed": "November28→January14 is31trading intervals/47calendar days, described as about one month.",
+      "suggestion": "Use31trading sessions rather than about one month.",
+      "status": "resolved_and_verified_in_final_source_markdown_and_html"
+    },
+    {
+      "id": "avoid_cross_metric_increase",
+      "priority": "P2",
+      "location": "Post-peak correlation paragraph",
+      "observed": "The phrase level correlation rises to0.711 can be read as an improvement from earlier0.00089, which was weekly-return correlation.",
+      "suggestion": "State the level correlation is0.711, followed by the already-present daily return correlation and common-trend limitation.",
+      "status": "resolved_and_verified_in_final_source_markdown_and_html"
+    }
+  ],
+  "overall_assessment_ko": "차단급 결함이 없고 문구 권고3건도 최종 원본·Markdown·HTML에서 해결됨을 확인했다. 초기 하락 전환은 순서·기간을 우선한 조건부 대표 비교이며, 종합유사도1위나 최종고점 확정이 아니다. 7월 상승장 반례와 126거래일 결과를 동등하게 제시하고, 특정 중국 날짜나 그 뒤 수익률을 코스피 미래로 고정하지 않는다.",
+  "initial_reviewed_snapshots": [
+    {
+      "path": "../report.md",
+      "sha256": "61aabdf27f49cf10c3410cd65c11ee3f57e201bf7b00db8b42fa8d812a27deab"
+    },
+    {
+      "path": "../report.html",
+      "sha256": "943ef135254e1eaa76fbf8a9c990f4b11ac4b609d656ebec0e46391d3e70eaed"
+    },
+    {
+      "path": "../phase_support.json",
+      "sha256": "3085f0a74f651ba302dd44b16b212b3e1ffb3b8abb222daec36a3586151b9509"
+    },
+    {
+      "path": "../build_phase_report.py",
+      "sha256": "b543b87662701e15781b8426f157b3a71c1e0c7f273e25d31ec7ef19f374c21c"
+    },
+    {
+      "path": "../phase_support.py",
+      "sha256": "3a219628d08ba0218c343065e33ca919fe0c9d8b2a3b6b9dee8a9c491cc3cb8b"
+    },
+    {
+      "path": "../prices/phase_analysis.py",
+      "sha256": "f1d94a911cf72716eda4b0d8457aa0d2e2500f98fd17f5dda7b6c474c167e1e5"
+    },
+    {
+      "path": "../prices/method_contract.json",
+      "sha256": "01f9f04061d91997225dd1c6b31134236edebb076a2f270389ee3ac20990bc0a"
+    },
+    {
+      "path": "../prices/phase_analysis.json",
+      "sha256": "a6657c2845be81bc5a7fb0582cff625d1773a6ec39003400b7446d7cfe9592aa"
+    },
+    {
+      "path": "../render_phase.py",
+      "sha256": "b58b5b2afc0e48fe134ac6859cad5956cb732003fe4708a095f09c6ea61e9e78"
+    }
+  ],
+  "resolution_confirmed_at_utc": "2026-10-16T00:43:25.799019+00:00",
+  "resolution_verification": {
+    "qualitative_representative_not_numeric_winner": "Explicitly saysJanuary is an interpretation prioritizing sequence/time, not a first-ranked composite similarity result.",
+    "rebound_duration": "Uses31trading sessions instead of about one month.",
+    "cross_metric_correlation": "Reports level0.711 and daily-return-0.028 separately, with explicit warning that prior calendar alignment/frequency differ and the numerical difference is not a similarity improvement.",
+    "checked_artifacts": [
+      "../build_phase_report.py",
+      "../report.md",
+      "../report.html"
+    ],
+    "scope": "Targeted final wording and snapshot-hash verification only. No recollection, code rerun or repeated full validation."
+  }
+}

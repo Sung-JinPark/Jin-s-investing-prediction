@@ -1,0 +1,164 @@
+{
+  "source_id": "KR-KOFIA-STATS-INDEX",
+  "source_sha256": "e37201232af67e54a24e2aa386b9db8c32d2e12bc5dd435921feee038aa3fef1",
+  "source_file": "sources/KR-KOFIA-STATS-INDEX.html",
+  "source_html_complete": false,
+  "source_partial_tail_utf8": true,
+  "snapshot_year": null,
+  "year_attribution": "2026 inferred only from retrieval context; month/day is explicitly printed in each card",
+  "extraction": "Regex matches complete closed dt/dd card blocks; no fields from the truncated final tail are used.",
+  "cards": [
+    {
+      "label": "KOSPI지수",
+      "unit_and_month_day_literal": "P  |  10/15",
+      "value_and_change_literals": [
+        {
+          "class": "num1",
+          "text": "5,554.22"
+        },
+        {
+          "class": "num2b",
+          "text": "-454.59"
+        },
+        {
+          "class": "num3",
+          "text": "-7.57%"
+        }
+      ],
+      "block_complete": true
+    },
+    {
+      "label": "투자자예탁금",
+      "unit_and_month_day_literal": "백만원  |  10/14",
+      "value_and_change_literals": [
+        {
+          "class": "num1",
+          "text": "97,428,012"
+        },
+        {
+          "class": "num2b",
+          "text": "-2,670,263"
+        },
+        {
+          "class": "num3",
+          "text": "-2.67%"
+        }
+      ],
+      "block_complete": true
+    },
+    {
+      "label": "신용융자",
+      "unit_and_month_day_literal": "백만원  |  10/14",
+      "value_and_change_literals": [
+        {
+          "class": "num1",
+          "text": "33,705,742"
+        },
+        {
+          "class": "num2b",
+          "text": "-547,127"
+        },
+        {
+          "class": "num3",
+          "text": "-1.6%"
+        }
+      ],
+      "block_complete": true
+    },
+    {
+      "label": "CMA잔고",
+      "unit_and_month_day_literal": "백만원  |  10/14",
+      "value_and_change_literals": [
+        {
+          "class": "num1",
+          "text": "98,402,789"
+        },
+        {
+          "class": "num2b",
+          "text": "-2,235,082"
+        },
+        {
+          "class": "num3",
+          "text": "-2.22%"
+        }
+      ],
+      "block_complete": true
+    },
+    {
+      "label": "국고채(3년)",
+      "unit_and_month_day_literal": "%  |  10/15",
+      "value_and_change_literals": [
+        {
+          "class": "num1",
+          "text": "3.867"
+        },
+        {
+          "class": "num2b",
+          "text": "-0.016"
+        },
+        {
+          "class": "num3",
+          "text": "-0.41%"
+        }
+      ],
+      "block_complete": true
+    },
+    {
+      "label": "회사채(3년, AA-)",
+      "unit_and_month_day_literal": "%  |  10/15",
+      "value_and_change_literals": [
+        {
+          "class": "num1",
+          "text": "4.559"
+        },
+        {
+          "class": "num2b",
+          "text": "-0.011"
+        },
+        {
+          "class": "num3",
+          "text": "-0.24%"
+        }
+      ],
+      "block_complete": true
+    },
+    {
+      "label": "주식형펀드 순자산",
+      "unit_and_month_day_literal": "억원  |  10/14",
+      "value_and_change_literals": [
+        {
+          "class": "num1",
+          "text": "3,618,209"
+        },
+        {
+          "class": "num2b",
+          "text": "-24,176"
+        },
+        {
+          "class": "num3",
+          "text": "-0.66%"
+        }
+      ],
+      "block_complete": true
+    },
+    {
+      "label": "펀드 순자산",
+      "unit_and_month_day_literal": "억원  |  10/14",
+      "value_and_change_literals": [
+        {
+          "class": "num1",
+          "text": "15,331,363"
+        },
+        {
+          "class": "num2b",
+          "text": "-14,882"
+        },
+        {
+          "class": "num3",
+          "text": "-0.1%"
+        }
+      ],
+      "block_complete": true
+    }
+  ]
+}

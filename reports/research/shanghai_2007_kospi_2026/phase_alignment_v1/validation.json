@@ -1,0 +1,170 @@
+{
+  "status": "passed",
+  "validated_at_utc": "2026-10-16T00:44:30.444541+00:00",
+  "as_of": "2026-10-16T09:00:00+09:00",
+  "price_cutoff": "2026-10-15",
+  "checks": [
+    {
+      "check": "original_study_unchanged",
+      "passed": true,
+      "checked_files": 180,
+      "changed": []
+    },
+    {
+      "check": "protected_existing_system_unchanged",
+      "passed": true,
+      "checked_files": 492,
+      "changed": []
+    },
+    {
+      "check": "new_source_response_hashes",
+      "passed": true,
+      "source_attempts": 28,
+      "hash_verified_responses": 26,
+      "mismatches": [],
+      "note": "A matching hash authenticates the saved response, not its economic accuracy or original vintage."
+    },
+    {
+      "check": "frozen_input_and_method_hashes",
+      "passed": true
+    },
+    {
+      "check": "frozen_price_boundary",
+      "passed": true,
+      "rows": 7287,
+      "latest_date": "2026-10-15"
+    },
+    {
+      "check": "current_origin",
+      "passed": true
+    },
+    {
+      "check": "independent_scipy_phase_correlations",
+      "passed": true,
+      "n_return_pairs": 77,
+      "closing_level_pearson": 0.710990593297666,
+      "daily_log_return_pearson": -0.028450004350904626
+    },
+    {
+      "check": "independent_price_references_and_averages",
+      "passed": true,
+      "checked": 7,
+      "mismatches": []
+    },
+    {
+      "check": "independent_126_interval_contrasting_outcomes",
+      "passed": true,
+      "count": 4,
+      "mismatches": []
+    },
+    {
+      "check": "candidate_coverage_and_joint_intersections",
+      "passed": true,
+      "rows": 1794,
+      "extended_strict_base_loose": {
+        "0.1": [
+          0,
+          0,
+          12
+        ],
+        "0.15": [
+          0,
+          0,
+          0
+        ],
+        "0.2": [
+          0,
+          0,
+          0
+        ]
+      },
+      "note": "Independent reviewers additionally recomputed intersections from raw features without stored distance/flag columns."
+    },
+    {
+      "check": "no_forecast_or_probability_output",
+      "passed": true
+    },
+    {
+      "check": "explicit_unvalidated_conditions_and_missing_data",
+      "passed": true
+    },
+    {
+      "check": "independent_turn_confirmation_review",
+      "passed": true
+    },
+    {
+      "check": "three_independent_agent_reviews",
+      "passed": true,
+      "reviews": [
+        {
+          "path": "prices/independent_review_parent.json",
+          "sha256": "45ef831750bd6a17e4777c668376321a40e60c559fba91bc615e52a88e93a848",
+          "blocking_findings": []
+        },
+        {
+          "path": "fundamentals/independent_review_parent.json",
+          "sha256": "c64c8eee18681e2a0c0d011c0ec95dce65f3b3bb55acf6a9335738ae64949767",
+          "blocking_findings": []
+        },
+        {
+          "path": "review/independent_review_parent.json",
+          "sha256": "c98471cc6a55e0a5223b0248f02facd8401609e738142b327b8199ff62ea2bbd",
+          "blocking_findings": []
+        }
+      ],
+      "scope": "Agent cross-checks; not an external audit or an out-of-sample forecast validation."
+    },
+    {
+      "check": "scoped_research_test_suites",
+      "passed": true,
+      "suites": [
+        {
+          "suite": "phase_support",
+          "passed": true,
+          "tests": 5
+        },
+        {
+          "suite": "phase_math",
+          "passed": true,
+          "tests": 11
+        },
+        {
+          "suite": "existing_research",
+          "passed": true,
+          "tests": 27
+        }
+      ],
+      "total_tests": 43,
+      "production_application_suite": "not run: no production code changed; research tests use disposable fixtures"
+    },
+    {
+      "check": "offline_browser_layout",
+      "passed": true,
+      "widths": [
+        1440,
+        768,
+        390
+      ],
+      "images_visually_inspected": true
+    }
+  ],
+  "errors": [],
+  "error_categories": {
+    "code_defects": [],
+    "environment_dependency_failures": [],
+    "missing_data_not_treated_as_pass_or_failure": [
+      "fixed-FY2027 common-provider EPS revisions",
+      "comparable daily forced-sale series",
+      "constituent breadth panel",
+      "workday-adjusted export panel",
+      "strict original-vintage certification",
+      "verified global-market benchmark"
+    ]
+  },
+  "report_files": {
+    "report.md": "25cd70aa77eb3f94a2a5fa610c8173284e441a121fd379b9afe42e6bf57cd9b8",
+    "report.html": "83627e688a80ce3fda4f09d1b508258323a4574ca0245c403a9060953d7a3390"
+  },
+  "probabilities_created": false,
+  "official_or_existing_research_mutations": false
+}

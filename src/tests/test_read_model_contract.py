@@ -60,6 +60,29 @@ def test_json_schema_lists_all_additive_and_legacy_keys() -> None:
         "items"]["required"] == ["id", "overlay_start", "model_anchor"]
 
 
+def test_market_context_is_optional_and_keeps_research_units() -> None:
+    from ai_fc.market_context.pipeline import hold_payload
+
+    model = _minimal_model()
+    assert "market_context" not in schema()["required"]
+    assert not [error for error in validate(model) if "market_context" in error]
+    model["market_context"] = hold_payload(["missing_current_close"])
+    assert not [error for error in validate(model) if "market_context" in error]
+    model["market_context"]["probability_unit"] = "percent"
+    assert "market_context research identity/unit mismatch" in validate(model)
+
+
+def test_market_context_rejects_numbers_on_hold_and_unknown_state() -> None:
+    from ai_fc.market_context.pipeline import hold_payload
+
+    model = _minimal_model()
+    model["market_context"] = hold_payload(["missing_current_close"])
+    model["market_context"]["representative"] = {"values": [100, 101]}
+    assert "market_context HOLD must not contain numerical paths" in validate(model)
+    model["market_context"]["status"] = "official"
+    assert "market_context state/gate mismatch" in validate(model)
+
+
 def test_read_model_contract_rejects_cross_asset_semantic_drift() -> None:
     model = _minimal_model()
     model["cross_asset"].pop("status")

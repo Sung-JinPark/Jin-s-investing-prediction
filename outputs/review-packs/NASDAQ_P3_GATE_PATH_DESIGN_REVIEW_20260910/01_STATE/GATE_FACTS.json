@@ -1,0 +1,104 @@
+{
+ "P3_gate": {
+  "counting_rule": "DISTINCT 질문 기준 — 재예측(rN)은 게이트 문항 수에 기여하지 않는다",
+  "definition": "해소 50문항+ AND 대표 Brier < 0.18 (CLAUDE.md 하드 게이트)",
+  "questions_short_of_gate": 43,
+  "resolved_distinct_questions": 7,
+  "resolved_question_ids": [
+   "avgo-eps-beat-fq3-2026",
+   "fomc-2026-07-29-hike",
+   "nfp-aug2026-below100k",
+   "nfp-jul2026-below100k",
+   "nvda-dc-beat-2026aug",
+   "soxx-up-2026-07-08",
+   "spx-up-2026-07-08"
+  ],
+  "resolved_rows": 11
+ },
+ "brier": {
+  "by_domain": {
+   "earnings": {
+    "brier": 0.0282,
+    "incompetent_over_0_22": false,
+    "n": 3
+   },
+   "macro": {
+    "brier": 0.1622,
+    "incompetent_over_0_22": false,
+    "n": 6
+   },
+   "market-daily": {
+    "brier": 0.2708,
+    "incompetent_over_0_22": true,
+    "n": 2
+   }
+  },
+  "climatology_brier": 0.1983,
+  "currently_below_threshold": true,
+  "mean_all_rows": 0.1454,
+  "mean_forecast": 0.3245,
+  "realized_base_rate": 0.2727,
+  "sample_size_caveat": "n=11행 / 7문항 — 게이트 판정에 필요한 50문항의 14%",
+  "sharpness_max_possible": 0.25,
+  "sharpness_mean_p1mp": 0.15,
+  "skill_vs_climatology": 0.2669,
+  "threshold": 0.18,
+  "worst_two": [
+   {
+    "brier": 0.5476,
+    "outcome": "0",
+    "p": "74",
+    "question": "nfp-aug2026-below100k"
+   },
+   {
+    "brier": 0.3844,
+    "outcome": "1",
+    "p": "38",
+    "question": "nfp-jul2026-below100k"
+   }
+  ]
+ },
+ "generated": "2026-09-10",
+ "note": "저장소 원자료에서 기계 파생. 산문 문서의 수치를 이것과 대조하라.",
+ "pipeline": {
+  "active": 49,
+  "active_with_forecast": 30,
+  "active_with_forecast_due_within_120d": 27,
+  "active_without_any_forecast": 19,
+  "domain_mix_active": {
+   "corporate-event": 2,
+   "crypto": 1,
+   "earnings": 13,
+   "macro": 20,
+   "market-regime": 8,
+   "volatility": 5
+  },
+  "projected_distinct_if_all_120d_resolve": 34,
+  "questions_total": 67,
+  "resolved_status": 8,
+  "still_short_after_that": 16,
+  "unforecast_question_ids": [
+   "ai-investment-gdp-share-2026q4",
+   "amzn-fcf-negative-fy2026",
+   "cpi-nov2026-headline-below-28",
+   "cpi-sep2026-core-above-27",
+   "ecb-depo-300-2026-12-28",
+   "fedfunds-upper-425-2026-12-09",
+   "fedfunds-upper-550-2027h1",
+   "fedfunds-upper-hold-2026ye",
+   "fomc-2027-01-27-hike",
+   "hy-oas-500bp-2026q4-2027q1",
+   "mu-margin-qoq-fq1fy27",
+   "nasdaq-drawdown-15pct-by-2027-03-31",
+   "nfp-sep2026-negative",
+   "sox-ndx-relative-strength-2026ye",
+   "spx-drawdown-7pct-by-2026-11-30",
+   "unemployment-44-nov2026",
+   "vix-13-touch-by-2026-12-18",
+   "vix-30-touch-by-2026-11-30",
+   "vix-weekly-spike-50pct-by-2026-12-18"
+  ],
+  "void": 10
+ },
+ "schema": "p3_gate_path_facts"
+}

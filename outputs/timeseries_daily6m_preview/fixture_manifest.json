@@ -1,0 +1,18 @@
+{
+  "fixture_only": true,
+  "synthetic_seed": 603,
+  "path_count": 20000,
+  "horizon_sessions": 124,
+  "path_hash": "53cf7a95a8af34dbaa20ad8b08ed36b4fc04a6dff2730b466ebb4e7635dfe640",
+  "raw_kernel_identity": {
+    "pass": true,
+    "reference": "immutable_v8_raw_joint_kernel",
+    "same_inputs_horizon_seed": true,
+    "max_abs_index_difference": 0.0,
+    "max_abs_log_return_difference": 0.0,
+    "tolerance": 1e-12,
+    "calibrated_endpoint_evidence_inherited": false
+  },
+  "site_bytes": 815089,
+  "sidecar_bytes": 112404
+}

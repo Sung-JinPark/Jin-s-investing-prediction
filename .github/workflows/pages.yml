@@ -20,7 +20,7 @@ on:
     - cron: "30 1 * * 6"       # 주간 리프레시 커밋 이후 (토 KST 오전)
   workflow_dispatch:
   workflow_run:
-    workflows: ["investing-refresh", "scenario-refresh", "ai-regime-refresh", "statistics-refresh", "timeseries-refresh", "timeseries-v5-refresh", "timeseries-v2-refresh", "timeseries-v8-shadow", "timeseries-v13-vol-live"]
+    workflows: ["investing-refresh", "scenario-refresh", "ai-regime-refresh", "statistics-refresh", "timeseries-refresh", "timeseries-v5-refresh", "timeseries-v2-refresh", "timeseries-v8-shadow", "timeseries-v13-vol-live", "timeseries-daily6m", "market-context-daily"]
     types: [completed]
 
 permissions:
@@ -40,8 +40,8 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: deps (시크릿 불필요 — import 경로용)
-        run: pip install anthropic typer pydantic pyyaml python-frontmatter numpy scipy "Pillow>=10"
+      - name: deps (기존 선언된 PIT·시계열 읽기 의존성, 시크릿 불필요)
+        run: pip install -e ".[pit,timeseries]" "exchange-calendars>=4.6,<5" "Pillow>=10"
       - name: 파생 인덱스 재구축 (불변 파일 → SQLite)
         run: cd src && python -m ai_fc sync --rebuild
       # V5.2 후보를 배포 시점 데이터로 재빌드한다 (시크릿 0 — 커밋된 데이터만 입력).

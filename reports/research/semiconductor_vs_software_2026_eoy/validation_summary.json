@@ -1,0 +1,59 @@
+{
+  "research_as_of": "2026-10-12T10:38:50+09:00",
+  "record_generated_at": "2026-10-12T01:56:12.984220+00:00",
+  "status": "complete_with_explicit_research_limits",
+  "official_forecast": false,
+  "research_tests": {
+    "passed": 23,
+    "scope": "13 paired arithmetic + 10 ML integrity tests",
+    "durable_database_writes": 0
+  },
+  "independent_arithmetic_checks": {
+    "passed": 48,
+    "errors": 0
+  },
+  "independent_research_review": {
+    "status": "pass_with_research_limitations",
+    "errors": 0,
+    "record": "research_review.json"
+  },
+  "html_browser_checks": {
+    "passed": 16,
+    "errors": 0,
+    "viewports": [
+      1440,
+      768,
+      390
+    ],
+    "offline_no_remote_requests": true,
+    "visual_review": "desktop and mobile overview inspected"
+  },
+  "source_integrity": {
+    "previous_protected_files_unchanged": 242,
+    "previous_study_midpoints_preserved": true
+  },
+  "substantive_limits": {
+    "ml_predictive_skill": "not demonstrated; tested models worse than simple baselines",
+    "historical_original_vintage": "unverified; prospective gate blocked",
+    "calibrated_year_end_winner_probability": null,
+    "monte_carlo_role": "assumption distribution frequency, not market winning probability",
+    "macro_features_fitted": false,
+    "macro_role": "separate primary-source interpretation"
+  },
+  "sha256": {
+    "report.html": "9c0b210f3c3e49f2fcdf3fe83318bc71e824474f44d290bdcc476b0e779dcc35",
+    "build_html.py": "2e4e5083d8dbd910c5c2418368c345ee573926a5842ddab42b885942cb4075a8",
+    "build_analytics.py": "ed6f5fb59e3fd3a2286596feca3e5c17bbf8766ca5975488149747cd7ba53c51",
+    "relative_ml.py": "bd451c4956e8d10e7dbf678d9d859b733c43fde403c86384129ba95cce1b7314",
+    "analysis_assumptions.json": "64b511885cced395f3eace04f9cac4fa4086d6d7f93a753672fa199193a53ce7",
+    "analytical_results.json": "f280d2d48b493513bc0682aac2760b159a45a64f9a78ed477d0265eccd25dfa3",
+    "quantitative_ml.json": "dc1af4efa74977fb380519e7dfeca13e60f659e1112f681ab24af454f6a834ee",
+    "relative_evidence.json": "24fc60300659802402e6b8303eefae36fac16aaa1cd38202926f38290e74c89f",
+    "price_history_manifest.json": "16ec03638550a70637e4262be85f5cd46bc501eba55d7c7ac1dd686ef718208b",
+    "independent_qa.json": "183f5ea3becc0ecbe5dcb578beb318aac87159737f878e2604adfb835f445e2d",
+    "html_qa.json": "f830a357fa2e3d15c5c65b6f96cc9d179da11c9004546a99cbf7c601d2833438",
+    "research_review.json": "167053c7ffeef4f1db370850945ff281d7639d777f1c6243f0322387f9b5308f",
+    "interpretation.md": "ca30d1fd37c60da1af469c12a84361231794c24545a44ddcca9486f5d2ec2e43",
+    "README.md": "4fdb581a5892a60b80e8ea082d2f4fc7d85e9d7b3d93b76996cee3d966b18ab8"
+  }
+}

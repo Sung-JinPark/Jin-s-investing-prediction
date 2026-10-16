@@ -1,0 +1,276 @@
+{
+  "as_of": "2026-10-12T10:38:50+09:00",
+  "kind": "independent_integrity_arithmetic_checks_not_forecast_accuracy_certification",
+  "status": "pass",
+  "check_count": 48,
+  "checks": [
+    {
+      "name": "SOXX_unique_chronological",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "SOXX_no_future_session",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "SOXX_positive_finite",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "IGV_unique_chronological",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "IGV_no_future_session",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "IGV_positive_finite",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "SPY_unique_chronological",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "SPY_no_future_session",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "SPY_positive_finite",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "synchronized_three_series",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "h21_label_recomputed_independently",
+      "pass": true,
+      "detail": 7.077671781985373e-16
+    },
+    {
+      "name": "h21_all_label_horizons",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "h21_oos_count",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "h21_nonoverlapping_anchor_count",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "h21_purged_folds",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "h21_latest_training_label_known",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "h21_current_outputs_not_promoted",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "h21_all_labels_correct",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "h21_logistic_brier_independent",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "h21_logistic_fraction_bounds",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "h21_random_forest_brier_independent",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "h21_random_forest_fraction_bounds",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "h21_expanding_class_frequency_baseline_brier_independent",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "h21_expanding_class_frequency_baseline_fraction_bounds",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "h21_ridge_mae_independent",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "h21_expanding_mean_baseline_mae_independent",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "h57_label_recomputed_independently",
+      "pass": true,
+      "detail": 6.661338147750939e-16
+    },
+    {
+      "name": "h57_all_label_horizons",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "h57_oos_count",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "h57_nonoverlapping_anchor_count",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "h57_purged_folds",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "h57_latest_training_label_known",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "h57_current_outputs_not_promoted",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "h57_all_labels_correct",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "h57_logistic_brier_independent",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "h57_logistic_fraction_bounds",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "h57_random_forest_brier_independent",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "h57_random_forest_fraction_bounds",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "h57_expanding_class_frequency_baseline_brier_independent",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "h57_expanding_class_frequency_baseline_fraction_bounds",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "h57_ridge_mae_independent",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "h57_expanding_mean_baseline_mae_independent",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "remaining_sessions_57",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "no_calibrated_winner_claim",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "strict_PIT_gate_blocked",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "no_official_model_write",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "protected_originals_unchanged",
+      "pass": true,
+      "detail": {
+        "count": 242,
+        "changed": []
+      }
+    },
+    {
+      "name": "previous_study_inputs_unchanged",
+      "pass": true,
+      "detail": null
+    }
+  ],
+  "supplemental_baselines": {
+    "21": {
+      "role": "additional_naive_baselines_not_new_forecasts",
+      "constant_half_probability_brier": 0.25,
+      "zero_relative_log_forecast_mae": 0.045242383754216214,
+      "oos_rows": 3316,
+      "probability_unit": "fraction",
+      "mae_unit": "log_gross_return_ratio"
+    },
+    "57": {
+      "role": "additional_naive_baselines_not_new_forecasts",
+      "constant_half_probability_brier": 0.25,
+      "zero_relative_log_forecast_mae": 0.07541267017027016,
+      "oos_rows": 3280,
+      "probability_unit": "fraction",
+      "mae_unit": "log_gross_return_ratio"
+    }
+  },
+  "errors": [],
+  "warnings": [
+    "Original historical publication/adjustment vintages remain unavailable.",
+    "Overlapping daily labels are not independent samples; nonoverlapping anchors also may share regime dependence.",
+    "Inference methods and hyperparameters were not preregistered before historical outcomes.",
+    "No tested model beat its predeclared baseline; current exploratory outputs are not adopted."
+  ]
+}

@@ -1,0 +1,125 @@
+{
+  "schema_version": 1,
+  "reviewed_at_utc": "2026-10-16T00:41:13.698721+00:00",
+  "research_as_of": "2026-10-16T09:00:00+09:00",
+  "reviewer_role": "independent cross-check of parent report against archived fundamentals; not an external audit or independent collection-vintage certification",
+  "verdict": "passed_with_explicit_data_limitations",
+  "blocking_findings": [],
+  "nonblocking_findings": [],
+  "checks": [
+    {
+      "check_id": "R01",
+      "label_ko": "삼성 잠정 실적과 전분기 비교",
+      "passed": true,
+      "detail_ko": "107.4조원/89.492412조원-1=0.2001017472. 보고서20.0%는적절한반올림. 발표자료자체에2분기89.49조원도표시됨. 잠정치와2027년예상EPS를구분함."
+    },
+    {
+      "check_id": "R02",
+      "label_ko": "반도체 수출·범용 메모리와 HBM 구분",
+      "passed": true,
+      "detail_ko": "10월14일공식ICT자료의9월603.3억달러와262.8%를사용. 10월1일603.0빈티지와혼합하지않음. DDR5규격명시는10월1일원문이추가로뒷받침하며6~9월벤치마크수치가일치."
+    },
+    {
+      "check_id": "R03",
+      "label_ko": "메모리 경보 경계값",
+      "passed": true,
+      "detail_ko": "43.2달러와27.54달러는기준가격에서10%하락한산술값. 보고서는2개월연속하락과공식주문/출하하향의동반조건을명시하고단일가격으로AI수요붕괴를단정하지않음."
+    },
+    {
+      "check_id": "R04",
+      "label_ko": "CP와 신용스프레드 비교",
+      "passed": true,
+      "detail_ko": "CP3.66%는8월말3.25%대비41bp상승. AA-국고3년스프레드는10월14일68bp,8월말68bp. 조달부담상승과광범위한신용위기확인을구분한문구가타당."
+    },
+    {
+      "check_id": "R05",
+      "label_ko": "조달 경보 경계값",
+      "passed": true,
+      "detail_ko": "4.16%와98bp는각각CP+50bp·스프레드+30bp의연구용값. 보고서가공식원문예측문턱이아니라고명시하며5거래일지속조건을설명함."
+    },
+    {
+      "check_id": "R06",
+      "label_ko": "결측과 현재 판정 구분",
+      "passed": true,
+      "detail_ko": "2027년전망수정·일별반대매매·종목확산·조업일보정수출/최신분기현금흐름을미확보또는불완전으로표시. 결측을0이나조건통과로대체하지않음."
+    },
+    {
+      "check_id": "R07",
+      "label_ko": "신용 축소와 강제 청산 구분",
+      "passed": true,
+      "detail_ko": "신용20일-10%와반대매매직전60일중앙값2배의5일중3일발생은미검증관찰조합. 미수반대매매와신용담보처분의범위차이도공개함."
+    },
+    {
+      "check_id": "R08",
+      "label_ko": "연구 문턱과 검증된 예측 규칙 구분",
+      "passed": true,
+      "detail_ko": "5일지지·10일평균선유지·10%하향·2개월등에검증된적중률을부여하지않음. 단계구분의엄격/기본/느슨한문턱도연구선택으로표시함."
+    },
+    {
+      "check_id": "R09",
+      "label_ko": "현재 가격 산술과 미충족 게이트",
+      "passed": true,
+      "detail_ko": "현재대비상승률및추가20%손실선4,443.38일치. 전저점아래는1일,위는0일로5일게이트둘다미충족. 이동평균은미래매일재계산한다고명시."
+    },
+    {
+      "check_id": "R10",
+      "label_ko": "EPS/PER 산술과 예상수익률 구분",
+      "passed": true,
+      "detail_ko": "+20%/-20%조합=-4%, -20%/-20%=-36%, -10%/+20%=+8%등일치. 삼성OP성장률을KOSPI EPS에대입하지않으며숫자는가정산술이라고명시."
+    },
+    {
+      "check_id": "R11",
+      "label_ko": "126거래 수익률 구간과 역사 사례의 제한",
+      "passed": true,
+      "detail_ko": "역사사례에출발종가와126개후속종가를포함한다는정의가phase_support에존재. 일부러선택한상반사례의사후진단으로명시하고목표/확률로외삽하지않음. 정확한미래달력종료일을고정하지않음."
+    },
+    {
+      "check_id": "R12",
+      "label_ko": "공개일 및 발표 전 데이터 혼입 제한",
+      "passed": true,
+      "detail_ko": "삼성잠정치10월8일,ICT10월14일,BOK인터넷공개10월15일12시로기준시각이전. 공개시각불확실한10월16일OCP기사는미사용. Hynix/Samsung일정은현재조회참고이고결과가아님을보고서에서명시."
+    },
+    {
+      "check_id": "R13",
+      "label_ko": "보고서 생성 코드의 범위",
+      "passed": true,
+      "detail_ko": "생성코드는보존한phase_analysis/phase_support/review자료를읽고보고서HTML/Markdown을출력. 미래한국실적을계산해채워넣거나전망원장을기록하는경로는없음. 실제코드는리뷰중실행하지않음."
+    },
+    {
+      "check_id": "R14",
+      "label_ko": "원문 아카이브 해시",
+      "passed": true,
+      "detail_ko": "원시응답23개SHA256재확인. SEC접수헤더/인덱스403실패2건은실패기록으로보존하고접수시각확인성공처럼취급하지않음."
+    }
+  ],
+  "limitations_ko": [
+    "원문은as_of이후재조회한공개자료임. 공개일/엠바고를기준으로내용의시간적적합성을확인했으나당시수집된원래빈티지를인증한공식예측입력은아님.",
+    "SK하이닉스SEC서명일은접수공개시각의증거가아니며삼성현재달력의원게시시각도미확인. 보고서의현재조회참고한정문구가이를반영함.",
+    "이검토는실적·메모리·금융조건·설명용산술과과장여부가중심임. 전체가격후보알고리즘및126일역사수익률경로의독립재계산검토는별도review자료를따름.",
+    "동일FY2027이익전망·반대매매·breadth가미확보되어향후조건이현재충족됐다는종합판정은불가능하며보고서도그렇게판정하지않음."
+  ],
+  "required_changes_ko": [],
+  "parent_files_mutated": false,
+  "files_reviewed_sha256": {
+    "report.md": "61aabdf27f49cf10c3410cd65c11ee3f57e201bf7b00db8b42fa8d812a27deab",
+    "phase_support.json": "3085f0a74f651ba302dd44b16b212b3e1ffb3b8abb222daec36a3586151b9509",
+    "build_phase_report.py": "65ad93905e5b535c09684626715c8b1f56d8bd393932e0f70c8e2f344076d7aa",
+    "fundamentals/evidence.json": "7b3a7bfc8da864079cb0b3af96903ae0895699435a8039934b83faac0c1b512f",
+    "fundamentals/condition_matrix.json": "454e3f4da78a84ca4ef7185df6d22c3799d6267a728562ee29c2d00166029924",
+    "fundamentals/source_manifest.json": "635fd2650770d6e0d9dc366b2189f161da5582845666be1f093d7a4bba280a45"
+  },
+  "final_snapshot_confirmation": {
+    "recorded_at_utc": "2026-10-16T00:43:15.233926+00:00",
+    "verdict_retained": "passed_with_explicit_data_limitations",
+    "basis_ko": "수치변경없는최종문구보강이라는부모에이전트의변경범위설명에따라기존14개검토판정을유지함. 상관지표비교의범위,1월비교가종합순위1위가아님,31거래일,condition_matrix전체경로,회고수집/원빈티지미인증한계의추가명시가이전검토의한정조건과일치함.",
+    "numeric_recollection_or_validation_repeated": false,
+    "original_reviewed_hashes_preserved": true,
+    "files_sha256": {
+      "report.md": "25cd70aa77eb3f94a2a5fa610c8173284e441a121fd379b9afe42e6bf57cd9b8",
+      "report.html": "83627e688a80ce3fda4f09d1b508258323a4574ca0245c403a9060953d7a3390",
+      "phase_support.json": "3085f0a74f651ba302dd44b16b212b3e1ffb3b8abb222daec36a3586151b9509",
+      "build_phase_report.py": "d2a640d5c98331114cfd0001783257a0084ab0966147d2ea5e39c358aea05d47"
+    },
+    "parent_files_mutated": false
+  }
+}

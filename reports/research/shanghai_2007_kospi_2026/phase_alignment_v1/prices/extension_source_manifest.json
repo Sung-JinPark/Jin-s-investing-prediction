@@ -1,0 +1,39 @@
+{
+  "sources": [
+    {
+      "source_id": "yahoo_sse_composite_2009_extension",
+      "url": "https://finance.yahoo.com/quote/000001.SS/history/?period1=1222819200&period2=1262304000&frequency=1d",
+      "provider": "Yahoo Finance",
+      "access_method": "unauthenticated_static_historical_HTML",
+      "raw_file": "raw/yahoo_sse_composite_2009_extension.html",
+      "sha256": "a5feb70b80d24db06fa6f4a37779fc6fb3e4877776770d409e9c34bd7cad1bcd",
+      "retrieved_at_utc": "2026-10-16T00:30:02.891630+00:00",
+      "canonical_extension_rows": 244,
+      "overlap_crosscheck_rows": 63,
+      "maximum_overlap_difference": 0.009999999999990905,
+      "tolerance_points": 0.011,
+      "first_extension_date": "2009-01-05",
+      "last_extension_date": "2009-12-31",
+      "role": "historical outcome follow-through only; never changes frozen current inputs",
+      "publication_vintage": "retrospective; original release timestamps unavailable"
+    },
+    {
+      "source_id": "yahoo_sse_a_2009_extension",
+      "url": "https://finance.yahoo.com/quote/000002.SS/history/?period1=1222819200&period2=1262304000&frequency=1d",
+      "provider": "Yahoo Finance",
+      "access_method": "unauthenticated_static_historical_HTML",
+      "raw_file": "raw/yahoo_sse_a_2009_extension.html",
+      "sha256": "c8c11b65e9f94dec111f8f8de867fcca9d3b976987872c99e74a8e7e9f169473",
+      "retrieved_at_utc": "2026-10-16T00:30:04.998709+00:00",
+      "canonical_extension_rows": 244,
+      "overlap_crosscheck_rows": 63,
+      "maximum_overlap_difference": 0.009999999999763531,
+      "tolerance_points": 0.011,
+      "first_extension_date": "2009-01-05",
+      "last_extension_date": "2009-12-31",
+      "role": "historical outcome follow-through only; never changes frozen current inputs",
+      "publication_vintage": "retrospective; original release timestamps unavailable"
+    }
+  ],
+  "canonical_extension_sha256": "a27d1d3888d8df043c2f14c842173290600d50d4a3ac4e66a41fc7e26576abe8"
+}

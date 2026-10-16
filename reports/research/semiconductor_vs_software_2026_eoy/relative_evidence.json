@@ -1,0 +1,2073 @@
+{
+  "schema_version": 1,
+  "research_as_of": "2026-10-12T10:38:50+09:00",
+  "price_as_of": "2026-10-09",
+  "horizon_end": "2026-12-31",
+  "currency": "USD",
+  "official_forecast": false,
+  "probability_unit": "fraction",
+  "validated_sector_probability": null,
+  "compiled_at": "2026-10-12T01:53:06.593021+00:00",
+  "timestamp_policy": "New REL-source exact web-fetch timestamps are unavailable and therefore null; compiled_at only records this build. Reused TECH-source metadata retains the earlier study's explicit compilation-time convention. Availability proxies and exact stated public release times are distinguished.",
+  "baseline_sha256": "7f8b7cad32ab64e7bf2ef4881746ffec190e67b842f7e705a6d8b5c69aa3e259",
+  "sources": [
+    {
+      "id": "TECH-SOXX-ETF",
+      "url": "https://www.ishares.com/us/products/239705/ishares-phlx-semiconductor-etf",
+      "title": "iShares Semiconductor ETF product page",
+      "publisher": "iShares / BlackRock",
+      "published_at": null,
+      "data_as_of": "2026-10-09",
+      "retrieved_at": "2026-10-12T00:26:10Z",
+      "availability_basis": "현재 원문의 데이터 기준일 표기를 확인. 페이지 게시시각과 과거 수정이력/보관본은 확보하지 못해 완전한 point-in-time publication vintage 증명은 제한됨.",
+      "available_at": null,
+      "lookahead_status": "eligible_observation_dated_publication_time_unverified",
+      "claims": [
+        "반도체 노출은 강한 실적 성장과 함께 높은 변동성을 동반한다. YTD 급등과 3분기 조정이 공존하며 장기 상승률을 연말 잔여수익률로 전환할 수 없다."
+      ],
+      "numerical_facts": [
+        {
+          "metric": "closing_price",
+          "value": 559.4,
+          "unit": "USD/share",
+          "definition": "발행사 Closing Price; NAV와 별개",
+          "as_of": "2026-10-09"
+        },
+        {
+          "metric": "nav",
+          "value": 559.84,
+          "unit": "USD/share",
+          "definition": "발행사 NAV",
+          "as_of": "2026-10-09"
+        },
+        {
+          "metric": "pe",
+          "value": 51.42,
+          "unit": "ratio",
+          "definition": "각 보유종목의 최신 종가를 최근 확정 회계연도 EPS로 나누는 issuer P/E. 음수 P/E 제외. TTM 또는 forward P/E로 표기하지 않음. HTML infoBubble 원문을 별도로 검증.",
+          "as_of": "2026-10-08"
+        },
+        {
+          "metric": "ytd_nav_total_return",
+          "value": 89.02,
+          "unit": "percent",
+          "definition": "배당 재투자·펀드 비용 반영 NAV 총수익",
+          "as_of": "2026-09-30"
+        },
+        {
+          "metric": "one_month_nav_total_return",
+          "value": 11.23,
+          "unit": "percent",
+          "definition": "9월 한 달 NAV 총수익",
+          "as_of": "2026-09-30"
+        },
+        {
+          "metric": "three_month_nav_total_return",
+          "value": -11.26,
+          "unit": "percent",
+          "definition": "3분기 NAV 총수익",
+          "as_of": "2026-09-30"
+        },
+        {
+          "metric": "latest_ytd_nav_total_return",
+          "value": 87.34,
+          "unit": "percent",
+          "definition": "헤더의 전일 기준 YTD",
+          "as_of": "2026-10-08"
+        },
+        {
+          "metric": "expense_ratio",
+          "value": 0.33,
+          "unit": "percent_per_year",
+          "definition": "공시 보수"
+        },
+        {
+          "metric": "holdings_count",
+          "value": 30,
+          "unit": "count",
+          "definition": "issuer portfolio holdings",
+          "as_of": "2026-10-09"
+        },
+        {
+          "metric": "three_year_standard_deviation",
+          "value": 38.14,
+          "unit": "percent",
+          "definition": "historical 3y; forward loss limit 아님",
+          "as_of": "2026-08-31"
+        },
+        {
+          "metric": "three_year_equity_beta",
+          "value": 2.06,
+          "unit": "ratio",
+          "definition": "historical3y; 미래β아님",
+          "as_of": "2026-08-31"
+        }
+      ],
+      "limitations": [
+        "월말 성과와 최신 종가의 기준일이 다름.",
+        "P/E에서 적자기업 제외와 회계연도 시차가 비교를 왜곡할 수 있음."
+      ],
+      "reused_from": "C:\\workspace\\ai-investing\\reports\\research\\sector_outlook_2026_eoy\\evidence_us_tech.json",
+      "baseline_research_as_of": "2026-10-12T09:16:14+09:00",
+      "dedup_group": "TECH-SOXX-ETF"
+    },
+    {
+      "id": "TECH-SOXX-HOLDINGS",
+      "url": "https://www.ishares.com/us/products/239705/ishares-semiconductor-etf/latest-holdings.csv",
+      "title": "SOXX issuer holdings CSV",
+      "publisher": "iShares / BlackRock",
+      "published_at": null,
+      "data_as_of": "2026-10-09",
+      "retrieved_at": "2026-10-12T00:26:10Z",
+      "availability_basis": "현재 원문의 데이터 기준일 표기를 확인. 페이지 게시시각과 과거 수정이력/보관본은 확보하지 못해 완전한 point-in-time publication vintage 증명은 제한됨.",
+      "available_at": null,
+      "lookahead_status": "eligible_observation_dated_publication_time_unverified",
+      "claims": [
+        "SOXX를 NVIDIA 단독 또는 AI GPU만의 베타로 설명하면 실제 산업 노출을 놓친다."
+      ],
+      "numerical_facts": [
+        {
+          "metric": "top_holdings_weights",
+          "value": {
+            "AMD": 9.36,
+            "INTC": 8.48,
+            "MU": 7.78,
+            "NVDA": 7.53,
+            "AVGO": 7.07
+          },
+          "unit": "percent_of_fund",
+          "definition": "CSV Weight (%)"
+        },
+        {
+          "metric": "top5_weight",
+          "value": 40.22,
+          "unit": "percent_of_fund",
+          "definition": "9.36+8.48+7.78+7.53+7.07"
+        }
+      ],
+      "limitations": [
+        "CSV Price는 vendor price이며 펀드 fair valuation/종가와 다를 수 있어 대표 기업의 확정 종가로 사용하지 않음."
+      ],
+      "reused_from": "C:\\workspace\\ai-investing\\reports\\research\\sector_outlook_2026_eoy\\evidence_us_tech.json",
+      "baseline_research_as_of": "2026-10-12T09:16:14+09:00",
+      "dedup_group": "TECH-SOXX-HOLDINGS"
+    },
+    {
+      "id": "TECH-SOXX-SPLIT",
+      "url": "https://www.sec.gov/Archives/edgar/data/1100663/000119312526361162/d133118d497.htm",
+      "title": "SOXX forward split Form 497 supplement",
+      "publisher": "iShares Trust / SEC",
+      "published_at": "2026-08-21",
+      "data_as_of": "2026-08-21",
+      "retrieved_at": "2026-10-12T00:26:10Z",
+      "availability_basis": "원문 명시 발표일이 분석 기준시각보다 이전. 발표일만 있고 시각 없는 경우 그 날짜 다음날 00:00 UTC를 보수적 사용 가능 시점으로 기록.",
+      "available_at": "2026-08-22T00:00:00.000Z",
+      "lookahead_status": "eligible_dated_primary",
+      "claims": [
+        "분할은 총보유가치와 경제적 수익률을 바꾸지 않는다. 연말 가격 비교시 주식 수/가격 단위를 3:1로 맞춰야 한다."
+      ],
+      "numerical_facts": [
+        {
+          "metric": "forward_split_ratio",
+          "value": 3,
+          "unit": "new_shares_per_old_share",
+          "definition": "3:1"
+        },
+        {
+          "metric": "record_date",
+          "value": "2026-11-03",
+          "unit": "date",
+          "definition": "scheduled record date"
+        },
+        {
+          "metric": "effective_after_close_date",
+          "value": "2026-11-04",
+          "unit": "date",
+          "definition": "scheduled after-close split"
+        },
+        {
+          "metric": "split_adjusted_trading_date",
+          "value": "2026-11-05",
+          "unit": "date",
+          "definition": "scheduled trading basis"
+        }
+      ],
+      "limitations": [
+        "기준시점에는 예정된 corporate action이며 실제 이행 확인은 기준시점 이후 자료이므로 사용하지 않음."
+      ],
+      "reused_from": "C:\\workspace\\ai-investing\\reports\\research\\sector_outlook_2026_eoy\\evidence_us_tech.json",
+      "baseline_research_as_of": "2026-10-12T09:16:14+09:00",
+      "dedup_group": "TECH-SOXX-SPLIT"
+    },
+    {
+      "id": "TECH-IGV-ETF",
+      "url": "https://www.ishares.com/us/products/239771/ishares-north-american-techsoftware-etf",
+      "title": "iShares Expanded Tech-Software Sector ETF product page",
+      "publisher": "iShares / BlackRock",
+      "published_at": null,
+      "data_as_of": "2026-10-09",
+      "retrieved_at": "2026-10-12T00:26:10Z",
+      "availability_basis": "현재 원문의 데이터 기준일 표기를 확인. 페이지 게시시각과 과거 수정이력/보관본은 확보하지 못해 완전한 point-in-time publication vintage 증명은 제한됨.",
+      "available_at": null,
+      "lookahead_status": "eligible_observation_dated_publication_time_unverified",
+      "claims": [
+        "연간 수익이 작아도 3분기에 이미 큰 반등을 보였으므로 저평가의 충분조건이 아니다."
+      ],
+      "numerical_facts": [
+        {
+          "metric": "closing_price",
+          "value": 112.67,
+          "unit": "USD/share",
+          "definition": "발행사 Closing Price",
+          "as_of": "2026-10-09"
+        },
+        {
+          "metric": "nav",
+          "value": 112.58,
+          "unit": "USD/share",
+          "definition": "발행사 NAV",
+          "as_of": "2026-10-09"
+        },
+        {
+          "metric": "pe",
+          "value": 36.83,
+          "unit": "ratio",
+          "definition": "각 보유종목의 최신 종가를 최근 확정 회계연도 EPS로 나누는 issuer P/E. 음수 P/E 제외. TTM 또는 forward P/E로 표기하지 않음. HTML infoBubble 원문을 별도로 검증.",
+          "as_of": "2026-10-08"
+        },
+        {
+          "metric": "ytd_nav_total_return",
+          "value": 0.68,
+          "unit": "percent",
+          "definition": "NAV 총수익",
+          "as_of": "2026-09-30"
+        },
+        {
+          "metric": "one_month_nav_total_return",
+          "value": -3.38,
+          "unit": "percent",
+          "definition": "NAV 총수익",
+          "as_of": "2026-09-30"
+        },
+        {
+          "metric": "three_month_nav_total_return",
+          "value": 17.46,
+          "unit": "percent",
+          "definition": "NAV 총수익",
+          "as_of": "2026-09-30"
+        },
+        {
+          "metric": "latest_ytd_nav_total_return",
+          "value": 3.67,
+          "unit": "percent",
+          "definition": "헤더 전일 YTD",
+          "as_of": "2026-10-08"
+        },
+        {
+          "metric": "expense_ratio",
+          "value": 0.38,
+          "unit": "percent_per_year",
+          "definition": "공시 보수"
+        },
+        {
+          "metric": "holdings_count",
+          "value": 106,
+          "unit": "count",
+          "definition": "issuer holdings",
+          "as_of": "2026-10-09"
+        }
+      ],
+      "limitations": [
+        "낮은 회계연도 P/E를 SOXX 또는 S&P forward P/E와 그대로 할인율 비교하지 않음."
+      ],
+      "reused_from": "C:\\workspace\\ai-investing\\reports\\research\\sector_outlook_2026_eoy\\evidence_us_tech.json",
+      "baseline_research_as_of": "2026-10-12T09:16:14+09:00",
+      "dedup_group": "TECH-IGV-ETF"
+    },
+    {
+      "id": "TECH-IGV-HOLDINGS",
+      "url": "https://www.ishares.com/us/products/239771/ishares-expanded-tech-software-sector-etf/latest-holdings.csv",
+      "title": "IGV issuer holdings CSV",
+      "publisher": "iShares / BlackRock",
+      "published_at": null,
+      "data_as_of": "2026-10-09",
+      "retrieved_at": "2026-10-12T00:26:10Z",
+      "availability_basis": "현재 원문의 데이터 기준일 표기를 확인. 페이지 게시시각과 과거 수정이력/보관본은 확보하지 못해 완전한 point-in-time publication vintage 증명은 제한됨.",
+      "available_at": null,
+      "lookahead_status": "eligible_observation_dated_publication_time_unverified",
+      "claims": [
+        "IGV는 보안·AI 데이터·클라우드 비중이 큰 집중 포트폴리오로서 모든 SaaS 기업의 회복을 대변하지 않는다."
+      ],
+      "numerical_facts": [
+        {
+          "metric": "top_holdings_weights",
+          "value": {
+            "PANW": 9.62,
+            "PLTR": 9.5,
+            "CRWD": 8.7,
+            "MSFT": 8.38,
+            "ORCL": 6.74
+          },
+          "unit": "percent_of_fund",
+          "definition": "CSV weights"
+        },
+        {
+          "metric": "top5_weight",
+          "value": 42.94,
+          "unit": "percent_of_fund",
+          "definition": "9.62+9.50+8.70+8.38+6.74"
+        }
+      ],
+      "limitations": [
+        "CSV Price는 확정 종가로 사용하지 않음."
+      ],
+      "reused_from": "C:\\workspace\\ai-investing\\reports\\research\\sector_outlook_2026_eoy\\evidence_us_tech.json",
+      "baseline_research_as_of": "2026-10-12T09:16:14+09:00",
+      "dedup_group": "TECH-IGV-HOLDINGS"
+    },
+    {
+      "id": "TECH-NVDA-FY27Q2",
+      "url": "https://nvidianews.nvidia.com/news/nvidia-announces-financial-results-for-second-quarter-fiscal-2027",
+      "title": "NVIDIA second quarter fiscal 2027 results",
+      "publisher": "NVIDIA",
+      "published_at": "2026-08-26",
+      "data_as_of": "2026-07-26",
+      "retrieved_at": "2026-10-12T00:26:10Z",
+      "available_at": "2026-08-27T00:00:00.000Z",
+      "availability_basis": "원문 명시 발표일이 기준시각 이전. 날짜 다음날 00:00 UTC를 보수적 사용 가능 시점으로 기록.",
+      "lookahead_status": "eligible_dated_primary",
+      "claims": [
+        "매출과 데이터센터 실적은 AI compute 수요를 입증한다. 다음 분기 전망은 중국 계산매출 없이 제시된다."
+      ],
+      "numerical_facts": [
+        {
+          "metric": "quarter_revenue",
+          "value": 96.221,
+          "unit": "USD_billion",
+          "definition": "FY27Q2; 분기수치"
+        },
+        {
+          "metric": "quarter_revenue_yoy",
+          "value": 106,
+          "unit": "percent",
+          "definition": "FY27Q2 대비FY26Q2"
+        },
+        {
+          "metric": "data_center_revenue",
+          "value": 89,
+          "unit": "USD_billion",
+          "definition": "FY27Q2"
+        },
+        {
+          "metric": "data_center_revenue_yoy",
+          "value": 117,
+          "unit": "percent",
+          "definition": "FY27Q2"
+        },
+        {
+          "metric": "gross_margin_gaap",
+          "value": 75,
+          "unit": "percent",
+          "definition": "FY27Q2"
+        },
+        {
+          "metric": "next_quarter_revenue_guidance",
+          "value": 108,
+          "unit": "USD_billion",
+          "definition": "FY27Q3 관리진 전망 midpoint ±2%; 중국DC compute매출 제외"
+        },
+        {
+          "metric": "next_quarter_revenue_guidance_tolerance",
+          "value": 2,
+          "unit": "percent",
+          "definition": "management guide tolerance, 확률CI아님"
+        }
+      ],
+      "limitations": [
+        "FY27Q1부터 non-GAAP도 주식보상비용을 포함하며 과거 비교치를 재표시했으므로 이전 vintage non-GAAP와 혼합 금지.",
+        "Vera Rubin 생산 주장은 회사 주장이고 연말 주가상승률 전망이 아님."
+      ],
+      "reused_from": "C:\\workspace\\ai-investing\\reports\\research\\sector_outlook_2026_eoy\\evidence_us_tech.json",
+      "baseline_research_as_of": "2026-10-12T09:16:14+09:00",
+      "dedup_group": "TECH-NVDA-FY27Q2"
+    },
+    {
+      "id": "TECH-AVGO-FY26Q3",
+      "url": "https://www.sec.gov/Archives/edgar/data/1730168/000173016826000076/avgo-08022026x8kxex99.htm",
+      "title": "Broadcom third quarter fiscal 2026 earnings Exhibit 99.1",
+      "publisher": "Broadcom / SEC",
+      "published_at": "2026-09-02",
+      "data_as_of": "2026-08-02",
+      "retrieved_at": "2026-10-12T00:26:10Z",
+      "available_at": "2026-09-03T00:00:00.000Z",
+      "availability_basis": "원문 명시 발표일이 기준시각 이전. 날짜 다음날 00:00 UTC를 보수적 사용 가능 시점으로 기록.",
+      "lookahead_status": "eligible_dated_primary",
+      "claims": [
+        "맞춤형 accelerator와 네트워킹이 GPU 외 AI 인프라의 추가 성장 경로를 제공한다."
+      ],
+      "numerical_facts": [
+        {
+          "metric": "quarter_revenue",
+          "value": 29.591,
+          "unit": "USD_billion",
+          "definition": "FY26Q3"
+        },
+        {
+          "metric": "quarter_ai_semiconductor_revenue",
+          "value": 16.7,
+          "unit": "USD_billion",
+          "definition": "FY26Q3 회사AI반도체 정의"
+        },
+        {
+          "metric": "quarter_ai_semiconductor_yoy",
+          "value": 221,
+          "unit": "percent",
+          "definition": "FY26Q3"
+        },
+        {
+          "metric": "quarter_fcf",
+          "value": 13.7,
+          "unit": "USD_billion",
+          "definition": "회사현금영업14.2-현금capex0.5"
+        },
+        {
+          "metric": "next_quarter_revenue_guidance",
+          "value": 34.8,
+          "unit": "USD_billion",
+          "definition": "FY26Q4 management guidance"
+        },
+        {
+          "metric": "next_quarter_ai_semiconductor_revenue_guidance",
+          "value": 21.7,
+          "unit": "USD_billion",
+          "definition": "FY26Q4 management guidance"
+        }
+      ],
+      "limitations": [
+        "issuer IR 403을 SEC 원문 exhibit로 해결. 같은 보도자료의 PRNewswire/재인용은 독립증거 아님.",
+        "few hyperscaler customers/ASIC 채택이 특정 고객 주문의 집중도를 높일 수 있음."
+      ],
+      "aliases": [
+        "https://investors.broadcom.com/news-releases/news-release-details/broadcom-inc-announces-third-quarter-fiscal-year-2026-financial"
+      ],
+      "reused_from": "C:\\workspace\\ai-investing\\reports\\research\\sector_outlook_2026_eoy\\evidence_us_tech.json",
+      "baseline_research_as_of": "2026-10-12T09:16:14+09:00",
+      "dedup_group": "TECH-AVGO-FY26Q3"
+    },
+    {
+      "id": "TECH-MSFT-FY26Q4",
+      "url": "https://www.microsoft.com/en-us/investor/earnings/fy-2026-q4/press-release-webcast",
+      "title": "Microsoft FY26 Q4 earnings release",
+      "publisher": "Microsoft",
+      "published_at": "2026-07-29",
+      "data_as_of": "2026-06-30",
+      "retrieved_at": "2026-10-12T00:26:10Z",
+      "available_at": "2026-07-30T00:00:00.000Z",
+      "availability_basis": "원문 명시 발표일이 기준시각 이전. 날짜 다음날 00:00 UTC를 보수적 사용 가능 시점으로 기록.",
+      "lookahead_status": "eligible_dated_primary",
+      "claims": [
+        "Azure 성장과 Copilot 도입은 데이터센터 투자와 AI 애플리케이션 매출을 연결하는 근거다."
+      ],
+      "numerical_facts": [
+        {
+          "metric": "quarter_revenue",
+          "value": 90.007,
+          "unit": "USD_billion",
+          "definition": "FY26Q4=2026년4~6월"
+        },
+        {
+          "metric": "quarter_revenue_yoy",
+          "value": 18,
+          "unit": "percent",
+          "definition": "FY26Q4"
+        },
+        {
+          "metric": "quarter_operating_income",
+          "value": 40.603,
+          "unit": "USD_billion",
+          "definition": "GAAP FY26Q4"
+        },
+        {
+          "metric": "azure_cloud_yoy",
+          "value": 43,
+          "unit": "percent",
+          "definition": "Azure and other cloud services growth;reported/CC동일"
+        },
+        {
+          "metric": "microsoft_cloud_revenue",
+          "value": 59.3,
+          "unit": "USD_billion",
+          "definition": "분기Cloud상품묶음;Azure단독매출아님"
+        }
+      ],
+      "limitations": [
+        "전체MSFT수익과IGV수익을동일시금지.",
+        "회계연도 끝이6월이고 Q4는 달력4분기가 아님."
+      ],
+      "dedup_group": "TECH-MSFT-FY26Q4",
+      "reused_from": "C:\\workspace\\ai-investing\\reports\\research\\sector_outlook_2026_eoy\\evidence_us_tech.json",
+      "baseline_research_as_of": "2026-10-12T09:16:14+09:00"
+    },
+    {
+      "id": "TECH-MSFT-FY26Q4-CALL",
+      "url": "https://www.microsoft.com/en-us/investor/events/fy-2026/earnings-fy-2026-q4",
+      "title": "Microsoft FY26 Q4 conference call",
+      "publisher": "Microsoft",
+      "published_at": "2026-07-29",
+      "data_as_of": "2026-06-30",
+      "retrieved_at": "2026-10-12T00:26:10Z",
+      "available_at": "2026-07-30T00:00:00.000Z",
+      "availability_basis": "원문 명시 발표일이 기준시각 이전. 날짜 다음날 00:00 UTC를 보수적 사용 가능 시점으로 기록.",
+      "lookahead_status": "eligible_dated_primary",
+      "claims": [
+        "연간 CapEx 숫자의 하향 표시는 finance lease에서 operating lease로 재분류한 효과이며 수요 둔화로 읽을 수 없다."
+      ],
+      "numerical_facts": [
+        {
+          "metric": "quarter_capex",
+          "value": 41,
+          "unit": "USD_billion",
+          "definition": "financelease포함회사CapEx;FY26Q4"
+        },
+        {
+          "metric": "quarter_cash_ppe",
+          "value": 35.8,
+          "unit": "USD_billion",
+          "definition": "현금PP&E;FY26Q4"
+        },
+        {
+          "metric": "quarter_finance_leases",
+          "value": 5.6,
+          "unit": "USD_billion",
+          "definition": "finance leases;rounding으로cash합과일치안할수있음"
+        },
+        {
+          "metric": "quarter_fcf",
+          "value": 19.6,
+          "unit": "USD_billion",
+          "definition": "FY26Q4"
+        },
+        {
+          "metric": "cy2026_capex_guidance",
+          "value": 175,
+          "unit": "USD_billion",
+          "definition": "lease분류변경 후CY26기대액; 실제투자의향불변"
+        },
+        {
+          "metric": "m365_copilot_paid_seats",
+          "value": 30,
+          "unit": "million_seats_lower_bound",
+          "definition": "over30million atFY26Q4"
+        },
+        {
+          "metric": "next_quarter_capex_guidance",
+          "value": 50,
+          "unit": "USD_billion_lower_bound",
+          "definition": "FY27Q1; over50billion"
+        }
+      ],
+      "limitations": [
+        "현금PP&E,lease포함capex,연간가이던스는서로다른정의와기간.",
+        "FY27영업이익률은전년대비1pp미만하락전망;배수확장은금리하락및투자ROI확인에의존."
+      ],
+      "dedup_group": "TECH-MSFT-FY26Q4-CALL",
+      "reused_from": "C:\\workspace\\ai-investing\\reports\\research\\sector_outlook_2026_eoy\\evidence_us_tech.json",
+      "baseline_research_as_of": "2026-10-12T09:16:14+09:00"
+    },
+    {
+      "id": "TECH-CRM-FY27Q2",
+      "url": "https://investor.salesforce.com/news/news-details/2026/Salesforce-Delivers-Record-Second-Quarter-Fiscal-2027-Results/default.aspx",
+      "title": "Salesforce second quarter fiscal 2027 results",
+      "publisher": "Salesforce",
+      "published_at": "2026-08-26",
+      "data_as_of": "2026-07-31",
+      "retrieved_at": "2026-10-12T00:26:10Z",
+      "available_at": "2026-08-27T00:00:00.000Z",
+      "availability_basis": "원문 명시 발표일이 기준시각 이전. 날짜 다음날 00:00 UTC를 보수적 사용 가능 시점으로 기록.",
+      "lookahead_status": "eligible_dated_primary",
+      "claims": [
+        "AI agent 수익화와 cRPO 개선은 coreSaaS회복의근거지만inorganic구분필수."
+      ],
+      "numerical_facts": [
+        {
+          "metric": "quarter_revenue",
+          "value": 11.345,
+          "unit": "USD_billion",
+          "definition": "FY27Q2"
+        },
+        {
+          "metric": "quarter_revenue_yoy",
+          "value": 11,
+          "unit": "percent",
+          "definition": "인수기여포함;organic아님"
+        },
+        {
+          "metric": "informatica_quarter_revenue",
+          "value": 0.456,
+          "unit": "USD_billion",
+          "definition": "FY27Q2인수기여"
+        },
+        {
+          "metric": "crpo_growth",
+          "value": 14,
+          "unit": "percent",
+          "definition": "reported/CC14%;FY27Q2"
+        },
+        {
+          "metric": "agentforce_arr",
+          "value": 1.5,
+          "unit": "USD_billion_lower_bound",
+          "definition": "exceeded1.5;새AIofferings/Slackbot/Headless360포함"
+        },
+        {
+          "metric": "quarter_fcf",
+          "value": 1.1,
+          "unit": "USD_billion",
+          "definition": "FY27Q2rounded"
+        },
+        {
+          "metric": "fy27_revenue_guidance",
+          "value": [
+            46.1,
+            46.4
+          ],
+          "unit": "USD_billion",
+          "definition": "FYends2027-01-31;인수conditional"
+        },
+        {
+          "metric": "fy27_fcf_growth_guidance",
+          "value": [
+            4,
+            5
+          ],
+          "unit": "percent",
+          "definition": "managementgrowth"
+        }
+      ],
+      "limitations": [
+        "AgentforceARR정의가FY27Q2부터확대되어+240%를순수동일제품유기성장으로해석금지.",
+        "FY27매출가이던스상향200m은organic100m+pendingacquisitions200m-FX100m."
+      ],
+      "reused_from": "C:\\workspace\\ai-investing\\reports\\research\\sector_outlook_2026_eoy\\evidence_us_tech.json",
+      "baseline_research_as_of": "2026-10-12T09:16:14+09:00",
+      "dedup_group": "TECH-CRM-FY27Q2"
+    },
+    {
+      "id": "TECH-CRWD-FY27Q2",
+      "url": "https://ir.crowdstrike.com/news-releases/news-release-details/crowdstrike-reports-second-quarter-fiscal-year-2027-financial",
+      "title": "CrowdStrike second quarter fiscal 2027 results",
+      "publisher": "CrowdStrike",
+      "published_at": "2026-08-26",
+      "data_as_of": "2026-07-31",
+      "retrieved_at": "2026-10-12T00:26:10Z",
+      "available_at": "2026-08-27T00:00:00.000Z",
+      "availability_basis": "원문 명시 발표일이 기준시각 이전. 날짜 다음날 00:00 UTC를 보수적 사용 가능 시점으로 기록.",
+      "lookahead_status": "eligible_dated_primary",
+      "claims": [
+        "보안 지출의AI수요를계약ARR·현금으로확인할수있으나GAAP수익성은여전히약하다."
+      ],
+      "numerical_facts": [
+        {
+          "metric": "quarter_revenue",
+          "value": 1.47,
+          "unit": "USD_billion",
+          "definition": "FY27Q2rounded"
+        },
+        {
+          "metric": "quarter_revenue_yoy",
+          "value": 26,
+          "unit": "percent",
+          "definition": "FY27Q2"
+        },
+        {
+          "metric": "ending_arr",
+          "value": 5.84,
+          "unit": "USD_billion",
+          "definition": "July31ARRstock;분기매출아님"
+        },
+        {
+          "metric": "arr_yoy",
+          "value": 25,
+          "unit": "percent",
+          "definition": "endingARRYoY"
+        },
+        {
+          "metric": "net_new_arr",
+          "value": 0.3328,
+          "unit": "USD_billion",
+          "definition": "분기incrementARR"
+        },
+        {
+          "metric": "quarter_fcf",
+          "value": 0.3774,
+          "unit": "USD_billion",
+          "definition": "회사non-GAAPFCF"
+        },
+        {
+          "metric": "gaap_operating_income",
+          "value": -0.0332,
+          "unit": "USD_billion",
+          "definition": "Q2GAAPoperatingloss"
+        },
+        {
+          "metric": "fy27_net_new_arr_growth_guidance",
+          "value": 34,
+          "unit": "percent",
+          "definition": "midpoint;endingARRgrowth와다름"
+        },
+        {
+          "metric": "fy27_net_new_arr_growth_guidance_raise",
+          "value": 6.3,
+          "unit": "percentage_points",
+          "definition": "630basispoints;percentgrowth아님"
+        }
+      ],
+      "limitations": [
+        "endingARR성장25%와netnewARR가이던스성장34%를혼동금지.",
+        "non-GAAP는주식보상등을제외하여GAAP와같지않음.",
+        "2024Julyincident관련legalcosts와제품실행위험존재."
+      ],
+      "reused_from": "C:\\workspace\\ai-investing\\reports\\research\\sector_outlook_2026_eoy\\evidence_us_tech.json",
+      "baseline_research_as_of": "2026-10-12T09:16:14+09:00",
+      "dedup_group": "TECH-CRWD-FY27Q2"
+    },
+    {
+      "id": "TECH-TSMC-2026SEP-SALES",
+      "url": "https://investor.tsmc.com/english/monthly-revenue/2026",
+      "title": "TSMC 2026 monthly revenue",
+      "publisher": "TSMC",
+      "published_at": "2026-10-08",
+      "data_as_of": "2026-09-30",
+      "retrieved_at": "2026-10-12T00:26:10Z",
+      "available_at": "2026-10-09T00:00:00.000Z",
+      "availability_basis": "issuer monthly revenue + financial calendar Past Events: 2026-10-08 TSMC September sales. Calendar URL https://investor.cld.tsmc.com/english/financial-calendar",
+      "lookahead_status": "eligible_dated_primary",
+      "claims": [
+        "9월매출공개로최신반도체수요근거를보완할수있다."
+      ],
+      "numerical_facts": [
+        {
+          "metric": "september_revenue",
+          "value": 511857,
+          "unit": "TWD_million",
+          "definition": "9월consolidatedunaudited"
+        },
+        {
+          "metric": "september_revenue_yoy",
+          "value": 54.6,
+          "unit": "percent",
+          "definition": "9월YoY"
+        },
+        {
+          "metric": "july_revenue",
+          "value": 467580,
+          "unit": "TWD_million",
+          "definition": "7월"
+        },
+        {
+          "metric": "august_revenue",
+          "value": 514806,
+          "unit": "TWD_million",
+          "definition": "8월"
+        },
+        {
+          "metric": "q3_monthly_sum_revenue",
+          "value": 1494243,
+          "unit": "TWD_million",
+          "definition": "467580+514806+511857;derivedunaudited3Qsalesnot3Qearnings"
+        }
+      ],
+      "limitations": [
+        "availabledate10/8는issuerfinancialcalendar와대조.정확분시공개시각확인안됨.",
+        "월매출합은실적발표확정이익/가이던스가아님."
+      ],
+      "supporting_urls": [
+        "https://investor.cld.tsmc.com/english/financial-calendar"
+      ],
+      "reused_from": "C:\\workspace\\ai-investing\\reports\\research\\sector_outlook_2026_eoy\\evidence_us_tech.json",
+      "baseline_research_as_of": "2026-10-12T09:16:14+09:00",
+      "dedup_group": "TECH-TSMC-2026SEP-SALES"
+    },
+    {
+      "id": "TECH-GS-2026OCT-AI",
+      "url": "https://www.goldmansachs.com/insights/the-markets/ai-is-becoming-a-stock-pickers-market",
+      "title": "AI Is Becoming a Stock Picker’s Market",
+      "publisher": "Goldman Sachs",
+      "published_at": "2026-10-02",
+      "data_as_of": "2026-09-30",
+      "retrieved_at": "2026-10-12T00:26:10Z",
+      "available_at": "2026-10-03T00:00:00.000Z",
+      "availability_basis": "원문 명시 발표일이 기준시각 이전. 날짜 다음날 00:00 UTC를 보수적 사용 가능 시점으로 기록.",
+      "lookahead_status": "eligible_dated_primary",
+      "claims": [
+        "기술주투자의관심이AIcapex와반도체에서구현·보안·데이터인프라로확장되고있다고대화에서평가한다.",
+        "기존SaaS애플리케이션의제품적합성과가격은계속검증중이며금리가이익성장외의배수확장을제약한다고설명한다."
+      ],
+      "numerical_facts": [],
+      "limitations": [
+        "FICC/Equitiessector specialist대화이며공식목표수익률/확률모델아님.",
+        "Podcastrecording9/30,publication10/2;독립상품research매매추천으로격상금지."
+      ],
+      "reused_from": "C:\\workspace\\ai-investing\\reports\\research\\sector_outlook_2026_eoy\\evidence_us_tech.json",
+      "baseline_research_as_of": "2026-10-12T09:16:14+09:00",
+      "dedup_group": "TECH-GS-2026OCT-AI"
+    },
+    {
+      "id": "TECH-FID-2026AUG-AI",
+      "url": "https://institutional.fidelity.com/advisors/insights/series/fidelity-market-signals-weekly/ais-next-test-delivering-results",
+      "title": "AI’s next test: Delivering results",
+      "publisher": "Fidelity Institutional Capital Markets Strategy Group",
+      "published_at": "2026-08-10",
+      "data_as_of": "2026-08-10",
+      "retrieved_at": "2026-10-12T00:26:10Z",
+      "available_at": "2026-08-11T00:00:00.000Z",
+      "availability_basis": "원문 명시 발표일이 기준시각 이전. 날짜 다음날 00:00 UTC를 보수적 사용 가능 시점으로 기록.",
+      "lookahead_status": "eligible_dated_primary",
+      "claims": [
+        "시장은AI지출액보다마진·현금흐름·투자수익률을구별하기시작한다는견해다.",
+        "전력·냉각·반도체·메모리·인력병목이추가산업기회를만들수있다고분석한다."
+      ],
+      "numerical_facts": [],
+      "limitations": [
+        "일부차트dataasof6/30,설문Stanford2025;8월발표를모든데이터8월관측으로취급하지않음.",
+        "정성적의견이며연말상승확률아님."
+      ],
+      "reused_from": "C:\\workspace\\ai-investing\\reports\\research\\sector_outlook_2026_eoy\\evidence_us_tech.json",
+      "baseline_research_as_of": "2026-10-12T09:16:14+09:00",
+      "dedup_group": "TECH-FID-2026AUG-AI"
+    },
+    {
+      "id": "TECH-JPM-2026SEP-CAPEX",
+      "url": "https://am.jpmorgan.com/us/en/asset-management/institutional/insights/market-insights/market-updates/on-the-minds-of-investors/how-much-of-the-ai-boom-is-adding-to-us-growth/",
+      "title": "How much of the AI boom is adding to U.S. growth?",
+      "publisher": "J.P. Morgan Asset Management / Stephanie Aliaga",
+      "published_at": "2026-09-02",
+      "data_as_of": "2026-09-02",
+      "retrieved_at": "2026-10-12T00:26:10Z",
+      "available_at": "2026-09-03T00:00:00.000Z",
+      "availability_basis": "원문 명시 발표일이 기준시각 이전. 날짜 다음날 00:00 UTC를 보수적 사용 가능 시점으로 기록.",
+      "lookahead_status": "eligible_dated_primary",
+      "claims": [
+        "nominalcapex증가는메모리가격상승·해외지출·수입하드웨어를포함하여미국실질성장또는AIvolume과일대일대응하지않는다."
+      ],
+      "numerical_facts": [
+        {
+          "metric": "hyperscaler_2026_capex_estimate",
+          "value": 800,
+          "unit": "USD_billion_approximate",
+          "definition": "기관annualestimate;각issuer정의와통일된AIonly수치아님"
+        },
+        {
+          "metric": "estimated_ai_contribution_real_gdp_past_year",
+          "value": 0.47,
+          "unit": "percentage_points",
+          "definition": "기관proxyestimate;주가수익률아님"
+        }
+      ],
+      "limitations": [
+        "회사capex합과비교하면회사범위·lease처리·기간·원시vintage가달라질수있음.",
+        "기관GDP기여추정은섹터상승확률근거로사용하지않음."
+      ],
+      "reused_from": "C:\\workspace\\ai-investing\\reports\\research\\sector_outlook_2026_eoy\\evidence_us_tech.json",
+      "baseline_research_as_of": "2026-10-12T09:16:14+09:00",
+      "dedup_group": "TECH-JPM-2026SEP-CAPEX"
+    },
+    {
+      "id": "REL-MU-FY26Q4",
+      "title": "Micron FY2026 Q4 and full-year results",
+      "url": "https://www.sec.gov/Archives/edgar/data/723125/000072312526000018/a2026q4ex991-pressrelease.htm",
+      "publisher": "Micron / SEC",
+      "published_at": "2026-09-30",
+      "data_as_of": "2026-09-03",
+      "available_at": "2026-10-01T00:00:00Z",
+      "retrieved_at": null,
+      "compiled_at": "2026-10-12T01:53:06.593021+00:00",
+      "retrieval_timestamp_status": "Web tool original inspected in this research session; exact source-fetch timestamp not supplied. compiled_at is the record-build timestamp, not a fetch or availability timestamp.",
+      "availability_basis": "Original dated announcement; next UTC midnight is a conservative date-only availability convention, not an observed vendor arrival timestamp. No archived deployment proof.",
+      "lookahead_status": "eligible_dated_primary",
+      "numerical_facts": [
+        {
+          "metric": "quarter_revenue",
+          "value": 54.229,
+          "unit": "USD_billion",
+          "definition": "FY26Q4",
+          "nature": "reported_observation"
+        },
+        {
+          "metric": "previous_quarter_revenue",
+          "value": 41.456,
+          "unit": "USD_billion",
+          "definition": "FY26Q3",
+          "nature": "reported_observation"
+        },
+        {
+          "metric": "previous_year_quarter_revenue",
+          "value": 11.315,
+          "unit": "USD_billion",
+          "definition": "FY25Q4",
+          "nature": "reported_observation"
+        },
+        {
+          "metric": "gaap_gross_margin",
+          "value": 0.868,
+          "unit": "fraction",
+          "definition": "FY26Q4",
+          "nature": "reported_observation"
+        },
+        {
+          "metric": "quarter_operating_cash_flow",
+          "value": 43.97,
+          "unit": "USD_billion",
+          "definition": "FY26Q4; rounded",
+          "nature": "reported_observation"
+        },
+        {
+          "metric": "quarter_net_capex",
+          "value": 10.77,
+          "unit": "USD_billion",
+          "definition": "Company capex net of incentives; non-GAAP",
+          "nature": "reported_observation"
+        },
+        {
+          "metric": "quarter_adjusted_fcf",
+          "value": 33.2,
+          "unit": "USD_billion",
+          "definition": "Company adjusted FCF; rounded",
+          "nature": "reported_observation"
+        },
+        {
+          "metric": "next_quarter_revenue_midpoint",
+          "value": 61.5,
+          "unit": "USD_billion",
+          "definition": "FY27Q1",
+          "nature": "management_guidance"
+        },
+        {
+          "metric": "next_quarter_revenue_plus_minus",
+          "value": 1.5,
+          "unit": "USD_billion",
+          "definition": "Guidance range, not confidence interval",
+          "nature": "management_guidance"
+        }
+      ],
+      "claims": [
+        "메모리 성장과 현금창출은 확인된다. 현재 높은 이익률을 연말 이후 정상 이익률로 고정하지 않는다."
+      ],
+      "limitations": [
+        "HBM-only revenue is not separately supplied here.",
+        "Net capex/adjusted FCF is not gross-capex FCF; incentives and customer funding matter.",
+        "Quarterly/yearly rows must remain separate; no automatic annualization."
+      ],
+      "dedup_group": "REL-MU-FY26Q4"
+    },
+    {
+      "id": "REL-AMD-2026Q2",
+      "title": "AMD second quarter 2026 results",
+      "url": "https://ir.amd.com/news-events/press-releases/detail/1295/amd-reports-second-quarter-2026-financial-results",
+      "publisher": "AMD",
+      "published_at": "2026-08-04",
+      "data_as_of": "2026-06-27",
+      "available_at": "2026-08-05T00:00:00Z",
+      "retrieved_at": null,
+      "compiled_at": "2026-10-12T01:53:06.593021+00:00",
+      "retrieval_timestamp_status": "Web tool original inspected in this research session; exact source-fetch timestamp not supplied. compiled_at is the record-build timestamp, not a fetch or availability timestamp.",
+      "availability_basis": "Original dated announcement; next UTC midnight is a conservative date-only availability convention, not an observed vendor arrival timestamp. No archived deployment proof.",
+      "lookahead_status": "eligible_dated_primary",
+      "numerical_facts": [
+        {
+          "metric": "quarter_revenue",
+          "value": 11.536,
+          "unit": "USD_billion",
+          "definition": "Q2 calendar 2026",
+          "nature": "reported_observation"
+        },
+        {
+          "metric": "revenue_yoy",
+          "value": 0.5,
+          "unit": "fraction",
+          "definition": "Q2 2026 vs Q2 2025",
+          "nature": "reported_observation"
+        },
+        {
+          "metric": "data_center_revenue",
+          "value": 6.7,
+          "unit": "USD_billion",
+          "definition": "EPYC CPUs plus Instinct GPUs; rounded",
+          "nature": "reported_observation"
+        },
+        {
+          "metric": "data_center_revenue_yoy",
+          "value": 1.07,
+          "unit": "fraction",
+          "definition": "Not pure AI GPU growth",
+          "nature": "reported_observation"
+        },
+        {
+          "metric": "gaming_revenue_yoy",
+          "value": -0.31,
+          "unit": "fraction",
+          "definition": "Q2 gaming; weak semi-custom demand",
+          "nature": "reported_observation"
+        },
+        {
+          "metric": "gaap_operating_income",
+          "value": 1.99,
+          "unit": "USD_billion",
+          "definition": "Q2 2026",
+          "nature": "reported_observation"
+        },
+        {
+          "metric": "quarter_fcf",
+          "value": 1.558,
+          "unit": "USD_billion",
+          "definition": "Company CFO minus capex",
+          "nature": "reported_observation"
+        },
+        {
+          "metric": "sbc",
+          "value": 0.503,
+          "unit": "USD_billion",
+          "definition": "Operating income reconciliation",
+          "nature": "reported_observation"
+        },
+        {
+          "metric": "prior_year_mi308_inventory_charge",
+          "value": 0.8,
+          "unit": "USD_billion",
+          "definition": "Prior-year comparison base",
+          "nature": "reported_observation"
+        },
+        {
+          "metric": "next_quarter_revenue_midpoint",
+          "value": 13,
+          "unit": "USD_billion",
+          "definition": "Q3 2026 +/-0.3bn",
+          "nature": "management_guidance"
+        }
+      ],
+      "claims": [
+        "AI 연산과 서버 CPU 수요는 강하지만 게임은 감소한다. 전체 반도체 수요를 AI 성장률 하나로 대체할 수 없다."
+      ],
+      "limitations": [
+        "Prior-year export-control inventory charge inflates operating/EPS growth comparisons.",
+        "GAAP net income also includes investment effects; use operating result separately."
+      ],
+      "dedup_group": "REL-AMD-2026Q2"
+    },
+    {
+      "id": "REL-INTC-2026Q2",
+      "title": "Intel second quarter 2026 results",
+      "url": "https://www.intc.com/news-events/press-releases/detail/1776/intel-reports-second-quarter-2026-financial-results",
+      "publisher": "Intel",
+      "published_at": "2026-07-23",
+      "data_as_of": "2026-06-27",
+      "available_at": "2026-07-23T20:01:00Z",
+      "retrieved_at": null,
+      "compiled_at": "2026-10-12T01:53:06.593021+00:00",
+      "retrieval_timestamp_status": "Web tool original inspected in this research session; exact source-fetch timestamp not supplied. compiled_at is the record-build timestamp, not a fetch or availability timestamp.",
+      "availability_basis": "Original source explicitly states public release time; available_at records that time, not vendor delivery or our fetch time. Historical deployment proof is not archived.",
+      "lookahead_status": "eligible_dated_primary",
+      "numerical_facts": [
+        {
+          "metric": "quarter_gaap_operating_income",
+          "value": 1.796,
+          "unit": "USD_billion",
+          "definition": "Q2 2026",
+          "nature": "reported_observation"
+        },
+        {
+          "metric": "quarter_gaap_net_income",
+          "value": -11.033,
+          "unit": "USD_billion",
+          "definition": "Attributable to Intel",
+          "nature": "reported_observation"
+        },
+        {
+          "metric": "escrow_mark_to_market_charge",
+          "value": 12.529,
+          "unit": "USD_billion",
+          "definition": "Non-operating fair-value charge",
+          "nature": "reported_observation"
+        },
+        {
+          "metric": "quarter_operating_cash_flow",
+          "value": 7.006,
+          "unit": "USD_billion",
+          "definition": "Q2 2026",
+          "nature": "reported_observation"
+        },
+        {
+          "metric": "gross_capex",
+          "value": 2.652,
+          "unit": "USD_billion",
+          "definition": "Q2 2026",
+          "nature": "reported_observation"
+        },
+        {
+          "metric": "partner_contributions_net",
+          "value": -12.216,
+          "unit": "USD_billion",
+          "definition": "SCIP partner contribution adjustment",
+          "nature": "reported_observation"
+        },
+        {
+          "metric": "adjusted_fcf",
+          "value": -8.419,
+          "unit": "USD_billion",
+          "definition": "Company adjusted measure including partner settlement and leases",
+          "nature": "reported_observation"
+        }
+      ],
+      "claims": [
+        "SOXX의 주요 Intel 노출은 NVIDIA형 수익성이 아니다. GAAP 손실과 조정 FCF에도 큰 비영업·파트너 정산 항목이 있다."
+      ],
+      "limitations": [
+        "Do not infer normalized loss from GAAP net income alone.",
+        "Adjusted FCF is not comparable to CFO minus gross capex.",
+        "Altera deconsolidation changes the revenue comparison perimeter."
+      ],
+      "dedup_group": "REL-INTC-2026Q2"
+    },
+    {
+      "id": "REL-AMAT-FY26Q3",
+      "title": "Applied Materials third quarter fiscal 2026 results",
+      "url": "https://ir.appliedmaterials.com/news-releases/news-release-details/applied-materials-announces-third-quarter-2026-results",
+      "publisher": "Applied Materials",
+      "published_at": "2026-08-13",
+      "data_as_of": "2026-07-26",
+      "available_at": "2026-08-13T20:01:00Z",
+      "retrieved_at": null,
+      "compiled_at": "2026-10-12T01:53:06.593021+00:00",
+      "retrieval_timestamp_status": "Web tool original inspected in this research session; exact source-fetch timestamp not supplied. compiled_at is the record-build timestamp, not a fetch or availability timestamp.",
+      "availability_basis": "Original source explicitly states public release time; available_at records that time, not vendor delivery or our fetch time. Historical deployment proof is not archived.",
+      "lookahead_status": "eligible_dated_primary",
+      "numerical_facts": [
+        {
+          "metric": "quarter_revenue",
+          "value": 9.115,
+          "unit": "USD_billion",
+          "definition": "FY26Q3",
+          "nature": "reported_observation"
+        },
+        {
+          "metric": "quarter_revenue_yoy",
+          "value": 0.25,
+          "unit": "fraction",
+          "definition": "FY26Q3",
+          "nature": "reported_observation"
+        },
+        {
+          "metric": "gaap_operating_margin",
+          "value": 0.337,
+          "unit": "fraction",
+          "definition": "FY26Q3",
+          "nature": "reported_observation"
+        },
+        {
+          "metric": "quarter_operating_cash_flow",
+          "value": 3.04,
+          "unit": "USD_billion",
+          "definition": "Rounded",
+          "nature": "reported_observation"
+        },
+        {
+          "metric": "quarter_fcf",
+          "value": 2.33,
+          "unit": "USD_billion",
+          "definition": "Company non-GAAP FCF",
+          "nature": "reported_observation"
+        },
+        {
+          "metric": "china_revenue_weight",
+          "value": 0.28,
+          "unit": "fraction",
+          "definition": "FY26Q3; customer shipment geography",
+          "nature": "reported_observation"
+        },
+        {
+          "metric": "next_quarter_revenue_midpoint",
+          "value": 10.25,
+          "unit": "USD_billion",
+          "definition": "FY26Q4 +/-0.5bn",
+          "nature": "management_guidance"
+        }
+      ],
+      "claims": [
+        "DRAM·첨단 로직·패키징 수요가 장비 성장으로 연결된다. 중국 노출은 수출규제 반증 조건이다."
+      ],
+      "limitations": [
+        "Revenue rose 25% while FCF rose 14%; profit growth does not imply equal cash growth.",
+        "Guidance is company outlook, not an ETF return estimate."
+      ],
+      "dedup_group": "REL-AMAT-FY26Q3"
+    },
+    {
+      "id": "REL-LRCX-2026JUN",
+      "title": "Lam Research June quarter 2026 results",
+      "url": "https://investor.lamresearch.com/2026-07-29-Lam-Research-Corporation-Reports-Financial-Results-for-the-Quarter-Ended-June-28,-2026",
+      "publisher": "Lam Research",
+      "published_at": "2026-07-29",
+      "data_as_of": "2026-06-28",
+      "available_at": "2026-07-30T00:00:00Z",
+      "retrieved_at": null,
+      "compiled_at": "2026-10-12T01:53:06.593021+00:00",
+      "retrieval_timestamp_status": "Web tool original inspected in this research session; exact source-fetch timestamp not supplied. compiled_at is the record-build timestamp, not a fetch or availability timestamp.",
+      "availability_basis": "Original dated announcement; next UTC midnight is a conservative date-only availability convention, not an observed vendor arrival timestamp. No archived deployment proof.",
+      "lookahead_status": "eligible_dated_primary",
+      "numerical_facts": [
+        {
+          "metric": "quarter_revenue",
+          "value": 6.722238,
+          "unit": "USD_billion",
+          "definition": "June quarter",
+          "nature": "reported_observation"
+        },
+        {
+          "metric": "previous_quarter_revenue",
+          "value": 5.841488,
+          "unit": "USD_billion",
+          "definition": "March quarter",
+          "nature": "reported_observation"
+        },
+        {
+          "metric": "gaap_operating_margin",
+          "value": 0.374,
+          "unit": "fraction",
+          "definition": "June quarter",
+          "nature": "reported_observation"
+        },
+        {
+          "metric": "systems_revenue",
+          "value": 4.249848,
+          "unit": "USD_billion",
+          "definition": "New leading-edge equipment",
+          "nature": "reported_observation"
+        },
+        {
+          "metric": "support_related_and_other_revenue",
+          "value": 2.47239,
+          "unit": "USD_billion",
+          "definition": "Services, spares, upgrades AND non-leading-edge Reliant equipment",
+          "nature": "reported_observation"
+        },
+        {
+          "metric": "china_revenue_weight",
+          "value": 0.26,
+          "unit": "fraction",
+          "definition": "June quarter",
+          "nature": "reported_observation"
+        },
+        {
+          "metric": "next_quarter_revenue_midpoint",
+          "value": 8.1,
+          "unit": "USD_billion",
+          "definition": "September quarter +/-0.4bn",
+          "nature": "management_guidance"
+        }
+      ],
+      "claims": [
+        "성장하는 설치 기반과 장비 투자가 함께 작동한다. 고객지원 매출 전부를 SaaS형 반복매출로 부를 수 없다."
+      ],
+      "limitations": [
+        "Quarter ended September 27 is still an unpublished result at the cutoff.",
+        "China export-control risk remains despite AI order strength."
+      ],
+      "dedup_group": "REL-LRCX-2026JUN"
+    },
+    {
+      "id": "REL-TXN-2026Q2",
+      "title": "Texas Instruments second quarter 2026 results",
+      "url": "https://www.ti.com/about-ti/newsroom/news-releases/2026/2026-07-22-ti-reports-second-quarter-2026-financial-results-and-shareholder-returns.html",
+      "publisher": "Texas Instruments",
+      "published_at": "2026-07-22",
+      "data_as_of": "2026-06-30",
+      "available_at": "2026-07-23T00:00:00Z",
+      "retrieved_at": null,
+      "compiled_at": "2026-10-12T01:53:06.593021+00:00",
+      "retrieval_timestamp_status": "Web tool original inspected in this research session; exact source-fetch timestamp not supplied. compiled_at is the record-build timestamp, not a fetch or availability timestamp.",
+      "availability_basis": "Original dated announcement; next UTC midnight is a conservative date-only availability convention, not an observed vendor arrival timestamp. No archived deployment proof.",
+      "lookahead_status": "eligible_dated_primary",
+      "numerical_facts": [
+        {
+          "metric": "quarter_revenue",
+          "value": 5.46,
+          "unit": "USD_billion",
+          "definition": "Q2 2026; rounded",
+          "nature": "reported_observation"
+        },
+        {
+          "metric": "quarter_revenue_yoy",
+          "value": 0.23,
+          "unit": "fraction",
+          "definition": "Industrial, data center, automotive led growth",
+          "nature": "reported_observation"
+        },
+        {
+          "metric": "ttm_operating_cash_flow",
+          "value": 8.667,
+          "unit": "USD_billion",
+          "definition": "12 months ended June 30",
+          "nature": "reported_observation"
+        },
+        {
+          "metric": "ttm_capex",
+          "value": 3.312,
+          "unit": "USD_billion",
+          "definition": "12 months ended June 30",
+          "nature": "reported_observation"
+        },
+        {
+          "metric": "ttm_chips_incentive_proceeds",
+          "value": 1.179,
+          "unit": "USD_billion",
+          "definition": "Company FCF adds CHIPS proceeds",
+          "nature": "reported_observation"
+        },
+        {
+          "metric": "ttm_company_fcf",
+          "value": 6.534,
+          "unit": "USD_billion",
+          "definition": "CFO-capex+CHIPS proceeds",
+          "nature": "reported_observation"
+        }
+      ],
+      "claims": [
+        "비AI 산업·자동차 수요도 회복 근거가 있다. 보조금을 포함한 FCF는 보조금 없는 유기 현금창출과 구분한다."
+      ],
+      "limitations": [
+        "CFO also includes CHIPS tax-credit benefits; CFO-capex is not fully incentive-neutral.",
+        "TTM FCF must not be compared as though it were a quarterly amount."
+      ],
+      "dedup_group": "REL-TXN-2026Q2"
+    },
+    {
+      "id": "REL-PANW-FY26Q4",
+      "title": "Palo Alto Networks fourth quarter fiscal 2026 results",
+      "url": "https://investors.paloaltonetworks.com/news-releases/news-release-details/palo-alto-networks-reports-fiscal-fourth-quarter-and-fiscal-10",
+      "publisher": "Palo Alto Networks",
+      "published_at": "2026-09-01",
+      "data_as_of": "2026-07-31",
+      "available_at": "2026-09-02T00:00:00Z",
+      "retrieved_at": null,
+      "compiled_at": "2026-10-12T01:53:06.593021+00:00",
+      "retrieval_timestamp_status": "Web tool original inspected in this research session; exact source-fetch timestamp not supplied. compiled_at is the record-build timestamp, not a fetch or availability timestamp.",
+      "availability_basis": "Original dated announcement; next UTC midnight is a conservative date-only availability convention, not an observed vendor arrival timestamp. No archived deployment proof.",
+      "lookahead_status": "eligible_dated_primary",
+      "numerical_facts": [
+        {
+          "metric": "quarter_revenue",
+          "value": 3.41,
+          "unit": "USD_billion",
+          "definition": "FY26Q4",
+          "nature": "reported_observation"
+        },
+        {
+          "metric": "quarter_revenue_yoy",
+          "value": 0.34,
+          "unit": "fraction",
+          "definition": "Includes acquired businesses",
+          "nature": "reported_observation"
+        },
+        {
+          "metric": "ngs_arr_growth",
+          "value": 0.63,
+          "unit": "fraction",
+          "definition": "ARR stock growth, not revenue growth",
+          "nature": "reported_observation"
+        },
+        {
+          "metric": "gaap_operating_income",
+          "value": 0.172,
+          "unit": "USD_billion",
+          "definition": "Prior-year .497bn",
+          "nature": "reported_observation"
+        },
+        {
+          "metric": "gaap_net_income",
+          "value": -0.282,
+          "unit": "USD_billion",
+          "definition": "FY26Q4",
+          "nature": "reported_observation"
+        },
+        {
+          "metric": "sbc_related_charges",
+          "value": 0.487,
+          "unit": "USD_billion",
+          "definition": "Includes related payroll tax",
+          "nature": "reported_observation"
+        },
+        {
+          "metric": "quarter_adjusted_fcf",
+          "value": 1.3,
+          "unit": "USD_billion",
+          "definition": "Rounded; company adjusted FCF",
+          "nature": "reported_observation"
+        },
+        {
+          "metric": "fy27_ngs_arr_growth_range",
+          "value": [
+            0.22,
+            0.23
+          ],
+          "unit": "fraction",
+          "definition": "Full-year outlook vs acquisition-related base",
+          "nature": "management_guidance"
+        },
+        {
+          "metric": "fy27_adjusted_fcf_margin",
+          "value": 0.38,
+          "unit": "fraction",
+          "definition": "Full fiscal year",
+          "nature": "management_guidance"
+        }
+      ],
+      "claims": [
+        "보안 수요는 강하지만 인수 기여와 SBC·무형자산 상각을 분리해야 한다. ARR 성장 감속은 기저효과와 함께 검증한다."
+      ],
+      "limitations": [
+        "Adjusted FCF excludes selected cash outflows; 38% guidance is not GAAP profitability.",
+        "ARR, RPO and revenue have different horizons and cannot be added."
+      ],
+      "dedup_group": "REL-PANW-FY26Q4"
+    },
+    {
+      "id": "REL-NOW-2026Q2",
+      "title": "ServiceNow second quarter 2026 results",
+      "url": "https://investor.servicenow.com/news/news-details/2026/ServiceNow-Reports-Second-Quarter-2026-Financial-Results/default.aspx",
+      "publisher": "ServiceNow",
+      "published_at": "2026-07-22",
+      "data_as_of": "2026-06-30",
+      "available_at": "2026-07-23T00:00:00Z",
+      "retrieved_at": null,
+      "compiled_at": "2026-10-12T01:53:06.593021+00:00",
+      "retrieval_timestamp_status": "Web tool original inspected in this research session; exact source-fetch timestamp not supplied. compiled_at is the record-build timestamp, not a fetch or availability timestamp.",
+      "availability_basis": "Original dated announcement; next UTC midnight is a conservative date-only availability convention, not an observed vendor arrival timestamp. No archived deployment proof.",
+      "lookahead_status": "eligible_dated_primary",
+      "numerical_facts": [
+        {
+          "metric": "quarter_revenue",
+          "value": 3.987,
+          "unit": "USD_billion",
+          "definition": "Q2 2026",
+          "nature": "reported_observation"
+        },
+        {
+          "metric": "quarter_revenue_yoy",
+          "value": 0.24,
+          "unit": "fraction",
+          "definition": "Reported; constant currency .225",
+          "nature": "reported_observation"
+        },
+        {
+          "metric": "crpo_growth",
+          "value": 0.21,
+          "unit": "fraction",
+          "definition": "Next-12-month contract obligation stock",
+          "nature": "reported_observation"
+        },
+        {
+          "metric": "ai_acv_lower_bound",
+          "value": 1,
+          "unit": "USD_billion",
+          "definition": "AI annual contract value, NOT quarter recognized revenue",
+          "nature": "reported_observation"
+        },
+        {
+          "metric": "quarter_gaap_operating_income",
+          "value": 0.162,
+          "unit": "USD_billion",
+          "definition": "Q2 2026",
+          "nature": "reported_observation"
+        },
+        {
+          "metric": "quarter_sbc",
+          "value": 0.655,
+          "unit": "USD_billion",
+          "definition": "Operating reconciliation",
+          "nature": "reported_observation"
+        },
+        {
+          "metric": "quarter_operating_cash_flow",
+          "value": 0.587,
+          "unit": "USD_billion",
+          "definition": "Q2 2026",
+          "nature": "reported_observation"
+        },
+        {
+          "metric": "quarter_capex",
+          "value": 0.114,
+          "unit": "USD_billion",
+          "definition": "Q2 cash PP&E",
+          "nature": "reported_observation"
+        },
+        {
+          "metric": "quarter_adjusted_fcf",
+          "value": 0.634,
+          "unit": "USD_billion",
+          "definition": "Company adds .161bn combination costs",
+          "nature": "reported_observation"
+        }
+      ],
+      "claims": [
+        "워크플로·보안의 AI 수익화가 계약으로 확인된다. 다만 GAAP 이익·SBC·인수 비용 조정의 현금 차이가 크다."
+      ],
+      "limitations": [
+        "Reported FCF is CFO-capex+selected cash acquisition costs, not plain cash residual.",
+        "AI ACV cannot be added to current revenue."
+      ],
+      "dedup_group": "REL-NOW-2026Q2"
+    },
+    {
+      "id": "REL-SNOW-FY27Q2",
+      "title": "Snowflake second quarter fiscal 2027 results",
+      "url": "https://investors.snowflake.com/news/news-details/2026/Snowflake-Reports-Financial-Results-for-the-Second-Quarter-of-Fiscal-2027/default.aspx",
+      "publisher": "Snowflake",
+      "published_at": "2026-09-02",
+      "data_as_of": "2026-07-31",
+      "available_at": "2026-09-03T00:00:00Z",
+      "retrieved_at": null,
+      "compiled_at": "2026-10-12T01:53:06.593021+00:00",
+      "retrieval_timestamp_status": "Web tool original inspected in this research session; exact source-fetch timestamp not supplied. compiled_at is the record-build timestamp, not a fetch or availability timestamp.",
+      "availability_basis": "Original dated announcement; next UTC midnight is a conservative date-only availability convention, not an observed vendor arrival timestamp. No archived deployment proof.",
+      "lookahead_status": "eligible_dated_primary",
+      "numerical_facts": [
+        {
+          "metric": "quarter_revenue",
+          "value": 1.546793,
+          "unit": "USD_billion",
+          "definition": "FY27Q2",
+          "nature": "reported_observation"
+        },
+        {
+          "metric": "product_revenue_yoy",
+          "value": 0.37,
+          "unit": "fraction",
+          "definition": "FY27Q2; reported",
+          "nature": "reported_observation"
+        },
+        {
+          "metric": "net_revenue_retention",
+          "value": 1.26,
+          "unit": "ratio",
+          "definition": "Dollar-based retention",
+          "nature": "reported_observation"
+        },
+        {
+          "metric": "gaap_operating_income",
+          "value": -0.262967,
+          "unit": "USD_billion",
+          "definition": "FY27Q2",
+          "nature": "reported_observation"
+        },
+        {
+          "metric": "sbc_related_charges",
+          "value": 0.456363,
+          "unit": "USD_billion",
+          "definition": "Operating reconciliation incl payroll tax",
+          "nature": "reported_observation"
+        },
+        {
+          "metric": "quarter_operating_cash_flow",
+          "value": 0.091357,
+          "unit": "USD_billion",
+          "definition": "FY27Q2",
+          "nature": "reported_observation"
+        },
+        {
+          "metric": "quarter_fcf",
+          "value": 0.083803,
+          "unit": "USD_billion",
+          "definition": "CFO minus capex",
+          "nature": "reported_observation"
+        },
+        {
+          "metric": "fy27_product_revenue_guidance",
+          "value": 6.07,
+          "unit": "USD_billion",
+          "definition": "Previously5.840; 36% YoY",
+          "nature": "management_guidance"
+        }
+      ],
+      "claims": [
+        "AI 데이터 소비 증가와 가이던스 상향은 소프트웨어 반론이다. GAAP 손실·주식보상과 소비 최적화 위험은 함께 고려한다."
+      ],
+      "limitations": [
+        "Dated release verified; dynamic quarterly summary contained mismatched stale quotes, excluded.",
+        "NRR is a retention metric, not a probability; quarterly FCF is seasonal."
+      ],
+      "dedup_group": "REL-SNOW-FY27Q2"
+    },
+    {
+      "id": "REL-PLTR-2026Q2",
+      "title": "Palantir second quarter 2026 results",
+      "url": "https://www.sec.gov/Archives/edgar/data/1321655/000132165526000039/a2026q2ex991pressrelease.htm",
+      "publisher": "Palantir / SEC",
+      "published_at": "2026-08-03",
+      "data_as_of": "2026-06-30",
+      "available_at": "2026-08-04T00:00:00Z",
+      "retrieved_at": null,
+      "compiled_at": "2026-10-12T01:53:06.593021+00:00",
+      "retrieval_timestamp_status": "Web tool original inspected in this research session; exact source-fetch timestamp not supplied. compiled_at is the record-build timestamp, not a fetch or availability timestamp.",
+      "availability_basis": "Original dated announcement; next UTC midnight is a conservative date-only availability convention, not an observed vendor arrival timestamp. No archived deployment proof.",
+      "lookahead_status": "eligible_dated_primary",
+      "numerical_facts": [
+        {
+          "metric": "quarter_revenue",
+          "value": 1.935464,
+          "unit": "USD_billion",
+          "definition": "Q2 2026",
+          "nature": "reported_observation"
+        },
+        {
+          "metric": "quarter_revenue_yoy",
+          "value": 0.93,
+          "unit": "fraction",
+          "definition": "Reported",
+          "nature": "reported_observation"
+        },
+        {
+          "metric": "us_commercial_revenue_yoy",
+          "value": 1.49,
+          "unit": "fraction",
+          "definition": "US commercial subset",
+          "nature": "reported_observation"
+        },
+        {
+          "metric": "gaap_operating_income",
+          "value": 0.912004,
+          "unit": "USD_billion",
+          "definition": "Q2 2026",
+          "nature": "reported_observation"
+        },
+        {
+          "metric": "quarter_operating_cash_flow",
+          "value": 1.216167,
+          "unit": "USD_billion",
+          "definition": "Q2 2026",
+          "nature": "reported_observation"
+        },
+        {
+          "metric": "quarter_capex",
+          "value": 0.014554,
+          "unit": "USD_billion",
+          "definition": "Q2 cash PP&E",
+          "nature": "reported_observation"
+        },
+        {
+          "metric": "quarter_adjusted_fcf",
+          "value": 1.220359,
+          "unit": "USD_billion",
+          "definition": "CFO-capex+SBC-related payroll tax .018746",
+          "nature": "reported_observation"
+        },
+        {
+          "metric": "next_quarter_revenue_range",
+          "value": [
+            2.16,
+            2.164
+          ],
+          "unit": "USD_billion",
+          "definition": "Q3 2026",
+          "nature": "management_guidance"
+        }
+      ],
+      "claims": [
+        "AI 구현 기업에는 이미 높은 GAAP 이익과 현금 창출을 내는 예외가 있다. 소프트웨어 전체를 수익화 미완성으로 규정할 수 없다."
+      ],
+      "limitations": [
+        "Government/commercial mix and contract cancellation clauses matter.",
+        "Rule-of-40 is an operating score, not an expected investment return.",
+        "Current market multiple is not verified here; strong growth alone does not prove undervaluation."
+      ],
+      "dedup_group": "REL-PLTR-2026Q2"
+    },
+    {
+      "id": "REL-ORCL-FY27Q1",
+      "title": "Oracle first quarter fiscal 2027 results",
+      "url": "https://www.oracle.com/news/announcement/q1fy27-earnings-release-2026-09-10/",
+      "publisher": "Oracle",
+      "published_at": "2026-09-10",
+      "data_as_of": "2026-08-31",
+      "available_at": "2026-09-11T00:00:00Z",
+      "retrieved_at": null,
+      "compiled_at": "2026-10-12T01:53:06.593021+00:00",
+      "retrieval_timestamp_status": "Web tool original inspected in this research session; exact source-fetch timestamp not supplied. compiled_at is the record-build timestamp, not a fetch or availability timestamp.",
+      "availability_basis": "Original dated announcement; next UTC midnight is a conservative date-only availability convention, not an observed vendor arrival timestamp. No archived deployment proof.",
+      "lookahead_status": "eligible_dated_primary",
+      "numerical_facts": [
+        {
+          "metric": "quarter_revenue",
+          "value": 19.3,
+          "unit": "USD_billion",
+          "definition": "FY27Q1; rounded",
+          "nature": "reported_observation"
+        },
+        {
+          "metric": "quarter_revenue_yoy",
+          "value": 0.3,
+          "unit": "fraction",
+          "definition": "Reported",
+          "nature": "reported_observation"
+        },
+        {
+          "metric": "iaas_revenue_yoy",
+          "value": 1.21,
+          "unit": "fraction",
+          "definition": "Infrastructure business",
+          "nature": "reported_observation"
+        },
+        {
+          "metric": "saas_revenue_yoy",
+          "value": 0.1,
+          "unit": "fraction",
+          "definition": "Applications business",
+          "nature": "reported_observation"
+        },
+        {
+          "metric": "rpo",
+          "value": 664,
+          "unit": "USD_billion",
+          "definition": "Multi-year obligations, not current quarter revenue",
+          "nature": "reported_observation"
+        },
+        {
+          "metric": "quarter_operating_cash_flow",
+          "value": 23,
+          "unit": "USD_billion",
+          "definition": "Company rounded value",
+          "nature": "reported_observation"
+        },
+        {
+          "metric": "quarter_fcf",
+          "value": -5,
+          "unit": "USD_billion",
+          "definition": "Company rounded value",
+          "nature": "reported_observation"
+        },
+        {
+          "metric": "atm_equity_sale",
+          "value": 20,
+          "unit": "USD_billion",
+          "definition": "Before commissions; during quarter",
+          "nature": "reported_observation"
+        }
+      ],
+      "claims": [
+        "IGV 상위 종목에도 막대한 데이터센터 투자·자금조달 부담이 있다. 인프라 성장과 응용 SaaS 성장의 속도가 다르다."
+      ],
+      "limitations": [
+        "CFO23 minus FCF(-5) implies28bn cash spend only at release's rounding precision.",
+        "RPO must be discounted by recognition timing, counterparties, financing and margins."
+      ],
+      "dedup_group": "REL-ORCL-FY27Q1"
+    },
+    {
+      "id": "REL-ADBE-FY26Q3",
+      "title": "Adobe third quarter fiscal 2026 results",
+      "url": "https://www.sec.gov/Archives/edgar/data/796343/000079634326000147/adbeex991q326.htm",
+      "publisher": "Adobe / SEC",
+      "published_at": "2026-09-10",
+      "data_as_of": "2026-08-28",
+      "available_at": "2026-09-11T00:00:00Z",
+      "retrieved_at": null,
+      "compiled_at": "2026-10-12T01:53:06.593021+00:00",
+      "retrieval_timestamp_status": "Web tool original inspected in this research session; exact source-fetch timestamp not supplied. compiled_at is the record-build timestamp, not a fetch or availability timestamp.",
+      "availability_basis": "Original dated announcement; next UTC midnight is a conservative date-only availability convention, not an observed vendor arrival timestamp. No archived deployment proof.",
+      "lookahead_status": "eligible_dated_primary",
+      "numerical_facts": [
+        {
+          "metric": "quarter_revenue",
+          "value": 6.76,
+          "unit": "USD_billion",
+          "definition": "FY26Q3; rounded",
+          "nature": "reported_observation"
+        },
+        {
+          "metric": "quarter_revenue_yoy",
+          "value": 0.13,
+          "unit": "fraction",
+          "definition": "Reported; constant currency .12",
+          "nature": "reported_observation"
+        },
+        {
+          "metric": "total_arr",
+          "value": 27.5,
+          "unit": "USD_billion",
+          "definition": "Annualized recurring revenue stock",
+          "nature": "reported_observation"
+        },
+        {
+          "metric": "ai_first_arr_growth_lower_bound",
+          "value": 1.5,
+          "unit": "fraction",
+          "definition": "More than150% YoY; not total revenue",
+          "nature": "reported_observation"
+        },
+        {
+          "metric": "quarter_gaap_operating_income",
+          "value": 2.354,
+          "unit": "USD_billion",
+          "definition": "FY26Q3",
+          "nature": "reported_observation"
+        },
+        {
+          "metric": "quarter_operating_cash_flow",
+          "value": 2.523,
+          "unit": "USD_billion",
+          "definition": "FY26Q3",
+          "nature": "reported_observation"
+        },
+        {
+          "metric": "quarter_capex",
+          "value": 0.085,
+          "unit": "USD_billion",
+          "definition": "Cash PP&E",
+          "nature": "reported_observation"
+        },
+        {
+          "metric": "quarter_sbc",
+          "value": 0.539,
+          "unit": "USD_billion",
+          "definition": "Cash-flow adjustment",
+          "nature": "reported_observation"
+        }
+      ],
+      "claims": [
+        "기존 창작 SaaS에도 현금 창출과 AI 성장이 있다. AI ARR 빠른 성장과 전체 ARR 성장·대체 위험은 따로 판단한다."
+      ],
+      "limitations": [
+        "AI ARR growth is not identical to revenue contribution or replacement losses.",
+        "Freemium adoption/MAUs do not directly identify paid monetization or stock upside."
+      ],
+      "dedup_group": "REL-ADBE-FY26Q3"
+    },
+    {
+      "id": "REL-FED-2026SEP",
+      "title": "FOMC statement September 16, 2026",
+      "url": "https://www.federalreserve.gov/newsevents/pressreleases/monetary20260916a.htm",
+      "publisher": "Federal Reserve",
+      "published_at": "2026-09-16",
+      "data_as_of": "2026-09-16",
+      "available_at": "2026-09-16T18:00:00Z",
+      "retrieved_at": null,
+      "compiled_at": "2026-10-12T01:53:06.593021+00:00",
+      "retrieval_timestamp_status": "Web tool original inspected in this research session; exact source-fetch timestamp not supplied. compiled_at is the record-build timestamp, not a fetch or availability timestamp.",
+      "availability_basis": "Original source explicitly states public release time; available_at records that time, not vendor delivery or our fetch time. Historical deployment proof is not archived.",
+      "lookahead_status": "eligible_dated_primary",
+      "numerical_facts": [
+        {
+          "metric": "target_range",
+          "value": [
+            0.0375,
+            0.04
+          ],
+          "unit": "fraction_per_year",
+          "definition": "After25bp hike",
+          "nature": "reported_observation"
+        },
+        {
+          "metric": "target_increase",
+          "value": 0.0025,
+          "unit": "fraction_per_year",
+          "definition": "25basis points",
+          "nature": "reported_observation"
+        }
+      ],
+      "claims": [
+        "정책금리 인상은 양쪽 섹터의 배수 확대를 제한할 수 있다. 낮은 성장 SaaS가 자동으로 금리 방어주가 되는 것은 아니다."
+      ],
+      "limitations": [
+        "Policy rate is not the long Treasury discount rate.",
+        "No assumption that rate changes cause a fitted relative-price move."
+      ],
+      "dedup_group": "REL-FED-2026SEP"
+    },
+    {
+      "id": "REL-BLS-2026SEP-JOBS",
+      "title": "Employment Situation September 2026",
+      "url": "https://www.bls.gov/news.release/archives/empsit_10022026.htm",
+      "publisher": "Bureau of Labor Statistics",
+      "published_at": "2026-10-02",
+      "data_as_of": "2026-09-30",
+      "available_at": "2026-10-02T12:30:00Z",
+      "retrieved_at": null,
+      "compiled_at": "2026-10-12T01:53:06.593021+00:00",
+      "retrieval_timestamp_status": "Web tool original inspected in this research session; exact source-fetch timestamp not supplied. compiled_at is the record-build timestamp, not a fetch or availability timestamp.",
+      "availability_basis": "Original source explicitly states public release time; available_at records that time, not vendor delivery or our fetch time. Historical deployment proof is not archived.",
+      "lookahead_status": "eligible_dated_primary",
+      "numerical_facts": [
+        {
+          "metric": "nonfarm_monthly_change",
+          "value": 29000,
+          "unit": "persons",
+          "definition": "September initial release vintage",
+          "nature": "reported_observation"
+        },
+        {
+          "metric": "unemployment_rate",
+          "value": 0.042,
+          "unit": "fraction",
+          "definition": "September household survey",
+          "nature": "reported_observation"
+        },
+        {
+          "metric": "prior_two_month_revision",
+          "value": -60000,
+          "unit": "persons",
+          "definition": "July/August combined at this vintage",
+          "nature": "reported_observation"
+        }
+      ],
+      "claims": [
+        "고용 둔화와 금리 인상이 공존한다. 연착륙·성장 둔화·인플레이션 지속의 조건을 별도로 검토한다."
+      ],
+      "limitations": [
+        "Monthly changes have sampling uncertainty and are subsequently revised.",
+        "Use this release vintage for as-of analysis, not later revisions."
+      ],
+      "dedup_group": "REL-BLS-2026SEP-JOBS"
+    },
+    {
+      "id": "REL-NVDA-CALL-CALENDAR",
+      "title": "NVIDIA fiscal Q2 2027 call calendar remarks",
+      "url": "https://investor.nvidia.com/files/content_files/TRANSCRIPT_-NVIDIA-Corp-NVDA-US-Q2-2027-Earnings-Call-26-August-2026-5_00-PM-ET.pdf",
+      "publisher": "NVIDIA-hosted FactSet transcript",
+      "published_at": null,
+      "data_as_of": "2026-08-26",
+      "available_at": null,
+      "retrieved_at": null,
+      "compiled_at": "2026-10-12T01:53:06.593021+00:00",
+      "retrieval_timestamp_status": "Web tool original inspected in this research session; exact source-fetch timestamp not supplied. compiled_at is the record-build timestamp, not a fetch or availability timestamp.",
+      "availability_basis": "Event/reference date verified but original publication timestamp not available. Context only, excluded from numerical model features.",
+      "lookahead_status": "context_only_publication_time_unverified",
+      "numerical_facts": [
+        {
+          "metric": "next_earnings_call_date",
+          "value": "2026-11-17",
+          "unit": "date",
+          "definition": "FY27Q3 planned call",
+          "nature": "announced_schedule"
+        },
+        {
+          "metric": "gtc_berlin_keynote_date",
+          "value": "2026-10-21",
+          "unit": "date",
+          "definition": "CEO scheduled keynote",
+          "nature": "announced_schedule"
+        }
+      ],
+      "claims": [
+        "연말 이전 주요 촉매는 실적·다음 분기 전망과 공급·제품 전환 확인이다."
+      ],
+      "limitations": [
+        "Corrected transcript's historical upload/correction timestamp not archived.",
+        "Dates can change; event results after cutoff are excluded."
+      ],
+      "dedup_group": "REL-NVDA-CALL-CALENDAR"
+    },
+    {
+      "id": "REL-LRCX-CALENDAR",
+      "title": "Lam Research upcoming earnings calendar",
+      "url": "https://investor.lamresearch.com/events?item=95",
+      "publisher": "Lam Research",
+      "published_at": null,
+      "data_as_of": "2026-10-12",
+      "available_at": null,
+      "retrieved_at": null,
+      "compiled_at": "2026-10-12T01:53:06.593021+00:00",
+      "retrieval_timestamp_status": "Web tool original inspected in this research session; exact source-fetch timestamp not supplied. compiled_at is the record-build timestamp, not a fetch or availability timestamp.",
+      "availability_basis": "Event/reference date verified but original publication timestamp not available. Context only, excluded from numerical model features.",
+      "lookahead_status": "context_only_publication_time_unverified",
+      "numerical_facts": [
+        {
+          "metric": "next_earnings_call_date",
+          "value": "2026-10-21",
+          "unit": "date",
+          "definition": "September2026 quarter planned results",
+          "nature": "announced_schedule"
+        }
+      ],
+      "claims": [
+        "9월 분기 장비 수요와 다음 분기 매출 가이던스가 반도체 상대 논리를 시험한다."
+      ],
+      "limitations": [
+        "Original announcement publication timestamp missing; context only."
+      ],
+      "dedup_group": "REL-LRCX-CALENDAR"
+    },
+    {
+      "id": "REL-MSFT-CALENDAR",
+      "title": "Microsoft upcoming earnings calendar",
+      "url": "https://www.microsoft.com/en-us/investor/default?l=5",
+      "publisher": "Microsoft",
+      "published_at": null,
+      "data_as_of": "2026-10-12",
+      "available_at": null,
+      "retrieved_at": null,
+      "compiled_at": "2026-10-12T01:53:06.593021+00:00",
+      "retrieval_timestamp_status": "Web tool original inspected in this research session; exact source-fetch timestamp not supplied. compiled_at is the record-build timestamp, not a fetch or availability timestamp.",
+      "availability_basis": "Event/reference date verified but original publication timestamp not available. Context only, excluded from numerical model features.",
+      "lookahead_status": "context_only_publication_time_unverified",
+      "numerical_facts": [
+        {
+          "metric": "next_earnings_call_date",
+          "value": "2026-10-28",
+          "unit": "date",
+          "definition": "FY27Q1 planned results",
+          "nature": "announced_schedule"
+        }
+      ],
+      "claims": [
+        "Azure·Copilot 매출, 투자와 현금 전환이 하드웨어 수요와 소프트웨어 수익화를 동시에 검증한다."
+      ],
+      "limitations": [
+        "Dynamic event page lacks original announcement timestamp; context only."
+      ],
+      "dedup_group": "REL-MSFT-CALENDAR"
+    },
+    {
+      "id": "REL-ORCL-CALENDAR",
+      "title": "Oracle investor FAQ earnings calendar",
+      "url": "https://investor.oracle.com/faq/default.aspx",
+      "publisher": "Oracle",
+      "published_at": null,
+      "data_as_of": "2026-10-12",
+      "available_at": null,
+      "retrieved_at": null,
+      "compiled_at": "2026-10-12T01:53:06.593021+00:00",
+      "retrieval_timestamp_status": "Web tool original inspected in this research session; exact source-fetch timestamp not supplied. compiled_at is the record-build timestamp, not a fetch or availability timestamp.",
+      "availability_basis": "Event/reference date verified but original publication timestamp not available. Context only, excluded from numerical model features.",
+      "lookahead_status": "context_only_publication_time_unverified",
+      "numerical_facts": [
+        {
+          "metric": "next_earnings_call_date",
+          "value": "2026-12-14",
+          "unit": "date",
+          "definition": "FY27Q2 planned results",
+          "nature": "announced_schedule"
+        }
+      ],
+      "claims": [
+        "다년 계약의 매출 인식·투자비·자금조달을 연말 전에 재확인하는 촉매다."
+      ],
+      "limitations": [
+        "Dynamic FAQ publication timestamp missing; context only."
+      ],
+      "dedup_group": "REL-ORCL-CALENDAR"
+    }
+  ],
+  "feature_policy": {
+    "corporate_facts_use": "Qualitative current-state comparison; not fitted point-in-time historical ML features",
+    "current_etf_snapshot_use": "Issuer-dated observations with unverified historical page availability, explicit limit",
+    "guidance_use": "Management outlook; never relabeled realized earnings or year-end stock return",
+    "scenario_input_use": "Explicit analyst assumptions from preserved baseline; no calibration from these facts",
+    "probability_policy": "No conversion from internal Brier or EPS-event accuracy to SOXX-vs-IGV success probability"
+  },
+  "excluded_or_missing": [
+    "Archived historical forward EPS/FCF expectations and normalized common valuation denominator not available",
+    "Dynamic Snowflake quarterly summary stale quote/output mixed; dated press release used",
+    "Treasury10/9 official long-yield page unavailable in this research tool; GS9/30 commentary not passed as10/9 spot",
+    "Micron HBM revenue split not separately verified; memory revenue not called HBM-only",
+    "Future quarters/results after cutoff excluded even where earnings dates are known"
+  ]
+}

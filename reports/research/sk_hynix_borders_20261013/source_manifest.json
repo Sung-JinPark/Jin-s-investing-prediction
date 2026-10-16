@@ -1,0 +1,28 @@
+[
+  {
+    "name": "yahoo",
+    "url": "https://finance.yahoo.com/quote/000660.KS/history/?period1=1756684800&period2=1791936000",
+    "path": "source_yahoo.html",
+    "bytes": 963384,
+    "retrieved_at": "2026-10-13T01:24:42.169376+00:00",
+    "sha256": "99ba2363915b2a4438c023f48e16f98bcfa5540837a432682dea709683426a68"
+  },
+  {
+    "name": "stockanalysis",
+    "url": "https://stockanalysis.com/quote/krx/000660/history/",
+    "error": "HTTP Error 403: Forbidden"
+  },
+  {
+    "name": "naver_quote",
+    "url": "https://m.stock.naver.com/domestic/stock/000660/total",
+    "path": "source_naver_quote.html",
+    "bytes": 128798,
+    "retrieved_at": "2026-10-13T01:24:40.632504+00:00",
+    "sha256": "7bb221c8e639988be7d139c489943d211f62944922e2aee66b311e41c5f9aeda"
+  },
+  {
+    "name": "naver_history",
+    "url": "https://finance.naver.com/item/sise_day.naver?code=000660&page=1",
+    "error": "HTTP Error 410: 410"
+  }
+]

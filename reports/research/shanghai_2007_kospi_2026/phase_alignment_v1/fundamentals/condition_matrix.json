@@ -1,0 +1,337 @@
+{
+  "schema_version": 1,
+  "research_as_of": "2026-10-16T09:00:00+09:00",
+  "price_cutoff": "2026-10-15",
+  "horizon": {
+    "start_after_close": "2026-10-15",
+    "future_trading_return_intervals": 126,
+    "exact_end": null,
+    "approx_calendar_ko": "2027년4월",
+    "unit": "future trading-return intervals"
+  },
+  "purpose_ko": "6개월 추가 하락 위험과 회복 증거를 구분하는 관측 규칙. 목표지수·확률·매매명령이 아님.",
+  "threshold_status": "ALL_NUMERIC_THRESHOLDS_ARE_UNVALIDATED_RESEARCH_HEURISTICS",
+  "threshold_warning_ko": "아래10%,5일,2주등의문턱은사전검증·최적화·빈도추정이없는연구용휴리스틱. 원자료의사실값과명확히구분하며거래나공식확률에자동반영하지않음.",
+  "missing_data_rule": "not_assessable; never count missing as pass/fail",
+  "conditions": [
+    {
+      "condition_id": "FC1",
+      "dimension_ko": "같은 연도의 이익전망 수준",
+      "role": "leading",
+      "baseline": {
+        "metric": "FY2027 index EPS and separate Samsung/Hynix OP consensus, same provider/universe/currency",
+        "date": "2026-10-15",
+        "value": null,
+        "status": "missing"
+      },
+      "downside_confirmation_ko": "10월15일에고정한FY2027이익수준이4주간10%이상하향되고2회연속주간관측에서유지되면이익침식증거. 지수전체와두반도체기업을각각표시하고교집합구성비교.",
+      "recovery_confirmation_ko": "같은FY2027수준이4주전대비0%이상이고2회연속주간관측에서추가하향이없으며, 새확정실적이공개된회사잠정범위와대체로맞는지확인.",
+      "thresholds": {
+        "downward_revision": {
+          "value": -0.1,
+          "unit": "fraction"
+        },
+        "window": {
+          "value": 4,
+          "unit": "weeks"
+        },
+        "persistence": {
+          "value": 2,
+          "unit": "weekly observations"
+        }
+      },
+      "as_of_state": "not_assessable",
+      "evidence_ids": [
+        "FA-E01",
+        "FA-E02",
+        "FA-E05",
+        "FA-E45"
+      ],
+      "caveats_ko": [
+        "NTM은시간이흐르면대상분기가바뀌므로고정FY2027보다비교가어려움. 제공자/표본변경은수정률에서분리.",
+        "높은YoY증가율만으로새이익수준이상향인지알수없음."
+      ]
+    },
+    {
+      "condition_id": "FC2",
+      "dimension_ko": "메모리 가격과 HBM 주문",
+      "role": "leading",
+      "baseline": {
+        "date": "2026-09",
+        "DDR5_16Gb": {
+          "value": 48,
+          "unit": "USD per chip"
+        },
+        "NAND_128Gb": {
+          "value": 30.6,
+          "unit": "USD per chip"
+        }
+      },
+      "downside_confirmation_ko": "같은규격고정가격이2개월연속하락하고9월대비10%이상낮아지며, 주요고객의공식발주/투자감축또는회사측HBM출하·계약하향설명이동반되면수요와가격의동시약화증거. 두범용지표는별도표시.",
+      "recovery_confirmation_ko": "3개월동안벤치마크가격이9월수준이상을유지하고, 새실적발표에서HBM납기·물량·양산수율계획이유지되는지확인. 취소불가계약등미공개조건은추정하지않음.",
+      "thresholds": {
+        "cumulative_price_decline": {
+          "value": -0.1,
+          "unit": "fraction"
+        },
+        "DDR5_16Gb_alert_level": {
+          "value": 43.2,
+          "unit": "USD per chip"
+        },
+        "NAND_128Gb_alert_level": {
+          "value": 27.54,
+          "unit": "USD per chip"
+        },
+        "declining_months": {
+          "value": 2,
+          "unit": "consecutive months"
+        },
+        "stability_window": {
+          "value": 3,
+          "unit": "months"
+        }
+      },
+      "as_of_state": "observed_prices_strong_but_HBM_forward_orders_not_quantified",
+      "evidence_ids": [
+        "FA-E18",
+        "FA-E19",
+        "FA-E20",
+        "FA-E25",
+        "FA-E26"
+      ],
+      "caveats_ko": [
+        "범용DRAM/NAND가격을HBMASP로대체하지않음. 가격이하락해도HBM수요가같은폭으로감소한다고볼수없음.",
+        "7월회사장기계약발표는최신수주잔고가아니며9월기술전시는신규수주증거가아님."
+      ]
+    },
+    {
+      "condition_id": "FC3",
+      "dimension_ko": "반도체 수출 물량·조업일수 보정",
+      "role": "coincident_and_leading_mix",
+      "baseline": {
+        "latest_nominal": {
+          "value": 603.3,
+          "unit": "USD hundred million",
+          "period": "2026-09"
+        },
+        "daily_export_3m_panel": null
+      },
+      "downside_confirmation_ko": "같은품목정의의반도체일평균수출3개월평균이직전3개월보다10%이상감소하고2회월간발표에서반복되는지확인. 단가하락과물량하락을가능한범위에서구분.",
+      "recovery_confirmation_ko": "동일3개월비교가0%이상으로돌아서고2회월간발표에서유지되며HBM관련출하설명이악화되지않으면수요안정증거.",
+      "thresholds": {
+        "daily_exports_3m_change": {
+          "value": -0.1,
+          "unit": "fraction"
+        },
+        "persistence": {
+          "value": 2,
+          "unit": "monthly releases"
+        }
+      },
+      "as_of_state": "nominal_record_high_adjusted_condition_not_assessable",
+      "evidence_ids": [
+        "FA-E21",
+        "FA-E22",
+        "FA-E23",
+        "FA-E24",
+        "FA-E27"
+      ],
+      "caveats_ko": [
+        "현재4개월명목자료만으로이조건을이미통과했다고처리하지않음.",
+        "전년비가플러스여도전기수준은하락할수있음. 조업일수·품목구성·가격을같이기록."
+      ]
+    },
+    {
+      "condition_id": "FC4",
+      "dimension_ko": "이익의 현금 전환과 재고",
+      "role": "reported_lagging_confirmation",
+      "baseline": {
+        "Samsung_H1_CFO": {
+          "value": 145.355192,
+          "unit": "KRW trillion"
+        },
+        "Samsung_H1_CFO_less_cash_PPE_intangibles": {
+          "value": 112.39491,
+          "unit": "KRW trillion"
+        },
+        "Hynix_latest_comparable_CFO": null,
+        "inventory_days": null
+      },
+      "downside_confirmation_ko": "새로보고되는누적현금흐름을분기차분해최근2분기합산CFO가유형·무형현금취득지출보다작고, 재고일수가고정기준보다15일이상늘면서가격/주문약화가동반되면확인. 계절성·고객대금결제·설비투자시차를설명.",
+      "recovery_confirmation_ko": "최근2분기CFO가양수이며유형·무형현금취득지출을충당하고재고일수가더악화하지않는지확인. 삼성·하이닉스를별도로평가.",
+      "thresholds": {
+        "inventory_days_increase": {
+          "value": 15,
+          "unit": "days"
+        },
+        "cashflow_window": {
+          "value": 2,
+          "unit": "reported quarters"
+        }
+      },
+      "as_of_state": "Samsung_H1_cashflow_positive_latest_quarter_condition_incomplete",
+      "evidence_ids": [
+        "FA-E07",
+        "FA-E08",
+        "FA-E09",
+        "FA-E10",
+        "FA-E11",
+        "FA-E12",
+        "FA-E13",
+        "FA-E15",
+        "FA-E17"
+      ],
+      "caveats_ko": [
+        "상반기누계만으로3분기현금흐름을추정하지않음. Hynix순현금은CFO가아님.",
+        "CFO차감현금취득지출은본연구정의이며회사의FCF라부르지않음. 회계정책변경시동일정의로재조정하거나단절표시."
+      ]
+    },
+    {
+      "condition_id": "FC5",
+      "dimension_ko": "신용 청산과 시장 유동성",
+      "role": "amplifier_and_confirmation",
+      "baseline": {
+        "date": "10-14 (2026 inferred)",
+        "margin_credit": {
+          "value": 33.705742,
+          "unit": "KRW trillion"
+        },
+        "investor_deposits": {
+          "value": 97.428012,
+          "unit": "KRW trillion"
+        },
+        "credit_deposit_ratio": {
+          "value": 0.34595535008966416,
+          "unit": "fraction"
+        },
+        "forced_sales_daily_baseline": null
+      },
+      "downside_confirmation_ko": "20거래일신용잔액10%이상감소와지수저점갱신이겹치고, 공식반대매매/미수통계가직전60거래일중앙값의2배를5거래일중3일이상기록하면강제청산압력증거. 신용잔액감소만으로는확인하지않음.",
+      "recovery_confirmation_ko": "5거래일연속반대매매가직전60일중앙값의1.5배이하로낮아지고, 10거래일간신용잔액변화가±5%안에서안정되며예탁금이줄지않고신용/예탁금비율이5%p이상급등하지않는지확인.",
+      "thresholds": {
+        "credit_20session_change": {
+          "value": -0.1,
+          "unit": "fraction"
+        },
+        "forced_sale_multiple": {
+          "value": 2,
+          "unit": "times prior60session median"
+        },
+        "forced_sale_days": {
+          "value": 3,
+          "unit": "of5sessions"
+        },
+        "credit_stability_band": {
+          "value": 0.05,
+          "unit": "absolute fraction change"
+        },
+        "credit_deposit_rise_limit": {
+          "value": 0.05,
+          "unit": "fraction_points"
+        }
+      },
+      "as_of_state": "single_snapshot_available_forced_sale_condition_not_assessable",
+      "evidence_ids": [
+        "FA-E35",
+        "FA-E36",
+        "FA-E39",
+        "FA-E40",
+        "FA-E41",
+        "FA-E46"
+      ],
+      "caveats_ko": [
+        "반대매매시계열을못구하면강제청산증거는판단유보. 신용감소는건전한자발상환일수도있음.",
+        "미수기반반대매매와신용융자담보처분은서로다른범위일수있으므로별도표시.",
+        "KOFIA카드는연도/원빈티지미인증이며엄격한공식PIT입력으로승격하지않음."
+      ]
+    },
+    {
+      "condition_id": "FC6",
+      "dimension_ko": "조달금리와 신용스프레드",
+      "role": "financial_conditions_amplifier",
+      "baseline": {
+        "date": "2026-10-14",
+        "CP_A1_91d": {
+          "value": 0.0366,
+          "unit": "fraction"
+        },
+        "AAminus_3y_less_government_3y": {
+          "value": 0.0068,
+          "unit": "fraction_point"
+        }
+      },
+      "downside_confirmation_ko": "고정10월14일기준보다AA-3년스프레드가30bp이상확대되고CP금리도50bp이상상승한상태가5거래일유지되면주식외신용시장으로위험이확산되는증거.",
+      "recovery_confirmation_ko": "CP금리가10월14일기준이하로돌아오고AA-스프레드가68bp이하에서10거래일유지되면조달여건완화증거. 기준금리인하만으로대체하지않음.",
+      "thresholds": {
+        "AAminus_spread_rise": {
+          "value": 0.003,
+          "unit": "fraction_point",
+          "display": "30bp"
+        },
+        "CP_rise": {
+          "value": 0.005,
+          "unit": "fraction_point",
+          "display": "50bp"
+        }
+      },
+      "as_of_state": "CP_up_vs_Aug_but_AAminus_spread_not_wider",
+      "evidence_ids": [
+        "FA-E29",
+        "FA-E30",
+        "FA-E31",
+        "FA-E32",
+        "FA-E33",
+        "FA-E34",
+        "FA-E38"
+      ],
+      "caveats_ko": [
+        "국고채금리변동과기업신용위험을분리. CP절대금리상승은정책금리·분기말요인도반영.",
+        "M2증가를주식매수유입으로대체하지않음."
+      ]
+    },
+    {
+      "condition_id": "FC7",
+      "dimension_ko": "종목 확산과 가격 회복 확인",
+      "role": "market_confirmation_owned_by_parent",
+      "baseline": {
+        "constituent_breadth": null,
+        "price_levels": "parent frozen price-series analysis; not re-estimated here"
+      },
+      "downside_confirmation_ko": "직전하락저점을연속갱신하면서동일구성종목의60일선상회비중이25%미만으로5거래일유지되고동일가중지수도약하면하락확산증거.",
+      "recovery_confirmation_ko": "직전하락저점재돌파후5거래일지지하는초기복구와, 매일재계산한20·60일선위에서약2주(10거래일)유지하는추세복구를구분. 동시에구성종목60일선상회비중50%초과가10거래일유지되고동일가중지수가4주간시가총액지수보다강한지확인.",
+      "thresholds": {
+        "weak_breadth": {
+          "value": 0.25,
+          "unit": "fraction of constituents"
+        },
+        "recovery_breadth": {
+          "value": 0.5,
+          "unit": "fraction of constituents"
+        },
+        "initial_hold": {
+          "value": 5,
+          "unit": "sessions"
+        },
+        "trend_hold": {
+          "value": 10,
+          "unit": "sessions"
+        }
+      },
+      "as_of_state": "breadth_not_assessable_price_interpretation_in_parent_artifact",
+      "evidence_ids": [
+        "FA-E46"
+      ],
+      "caveats_ko": [
+        "현재이동평균숫자를미래의고정문턱으로사용하지않음. 상장폐지·편입종목을고려한동일표본비교.",
+        "대형반도체두종목의반등만으로시장전반회복을판정하지않음."
+      ]
+    }
+  ],
+  "reading_rule_ko": [
+    "FC1~FC3중하나이상의미래이익/수요약화와FC5또는FC6의유동성/신용악화가같이확인되고가격도복구하지못하면추가하락서사를강화. 숫자를합산한점수·추정확률은만들지않음.",
+    "회복은실적/주문수준안정, 강제청산완화, 시장가격·종목확산확인이함께나타나는지를판단. 현재강한잠정실적만으로회복확정, 가격하락만으로이익붕괴확정이라하지않음.",
+    "조건이미달이면무조건반대시나리오가참이라는뜻이아님. 미확인/부분충족/충족을구분하고새발표의available_at을기록."
+  ],
+  "probabilities_assigned": false,
+  "official_forecast_written": false
+}

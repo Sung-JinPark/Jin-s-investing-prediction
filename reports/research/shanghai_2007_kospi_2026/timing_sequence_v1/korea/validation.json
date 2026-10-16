@@ -1,0 +1,16 @@
+{
+  "status": "passed",
+  "errors": [],
+  "observations": 29,
+  "signals": 11,
+  "sources": 21,
+  "source_hashes_verified": true,
+  "prior_raw_sources_refetched": false,
+  "probabilities_assigned": false,
+  "official_state_mutations": false,
+  "sha256": {
+    "evidence.json": "d8a82ac249be77d0eac95bed7b71cf62d5c7069f7d55abc3e3b289c35191d5ab",
+    "source_manifest.json": "6592706ba86546e03cd1da53637d83f8e78ba6f836170de43aecd63bb2d089df",
+    "matrix.md": "1c595e00773448cd4790fba1658aab242953d1d0147fce999b21335ad959293b"
+  }
+}

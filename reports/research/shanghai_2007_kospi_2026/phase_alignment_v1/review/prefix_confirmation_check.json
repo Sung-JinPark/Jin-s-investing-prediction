@@ -1,0 +1,51 @@
+{
+  "reviewed_at_utc": "2026-10-16T00:33:37.099653+00:00",
+  "status": "passed",
+  "reviewed_code": "../prices/phase_analysis.py",
+  "reviewed_code_sha256": "4b87afdd21301b285cf4c4370dbde0b83be638f0b8c0912c0248658c12d0b475",
+  "checks": [
+    {
+      "symbol": "SSE_COMPOSITE",
+      "threshold_fraction": 0.1,
+      "turns_match_independent_implementation": true,
+      "no_event_before_its_confirmation": true,
+      "confirmed_turns": 10
+    },
+    {
+      "symbol": "SSE_COMPOSITE",
+      "threshold_fraction": 0.15,
+      "turns_match_independent_implementation": true,
+      "no_event_before_its_confirmation": true,
+      "confirmed_turns": 5
+    },
+    {
+      "symbol": "SSE_COMPOSITE",
+      "threshold_fraction": 0.2,
+      "turns_match_independent_implementation": true,
+      "no_event_before_its_confirmation": true,
+      "confirmed_turns": 5
+    },
+    {
+      "symbol": "KOSPI",
+      "threshold_fraction": 0.1,
+      "turns_match_independent_implementation": true,
+      "no_event_before_its_confirmation": true,
+      "confirmed_turns": 2
+    },
+    {
+      "symbol": "KOSPI",
+      "threshold_fraction": 0.15,
+      "turns_match_independent_implementation": true,
+      "no_event_before_its_confirmation": true,
+      "confirmed_turns": 2
+    },
+    {
+      "symbol": "KOSPI",
+      "threshold_fraction": 0.2,
+      "turns_match_independent_implementation": true,
+      "no_event_before_its_confirmation": true,
+      "confirmed_turns": 2
+    }
+  ],
+  "note": "Read-only parent-code execution with Python -B; wrote only this review artifact. Fixed observed peak anchors are retrospective; this check tests turn confirmation rather than prospective peak discovery."
+}

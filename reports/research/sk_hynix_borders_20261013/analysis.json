@@ -1,0 +1,145 @@
+{
+  "created_at": "2026-10-13T01:28:28.563940+00:00",
+  "purpose": "retrospective_display_analysis_no_official_forecast_or_probability_change",
+  "chart_history_window": {
+    "first": "2025-11-26",
+    "last_finalized": "2026-10-12"
+  },
+  "price_unit": "KRW_per_share",
+  "price_column": "close_not_adj_close",
+  "axes": "arithmetic price, uniformly spaced observed trading sessions",
+  "quote": {
+    "date": "2026-10-13",
+    "time_kst": "10:06",
+    "price": 1478000,
+    "source": "Npay public stock page",
+    "venue_label": "KRX",
+    "source_url": "https://m.stock.naver.com/domestic/stock/000660/total",
+    "page_low": 1476000,
+    "status": "intraday_snapshot_not_final_close"
+  },
+  "supplement": {
+    "date": "2026-10-12",
+    "open": 1640000,
+    "high": 1653000,
+    "low": 1605000,
+    "close": 1605000,
+    "volume": 3430409,
+    "source_url": "https://stockanalysis.com/quote/krx/000660/history/",
+    "reason": "Yahoo public HTML has a fully null row; public history table supplies this candle. Original null row retained in daily_raw.json.",
+    "status": "explicit_supplement_secondary_history_not_certified_exchange_receipt"
+  },
+  "lines": [
+    {
+      "name": "July-September rebound",
+      "anchor_a": {
+        "date": "2026-07-29",
+        "low": 1246000.0
+      },
+      "anchor_b": {
+        "date": "2026-09-03",
+        "low": 1558000.0
+      },
+      "trading_intervals": 25,
+      "slope_KRW_per_session": 12480.0,
+      "at_intraday_date_linear": 1857520.0,
+      "at_intraday_date_log": 1930789.3200879924,
+      "first_close_break_after_second_anchor_linear": "2026-10-06",
+      "first_close_break_after_second_anchor_log": "2026-09-28"
+    },
+    {
+      "name": "August-September rebound",
+      "anchor_a": {
+        "date": "2026-08-11",
+        "low": 1373000.0
+      },
+      "anchor_b": {
+        "date": "2026-09-03",
+        "low": 1558000.0
+      },
+      "trading_intervals": 16,
+      "slope_KRW_per_session": 11562.5,
+      "at_intraday_date_linear": 1835500.0,
+      "at_intraday_date_log": 1883271.0373740108,
+      "first_close_break_after_second_anchor_linear": "2026-10-06",
+      "first_close_break_after_second_anchor_log": "2026-09-29"
+    },
+    {
+      "name": "November-March lower trend candidate",
+      "anchor_a": {
+        "date": "2025-11-26",
+        "low": 501000.0
+      },
+      "anchor_b": {
+        "date": "2026-03-31",
+        "low": 806000.0
+      },
+      "trading_intervals": 82,
+      "slope_KRW_per_session": 3719.512195121951,
+      "at_intraday_date_linear": 1289536.5853658537,
+      "at_intraday_date_log": 1712808.6019075655,
+      "first_close_break_after_second_anchor_linear": null,
+      "first_close_break_after_second_anchor_log": "2026-10-08"
+    }
+  ],
+  "bands": [
+    {
+      "lo": 1486000,
+      "hi": 1500000,
+      "kind": "intraday_broken_prior_support",
+      "label": "148.6~150만원",
+      "anchors": [
+        "2026-08-19"
+      ]
+    },
+    {
+      "lo": 1420000,
+      "hi": 1440000,
+      "kind": "support_candidate",
+      "label": "142~144만원",
+      "anchors": [
+        "2026-08-10",
+        "2026-08-11",
+        "2026-08-12"
+      ]
+    },
+    {
+      "lo": 1373000,
+      "hi": 1397000,
+      "kind": "support_candidate",
+      "label": "137.3~139.7만원",
+      "anchors": [
+        "2026-08-11",
+        "2026-08-10"
+      ]
+    },
+    {
+      "lo": 1287000,
+      "hi": 1322000,
+      "kind": "support_candidate",
+      "label": "128.7~132.2만원",
+      "anchors": [
+        "2026-07-30"
+      ],
+      "linear_long_trend_at_quote_date": 1289536.5853658537
+    },
+    {
+      "lo": 1246000,
+      "hi": 1246000,
+      "kind": "historical_low_not_guaranteed_floor",
+      "label": "124.6만원",
+      "anchors": [
+        "2026-07-29"
+      ]
+    }
+  ],
+  "limitations": [
+    "Anchors selected retrospectively; no validated forecast or success probability.",
+    "Long trend has two anchors and is a lower-confidence candidate; its value depends strongly on axis and anchor selection.",
+    "Current public historical vintage, not archived original point-in-time publication receipts.",
+    "Public provider OHLC/volume may differ by venue, session and update; no certified KRX daily receipt.",
+    "June 10 Yahoo volume is 151; no volume inference or volume panel is used.",
+    "Today's quote is a separately sourced timestamped point. No current candle is fabricated.",
+    "Support bands group observed lows and closes; they do not guarantee a lower bound."
+  ]
+}

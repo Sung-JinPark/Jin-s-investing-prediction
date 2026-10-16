@@ -1,0 +1,1305 @@
+{
+  "schema_version": 1,
+  "research_as_of": "2026-10-16T09:00:00+09:00",
+  "cutoff_basis_ko": "연구 기준시각은2026-10-16 09:00 KST.가격·통계는10월15일까지의완료관측만사용했다.조회는기준시각뒤에수행되어현재조회본의당시빈티지는별도미인증이다.",
+  "created_at_utc": "2026-10-16T00:15:46.658355+00:00",
+  "artifact_role": "separate comparative research evidence; never official forecast or ledger input",
+  "canonical_probability_unit": "fraction[0,1]; no probabilities estimated here",
+  "numeric_contract": "Explicit source units preserved. Monetary amounts normalized toKRW; percent growth/return/rates divided by100 into named fractions. Growth fractions may exceed1 and are not probabilities. No clipping or inferred probability units.",
+  "source_manifest": "source_manifest.json",
+  "observations": [
+    {
+      "evidence_id": "KR-E01",
+      "label_ko": "코스피 비교표본 상반기 연결매출 증가율",
+      "original": {
+        "value": 28.84,
+        "unit": "percent YoY"
+      },
+      "normalized": {
+        "value": 0.2884,
+        "unit": "growth_fraction"
+      },
+      "source_ids": [
+        "KR-KRX-H1-ARCHIVE"
+      ],
+      "observation_period": "2026H1 vs2025H1",
+      "status": "confirmed_publisher_report",
+      "source_locator": "release-summary paragraph",
+      "notes_ko": [
+        "12월 결산 비금융 연결634개사 비교표본. 금융업·분할합병·비적정 감사의견 등 제외. 전세계 동일기준 순위를 뜻하지 않는다.",
+        "두 회사 제외는 반도체 관련 지주회사와 공급망 전체를 제거한 산업중립 실적이 아니다."
+      ],
+      "formula": "explicit percent /100",
+      "probability": false
+    },
+    {
+      "evidence_id": "KR-E02",
+      "label_ko": "코스피 비교표본 상반기 연결영업이익 증가율",
+      "original": {
+        "value": 254.15,
+        "unit": "percent YoY"
+      },
+      "normalized": {
+        "value": 2.5415,
+        "unit": "growth_fraction"
+      },
+      "source_ids": [
+        "KR-KRX-H1-ARCHIVE"
+      ],
+      "observation_period": "2026H1 vs2025H1",
+      "status": "confirmed_publisher_report",
+      "source_locator": "release-summary paragraph",
+      "notes_ko": [
+        "12월 결산 비금융 연결634개사 비교표본. 금융업·분할합병·비적정 감사의견 등 제외. 전세계 동일기준 순위를 뜻하지 않는다.",
+        "두 회사 제외는 반도체 관련 지주회사와 공급망 전체를 제거한 산업중립 실적이 아니다."
+      ],
+      "formula": "explicit percent /100",
+      "probability": false
+    },
+    {
+      "evidence_id": "KR-E03",
+      "label_ko": "코스피 비교표본 상반기 연결순이익 증가율",
+      "original": {
+        "value": 333.3,
+        "unit": "percent YoY"
+      },
+      "normalized": {
+        "value": 3.333,
+        "unit": "growth_fraction"
+      },
+      "source_ids": [
+        "KR-KRX-H1-ARCHIVE"
+      ],
+      "observation_period": "2026H1 vs2025H1",
+      "status": "confirmed_publisher_report",
+      "source_locator": "release-summary paragraph",
+      "notes_ko": [
+        "12월 결산 비금융 연결634개사 비교표본. 금융업·분할합병·비적정 감사의견 등 제외. 전세계 동일기준 순위를 뜻하지 않는다.",
+        "두 회사 제외는 반도체 관련 지주회사와 공급망 전체를 제거한 산업중립 실적이 아니다."
+      ],
+      "formula": "explicit percent /100",
+      "probability": false
+    },
+    {
+      "evidence_id": "KR-E04",
+      "label_ko": "삼성전자·SK하이닉스 제외 연결영업이익 증가율",
+      "original": {
+        "value": 75.61,
+        "unit": "percent YoY"
+      },
+      "normalized": {
+        "value": 0.7561,
+        "unit": "growth_fraction"
+      },
+      "source_ids": [
+        "KR-KRX-H1-ARCHIVE"
+      ],
+      "observation_period": "2026H1 vs2025H1",
+      "status": "confirmed_publisher_report",
+      "source_locator": "release-summary paragraph",
+      "notes_ko": [
+        "12월 결산 비금융 연결634개사 비교표본. 금융업·분할합병·비적정 감사의견 등 제외. 전세계 동일기준 순위를 뜻하지 않는다.",
+        "두 회사 제외는 반도체 관련 지주회사와 공급망 전체를 제거한 산업중립 실적이 아니다."
+      ],
+      "formula": "explicit percent /100",
+      "probability": false
+    },
+    {
+      "evidence_id": "KR-E05",
+      "label_ko": "삼성전자·SK하이닉스 제외 연결순이익 증가율",
+      "original": {
+        "value": 119.68,
+        "unit": "percent YoY"
+      },
+      "normalized": {
+        "value": 1.1968,
+        "unit": "growth_fraction"
+      },
+      "source_ids": [
+        "KR-KRX-H1-ARCHIVE"
+      ],
+      "observation_period": "2026H1 vs2025H1",
+      "status": "confirmed_publisher_report",
+      "source_locator": "release-summary paragraph",
+      "notes_ko": [
+        "12월 결산 비금융 연결634개사 비교표본. 금융업·분할합병·비적정 감사의견 등 제외. 전세계 동일기준 순위를 뜻하지 않는다.",
+        "두 회사 제외는 반도체 관련 지주회사와 공급망 전체를 제거한 산업중립 실적이 아니다."
+      ],
+      "formula": "explicit percent /100",
+      "probability": false
+    },
+    {
+      "evidence_id": "KR-E06",
+      "label_ko": "삼성전자 상반기 연결영업이익",
+      "original": {
+        "value": 146725209,
+        "unit": "KRW million"
+      },
+      "normalized": {
+        "value": 146725209000000,
+        "unit": "KRW"
+      },
+      "source_ids": [
+        "KR-SAMSUNG-H1-BUSINESS-PDF"
+      ],
+      "observation_period": "2026H1",
+      "status": "confirmed_publisher_report",
+      "source_locator": "PDF page45, six-month KRW column",
+      "notes_ko": [],
+      "formula": "million KRW *1000000",
+      "probability": false
+    },
+    {
+      "evidence_id": "KR-E07",
+      "label_ko": "삼성전자 전년 상반기 연결영업이익",
+      "original": {
+        "value": 11361329,
+        "unit": "KRW million"
+      },
+      "normalized": {
+        "value": 11361329000000,
+        "unit": "KRW"
+      },
+      "source_ids": [
+        "KR-SAMSUNG-H1-BUSINESS-PDF"
+      ],
+      "observation_period": "2025H1",
+      "status": "confirmed_publisher_report",
+      "source_locator": "PDF page45, six-month KRW column",
+      "notes_ko": [],
+      "formula": null,
+      "probability": false
+    },
+    {
+      "evidence_id": "KR-E08",
+      "label_ko": "SK하이닉스 상반기 연결영업이익 합산",
+      "original": {
+        "value": 98152.9,
+        "unit": "KRW billion"
+      },
+      "normalized": {
+        "value": 98152900000000,
+        "unit": "KRW"
+      },
+      "source_ids": [
+        "KR-HYNIX-1Q26",
+        "KR-HYNIX-2Q26"
+      ],
+      "observation_period": "2026H1",
+      "status": "derived_from_preliminary_rounded_quarters",
+      "source_locator": "1Q26 and2Q26 K-IFRS tables",
+      "notes_ko": [
+        "각 분기표는십억원소수첫째자리. 미세한차이를반영하는확정반기수치로간주하지않는다."
+      ],
+      "formula": "(37610.3+60542.6) billion KRW",
+      "probability": false
+    },
+    {
+      "evidence_id": "KR-E09",
+      "label_ko": "SK하이닉스 전년 상반기 연결영업이익 합산",
+      "original": {
+        "value": 16653.4,
+        "unit": "KRW billion"
+      },
+      "normalized": {
+        "value": 16653400000000,
+        "unit": "KRW"
+      },
+      "source_ids": [
+        "KR-HYNIX-1Q26",
+        "KR-HYNIX-2Q26"
+      ],
+      "observation_period": "2025H1",
+      "status": "derived_from_preliminary_rounded_comparatives",
+      "source_locator": null,
+      "notes_ko": [],
+      "formula": "(7440.5+9212.9) billion KRW",
+      "probability": false
+    },
+    {
+      "evidence_id": "KR-E10",
+      "label_ko": "코스피 상반기 연결영업이익 총액 교차확인",
+      "original": {
+        "value": 3881532,
+        "unit": "KRW100 million"
+      },
+      "normalized": {
+        "value": 388153200000000,
+        "unit": "KRW"
+      },
+      "source_ids": [
+        "KR-KRX-H1-SECONDARY-TOTAL"
+      ],
+      "observation_period": "2026H1",
+      "status": "secondary_reported_total_original_pdf_unavailable",
+      "source_locator": null,
+      "notes_ko": [
+        "KRX 원PDF 다운로드실패. KIF공식보관요약의성장률과교차확인했으나원합계확정자료로승격하지않음."
+      ],
+      "formula": null,
+      "probability": false
+    },
+    {
+      "evidence_id": "KR-E11",
+      "label_ko": "두 회사 연결영업이익 합산",
+      "original": {
+        "value": 244878109000000,
+        "unit": "KRW"
+      },
+      "normalized": {
+        "value": 244878109000000,
+        "unit": "KRW"
+      },
+      "source_ids": [
+        "KR-E06",
+        "KR-E08"
+      ],
+      "observation_period": "2026H1",
+      "status": "derived_rounded",
+      "source_locator": null,
+      "notes_ko": [],
+      "formula": "Samsung+SK hynix",
+      "probability": false
+    },
+    {
+      "evidence_id": "KR-E12",
+      "label_ko": "두 회사의 코스피 비교표본 영업이익 비중",
+      "original": {
+        "value": null,
+        "unit": "derived ratio"
+      },
+      "normalized": {
+        "value": 0.6308800468474819,
+        "unit": "fraction"
+      },
+      "source_ids": [
+        "KR-E06",
+        "KR-E08",
+        "KR-E10"
+      ],
+      "observation_period": "2026H1",
+      "status": "conditional_derived_secondary_denominator",
+      "source_locator": null,
+      "notes_ko": [
+        "약63.09%. 시가총액비중·지수EPS기여율·AI만의기여율과다르다."
+      ],
+      "formula": "(146.725209+98.152900)/388.153200",
+      "probability": false
+    },
+    {
+      "evidence_id": "KR-E13",
+      "label_ko": "두 회사 제외 영업이익 총액",
+      "original": {
+        "value": null,
+        "unit": "derived amount"
+      },
+      "normalized": {
+        "value": 143275091000000,
+        "unit": "KRW"
+      },
+      "source_ids": [
+        "KR-E10",
+        "KR-E11"
+      ],
+      "observation_period": "2026H1",
+      "status": "conditional_derived_secondary_denominator",
+      "source_locator": null,
+      "notes_ko": [],
+      "formula": "388.1532-244.878109 trillion KRW",
+      "probability": false
+    },
+    {
+      "evidence_id": "KR-E14",
+      "label_ko": "영업이익 증가분 중 두 회사 기여 비중",
+      "original": {
+        "value": null,
+        "unit": "derived ratio"
+      },
+      "normalized": {
+        "value": 0.7785386604731998,
+        "unit": "fraction"
+      },
+      "source_ids": [
+        "KR-E02",
+        "KR-E06",
+        "KR-E07",
+        "KR-E08",
+        "KR-E09",
+        "KR-E10"
+      ],
+      "observation_period": "2026H1 vs2025H1",
+      "status": "conditional_derived_rounded_growth_and_secondary_total",
+      "source_locator": null,
+      "notes_ko": [
+        "약77.85%. 전년총액은반올림성장률역산값이다."
+      ],
+      "formula": "(paired2026-paired2025)/(total2026-total2026/(1+2.5415))",
+      "probability": false
+    },
+    {
+      "evidence_id": "KR-E15",
+      "label_ko": "공식 성장률·기업이익으로 역산한 비교표본 영업이익",
+      "original": {
+        "value": null,
+        "unit": "derived amount"
+      },
+      "normalized": {
+        "value": 388151580492930.75,
+        "unit": "KRW"
+      },
+      "source_ids": [
+        "KR-E02",
+        "KR-E04",
+        "KR-E06",
+        "KR-E07",
+        "KR-E08",
+        "KR-E09"
+      ],
+      "observation_period": "2026H1",
+      "status": "approximate_algebraic_crosscheck_not_official_total",
+      "source_locator": null,
+      "notes_ko": [
+        "388.151580조원.2차보도388.1532조원과약0.00162조원차이. 성장률·분기이익반올림과일치하는수준의교차검증이며원총액확정대체는아니다."
+      ],
+      "formula": "x=(paired2026-1.7561*paired2025)/(3.5415-1.7561);total2026=3.5415*x",
+      "probability": false
+    },
+    {
+      "evidence_id": "KR-E16",
+      "label_ko": "SK하이닉스 2분기 영업이익 증가율",
+      "original": {
+        "value": 557,
+        "unit": "percent YoY"
+      },
+      "normalized": {
+        "value": 5.57,
+        "unit": "growth_fraction"
+      },
+      "source_ids": [
+        "KR-HYNIX-2Q26"
+      ],
+      "observation_period": "2026Q2 vs2025Q2",
+      "status": "confirmed_publisher_report",
+      "source_locator": null,
+      "notes_ko": [
+        "반기·연간·국가전체성장률과구별."
+      ],
+      "formula": null,
+      "probability": false
+    },
+    {
+      "evidence_id": "KR-E17",
+      "label_ko": "SK하이닉스 HBM4 대량출하 개시",
+      "original": {
+        "value": null,
+        "unit": "qualitative"
+      },
+      "normalized": {
+        "value": null,
+        "unit": "qualitative"
+      },
+      "source_ids": [
+        "KR-HYNIX-2Q26"
+      ],
+      "observation_period": "2026Q2",
+      "status": "confirmed_publisher_report",
+      "source_locator": null,
+      "notes_ko": [
+        "실제출하설명과하반기증산계획을구분. AI투자의전세계가치포획1위국가를증명하지않음."
+      ],
+      "formula": null,
+      "probability": false
+    },
+    {
+      "evidence_id": "KR-R01",
+      "label_ko": "연말 신용융자 잔액",
+      "original": {
+        "value": 27.3,
+        "unit": "KRW trillion"
+      },
+      "normalized": {
+        "value": 27300000000000,
+        "unit": "KRW"
+      },
+      "source_ids": [
+        "KR-BOK-MARCH-PDF"
+      ],
+      "observation_period": "2025-12-31",
+      "status": "confirmed_publisher_report",
+      "source_locator": "PDF page23 footnote57",
+      "notes_ko": [],
+      "formula": null,
+      "probability": false
+    },
+    {
+      "evidence_id": "KR-R02",
+      "label_ko": "2월말 신용융자 잔액",
+      "original": {
+        "value": 32.7,
+        "unit": "KRW trillion"
+      },
+      "normalized": {
+        "value": 32700000000000,
+        "unit": "KRW"
+      },
+      "source_ids": [
+        "KR-BOK-MARCH-PDF"
+      ],
+      "observation_period": "2026-02-28",
+      "status": "confirmed_publisher_report",
+      "source_locator": "PDF page23 footnote57;page30 footnote70",
+      "notes_ko": [
+        "코스피·코스닥합계."
+      ],
+      "formula": null,
+      "probability": false
+    },
+    {
+      "evidence_id": "KR-R03",
+      "label_ko": "증권사 대기성 자금 잔액",
+      "original": {
+        "value": 209.4,
+        "unit": "KRW trillion"
+      },
+      "normalized": {
+        "value": 209400000000000,
+        "unit": "KRW"
+      },
+      "source_ids": [
+        "KR-BOK-MARCH-PDF"
+      ],
+      "observation_period": "2026-01-31",
+      "status": "confirmed_publisher_report",
+      "source_locator": "PDF page23 BOX4",
+      "notes_ko": [
+        "투자자예탁금+CMA이며순매수·가계전용잔액이아니다."
+      ],
+      "formula": null,
+      "probability": false
+    },
+    {
+      "evidence_id": "KR-R04",
+      "label_ko": "상반기 개인 국내주식형 ETF 순매수",
+      "original": {
+        "value": 42.8,
+        "unit": "KRW trillion"
+      },
+      "normalized": {
+        "value": 42800000000000,
+        "unit": "KRW"
+      },
+      "source_ids": [
+        "KR-BOK-SEP-FULL-PDF"
+      ],
+      "observation_period": "2026H1",
+      "status": "confirmed_publisher_report",
+      "source_locator": "PDF page58 footnote73",
+      "notes_ko": [
+        "일반개별주식직접투자순매수와구별.ETF가현물을산기관거래와단순합산하면중복될수있다."
+      ],
+      "formula": null,
+      "probability": false
+    },
+    {
+      "evidence_id": "KR-R05",
+      "label_ko": "개인의 증권사 주식관련 대출",
+      "original": {
+        "value": 52.3,
+        "unit": "KRW trillion"
+      },
+      "normalized": {
+        "value": 52300000000000.0,
+        "unit": "KRW"
+      },
+      "source_ids": [
+        "KR-BOK-SEP-FULL-PDF"
+      ],
+      "observation_period": "2025-12-31",
+      "status": "confirmed_publisher_report",
+      "source_locator": "PDF page58 chart",
+      "notes_ko": [
+        "신용융자+신용미수+증권담보대출이며일반법인대출일부포함.신용융자단독시계열과연결금지."
+      ],
+      "formula": null,
+      "probability": false
+    },
+    {
+      "evidence_id": "KR-R06",
+      "label_ko": "개인의 증권사 주식관련 대출",
+      "original": {
+        "value": 63.2,
+        "unit": "KRW trillion"
+      },
+      "normalized": {
+        "value": 63200000000000.0,
+        "unit": "KRW"
+      },
+      "source_ids": [
+        "KR-BOK-SEP-FULL-PDF"
+      ],
+      "observation_period": "2026-06-30",
+      "status": "confirmed_publisher_report",
+      "source_locator": "PDF page58 chart",
+      "notes_ko": [
+        "신용융자+신용미수+증권담보대출이며일반법인대출일부포함.신용융자단독시계열과연결금지."
+      ],
+      "formula": null,
+      "probability": false
+    },
+    {
+      "evidence_id": "KR-R07",
+      "label_ko": "개인의 증권사 주식관련 대출",
+      "original": {
+        "value": 56.0,
+        "unit": "KRW trillion"
+      },
+      "normalized": {
+        "value": 56000000000000.0,
+        "unit": "KRW"
+      },
+      "source_ids": [
+        "KR-BOK-SEP-FULL-PDF"
+      ],
+      "observation_period": "2026-07-31",
+      "status": "confirmed_publisher_report",
+      "source_locator": "PDF page58 chart",
+      "notes_ko": [
+        "신용융자+신용미수+증권담보대출이며일반법인대출일부포함.신용융자단독시계열과연결금지."
+      ],
+      "formula": null,
+      "probability": false
+    },
+    {
+      "evidence_id": "KR-R08",
+      "label_ko": "8월말 신용융자 잔액",
+      "original": {
+        "value": 33.3,
+        "unit": "KRW trillion"
+      },
+      "normalized": {
+        "value": 33300000000000,
+        "unit": "KRW"
+      },
+      "source_ids": [
+        "KR-BOK-SEP-FULL-PDF"
+      ],
+      "observation_period": "2026-08-31",
+      "status": "confirmed_publisher_report",
+      "source_locator": "PDF page60 footnote75",
+      "notes_ko": [],
+      "formula": null,
+      "probability": false
+    },
+    {
+      "evidence_id": "KR-R09",
+      "label_ko": "8월말 신용융자의6월말대비감소율",
+      "original": {
+        "value": -10.9,
+        "unit": "percent change"
+      },
+      "normalized": {
+        "value": -0.109,
+        "unit": "growth_fraction"
+      },
+      "source_ids": [
+        "KR-BOK-SEP-FULL-PDF"
+      ],
+      "observation_period": "2026-08-31 vs2026-06-30",
+      "status": "confirmed_publisher_report",
+      "source_locator": "PDF page60 footnote75",
+      "notes_ko": [
+        "ETF시가총액감소는순환매현금규모와같지않다."
+      ],
+      "formula": null,
+      "probability": false
+    },
+    {
+      "evidence_id": "KR-R10",
+      "label_ko": "국내단일종목레버리지ETF시총6월말대비감소율",
+      "original": {
+        "value": -57.9,
+        "unit": "percent change"
+      },
+      "normalized": {
+        "value": -0.579,
+        "unit": "growth_fraction"
+      },
+      "source_ids": [
+        "KR-BOK-SEP-FULL-PDF"
+      ],
+      "observation_period": "2026-08-31 vs2026-06-30",
+      "status": "confirmed_publisher_report",
+      "source_locator": "PDF page60 footnote75",
+      "notes_ko": [
+        "ETF시가총액감소는순환매현금규모와같지않다."
+      ],
+      "formula": null,
+      "probability": false
+    },
+    {
+      "evidence_id": "KR-R11",
+      "label_ko": "홍콩상장단일종목레버리지ETF시총6월말대비감소율",
+      "original": {
+        "value": -69.4,
+        "unit": "percent change"
+      },
+      "normalized": {
+        "value": -0.6940000000000001,
+        "unit": "growth_fraction"
+      },
+      "source_ids": [
+        "KR-BOK-SEP-FULL-PDF"
+      ],
+      "observation_period": "2026-08-31 vs2026-06-30",
+      "status": "confirmed_publisher_report",
+      "source_locator": "PDF page60 footnote75",
+      "notes_ko": [
+        "ETF시가총액감소는순환매현금규모와같지않다."
+      ],
+      "formula": null,
+      "probability": false
+    },
+    {
+      "evidence_id": "KR-R12",
+      "label_ko": "투자자예탁금",
+      "original": {
+        "value": 97428012,
+        "unit": "KRW million"
+      },
+      "normalized": {
+        "value": 97428012000000,
+        "unit": "KRW"
+      },
+      "source_ids": [
+        "KR-KOFIA-STATS-INDEX"
+      ],
+      "observation_period": "2026-10-14",
+      "status": "official_current_snapshot_month_day_year_inferred",
+      "source_locator": "index.jsp stat card10/14",
+      "notes_ko": [
+        "위젯은월일만표시.2026년은조회맥락에서귀속했으며발표시각과당시원본빈티지는미인증.신용융자는코스피·코스닥합계정의확인에BOK자료를참고.",
+        "원문 끝부분은 잘렸으나 이 통계카드의 닫힌 블록은 온전하다. source_card_snapshot.json 참조."
+      ],
+      "formula": null,
+      "probability": false
+    },
+    {
+      "evidence_id": "KR-R13",
+      "label_ko": "신용융자",
+      "original": {
+        "value": 33705742,
+        "unit": "KRW million"
+      },
+      "normalized": {
+        "value": 33705742000000,
+        "unit": "KRW"
+      },
+      "source_ids": [
+        "KR-KOFIA-STATS-INDEX"
+      ],
+      "observation_period": "2026-10-14",
+      "status": "official_current_snapshot_month_day_year_inferred",
+      "source_locator": "index.jsp stat card10/14",
+      "notes_ko": [
+        "위젯은월일만표시.2026년은조회맥락에서귀속했으며발표시각과당시원본빈티지는미인증.신용융자는코스피·코스닥합계정의확인에BOK자료를참고.",
+        "원문 끝부분은 잘렸으나 이 통계카드의 닫힌 블록은 온전하다. source_card_snapshot.json 참조."
+      ],
+      "formula": null,
+      "probability": false
+    },
+    {
+      "evidence_id": "KR-R14",
+      "label_ko": "CMA잔고",
+      "original": {
+        "value": 98402789,
+        "unit": "KRW million"
+      },
+      "normalized": {
+        "value": 98402789000000,
+        "unit": "KRW"
+      },
+      "source_ids": [
+        "KR-KOFIA-STATS-INDEX"
+      ],
+      "observation_period": "2026-10-14",
+      "status": "official_current_snapshot_month_day_year_inferred",
+      "source_locator": "index.jsp stat card10/14",
+      "notes_ko": [
+        "위젯은월일만표시.2026년은조회맥락에서귀속했으며발표시각과당시원본빈티지는미인증.신용융자는코스피·코스닥합계정의확인에BOK자료를참고.",
+        "원문 끝부분은 잘렸으나 이 통계카드의 닫힌 블록은 온전하다. source_card_snapshot.json 참조."
+      ],
+      "formula": null,
+      "probability": false
+    },
+    {
+      "evidence_id": "KR-R15",
+      "label_ko": "신용융자/투자자예탁금",
+      "original": {
+        "value": null,
+        "unit": "derived ratio"
+      },
+      "normalized": {
+        "value": 0.34595535008966416,
+        "unit": "fraction"
+      },
+      "source_ids": [
+        "KR-R12",
+        "KR-R13"
+      ],
+      "observation_period": "2026-10-14",
+      "status": "conditional_derived_snapshot",
+      "source_locator": null,
+      "notes_ko": [
+        "약34.60%.분모예탁금이동일차입자금또는가계만의현금을뜻하지않는다."
+      ],
+      "formula": null,
+      "probability": false
+    },
+    {
+      "evidence_id": "KR-P01",
+      "label_ko": "1차 성장펀드 국민모집액",
+      "original": {
+        "value": 6000,
+        "unit": "KRW100 million"
+      },
+      "normalized": {
+        "value": 600000000000.0,
+        "unit": "KRW"
+      },
+      "source_ids": [
+        "KR-FSC-GROWTH-DESIGN"
+      ],
+      "observation_period": "2026 plan",
+      "status": "confirmed_publisher_report",
+      "source_locator": null,
+      "notes_ko": [],
+      "formula": null,
+      "probability": false
+    },
+    {
+      "evidence_id": "KR-P02",
+      "label_ko": "국민참여펀드 재정 후순위",
+      "original": {
+        "value": 1200,
+        "unit": "KRW100 million"
+      },
+      "normalized": {
+        "value": 120000000000.0,
+        "unit": "KRW"
+      },
+      "source_ids": [
+        "KR-FSC-GROWTH-DESIGN"
+      ],
+      "observation_period": "2026 plan",
+      "status": "confirmed_publisher_report",
+      "source_locator": null,
+      "notes_ko": [],
+      "formula": null,
+      "probability": false
+    },
+    {
+      "evidence_id": "KR-P03",
+      "label_ko": "국민성장펀드 5년 계획",
+      "original": {
+        "value": 150,
+        "unit": "KRW trillion"
+      },
+      "normalized": {
+        "value": 150000000000000.0,
+        "unit": "KRW"
+      },
+      "source_ids": [
+        "KR-FSC-GROWTH-DESIGN"
+      ],
+      "observation_period": "5-year plan",
+      "status": "policy_plan_not_executed_cashflow",
+      "source_locator": null,
+      "notes_ko": [],
+      "formula": null,
+      "probability": false
+    },
+    {
+      "evidence_id": "KR-P04",
+      "label_ko": "국민성장펀드 2026년 계획",
+      "original": {
+        "value": 30,
+        "unit": "KRW trillion"
+      },
+      "normalized": {
+        "value": 30000000000000.0,
+        "unit": "KRW"
+      },
+      "source_ids": [
+        "KR-FSC-GROWTH-DESIGN"
+      ],
+      "observation_period": "2026 plan",
+      "status": "policy_plan_not_executed_cashflow",
+      "source_locator": null,
+      "notes_ko": [],
+      "formula": null,
+      "probability": false
+    },
+    {
+      "evidence_id": "KR-P05",
+      "label_ko": "주목적투자 인정 코스피 비중 상한",
+      "original": {
+        "value": 10,
+        "unit": "percent"
+      },
+      "normalized": {
+        "value": 0.1,
+        "unit": "fraction"
+      },
+      "source_ids": [
+        "KR-FSC-GROWTH-DESIGN"
+      ],
+      "observation_period": null,
+      "status": "confirmed_publisher_report",
+      "source_locator": null,
+      "notes_ko": [
+        "전체코스피보유한도10%가아니다.40%자유투자허용문구를함께보존."
+      ],
+      "formula": null,
+      "probability": false
+    },
+    {
+      "evidence_id": "KR-P06",
+      "label_ko": "1차 펀드 가입자 수",
+      "original": {
+        "value": 30258,
+        "unit": "persons"
+      },
+      "normalized": {
+        "value": 30258,
+        "unit": "persons"
+      },
+      "source_ids": [
+        "KR-FSC-GROWTH-SOLD"
+      ],
+      "observation_period": "2026-05-29",
+      "status": "confirmed_publisher_report",
+      "source_locator": null,
+      "notes_ko": [
+        "취소·재판매로변동가능한모집중간집계.전국민이나시장고유투자자수와다르다."
+      ],
+      "formula": null,
+      "probability": false
+    },
+    {
+      "evidence_id": "KR-P07",
+      "label_ko": "1차 펀드 평균가입액",
+      "original": {
+        "value": 1983,
+        "unit": "KRW10000"
+      },
+      "normalized": {
+        "value": 19830000,
+        "unit": "KRW"
+      },
+      "source_ids": [
+        "KR-FSC-GROWTH-SOLD"
+      ],
+      "observation_period": "2026-05-29",
+      "status": "confirmed_publisher_report",
+      "source_locator": null,
+      "notes_ko": [],
+      "formula": null,
+      "probability": false
+    },
+    {
+      "evidence_id": "KR-P08",
+      "label_ko": "1·2차 성장펀드 모집액 하한",
+      "original": {
+        "value": 1,
+        "unit": "KRW trillion"
+      },
+      "normalized": {
+        "value": 1000000000000.0,
+        "unit": "KRW"
+      },
+      "source_ids": [
+        "KR-FSC-GROWTH-SECOND-PDF"
+      ],
+      "observation_period": "2026-10-15",
+      "status": "publisher_lower_bound",
+      "source_locator": "PDF page2",
+      "notes_ko": [
+        "원문은1조원이상.정확한합계로쓰지않음.2차는차분한판매라고설명하며가입대상·우선배정차이때문에1차와직접비교를경계."
+      ],
+      "formula": null,
+      "probability": false
+    },
+    {
+      "evidence_id": "KR-M01",
+      "label_ko": "한국은행 기준금리 변경후 수준",
+      "original": {
+        "value": 2.75,
+        "unit": "percent per annum"
+      },
+      "normalized": {
+        "value": 0.0275,
+        "unit": "annual_rate_fraction"
+      },
+      "source_ids": [
+        "KR-BOK-RATE-HISTORY"
+      ],
+      "observation_period": "2026-07-16",
+      "status": "confirmed_publisher_report",
+      "source_locator": "actual historical change rows; artificial current-date chart endpoint excluded",
+      "notes_ko": [],
+      "formula": null,
+      "probability": false
+    },
+    {
+      "evidence_id": "KR-M02",
+      "label_ko": "한국은행 기준금리 변경후 수준",
+      "original": {
+        "value": 3.0,
+        "unit": "percent per annum"
+      },
+      "normalized": {
+        "value": 0.03,
+        "unit": "annual_rate_fraction"
+      },
+      "source_ids": [
+        "KR-BOK-RATE-HISTORY"
+      ],
+      "observation_period": "2026-08-27",
+      "status": "confirmed_publisher_report",
+      "source_locator": "actual historical change rows; artificial current-date chart endpoint excluded",
+      "notes_ko": [],
+      "formula": null,
+      "probability": false
+    },
+    {
+      "evidence_id": "KR-X01",
+      "label_ko": "코스피 6월22일 종가",
+      "original": {
+        "value": 9114.6,
+        "unit": "index points"
+      },
+      "normalized": {
+        "value": 9114.6,
+        "unit": "index points"
+      },
+      "source_ids": [
+        "KR-BOK-SEP-FULL-PDF"
+      ],
+      "observation_period": "2026-06-22",
+      "status": "confirmed_publisher_report",
+      "source_locator": "PDF page55 footnote64",
+      "notes_ko": [
+        "종가이며장중최고가와다르다.보고서표기소수첫째자리."
+      ],
+      "formula": null,
+      "probability": false
+    },
+    {
+      "evidence_id": "KR-X02",
+      "label_ko": "코스피 7월30일 종가",
+      "original": {
+        "value": 5593.6,
+        "unit": "index points"
+      },
+      "normalized": {
+        "value": 5593.6,
+        "unit": "index points"
+      },
+      "source_ids": [
+        "KR-BOK-SEP-FULL-PDF"
+      ],
+      "observation_period": "2026-07-30",
+      "status": "confirmed_publisher_report",
+      "source_locator": "PDF page55 footnote64",
+      "notes_ko": [],
+      "formula": null,
+      "probability": false
+    },
+    {
+      "evidence_id": "KR-X03",
+      "label_ko": "6월22일까지 연초상승률",
+      "original": {
+        "value": 116,
+        "unit": "percent"
+      },
+      "normalized": {
+        "value": 1.16,
+        "unit": "return_fraction"
+      },
+      "source_ids": [
+        "KR-BOK-SEP-FULL-PDF"
+      ],
+      "observation_period": "2026YTD through2026-06-22",
+      "status": "confirmed_publisher_report",
+      "source_locator": "PDF page55 footnote64",
+      "notes_ko": [
+        "반올림서술.정확한2025말종가를역산해서확정하지않는다."
+      ],
+      "formula": null,
+      "probability": false
+    },
+    {
+      "evidence_id": "KR-X04",
+      "label_ko": "코스피 10월15일 종가 교차확인",
+      "original": {
+        "value": 5554.22,
+        "unit": "index points"
+      },
+      "normalized": {
+        "value": 5554.22,
+        "unit": "index points"
+      },
+      "source_ids": [
+        "KR-KOFIA-STATS-INDEX",
+        "KR-YONHAP-OCT15-CLOSE",
+        "KR-KOFIA-EN-INDEX"
+      ],
+      "observation_period": "2026-10-15",
+      "status": "official_month_day_snapshot_plus_dated_secondary",
+      "source_locator": null,
+      "notes_ko": [
+        "공식 FreeSIS의 완전한 통계카드에는 관측일10/15와 5,554.22가 함께 표시된다. 연도는 없으므로2026은 조회맥락에서 귀속했다.",
+        "HTML의 이후 내비게이션 부분이 잘려 부분 스냅샷으로 보존했다. 카드 자체는 완전한 닫힌 블록이다.",
+        "연합뉴스는2026-10-15 종가를 명시해 교차확인한다. 거래소의 당시 일별 원본 빈티지 인증과 구별한다."
+      ],
+      "formula": null,
+      "probability": false
+    },
+    {
+      "evidence_id": "KR-X05",
+      "label_ko": "10월15일 종가의전일대비변화",
+      "original": {
+        "value": -454.59,
+        "unit": "index points"
+      },
+      "normalized": {
+        "value": -454.59,
+        "unit": "index points"
+      },
+      "source_ids": [
+        "KR-KOFIA-STATS-INDEX",
+        "KR-YONHAP-OCT15-CLOSE"
+      ],
+      "observation_period": "2026-10-15",
+      "status": "official_month_day_snapshot_plus_dated_secondary",
+      "source_locator": null,
+      "notes_ko": [],
+      "formula": null,
+      "probability": false
+    },
+    {
+      "evidence_id": "KR-X06",
+      "label_ko": "10월15일 전일대비수익률 계산",
+      "original": {
+        "value": null,
+        "unit": "derived return"
+      },
+      "normalized": {
+        "value": -0.07565391483505057,
+        "unit": "return_fraction"
+      },
+      "source_ids": [
+        "KR-X04",
+        "KR-X05"
+      ],
+      "observation_period": "2026-10-15",
+      "status": "conditional_derived_price_crosscheck",
+      "source_locator": null,
+      "notes_ko": [],
+      "formula": "5554.22/(5554.22+454.59)-1",
+      "probability": false
+    },
+    {
+      "evidence_id": "KR-X07",
+      "label_ko": "6월22일 종가대비10월15일수익률",
+      "original": {
+        "value": null,
+        "unit": "derived return"
+      },
+      "normalized": {
+        "value": -0.39062383428784586,
+        "unit": "return_fraction"
+      },
+      "source_ids": [
+        "KR-X01",
+        "KR-X04"
+      ],
+      "observation_period": "2026-06-22 through2026-10-15",
+      "status": "conditional_derived_price_crosscheck",
+      "source_locator": null,
+      "notes_ko": [
+        "공식반올림종가와10월15일교차확인값을사용한약-39.06%.장중최고점대비하락률이아니다."
+      ],
+      "formula": "5554.22/9114.6-1",
+      "probability": false
+    }
+  ],
+  "policy_events": [
+    {
+      "event_id": "KR-EVENT-RIA-ANNOUNCEMENT",
+      "date": "2026-01-20",
+      "kind": "policy_proposal",
+      "source_ids": [
+        "KR-RIA-PROPOSAL"
+      ],
+      "label_ko": "RIA 및성장펀드 세제지원 입법추진발표",
+      "effective_date": null,
+      "date_status": "announcement_confirmed; enacted date separate"
+    },
+    {
+      "event_id": "KR-EVENT-RIA-LAUNCH",
+      "date": "2026-03-23",
+      "kind": "product_terms_effective",
+      "source_ids": [
+        "KR-RIA-LAUNCH-TERMS-PDF"
+      ],
+      "label_ko": "RIA 공급자설명서 시행일",
+      "effective_date": "2026-03-23",
+      "date_status": "issuer_terms_confirmed; original publication timestamp unknown",
+      "notes_ko": [
+        "법률국회통과·공포·소급적용일과상품판매개시일을같은사건으로합치지않음."
+      ]
+    },
+    {
+      "event_id": "KR-EVENT-GROWTH-DESIGN",
+      "date": "2026-05-06",
+      "kind": "policy_product_design_announcement",
+      "source_ids": [
+        "KR-FSC-GROWTH-DESIGN"
+      ],
+      "label_ko": "국민참여펀드설계및판매일정발표",
+      "effective_date": null,
+      "date_status": "announcement_confirmed"
+    },
+    {
+      "event_id": "KR-EVENT-GROWTH-SALES",
+      "date": "2026-05-22",
+      "kind": "product_sales_start",
+      "source_ids": [
+        "KR-FSC-GROWTH-DESIGN",
+        "KR-FSC-GROWTH-SOLD"
+      ],
+      "label_ko": "국민참여펀드판매개시",
+      "effective_date": "2026-05-22",
+      "date_status": "scheduled date corroborated by retrospective May29 release"
+    },
+    {
+      "event_id": "KR-EVENT-LEVERAGE-ANNOUNCEMENT",
+      "date": "2026-05-15",
+      "kind": "regulatory_product_announcement",
+      "source_ids": [
+        "KR-FSC-LEVERAGE"
+      ],
+      "label_ko": "단일종목레버리지상품 투자자안내",
+      "effective_date": null,
+      "date_status": "announcement_confirmed"
+    },
+    {
+      "event_id": "KR-EVENT-LEVERAGE-LISTING",
+      "date": "2026-05-27",
+      "kind": "product_listing",
+      "source_ids": [
+        "KR-FSC-LEVERAGE",
+        "KR-ISSUER-LEVERAGE-LISTING"
+      ],
+      "label_ko": "단일종목레버리지상품상장",
+      "effective_date": "2026-05-27",
+      "date_status": "FSCscheduled;issuerpagewebread confirms but raw archive SSLfailure",
+      "raw_evidence_complete": false
+    },
+    {
+      "event_id": "KR-EVENT-GROWTH-SOLD",
+      "date": "2026-05-29",
+      "kind": "subscription_result_release",
+      "source_ids": [
+        "KR-FSC-GROWTH-SOLD"
+      ],
+      "label_ko": "1차국민참여펀드완판집계",
+      "effective_date": null,
+      "date_status": "dated_actual_subscription_report"
+    },
+    {
+      "event_id": "KR-EVENT-BOK-HIKE1",
+      "date": "2026-07-16",
+      "kind": "policy_rate_hike",
+      "source_ids": [
+        "KR-BOK-RATE-HISTORY",
+        "KR-BOK-SEP-CONFERENCE"
+      ],
+      "label_ko": "기준금리2.50%에서2.75%로인상",
+      "effective_date": "2026-07-16",
+      "date_status": "official_history_confirmed"
+    },
+    {
+      "event_id": "KR-EVENT-BOK-HIKE2",
+      "date": "2026-08-27",
+      "kind": "policy_rate_hike",
+      "source_ids": [
+        "KR-BOK-RATE-HISTORY",
+        "KR-BOK-SEP-CONFERENCE"
+      ],
+      "label_ko": "기준금리2.75%에서3.00%로인상",
+      "effective_date": "2026-08-27",
+      "date_status": "official_history_confirmed"
+    },
+    {
+      "event_id": "KR-EVENT-GROWTH-SECOND",
+      "date": "2026-10-15",
+      "kind": "official_response",
+      "source_ids": [
+        "KR-FSC-GROWTH-SECOND-PDF"
+      ],
+      "label_ko": "2차펀드판매분위기및설계차이설명",
+      "effective_date": null,
+      "date_status": "dated_publisher_position;notindependentcausalproof"
+    }
+  ],
+  "memo_ko": [
+    "AI 관련 기업의 실적 급증과 개인자금·레버리지 확대가 함께 관찰된다. 국가 전체의 세계1위 이익성장과 전국민 매수는 아직 확정하지 않았다.2026년 연간 실적은 끝나지 않았으며 각국의 지수·표본·회계지표를 통일한 순위도 미확보다.",
+    "KRX 공식 보관 요약은 상반기 비금융634개 연결표본의 영업이익 증가율254.15%,두 회사 제외75.61%를 확인한다. 기업 공식 자료를 합치면 두 회사 이익은 약244.878조원이다. 비교표본 총액388.1532조원의 원문 인증이 남아있어63.09%비중과77.85%증분기여는 조건부 계산으로 보존한다.",
+    "한국은행은 반도체 업황 기대와 집중,외국인 매도,레버리지 청산의 상호작용을 설명한다. 상반기ETF 순매수와 대출 증가는 참여 열기의 근거다. 예탁금·계좌수·거래회전율은 다른 개념이며 현재 잔액을 신규 순유입으로 바꾸어 해석하지 않는다.",
+    "세제지원·성장펀드·상품 규제 변화는 국내 투자 유인을 만들었다. 산업 신규자금 계획150조원과 국민참여 모집액6000억원,펀드 가입과 코스피 현물 순매수는 구분해야 한다.10월의2차 판매 설명은5월 열기가 지속된다는 가정을 약화한다. 다만 설계 차이가 있어 단순 수요 붕괴로 단정하지 않는다.",
+    "정책주도와 통화완화는 다르다.7월과8월 금리 인상을 거시조건으로 따로 통제한다. 개인 직접투자,ETF 매수,ETF의 현물 매수를 중복 합산하지 않는다.",
+    "상해2007 비교에서는 이익·밸류에이션·섹터 집중·투자자 저변·레버리지·정책을 각각 측정한다. 가격 모양이나 두 사례만으로 통계적으로 유의한 상관관계·인과관계·폭락확률을 정하지 않는다."
+  ],
+  "event_study": {
+    "window": "[-20,+20] actual exchange sessions",
+    "status": "event dates prepared; no event return or causal coefficient claimed in this file",
+    "requirements": [
+      "Use actual observed KRX sessions;holiday/weekend dates map to nextsession and flagged.",
+      "Keep announcement,legal/enforcement,and sales/listingdates separate.",
+      "Use return differences vs agreed control and state overlappingconfounders.",
+      "No exact PIT backtest promotion from latest reconstructed or unarchived sourcevintage."
+    ]
+  },
+  "open_gaps_ko": [
+    "KRX상반기원PDF는server6.kif.re.kr응답불가.HTTP/HTTPS실패모두보존.공식보관HTML의성장률만확정.",
+    "공식 KOFIA 부분 HTML의 완전한 통계카드에10/15 종가5,554.22가 표시되고 날짜 명시 연합뉴스와 일치한다. 연도·당시 거래소 원본 빈티지·장중고가 인증은 별개다.",
+    "개인전체일별현물순매수와정책전후20거래일의공식수급패널미확보.ETF반기순매수로대체하지않음.",
+    "KOFIA최신카드의관측연도·발표시각·당시빈티지미인증.10월14일연도는현조회맥락의조건부귀속.",
+    "RIA공포·효력·출시의타임라인은공급자설명서시행일과현재법조문을분리보존.원시공포문조문대조가필요.",
+    "세계이익성장1위는동일한나라별지수유니버스·실적정의·예상기간·컨센서스빈티지로재검증해야함."
+  ],
+  "qa_flags": [
+    {
+      "source_id": "KR-HYNIX-1Q26",
+      "issue": "Apr22article has Jan28disclaimer date; preserved, no silentcorrection."
+    },
+    {
+      "source_id": "KR-HYNIX-2Q26",
+      "issue": "Reported net income93.9226tn exceeds revenue79.3187tn; recurring earnings ranking does not use this NI without reconciliation."
+    },
+    {
+      "source_id": "KR-SAMSUNG-H1-BUSINESS-PDF",
+      "issue": "Summarypage40 basicEPS17902 differs from statementpage45EPS17950; EPS intentionally not used; source retained."
+    },
+    {
+      "source_id": "KR-KOFIA-STATS-INDEX",
+      "issue": "Partial HTML response ends during later navigation markup; only complete closed stat cards extracted; SHA256 remains for all received bytes."
+    }
+  ],
+  "official_state_changes": false,
+  "dependency_changes": false,
+  "files_outside_owned_subfolder_written": false,
+  "source_card_snapshot": "source_card_snapshot.json"
+}

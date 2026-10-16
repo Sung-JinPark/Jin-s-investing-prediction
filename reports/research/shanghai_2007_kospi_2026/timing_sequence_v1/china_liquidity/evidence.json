@@ -1,0 +1,1714 @@
+{
+  "schema_version": 1,
+  "as_of": "2026-10-16T09:00:00+09:00",
+  "scope": "retrospective historical chronology; no forecast or probability",
+  "input_price_sha256": "77049dd7d90c981b73000d78e0c4897171941451f24e814b865acdb9a9940715",
+  "rate_unit": "percent per year",
+  "rrr_unit": "percent; changes in percentage points",
+  "return_unit": "fraction",
+  "probabilities": null,
+  "policy_events": [
+    {
+      "event_id": "RRR_20070115",
+      "announcement_date": "2007-01-05",
+      "effective_date": "2007-01-15",
+      "category": "monetary_tightening",
+      "label": "RMB depository-institution RRR +0.5 percentage points to 9.5%",
+      "source_ids": [
+        "pbc_policy_2007q4"
+      ],
+      "locator": {
+        "pdf_page_1based": 59,
+        "printed_page": 54,
+        "note": null
+      },
+      "observation_date": "2007-01-15",
+      "original_release_time_known": false,
+      "rrr_percent": 9.5,
+      "rrr_change_percentage_points": 0.5,
+      "source_details": [
+        {
+          "source_id": "pbc_policy_2007q4",
+          "url": "https://www.pbc.gov.cn/eportal/fileDir/history_file/files/att_20306_1.pdf",
+          "published_date": "2008-02-22",
+          "sha256": "5f0eafa8252043e8d5e7eb44e6b6c9779dd3a88d53155ad7f9f1a40aa9f281c1",
+          "local_path": "raw/pbc_policy_2007q4.pdf",
+          "retrieved_at_utc": "2026-10-16T00:09:03.324214+00:00"
+        }
+      ]
+    },
+    {
+      "event_id": "RRR_20070225",
+      "announcement_date": "2007-02-16",
+      "effective_date": "2007-02-25",
+      "category": "monetary_tightening",
+      "label": "RMB depository-institution RRR +0.5 percentage points to 10%",
+      "source_ids": [
+        "pbc_policy_2007q4"
+      ],
+      "locator": {
+        "pdf_page_1based": 59,
+        "printed_page": 54,
+        "note": null
+      },
+      "observation_date": "2007-02-25",
+      "original_release_time_known": false,
+      "rrr_percent": 10,
+      "rrr_change_percentage_points": 0.5,
+      "source_details": [
+        {
+          "source_id": "pbc_policy_2007q4",
+          "url": "https://www.pbc.gov.cn/eportal/fileDir/history_file/files/att_20306_1.pdf",
+          "published_date": "2008-02-22",
+          "sha256": "5f0eafa8252043e8d5e7eb44e6b6c9779dd3a88d53155ad7f9f1a40aa9f281c1",
+          "local_path": "raw/pbc_policy_2007q4.pdf",
+          "retrieved_at_utc": "2026-10-16T00:09:03.324214+00:00"
+        }
+      ]
+    },
+    {
+      "event_id": "RATE_20070318",
+      "announcement_date": "2007-03-17",
+      "effective_date": "2007-03-18",
+      "category": "monetary_tightening",
+      "label": "One-year benchmark deposit/lending rates to 2.79%/6.39% per year",
+      "source_ids": [
+        "pbc_policy_2007q4",
+        "CYD_RATE20070317",
+        "PBC_DEPOSIT_HISTORY",
+        "PBC_LENDING_HISTORY"
+      ],
+      "locator": {
+        "pdf_page_1based": 60,
+        "printed_page": 55,
+        "note": "Retrospective PBC chronology sometimes labels the effective day as decision day; announcement is separately verified from the dated release/report."
+      },
+      "observation_date": "2007-03-18",
+      "original_release_time_known": false,
+      "deposit_rate_percent_per_year": 2.79,
+      "lending_rate_percent_per_year": 6.39,
+      "source_details": [
+        {
+          "source_id": "pbc_policy_2007q4",
+          "url": "https://www.pbc.gov.cn/eportal/fileDir/history_file/files/att_20306_1.pdf",
+          "published_date": "2008-02-22",
+          "sha256": "5f0eafa8252043e8d5e7eb44e6b6c9779dd3a88d53155ad7f9f1a40aa9f281c1",
+          "local_path": "raw/pbc_policy_2007q4.pdf",
+          "retrieved_at_utc": "2026-10-16T00:09:03.324214+00:00"
+        },
+        {
+          "source_id": "CYD_RATE20070317",
+          "url": "https://news.sohu.com/20070318/n248797144.shtml",
+          "published_date": "2007-03-18",
+          "sha256": "2f08a3ad0d9747df9e8cfb36ac1d08bf64d4969a0c6898968692a23212cb7d1d",
+          "local_path": "raw/CYD_RATE20070317.html",
+          "retrieved_at_utc": "2026-10-16T01:01:45.209923+00:00"
+        },
+        {
+          "source_id": "PBC_DEPOSIT_HISTORY",
+          "url": "https://www.pbc.gov.cn/zhengcehuobisi/125207/125213/125440/125838/125888/2887261/index.html",
+          "published_date": "2015-03-01",
+          "sha256": "a5b985895b97225fa258c00176915b0d10eafbf0ad4a6561c1a02676769c6ad2",
+          "local_path": "raw/PBC_DEPOSIT_HISTORY.html",
+          "retrieved_at_utc": "2026-10-16T01:01:44.461656+00:00"
+        },
+        {
+          "source_id": "PBC_LENDING_HISTORY",
+          "url": "https://www.pbc.gov.cn/zhengcehuobisi/125207/125213/125440/125838/125888/2861226/index.html",
+          "published_date": "2012-06-08",
+          "sha256": "2db1140287eb6b09fb9f54fed546554b03952a76dc30c6095c0df7351375de22",
+          "local_path": "raw/PBC_LENDING_HISTORY.html",
+          "retrieved_at_utc": "2026-10-16T01:01:44.463656+00:00"
+        }
+      ]
+    },
+    {
+      "event_id": "RRR_20070416",
+      "announcement_date": "2007-04-05",
+      "effective_date": "2007-04-16",
+      "category": "monetary_tightening",
+      "label": "RMB depository-institution RRR +0.5 percentage points to 10.5%",
+      "source_ids": [
+        "pbc_policy_2007q4"
+      ],
+      "locator": {
+        "pdf_page_1based": 60,
+        "printed_page": 55,
+        "note": null
+      },
+      "observation_date": "2007-04-16",
+      "original_release_time_known": false,
+      "rrr_percent": 10.5,
+      "rrr_change_percentage_points": 0.5,
+      "source_details": [
+        {
+          "source_id": "pbc_policy_2007q4",
+          "url": "https://www.pbc.gov.cn/eportal/fileDir/history_file/files/att_20306_1.pdf",
+          "published_date": "2008-02-22",
+          "sha256": "5f0eafa8252043e8d5e7eb44e6b6c9779dd3a88d53155ad7f9f1a40aa9f281c1",
+          "local_path": "raw/pbc_policy_2007q4.pdf",
+          "retrieved_at_utc": "2026-10-16T00:09:03.324214+00:00"
+        }
+      ]
+    },
+    {
+      "event_id": "RRR_20070515",
+      "announcement_date": "2007-04-29",
+      "effective_date": "2007-05-15",
+      "category": "monetary_tightening",
+      "label": "RMB depository-institution RRR +0.5 percentage points to 11%",
+      "source_ids": [
+        "pbc_policy_2007q4"
+      ],
+      "locator": {
+        "pdf_page_1based": 60,
+        "printed_page": 55,
+        "note": null
+      },
+      "observation_date": "2007-05-15",
+      "original_release_time_known": false,
+      "rrr_percent": 11,
+      "rrr_change_percentage_points": 0.5,
+      "source_details": [
+        {
+          "source_id": "pbc_policy_2007q4",
+          "url": "https://www.pbc.gov.cn/eportal/fileDir/history_file/files/att_20306_1.pdf",
+          "published_date": "2008-02-22",
+          "sha256": "5f0eafa8252043e8d5e7eb44e6b6c9779dd3a88d53155ad7f9f1a40aa9f281c1",
+          "local_path": "raw/pbc_policy_2007q4.pdf",
+          "retrieved_at_utc": "2026-10-16T00:09:03.324214+00:00"
+        }
+      ]
+    },
+    {
+      "event_id": "RRR_20070605",
+      "announcement_date": "2007-05-18",
+      "effective_date": "2007-06-05",
+      "category": "monetary_tightening",
+      "label": "RMB depository-institution RRR +0.5 percentage points to 11.5%",
+      "source_ids": [
+        "pbc_policy_2007q4"
+      ],
+      "locator": {
+        "pdf_page_1based": 61,
+        "printed_page": 56,
+        "note": null
+      },
+      "observation_date": "2007-06-05",
+      "original_release_time_known": false,
+      "rrr_percent": 11.5,
+      "rrr_change_percentage_points": 0.5,
+      "source_details": [
+        {
+          "source_id": "pbc_policy_2007q4",
+          "url": "https://www.pbc.gov.cn/eportal/fileDir/history_file/files/att_20306_1.pdf",
+          "published_date": "2008-02-22",
+          "sha256": "5f0eafa8252043e8d5e7eb44e6b6c9779dd3a88d53155ad7f9f1a40aa9f281c1",
+          "local_path": "raw/pbc_policy_2007q4.pdf",
+          "retrieved_at_utc": "2026-10-16T00:09:03.324214+00:00"
+        }
+      ]
+    },
+    {
+      "event_id": "RATE_20070519",
+      "announcement_date": "2007-05-18",
+      "effective_date": "2007-05-19",
+      "category": "monetary_tightening",
+      "label": "One-year benchmark deposit/lending rates to 3.06%/6.57% per year",
+      "source_ids": [
+        "pbc_policy_2007q4",
+        "PBC_RATE20070518_PRIMARY",
+        "PBC_DEPOSIT_HISTORY",
+        "PBC_LENDING_HISTORY"
+      ],
+      "locator": {
+        "pdf_page_1based": 61,
+        "printed_page": 56,
+        "note": "Retrospective PBC chronology sometimes labels the effective day as decision day; announcement is separately verified from the dated release/report."
+      },
+      "observation_date": "2007-05-19",
+      "original_release_time_known": false,
+      "deposit_rate_percent_per_year": 3.06,
+      "lending_rate_percent_per_year": 6.57,
+      "source_details": [
+        {
+          "source_id": "pbc_policy_2007q4",
+          "url": "https://www.pbc.gov.cn/eportal/fileDir/history_file/files/att_20306_1.pdf",
+          "published_date": "2008-02-22",
+          "sha256": "5f0eafa8252043e8d5e7eb44e6b6c9779dd3a88d53155ad7f9f1a40aa9f281c1",
+          "local_path": "raw/pbc_policy_2007q4.pdf",
+          "retrieved_at_utc": "2026-10-16T00:09:03.324214+00:00"
+        },
+        {
+          "source_id": "PBC_RATE20070518_PRIMARY",
+          "url": "https://www.pbc.gov.cn/zhengcehuobisi/125207/125213/125440/125835/2825420/index.html",
+          "published_date": "2007-05-18",
+          "sha256": "7449988dd606a9920a91b90d10d1b5a44dd3c11a2d419c1a31608f629235931b",
+          "local_path": "raw/PBC_RATE20070518_PRIMARY.html",
+          "retrieved_at_utc": "2026-10-16T01:01:44.459644+00:00"
+        },
+        {
+          "source_id": "PBC_DEPOSIT_HISTORY",
+          "url": "https://www.pbc.gov.cn/zhengcehuobisi/125207/125213/125440/125838/125888/2887261/index.html",
+          "published_date": "2015-03-01",
+          "sha256": "a5b985895b97225fa258c00176915b0d10eafbf0ad4a6561c1a02676769c6ad2",
+          "local_path": "raw/PBC_DEPOSIT_HISTORY.html",
+          "retrieved_at_utc": "2026-10-16T01:01:44.461656+00:00"
+        },
+        {
+          "source_id": "PBC_LENDING_HISTORY",
+          "url": "https://www.pbc.gov.cn/zhengcehuobisi/125207/125213/125440/125838/125888/2861226/index.html",
+          "published_date": "2012-06-08",
+          "sha256": "2db1140287eb6b09fb9f54fed546554b03952a76dc30c6095c0df7351375de22",
+          "local_path": "raw/PBC_LENDING_HISTORY.html",
+          "retrieved_at_utc": "2026-10-16T01:01:44.463656+00:00"
+        }
+      ]
+    },
+    {
+      "event_id": "STAMP_HIKE",
+      "announcement_date": "2007-05-30",
+      "effective_date": "2007-05-30",
+      "category": "equity_market_tightening",
+      "label": "A/B share transfer stamp duty to 3 per mille, charged to both counterparties",
+      "source_ids": [
+        "mof_stamp_duty_20070530"
+      ],
+      "locator": {
+        "html_locator": "财税〔2007〕84号; 发布日期/实施日期2007-05-30"
+      },
+      "observation_date": "2007-05-30",
+      "original_release_time_known": false,
+      "stamp_duty_per_mille_per_side": 3,
+      "note": "Original instrument release date is retained; official MOFCOM archival reprint was published July 4, not May 30. Exact intraday release time unknown.",
+      "source_details": [
+        {
+          "source_id": "mof_stamp_duty_20070530",
+          "url": "https://www.mofcom.gov.cn/zcfb/zgdwjjmywg/art/2007/art_99829a5529ff4223a7bf6ca48ffc4b24.html",
+          "published_date": "2007-07-04",
+          "sha256": "e74cb945545ca67082d98c732f3d638d0b77fcd8e0f2c162b0a844c397f6eae3",
+          "local_path": "raw/mof_stamp_duty_20070530.html",
+          "retrieved_at_utc": "2026-10-16T00:07:05.352570+00:00"
+        }
+      ]
+    },
+    {
+      "event_id": "RATE_20070721",
+      "announcement_date": "2007-07-20",
+      "effective_date": "2007-07-21",
+      "category": "monetary_tightening",
+      "label": "One-year benchmark deposit/lending rates to 3.33%/6.84% per year",
+      "source_ids": [
+        "pbc_policy_2007q4",
+        "XIN_RATE20070720",
+        "PBC_DEPOSIT_HISTORY",
+        "PBC_LENDING_HISTORY"
+      ],
+      "locator": {
+        "pdf_page_1based": 62,
+        "printed_page": 57,
+        "note": "Retrospective PBC chronology sometimes labels the effective day as decision day; announcement is separately verified from the dated release/report."
+      },
+      "observation_date": "2007-07-21",
+      "original_release_time_known": false,
+      "deposit_rate_percent_per_year": 3.33,
+      "lending_rate_percent_per_year": 6.84,
+      "source_details": [
+        {
+          "source_id": "pbc_policy_2007q4",
+          "url": "https://www.pbc.gov.cn/eportal/fileDir/history_file/files/att_20306_1.pdf",
+          "published_date": "2008-02-22",
+          "sha256": "5f0eafa8252043e8d5e7eb44e6b6c9779dd3a88d53155ad7f9f1a40aa9f281c1",
+          "local_path": "raw/pbc_policy_2007q4.pdf",
+          "retrieved_at_utc": "2026-10-16T00:09:03.324214+00:00"
+        },
+        {
+          "source_id": "XIN_RATE20070720",
+          "url": "https://finance.sina.com.cn/g/20070720/18543806375.shtml",
+          "published_date": "2007-07-20",
+          "sha256": "b06eb4234f124f7f9ac452ecd5af872848b301e2f07e1f2a241562f489996f34",
+          "local_path": "raw/XIN_RATE20070720.html",
+          "retrieved_at_utc": "2026-10-16T01:01:44.702007+00:00"
+        },
+        {
+          "source_id": "PBC_DEPOSIT_HISTORY",
+          "url": "https://www.pbc.gov.cn/zhengcehuobisi/125207/125213/125440/125838/125888/2887261/index.html",
+          "published_date": "2015-03-01",
+          "sha256": "a5b985895b97225fa258c00176915b0d10eafbf0ad4a6561c1a02676769c6ad2",
+          "local_path": "raw/PBC_DEPOSIT_HISTORY.html",
+          "retrieved_at_utc": "2026-10-16T01:01:44.461656+00:00"
+        },
+        {
+          "source_id": "PBC_LENDING_HISTORY",
+          "url": "https://www.pbc.gov.cn/zhengcehuobisi/125207/125213/125440/125838/125888/2861226/index.html",
+          "published_date": "2012-06-08",
+          "sha256": "2db1140287eb6b09fb9f54fed546554b03952a76dc30c6095c0df7351375de22",
+          "local_path": "raw/PBC_LENDING_HISTORY.html",
+          "retrieved_at_utc": "2026-10-16T01:01:44.463656+00:00"
+        }
+      ]
+    },
+    {
+      "event_id": "RRR_20070815",
+      "announcement_date": "2007-07-30",
+      "effective_date": "2007-08-15",
+      "category": "monetary_tightening",
+      "label": "RMB depository-institution RRR +0.5 percentage points to 12%",
+      "source_ids": [
+        "pbc_policy_2007q4"
+      ],
+      "locator": {
+        "pdf_page_1based": 62,
+        "printed_page": 57,
+        "note": null
+      },
+      "observation_date": "2007-08-15",
+      "original_release_time_known": false,
+      "rrr_percent": 12,
+      "rrr_change_percentage_points": 0.5,
+      "source_details": [
+        {
+          "source_id": "pbc_policy_2007q4",
+          "url": "https://www.pbc.gov.cn/eportal/fileDir/history_file/files/att_20306_1.pdf",
+          "published_date": "2008-02-22",
+          "sha256": "5f0eafa8252043e8d5e7eb44e6b6c9779dd3a88d53155ad7f9f1a40aa9f281c1",
+          "local_path": "raw/pbc_policy_2007q4.pdf",
+          "retrieved_at_utc": "2026-10-16T00:09:03.324214+00:00"
+        }
+      ]
+    },
+    {
+      "event_id": "RATE_20070822",
+      "announcement_date": "2007-08-21",
+      "effective_date": "2007-08-22",
+      "category": "monetary_tightening",
+      "label": "One-year benchmark deposit/lending rates to 3.6%/7.02% per year",
+      "source_ids": [
+        "pbc_policy_2007q4",
+        "XIN_RATE20070821",
+        "PBC_DEPOSIT_HISTORY",
+        "PBC_LENDING_HISTORY"
+      ],
+      "locator": {
+        "pdf_page_1based": 63,
+        "printed_page": 58,
+        "note": "Retrospective PBC chronology sometimes labels the effective day as decision day; announcement is separately verified from the dated release/report."
+      },
+      "observation_date": "2007-08-22",
+      "original_release_time_known": false,
+      "deposit_rate_percent_per_year": 3.6,
+      "lending_rate_percent_per_year": 7.02,
+      "source_details": [
+        {
+          "source_id": "pbc_policy_2007q4",
+          "url": "https://www.pbc.gov.cn/eportal/fileDir/history_file/files/att_20306_1.pdf",
+          "published_date": "2008-02-22",
+          "sha256": "5f0eafa8252043e8d5e7eb44e6b6c9779dd3a88d53155ad7f9f1a40aa9f281c1",
+          "local_path": "raw/pbc_policy_2007q4.pdf",
+          "retrieved_at_utc": "2026-10-16T00:09:03.324214+00:00"
+        },
+        {
+          "source_id": "XIN_RATE20070821",
+          "url": "https://finance.sina.com.cn/china/hgjj/20070821/19173903527.shtml",
+          "published_date": "2007-08-21",
+          "sha256": "1d8ea6be3b824be5a32e9599bce927dd2b7f6f1a07f2d24178b7bbe53e5b1229",
+          "local_path": "raw/XIN_RATE20070821.html",
+          "retrieved_at_utc": "2026-10-16T01:01:45.185745+00:00"
+        },
+        {
+          "source_id": "PBC_DEPOSIT_HISTORY",
+          "url": "https://www.pbc.gov.cn/zhengcehuobisi/125207/125213/125440/125838/125888/2887261/index.html",
+          "published_date": "2015-03-01",
+          "sha256": "a5b985895b97225fa258c00176915b0d10eafbf0ad4a6561c1a02676769c6ad2",
+          "local_path": "raw/PBC_DEPOSIT_HISTORY.html",
+          "retrieved_at_utc": "2026-10-16T01:01:44.461656+00:00"
+        },
+        {
+          "source_id": "PBC_LENDING_HISTORY",
+          "url": "https://www.pbc.gov.cn/zhengcehuobisi/125207/125213/125440/125838/125888/2861226/index.html",
+          "published_date": "2012-06-08",
+          "sha256": "2db1140287eb6b09fb9f54fed546554b03952a76dc30c6095c0df7351375de22",
+          "local_path": "raw/PBC_LENDING_HISTORY.html",
+          "retrieved_at_utc": "2026-10-16T01:01:44.463656+00:00"
+        }
+      ]
+    },
+    {
+      "event_id": "RRR_20070925",
+      "announcement_date": "2007-09-06",
+      "effective_date": "2007-09-25",
+      "category": "monetary_tightening",
+      "label": "RMB depository-institution RRR +0.5 percentage points to 12.5%",
+      "source_ids": [
+        "pbc_policy_2007q4"
+      ],
+      "locator": {
+        "pdf_page_1based": 63,
+        "printed_page": 58,
+        "note": null
+      },
+      "observation_date": "2007-09-25",
+      "original_release_time_known": false,
+      "rrr_percent": 12.5,
+      "rrr_change_percentage_points": 0.5,
+      "source_details": [
+        {
+          "source_id": "pbc_policy_2007q4",
+          "url": "https://www.pbc.gov.cn/eportal/fileDir/history_file/files/att_20306_1.pdf",
+          "published_date": "2008-02-22",
+          "sha256": "5f0eafa8252043e8d5e7eb44e6b6c9779dd3a88d53155ad7f9f1a40aa9f281c1",
+          "local_path": "raw/pbc_policy_2007q4.pdf",
+          "retrieved_at_utc": "2026-10-16T00:09:03.324214+00:00"
+        }
+      ]
+    },
+    {
+      "event_id": "RATE_20070915",
+      "announcement_date": "2007-09-14",
+      "effective_date": "2007-09-15",
+      "category": "monetary_tightening",
+      "label": "One-year benchmark deposit/lending rates to 3.87%/7.29% per year",
+      "source_ids": [
+        "pbc_policy_2007q4",
+        "PBC_RATE20070914_REPRINT",
+        "PBC_DEPOSIT_HISTORY",
+        "PBC_LENDING_HISTORY"
+      ],
+      "locator": {
+        "pdf_page_1based": 63,
+        "printed_page": 58,
+        "note": "Retrospective PBC chronology sometimes labels the effective day as decision day; announcement is separately verified from the dated release/report."
+      },
+      "observation_date": "2007-09-15",
+      "original_release_time_known": false,
+      "deposit_rate_percent_per_year": 3.87,
+      "lending_rate_percent_per_year": 7.29,
+      "source_details": [
+        {
+          "source_id": "pbc_policy_2007q4",
+          "url": "https://www.pbc.gov.cn/eportal/fileDir/history_file/files/att_20306_1.pdf",
+          "published_date": "2008-02-22",
+          "sha256": "5f0eafa8252043e8d5e7eb44e6b6c9779dd3a88d53155ad7f9f1a40aa9f281c1",
+          "local_path": "raw/pbc_policy_2007q4.pdf",
+          "retrieved_at_utc": "2026-10-16T00:09:03.324214+00:00"
+        },
+        {
+          "source_id": "PBC_RATE20070914_REPRINT",
+          "url": "https://newyork.china-consulate.gov.cn/xw/200709/t20070914_4232058.htm",
+          "published_date": "2007-09-14",
+          "sha256": "4f6d3527e9527f0062651014b2423c3194d921d3270ddd58329faaaf919e869a",
+          "local_path": "raw/PBC_RATE20070914_REPRINT.html",
+          "retrieved_at_utc": "2026-10-16T01:01:44.671697+00:00"
+        },
+        {
+          "source_id": "PBC_DEPOSIT_HISTORY",
+          "url": "https://www.pbc.gov.cn/zhengcehuobisi/125207/125213/125440/125838/125888/2887261/index.html",
+          "published_date": "2015-03-01",
+          "sha256": "a5b985895b97225fa258c00176915b0d10eafbf0ad4a6561c1a02676769c6ad2",
+          "local_path": "raw/PBC_DEPOSIT_HISTORY.html",
+          "retrieved_at_utc": "2026-10-16T01:01:44.461656+00:00"
+        },
+        {
+          "source_id": "PBC_LENDING_HISTORY",
+          "url": "https://www.pbc.gov.cn/zhengcehuobisi/125207/125213/125440/125838/125888/2861226/index.html",
+          "published_date": "2012-06-08",
+          "sha256": "2db1140287eb6b09fb9f54fed546554b03952a76dc30c6095c0df7351375de22",
+          "local_path": "raw/PBC_LENDING_HISTORY.html",
+          "retrieved_at_utc": "2026-10-16T01:01:44.463656+00:00"
+        }
+      ]
+    },
+    {
+      "event_id": "DORMANT_ACCOUNT_SEGREGATION",
+      "announcement_date": "2007-10-09",
+      "effective_date": "2007-10-08",
+      "category": "account_definition_break",
+      "label": "20.23 million dormant accounts segregated from trading system; not 20.23 million current investors exiting",
+      "source_ids": [
+        "csrc_dormant_accounts_20071009"
+      ],
+      "locator": {
+        "html_locator": "10月8日; 2023万个休眠账户; 另库存放"
+      },
+      "observation_date": "2007-10-08",
+      "original_release_time_known": false,
+      "dormant_account_count": 20230000,
+      "note": "Account clean-up notice issued August 13 and work began August 14; observed technical segregation October 8. Source is progress report published October 9.",
+      "source_details": [
+        {
+          "source_id": "csrc_dormant_accounts_20071009",
+          "url": "https://www.csrc.gov.cn/csrc/c100028/c1002861/content.shtml",
+          "published_date": "2007-10-09",
+          "sha256": "938a5ff137e5b377288c0f09ab9ac3a2d2309b1b4dae3c0ff388d460a1067dab",
+          "local_path": "raw/csrc_dormant_accounts_20071009.html",
+          "retrieved_at_utc": "2026-10-16T00:09:02.610146+00:00"
+        }
+      ]
+    },
+    {
+      "event_id": "RRR_20071025",
+      "announcement_date": "2007-10-13",
+      "effective_date": "2007-10-25",
+      "category": "monetary_tightening",
+      "label": "RMB depository-institution RRR +0.5 percentage points to 13%",
+      "source_ids": [
+        "pbc_policy_2007q4"
+      ],
+      "locator": {
+        "pdf_page_1based": 64,
+        "printed_page": 59,
+        "note": null
+      },
+      "observation_date": "2007-10-25",
+      "original_release_time_known": false,
+      "rrr_percent": 13,
+      "rrr_change_percentage_points": 0.5,
+      "source_details": [
+        {
+          "source_id": "pbc_policy_2007q4",
+          "url": "https://www.pbc.gov.cn/eportal/fileDir/history_file/files/att_20306_1.pdf",
+          "published_date": "2008-02-22",
+          "sha256": "5f0eafa8252043e8d5e7eb44e6b6c9779dd3a88d53155ad7f9f1a40aa9f281c1",
+          "local_path": "raw/pbc_policy_2007q4.pdf",
+          "retrieved_at_utc": "2026-10-16T00:09:03.324214+00:00"
+        }
+      ]
+    },
+    {
+      "event_id": "RRR_20071126",
+      "announcement_date": "2007-11-10",
+      "effective_date": "2007-11-26",
+      "category": "monetary_tightening",
+      "label": "RMB depository-institution RRR +0.5 percentage points to 13.5%",
+      "source_ids": [
+        "pbc_policy_2007q4"
+      ],
+      "locator": {
+        "pdf_page_1based": 64,
+        "printed_page": 59,
+        "note": null
+      },
+      "observation_date": "2007-11-26",
+      "original_release_time_known": false,
+      "rrr_percent": 13.5,
+      "rrr_change_percentage_points": 0.5,
+      "source_details": [
+        {
+          "source_id": "pbc_policy_2007q4",
+          "url": "https://www.pbc.gov.cn/eportal/fileDir/history_file/files/att_20306_1.pdf",
+          "published_date": "2008-02-22",
+          "sha256": "5f0eafa8252043e8d5e7eb44e6b6c9779dd3a88d53155ad7f9f1a40aa9f281c1",
+          "local_path": "raw/pbc_policy_2007q4.pdf",
+          "retrieved_at_utc": "2026-10-16T00:09:03.324214+00:00"
+        }
+      ]
+    },
+    {
+      "event_id": "CEWC_TIGHT_STANCE",
+      "announcement_date": "2007-12-05",
+      "effective_date": null,
+      "category": "monetary_stance",
+      "label": "Central Economic Work Conference (Dec 3-5): tight monetary policy for 2008",
+      "source_ids": [
+        "XIN_CEWC20071205"
+      ],
+      "locator": {
+        "html_locator": "新华社北京12月5日电; 从紧的货币政策"
+      },
+      "observation_date": null,
+      "original_release_time_known": false,
+      "observation_start": "2007-12-03",
+      "observation_end": "2007-12-05",
+      "source_details": [
+        {
+          "source_id": "XIN_CEWC20071205",
+          "url": "https://finance.sina.com.cn/g/20071205/20214255429.shtml",
+          "published_date": "2007-12-05",
+          "sha256": "f22ad72a429bba349d77761fb5418d547b0cd711ae65728ca611ff931699c307",
+          "local_path": "raw/XIN_CEWC20071205.html",
+          "retrieved_at_utc": "2026-10-16T00:57:51.543249+00:00"
+        }
+      ]
+    },
+    {
+      "event_id": "RRR_20071225",
+      "announcement_date": "2007-12-08",
+      "effective_date": "2007-12-25",
+      "category": "monetary_tightening",
+      "label": "RMB depository-institution RRR +1 percentage points to 14.5%",
+      "source_ids": [
+        "pbc_policy_2007q4"
+      ],
+      "locator": {
+        "pdf_page_1based": 64,
+        "printed_page": 59,
+        "note": "December 8 paragraph continues on PDF page 65"
+      },
+      "observation_date": "2007-12-25",
+      "original_release_time_known": false,
+      "rrr_percent": 14.5,
+      "rrr_change_percentage_points": 1,
+      "source_details": [
+        {
+          "source_id": "pbc_policy_2007q4",
+          "url": "https://www.pbc.gov.cn/eportal/fileDir/history_file/files/att_20306_1.pdf",
+          "published_date": "2008-02-22",
+          "sha256": "5f0eafa8252043e8d5e7eb44e6b6c9779dd3a88d53155ad7f9f1a40aa9f281c1",
+          "local_path": "raw/pbc_policy_2007q4.pdf",
+          "retrieved_at_utc": "2026-10-16T00:09:03.324214+00:00"
+        }
+      ]
+    },
+    {
+      "event_id": "RATE_20071221",
+      "announcement_date": "2007-12-20",
+      "effective_date": "2007-12-21",
+      "category": "monetary_tightening",
+      "label": "One-year benchmark deposit/lending rates to 4.14%/7.47% per year",
+      "source_ids": [
+        "pbc_policy_2007q4",
+        "XIN_RATE20071220",
+        "PBC_DEPOSIT_HISTORY",
+        "PBC_LENDING_HISTORY"
+      ],
+      "locator": {
+        "pdf_page_1based": 65,
+        "printed_page": 60,
+        "note": "Retrospective PBC chronology sometimes labels the effective day as decision day; announcement is separately verified from the dated release/report."
+      },
+      "observation_date": "2007-12-21",
+      "original_release_time_known": false,
+      "deposit_rate_percent_per_year": 4.14,
+      "lending_rate_percent_per_year": 7.47,
+      "source_details": [
+        {
+          "source_id": "pbc_policy_2007q4",
+          "url": "https://www.pbc.gov.cn/eportal/fileDir/history_file/files/att_20306_1.pdf",
+          "published_date": "2008-02-22",
+          "sha256": "5f0eafa8252043e8d5e7eb44e6b6c9779dd3a88d53155ad7f9f1a40aa9f281c1",
+          "local_path": "raw/pbc_policy_2007q4.pdf",
+          "retrieved_at_utc": "2026-10-16T00:09:03.324214+00:00"
+        },
+        {
+          "source_id": "XIN_RATE20071220",
+          "url": "https://finance.sina.com.cn/g/20071220/19524318248.shtml",
+          "published_date": "2007-12-20",
+          "sha256": "aca330e0dc4a28c1d176975fcf935a680a32d4e75459073262e9f8e28801e3a2",
+          "local_path": "raw/XIN_RATE20071220.html",
+          "retrieved_at_utc": "2026-10-16T00:57:51.542248+00:00"
+        },
+        {
+          "source_id": "PBC_DEPOSIT_HISTORY",
+          "url": "https://www.pbc.gov.cn/zhengcehuobisi/125207/125213/125440/125838/125888/2887261/index.html",
+          "published_date": "2015-03-01",
+          "sha256": "a5b985895b97225fa258c00176915b0d10eafbf0ad4a6561c1a02676769c6ad2",
+          "local_path": "raw/PBC_DEPOSIT_HISTORY.html",
+          "retrieved_at_utc": "2026-10-16T01:01:44.461656+00:00"
+        },
+        {
+          "source_id": "PBC_LENDING_HISTORY",
+          "url": "https://www.pbc.gov.cn/zhengcehuobisi/125207/125213/125440/125838/125888/2861226/index.html",
+          "published_date": "2012-06-08",
+          "sha256": "2db1140287eb6b09fb9f54fed546554b03952a76dc30c6095c0df7351375de22",
+          "local_path": "raw/PBC_LENDING_HISTORY.html",
+          "retrieved_at_utc": "2026-10-16T01:01:44.463656+00:00"
+        }
+      ]
+    },
+    {
+      "event_id": "RRR_20080125",
+      "announcement_date": "2008-01-16",
+      "effective_date": "2008-01-25",
+      "category": "monetary_tightening",
+      "label": "RMB RRR +0.5 percentage points to 15% (general schedule; differential exemptions may apply)",
+      "source_ids": [
+        "NDRC_MONETARY2008"
+      ],
+      "locator": {
+        "html_locator": "2008年中国货币政策大事记; announcement-date paragraph",
+        "note": "June 7 was one announcement with two installment dates, not two independent policy decisions."
+      },
+      "observation_date": "2008-01-25",
+      "original_release_time_known": false,
+      "rrr_percent": 15,
+      "rrr_change_percentage_points": 0.5,
+      "source_details": [
+        {
+          "source_id": "NDRC_MONETARY2008",
+          "url": "https://www.ndrc.gov.cn/fzggw/jgsj/cjd/sjdt/200903/t20090303_1111305.html",
+          "published_date": "2009-03-03",
+          "sha256": "d6c20e87f86a8bfa48bf87ec90042df9c9467686998003eacac5abd1fa9e0dc9",
+          "local_path": "raw/NDRC_MONETARY2008.html",
+          "retrieved_at_utc": "2026-10-16T00:53:46.460110+00:00"
+        }
+      ]
+    },
+    {
+      "event_id": "RRR_20080325",
+      "announcement_date": "2008-03-18",
+      "effective_date": "2008-03-25",
+      "category": "monetary_tightening",
+      "label": "RMB RRR +0.5 percentage points to 15.5% (general schedule; differential exemptions may apply)",
+      "source_ids": [
+        "NDRC_MONETARY2008"
+      ],
+      "locator": {
+        "html_locator": "2008年中国货币政策大事记; announcement-date paragraph",
+        "note": "June 7 was one announcement with two installment dates, not two independent policy decisions."
+      },
+      "observation_date": "2008-03-25",
+      "original_release_time_known": false,
+      "rrr_percent": 15.5,
+      "rrr_change_percentage_points": 0.5,
+      "source_details": [
+        {
+          "source_id": "NDRC_MONETARY2008",
+          "url": "https://www.ndrc.gov.cn/fzggw/jgsj/cjd/sjdt/200903/t20090303_1111305.html",
+          "published_date": "2009-03-03",
+          "sha256": "d6c20e87f86a8bfa48bf87ec90042df9c9467686998003eacac5abd1fa9e0dc9",
+          "local_path": "raw/NDRC_MONETARY2008.html",
+          "retrieved_at_utc": "2026-10-16T00:53:46.460110+00:00"
+        }
+      ]
+    },
+    {
+      "event_id": "RRR_20080425",
+      "announcement_date": "2008-04-16",
+      "effective_date": "2008-04-25",
+      "category": "monetary_tightening",
+      "label": "RMB RRR +0.5 percentage points to 16% (general schedule; differential exemptions may apply)",
+      "source_ids": [
+        "NDRC_MONETARY2008"
+      ],
+      "locator": {
+        "html_locator": "2008年中国货币政策大事记; announcement-date paragraph",
+        "note": "June 7 was one announcement with two installment dates, not two independent policy decisions."
+      },
+      "observation_date": "2008-04-25",
+      "original_release_time_known": false,
+      "rrr_percent": 16,
+      "rrr_change_percentage_points": 0.5,
+      "source_details": [
+        {
+          "source_id": "NDRC_MONETARY2008",
+          "url": "https://www.ndrc.gov.cn/fzggw/jgsj/cjd/sjdt/200903/t20090303_1111305.html",
+          "published_date": "2009-03-03",
+          "sha256": "d6c20e87f86a8bfa48bf87ec90042df9c9467686998003eacac5abd1fa9e0dc9",
+          "local_path": "raw/NDRC_MONETARY2008.html",
+          "retrieved_at_utc": "2026-10-16T00:53:46.460110+00:00"
+        }
+      ]
+    },
+    {
+      "event_id": "UNLOCKED_SHARE_TRANSFER_GUIDANCE",
+      "announcement_date": "2008-04-20",
+      "effective_date": "2008-04-20",
+      "category": "equity_share_supply_regulation",
+      "label": "Expected unlocked-share sales exceeding 1% of company shares within one month must use block-trading system",
+      "source_ids": [
+        "CSRC_UNLOCK20080420"
+      ],
+      "locator": {
+        "html_locator": "证监会公告[2008]15号; articles1,3,5,9"
+      },
+      "observation_date": "2008-04-20",
+      "original_release_time_known": false,
+      "expected_monthly_sales_threshold_fraction": 0.01,
+      "note": "Rule covers post-reform restricted shares and pre-IPO shares specified in article1; availability to sell is not an observation of an actual sale. Controlling-shareholder transfers prohibited within30days before annual/halfyear disclosure.",
+      "source_details": [
+        {
+          "source_id": "CSRC_UNLOCK20080420",
+          "url": "https://www.csrc.gov.cn/csrc/c100028/c1002810/content.shtml",
+          "published_date": "2008-04-20",
+          "sha256": "81539e160ab45c6dd3330071d12e662f7d4673da0b5bec261eb076b2d5642d7e",
+          "local_path": "raw/CSRC_UNLOCK20080420.html",
+          "retrieved_at_utc": "2026-10-16T01:04:52.831391+00:00"
+        }
+      ]
+    },
+    {
+      "event_id": "STAMP_CUT",
+      "announcement_date": "2008-04-23",
+      "effective_date": "2008-04-24",
+      "category": "equity_market_easing",
+      "label": "A/B share transfer stamp duty cut from 3 to 1 per mille, still bilateral",
+      "source_ids": [
+        "MOF_STAMP20080424"
+      ],
+      "locator": {
+        "html_locator": "正文：新华社北京4月23日电; 自4月24日起; page published Apr24"
+      },
+      "observation_date": "2008-04-24",
+      "original_release_time_known": false,
+      "stamp_duty_per_mille_per_side": 1,
+      "source_details": [
+        {
+          "source_id": "MOF_STAMP20080424",
+          "url": "https://www.mof.gov.cn/zhengwuxinxi/caizhengxinwen/200805/t20080519_29133.htm",
+          "published_date": "2008-04-24",
+          "sha256": "ed6923348210ba9cc03a05a06b1542d2e531f102a7c0d4a641c9149869aa1cf4",
+          "local_path": "raw/MOF_STAMP20080424.html",
+          "retrieved_at_utc": "2026-10-16T00:53:46.461630+00:00"
+        }
+      ]
+    },
+    {
+      "event_id": "RRR_20080520",
+      "announcement_date": "2008-05-12",
+      "effective_date": "2008-05-20",
+      "category": "monetary_tightening",
+      "label": "RMB RRR +0.5 percentage points to 16.5% (general schedule; differential exemptions may apply)",
+      "source_ids": [
+        "NDRC_MONETARY2008"
+      ],
+      "locator": {
+        "html_locator": "2008年中国货币政策大事记; announcement-date paragraph",
+        "note": "June 7 was one announcement with two installment dates, not two independent policy decisions."
+      },
+      "observation_date": "2008-05-20",
+      "original_release_time_known": false,
+      "rrr_percent": 16.5,
+      "rrr_change_percentage_points": 0.5,
+      "source_details": [
+        {
+          "source_id": "NDRC_MONETARY2008",
+          "url": "https://www.ndrc.gov.cn/fzggw/jgsj/cjd/sjdt/200903/t20090303_1111305.html",
+          "published_date": "2009-03-03",
+          "sha256": "d6c20e87f86a8bfa48bf87ec90042df9c9467686998003eacac5abd1fa9e0dc9",
+          "local_path": "raw/NDRC_MONETARY2008.html",
+          "retrieved_at_utc": "2026-10-16T00:53:46.460110+00:00"
+        }
+      ]
+    },
+    {
+      "event_id": "RRR_20080615",
+      "announcement_date": "2008-06-07",
+      "effective_date": "2008-06-15",
+      "category": "monetary_tightening",
+      "label": "RMB RRR +0.5 percentage points to 17% (general schedule; differential exemptions may apply)",
+      "source_ids": [
+        "NDRC_MONETARY2008"
+      ],
+      "locator": {
+        "html_locator": "2008年中国货币政策大事记; announcement-date paragraph",
+        "note": "June 7 was one announcement with two installment dates, not two independent policy decisions."
+      },
+      "observation_date": "2008-06-15",
+      "original_release_time_known": false,
+      "rrr_percent": 17,
+      "rrr_change_percentage_points": 0.5,
+      "source_details": [
+        {
+          "source_id": "NDRC_MONETARY2008",
+          "url": "https://www.ndrc.gov.cn/fzggw/jgsj/cjd/sjdt/200903/t20090303_1111305.html",
+          "published_date": "2009-03-03",
+          "sha256": "d6c20e87f86a8bfa48bf87ec90042df9c9467686998003eacac5abd1fa9e0dc9",
+          "local_path": "raw/NDRC_MONETARY2008.html",
+          "retrieved_at_utc": "2026-10-16T00:53:46.460110+00:00"
+        }
+      ]
+    },
+    {
+      "event_id": "RRR_20080625",
+      "announcement_date": "2008-06-07",
+      "effective_date": "2008-06-25",
+      "category": "monetary_tightening",
+      "label": "RMB RRR +0.5 percentage points to 17.5% (general schedule; differential exemptions may apply)",
+      "source_ids": [
+        "NDRC_MONETARY2008"
+      ],
+      "locator": {
+        "html_locator": "2008年中国货币政策大事记; announcement-date paragraph",
+        "note": "June 7 was one announcement with two installment dates, not two independent policy decisions."
+      },
+      "observation_date": "2008-06-25",
+      "original_release_time_known": false,
+      "rrr_percent": 17.5,
+      "rrr_change_percentage_points": 0.5,
+      "source_details": [
+        {
+          "source_id": "NDRC_MONETARY2008",
+          "url": "https://www.ndrc.gov.cn/fzggw/jgsj/cjd/sjdt/200903/t20090303_1111305.html",
+          "published_date": "2009-03-03",
+          "sha256": "d6c20e87f86a8bfa48bf87ec90042df9c9467686998003eacac5abd1fa9e0dc9",
+          "local_path": "raw/NDRC_MONETARY2008.html",
+          "retrieved_at_utc": "2026-10-16T00:53:46.460110+00:00"
+        }
+      ]
+    }
+  ],
+  "monthly_activity": [
+    {
+      "period": "2007-01",
+      "source_id": "CSRC_MONTH_200707",
+      "published_date": "2007-08-10",
+      "source_vintage_note": "earliest retained July XLS, retrospective Jan-Jun observation",
+      "observation_start": "2007-01-04",
+      "observation_end": "2007-01-31",
+      "trading_days_official": 20,
+      "sse_actual_close_days": 20,
+      "stock_turnover_CNY_100million": 25560.35,
+      "daily_average_turnover_CNY_100million": 1278.02,
+      "daily_average_recomputed_CNY_100million": 1278.0175,
+      "daily_average_published_minus_recomputed_CNY_100million": 0.0025000000000545697,
+      "within_standard_two_decimal_rounding": true,
+      "sse_month_end_close": 2786.34,
+      "sse_month_price_return_fraction": 0.041439448022216885,
+      "float_share_count_100million": 5806.45,
+      "effective_stock_accounts_10000": null,
+      "domestic_fundraising_CNY_100million": 442.84634817360006,
+      "A_share_IPO_proceeds_CNY_100million": 325.75600000000003,
+      "A_share_follow_on_proceeds_CNY_100million": 107.8866373334,
+      "trade_cell_locator": "交易!C6 monthly;B6 trading days;E6 daily average",
+      "overview_cell_locator": "概况!R9C3 float shares",
+      "fundraising_cell_locator": "筹资!C7 domestic total;D7 A IPO;G7 follow-on",
+      "turnover_scope": "CSRC national Shanghai+Shenzhen cash-stock trading, all investor types; not retail net purchases",
+      "account_scope": "exact source label 股票有效帐户数; not unique people, new accounts, holding accounts, or weekly active accounts"
+    },
+    {
+      "period": "2007-02",
+      "source_id": "CSRC_MONTH_200707",
+      "published_date": "2007-08-10",
+      "source_vintage_note": "earliest retained July XLS, retrospective Jan-Jun observation",
+      "observation_start": "2007-02-01",
+      "observation_end": "2007-02-28",
+      "trading_days_official": 15,
+      "sse_actual_close_days": 15,
+      "stock_turnover_CNY_100million": 17455.63,
+      "daily_average_turnover_CNY_100million": 1163.71,
+      "daily_average_recomputed_CNY_100million": 1163.7086666666667,
+      "daily_average_published_minus_recomputed_CNY_100million": 0.0013333333333775954,
+      "within_standard_two_decimal_rounding": true,
+      "sse_month_end_close": 2881.07,
+      "sse_month_price_return_fraction": 0.03399800455077262,
+      "float_share_count_100million": 5864.35,
+      "effective_stock_accounts_10000": null,
+      "domestic_fundraising_CNY_100million": 224.95766000000003,
+      "A_share_IPO_proceeds_CNY_100million": 190.94400000000002,
+      "A_share_follow_on_proceeds_CNY_100million": 34.01366,
+      "trade_cell_locator": "交易!C7 monthly;B7 trading days;E7 daily average",
+      "overview_cell_locator": "概况!R9C4 float shares",
+      "fundraising_cell_locator": "筹资!C8 domestic total;D8 A IPO;G8 follow-on",
+      "turnover_scope": "CSRC national Shanghai+Shenzhen cash-stock trading, all investor types; not retail net purchases",
+      "account_scope": "exact source label 股票有效帐户数; not unique people, new accounts, holding accounts, or weekly active accounts"
+    },
+    {
+      "period": "2007-03",
+      "source_id": "CSRC_MONTH_200707",
+      "published_date": "2007-08-10",
+      "source_vintage_note": "earliest retained July XLS, retrospective Jan-Jun observation",
+      "observation_start": "2007-03-01",
+      "observation_end": "2007-03-30",
+      "trading_days_official": 22,
+      "sse_actual_close_days": 22,
+      "stock_turnover_CNY_100million": 32016.42,
+      "daily_average_turnover_CNY_100million": 1455.29,
+      "daily_average_recomputed_CNY_100million": 1455.2918181818181,
+      "daily_average_published_minus_recomputed_CNY_100million": -0.0018181818181801646,
+      "within_standard_two_decimal_rounding": true,
+      "sse_month_end_close": 3183.98,
+      "sse_month_price_return_fraction": 0.10513802163779418,
+      "float_share_count_100million": 5965.65,
+      "effective_stock_accounts_10000": null,
+      "domestic_fundraising_CNY_100million": 536.55811,
+      "A_share_IPO_proceeds_CNY_100million": 412.24,
+      "A_share_follow_on_proceeds_CNY_100million": 108.93811,
+      "trade_cell_locator": "交易!C8 monthly;B8 trading days;E8 daily average",
+      "overview_cell_locator": "概况!R9C5 float shares",
+      "fundraising_cell_locator": "筹资!C9 domestic total;D9 A IPO;G9 follow-on",
+      "turnover_scope": "CSRC national Shanghai+Shenzhen cash-stock trading, all investor types; not retail net purchases",
+      "account_scope": "exact source label 股票有效帐户数; not unique people, new accounts, holding accounts, or weekly active accounts"
+    },
+    {
+      "period": "2007-04",
+      "source_id": "CSRC_MONTH_200707",
+      "published_date": "2007-08-10",
+      "source_vintage_note": "earliest retained July XLS, retrospective Jan-Jun observation",
+      "observation_start": "2007-04-02",
+      "observation_end": "2007-04-30",
+      "trading_days_official": 21,
+      "sse_actual_close_days": 21,
+      "stock_turnover_CNY_100million": 49122.64,
+      "daily_average_turnover_CNY_100million": 2339.16,
+      "daily_average_recomputed_CNY_100million": 2339.173333333333,
+      "daily_average_published_minus_recomputed_CNY_100million": -0.013333333333321207,
+      "within_standard_two_decimal_rounding": false,
+      "sse_month_end_close": 3841.27,
+      "sse_month_price_return_fraction": 0.20643659821983795,
+      "float_share_count_100million": 6277.71,
+      "effective_stock_accounts_10000": null,
+      "domestic_fundraising_CNY_100million": 278.550619052,
+      "A_share_IPO_proceeds_CNY_100million": 221.687093932,
+      "A_share_follow_on_proceeds_CNY_100million": 56.863525120000006,
+      "trade_cell_locator": "交易!C9 monthly;B9 trading days;E9 daily average",
+      "overview_cell_locator": "概况!R9C6 float shares",
+      "fundraising_cell_locator": "筹资!C10 domestic total;D10 A IPO;G10 follow-on",
+      "turnover_scope": "CSRC national Shanghai+Shenzhen cash-stock trading, all investor types; not retail net purchases",
+      "account_scope": "exact source label 股票有效帐户数; not unique people, new accounts, holding accounts, or weekly active accounts"
+    },
+    {
+      "period": "2007-05",
+      "source_id": "CSRC_MONTH_200707",
+      "published_date": "2007-08-10",
+      "source_vintage_note": "earliest retained July XLS, retrospective Jan-Jun observation",
+      "observation_start": "2007-05-08",
+      "observation_end": "2007-05-31",
+      "trading_days_official": 18,
+      "sse_actual_close_days": 18,
+      "stock_turnover_CNY_100million": 58944.93,
+      "daily_average_turnover_CNY_100million": 3274.7,
+      "daily_average_recomputed_CNY_100million": 3274.7183333333332,
+      "daily_average_published_minus_recomputed_CNY_100million": -0.018333333333430346,
+      "within_standard_two_decimal_rounding": false,
+      "sse_month_end_close": 4109.65,
+      "sse_month_price_return_fraction": 0.06986751777406952,
+      "float_share_count_100million": 6670.13,
+      "effective_stock_accounts_10000": null,
+      "domestic_fundraising_CNY_100million": 400.3921573579,
+      "A_share_IPO_proceeds_CNY_100million": 262.597688473,
+      "A_share_follow_on_proceeds_CNY_100million": 126.8944688849,
+      "trade_cell_locator": "交易!C10 monthly;B10 trading days;E10 daily average",
+      "overview_cell_locator": "概况!R9C7 float shares",
+      "fundraising_cell_locator": "筹资!C11 domestic total;D11 A IPO;G11 follow-on",
+      "turnover_scope": "CSRC national Shanghai+Shenzhen cash-stock trading, all investor types; not retail net purchases",
+      "account_scope": "exact source label 股票有效帐户数; not unique people, new accounts, holding accounts, or weekly active accounts"
+    },
+    {
+      "period": "2007-06",
+      "source_id": "CSRC_MONTH_200707",
+      "published_date": "2007-08-10",
+      "source_vintage_note": "earliest retained July XLS, retrospective Jan-Jun observation",
+      "observation_start": "2007-06-01",
+      "observation_end": "2007-06-29",
+      "trading_days_official": 21,
+      "sse_actual_close_days": 21,
+      "stock_turnover_CNY_100million": 54080.03,
+      "daily_average_turnover_CNY_100million": 2575.24,
+      "daily_average_recomputed_CNY_100million": 2575.2395238095237,
+      "daily_average_published_minus_recomputed_CNY_100million": 0.00047619047609259724,
+      "within_standard_two_decimal_rounding": true,
+      "sse_month_end_close": 3820.7,
+      "sse_month_price_return_fraction": -0.07031012373316459,
+      "float_share_count_100million": 6810.96,
+      "effective_stock_accounts_10000": null,
+      "domestic_fundraising_CNY_100million": 377.4399618828,
+      "A_share_IPO_proceeds_CNY_100million": 159.87195942079998,
+      "A_share_follow_on_proceeds_CNY_100million": 217.568002462,
+      "trade_cell_locator": "交易!C11 monthly;B11 trading days;E11 daily average",
+      "overview_cell_locator": "概况!R9C8 float shares",
+      "fundraising_cell_locator": "筹资!C12 domestic total;D12 A IPO;G12 follow-on",
+      "turnover_scope": "CSRC national Shanghai+Shenzhen cash-stock trading, all investor types; not retail net purchases",
+      "account_scope": "exact source label 股票有效帐户数; not unique people, new accounts, holding accounts, or weekly active accounts"
+    },
+    {
+      "period": "2007-07",
+      "source_id": "CSRC_MONTH_200707",
+      "published_date": "2007-08-10",
+      "source_vintage_note": "original own-month XLS",
+      "observation_start": "2007-07-02",
+      "observation_end": "2007-07-31",
+      "trading_days_official": 22,
+      "sse_actual_close_days": 22,
+      "stock_turnover_CNY_100million": 33055.86,
+      "daily_average_turnover_CNY_100million": 1502.53,
+      "daily_average_recomputed_CNY_100million": 1502.5390909090909,
+      "daily_average_published_minus_recomputed_CNY_100million": -0.009090909090900823,
+      "within_standard_two_decimal_rounding": false,
+      "sse_month_end_close": 4471.03,
+      "sse_month_price_return_fraction": 0.17021226476823625,
+      "float_share_count_100million": 6915.17,
+      "effective_stock_accounts_10000": null,
+      "domestic_fundraising_CNY_100million": 279.5517506289,
+      "A_share_IPO_proceeds_CNY_100million": 180.53799999999998,
+      "A_share_follow_on_proceeds_CNY_100million": 79.0137506289,
+      "trade_cell_locator": "交易!C12 monthly;B12 trading days;E12 daily average",
+      "overview_cell_locator": "概况!R9C9 float shares",
+      "fundraising_cell_locator": "筹资!C13 domestic total;D13 A IPO;G13 follow-on",
+      "turnover_scope": "CSRC national Shanghai+Shenzhen cash-stock trading, all investor types; not retail net purchases",
+      "account_scope": "exact source label 股票有效帐户数; not unique people, new accounts, holding accounts, or weekly active accounts"
+    },
+    {
+      "period": "2007-08",
+      "source_id": "CSRC_MONTH_200708",
+      "published_date": "2007-09-11",
+      "source_vintage_note": "original own-month XLS",
+      "observation_start": "2007-08-01",
+      "observation_end": "2007-08-31",
+      "trading_days_official": 23,
+      "sse_actual_close_days": 23,
+      "stock_turnover_CNY_100million": 54644.31,
+      "daily_average_turnover_CNY_100million": 2375.84,
+      "daily_average_recomputed_CNY_100million": 2375.8395652173913,
+      "daily_average_published_minus_recomputed_CNY_100million": 0.00043478260886331555,
+      "within_standard_two_decimal_rounding": true,
+      "sse_month_end_close": 5218.83,
+      "sse_month_price_return_fraction": 0.16725452524362394,
+      "float_share_count_100million": 7010.56,
+      "effective_stock_accounts_10000": null,
+      "domestic_fundraising_CNY_100million": 278.5083437964,
+      "A_share_IPO_proceeds_CNY_100million": 76.82,
+      "A_share_follow_on_proceeds_CNY_100million": 188.20834379640002,
+      "trade_cell_locator": "交易!C13 monthly;B13 trading days;E13 daily average",
+      "overview_cell_locator": "概况!R9C10 float shares",
+      "fundraising_cell_locator": "筹资!C14 domestic total;D14 A IPO;G14 follow-on",
+      "turnover_scope": "CSRC national Shanghai+Shenzhen cash-stock trading, all investor types; not retail net purchases",
+      "account_scope": "exact source label 股票有效帐户数; not unique people, new accounts, holding accounts, or weekly active accounts"
+    },
+    {
+      "period": "2007-09",
+      "source_id": "CSRC_MONTH_200709",
+      "published_date": "2007-10-11",
+      "source_vintage_note": "original own-month XLS",
+      "observation_start": "2007-09-03",
+      "observation_end": "2007-09-28",
+      "trading_days_official": 20,
+      "sse_actual_close_days": 20,
+      "stock_turnover_CNY_100million": 46288.15,
+      "daily_average_turnover_CNY_100million": 2314.41,
+      "daily_average_recomputed_CNY_100million": 2314.4075000000003,
+      "daily_average_published_minus_recomputed_CNY_100million": 0.0024999999995998223,
+      "within_standard_two_decimal_rounding": true,
+      "sse_month_end_close": 5552.3,
+      "sse_month_price_return_fraction": 0.06389746360774362,
+      "float_share_count_100million": 9410.78,
+      "effective_stock_accounts_10000": null,
+      "domestic_fundraising_CNY_100million": 1533.5149429581,
+      "A_share_IPO_proceeds_CNY_100million": 823.27,
+      "A_share_follow_on_proceeds_CNY_100million": 690.7391505604999,
+      "trade_cell_locator": "交易!C14 monthly;B14 trading days;E14 daily average",
+      "overview_cell_locator": "概况!R9C11 float shares",
+      "fundraising_cell_locator": "筹资!C15 domestic total;D15 A IPO;G15 follow-on",
+      "turnover_scope": "CSRC national Shanghai+Shenzhen cash-stock trading, all investor types; not retail net purchases",
+      "account_scope": "exact source label 股票有效帐户数; not unique people, new accounts, holding accounts, or weekly active accounts"
+    },
+    {
+      "period": "2007-10",
+      "source_id": "CSRC_MONTH_200710",
+      "published_date": "2007-11-12",
+      "source_vintage_note": "original own-month XLS",
+      "observation_start": "2007-10-08",
+      "observation_end": "2007-10-31",
+      "trading_days_official": 18,
+      "sse_actual_close_days": 18,
+      "stock_turnover_CNY_100million": 35138.9,
+      "daily_average_turnover_CNY_100million": 1952.16,
+      "daily_average_recomputed_CNY_100million": 1952.1611111111113,
+      "daily_average_published_minus_recomputed_CNY_100million": -0.0011111111111858918,
+      "within_standard_two_decimal_rounding": true,
+      "sse_month_end_close": 5954.77,
+      "sse_month_price_return_fraction": 0.07248707742737248,
+      "float_share_count_100million": 9720.51,
+      "effective_stock_accounts_10000": null,
+      "domestic_fundraising_CNY_100million": 1102.5800798317998,
+      "A_share_IPO_proceeds_CNY_100million": 669.43,
+      "A_share_follow_on_proceeds_CNY_100million": 254.3200798318,
+      "trade_cell_locator": "交易!C15 monthly;B15 trading days;E15 daily average",
+      "overview_cell_locator": "概况!R9C12 float shares",
+      "fundraising_cell_locator": "筹资!C16 domestic total;D16 A IPO;G16 follow-on",
+      "turnover_scope": "CSRC national Shanghai+Shenzhen cash-stock trading, all investor types; not retail net purchases",
+      "account_scope": "exact source label 股票有效帐户数; not unique people, new accounts, holding accounts, or weekly active accounts"
+    },
+    {
+      "period": "2007-11",
+      "source_id": "CSRC_MONTH_200711",
+      "published_date": "2007-12-10",
+      "source_vintage_note": "original own-month XLS",
+      "observation_start": "2007-11-01",
+      "observation_end": "2007-11-30",
+      "trading_days_official": 22,
+      "sse_actual_close_days": 22,
+      "stock_turnover_CNY_100million": 25179.08,
+      "daily_average_turnover_CNY_100million": 1144.51,
+      "daily_average_recomputed_CNY_100million": 1144.5036363636364,
+      "daily_average_published_minus_recomputed_CNY_100million": 0.006363636363630576,
+      "within_standard_two_decimal_rounding": false,
+      "sse_month_end_close": 4871.78,
+      "sse_month_price_return_fraction": -0.1818693249277471,
+      "float_share_count_100million": 10031.67,
+      "effective_stock_accounts_10000": null,
+      "domestic_fundraising_CNY_100million": 1277.1966126684,
+      "A_share_IPO_proceeds_CNY_100million": 716.18,
+      "A_share_follow_on_proceeds_CNY_100million": 550.2934112946,
+      "trade_cell_locator": "交易!C16 monthly;B16 trading days;E16 daily average",
+      "overview_cell_locator": "概况!R9C13 float shares",
+      "fundraising_cell_locator": "筹资!C17 domestic total;D17 A IPO;G17 follow-on",
+      "turnover_scope": "CSRC national Shanghai+Shenzhen cash-stock trading, all investor types; not retail net purchases",
+      "account_scope": "exact source label 股票有效帐户数; not unique people, new accounts, holding accounts, or weekly active accounts"
+    },
+    {
+      "period": "2007-12",
+      "source_id": "CSRC_MONTH_200712",
+      "published_date": "2008-01-10",
+      "source_vintage_note": "original own-month XLS",
+      "observation_start": "2007-12-03",
+      "observation_end": "2007-12-28",
+      "trading_days_official": 20,
+      "sse_actual_close_days": 20,
+      "stock_turnover_CNY_100million": 29069.92,
+      "daily_average_turnover_CNY_100million": 1453.49,
+      "daily_average_recomputed_CNY_100million": 1453.4959999999999,
+      "daily_average_published_minus_recomputed_CNY_100million": -0.005999999999858119,
+      "within_standard_two_decimal_rounding": false,
+      "sse_month_end_close": 5261.56,
+      "sse_month_price_return_fraction": 0.08000771791829697,
+      "float_share_count_100million": 10331.52,
+      "effective_stock_accounts_10000": null,
+      "domestic_fundraising_CNY_100million": 1165.9506889387,
+      "A_share_IPO_proceeds_CNY_100million": 770.518175,
+      "A_share_follow_on_proceeds_CNY_100million": 339.2993949887,
+      "trade_cell_locator": "交易!C17 monthly;B17 trading days;E17 daily average",
+      "overview_cell_locator": "概况!R9C14 float shares",
+      "fundraising_cell_locator": "筹资!C18 domestic total;D18 A IPO;G18 follow-on",
+      "turnover_scope": "CSRC national Shanghai+Shenzhen cash-stock trading, all investor types; not retail net purchases",
+      "account_scope": "exact source label 股票有效帐户数; not unique people, new accounts, holding accounts, or weekly active accounts"
+    },
+    {
+      "period": "2008-01",
+      "source_id": "CSRC_MONTH_200801",
+      "published_date": "2008-02-11",
+      "source_vintage_note": "original own-month XLS",
+      "observation_start": "2008-01-02",
+      "observation_end": "2008-01-31",
+      "trading_days_official": 22,
+      "sse_actual_close_days": 22,
+      "stock_turnover_CNY_100million": 46530.45,
+      "daily_average_turnover_CNY_100million": 2115.02,
+      "daily_average_recomputed_CNY_100million": 2115.0204545454544,
+      "daily_average_published_minus_recomputed_CNY_100million": -0.0004545454544313543,
+      "within_standard_two_decimal_rounding": true,
+      "sse_month_end_close": 4383.39,
+      "sse_month_price_return_fraction": -0.1669029717422209,
+      "float_share_count_100million": 10431.58,
+      "effective_stock_accounts_10000": 9478.99,
+      "domestic_fundraising_CNY_100million": 641.9424680259,
+      "A_share_IPO_proceeds_CNY_100million": 28.29,
+      "A_share_follow_on_proceeds_CNY_100million": 588.8885175557,
+      "trade_cell_locator": "交易!C6 monthly;B6 trading days;E6 daily average",
+      "overview_cell_locator": "概况!R9C3 float shares;R16C3 effective accounts",
+      "fundraising_cell_locator": "筹资!C7 domestic total;D7 A IPO;G7 follow-on",
+      "turnover_scope": "CSRC national Shanghai+Shenzhen cash-stock trading, all investor types; not retail net purchases",
+      "account_scope": "exact source label 股票有效帐户数; not unique people, new accounts, holding accounts, or weekly active accounts"
+    },
+    {
+      "period": "2008-02",
+      "source_id": "CSRC_MONTH_200802",
+      "published_date": "2008-03-10",
+      "source_vintage_note": "original own-month XLS",
+      "observation_start": "2008-02-01",
+      "observation_end": "2008-02-29",
+      "trading_days_official": 16,
+      "sse_actual_close_days": 16,
+      "stock_turnover_CNY_100million": 21111.68,
+      "daily_average_turnover_CNY_100million": 1319.47,
+      "daily_average_recomputed_CNY_100million": 1319.48,
+      "daily_average_published_minus_recomputed_CNY_100million": -0.009999999999990905,
+      "within_standard_two_decimal_rounding": false,
+      "sse_month_end_close": 4348.54,
+      "sse_month_price_return_fraction": -0.007950467560495444,
+      "float_share_count_100million": 10597.52,
+      "effective_stock_accounts_10000": 9508.94,
+      "domestic_fundraising_CNY_100million": 557.1603129370001,
+      "A_share_IPO_proceeds_CNY_100million": 290.75361122000004,
+      "A_share_follow_on_proceeds_CNY_100million": 266.40670171700003,
+      "trade_cell_locator": "交易!C7 monthly;B7 trading days;E7 daily average",
+      "overview_cell_locator": "概况!R9C4 float shares;R16C4 effective accounts",
+      "fundraising_cell_locator": "筹资!C8 domestic total;D8 A IPO;G8 follow-on",
+      "turnover_scope": "CSRC national Shanghai+Shenzhen cash-stock trading, all investor types; not retail net purchases",
+      "account_scope": "exact source label 股票有效帐户数; not unique people, new accounts, holding accounts, or weekly active accounts"
+    },
+    {
+      "period": "2008-03",
+      "source_id": "CSRC_MONTH_200803",
+      "published_date": "2008-04-11",
+      "source_vintage_note": "original own-month XLS",
+      "observation_start": "2008-03-03",
+      "observation_end": "2008-03-31",
+      "trading_days_official": 21,
+      "sse_actual_close_days": 21,
+      "stock_turnover_CNY_100million": 28532.42,
+      "daily_average_turnover_CNY_100million": 1358.69,
+      "daily_average_recomputed_CNY_100million": 1358.6866666666665,
+      "daily_average_published_minus_recomputed_CNY_100million": 0.0033333333335576754,
+      "within_standard_two_decimal_rounding": true,
+      "sse_month_end_close": 3472.71,
+      "sse_month_price_return_fraction": -0.20140782883450536,
+      "float_share_count_100million": 10779.73,
+      "effective_stock_accounts_10000": 9619.99,
+      "domestic_fundraising_CNY_100million": 372.79183091799996,
+      "A_share_IPO_proceeds_CNY_100million": 230.79,
+      "A_share_follow_on_proceeds_CNY_100million": 84.3464441932,
+      "trade_cell_locator": "交易!C8 monthly;B8 trading days;E8 daily average",
+      "overview_cell_locator": "概况!R9C5 float shares;R16C5 effective accounts",
+      "fundraising_cell_locator": "筹资!C9 domestic total;D9 A IPO;G9 follow-on",
+      "turnover_scope": "CSRC national Shanghai+Shenzhen cash-stock trading, all investor types; not retail net purchases",
+      "account_scope": "exact source label 股票有效帐户数; not unique people, new accounts, holding accounts, or weekly active accounts"
+    },
+    {
+      "period": "2008-04",
+      "source_id": "CSRC_MONTH_200804",
+      "published_date": "2008-05-12",
+      "source_vintage_note": "original own-month XLS",
+      "observation_start": "2008-04-01",
+      "observation_end": "2008-04-30",
+      "trading_days_official": 21,
+      "sse_actual_close_days": 21,
+      "stock_turnover_CNY_100million": 26901.4,
+      "daily_average_turnover_CNY_100million": 1281.01,
+      "daily_average_recomputed_CNY_100million": 1281.0190476190478,
+      "daily_average_published_minus_recomputed_CNY_100million": -0.00904761904780571,
+      "within_standard_two_decimal_rounding": false,
+      "sse_month_end_close": 3693.11,
+      "sse_month_price_return_fraction": 0.06346628425638778,
+      "float_share_count_100million": 11079.98,
+      "effective_stock_accounts_10000": 9748.44,
+      "domestic_fundraising_CNY_100million": 316.8113154396,
+      "A_share_IPO_proceeds_CNY_100million": 196.0866,
+      "A_share_follow_on_proceeds_CNY_100million": 120.7247154396,
+      "trade_cell_locator": "交易!C9 monthly;B9 trading days;E9 daily average",
+      "overview_cell_locator": "概况!R9C6 float shares;R16C6 effective accounts",
+      "fundraising_cell_locator": "筹资!C10 domestic total;D10 A IPO;G10 follow-on",
+      "turnover_scope": "CSRC national Shanghai+Shenzhen cash-stock trading, all investor types; not retail net purchases",
+      "account_scope": "exact source label 股票有效帐户数; not unique people, new accounts, holding accounts, or weekly active accounts"
+    },
+    {
+      "period": "2008-05",
+      "source_id": "CSRC_MONTH_200805",
+      "published_date": "2008-06-09",
+      "source_vintage_note": "original own-month XLS",
+      "observation_start": "2008-05-05",
+      "observation_end": "2008-05-30",
+      "trading_days_official": 20,
+      "sse_actual_close_days": 20,
+      "stock_turnover_CNY_100million": 29466.87,
+      "daily_average_turnover_CNY_100million": 1473.35,
+      "daily_average_recomputed_CNY_100million": 1473.3435,
+      "daily_average_published_minus_recomputed_CNY_100million": 0.006499999999959982,
+      "within_standard_two_decimal_rounding": false,
+      "sse_month_end_close": 3433.35,
+      "sse_month_price_return_fraction": -0.07033638315674329,
+      "float_share_count_100million": 11420.78,
+      "effective_stock_accounts_10000": 9845.79,
+      "domestic_fundraising_CNY_100million": 400.57713984160006,
+      "A_share_IPO_proceeds_CNY_100million": 101.56,
+      "A_share_follow_on_proceeds_CNY_100million": 225.57360997560002,
+      "trade_cell_locator": "交易!C10 monthly;B10 trading days;E10 daily average",
+      "overview_cell_locator": "概况!R9C7 float shares;R16C7 effective accounts",
+      "fundraising_cell_locator": "筹资!C11 domestic total;D11 A IPO;G11 follow-on",
+      "turnover_scope": "CSRC national Shanghai+Shenzhen cash-stock trading, all investor types; not retail net purchases",
+      "account_scope": "exact source label 股票有效帐户数; not unique people, new accounts, holding accounts, or weekly active accounts"
+    },
+    {
+      "period": "2008-06",
+      "source_id": "CSRC_MONTH_200806",
+      "published_date": "2008-07-08",
+      "source_vintage_note": "original own-month XLS",
+      "observation_start": "2008-06-02",
+      "observation_end": "2008-06-30",
+      "trading_days_official": 20,
+      "sse_actual_close_days": 20,
+      "stock_turnover_CNY_100million": 16862.64,
+      "daily_average_turnover_CNY_100million": 843.12,
+      "daily_average_recomputed_CNY_100million": 843.132,
+      "daily_average_published_minus_recomputed_CNY_100million": -0.011999999999943611,
+      "within_standard_two_decimal_rounding": false,
+      "sse_month_end_close": 2736.1,
+      "sse_month_price_return_fraction": -0.2030815384391338,
+      "float_share_count_100million": 11596.23,
+      "effective_stock_accounts_10000": 9937.35,
+      "domestic_fundraising_CNY_100million": 184.7260180336,
+      "A_share_IPO_proceeds_CNY_100million": 50.94,
+      "A_share_follow_on_proceeds_CNY_100million": 114.12145547360001,
+      "trade_cell_locator": "交易!C11 monthly;B11 trading days;E11 daily average",
+      "overview_cell_locator": "概况!R9C8 float shares;R16C8 effective accounts",
+      "fundraising_cell_locator": "筹资!C12 domestic total;D12 A IPO;G12 follow-on",
+      "turnover_scope": "CSRC national Shanghai+Shenzhen cash-stock trading, all investor types; not retail net purchases",
+      "account_scope": "exact source label 股票有效帐户数; not unique people, new accounts, holding accounts, or weekly active accounts"
+    }
+  ],
+  "participation": [
+    {
+      "evidence_id": "new_A_accounts_20070921",
+      "indicator": "gross_new_A_share_accounts",
+      "observation_start": "2007-09-21",
+      "observation_end": "2007-09-21",
+      "published_date": "2007-09-24",
+      "value": 199342,
+      "unit": "accounts/day",
+      "approximate": false,
+      "source_ids": [
+        "SIN_NEWACC20070921"
+      ],
+      "source_grade": "dated contemporary secondary report explicitly attributing CSDC",
+      "locator": "article body and historical daily table; Oct15 is '本周一' in Oct17 report",
+      "limitation": "Account openings are gross new securities accounts, not unique persons or a purchase/sale balance. A-share universe not independently split into natural persons/institutions. Shanghai and Shenzhen accounts may count one investor twice.",
+      "source_details": [
+        {
+          "source_id": "SIN_NEWACC20070921",
+          "url": "https://finance.sina.com.cn/stock/data/20070924/17554009437.shtml",
+          "published_date": "2007-09-24",
+          "sha256": "1f8b2d58df48f05d855acc1b9dea3867899c787663e99aa700aab781bdf52f62",
+          "local_path": "raw/SIN_NEWACC20070921.html",
+          "retrieved_at_utc": "2026-10-16T00:57:51.768308+00:00"
+        }
+      ]
+    },
+    {
+      "evidence_id": "new_A_accounts_20071015",
+      "indicator": "gross_new_A_share_accounts",
+      "observation_start": "2007-10-15",
+      "observation_end": "2007-10-15",
+      "published_date": "2007-10-17",
+      "value": 230000,
+      "unit": "accounts/day",
+      "approximate": true,
+      "source_ids": [
+        "SHNEWS_PREPEAK_NEWACC"
+      ],
+      "source_grade": "dated contemporary secondary report explicitly attributing CSDC",
+      "locator": "article body and historical daily table; Oct15 is '本周一' in Oct17 report",
+      "limitation": "Account openings are gross new securities accounts, not unique persons or a purchase/sale balance. A-share universe not independently split into natural persons/institutions. Shanghai and Shenzhen accounts may count one investor twice. October article's separate September monthly total has ambiguous scope and conflicts with daily-table scale; that monthly figure is excluded.",
+      "source_details": [
+        {
+          "source_id": "SHNEWS_PREPEAK_NEWACC",
+          "url": "https://finance.sina.com.cn/money/fund/20071017/03014067654.shtml",
+          "published_date": "2007-10-17",
+          "sha256": "282f43824e8f816a38de9ed38fa31a0d4dd859bb1e6c0732b14f81ba524c0eda",
+          "local_path": "raw/SHNEWS_PREPEAK_NEWACC.html",
+          "retrieved_at_utc": "2026-10-16T00:57:51.545539+00:00"
+        }
+      ]
+    },
+    {
+      "evidence_id": "new_A_accounts_20071122",
+      "indicator": "gross_new_A_share_accounts",
+      "observation_start": "2007-11-22",
+      "observation_end": "2007-11-22",
+      "published_date": "2007-11-24",
+      "value": 118776,
+      "unit": "accounts/day",
+      "approximate": false,
+      "source_ids": [
+        "THS_NEWACC20071122"
+      ],
+      "source_grade": "dated contemporary secondary report explicitly attributing CSDC",
+      "locator": "article body and historical daily table; Oct15 is '本周一' in Oct17 report",
+      "limitation": "Account openings are gross new securities accounts, not unique persons or a purchase/sale balance. A-share universe not independently split into natural persons/institutions. Shanghai and Shenzhen accounts may count one investor twice.",
+      "source_details": [
+        {
+          "source_id": "THS_NEWACC20071122",
+          "url": "https://fund.10jqka.com.cn/content/200711/24/1531989.shtml",
+          "published_date": "2007-11-24",
+          "sha256": "47a5b9ed2133543b2dc57f88f91b1cb196ea98cb23b451e46f31a525fb030fa6",
+          "local_path": "raw/THS_NEWACC20071122.html",
+          "retrieved_at_utc": "2026-10-16T00:53:47.711135+00:00"
+        }
+      ]
+    },
+    {
+      "evidence_id": "new_A_accounts_20080111",
+      "indicator": "gross_new_A_share_accounts",
+      "observation_start": "2008-01-11",
+      "observation_end": "2008-01-11",
+      "published_date": "2008-01-14",
+      "value": 128769,
+      "unit": "accounts/day",
+      "approximate": false,
+      "source_ids": [
+        "SIN_NEWACC20080111"
+      ],
+      "source_grade": "dated contemporary secondary report explicitly attributing CSDC",
+      "locator": "article body and historical daily table; Oct15 is '本周一' in Oct17 report",
+      "limitation": "Account openings are gross new securities accounts, not unique persons or a purchase/sale balance. A-share universe not independently split into natural persons/institutions. Shanghai and Shenzhen accounts may count one investor twice.",
+      "source_details": [
+        {
+          "source_id": "SIN_NEWACC20080111",
+          "url": "https://finance.sina.com.cn/stock/data/20080114/17304402882.shtml",
+          "published_date": "2008-01-14",
+          "sha256": "21c1c80bb430af282c6a57089e1e2a1fe7b7df44b102cb556bf705dc4cb113dc",
+          "local_path": "raw/SIN_NEWACC20080111.html",
+          "retrieved_at_utc": "2026-10-16T00:53:47.730699+00:00"
+        }
+      ]
+    },
+    {
+      "evidence_id": "active_A_accounts_20080114_18",
+      "indicator": "A_share_accounts_participating_in_trades_during_week",
+      "observation_start": "2008-01-14",
+      "observation_end": "2008-01-18",
+      "published_date": "2008-01-24",
+      "original_release_date_reported": "2008-01-22",
+      "value": 20818000,
+      "unit": "accounts/week",
+      "source_ids": [
+        "CAIJING_ACTIVE20080118"
+      ],
+      "source_grade": "dated contemporary secondary report attributing CSDC",
+      "locator": "2008年1月14日至1月18日参与交易的A股账户数2081.8万户",
+      "limitation": "Trading at least once during week, not net buyers or unique persons. No consistent pre-October active-account series retained; cannot establish pre-peak turning point.",
+      "source_details": [
+        {
+          "source_id": "CAIJING_ACTIVE20080118",
+          "url": "https://finance.sina.com.cn/roll/20080124/09011958362.shtml",
+          "published_date": "2008-01-24",
+          "sha256": "bd26736ad85d431cdf0728f12b3dd0348052e52fa70453c492b8ebc5655e03ff",
+          "local_path": "raw/CAIJING_ACTIVE20080118.html",
+          "retrieved_at_utc": "2026-10-16T00:57:51.628274+00:00"
+        }
+      ]
+    },
+    {
+      "evidence_id": "holding_A_accounts_20080118",
+      "indicator": "A_share_accounts_with_holdings_at_week_end",
+      "observation_start": "2008-01-18",
+      "observation_end": "2008-01-18",
+      "published_date": "2008-01-24",
+      "original_release_date_reported": "2008-01-22",
+      "value": 43958400,
+      "unit": "accounts",
+      "source_ids": [
+        "CAIJING_ACTIVE20080118"
+      ],
+      "source_grade": "dated contemporary secondary report attributing CSDC",
+      "locator": "截至1月18日;沪深持仓A股账户4395.84万户;first disclosed Jan22 according to article",
+      "limitation": "Stock of holding accounts, not active accounts or net flow; no pre-peak comparison. Article's fund-account number '2.22亿' appears erroneous and is excluded.",
+      "source_details": [
+        {
+          "source_id": "CAIJING_ACTIVE20080118",
+          "url": "https://finance.sina.com.cn/roll/20080124/09011958362.shtml",
+          "published_date": "2008-01-24",
+          "sha256": "bd26736ad85d431cdf0728f12b3dd0348052e52fa70453c492b8ebc5655e03ff",
+          "local_path": "raw/CAIJING_ACTIVE20080118.html",
+          "retrieved_at_utc": "2026-10-16T00:57:51.628274+00:00"
+        }
+      ]
+    },
+    {
+      "evidence_id": "saver_stock_preference_2007Q4",
+      "indicator": "survey_stock_purchase_preference_change_vs_Q3",
+      "observation_start": "2007-11-11",
+      "observation_end": "2007-11-30",
+      "observation_date_precision": "source says mid/late November; day 11/30 are broad calendar bounds, not exact fieldwork dates",
+      "published_date": "2007-12-21",
+      "original_release_date_reported": "2007-12-20",
+      "value": -8.5,
+      "unit": "percentage_points",
+      "source_ids": [
+        "XIN_SURVEY2007Q4"
+      ],
+      "source_grade": "dated Xinhua secondary report of PBC survey; original survey release not retained",
+      "locator": "50 cities;20,000 valid questionnaires;11月中下旬;股票最合算占比比上季度下跌8.5个百分点",
+      "limitation": "Stated preference, not realized purchases/sales; survey observed after Oct16 peak and after decline had begun. Cannot prove preference decline led peak.",
+      "source_details": [
+        {
+          "source_id": "XIN_SURVEY2007Q4",
+          "url": "https://finance.sina.com.cn/stock/t/20071221/11154321816.shtml",
+          "published_date": "2007-12-21",
+          "sha256": "9c9bb2620aef2972c1d1d05b7c3c0c2ed035f15e5f3b5dd8195729ada58d1a0a",
+          "local_path": "raw/XIN_SURVEY2007Q4.html",
+          "retrieved_at_utc": "2026-10-16T00:57:51.544249+00:00"
+        }
+      ]
+    },
+    {
+      "evidence_id": "effective_accounts_20071231",
+      "indicator": "effective_stock_accounts",
+      "observation_start": "2007-12-31",
+      "observation_end": "2007-12-31",
+      "published_date": "2008-02-11",
+      "value": 92805900,
+      "unit": "accounts",
+      "source_ids": [
+        "CSRC_MONTH_200801"
+      ],
+      "source_grade": "official original monthly XLS",
+      "locator": "概况!B16:2007年;股票有效帐户数(万户)9280.59",
+      "limitation": "Effective account stock after dormant segregation, not unique investors or gross openings. Jan2008 value is 94,789,900; difference is not identified retail purchases.",
+      "source_details": [
+        {
+          "source_id": "CSRC_MONTH_200801",
+          "url": "https://www.csrc.gov.cn/csrc/c105936/c1004297/content.shtml",
+          "published_date": "2008-02-11",
+          "sha256": "7a4c2ae5b3b0489fd59f48b26ea5600f7fd039d09dbed810af760aee615f33fd",
+          "local_path": "raw/CSRC_MONTH_200801.xls",
+          "retrieved_at_utc": "2026-10-16T00:55:57.904967+00:00"
+        }
+      ]
+    }
+  ],
+  "computed_daily_average_turnover_changes_fraction": {
+    "2007-05_to_2007-07": -0.5411701835282621,
+    "2007-07_to_2007-08": 0.5812263315873893,
+    "2007-08_to_2007-09": -0.025856118257121863,
+    "2007-09_to_2007-10": -0.1565193721077941,
+    "2007-10_to_2007-11": -0.4137212113761167,
+    "2007-11_to_2007-12": 0.26996706013927363,
+    "2007-12_to_2008-01": 0.45513213025201416
+  },
+  "monetary_stock_growth_context": {
+    "source_id": "pbc_policy_2007q4",
+    "pdf_page_1based": 2,
+    "observation_end": "2007-12-31",
+    "M2_yoy_percent": 16.7,
+    "RMB_loans_yoy_percent": 16.1,
+    "interpretation": "Tighter policy did not mean an absolute contraction in outstanding money or credit."
+  },
+  "share_supply_context": {
+    "source_id": "CSRC_UNLOCK_DISCLOSURE",
+    "published_date": "2008-08-15",
+    "locator": "证监会答记者问;大小非 question;三是从2008年7月起...开始逐月披露",
+    "reported_start_of_monthly_unlocked_share_sales_disclosure": "2008-07",
+    "interpretation": "CSRC says CSDC began monthly major/minor nontradable-share-holder reduction disclosure in July2008. This source does not provide an Oct2007-Jan2008 monthly realized-sales panel; none is inferred from float-share stock changes."
+  },
+  "verdicts": [
+    {
+      "hypothesis": "Tightening began only after the October stock peak",
+      "verdict": "contradicted",
+      "basis": "Five of six 2007 benchmark-rate hikes and seven of ten effective RRR hikes preceded Oct16. Oct13 RRR announcement preceded peak; its Oct25 effective date followed peak."
+    },
+    {
+      "hypothesis": "Tightening continued as prices fell",
+      "verdict": "verified chronology, causal share unidentified",
+      "basis": "Nov26 and Dec25 RRR rises, Dec21 rate hike, Dec5 tight-stance announcement and H1 2008 RRR rises followed Oct16 peak. Equity-specific stamp duty eased Apr24 while RRR tightened Apr25."
+    },
+    {
+      "hypothesis": "Market trading activity weakened before peak",
+      "verdict": "verified but non-monotonic",
+      "basis": "Daily-average turnover fell May-to-July, recovered August, eased September; October straddles peak and cannot locate intramonth change."
+    },
+    {
+      "hypothesis": "Trading activity weakened after peak",
+      "verdict": "verified for Oct-Nov; not monotonic afterward",
+      "basis": "Nov average below Oct; Dec and Jan recovered. January market fell 16.69% despite higher turnover."
+    },
+    {
+      "hypothesis": "Retail net purchases turned negative before peak",
+      "verdict": "unconfirmed",
+      "basis": "No original monthly natural-person buy/sell split was retained. Gross openings, effective/holding/active-account stocks, survey preference and all-investor turnover do not identify signed retail flow."
+    },
+    {
+      "hypothesis": "Falling new accounts identifies retail exit",
+      "verdict": "not identified",
+      "basis": "Daily scattered observations are new-account flows, not sales or account closures; prepeak Oct15 openings were reported up. No continuous series or predeclared change-point test is supported."
+    },
+    {
+      "hypothesis": "Share supply pressure rose around peak",
+      "verdict": "fundraising/float stocks verified; actual unlock sales/causal impact unconfirmed",
+      "basis": "Official monthly IPO/follow-on proceeds and float-share totals are distinct. Float changes can include issuance/conversion/coverage changes; they do not measure insiders' realized selling."
+    },
+    {
+      "hypothesis": "Nationwide account totals prove the entire population bought",
+      "verdict": "unsupported",
+      "basis": "Accounts are not unique persons; dormant accounts and cross-exchange double counts matter. Oct8 segregation of20.23m dormant accounts is a structural break, not mass current-investor liquidation."
+    }
+  ],
+  "limitations": [
+    "Descriptive timing is not a controlled causal event study. Anticipation, inflation, earnings, issuance and global shocks confound effects.",
+    "Monthly observations mix days before/after Oct16; month-end reports become public later. Observation time and release time are both retained.",
+    "All-investor national stock turnover is not a direct Shanghai-only or retail-flow measure. CSRC reported trading-day counts equal actual SSE close counts in all18 months; Shenzhen daily calendar was not independently retrieved, so exact daily holiday identity is not claimed.",
+    "Some original XLS published daily averages differ from monthly total divided by trading days by more than standard 2-decimal rounding (max0.018333 CNY100million/day). Both values and exact differences are retained; report/source comparisons use the published values consistently, without silent correction.",
+    "Dated contemporary press is used only where CSDC original pages were not recovered; daily samples do not form a complete time series.",
+    "Annual retail net-flow totals, even if positive or negative, cannot establish the month of a reversal; none are used to time it.",
+    "CSRC_AR2007 downloaded PDF is a current navigation-page PDF, not the requested report, and is invalid/excluded. CSDC_AR2006 and PBOC_DEC20_QA direct retrieval failed; their bytes/search snippets are not primary evidence.",
+    "All rate announcements are date-level; no event-return causality or intraday tradability is inferred. First-session alignment is a calendar label only, not a same-day response estimate."
+  ]
+}

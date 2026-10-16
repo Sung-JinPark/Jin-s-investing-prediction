@@ -1,0 +1,865 @@
+{
+  "review_as_of": "2026-10-12T09:16:14+09:00",
+  "scope": "Independent Decimal arithmetic and evidence-contract review; no original changes",
+  "status": "pass_with_explicit_data_limits",
+  "checks": [
+    {
+      "name": "explicit_units",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "hypothetical_separate_role",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "calendar_days_83",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "weights_bounds_sum",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "unique_source_ids",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "SOXX_source_refs",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "SOXX_bull_decimal_arithmetic",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "SOXX_bull_ordered_bounds",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "SOXX_bull_split_cash_reconcile",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "SOXX_base_decimal_arithmetic",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "SOXX_base_ordered_bounds",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "SOXX_base_split_cash_reconcile",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "SOXX_bear_decimal_arithmetic",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "SOXX_bear_ordered_bounds",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "SOXX_bear_split_cash_reconcile",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "SOXX_weighted_decimal",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "GRID_source_refs",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "GRID_bull_decimal_arithmetic",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "GRID_bull_ordered_bounds",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "GRID_bull_split_cash_reconcile",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "GRID_base_decimal_arithmetic",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "GRID_base_ordered_bounds",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "GRID_base_split_cash_reconcile",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "GRID_bear_decimal_arithmetic",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "GRID_bear_ordered_bounds",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "GRID_bear_split_cash_reconcile",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "GRID_weighted_decimal",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "XLC_source_refs",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "XLC_bull_decimal_arithmetic",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "XLC_bull_ordered_bounds",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "XLC_bull_split_cash_reconcile",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "XLC_base_decimal_arithmetic",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "XLC_base_ordered_bounds",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "XLC_base_split_cash_reconcile",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "XLC_bear_decimal_arithmetic",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "XLC_bear_ordered_bounds",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "XLC_bear_split_cash_reconcile",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "XLC_weighted_decimal",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "IGV_source_refs",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "IGV_bull_decimal_arithmetic",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "IGV_bull_ordered_bounds",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "IGV_bull_split_cash_reconcile",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "IGV_base_decimal_arithmetic",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "IGV_base_ordered_bounds",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "IGV_base_split_cash_reconcile",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "IGV_bear_decimal_arithmetic",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "IGV_bear_ordered_bounds",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "IGV_bear_split_cash_reconcile",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "IGV_weighted_decimal",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "SPY_source_refs",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "SPY_bull_decimal_arithmetic",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "SPY_bull_ordered_bounds",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "SPY_bull_split_cash_reconcile",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "SPY_base_decimal_arithmetic",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "SPY_base_ordered_bounds",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "SPY_base_split_cash_reconcile",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "SPY_bear_decimal_arithmetic",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "SPY_bear_ordered_bounds",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "SPY_bear_split_cash_reconcile",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "SPY_weighted_decimal",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "SOXX_excess_benchmark",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "GRID_excess_benchmark",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "XLC_excess_benchmark",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "IGV_excess_benchmark",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "SPY_excess_benchmark",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "weight_grid_0",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "weight_grid_1",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "weight_grid_2",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "weight_grid_3",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "weight_grid_4",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "weight_grid_5",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "weight_grid_6",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "weight_grid_7",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "weight_grid_8",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "weight_grid_9",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "weight_grid_10",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "weight_grid_11",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "weight_grid_12",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "weight_grid_13",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "weight_grid_14",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "weight_grid_15",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "16_grid_counts_not_probability",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "stress_SOXX_-0.02_0_False",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "stress_SOXX_0.02_0_False",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "stress_SOXX_0_-0.03_False",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "stress_SOXX_0_0.03_False",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "stress_SOXX_0_0_True",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "stress_GRID_-0.02_0_False",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "stress_GRID_0.02_0_False",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "stress_GRID_0_-0.03_False",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "stress_GRID_0_0.03_False",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "stress_GRID_0_0_True",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "stress_XLC_-0.02_0_False",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "stress_XLC_0.02_0_False",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "stress_XLC_0_-0.03_False",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "stress_XLC_0_0.03_False",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "stress_XLC_0_0_True",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "stress_IGV_-0.02_0_False",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "stress_IGV_0.02_0_False",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "stress_IGV_0_-0.03_False",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "stress_IGV_0_0.03_False",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "stress_IGV_0_0_True",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "stress_SPY_-0.02_0_False",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "stress_SPY_0.02_0_False",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "stress_SPY_0_-0.03_False",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "stress_SPY_0_0.03_False",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "stress_SPY_0_0_True",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "fx_-0.05",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "fx_0",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "fx_0.05",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "12_previous_prices",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "quote_availability_null_not_close_time",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "new_session_uncertified_preserved",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "availability_unverified_sources_remain_labelled",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "input_hashes_match_validation",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "public_scores_reconciled",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "scenario_calculations.csv_well_formed",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "sector_comparison.csv_well_formed",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "theme_comparison.csv_well_formed",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "sensitivity.csv_well_formed",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "driver_sensitivity.csv_well_formed",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "review_read_inputs_unchanged",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "242_originals_still_unchanged",
+      "pass": true,
+      "detail": []
+    },
+    {
+      "name": "report_case_numbers_SOXX",
+      "pass": true,
+      "detail": "| SOXX | +16.5~+30.0% | +0.7~+13.4% | -27.4~-16.5% | +4.6% | +3.9%p |"
+    },
+    {
+      "name": "report_case_numbers_GRID",
+      "pass": true,
+      "detail": "| GRID | +10.1~+23.3% | +2.3~+11.9% | -20.3~-8.8% | +4.6% | +3.9%p |"
+    },
+    {
+      "name": "report_case_numbers_XLC",
+      "pass": true,
+      "detail": "| XLC | +10.2~+23.5% | +3.0~+13.7% | -24.6~-11.5% | +4.4% | +3.6%p |"
+    },
+    {
+      "name": "report_case_numbers_IGV",
+      "pass": true,
+      "detail": "| IGV | +12.2~+29.6% | -0.1~+12.3% | -31.7~-15.8% | +2.9% | +2.2%p |"
+    },
+    {
+      "name": "report_case_numbers_SPY",
+      "pass": true,
+      "detail": "| SPY | +5.0~+15.8% | -2.1~+8.4% | -21.9~-8.7% | +0.7% | 0.0%p |"
+    },
+    {
+      "name": "report_hypothetical_role",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "report_joint_priority",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "report_no_winning_probability",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "report_no_future_result_leakage",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "report_PE_definitions",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "report_quote_caveat",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "report_vintage_limit",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "report_bucket_limits",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "report_korea_numbers_withheld",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "report_proxy_labels",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "SOXX_published_fee_source_match",
+      "pass": true,
+      "detail": {
+        "annual_fraction": 0.0033,
+        "source_fraction": 0.0033
+      }
+    },
+    {
+      "name": "GRID_published_fee_source_match",
+      "pass": true,
+      "detail": {
+        "annual_fraction": 0.0056,
+        "source_fraction": 0.005600000000000001
+      }
+    },
+    {
+      "name": "XLC_published_fee_source_match",
+      "pass": true,
+      "detail": {
+        "annual_fraction": 0.0008,
+        "source_fraction": 0.0008
+      }
+    },
+    {
+      "name": "IGV_published_fee_source_match",
+      "pass": true,
+      "detail": {
+        "annual_fraction": 0.0038,
+        "source_fraction": 0.0038
+      }
+    },
+    {
+      "name": "SPY_published_fee_source_match",
+      "pass": true,
+      "detail": {
+        "annual_fraction": 0.000945,
+        "source_fraction": 0.000945
+      }
+    },
+    {
+      "name": "SOXX_direct_split_source_added",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "SOXX_yield_source_unit_date_added",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "report_distribution_yield_wording_resolved",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "report_v8_v13_direct_data_link_added",
+      "pass": true,
+      "detail": null
+    }
+  ],
+  "n_checks": 147,
+  "errors": [],
+  "source_sha256": {
+    "calculations.py": "83d02ee8703630b6328e1f330e45fbb3ba475848bc85c83cb5074ab90509f391",
+    "assumptions.json": "1eb0a6377f33d641e729a6873e7d4ac1a13191d61e8e6f33fc5f54b2f7caeb06",
+    "scenario_results.json": "fa4e1192c2a805756a1391a8c1c3b063d7af483025466b54b64b7edb1693d5d4",
+    "validation.json": "232907960c849d74cf073ea9c74c307d0d112b53f49fa187412cbe9bd44125af",
+    "closing_quotes.json": "41aa058135fa10a5299a697a5cfd003dcd584738fa46fb2b239d34461fefe4fa",
+    "issuer_observations.json": "d0844d0400ac761d40a3bd41e02467fa6c180c4efc36b206704e3522dfbf9e81",
+    "source_manifest.json": "31201f5e193d6916748f4f472c29fd28f7d8188f2449111cbb01d1b823487715",
+    "internal_audit.json": "3fb1149a4ac10e26313233f55035549f11e6b6a31c4e61c145954784e86b6a04",
+    "evidence_us_tech.json": "7f8b7cad32ab64e7bf2ef4881746ffec190e67b842f7e705a6d8b5c69aa3e259",
+    "evidence_us_macro_sectors.json": "45c8b1f7a4830b701b188c39bc27286c05660ecc0d3393cf6fe51886c2be0bf9",
+    "evidence_korea.json": "4e6ed0282366ac7f3de2703a1bcf2bdec7c714d0f1329063826b544163dbf874",
+    "scenario_calculations.csv": "29a42738452ffeb96098053ef49c7acfebfa0fd243c1736ed181173c5fd059a2",
+    "sector_comparison.csv": "25dd1b599b6ca0d8fcfd71353892f5c3e7cf7824dd6410de6c8b9a6bbc72f44f",
+    "theme_comparison.csv": "06bdba480a867f21447d87ef48e566693b1decacebbf95fbb12713c55f6c5211",
+    "sensitivity.csv": "ee321d6be78744373f78f6a9d25ebd7ffc600248e8af66fade824b76ae104bfc",
+    "driver_sensitivity.csv": "c373f437bedcb100b968ac64cc2dcb1e0fb0dd489d7bbd556a9265864c3e9f4c",
+    "report.md": "f16c2d7014fad3466162c0b4dd1537a0b321ed013d043ca4cb58b1fb1932da2a",
+    "README.md": "c185438b46bd470b631a7266f263312ab7db02068aa174e484f52405974a6e7d",
+    "review_notes.md": "79f476fd2d2c946ba39bf58ce5d631c3b8a4750d8ae95b7329d2f03d732b82f6",
+    "test_calculations.py": "e8d98680d0bb9f0273a74f0760e41d1c514150f006755eccf7a52866f20f72a9",
+    "validation.md": "a330e3ea44faec72701352cf5de327c45d5640bdd531d951c8b9615ac563d72c",
+    "korea_price_crosscheck.json": "6d6379bf9ce78fae19b444427a7d70f1a326dabee7ce8ee4de0f496c0de12732",
+    "korea_price_crosscheck.md": "497e6dffaed1af61b72ac9a36f2bbe2881a99952a4dd200076e586b8ff082619",
+    "sector_research_matrix.csv": "7c7f1bc20ceed1e71edb2e25e53f362bdcbd5ded7c1f477ebf847efd19b4b4bb",
+    "sector_research_matrix.json": "4b081b43ab6537e0a00614f5f74474045bd46cbfb13e00056af301e10d934b6f"
+  },
+  "independent_results": {
+    "SOXX": {
+      "mid": 0.04605958904109589,
+      "low": -0.01565041095890411,
+      "high": 0.10870958904109589
+    },
+    "GRID": {
+      "mid": 0.045996575342465755,
+      "low": -0.009960924657534247,
+      "high": 0.10123907534246575
+    },
+    "XLC": {
+      "mid": 0.04350508219178082,
+      "low": -0.017271917808219177,
+      "high": 0.10310508219178083
+    },
+    "IGV": {
+      "mid": 0.029365890410958904,
+      "low": -0.04323410958904109,
+      "high": 0.1045858904109589
+    },
+    "SPY": {
+      "mid": 0.007433109589041096,
+      "low": -0.0489298904109589,
+      "high": 0.06306810958904109
+    }
+  },
+  "grid_highest_counts": {
+    "XLC": 1,
+    "GRID": 9,
+    "SOXX": 6
+  },
+  "grid_counts_are_not_probabilities": true,
+  "publication_vintage_certification": false,
+  "official_forecast_writes": 0,
+  "report_review": "final_report_numbers_definitions_citations_and_venue_caveats_confirmed",
+  "findings": [
+    {
+      "status": "resolved",
+      "severity": "documentation_provenance",
+      "issue": "SOXX split source ID linkage",
+      "resolution": "TECH-SOXX-SPLIT is now linked in assumptions asset.source_ids and cited in report."
+    },
+    {
+      "status": "resolved",
+      "severity": "documentation_provenance",
+      "issue": "Published fee and yield numerical source records",
+      "resolution": "Issuer annual expense fraction stored, all five fee values match published reference; SOXX trailing yield value/unit/date/URL stored in assumptions dividend_proxy_source; publication vintage remains unverified."
+    },
+    {
+      "status": "resolved",
+      "severity": "wording",
+      "issue": "Annual return vs distribution yield wording",
+      "resolution": "Report says trailing 365-day distribution yield."
+    },
+    {
+      "status": "resolved",
+      "severity": "citation",
+      "issue": "Direct V8/V13 source URL",
+      "resolution": "Report distinguishes public data.json model source from future_paths.json structural source."
+    }
+  ],
+  "limitations": [
+    "Passing arithmetic does not certify sector-return predictive skill, choice of scenario inputs or calibrated case weights.",
+    "GRID is a global US-listed proxy; XLC is broad communication services; both overlap other baskets.",
+    "Sensitivity compares selected discrete assumptions, not empirical outcome frequencies."
+  ],
+  "final_reconfirmation": {
+    "prior_arithmetic_results_unchanged": true,
+    "grid_counts_unchanged": true,
+    "current_validation_input_hashes_match": true,
+    "documentation_hash_refresh_pending_root_final_edit": false,
+    "protected_originals_rechecked": 242,
+    "protected_originals_unchanged": true,
+    "korean_price_candidates_not_calculation_inputs": true,
+    "root_final_documents_reviewed": true,
+    "final_matrix_links_reviewed": true,
+    "last_change_was_documentation_links_only": true
+  }
+}

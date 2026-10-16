@@ -1,0 +1,156 @@
+schema_version: 4
+contract_id: multivariate_timeseries_v4
+model_id: shadow.nasdaq_pit_market_event_distribution_v4
+model_version: 4
+status: preregistered_research_candidate
+inherits:
+  v2_market_and_macro_ledgers_read_only: true
+  v3_fixed_comparator_read_only: true
+  v3_gate_thresholds_unchanged: true
+target:
+  series_id: NASDAQCOM
+  transform: direct_cumulative_log_return
+  horizons_sessions: [1, 5, 21, 63]
+probability_contract:
+  stored_unit: fraction
+  bounds: [0.0, 1.0]
+  space: research_timeseries_v4_conditional
+  combine_with_official_forecasts: false
+  combine_with_scenario_v5_2: false
+source_policy:
+  raw_before_derived: true
+  append_only_observations: true
+  available_at_must_not_exceed_origin: true
+  current_vintage_backfill: prohibited
+  grades:
+    - reconstructed_market_archive
+    - reconstructed_official_forecast_archive
+    - captured_forward
+    - licensed_historical
+  sources:
+    cboe_vix9d:
+      role: numeric
+      series: [VIX9D]
+      grade: reconstructed_market_archive
+    cboe_vix3m:
+      role: numeric
+      series: [VIX3M]
+      grade: reconstructed_market_archive
+    cboe_vvix:
+      role: numeric
+      series: [VVIX]
+      grade: reconstructed_market_archive
+    cboe_skew:
+      role: numeric
+      series: [SKEW]
+      grade: reconstructed_market_archive
+    cboe_us_equity_volume:
+      role: numeric
+      series: [US_EQ_TOTAL_NOTIONAL, US_EQ_TAPE_C_NOTIONAL_SHARE, US_EQ_OFF_EXCHANGE_NOTIONAL_SHARE, US_EQ_TOTAL_TRADES]
+      grade: reconstructed_market_archive
+    fred_nasdaq100:
+      role: numeric_internal_only
+      series: [NASDAQ100]
+      grade: reconstructed_market_archive
+      redistribution: private_locator_only
+    cleveland_fed_inflation_nowcast:
+      role: numeric_event_state
+      series: [CPI, CORE_CPI, PCE, CORE_PCE]
+      grade: reconstructed_official_forecast_archive
+    philadelphia_fed_spf:
+      role: numeric_event_state
+      series: [EMP, CPI, UNEMP, RECESS]
+      grade: reconstructed_official_forecast_archive
+    cme_fedwatch:
+      role: numeric_event_state
+      grade: captured_forward
+      historical_backfill: licensed_api_required
+      numeric_history_before_receipt: prohibited
+feature_blocks:
+  volatility_term:
+    - log_vix9d_vix3m
+    - log_vix_vix3m
+    - log_vvix_change_5d
+    - skew_level
+    - skew_change_5d
+  breadth_and_concentration:
+    - nasdaq100_to_composite_relative_strength_21d
+    - tape_c_notional_share
+    - off_exchange_notional_share
+    - log_total_notional_change_21d
+    - log_total_trades_change_21d
+  event_expectations:
+    - cleveland_cpi_nowcast
+    - cleveland_core_cpi_nowcast
+    - spf_employment_mean
+    - spf_employment_dispersion
+    - spf_recession_probability
+    - fedwatch_path_entropy
+model_use:
+  minimum_history_by_feature: 60
+  insufficient_history_action: event_overlay_or_zero_weight_with_reason
+  future_event_actual: prohibited
+  missing_required_core_feature: fail_closed
+  no_silent_imputation: true
+distributional_calibrator:
+  predecessor_distribution: shadow.nasdaq_direct_regime_distribution_v3
+  predecessor_replay_required: true
+  anomaly_history_sessions: 2520
+  anomaly_minimum_observations: 60
+  anomaly_aggregation_quantile: 0.75
+  anomaly_thresholds: [0.80, 0.95]
+  centered_scale_by_band: [0.85, 1.10, 1.60]
+  incomplete_core_action: fixed_comparator_only
+  incomplete_core_centered_scale: 1.02
+  input_features:
+    - vix_level
+    - log_vix9d_vix3m
+    - log_vvix_change_5d
+    - skew_change_5d
+    - nasdaq100_to_composite_relative_strength_21d
+    - tape_c_notional_share
+    - off_exchange_notional_share
+    - log_total_notional_change_21d
+    - log_total_trades_change_21d
+    - cleveland_cpi_nowcast
+    - cleveland_core_cpi_nowcast
+    - cleveland_pce_nowcast
+    - cleveland_core_pce_nowcast
+    - spf_employment_mean
+    - spf_employment_dispersion
+    - spf_cpi_mean
+    - spf_cpi_dispersion
+    - spf_unemployment_mean
+    - spf_unemployment_dispersion
+    - spf_recession_probability
+  captured_event_minimum: 60
+  captured_event_below_minimum_weight: 0.0
+evaluation:
+  history_role: research_pseudo_oos
+  outer_start: 2007-01-01
+  origin_frequency: weekly_last_completed_session
+  purge_sessions: 63
+  embargo_sessions: 5
+  fixed_comparator: fixed_anchor_ensemble_v3
+research_gate:
+  pit_leakage_count: 0
+  lineage_linkage: 1.0
+  long_horizon_mean_crps_improvement_min: 0.02
+  each_long_horizon_improvement_positive: true
+  paired_bootstrap_ci_upper_max: 0.0
+  sign_side_max_underperformance: 0.05
+  extreme_move_q4_p10_p90_coverage_min: 0.65
+  extreme_move_q4_not_worse_than_baseline: true
+  stress_regime_coverage_min: 0.70
+publication:
+  customer_numbers_visible_before_all_gates: false
+  automatic_champion: false
+  fallback_to_other_forecast: prohibited
+prohibitions:
+  mutate_v1_v2_v3: true
+  lower_gate: true
+  row_wise_oracle: true
+  future_actual: true
+  silent_imputation: true
+  official_forecast_write: true
+  automatic_investment_execution: true

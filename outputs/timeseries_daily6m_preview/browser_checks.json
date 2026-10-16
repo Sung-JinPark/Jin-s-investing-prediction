@@ -1,0 +1,20 @@
+[
+  {
+    "width": 1280,
+    "page_errors": [],
+    "six_month_endpoint": "2026-10-09 → 2027-04-09 · 124거래일 · 마지막 가운데 예상 23,545",
+    "one_month_endpoint": "2026-10-09 → 2026-11-09 · 21거래일 · 마지막 가운데 예상 23,125",
+    "sample_count": 5,
+    "keyboard_changed_readout": true,
+    "body_overflow": false
+  },
+  {
+    "width": 390,
+    "page_errors": [],
+    "six_month_endpoint": "2026-10-09 → 2027-04-09 · 124거래일 · 마지막 가운데 예상 23,545",
+    "one_month_endpoint": "2026-10-09 → 2026-11-09 · 21거래일 · 마지막 가운데 예상 23,125",
+    "sample_count": 5,
+    "keyboard_changed_readout": true,
+    "body_overflow": false
+  }
+]

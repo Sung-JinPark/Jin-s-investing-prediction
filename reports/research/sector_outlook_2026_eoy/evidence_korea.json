@@ -1,0 +1,1102 @@
+{
+  "schema_version": 1,
+  "research_as_of": "2026-10-12T09:16:14+09:00",
+  "artifact_role": "separate research evidence; never official forecast",
+  "probability_unit": "fraction [0,1]; no inferred or calibrated sector probabilities in this file",
+  "currency": "KRW for Korean equity returns",
+  "sources": [
+    {
+      "source_id": "KR-001",
+      "url": "https://news.samsung.com/global/samsung-electronics-announces-earnings-guidance-for-third-quarter-2026",
+      "title": "Samsung Electronics Announces Earnings Guidance for Third Quarter 2026",
+      "publisher": "Samsung Electronics",
+      "published_at": "2026-10-08",
+      "data_as_of": "2026-09-30",
+      "retrieved_at": "2026-10-12T00:26:09Z",
+      "retrieved_at_basis": "batch evidence record time after examination; original per-tool timestamps not independently retained",
+      "available_at": "2026-10-08T23:59:59+09:00",
+      "availability_basis": "Dated publisher original; conservative end-of-publication-day bound precedes research cutoff",
+      "lookahead_status": "eligible_before_cutoff",
+      "horizon": "2026Q3 preliminary guidance",
+      "source_type": "primary",
+      "dedup_group": "KR-001",
+      "extraction_method": "web_search_then_open",
+      "claims": [
+        "삼성전자 3분기 잠정 연결 매출과 영업이익이 전분기보다 증가했다. 세부 사업부 결과는 이 자료에 없다."
+      ],
+      "numeric_definitions": {
+        "consolidated_sales": {
+          "value": 195,
+          "unit": "KRW trillion",
+          "kind": "company_guidance",
+          "fiscal_period": "2026Q3"
+        },
+        "consolidated_operating_profit": {
+          "value": 107.4,
+          "unit": "KRW trillion",
+          "kind": "company_guidance",
+          "fiscal_period": "2026Q3"
+        },
+        "sales_guidance_range": {
+          "low": 194,
+          "high": 196,
+          "unit": "KRW trillion"
+        },
+        "operating_profit_guidance_range": {
+          "low": 107.3,
+          "high": 107.5,
+          "unit": "KRW trillion"
+        }
+      },
+      "limitations": [
+        "10/29 상세 실적 발표는 컷오프 이후이며 이 연구에는 포함하지 않는다.",
+        "잠정 가이던스이고 주가 상승률이 아니다."
+      ]
+    },
+    {
+      "source_id": "KR-002",
+      "url": "https://news.samsung.com/global/samsung-electronics-announces-second-quarter-2026-results",
+      "title": "Samsung Electronics Announces Second Quarter 2026 Results",
+      "publisher": "Samsung Electronics",
+      "published_at": "2026-07-30",
+      "data_as_of": "2026-06-30",
+      "retrieved_at": "2026-10-12T00:26:09Z",
+      "retrieved_at_basis": "batch evidence record time after examination; original per-tool timestamps not independently retained",
+      "available_at": "2026-07-30T23:59:59+09:00",
+      "availability_basis": "Dated publisher original; conservative end-of-publication-day bound precedes research cutoff",
+      "lookahead_status": "eligible_before_cutoff",
+      "horizon": "2026Q2 reported and H2 company outlook",
+      "source_type": "primary",
+      "dedup_group": "KR-002",
+      "extraction_method": "web_search_then_open",
+      "claims": [
+        "메모리 실적과 HBM4 판매 확대가 DS 성장을 이끌었다. 회사는 하반기 서버 DRAM·eSSD·HBM 수요 강세와 공급 제약을 예상한다.",
+        "DX는 부품원가 및 소비수요 압력을 받았으므로 삼성전자 전체를 순수 HBM 기업으로 취급하지 않는다."
+      ],
+      "numeric_definitions": {
+        "consolidated_revenue": {
+          "value": 171.5,
+          "unit": "KRW trillion",
+          "kind": "reported",
+          "fiscal_period": "2026Q2"
+        },
+        "consolidated_operating_profit": {
+          "value": 89.5,
+          "unit": "KRW trillion",
+          "kind": "reported_rounded",
+          "fiscal_period": "2026Q2"
+        },
+        "ds_revenue": {
+          "value": 127.5,
+          "unit": "KRW trillion",
+          "kind": "reported",
+          "fiscal_period": "2026Q2"
+        },
+        "ds_operating_profit": {
+          "value": 89.2,
+          "unit": "KRW trillion",
+          "kind": "reported",
+          "fiscal_period": "2026Q2"
+        }
+      },
+      "limitations": [
+        "사업부 내부거래 때문에 매출을 단순 합산하지 않는다.",
+        "H2 전망은 회사의 미래 진술이며 확정 수요가 아니다."
+      ]
+    },
+    {
+      "source_id": "KR-003",
+      "url": "https://news.skhynix.com/en/q2-2026-business-results/",
+      "title": "SK hynix Announces 2Q26 Financial Results",
+      "publisher": "SK hynix",
+      "published_at": "2026-07-29",
+      "data_as_of": "2026-06-30",
+      "retrieved_at": "2026-10-12T00:26:09Z",
+      "retrieved_at_basis": "batch evidence record time after examination; original per-tool timestamps not independently retained",
+      "available_at": "2026-07-29T23:59:59+09:00",
+      "availability_basis": "Dated publisher original; conservative end-of-publication-day bound precedes research cutoff",
+      "lookahead_status": "eligible_before_cutoff",
+      "horizon": "2026Q2 preliminary; H2 ramp outlook",
+      "source_type": "primary",
+      "dedup_group": "KR-003",
+      "extraction_method": "web_search_then_open",
+      "claims": [
+        "AI 서버 제품 가격·믹스가 개선됐고 HBM4 대량 출하는 2분기에 시작되어 하반기 확대를 계획한다.",
+        "약 10개 고객과 장기계약을 체결했다고 발표했다. 321단 NAND 국내 생산비중을 연말 약 절반으로 높일 계획이다."
+      ],
+      "numeric_definitions": {
+        "revenue": {
+          "value": 79.3187,
+          "unit": "KRW trillion",
+          "kind": "preliminary_reported",
+          "fiscal_period": "2026Q2"
+        },
+        "operating_profit": {
+          "value": 60.5426,
+          "unit": "KRW trillion",
+          "kind": "preliminary_reported",
+          "fiscal_period": "2026Q2"
+        },
+        "net_income": {
+          "value": 93.9226,
+          "unit": "KRW trillion",
+          "kind": "preliminary_reported",
+          "fiscal_period": "2026Q2",
+          "used_for_valuation": false
+        },
+        "operating_margin": {
+          "value": 0.76,
+          "unit": "fraction",
+          "kind": "reported_rounded"
+        },
+        "net_cash": {
+          "value": 69.4,
+          "unit": "KRW trillion",
+          "kind": "company_reported",
+          "data_as_of": "2026-06-30"
+        }
+      },
+      "limitations": [
+        "자료가 잠정이고 독립 검토가 완료되지 않았다고 명시한다.",
+        "순이익이 매출보다 큰 원문 수치의 비영업/일회성 원인은 이 조사에서 검증되지 않았다. 정상화 이익·EPS로 재가공하지 않는다.",
+        "LTA 조건과 고객별 집중도가 공개되어 있지 않다."
+      ]
+    },
+    {
+      "source_id": "KR-004",
+      "url": "https://www.samsung.com/global/ir/reports-disclosures/public-disclosure-view.84755/",
+      "title": "Expected Amount and Implementation Plan for 2026 Shareholder Returns",
+      "publisher": "Samsung Electronics",
+      "published_at": "2026-08-21",
+      "data_as_of": "2026-08-21",
+      "retrieved_at": "2026-10-12T00:26:09Z",
+      "retrieved_at_basis": "batch evidence record time after examination; original per-tool timestamps not independently retained",
+      "available_at": "2026-08-21T23:59:59+09:00",
+      "availability_basis": "Dated publisher original; conservative end-of-publication-day bound precedes research cutoff",
+      "lookahead_status": "eligible_before_cutoff",
+      "horizon": "2026 return plan and late January 2027 final determination",
+      "source_type": "primary",
+      "dedup_group": "SAMSUNG_RETURN_20260821",
+      "extraction_method": "web_search_then_open",
+      "claims": [
+        "2026 주주환원 예정액을 90~110조원으로 추정하지만 실적·투자에 따라 바뀔 수 있다.",
+        "약 30조원 현금배당은 10월 말 이사회에서 세부 결정하고 잔여 환원은 2027년 1월 말에 규모·수단을 결정할 예정이다.",
+        "실제 정책 FCF 산정에서는 보증금 성격 메모리 LTA 선수금과 주식보상 관련 지출을 차감한다."
+      ],
+      "numeric_definitions": {
+        "planned_total_return": {
+          "low": 90,
+          "high": 110,
+          "unit": "KRW trillion",
+          "kind": "conditional_company_plan"
+        },
+        "planned_q3_cash_dividends": {
+          "value": 30,
+          "unit": "KRW trillion",
+          "kind": "conditional_plan"
+        },
+        "return_policy_share": {
+          "value": 0.5,
+          "unit": "fraction",
+          "basis": "cumulative 2024-2026 actual-policy FCF"
+        }
+      },
+      "limitations": [
+        "총 환원은 현금배당과 자사주 매입/소각을 포함한다. 2026년 마지막 거래일까지 모두 현금수익으로 받는다는 뜻이 아니다.",
+        "배당락 가격 하락과 배당을 중복 계산하지 않는다."
+      ]
+    },
+    {
+      "source_id": "KR-005",
+      "url": "https://www.sec.gov/Archives/edgar/data/2120882/000119312526356133/d428222d6k.htm",
+      "title": "SK hynix Form 6-K: Decision on Acquisition of Treasury Shares",
+      "publisher": "SK hynix / SEC",
+      "published_at": "2026-08-19",
+      "data_as_of": "2026-08-19",
+      "retrieved_at": "2026-10-12T00:26:09Z",
+      "retrieved_at_basis": "batch evidence record time after examination; original per-tool timestamps not independently retained",
+      "available_at": "2026-08-19T23:59:59+09:00",
+      "availability_basis": "Dated publisher original; conservative end-of-publication-day bound precedes research cutoff",
+      "lookahead_status": "eligible_before_cutoff",
+      "horizon": "August 20-November 19, 2026 planned acquisition",
+      "source_type": "primary",
+      "dedup_group": "KR-005",
+      "extraction_method": "web_search_then_open",
+      "claims": [
+        "자사주 매입 후 전량 소각 목적의 이사회 결의가 SEC 공시에 확인된다.",
+        "예정 매입기간은 8/20~11/19이고 실제 매입 주식수는 주가에 따라 달라질 수 있다."
+      ],
+      "numeric_definitions": {
+        "planned_acquisition_amount": {
+          "value": 40004340000000,
+          "unit": "KRW",
+          "kind": "board_decision"
+        },
+        "planned_shares": {
+          "value": 24070000,
+          "unit": "common shares",
+          "kind": "initial_plan"
+        }
+      },
+      "limitations": [
+        "완료·소각 실적을 확인한 자료는 아니다. 매입 종료 후 수급 약화를 별도 위험으로 본다."
+      ]
+    },
+    {
+      "source_id": "KR-006",
+      "url": "https://www.lsholdings.com/ko/media/news/61564b62656e354c446b79766e44394176764c4144566c6e6e77584733564b35",
+      "title": "LS ELECTRIC, 전력 슈퍼사이클 타고 분기 사상 최대 실적 기록",
+      "publisher": "LS Group / LS ELECTRIC",
+      "published_at": "2026-07-23",
+      "data_as_of": "2026-06-30",
+      "retrieved_at": "2026-10-12T00:26:09Z",
+      "retrieved_at_basis": "batch evidence record time after examination; original per-tool timestamps not independently retained",
+      "available_at": "2026-07-23T23:59:59+09:00",
+      "availability_basis": "Dated publisher original; conservative end-of-publication-day bound precedes research cutoff",
+      "lookahead_status": "eligible_before_cutoff",
+      "horizon": "2026Q2 reported",
+      "source_type": "primary",
+      "dedup_group": "KR-006",
+      "extraction_method": "web_search_then_open",
+      "claims": [
+        "전력 배전솔루션과 초고압변압기 고부가 제품의 성장이 실적을 뒷받침했다.",
+        "분기 신규수주와 수주잔고가 확대되어 향후 매출 가시성을 높인다."
+      ],
+      "numeric_definitions": {
+        "quarter_revenue": {
+          "value": 1577,
+          "unit": "KRW billion",
+          "kind": "company_reported",
+          "fiscal_period": "2026Q2"
+        },
+        "quarter_operating_profit": {
+          "value": 178.5,
+          "unit": "KRW billion",
+          "kind": "company_reported",
+          "fiscal_period": "2026Q2"
+        },
+        "revenue_yoy": {
+          "value": 0.322,
+          "unit": "fraction"
+        },
+        "operating_profit_yoy": {
+          "value": 0.644,
+          "unit": "fraction"
+        },
+        "quarter_new_orders": {
+          "value": 2.1,
+          "unit": "KRW trillion",
+          "kind": "company_reported"
+        },
+        "order_backlog": {
+          "value": 7,
+          "unit": "KRW trillion",
+          "kind": "company_reported",
+          "data_as_of": "2026-06-30"
+        }
+      },
+      "limitations": [
+        "수주는 매출·현금흐름과 다르며 고객의 공사 일정과 인도 조건에 좌우된다."
+      ]
+    },
+    {
+      "source_id": "KR-007",
+      "url": "https://www.hyundai-electric.com/elect/ko/index.jsp",
+      "title": "HD현대일렉트릭 2026년 2분기 실적 보도자료",
+      "publisher": "HD Hyundai Electric",
+      "published_at": "2026-07-28",
+      "data_as_of": "2026-06-30",
+      "retrieved_at": "2026-10-12T00:26:09Z",
+      "retrieved_at_basis": "batch evidence record time after examination; original per-tool timestamps not independently retained",
+      "available_at": "2026-07-28T23:59:59+09:00",
+      "availability_basis": "Dated publisher original; conservative end-of-publication-day bound precedes research cutoff",
+      "lookahead_status": "eligible_before_cutoff",
+      "horizon": "2026Q2 reported; H2 company expectation",
+      "source_type": "primary",
+      "dedup_group": "KR-007",
+      "extraction_method": "web_search_then_open",
+      "claims": [
+        "변압기와 배전기기 수익성이 개선됐고 반도체·데이터센터 수요가 수주를 뒷받침했다.",
+        "전력망 교체 수요가 성장 기반이며 데이터센터만의 매출로 분류할 수 없다."
+      ],
+      "numeric_definitions": {
+        "quarter_revenue": {
+          "value": 1141.8,
+          "unit": "KRW billion",
+          "kind": "company_reported",
+          "fiscal_period": "2026Q2"
+        },
+        "quarter_operating_profit": {
+          "value": 287,
+          "unit": "KRW billion",
+          "kind": "company_reported",
+          "fiscal_period": "2026Q2"
+        },
+        "operating_margin": {
+          "value": 0.251,
+          "unit": "fraction"
+        },
+        "order_backlog": {
+          "value": 8.49,
+          "unit": "USD billion",
+          "kind": "company_reported",
+          "data_as_of": "2026-06-30"
+        },
+        "backlog_yoy": {
+          "value": 0.296,
+          "unit": "fraction"
+        }
+      },
+      "limitations": [
+        "홈페이지 10/12 09:17:02 현재가격은 연구 cutoff 09:16:14 이후 장중가격이므로 사용하지 않았다.",
+        "7/28 제목·등록일을 공식 뉴스센터 목록과 IR 목록으로 대조했다.",
+        "현재 forward valuation과 10/8 확정종가는 확보하지 못했다."
+      ]
+    },
+    {
+      "source_id": "KR-008",
+      "url": "https://securities.miraeasset.com/bbs/download/2147584.pdf?attachmentId=2147584",
+      "title": "SK하이닉스: 작은 의심들까지 모두 소화했다",
+      "publisher": "Mirae Asset Securities",
+      "published_at": "2026-10-06",
+      "data_as_of": "2026-10-02",
+      "retrieved_at": "2026-10-12T00:26:09Z",
+      "retrieved_at_basis": "batch evidence record time after examination; original per-tool timestamps not independently retained",
+      "available_at": "2026-10-06T23:59:59+09:00",
+      "availability_basis": "Dated publisher original; conservative end-of-publication-day bound precedes research cutoff",
+      "lookahead_status": "eligible_before_cutoff",
+      "horizon": "12-month target; 2026-2028 annual and quarterly estimates",
+      "source_type": "primary",
+      "dedup_group": "KR-008",
+      "extraction_method": "public PDF downloaded to disposable temp; pages 1-3 rendered with Poppler and visually inspected",
+      "claims": [
+        "M15X 증설·선단 공정 전환과 HBM 수요 강세를 근거로 3Q·4Q 및 2027 영업이익 추정치를 올렸다.",
+        "낮은 예상 PER은 초고마진·수급의 지속 여부에 조건부이며 회사의 공식 실적이 아니다."
+      ],
+      "numeric_definitions": {
+        "reference_price": {
+          "value": 1841000,
+          "unit": "KRW/common share",
+          "kind": "reported_reference_close",
+          "price_date": "2026-10-02"
+        },
+        "pe_2026f": {
+          "value": 4.6,
+          "unit": "times",
+          "kind": "broker_forecast",
+          "price_date": "2026-10-02"
+        },
+        "pe_2027f": {
+          "value": 3.4,
+          "unit": "times",
+          "kind": "broker_forecast",
+          "price_date": "2026-10-02"
+        },
+        "eps_2026f": {
+          "value": 400359,
+          "unit": "KRW/common share",
+          "kind": "broker_forecast"
+        },
+        "eps_2027f": {
+          "value": 540162,
+          "unit": "KRW/common share",
+          "kind": "broker_forecast"
+        },
+        "op_2026q3f": {
+          "value": 77.1,
+          "unit": "KRW trillion",
+          "old": 73.2,
+          "kind": "broker_forecast"
+        },
+        "op_2026q4f": {
+          "value": 86.1,
+          "unit": "KRW trillion",
+          "kind": "broker_forecast"
+        },
+        "op_2027f": {
+          "value": 396.165,
+          "unit": "KRW trillion",
+          "kind": "broker_forecast"
+        },
+        "fcf_2027f_proxy": {
+          "value": 347.9,
+          "unit": "KRW trillion",
+          "kind": "broker_forecast_proxy",
+          "definition": "EBITDA - Capex; Capex uses recognition rather than cash-flow-statement value"
+        },
+        "target": {
+          "value": 3100000,
+          "unit": "KRW/common share",
+          "kind": "broker_12_month_target",
+          "used_for_eoy_return": false
+        }
+      },
+      "limitations": [
+        "이미지로 저장된 주요 표를 Poppler 페이지1~3 PNG로 시각 검증했다.",
+        "10/2 기준가격은 10/8 최신 확정종가가 아니다.",
+        "FCF proxy는 세금·운전자본·LTA선수금 조정 등을 반영한 실제FCF와 다르다.",
+        "목표가 상방68.4%를 남은 연말 수익률로 환산하지 않는다."
+      ]
+    },
+    {
+      "source_id": "KR-009",
+      "url": "https://securities.miraeasset.com/bbs/download/2147614.pdf?attachmentId=2147614",
+      "title": "삼성전자: 반도체 사상 첫 매출 천억불 달성 전망",
+      "publisher": "Mirae Asset Securities",
+      "published_at": "2026-10-06",
+      "data_as_of": "2026-10-02",
+      "retrieved_at": "2026-10-12T00:26:09Z",
+      "retrieved_at_basis": "batch evidence record time after examination; original per-tool timestamps not independently retained",
+      "available_at": "2026-10-06T23:59:59+09:00",
+      "availability_basis": "Dated publisher original; conservative end-of-publication-day bound precedes research cutoff",
+      "lookahead_status": "eligible_before_cutoff",
+      "horizon": "12-month target; 2026-2028 estimates",
+      "source_type": "primary",
+      "dedup_group": "KR-009",
+      "extraction_method": "public PDF rendered page1 and visually inspected",
+      "claims": [
+        "메모리 출하·LTA·HBM4 베이스다이 우위를 근거로 실적 전망을 상향했다.",
+        "보고서 본문은 주주환원 확대를 촉매로 제시하나 확정 배당수익과 추정치를 구분해야 한다."
+      ],
+      "numeric_definitions": {
+        "reference_price": {
+          "value": 276000,
+          "unit": "KRW/common share",
+          "kind": "reported_reference_close",
+          "price_date": "2026-10-02"
+        },
+        "pe_2026f": {
+          "value": 6.3,
+          "unit": "times",
+          "kind": "broker_forecast",
+          "price_date": "2026-10-02"
+        },
+        "pe_2027f": {
+          "value": 4.3,
+          "unit": "times",
+          "kind": "broker_forecast",
+          "price_date": "2026-10-02"
+        },
+        "eps_2026f": {
+          "value": 43757,
+          "unit": "KRW/common share",
+          "kind": "broker_forecast"
+        },
+        "eps_2027f": {
+          "value": 64080,
+          "unit": "KRW/common share",
+          "kind": "broker_forecast"
+        },
+        "op_2026f": {
+          "value": 371.209,
+          "unit": "KRW trillion",
+          "kind": "broker_forecast"
+        },
+        "target": {
+          "value": 400000,
+          "unit": "KRW/common share",
+          "kind": "broker_12_month_target",
+          "used_for_eoy_return": false
+        }
+      },
+      "limitations": [
+        "10/2 기준가격은 10/8 확정종가가 아니다.",
+        "본문2026 예상배당수익률6.5%와 요약표0.6%의 기준 차이가 설명되지 않았다. 계산에 쓰지 않는다.",
+        "2027 예상배당을 2026 연말 현금수익에 더하지 않는다.",
+        "10/8 회사가 발표한 Q3잠정치는 이보다 최신이며 별도 KR-001로 관리한다."
+      ]
+    },
+    {
+      "source_id": "KR-010",
+      "url": "https://securities.miraeasset.com/bbs/download/2147679.pdf?attachmentId=2147679",
+      "title": "LS ELECTRIC: 수주 가이던스 달성 이상 무",
+      "publisher": "Mirae Asset Securities",
+      "published_at": "2026-10-08",
+      "data_as_of": "2026-10-07",
+      "retrieved_at": "2026-10-12T00:26:09Z",
+      "retrieved_at_basis": "batch evidence record time after examination; original per-tool timestamps not independently retained",
+      "available_at": "2026-10-08T23:59:59+09:00",
+      "availability_basis": "Dated publisher original; conservative end-of-publication-day bound precedes research cutoff",
+      "lookahead_status": "eligible_before_cutoff",
+      "horizon": "2026Q3 preview; 2026-2028 annual estimates; 12-month target",
+      "source_type": "primary",
+      "dedup_group": "KR-010",
+      "extraction_method": "public PDF rendered page1 and visually inspected",
+      "claims": [
+        "북미 배전반·변압기 수주가 강하고 장기계약은 일부 2030년까지 이어진다고 분석했다.",
+        "매출 성장·원자재가격 안정화가 원화 강세 영향을 일부 상쇄할 것으로 추정하지만 관세 환급·일회성 비용 때문에 실제 실적은 달라질 수 있다."
+      ],
+      "numeric_definitions": {
+        "reference_price": {
+          "value": 205500,
+          "unit": "KRW/post-split common share",
+          "kind": "reported_reference_close",
+          "price_date": "2026-10-07"
+        },
+        "pe_2026f": {
+          "value": 56.7,
+          "unit": "times",
+          "kind": "broker_forecast",
+          "price_date": "2026-10-07"
+        },
+        "pe_2027f": {
+          "value": 42.3,
+          "unit": "times",
+          "kind": "broker_forecast",
+          "price_date": "2026-10-07"
+        },
+        "eps_2026f": {
+          "value": 3624,
+          "unit": "KRW/post-split common share",
+          "kind": "broker_forecast"
+        },
+        "eps_2027f": {
+          "value": 4856,
+          "unit": "KRW/post-split common share",
+          "kind": "broker_forecast"
+        },
+        "op_2026q3f": {
+          "value": 195.7,
+          "unit": "KRW billion",
+          "kind": "broker_forecast"
+        },
+        "target": {
+          "value": 280000,
+          "unit": "KRW/post-split common share",
+          "kind": "broker_12_month_target",
+          "used_for_eoy_return": false
+        }
+      },
+      "limitations": [
+        "높은 평가배수 때문에 좋은 산업과 높은 현재 가격의 상승여력은 다를 수 있다.",
+        "10/7 가격은 10/8 확정종가가 아니다.",
+        "LS ELECTRIC 5:1분할(4/10효력,4/13재상장) 이후 EPS/가격 기준이다."
+      ]
+    },
+    {
+      "source_id": "KR-011",
+      "url": "https://kbthink.com/securities-view.html?docId=20261008084434607K",
+      "title": "글로벌 긴축 우려 확산, AI 밸류체인 약세",
+      "publisher": "KB Securities",
+      "published_at": "2026-10-08",
+      "data_as_of": "2026-10-07",
+      "retrieved_at": "2026-10-12T00:26:09Z",
+      "retrieved_at_basis": "batch evidence record time after examination; original per-tool timestamps not independently retained",
+      "available_at": "2026-10-08T23:59:59+09:00",
+      "availability_basis": "Dated publisher original; conservative end-of-publication-day bound precedes research cutoff",
+      "lookahead_status": "eligible_before_cutoff",
+      "horizon": "near-term market risk commentary",
+      "source_type": "primary",
+      "dedup_group": "KR-011",
+      "extraction_method": "web_search_then_open",
+      "claims": [
+        "클라우드 사업자의 현금 소진과 CAPEX 지속 가능성 우려가 AI 하드웨어 조정 위험으로 제시된다.",
+        "연내 추가 미국 금리 인상과 고유가·장기금리는 기술주 평가배수의 상단을 제약할 수 있다."
+      ],
+      "numeric_definitions": {},
+      "limitations": [
+        "아시아시장 단기 시황 의견이며 한국 섹터 수익률 예측모델이 아니다.",
+        "보고서에서 제시한 중국 연휴 상승빈도는 본 연구의 섹터 상승확률로 사용하지 않는다."
+      ]
+    },
+    {
+      "source_id": "KR-012",
+      "url": "https://securities.miraeasset.com/bbs/download/2147690.pdf?attachmentId=2147690",
+      "title": "한국 마켓 클로징: 유가 금리 부담 확대",
+      "publisher": "Mirae Asset Securities",
+      "published_at": "2026-10-08",
+      "data_as_of": "2026-10-08",
+      "retrieved_at": "2026-10-12T00:26:09Z",
+      "retrieved_at_basis": "batch evidence record time after examination; original per-tool timestamps not independently retained",
+      "available_at": "2026-10-08T23:59:59+09:00",
+      "availability_basis": "Dated publisher original; conservative end-of-publication-day bound precedes research cutoff",
+      "lookahead_status": "eligible_before_cutoff",
+      "horizon": "same-day close and next-session calendar",
+      "source_type": "primary",
+      "dedup_group": "KR-012",
+      "extraction_method": "web_search_then_open",
+      "claims": [
+        "삼성전자 잠정실적 호조에도 유가·금리 부담으로 반도체 ETF가 하락했다.",
+        "10/9 한국 휴장이 원문에 명시된다. 10/10~11은 주말이고 10/12 종가는 cutoff 시점에 아직 확정되지 않았다."
+      ],
+      "numeric_definitions": {
+        "kospi_close": {
+          "value": 6625.93,
+          "unit": "index points",
+          "kind": "reported_close",
+          "price_date": "2026-10-08"
+        },
+        "kospi_daily_price_return": {
+          "value": -0.0262,
+          "unit": "fraction",
+          "kind": "reported_price_return"
+        },
+        "tiger_semiconductor_top10_daily_price_return": {
+          "value": -0.0173,
+          "unit": "fraction",
+          "kind": "reported_price_return",
+          "price_date": "2026-10-08"
+        }
+      },
+      "limitations": [
+        "ETF 절대 종가와 배당포함 장기 수익률은 이 자료에 없다.",
+        "휴장 캘린더는 최근 증권사 원문으로 확인했고 국가 공휴일 자료와 대조했다."
+      ]
+    },
+    {
+      "source_id": "KR-013",
+      "url": "https://www.bok.or.kr/portal/bbs/P0002068/view.do?depth=200031&menuNo=200031&nttId=11065403&programType=newsData&relate=Y",
+      "title": "금리 및 환율 동향 2026-10-08",
+      "publisher": "Bank of Korea",
+      "published_at": "2026-10-08",
+      "data_as_of": "2026-10-07",
+      "retrieved_at": "2026-10-12T00:26:09Z",
+      "retrieved_at_basis": "batch evidence record time after examination; original per-tool timestamps not independently retained",
+      "available_at": "2026-10-08T23:59:59+09:00",
+      "availability_basis": "Dated publisher original; conservative end-of-publication-day bound precedes research cutoff",
+      "lookahead_status": "eligible_before_cutoff",
+      "horizon": "historical daily global financial observations",
+      "source_type": "primary",
+      "dedup_group": "KR-013",
+      "extraction_method": "official attachment downloaded to temp and page1 visually inspected",
+      "claims": [
+        "10/8 게시 PDF의 실제 최신 관측은 10/7이다. 제목 게시일을 10/8가격일로 취급하지 않는다."
+      ],
+      "numeric_definitions": {
+        "us_treasury10y": {
+          "value": 0.0528,
+          "unit": "fraction per annum",
+          "kind": "published_observation",
+          "observation_date": "2026-10-07",
+          "quote_basis": "New York 17:00 Bloomberg"
+        },
+        "usd_krw": {
+          "value": null,
+          "unit": "KRW per USD",
+          "reason": "this BOK table does not report KRW"
+        }
+      },
+      "limitations": [
+        "공식 배포이지만 원시 데이터 공급원은 Bloomberg이다.",
+        "PDF의 환율은 원/달러를 포함하지 않아 KRW현재환율 수치는 여기서 만들지 않는다."
+      ]
+    },
+    {
+      "source_id": "KR-014",
+      "url": "https://www.federalreserve.gov/releases/h10/current/",
+      "title": "Foreign Exchange Rates H.10 October 5, 2026",
+      "publisher": "Federal Reserve Board",
+      "published_at": "2026-10-05",
+      "data_as_of": "2026-10-02",
+      "retrieved_at": "2026-10-12T00:26:09Z",
+      "retrieved_at_basis": "batch evidence record time after examination; original per-tool timestamps not independently retained",
+      "available_at": "2026-10-05T23:59:59+09:00",
+      "availability_basis": "Dated publisher original; conservative end-of-publication-day bound precedes research cutoff",
+      "lookahead_status": "eligible_before_cutoff",
+      "horizon": "latest available weekly official FX release before cutoff",
+      "source_type": "primary",
+      "dedup_group": "KR-014",
+      "extraction_method": "web_search_then_open",
+      "claims": [
+        "공식 H10 최신 게시일은 10/5, 한국 원화의 최신 관측일은 10/2이다."
+      ],
+      "numeric_definitions": {
+        "usd_krw": {
+          "value": 1345.75,
+          "unit": "KRW per USD",
+          "kind": "official_published_spot_observation",
+          "observation_date": "2026-10-02"
+        }
+      },
+      "limitations": [
+        "10/8 또는10/12현재환율이 아니므로 KRW환산 출발점으로 사용하지 않는다.",
+        "10/12 미국 오후에 발표될 이후 H10관측은 컷오프 이후 공개이므로 사용하지 않는다."
+      ]
+    },
+    {
+      "source_id": "KR-015",
+      "url": "https://www.samsungfund.com/upload/kodex/newsroom/20260325170636388.pdf",
+      "title": "Kodex RIA ETF 투자 가이드북 2026.03",
+      "publisher": "Samsung Asset Management",
+      "published_at": "2026-03-25",
+      "data_as_of": "2026-02-27",
+      "retrieved_at": "2026-10-12T00:26:09Z",
+      "retrieved_at_basis": "batch evidence record time after examination; original per-tool timestamps not independently retained",
+      "available_at": "2026-03-25T23:59:59+09:00",
+      "availability_basis": "Dated publisher original; conservative end-of-publication-day bound precedes research cutoff",
+      "lookahead_status": "eligible_before_cutoff",
+      "horizon": "historical ETF construction snapshot",
+      "source_type": "primary",
+      "dedup_group": "KR-015",
+      "extraction_method": "web_search_then_open",
+      "claims": [
+        "KODEX 반도체는 대형 메모리와 장비를 함께 보유하며 역사적 스냅샷에서 상위2개 비중은52.5%다.",
+        "AI전력핵심설비는 역사적 스냅샷에서 LS ELECTRIC·효성중공업·HD현대일렉트릭·LS 네 회사에72.2% 집중했다.",
+        "AI반도체핵심장비는 당시 한미반도체30.0%로 특정장비기업 집중도가 높았다."
+      ],
+      "numeric_definitions": {
+        "kodex_semiconductor": {
+          "ticker": "091160",
+          "benchmark": "KRX semiconductor",
+          "holdings_count": 35,
+          "top2_weight": {
+            "value": 0.525,
+            "unit": "fraction"
+          },
+          "top10_weight": {
+            "value": 0.791,
+            "unit": "fraction"
+          }
+        },
+        "kodex_ai_power_equipment": {
+          "ticker": "487240",
+          "benchmark": "iSelect AI전력핵심설비",
+          "holdings_count": 12,
+          "top4_weight": {
+            "value": 0.722,
+            "unit": "fraction"
+          },
+          "top10_weight": {
+            "value": 0.981,
+            "unit": "fraction"
+          },
+          "holdings": [
+            {
+              "name": "LS ELECTRIC",
+              "weight": 0.22
+            },
+            {
+              "name": "효성중공업",
+              "weight": 0.199
+            },
+            {
+              "name": "HD현대일렉트릭",
+              "weight": 0.179
+            },
+            {
+              "name": "LS",
+              "weight": 0.124
+            }
+          ]
+        },
+        "kodex_ai_semiconductor_equipment": {
+          "ticker": "471990",
+          "hanmi_weight": {
+            "value": 0.3,
+            "unit": "fraction"
+          },
+          "top10_weight": {
+            "value": 0.969,
+            "unit": "fraction"
+          }
+        }
+      },
+      "limitations": [
+        "최근 90일 밖의 오래된 스냅샷이다. 현재 구성종목/비중/수익률로 쓰지 않는다.",
+        "현재 상품 화면이 JS본문이라 point-in-time holdings를 확보하지 못했다.",
+        "투자대상·집중도 예시 확인용이며 기대수익 전망 근거가 아니다."
+      ]
+    },
+    {
+      "source_id": "KR-016",
+      "url": "https://kind.krx.co.kr/corpgeneral/irschedule.do?irSeq=45162&method=searchIRScheduleDetail",
+      "title": "한미반도체 2026년 2분기 경영실적 발표",
+      "publisher": "Hanmi Semiconductor / KRX KIND",
+      "published_at": "2026-07-16",
+      "data_as_of": "2026-07-16",
+      "retrieved_at": "2026-10-12T00:26:09Z",
+      "retrieved_at_basis": "batch evidence record time after examination; original per-tool timestamps not independently retained",
+      "available_at": "2026-07-16T23:59:59+09:00",
+      "availability_basis": "Dated publisher original; conservative end-of-publication-day bound precedes research cutoff",
+      "lookahead_status": "eligible_before_cutoff",
+      "horizon": "2026Q2 IR presentation scope",
+      "source_type": "primary",
+      "dedup_group": "KR-016",
+      "extraction_method": "web_search_then_open",
+      "claims": [
+        "회사 IR 범위는 HBM4 시설투자 대응 TC본더와 AI 시스템반도체 2.5D패키징 제품 확장을 포함한다."
+      ],
+      "numeric_definitions": {},
+      "limitations": [
+        "IR일정 설명이며 매출/이익/수주 확정값이 아니다.",
+        "현재 EPS·평가배수·10/8종가를 확보하지 못해 기업 수익률 순위는 보류한다."
+      ]
+    },
+    {
+      "source_id": "KR-017",
+      "url": "https://www.ls-electric.com/ko/company/invest/data/%EC%A3%BC%EC%8B%9D%EB%B6%84%ED%95%A0%EA%B3%B5%EA%B3%A0_260326.pdf",
+      "title": "주식분할 액면분할에 따른 기준일 공고",
+      "publisher": "LS ELECTRIC",
+      "published_at": "2026-03-26",
+      "data_as_of": "2026-04-10",
+      "retrieved_at": "2026-10-12T00:26:09Z",
+      "retrieved_at_basis": "batch evidence record time after examination; original per-tool timestamps not independently retained",
+      "available_at": "2026-03-26T23:59:59+09:00",
+      "availability_basis": "Dated publisher original; conservative end-of-publication-day bound precedes research cutoff",
+      "lookahead_status": "eligible_before_cutoff",
+      "horizon": "announced stock split effective 2026-04-10",
+      "source_type": "primary",
+      "dedup_group": "LS_SPLIT_20260410",
+      "extraction_method": "web_search_then_open",
+      "claims": [
+        "5:1분할은 발행주식수를3000만주에서1억5000만주로 증가시킨다. 4/13신주 상장 계획이다."
+      ],
+      "numeric_definitions": {
+        "split_ratio": {
+          "new": 5,
+          "old": 1
+        },
+        "par_value_before": {
+          "value": 5000,
+          "unit": "KRW/share"
+        },
+        "par_value_after": {
+          "value": 1000,
+          "unit": "KRW/share"
+        }
+      },
+      "limitations": [
+        "가격하락과 분할을 구분한다.",
+        "시행확인은 현재 공식 주식정보페이지의4/10분할 메모로 대조했다."
+      ]
+    },
+    {
+      "source_id": "KR-018",
+      "url": "https://research.ftserussell.com/products/index-notices/home/getnotice/?id=2618361",
+      "title": "2026 FTSE WGBI Markets Holiday Calendar",
+      "publisher": "FTSE Russell",
+      "published_at": "2026-01-05",
+      "data_as_of": "2026-01-05",
+      "retrieved_at": "2026-10-12T00:26:09Z",
+      "retrieved_at_basis": "batch evidence record time after examination; original per-tool timestamps not independently retained",
+      "available_at": "2026-01-05T23:59:59+09:00",
+      "availability_basis": "Dated publisher original; conservative end-of-publication-day bound precedes research cutoff",
+      "lookahead_status": "eligible_before_cutoff",
+      "horizon": "2026 calendar",
+      "source_type": "primary",
+      "dedup_group": "KR-018",
+      "extraction_method": "web_search_then_open",
+      "claims": [
+        "한국10/9가 한글날로 표시된다."
+      ],
+      "numeric_definitions": {},
+      "limitations": [
+        "WGBI시장 휴일표로 KRX주식 휴장규칙 자체는 아니다. 최근 KR-012의 한국 휴장표와 교차확인용이다."
+      ]
+    },
+    {
+      "source_id": "KR-019",
+      "url": "https://global.krx.co.kr/contents/GLB/01/0109/0109000000/guide_to_trading_in_the_korean_stock_market.pdf",
+      "title": "Guide to Trading in the Korean Stock Market",
+      "publisher": "Korea Exchange",
+      "published_at": null,
+      "data_as_of": null,
+      "retrieved_at": "2026-10-12T00:26:09Z",
+      "retrieved_at_basis": "batch evidence record time after examination; original per-tool timestamps not independently retained",
+      "available_at": null,
+      "availability_basis": "Undated publisher background page; not eligible as time-sensitive research input",
+      "lookahead_status": "undated_background_only",
+      "horizon": "general equity trading rules",
+      "source_type": "primary",
+      "dedup_group": "KR-019",
+      "extraction_method": "web_search_then_open",
+      "claims": [
+        "월~금 거래, 정규장9:00~15:30, 연말 마지막 영업일 휴장 규칙을 확인한다."
+      ],
+      "numeric_definitions": {},
+      "limitations": [
+        "공식 배경 자료에 공개일이 없다. 올해 최종거래일 확정공지로 취급하지 않는다."
+      ]
+    },
+    {
+      "source_id": "KR-020",
+      "url": "https://easylaw.go.kr/CSP/CnpClsMain.laf?ccfNo=2&cciNo=1&cnpClsNo=2&csmSeq=1701&menuType=onhunqna&popMenu=ov",
+      "title": "주식 매매거래일·거래시간 및 원칙 공식 안내",
+      "publisher": "Korea Ministry of Government Legislation / EasyLaw",
+      "published_at": null,
+      "data_as_of": "2026-09-15",
+      "retrieved_at": "2026-10-12T09:28:26.441505+09:00",
+      "retrieved_at_basis": "file record update time",
+      "available_at": null,
+      "availability_basis": "page footer states authored as of 2026-09-15; initial public release timestamp unavailable",
+      "lookahead_status": "official_background_rule; not time-sensitive forecast or quote input",
+      "horizon": "standing KRX Article 5 equity trading calendar rule",
+      "source_type": "official_primary_summary",
+      "dedup_group": "KRX_EQUITY_HOLIDAY_RULE",
+      "claims": [
+        "유가증권시장·코스닥시장 업무규정제5조를 인용해 12월31일 휴장과 임시휴장 가능성을 설명한다. 2026년12월31일은목요일이므로 일반규칙상의최종매매거래일은12월30일이다."
+      ],
+      "numeric_definitions": {},
+      "limitations": [
+        "연도별폐장세부운영공지는미확보이다. 날짜계산과공식규칙을구분한다."
+      ]
+    }
+  ],
+  "korean_price_boundary": {
+    "latest_confirmed_price_date": "2026-10-08",
+    "status": "confirmed via KR-012 dated market close and October 9 holiday notice; weekend calendar; cutoff October 12 during regular session",
+    "official_krx_dated_2026_holiday_notice_obtained": false,
+    "expected_2026_final_trading_day": "2026-12-30",
+    "final_day_status": "2026-12-30 derived from official KRX Article5 equity rule summarized by government as of2026-09-15; annual special notice not verified; conditional on no extraordinary market closure",
+    "latest_close_values": {
+      "samsung": null,
+      "sk_hynix": null,
+      "ls_electric": null,
+      "hd_hyundai_electric": null,
+      "hanmi": null,
+      "kodex_semiconductor": null,
+      "tiger_semiconductor_top10": null,
+      "kodex_ai_power_equipment": null
+    },
+    "reason": "Dated broker references use Oct2/Oct7; real-time company quote after cutoff rejected. No eligible official Oct8 absolute price extracted.",
+    "final_day_rule_source_ids": [
+      "KR-019",
+      "KR-020"
+    ]
+  },
+  "comparison": [
+    {
+      "segment": "memory_hbm",
+      "rank": "conditional first Korean sector candidate",
+      "business_growth_evidence": "strongest public operating evidence and broker forecast upgrades",
+      "valuation_evidence": "SK 26F4.6x/27F3.4x; Samsung26F6.3x/27F4.3x using broker Oct2 reference prices; not current Oct8 valuations",
+      "priced_in": "very high memory ASP, high margins, sustained hyperscaler spending and returns already expected",
+      "bull_conditions": [
+        "HBM4 ramps without delivery/yield setbacks",
+        "conventional DRAM/eSSD pricing and multi-year commitments remain strong",
+        "next-year estimate upgrades overcome KRW strength",
+        "shareholder-return specifics support valuation"
+      ],
+      "bear_conditions": [
+        "AI customer cash burn slows capex/orders",
+        "DRAM/NAND prices or exceptionally high margins normalize",
+        "HBM competition/technology qualification setbacks",
+        "buyback support ends without replacement demand"
+      ],
+      "sources": [
+        "KR-001",
+        "KR-002",
+        "KR-003",
+        "KR-004",
+        "KR-005",
+        "KR-008",
+        "KR-009",
+        "KR-011"
+      ],
+      "eoy_return_range": null,
+      "expected_return": null,
+      "reason_no_numeric_return": "no verified latest close and no sector calibrated return distribution; 12-month broker targets cannot fill the gap",
+      "confidence": "medium qualitative; numeric year-end ranking withheld"
+    },
+    {
+      "segment": "power_distribution_transformer_grid",
+      "rank": "conditional second Korean candidate; could outrank memory under AI-compute sentiment correction",
+      "business_growth_evidence": "reported LS and HD revenue/op growth and large backlog",
+      "valuation_evidence": "LS26F56.7x/27F42.3x from Oct7 broker reference; HD current valuation missing",
+      "priced_in": "multi-year North American grid/datacenter growth and higher-margin mix",
+      "bull_conditions": [
+        "new orders translate into delivered revenue and cash",
+        "transformer/distribution margins sustain with cost pass-through",
+        "backlog extends beyond hyperscaler concentration"
+      ],
+      "bear_conditions": [
+        "customer delivery/connection delays",
+        "working capital advances distort apparent FCF",
+        "higher rates compress premium multiples",
+        "currency appreciation/export pricing pressure"
+      ],
+      "sources": [
+        "KR-006",
+        "KR-007",
+        "KR-010",
+        "KR-011",
+        "KR-015",
+        "KR-017"
+      ],
+      "eoy_return_range": null,
+      "expected_return": null,
+      "reason_no_numeric_return": "latest sector valuation/eligible close and dividend timing incomplete",
+      "confidence": "medium qualitative; expected-return ordering conditional"
+    },
+    {
+      "segment": "packaging_bonding_semiconductor_equipment",
+      "rank": "watchlist; insufficient current valuation evidence to promote",
+      "business_growth_evidence": "HBM4 capex and TCbonder/2.5Dscope verified, but company-specific latest numbers not secured",
+      "valuation_evidence": null,
+      "priced_in": "customers' expansion plans may already be capitalized",
+      "bull_conditions": [
+        "new purchase orders verified",
+        "customer diversification beyond concentrated memory customers",
+        "equipment qualification improves confirmed shipments"
+      ],
+      "bear_conditions": [
+        "orders shift with technology or competitors",
+        "customer capex timing delayed",
+        "concentrated ETF holdings amplify single-company risk"
+      ],
+      "sources": [
+        "KR-016",
+        "KR-015"
+      ],
+      "eoy_return_range": null,
+      "expected_return": null,
+      "confidence": "low current-price comparison"
+    }
+  ],
+  "fx_interpretation": {
+    "official_available_h10_krw_per_usd": 1345.75,
+    "observed_at": "2026-10-02",
+    "published_at": "2026-10-05",
+    "current_fx": null,
+    "currency_translation_formula": "unhedged US stock return in KRW = (1 + USD equity return) * (ending KRW/USD / starting KRW/USD) - 1",
+    "exporter_earnings_effect": "KRW appreciation can reduce translated USD export earnings; cost hedges, imported inputs, LTA pricing and net exposure must be examined. This effect is distinct from investor currency translation.",
+    "mechanical_fx_sensitivity": [
+      {
+        "usd_equity_return": 0.1,
+        "krw_per_usd_change": 0.05,
+        "krw_return": 0.155,
+        "kind": "illustrative arithmetic assumption, not forecast"
+      },
+      {
+        "usd_equity_return": 0.1,
+        "krw_per_usd_change": -0.05,
+        "krw_return": 0.045,
+        "kind": "illustrative arithmetic assumption, not forecast"
+      }
+    ]
+  },
+  "source_gaps": [
+    "KRX 2026 dated equity calendar and final-trading-day announcement not secured",
+    "Oct8 official absolute equity/ETF close and adjusted total-return series missing",
+    "Current official KODEX/TIGER point-in-time holdings missing; KODEX historical snapshot only",
+    "Recent90-day Samsung/Hana/KB detailed memory company valuation reports not independently secured; KB market report plus Mirae three company reports used",
+    "Hanmi and Hyosung current company-specific earnings/valuation incomplete",
+    "SKQ2 net income extraordinary component explanation unverified",
+    "Samsung broker dividend table/body inconsistency unresolved",
+    "KRW Oct8 official current exchange quote not secured; available H10 lagged"
+  ],
+  "rejected_inputs": [
+    {
+      "url": "https://www.hyundai-electric.com/elect/ko/index.jsp",
+      "reason": "current price observation 2026-10-12T09:17:02+09:00 is later than cutoff and intraday"
+    },
+    {
+      "url": "https://www.samsungpop.com/ux/kor/invest/recommend/top10picks.do",
+      "reason": "search snippet price without verified last confirmed close date; tool open failed; not used as absolute close"
+    },
+    {
+      "url": "https://www.benzinga.com/markets/tech/26/09/61693163/sk-hynix-88-percent-upside-micron-stock-ai-memory",
+      "reason": "secondary repetition of Mirae report; not independent corroboration and not used to calculate year-end return"
+    },
+    {
+      "url": "https://global.kbinnews.com/articles/mirae-asset-raises-sk-hynix-target-price-as-hbm-customer-bas-1788743392302",
+      "reason": "secondary annual/quarter numerical ambiguity; replaced by original broker PDF"
+    }
+  ],
+  "validation_notes": [
+    "All dated accepted sources use conservative end-of-publication-day bound before cutoff",
+    "All broker forecasts retain forecast labels and horizon; no probability conversion",
+    "No official ledgers, durable DBs, models, dependencies or broker/security APIs accessed or mutated",
+    "Only final evidence_korea.json and notes_korea.md authored; primary source PDFs rendered in disposable OS temp for examination"
+  ]
+}

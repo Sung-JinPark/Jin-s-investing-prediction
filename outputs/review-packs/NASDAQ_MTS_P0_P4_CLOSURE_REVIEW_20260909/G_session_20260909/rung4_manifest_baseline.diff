@@ -1,0 +1,18 @@
+commit 9df8f56b918f488974e09920f66d22d6c0f85940
+Author: repository owner (검토팩용 익명화)
+Date:   Wed Sep 9 15:03:17 2026 +0900
+
+    chore(v13-vol): rung-4 결과 파일의 immutable 기준선을 최종 바이트로 갱신
+    
+    ladder_*.json 은 ledger_registry 에 immutable_files 로 등록돼 있는데, 사전등록 커밋 해시를 실제 커밋
+    0ce8569b 로 맞추면서 ladder_rung4_macro.json 을 한 번 다시 썼다(내용은 같은 실행 결과, prereg_commit
+    필드만 정정). 매니페스트가 병합 전 바이트를 기준선으로 잡고 있어 CI 의 audit-ledgers --check 가
+    violation 을 냈다.
+    
+    기준선을 병합될 최종 바이트로 갱신한다(fde296ad… → 49edaaeb…). 이후 이 파일의 바이트 변경은
+    설계대로 violation 이 된다. 결과 수치·판정은 무변경.
+    
+    Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>
+
+ docs/generated/ledger_manifest.json | 590 ++++++++++++++++++------------------
+ 1 file changed, 295 insertions(+), 295 deletions(-)

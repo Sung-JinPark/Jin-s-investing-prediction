@@ -87,7 +87,7 @@ def test_bot_data_commits_trigger_pages_and_verification() -> None:
     expected = (
         'workflows: ["investing-refresh", "scenario-refresh", "ai-regime-refresh", '
         '"statistics-refresh", "timeseries-refresh", "timeseries-v5-refresh", '
-        '"timeseries-v2-refresh", "timeseries-v8-shadow", "timeseries-v13-vol-live"]'
+        '"timeseries-v2-refresh", "timeseries-v8-shadow", "timeseries-v13-vol-live", "timeseries-daily6m", "market-context-daily"]'
     )
     for workflow in (pages, verify):
         assert expected in workflow

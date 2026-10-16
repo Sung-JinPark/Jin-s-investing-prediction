@@ -1,0 +1,18 @@
+{
+  "validated_at_utc": "2026-10-16T00:17:41.754298+00:00",
+  "source_count": 42,
+  "saved_sources": 35,
+  "fetch_failures": 7,
+  "observation_count": 49,
+  "policy_event_count": 10,
+  "archive_sha256_check": "passed",
+  "reference_integrity": "passed",
+  "errors": [],
+  "no_probability_or_official_forecast_written": true,
+  "test_scope": "JSON parse,all saved SHA256,source/derived references,fraction ratios; research-only, no production tests or durableDB writes",
+  "complete_kofia_cards": 8,
+  "partial_source_disclosed": true,
+  "research_as_of": "2026-10-16T09:00:00+09:00",
+  "header_cutoff_consistency": "passed",
+  "kofia_stat_cards_value_change_percentage_captured": true
+}

@@ -1,0 +1,179 @@
+{
+  "as_of": "2026-10-12T10:38:50+09:00",
+  "baseline_as_of": "2026-10-12T09:16:14+09:00",
+  "price_date": "2026-10-09",
+  "horizon": "2026-12-31",
+  "return_unit": "fraction",
+  "probability_unit": "fraction",
+  "growth_unit": "fraction",
+  "weight_unit": "fraction",
+  "role": "hypothetical_paired_research_not_calibrated_forecast",
+  "official_forecast": false,
+  "weights": {
+    "bull": 0.3,
+    "base": 0.45,
+    "bear": 0.25
+  },
+  "assets": {
+    "SOXX": {
+      "id": "SOXX",
+      "name": "AI 반도체",
+      "class": "industry",
+      "priority": true,
+      "fee_annual": 0.0033,
+      "dividend_remaining": 0.00066,
+      "dividend_basis": "Issuer trailing annual yield 0.29% * 83/365, rounded; forward proxy only.",
+      "dividend_proxy_source": {
+        "url": "https://www.ishares.com/us/products/239705/ishares-phlx-semiconductor-etf",
+        "metric": "12m trailing yield",
+        "source_value": 0.29,
+        "source_unit": "percent_per_year",
+        "data_as_of": "2026-08-31",
+        "availability": "dynamic publication time unverified; source header inspected"
+      },
+      "source_ids": [
+        "TECH-SOXX-ETF",
+        "TECH-NVDA-FY27Q2",
+        "TECH-AVGO-FY26Q3",
+        "TECH-TSMC-2026SEP-SALES",
+        "TECH-SOXX-SPLIT"
+      ],
+      "rationale": "Confirmed AI chip demand and strong forward company revenue guides support earnings-power upside; YTD appreciation and high volatility require large derating stress.",
+      "cases": {
+        "bull": {
+          "g": 0.12,
+          "m": 0.1,
+          "g_width": 0.02,
+          "m_width": 0.04
+        },
+        "base": {
+          "g": 0.07,
+          "m": 0,
+          "g_width": 0.02,
+          "m_width": 0.04
+        },
+        "bear": {
+          "g": -0.06,
+          "m": -0.17,
+          "g_width": 0.02,
+          "m_width": 0.04
+        }
+      },
+      "split_ratio": 3
+    },
+    "IGV": {
+      "id": "IGV",
+      "name": "선별 소프트웨어",
+      "class": "industry",
+      "priority": false,
+      "fee_annual": 0.0038,
+      "dividend_remaining": 0,
+      "dividend_basis": "Explicit zero remaining dividend assumption, not a claim that the fund never pays distributions.",
+      "source_ids": [
+        "TECH-IGV-ETF",
+        "TECH-CRM-FY27Q2",
+        "TECH-CRWD-FY27Q2"
+      ],
+      "rationale": "AI implementation/security demand can support selected businesses; prior-quarter rebound, SBC and disruption risk make broad software a conditional rates-relief alternative.",
+      "cases": {
+        "bull": {
+          "g": 0.06,
+          "m": 0.14,
+          "g_width": 0.03,
+          "m_width": 0.05
+        },
+        "base": {
+          "g": 0.04,
+          "m": 0.02,
+          "g_width": 0.02,
+          "m_width": 0.04
+        },
+        "bear": {
+          "g": -0.06,
+          "m": -0.19,
+          "g_width": 0.04,
+          "m_width": 0.05
+        }
+      },
+      "split_ratio": 1
+    }
+  },
+  "observations": {
+    "SOXX": {
+      "ticker": "SOXX",
+      "close": 559.4,
+      "close_date": "2026-10-09",
+      "pe": 51.42,
+      "pe_date": "2026-10-08",
+      "pe_definition": "각 보유종목의 최신 종가를 최근 확정 회계연도 EPS로 나누는 issuer P/E. 음수 P/E 제외. TTM 또는 forward P/E로 표기하지 않음. HTML infoBubble 원문을 별도로 검증.",
+      "nav_ytd_fraction": 0.8902,
+      "nav_1m_fraction": 0.11230000000000001,
+      "nav_3m_fraction": -0.11259999999999999,
+      "performance_date": "2026-09-30",
+      "top5_weight_fraction": 0.4022,
+      "holdings_count": 30,
+      "source_url": "https://www.ishares.com/us/products/239705/ishares-phlx-semiconductor-etf",
+      "source_id": "TECH-SOXX-ETF",
+      "available_at": null,
+      "pit_certified": false,
+      "classification": "observed_public_reference_publication_vintage_unverified",
+      "return_unit": "fraction",
+      "price_unit": "USD_per_share",
+      "performance_definition": "Issuer month-end NAV total return: distributions reinvested and fund expenses reflected"
+    },
+    "IGV": {
+      "ticker": "IGV",
+      "close": 112.67,
+      "close_date": "2026-10-09",
+      "pe": 36.83,
+      "pe_date": "2026-10-08",
+      "pe_definition": "각 보유종목의 최신 종가를 최근 확정 회계연도 EPS로 나누는 issuer P/E. 음수 P/E 제외. TTM 또는 forward P/E로 표기하지 않음. HTML infoBubble 원문을 별도로 검증.",
+      "nav_ytd_fraction": 0.0068000000000000005,
+      "nav_1m_fraction": -0.0338,
+      "nav_3m_fraction": 0.1746,
+      "performance_date": "2026-09-30",
+      "top5_weight_fraction": 0.4294,
+      "holdings_count": 106,
+      "source_url": "https://www.ishares.com/us/products/239771/ishares-north-american-techsoftware-etf",
+      "source_id": "TECH-IGV-ETF",
+      "available_at": null,
+      "pit_certified": false,
+      "classification": "observed_public_reference_publication_vintage_unverified",
+      "return_unit": "fraction",
+      "price_unit": "USD_per_share",
+      "performance_definition": "Issuer month-end NAV total return: distributions reinvested and fund expenses reflected"
+    }
+  },
+  "baseline_sha256": {
+    "assumptions.json": "1eb0a6377f33d641e729a6873e7d4ac1a13191d61e8e6f33fc5f54b2f7caeb06",
+    "scenario_results.json": "fa4e1192c2a805756a1391a8c1c3b063d7af483025466b54b64b7edb1693d5d4",
+    "evidence_us_tech.json": "7f8b7cad32ab64e7bf2ef4881746ffec190e67b842f7e705a6d8b5c69aa3e259",
+    "internal_audit.json": "3fb1149a4ac10e26313233f55035549f11e6b6a31c4e61c145954784e86b6a04"
+  },
+  "simulation": {
+    "n": 200000,
+    "seed": 20261012,
+    "g_copula_rho": 0.6,
+    "m_copula_rho": 0.75,
+    "distribution": "Symmetric triangular research ranges; independent g/m drivers within each asset; Gaussian copula across sectors",
+    "parameter_role": "assumptions_not_estimated_or_calibrated",
+    "correlation_is_latent_gaussian_not_return_correlation": true
+  },
+  "calendar": {
+    "calendar_days": 83,
+    "remaining_us_sessions": 57,
+    "holidays": [
+      "2026-11-26",
+      "2026-12-25"
+    ],
+    "source_url": "https://www.nyse.com/trade/hours-calendars",
+    "early_close_counts_as_session": true
+  },
+  "limitations": [
+    "Growth/multiple ranges and common regime weights were chosen by the analyst, not fitted to sector returns.",
+    "Simulation frequencies are conditional on invented distributions; they are not validated market winning probabilities.",
+    "Issuer historical-fiscal-year P/E excludes loss-making holdings; normalized forward earnings not obtained.",
+    "No tax, FX, spread, trading costs or automatic orders are modeled.",
+    "Prior study remains unchanged; this is separate paired shadow research, without promotion."
+  ]
+}

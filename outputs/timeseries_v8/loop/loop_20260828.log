@@ -1,0 +1,32 @@
+2026-08-28 17:12:10 BOOT branch=claude/timeseries-v8-b5 run_id=tsv8-ralph-20260828T081020Z deadline=Mon Aug 31 07:00:00     2026 dry=1 smoke=0
+2026-08-28 17:12:13 W: resuming approved holdout E10_holdout_scoring (process died without ledger row)
+2026-08-28 17:12:13 DRY: .venv/Scripts/python.exe -m ai_fc timeseries-v8-dev-backtest --role holdout --label E10_holdout_scoring --config {"fhs_horizons": [21, 63], "blend_weight_by_horizon": {"21": 0.75, "63": 0.75}, "pit_recalibration_shrinkage": 0.5}
+2026-08-28 17:14:17 W: resuming approved holdout E10_holdout_scoring (process died without ledger row)
+2026-08-28 17:14:17 DRY: .venv/Scripts/python.exe -m ai_fc timeseries-v8-dev-backtest --role holdout --label E10_holdout_scoring --config {"fhs_horizons": [21, 63], "blend_weight_by_horizon": {"21": 0.75, "63": 0.75}, "pit_recalibration_shrinkage": 0.5}
+2026-08-28 17:14:17 MAX_CYCLES=2 reached
+2026-08-28 17:14:18 SHUTDOWN clean (2 cycles)
+2026-08-28 17:15:05 stale lock (pid=10441) reclaimed
+2026-08-28 17:15:11 BOOT branch=claude/timeseries-v8-b5 run_id=tsv8-ralph-20260828T081020Z deadline=Mon Aug 31 07:00:00     2026 dry=1 smoke=0
+2026-08-28 17:15:14 W: resuming approved holdout E10_holdout_scoring (process died without ledger row)
+2026-08-28 17:15:14 DRY: .venv/Scripts/python.exe -m ai_fc timeseries-v8-dev-backtest --role holdout --label E10_holdout_scoring --config {"fhs_horizons": [21, 63], "blend_weight_by_horizon": {"21": 0.75, "63": 0.75}, "pit_recalibration_shrinkage": 0.5}
+2026-08-28 17:15:14 MAX_CYCLES=1 reached
+2026-08-28 17:15:15 SHUTDOWN clean (1 cycles)
+2026-08-28 17:15:29 stale lock (pid=10857) reclaimed
+2026-08-28 17:15:34 BOOT branch=claude/timeseries-v8-b5 run_id=tsv8-ralph-20260828T081020Z deadline=Mon Aug 31 07:00:00     2026 dry=1 smoke=0
+2026-08-28 17:15:36 W: approved holdout still computing - waiting
+2026-08-28 17:15:36 MAX_CYCLES=1 reached
+2026-08-28 17:15:37 SHUTDOWN clean (1 cycles)
+2026-08-28 17:15:47 stale lock (pid=10932) reclaimed
+2026-08-28 17:15:51 BOOT branch=claude/timeseries-v8-b5 run_id=tsv8-ralph-20260828T081020Z deadline=Mon Aug 31 07:00:00     2026 dry=0 smoke=1
+2026-08-28 17:15:52 B: monitor cycle
+2026-08-28 17:15:53 WARN ops_status failed
+2026-08-28 17:16:43 MAX_CYCLES=1 reached
+2026-08-28 17:16:44 SHUTDOWN clean (1 cycles)
+2026-08-28 17:26:58 stale lock (pid=10987) reclaimed
+2026-08-28 17:27:03 BOOT branch=claude/timeseries-v8-b5 run_id=tsv8-ralph-20260828T081020Z deadline=Mon Aug 31 07:00:00     2026 dry=0 smoke=0
+2026-08-28 17:27:05 W: resuming approved holdout E10_holdout_scoring (process died without ledger row)
+2026-08-28 17:29:06 ABORT file -> shutdown
+2026-08-28 17:31:43 BOOT branch=claude/timeseries-v8-b5 run_id=tsv8-ralph-20260828T081020Z deadline=Mon Aug 31 07:00:00     2026 dry=0 smoke=0
+2026-08-28 17:31:47 W: approved holdout still computing - waiting
+2026-08-28 17:33:49 W: approved holdout still computing - waiting
+2026-08-28 17:35:50 B: monitor cycle

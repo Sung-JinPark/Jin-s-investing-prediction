@@ -1,0 +1,608 @@
+{
+  "schema_version": 1,
+  "created_at_utc": "2026-10-16T00:33:08.065085+00:00",
+  "price_cutoff": "2026-10-15",
+  "source_csv": "../../prices/prices.csv",
+  "source_sha256": "77049dd7d90c981b73000d78e0c4897171941451f24e814b865acdb9a9940715",
+  "source_china_evidence": "../../china/evidence.json",
+  "source_china_evidence_sha256": "2ae76d0413340723a1a6e987ed6c4ac15c5595506bd0b383cb01a5515d60ee3e",
+  "research_only": true,
+  "probabilities": null,
+  "unit_policy": "All ratios, returns, recoveries and thresholds are explicitly fractions; close is index_points; session counts are observed return intervals.",
+  "historical_anchor_type": "retrospective observed extrema, with separate prefix-only threshold confirmations",
+  "anchor_sequences": [
+    {
+      "label": "KOREA_OBSERVED_CURRENT",
+      "anchor_selection": "Observed maximum through cutoff Jun22; subsequent low through Jul31; highest subsequent rebound close through Oct15. Not an assertion of a permanent final peak.",
+      "peak": {
+        "date": "2026-06-22",
+        "close": 9114.55
+      },
+      "first_or_designated_trough": {
+        "date": "2026-07-30",
+        "close": 5593.56
+      },
+      "rebound_peak": {
+        "date": "2026-09-23",
+        "close": 7080.92
+      },
+      "trough_drawdown_from_peak_fraction": -0.38630431562721135,
+      "rebound_return_from_trough_fraction": 0.2659057916604093,
+      "recovered_lost_peak_to_trough_points_fraction": 0.4224266470509715,
+      "rebound_drawdown_from_original_peak_fraction": -0.2231190788354882,
+      "sessions_peak_to_trough": 27,
+      "sessions_trough_to_rebound": 38,
+      "first_close_below_designated_trough_after_rebound": {
+        "date": "2026-10-15",
+        "close": 5554.22
+      },
+      "sessions_rebound_to_first_breach": 12,
+      "sessions_peak_to_first_breach": 77,
+      "breach_drawdown_from_peak_fraction": -0.39062049141208277,
+      "breach_return_from_rebound_fraction": -0.21560757641662376,
+      "breach_return_from_designated_trough_fraction": -0.007033088051259018,
+      "first_subsequent_close_above_original_peak": null,
+      "days_are_observed_session_gaps": "Index differences count actual return intervals; no weekend or holiday padding."
+    },
+    {
+      "label": "CN_MID_RALLY_2007",
+      "anchor_selection": "Descriptive extrema within explicitly historical windows: peak May2007; low May30-Jun15; rebound Jun5-Jun30. These windows are retrospective case interpretation, not a prospective selection rule.",
+      "peak": {
+        "date": "2007-05-29",
+        "close": 4334.92
+      },
+      "first_or_designated_trough": {
+        "date": "2007-06-04",
+        "close": 3670.4
+      },
+      "rebound_peak": {
+        "date": "2007-06-19",
+        "close": 4269.52
+      },
+      "trough_drawdown_from_peak_fraction": -0.15329463980880842,
+      "rebound_return_from_trough_fraction": 0.16323016564952053,
+      "recovered_lost_peak_to_trough_points_fraction": 0.9015830975741894,
+      "rebound_drawdown_from_original_peak_fraction": -0.015086783608463272,
+      "sessions_peak_to_trough": 4,
+      "sessions_trough_to_rebound": 11,
+      "first_close_below_designated_trough_after_rebound": {
+        "date": "2007-07-05",
+        "close": 3615.87
+      },
+      "sessions_rebound_to_first_breach": 12,
+      "sessions_peak_to_first_breach": 27,
+      "breach_drawdown_from_peak_fraction": -0.16587388002546766,
+      "breach_return_from_rebound_fraction": -0.15309683524143236,
+      "breach_return_from_designated_trough_fraction": -0.0148566913687882,
+      "first_subsequent_close_above_original_peak": {
+        "date": "2007-07-26",
+        "close": 4346.46
+      },
+      "days_are_observed_session_gaps": "Index differences count actual return intervals; no weekend or holiday padding."
+    },
+    {
+      "label": "CN_EARLY_POST_PEAK",
+      "anchor_selection": "Observed maximum close Oct16; first low in Oct17-Nov30; rebound maximum Nov29-Jan21. Retrospective anchors require confirmation-date distinction.",
+      "peak": {
+        "date": "2007-10-16",
+        "close": 6092.06
+      },
+      "first_or_designated_trough": {
+        "date": "2007-11-28",
+        "close": 4803.39
+      },
+      "rebound_peak": {
+        "date": "2008-01-14",
+        "close": 5497.9
+      },
+      "trough_drawdown_from_peak_fraction": -0.21153271635538717,
+      "rebound_return_from_trough_fraction": 0.1445874684337518,
+      "recovered_lost_peak_to_trough_points_fraction": 0.5389354916309057,
+      "rebound_drawdown_from_original_peak_fraction": -0.09753022787037569,
+      "sessions_peak_to_trough": 31,
+      "sessions_trough_to_rebound": 31,
+      "first_close_below_designated_trough_after_rebound": {
+        "date": "2008-01-22",
+        "close": 4559.75
+      },
+      "sessions_rebound_to_first_breach": 6,
+      "sessions_peak_to_first_breach": 68,
+      "breach_drawdown_from_peak_fraction": -0.2515257564764628,
+      "breach_return_from_rebound_fraction": -0.17063787991778678,
+      "breach_return_from_designated_trough_fraction": -0.050722510560250234,
+      "first_subsequent_close_above_original_peak": null,
+      "days_are_observed_session_gaps": "Index differences count actual return intervals; no weekend or holiday padding."
+    },
+    {
+      "label": "CN_DEEP_BEAR_2008",
+      "anchor_selection": "Observed maximum Oct16; March-April decline low within Mar1-Apr30; rebound high within Apr19-May31. Not independent of other China windows.",
+      "peak": {
+        "date": "2007-10-16",
+        "close": 6092.06
+      },
+      "first_or_designated_trough": {
+        "date": "2008-04-18",
+        "close": 3094.67
+      },
+      "rebound_peak": {
+        "date": "2008-05-05",
+        "close": 3761.01
+      },
+      "trough_drawdown_from_peak_fraction": -0.4920158370075147,
+      "rebound_return_from_trough_fraction": 0.21531859616695814,
+      "recovered_lost_peak_to_trough_points_fraction": 0.222306740197305,
+      "rebound_drawdown_from_original_peak_fraction": -0.3826374001569256,
+      "sessions_peak_to_trough": 125,
+      "sessions_trough_to_rebound": 9,
+      "first_close_below_designated_trough_after_rebound": {
+        "date": "2008-06-10",
+        "close": 3072.33
+      },
+      "sessions_rebound_to_first_breach": 25,
+      "sessions_peak_to_first_breach": 159,
+      "breach_drawdown_from_peak_fraction": -0.4956829052898363,
+      "breach_return_from_rebound_fraction": -0.18311038790112233,
+      "breach_return_from_designated_trough_fraction": -0.007218863400621167,
+      "first_subsequent_close_above_original_peak": null,
+      "days_are_observed_session_gaps": "Index differences count actual return intervals; no weekend or holiday padding."
+    }
+  ],
+  "depth_only_first_crossing": {
+    "threshold_drawdown_fraction": -0.39062049141208277,
+    "date": "2008-03-18",
+    "close": 3668.9,
+    "actual_drawdown_fraction": -0.3977570805277689,
+    "role": "Depth-only comparator, not a stage-equivalent conclusion. It precedes the April-May2008 large rebound."
+  },
+  "equal_horizon_historical_outcomes": {
+    "2007-07-05": {
+      "status": "complete",
+      "origin": {
+        "date": "2007-07-05",
+        "close": 3615.87
+      },
+      "horizon_sessions": 126,
+      "first_future_date": "2007-07-06",
+      "end": {
+        "date": "2008-01-08",
+        "close": 5386.53
+      },
+      "end_return_fraction": 0.4896912776178346,
+      "max_drawdown_fraction": -0.21153271635538717,
+      "max_drawdown_peak": {
+        "date": "2007-10-16",
+        "close": 6092.06
+      },
+      "max_drawdown_trough": {
+        "date": "2007-11-28",
+        "close": 4803.39
+      },
+      "maximum_upside_from_origin_fraction": 0.6848116774109689,
+      "maximum_upside_observation": {
+        "date": "2007-10-16",
+        "close": 6092.06
+      },
+      "minimum_return_from_origin_including_origin_fraction": 0.0,
+      "minimum_origin_return_observation": {
+        "date": "2007-07-05",
+        "close": 3615.87
+      },
+      "worst_future_return_excluding_origin_fraction": 0.045764919645894464,
+      "additional_20pct_origin_loss_event": false,
+      "definition": "End return uses exactly126 later closes. Max drawdown uses running peak from origin. Origin-upside/minimum include the origin observation, so zero means the origin was never exceeded/undercut; no clipping or interpolation.",
+      "role": "Equal-treatment descriptive historical outcome; anchors were selected by visible stage interpretation, not future return. Not a forecast or independent frequency observation."
+    },
+    "2008-01-22": {
+      "status": "complete",
+      "origin": {
+        "date": "2008-01-22",
+        "close": 4559.75
+      },
+      "horizon_sessions": 126,
+      "first_future_date": "2008-01-23",
+      "end": {
+        "date": "2008-07-29",
+        "close": 2850.31
+      },
+      "end_return_fraction": -0.37489774658698394,
+      "max_drawdown_fraction": -0.4431367854690246,
+      "max_drawdown_peak": {
+        "date": "2008-01-25",
+        "close": 4761.69
+      },
+      "max_drawdown_trough": {
+        "date": "2008-07-01",
+        "close": 2651.61
+      },
+      "maximum_upside_from_origin_fraction": 0.044287515762925445,
+      "maximum_upside_observation": {
+        "date": "2008-01-25",
+        "close": 4761.69
+      },
+      "minimum_return_from_origin_including_origin_fraction": -0.4184746970776906,
+      "minimum_origin_return_observation": {
+        "date": "2008-07-01",
+        "close": 2651.61
+      },
+      "worst_future_return_excluding_origin_fraction": -0.4184746970776906,
+      "additional_20pct_origin_loss_event": true,
+      "definition": "End return uses exactly126 later closes. Max drawdown uses running peak from origin. Origin-upside/minimum include the origin observation, so zero means the origin was never exceeded/undercut; no clipping or interpolation.",
+      "role": "Equal-treatment descriptive historical outcome; anchors were selected by visible stage interpretation, not future return. Not a forecast or independent frequency observation."
+    },
+    "2008-06-10": {
+      "status": "complete",
+      "origin": {
+        "date": "2008-06-10",
+        "close": 3072.33
+      },
+      "horizon_sessions": 126,
+      "first_future_date": "2008-06-11",
+      "end": {
+        "date": "2008-12-11",
+        "close": 2031.68
+      },
+      "end_return_fraction": -0.338716869607106,
+      "max_drawdown_fraction": -0.4444932673247991,
+      "max_drawdown_peak": {
+        "date": "2008-06-10",
+        "close": 3072.33
+      },
+      "max_drawdown_trough": {
+        "date": "2008-11-04",
+        "close": 1706.7
+      },
+      "maximum_upside_from_origin_fraction": 0.0,
+      "maximum_upside_observation": {
+        "date": "2008-06-10",
+        "close": 3072.33
+      },
+      "minimum_return_from_origin_including_origin_fraction": -0.4444932673247991,
+      "minimum_origin_return_observation": {
+        "date": "2008-11-04",
+        "close": 1706.7
+      },
+      "worst_future_return_excluding_origin_fraction": -0.4444932673247991,
+      "additional_20pct_origin_loss_event": true,
+      "definition": "End return uses exactly126 later closes. Max drawdown uses running peak from origin. Origin-upside/minimum include the origin observation, so zero means the origin was never exceeded/undercut; no clipping or interpolation.",
+      "role": "Equal-treatment descriptive historical outcome; anchors were selected by visible stage interpretation, not future return. Not a forecast or independent frequency observation."
+    }
+  },
+  "directional_confirmation_sensitivities": {
+    "SSE_COMPOSITE": {
+      "0.1": {
+        "threshold_fraction": 0.1,
+        "confirmation_rule": "positive bounce from running low >= threshold; decline from running high >= threshold. Prefix-only confirmation, fixed anchor. Thresholds are sensitivity settings, not optimized.",
+        "anchor": {
+          "date": "2007-10-16",
+          "close": 6092.06
+        },
+        "turns": [
+          {
+            "type": "trough",
+            "extremum": {
+              "date": "2007-11-28",
+              "close": 4803.39
+            },
+            "confirmed_on": "2007-12-27",
+            "sessions_extremum_to_confirmation": 21
+          },
+          {
+            "type": "rebound_peak",
+            "extremum": {
+              "date": "2008-01-14",
+              "close": 5497.9
+            },
+            "confirmed_on": "2008-01-21",
+            "sessions_extremum_to_confirmation": 5
+          },
+          {
+            "type": "trough",
+            "extremum": {
+              "date": "2008-04-18",
+              "close": 3094.67
+            },
+            "confirmed_on": "2008-04-24",
+            "sessions_extremum_to_confirmation": 4
+          },
+          {
+            "type": "rebound_peak",
+            "extremum": {
+              "date": "2008-05-05",
+              "close": 3761.01
+            },
+            "confirmed_on": "2008-05-26",
+            "sessions_extremum_to_confirmation": 15
+          },
+          {
+            "type": "trough",
+            "extremum": {
+              "date": "2008-07-01",
+              "close": 2651.61
+            },
+            "confirmed_on": "2008-07-09",
+            "sessions_extremum_to_confirmation": 6
+          },
+          {
+            "type": "rebound_peak",
+            "extremum": {
+              "date": "2008-07-09",
+              "close": 2920.55
+            },
+            "confirmed_on": "2008-08-08",
+            "sessions_extremum_to_confirmation": 22
+          },
+          {
+            "type": "trough",
+            "extremum": {
+              "date": "2008-09-18",
+              "close": 1895.84
+            },
+            "confirmed_on": "2008-09-22",
+            "sessions_extremum_to_confirmation": 2
+          },
+          {
+            "type": "rebound_peak",
+            "extremum": {
+              "date": "2008-09-25",
+              "close": 2297.5
+            },
+            "confirmed_on": "2008-10-10",
+            "sessions_extremum_to_confirmation": 6
+          },
+          {
+            "type": "trough",
+            "extremum": {
+              "date": "2008-11-04",
+              "close": 1706.7
+            },
+            "confirmed_on": "2008-11-13",
+            "sessions_extremum_to_confirmation": 7
+          },
+          {
+            "type": "rebound_peak",
+            "extremum": {
+              "date": "2008-12-08",
+              "close": 2090.77
+            },
+            "confirmed_on": "2008-12-24",
+            "sessions_extremum_to_confirmation": 12
+          }
+        ],
+        "last_state": "down",
+        "unconfirmed_extremum": {
+          "date": "2008-12-31",
+          "close": 1820.81
+        }
+      },
+      "0.15": {
+        "threshold_fraction": 0.15,
+        "confirmation_rule": "positive bounce from running low >= threshold; decline from running high >= threshold. Prefix-only confirmation, fixed anchor. Thresholds are sensitivity settings, not optimized.",
+        "anchor": {
+          "date": "2007-10-16",
+          "close": 6092.06
+        },
+        "turns": [
+          {
+            "type": "trough",
+            "extremum": {
+              "date": "2008-04-18",
+              "close": 3094.67
+            },
+            "confirmed_on": "2008-04-24",
+            "sessions_extremum_to_confirmation": 4
+          },
+          {
+            "type": "rebound_peak",
+            "extremum": {
+              "date": "2008-05-05",
+              "close": 3761.01
+            },
+            "confirmed_on": "2008-06-10",
+            "sessions_extremum_to_confirmation": 25
+          },
+          {
+            "type": "trough",
+            "extremum": {
+              "date": "2008-09-18",
+              "close": 1895.84
+            },
+            "confirmed_on": "2008-09-22",
+            "sessions_extremum_to_confirmation": 2
+          },
+          {
+            "type": "rebound_peak",
+            "extremum": {
+              "date": "2008-09-25",
+              "close": 2297.5
+            },
+            "confirmed_on": "2008-10-16",
+            "sessions_extremum_to_confirmation": 10
+          },
+          {
+            "type": "trough",
+            "extremum": {
+              "date": "2008-11-04",
+              "close": 1706.7
+            },
+            "confirmed_on": "2008-11-14",
+            "sessions_extremum_to_confirmation": 8
+          }
+        ],
+        "last_state": "up",
+        "unconfirmed_extremum": {
+          "date": "2008-12-08",
+          "close": 2090.77
+        }
+      },
+      "0.2": {
+        "threshold_fraction": 0.2,
+        "confirmation_rule": "positive bounce from running low >= threshold; decline from running high >= threshold. Prefix-only confirmation, fixed anchor. Thresholds are sensitivity settings, not optimized.",
+        "anchor": {
+          "date": "2007-10-16",
+          "close": 6092.06
+        },
+        "turns": [
+          {
+            "type": "trough",
+            "extremum": {
+              "date": "2008-04-18",
+              "close": 3094.67
+            },
+            "confirmed_on": "2008-05-05",
+            "sessions_extremum_to_confirmation": 9
+          },
+          {
+            "type": "rebound_peak",
+            "extremum": {
+              "date": "2008-05-05",
+              "close": 3761.01
+            },
+            "confirmed_on": "2008-06-12",
+            "sessions_extremum_to_confirmation": 27
+          },
+          {
+            "type": "trough",
+            "extremum": {
+              "date": "2008-09-18",
+              "close": 1895.84
+            },
+            "confirmed_on": "2008-09-25",
+            "sessions_extremum_to_confirmation": 5
+          },
+          {
+            "type": "rebound_peak",
+            "extremum": {
+              "date": "2008-09-25",
+              "close": 2297.5
+            },
+            "confirmed_on": "2008-10-27",
+            "sessions_extremum_to_confirmation": 17
+          },
+          {
+            "type": "trough",
+            "extremum": {
+              "date": "2008-11-04",
+              "close": 1706.7
+            },
+            "confirmed_on": "2008-12-08",
+            "sessions_extremum_to_confirmation": 24
+          }
+        ],
+        "last_state": "up",
+        "unconfirmed_extremum": {
+          "date": "2008-12-08",
+          "close": 2090.77
+        }
+      }
+    },
+    "KOSPI": {
+      "0.1": {
+        "threshold_fraction": 0.1,
+        "confirmation_rule": "positive bounce from running low >= threshold; decline from running high >= threshold. Prefix-only confirmation, fixed anchor. Thresholds are sensitivity settings, not optimized.",
+        "anchor": {
+          "date": "2026-06-22",
+          "close": 9114.55
+        },
+        "turns": [
+          {
+            "type": "trough",
+            "extremum": {
+              "date": "2026-07-30",
+              "close": 5593.56
+            },
+            "confirmed_on": "2026-07-31",
+            "sessions_extremum_to_confirmation": 1
+          },
+          {
+            "type": "rebound_peak",
+            "extremum": {
+              "date": "2026-09-23",
+              "close": 7080.92
+            },
+            "confirmed_on": "2026-10-13",
+            "sessions_extremum_to_confirmation": 10
+          }
+        ],
+        "last_state": "down",
+        "unconfirmed_extremum": {
+          "date": "2026-10-15",
+          "close": 5554.22
+        }
+      },
+      "0.15": {
+        "threshold_fraction": 0.15,
+        "confirmation_rule": "positive bounce from running low >= threshold; decline from running high >= threshold. Prefix-only confirmation, fixed anchor. Thresholds are sensitivity settings, not optimized.",
+        "anchor": {
+          "date": "2026-06-22",
+          "close": 9114.55
+        },
+        "turns": [
+          {
+            "type": "trough",
+            "extremum": {
+              "date": "2026-07-30",
+              "close": 5593.56
+            },
+            "confirmed_on": "2026-07-31",
+            "sessions_extremum_to_confirmation": 1
+          },
+          {
+            "type": "rebound_peak",
+            "extremum": {
+              "date": "2026-09-23",
+              "close": 7080.92
+            },
+            "confirmed_on": "2026-10-14",
+            "sessions_extremum_to_confirmation": 11
+          }
+        ],
+        "last_state": "down",
+        "unconfirmed_extremum": {
+          "date": "2026-10-15",
+          "close": 5554.22
+        }
+      },
+      "0.2": {
+        "threshold_fraction": 0.2,
+        "confirmation_rule": "positive bounce from running low >= threshold; decline from running high >= threshold. Prefix-only confirmation, fixed anchor. Thresholds are sensitivity settings, not optimized.",
+        "anchor": {
+          "date": "2026-06-22",
+          "close": 9114.55
+        },
+        "turns": [
+          {
+            "type": "trough",
+            "extremum": {
+              "date": "2026-07-30",
+              "close": 5593.56
+            },
+            "confirmed_on": "2026-08-13",
+            "sessions_extremum_to_confirmation": 10
+          },
+          {
+            "type": "rebound_peak",
+            "extremum": {
+              "date": "2026-09-23",
+              "close": 7080.92
+            },
+            "confirmed_on": "2026-10-15",
+            "sessions_extremum_to_confirmation": 12
+          }
+        ],
+        "last_state": "down",
+        "unconfirmed_extremum": {
+          "date": "2026-10-15",
+          "close": 5554.22
+        }
+      }
+    }
+  },
+  "bounded_conclusion": "Current Korea has an observed peak, deep first decline, sizable rebound and the first marginal break of the first trough. The Oct2007-Jan2008 Chinese sequence is similar in event order and duration under10% confirmation, but its14.46% bounce fails15/20% sensitivity. The April-May-June2008 sequence passes larger-bounce filters but is deeper and older. March18 is a depth crossing, not by itself an equivalent rebound stage. No unique date is robust across dimensions.",
+  "not_inferred": [
+    "causal economic equivalence",
+    "a final peak known prospectively",
+    "a permanent downtrend from one close below prior low",
+    "future Korean path or probability",
+    "independent sample size increased by multiple China windows"
+  ]
+}

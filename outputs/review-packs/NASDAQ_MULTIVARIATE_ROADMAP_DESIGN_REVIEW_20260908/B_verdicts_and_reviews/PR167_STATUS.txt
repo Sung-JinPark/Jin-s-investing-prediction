@@ -1,0 +1,10 @@
+PR #167 MERGED https://github.com/Sung-JinPark/Jin-s-investing-prediction/pull/167
+merged 2026-09-08T23:28:22Z as a789a2c2
+checks: refresh=SUCCESS, verify=SUCCESS, refresh=SUCCESS, verify=SUCCESS
+
+라이브 검증(2026-09-09 KST): 사이트 https://sung-jinpark.github.io/Jin-s-investing-prediction/#timeseries/volatility
+- timeseries_v13_vol: status=live tier=t3_live_card numbers=True holdout_caveat_bold=True holdout=not_consumed
+- 게이트 4항 전부 true · as_of 2026-09-04 · 신선도 fresh 1/1 · 계수 sha 1a857850… · 9셀 champion=persistence_pb
+- 화면: caveat lead "홀드아웃 미검증" 굵게, 배지 "수치모델 · 당일 수준 지속(PB)", 칩 5종(AI 예측 36% 대비 -8%p 표시만), h63 "▲ 보정 약함"
+- 참고: V8 가격 카드는 자체 운영 신선도 게이트로 HOLD(입력 계열 지연) — HOLD 경로 공용 탭 바인더 수정이 실제로 필요했음이 라이브에서 확인됨
+- pages 배포는 1차 실패(actions/deploy-pages OIDC 토큰 요청 타임아웃, 코드 무관) 후 재실행 성공

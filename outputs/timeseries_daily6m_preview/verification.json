@@ -1,0 +1,48 @@
+{
+  "fixture_only": true,
+  "actual_market_numbers_published": false,
+  "full_suite_initial": {
+    "passed": 1501,
+    "failed": 10,
+    "skipped": 7,
+    "duration_seconds": 671.62
+  },
+  "followup_checks": {
+    "new_daily6m_and_workflow_and_v13_contract_tests_passed": 64,
+    "existing_dashboard_tests_passed": 70,
+    "bash_loop_tests_passed_with_existing_git_bash": 3,
+    "browser_viewports": [1280, 390],
+    "browser_errors": 0,
+    "browser_body_overflow": false,
+    "periods_same_bundle": [1, 3, 6],
+    "sample_paths": 5
+  },
+  "repaired_initial_failures": [
+    "Pages dependency and new workflow trigger contract",
+    "New data writer failure monitor registration",
+    "V13 enabled-tab assertion scoped to legacy and new renderers"
+  ],
+  "resolved_environment_failures": "Three shell-loop tests pass when existing Git for Windows Bash is selected instead of the unavailable WSL Bash shim.",
+  "remaining_preexisting_data_failures": [
+    {
+      "tests": [
+        "src/tests/test_scenario_v5_2.py::test_candidate_passes_strict_validation_and_sources",
+        "src/tests/test_scenario_v5_2.py::test_dashboard_projection_fresh_and_stale_fallback",
+        "src/tests/test_scenario_v5_2.py::test_protected_snapshot_ledger_and_archive_hashes_are_unchanged"
+      ],
+      "reason": "data/ml_history/2026.jsonl was already modified before this task and differs from the sealed scenario protected manifest; it was preserved."
+    },
+    {
+      "tests": ["dualdb/tests/test_sentinels.py::test_ixic_coverage"],
+      "reason": "Existing ^IXIC data ends 2026-08-12; the sentinel requires freshness within seven days of 2026-10-12."
+    }
+  ],
+  "frozen_v8_model_code_hash_before": "869418ccb6a7356761b489bd2e23262427b31b8446dcf2f2dcc17959a8206fde",
+  "frozen_v8_model_code_hash_after": "869418ccb6a7356761b489bd2e23262427b31b8446dcf2f2dcc17959a8206fde",
+  "actual_data_check": {
+    "as_of": "2026-10-12T04:00:00+00:00",
+    "status": "hold",
+    "numbers_visible": false,
+    "stale_groups": ["NASDAQCOM", "VIX", "DGS2", "curve", "dollar"]
+  }
+}

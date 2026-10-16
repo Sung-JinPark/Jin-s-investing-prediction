@@ -1,0 +1,8 @@
+﻿level,value_index_points,required_return_fraction,role
+prior_trough,5593.56,0.007082902729816265,frozen historical price reference
+last_pre_break_close,6008.81,0.08184587574852986,frozen historical price reference
+observed_rebound_high,7080.92,0.2748720792478512,frozen historical price reference
+observed_peak,9114.55,0.6410134996453145,frozen historical price reference
+sma_20,6683.6655,0.20334907511765832,"moving average at cutoff; recompute each future day, not a fixed resistance forecast"
+sma_60,6654.110333333333,0.19802786589896204,"moving average at cutoff; recompute each future day, not a fixed resistance forecast"
+sma_120,7193.395833333333,0.2951225974724323,"moving average at cutoff; recompute each future day, not a fixed resistance forecast"

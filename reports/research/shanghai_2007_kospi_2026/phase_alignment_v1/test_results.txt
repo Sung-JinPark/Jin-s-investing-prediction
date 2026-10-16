@@ -1,0 +1,63 @@
+phase_support
+test_equal_price_does_not_count_as_reclaim_or_break (test_phase_support.PriceGateTests.test_equal_price_does_not_count_as_reclaim_or_break) ... ok
+test_five_actual_observations_count (test_phase_support.PriceGateTests.test_five_actual_observations_count) ... ok
+test_invalid_prices_are_rejected (test_phase_support.PriceGateTests.test_invalid_prices_are_rejected) ... ok
+test_only_trailing_run_counts (test_phase_support.PriceGateTests.test_only_trailing_run_counts) ... ok
+test_single_close_is_not_five_day_confirmation (test_phase_support.PriceGateTests.test_single_close_is_not_five_day_confirmation) ... ok
+
+----------------------------------------------------------------------
+Ran 5 tests in 0.001s
+
+OK
+
+phase_math
+test_bullish_future_has_zero_origin_inclusive_worst_return (test_phase_analysis.PhaseMathTests.test_bullish_future_has_zero_origin_inclusive_worst_return) ... ok
+test_extended_shape_can_reject_matching_zero_reset_features (test_phase_analysis.PhaseMathTests.test_extended_shape_can_reject_matching_zero_reset_features) ... ok
+test_future_horizon_counts_future_closes_not_origin (test_phase_analysis.PhaseMathTests.test_future_horizon_counts_future_closes_not_origin) ... ok
+test_incomplete_future_is_explicitly_censored (test_phase_analysis.PhaseMathTests.test_incomplete_future_is_explicitly_censored) ... ok
+test_pareto_keeps_tradeoff_without_scalar_score (test_phase_analysis.PhaseMathTests.test_pareto_keeps_tradeoff_without_scalar_score) ... ok
+test_rebound_must_reverse_before_becoming_confirmed_peak (test_phase_analysis.PhaseMathTests.test_rebound_must_reverse_before_becoming_confirmed_peak) ... ok
+test_rebound_pair_does_not_use_later_trough (test_phase_analysis.PhaseMathTests.test_rebound_pair_does_not_use_later_trough) ... ok
+test_rebound_shape_does_not_reset_at_new_low (test_phase_analysis.PhaseMathTests.test_rebound_shape_does_not_reset_at_new_low) ... ok
+test_turn_is_not_known_before_confirmation (test_phase_analysis.PhaseMathTests.test_turn_is_not_known_before_confirmation) ... ok
+test_unrecovered_spell_is_not_completed (test_phase_analysis.PhaseMathTests.test_unrecovered_spell_is_not_completed) ... ok
+test_whole_underwater_spell_keeps_later_lower_low (test_phase_analysis.PhaseMathTests.test_whole_underwater_spell_keeps_later_lower_low) ... ok
+
+----------------------------------------------------------------------
+Ran 11 tests in 0.001s
+
+OK
+
+existing_research
+test_after_cutoff_rejected (test_price_analytics.PriceAnalyticsTests.test_after_cutoff_rejected) ... ok
+test_constant_and_small_samples_not_false_correlations (test_price_analytics.PriceAnalyticsTests.test_constant_and_small_samples_not_false_correlations) ... ok
+test_duplicates_rejected (test_price_analytics.PriceAnalyticsTests.test_duplicates_rejected) ... ok
+test_fixed_calendar_shift (test_price_analytics.PriceAnalyticsTests.test_fixed_calendar_shift) ... ok
+test_fx_no_same_date_is_unavailable (test_price_analytics.PriceAnalyticsTests.test_fx_no_same_date_is_unavailable) ... ok
+test_fx_quotation_direction (test_price_analytics.PriceAnalyticsTests.test_fx_quotation_direction) ... ok
+test_invalid_prices_rejected (test_price_analytics.PriceAnalyticsTests.test_invalid_prices_rejected) ... ok
+test_known_opposite_correlation (test_price_analytics.PriceAnalyticsTests.test_known_opposite_correlation) ... ok
+test_missing_currency_rejected (test_price_analytics.PriceAnalyticsTests.test_missing_currency_rejected) ... ok
+test_missing_month_not_filled (test_price_analytics.PriceAnalyticsTests.test_missing_month_not_filled) ... ok
+test_missing_provenance_rejected (test_price_analytics.PriceAnalyticsTests.test_missing_provenance_rejected) ... ok
+test_missing_week_not_filled (test_price_analytics.PriceAnalyticsTests.test_missing_week_not_filled) ... ok
+test_n_returns_require_n_plus_one_closes (test_price_analytics.PriceAnalyticsTests.test_n_returns_require_n_plus_one_closes) ... ok
+test_rank_ties_are_averaged (test_price_analytics.PriceAnalyticsTests.test_rank_ties_are_averaged) ... ok
+test_summary_has_true_path_drawdown (test_price_analytics.PriceAnalyticsTests.test_summary_has_true_path_drawdown) ... ok
+test_unverified_global_benchmark_is_suppressed (test_price_analytics.PriceAnalyticsTests.test_unverified_global_benchmark_is_suppressed) ... ok
+test_wrong_currency_and_adjustment_rejected (test_price_analytics.PriceAnalyticsTests.test_wrong_currency_and_adjustment_rejected) ... ok
+test_drawdown_is_distinct_from_origin_loss (test_research_math.ResearchMathTests.test_drawdown_is_distinct_from_origin_loss) ... ok
+test_exact_twenty_percent_loss_counts (test_research_math.ResearchMathTests.test_exact_twenty_percent_loss_counts) ... ok
+test_growth_can_coexist_with_price_loss (test_research_math.ResearchMathTests.test_growth_can_coexist_with_price_loss) ... ok
+test_incompatible_profit_units_rejected (test_research_math.ResearchMathTests.test_incompatible_profit_units_rejected) ... ok
+test_invalid_inputs_are_rejected_not_clipped (test_research_math.ResearchMathTests.test_invalid_inputs_are_rejected_not_clipped) ... ok
+test_joint_eps_and_multiple_shock_is_multiplicative (test_research_math.ResearchMathTests.test_joint_eps_and_multiple_shock_is_multiplicative) ... ok
+test_negative_or_empty_price_path_rejected (test_research_math.ResearchMathTests.test_negative_or_empty_price_path_rejected) ... ok
+test_profit_growth_concentration_not_market_contribution (test_research_math.ResearchMathTests.test_profit_growth_concentration_not_market_contribution) ... ok
+test_required_multiple_for_twenty_percent_loss (test_research_math.ResearchMathTests.test_required_multiple_for_twenty_percent_loss) ... ok
+test_unit_is_not_inferred_from_magnitude (test_research_math.ResearchMathTests.test_unit_is_not_inferred_from_magnitude) ... ok
+
+----------------------------------------------------------------------
+Ran 27 tests in 0.054s
+
+OK

@@ -1,0 +1,3 @@
+nohup: ignoring input
+tools/weekend_loop.sh: line 186: syntax error near unexpected token `fi'
+tools/weekend_loop.sh: line 186: `  fi'

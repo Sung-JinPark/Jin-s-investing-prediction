@@ -1,0 +1,3645 @@
+{
+  "as_of": "2026-10-12T09:16:14+09:00",
+  "sources": [
+    {
+      "id": "US-FED-0916",
+      "publisher": "Federal Reserve",
+      "title": "September 16 2026 FOMC statement",
+      "url": "https://www.federalreserve.gov/newsevents/pressreleases/monetary20260916a.htm",
+      "published_at": "2026-09-16",
+      "available_at": "2026-09-16T14:00:00-04:00",
+      "data_as_of": "2026-09-16",
+      "claims": [
+        "政策금리 목표범위가 25bp 인상되어 3.75~4.00%가 됐다. 상승한 할인율은 미래 현금흐름 비중이 큰 기업에 부담이 된다."
+      ],
+      "facts": {
+        "target_lower_fraction": 0.0375,
+        "target_upper_fraction": 0.04,
+        "hike_fraction": 0.0025
+      },
+      "horizon": "current policy",
+      "retrieved_at": "2026-10-12T00:29:26Z",
+      "source_class": "research_reference_proxy",
+      "source_percent_numbers_converted_explicitly": true,
+      "pit_certified": true,
+      "availability_basis": "Explicit release time, or conservatively the following UTC date for date-only releases.",
+      "limitations": []
+    },
+    {
+      "id": "US-CPI-0911",
+      "publisher": "BLS",
+      "title": "August 2026 Consumer Price Index",
+      "url": "https://www.bls.gov/news.release/archives/cpi_09112026.htm",
+      "published_at": "2026-09-11",
+      "available_at": "2026-09-11T08:30:00-04:00",
+      "data_as_of": "2026-08",
+      "claims": [
+        "8월 CPI는 전년 대비 3.4%, 식품·에너지 제외 2.4% 상승했다. 9월 수치는 분석시점에 아직 발표되지 않았다."
+      ],
+      "facts": {
+        "cpi_yoy_fraction": 0.034,
+        "core_yoy_fraction": 0.024
+      },
+      "horizon": "August observation",
+      "retrieved_at": "2026-10-12T00:29:26Z",
+      "source_class": "research_reference_proxy",
+      "source_percent_numbers_converted_explicitly": true,
+      "pit_certified": true,
+      "availability_basis": "Explicit release time, or conservatively the following UTC date for date-only releases.",
+      "limitations": []
+    },
+    {
+      "id": "US-JOBS-1002",
+      "publisher": "BLS",
+      "title": "September 2026 Employment Situation",
+      "url": "https://www.bls.gov/news.release/archives/empsit_10022026.htm",
+      "published_at": "2026-10-02",
+      "available_at": "2026-10-02T08:30:00-04:00",
+      "data_as_of": "2026-09",
+      "claims": [
+        "9월 비농업고용 증가 29,000명, 실업률 4.2%. 기업이익 증가와 노동시장 둔화가 동시에 관찰된다."
+      ],
+      "facts": {
+        "nonfarm_jobs_change": 29000,
+        "unemployment_fraction": 0.042
+      },
+      "horizon": "September observation",
+      "retrieved_at": "2026-10-12T00:29:26Z",
+      "source_class": "research_reference_proxy",
+      "source_percent_numbers_converted_explicitly": true,
+      "pit_certified": true,
+      "availability_basis": "Explicit release time, or conservatively the following UTC date for date-only releases.",
+      "limitations": []
+    },
+    {
+      "id": "US-BLS-CALENDAR",
+      "publisher": "BLS",
+      "title": "2026 release schedule",
+      "url": "https://www.bls.gov/schedule/2026/home.htm",
+      "published_at": null,
+      "available_at": null,
+      "data_as_of": "2026 calendar",
+      "claims": [
+        "9월 CPI 발표는 10월 14일 08:30 ET로 예정되어 있다. 일정은 알려진 메타데이터이며 발표 결과는 입력하지 않는다."
+      ],
+      "facts": {
+        "september_cpi_scheduled_release": "2026-10-14T08:30:00-04:00"
+      },
+      "horizon": "scheduled future event",
+      "retrieved_at": "2026-10-12T00:29:26Z",
+      "source_class": "research_reference_proxy",
+      "source_percent_numbers_converted_explicitly": true,
+      "pit_certified": false,
+      "availability_basis": "Dated current document; exact historical publication time unavailable; reference-only.",
+      "limitations": []
+    },
+    {
+      "id": "US-GS-1008",
+      "publisher": "Goldman Sachs",
+      "title": "Are Bonds Becoming a Better Investment for Portfolios",
+      "url": "https://www.goldmansachs.com/insights/articles/are-bonds-becoming-a-better-investment-for-portfolios",
+      "published_at": "2026-10-08",
+      "available_at": "2026-10-09T00:00:00Z",
+      "data_as_of": "2026-10-08",
+      "claims": [
+        "단기에는 강한 기술·AI 이익이 높은 금리의 충격을 완충할 수 있다는 견해. 동시에 금리·에너지·재정 불확실성이 크며 혁신과 실물자산 노출을 함께 강조한다."
+      ],
+      "facts": {
+        "ten_year_yield_quote_fraction": 0.053
+      },
+      "horizon": "next few months and distinct long-term discussion",
+      "retrieved_at": "2026-10-12T00:29:26Z",
+      "source_class": "research_reference_proxy",
+      "source_percent_numbers_converted_explicitly": true,
+      "pit_certified": true,
+      "availability_basis": "Explicit release time, or conservatively the following UTC date for date-only releases.",
+      "limitations": []
+    },
+    {
+      "id": "US-JPM-Q4",
+      "publisher": "J.P. Morgan Asset Management",
+      "title": "Guide to the Markets Q4 2026 themes",
+      "url": "https://am.jpmorgan.com/fr/en/asset-management/liq/insights/market-insights/guide-to-the-markets/",
+      "published_at": null,
+      "available_at": null,
+      "data_as_of": "4Q2026",
+      "claims": [
+        "경제의 회복력, AI 집중 위험, 인프라 투자와 국채·하이퍼스케일러의 자금조달 경쟁을 함께 논의한다. AI 투자의 증가가 모델 제공자의 이익을 보장하지는 않는다."
+      ],
+      "facts": {},
+      "horizon": "Q4 themes",
+      "retrieved_at": "2026-10-12T00:29:26Z",
+      "source_class": "research_reference_proxy",
+      "source_percent_numbers_converted_explicitly": true,
+      "pit_certified": false,
+      "availability_basis": "Dated current document; exact historical publication time unavailable; reference-only.",
+      "limitations": []
+    },
+    {
+      "id": "US-FACTSET-1002",
+      "publisher": "FactSet",
+      "title": "S&P 500 Earnings Season Preview Q3 2026",
+      "url": "https://insight.factset.com/sp-500-earnings-season-preview-q3-2026",
+      "published_at": "2026-10-02",
+      "available_at": "2026-10-03T00:00:00Z",
+      "data_as_of": "2026-10-02; forward PE based on 2026-09-30 close",
+      "claims": [
+        "11개 섹터 모두 3분기 이익 증가가 예상된다. 정보기술·통신서비스·에너지의 성장이 강하며 시장의 12개월 선행 P/E와 운용사 FY1 P/E는 다른 정의다."
+      ],
+      "facts": {
+        "q3_eps_growth_fraction": 0.295,
+        "q4_eps_growth_fraction": 0.276,
+        "cy2026_eps_growth_fraction": 0.324,
+        "sp500_ntm_pe": 19
+      },
+      "horizon": "Q3/Q4 earnings estimates and NTM valuation",
+      "retrieved_at": "2026-10-12T00:29:26Z",
+      "source_class": "research_reference_proxy",
+      "source_percent_numbers_converted_explicitly": true,
+      "pit_certified": true,
+      "availability_basis": "Explicit release time, or conservatively the following UTC date for date-only releases.",
+      "limitations": []
+    },
+    {
+      "id": "US-FACTSET-1007",
+      "publisher": "FactSet",
+      "title": "Analysts Increased EPS Estimates for S&P 500 Companies for 2nd Straight Quarter",
+      "url": "https://insight.factset.com/analysts-increased-eps-estimates-for-sp-500-companies-for-2nd-straight-quarter-1",
+      "published_at": "2026-10-07",
+      "available_at": "2026-10-08T00:00:00Z",
+      "data_as_of": "2026-09-30",
+      "claims": [
+        "분기 중 Q3 EPS 상향은 시장 +1.4%, 에너지 +18.0%, 정보기술 +3.5%. 소재·필수소비재·헬스케어는 하향. 2026년 EPS 수정과 2027년 EPS 수정은 서로 다른 통계다."
+      ],
+      "facts": {
+        "sp500_q3_eps_revision_fraction": 0.014,
+        "energy_q3_eps_revision_fraction": 0.18,
+        "technology_q3_eps_revision_fraction": 0.035
+      },
+      "horizon": "June 30 to September 30 estimate revisions",
+      "retrieved_at": "2026-10-12T00:29:26Z",
+      "source_class": "research_reference_proxy",
+      "source_percent_numbers_converted_explicitly": true,
+      "pit_certified": true,
+      "availability_basis": "Explicit release time, or conservatively the following UTC date for date-only releases.",
+      "limitations": []
+    },
+    {
+      "id": "US-FACTSET-1009",
+      "publisher": "FactSet",
+      "title": "S&P 500 Likely to Report Earnings Growth Above 35 for Q3",
+      "url": "https://insight.factset.com/sp-500-likely-to-report-earnings-growth-above-35-for-q3",
+      "published_at": "2026-10-09",
+      "available_at": "2026-10-10T00:00:00Z",
+      "data_as_of": "2026-10-09",
+      "claims": [
+        "현재 Q3 이익 증가 추정은 29.6%. 최종 35% 이상은 과거 실적 서프라이즈 패턴을 적용한 기관 추론이며 확정 실적이나 연말 주가 수익률이 아니다."
+      ],
+      "facts": {
+        "current_q3_eps_growth_fraction": 0.296,
+        "reported_companies_count": 19
+      },
+      "horizon": "Q3 earnings season",
+      "retrieved_at": "2026-10-12T00:29:26Z",
+      "source_class": "research_reference_proxy",
+      "source_percent_numbers_converted_explicitly": true,
+      "pit_certified": true,
+      "availability_basis": "Explicit release time, or conservatively the following UTC date for date-only releases.",
+      "limitations": []
+    },
+    {
+      "id": "US-FACTSET-FLOWS",
+      "publisher": "FactSet",
+      "title": "US ETF Monthly Summary September 2026 Results",
+      "url": "https://insight.factset.com/u.s.-etf-monthly-summary-september-2026-results",
+      "published_at": "2026-10-05",
+      "available_at": "2026-10-06T00:00:00Z",
+      "data_as_of": "2026-09-30",
+      "claims": [
+        "9월 전 세계 반도체 노출 ETF에서는 유출이 관찰됐다. 금융 섹터 유입 서술은 State Street 장표와 방향이 다르므로 집계 대상 확인 전 공통 수급 신호로 쓰지 않는다."
+      ],
+      "facts": {},
+      "horizon": "September flows",
+      "retrieved_at": "2026-10-12T00:29:26Z",
+      "source_class": "research_reference_proxy",
+      "source_percent_numbers_converted_explicitly": true,
+      "pit_certified": true,
+      "availability_basis": "Explicit release time, or conservatively the following UTC date for date-only releases.",
+      "limitations": []
+    },
+    {
+      "id": "US-SSGA-OCT",
+      "publisher": "State Street Investment Management",
+      "title": "October 2026 Sector Chart Pack",
+      "url": "https://www.ssga.com/library-content/pdfs/etf/us/state-street-sector-chart-pack-monthly.pdf",
+      "published_at": null,
+      "available_at": null,
+      "data_as_of": "2026-09-30; macro page 2026-10-01",
+      "claims": [
+        "기술과 헬스케어의 이익 회복력, 산업재 내 성장 확산을 강조한다. 투자 견해는 6~12개월 지평으로 남은 연말과 다르며 점수카드는 백테스트한 전략이 아니다."
+      ],
+      "facts": {},
+      "horizon": "6-12 month view; historical sector comparison",
+      "raw_path": "source_pdfs/ssga_sector_chart_pack_oct2026.pdf",
+      "raw_sha256": "e1f2b9cd1e5cc91a07a81ecec721c9fa72fb65da92ca56437d18c07c56ed0cb4",
+      "verified_pages": [
+        19,
+        33
+      ],
+      "limitations": [
+        "SSGA와 FactSet의 일부 수급 방향·시장 EPS 기준 수치 차이를 보존한다.",
+        "발행일·원문 과거 공개시각이 명시되지 않아 공식 PIT 숫자 입력으로 사용하지 않는다."
+      ],
+      "retrieved_at": "2026-10-12T00:29:26Z",
+      "source_class": "research_reference_proxy",
+      "source_percent_numbers_converted_explicitly": true,
+      "pit_certified": false,
+      "availability_basis": "Dated current document; exact historical publication time unavailable; reference-only."
+    },
+    {
+      "id": "TECH-SOXX-ETF",
+      "url": "https://www.ishares.com/us/products/239705/ishares-phlx-semiconductor-etf",
+      "title": "iShares Semiconductor ETF product page",
+      "publisher": "iShares / BlackRock",
+      "published_at": null,
+      "data_as_of": "2026-10-09",
+      "retrieved_at": "2026-10-12T00:26:10Z",
+      "availability_basis": "현재 원문의 데이터 기준일 표기를 확인. 페이지 게시시각과 과거 수정이력/보관본은 확보하지 못해 완전한 point-in-time publication vintage 증명은 제한됨.",
+      "available_at": null,
+      "lookahead_status": "eligible_observation_dated_publication_time_unverified",
+      "claims": [
+        "반도체 노출은 강한 실적 성장과 함께 높은 변동성을 동반한다. YTD 급등과 3분기 조정이 공존하며 장기 상승률을 연말 잔여수익률로 전환할 수 없다."
+      ],
+      "numerical_facts": [
+        {
+          "metric": "closing_price",
+          "value": 559.4,
+          "unit": "USD/share",
+          "definition": "발행사 Closing Price; NAV와 별개",
+          "as_of": "2026-10-09"
+        },
+        {
+          "metric": "nav",
+          "value": 559.84,
+          "unit": "USD/share",
+          "definition": "발행사 NAV",
+          "as_of": "2026-10-09"
+        },
+        {
+          "metric": "pe",
+          "value": 51.42,
+          "unit": "ratio",
+          "definition": "각 보유종목의 최신 종가를 최근 확정 회계연도 EPS로 나누는 issuer P/E. 음수 P/E 제외. TTM 또는 forward P/E로 표기하지 않음. HTML infoBubble 원문을 별도로 검증.",
+          "as_of": "2026-10-08"
+        },
+        {
+          "metric": "ytd_nav_total_return",
+          "value": 89.02,
+          "unit": "percent",
+          "definition": "배당 재투자·펀드 비용 반영 NAV 총수익",
+          "as_of": "2026-09-30"
+        },
+        {
+          "metric": "one_month_nav_total_return",
+          "value": 11.23,
+          "unit": "percent",
+          "definition": "9월 한 달 NAV 총수익",
+          "as_of": "2026-09-30"
+        },
+        {
+          "metric": "three_month_nav_total_return",
+          "value": -11.26,
+          "unit": "percent",
+          "definition": "3분기 NAV 총수익",
+          "as_of": "2026-09-30"
+        },
+        {
+          "metric": "latest_ytd_nav_total_return",
+          "value": 87.34,
+          "unit": "percent",
+          "definition": "헤더의 전일 기준 YTD",
+          "as_of": "2026-10-08"
+        },
+        {
+          "metric": "expense_ratio",
+          "value": 0.33,
+          "unit": "percent_per_year",
+          "definition": "공시 보수"
+        },
+        {
+          "metric": "holdings_count",
+          "value": 30,
+          "unit": "count",
+          "definition": "issuer portfolio holdings",
+          "as_of": "2026-10-09"
+        },
+        {
+          "metric": "three_year_standard_deviation",
+          "value": 38.14,
+          "unit": "percent",
+          "definition": "historical 3y; forward loss limit 아님",
+          "as_of": "2026-08-31"
+        },
+        {
+          "metric": "three_year_equity_beta",
+          "value": 2.06,
+          "unit": "ratio",
+          "definition": "historical3y; 미래β아님",
+          "as_of": "2026-08-31"
+        }
+      ],
+      "limitations": [
+        "월말 성과와 최신 종가의 기준일이 다름.",
+        "P/E에서 적자기업 제외와 회계연도 시차가 비교를 왜곡할 수 있음."
+      ]
+    },
+    {
+      "id": "TECH-SOXX-HOLDINGS",
+      "url": "https://www.ishares.com/us/products/239705/ishares-semiconductor-etf/latest-holdings.csv",
+      "title": "SOXX issuer holdings CSV",
+      "publisher": "iShares / BlackRock",
+      "published_at": null,
+      "data_as_of": "2026-10-09",
+      "retrieved_at": "2026-10-12T00:26:10Z",
+      "availability_basis": "현재 원문의 데이터 기준일 표기를 확인. 페이지 게시시각과 과거 수정이력/보관본은 확보하지 못해 완전한 point-in-time publication vintage 증명은 제한됨.",
+      "available_at": null,
+      "lookahead_status": "eligible_observation_dated_publication_time_unverified",
+      "claims": [
+        "SOXX를 NVIDIA 단독 또는 AI GPU만의 베타로 설명하면 실제 산업 노출을 놓친다."
+      ],
+      "numerical_facts": [
+        {
+          "metric": "top_holdings_weights",
+          "value": {
+            "AMD": 9.36,
+            "INTC": 8.48,
+            "MU": 7.78,
+            "NVDA": 7.53,
+            "AVGO": 7.07
+          },
+          "unit": "percent_of_fund",
+          "definition": "CSV Weight (%)"
+        },
+        {
+          "metric": "top5_weight",
+          "value": 40.22,
+          "unit": "percent_of_fund",
+          "definition": "9.36+8.48+7.78+7.53+7.07"
+        }
+      ],
+      "limitations": [
+        "CSV Price는 vendor price이며 펀드 fair valuation/종가와 다를 수 있어 대표 기업의 확정 종가로 사용하지 않음."
+      ]
+    },
+    {
+      "id": "TECH-SOXX-SPLIT",
+      "url": "https://www.sec.gov/Archives/edgar/data/1100663/000119312526361162/d133118d497.htm",
+      "title": "SOXX forward split Form 497 supplement",
+      "publisher": "iShares Trust / SEC",
+      "published_at": "2026-08-21",
+      "data_as_of": "2026-08-21",
+      "retrieved_at": "2026-10-12T00:26:10Z",
+      "availability_basis": "원문 명시 발표일이 분석 기준시각보다 이전. 발표일만 있고 시각 없는 경우 그 날짜 다음날 00:00 UTC를 보수적 사용 가능 시점으로 기록.",
+      "available_at": "2026-08-22T00:00:00.000Z",
+      "lookahead_status": "eligible_dated_primary",
+      "claims": [
+        "분할은 총보유가치와 경제적 수익률을 바꾸지 않는다. 연말 가격 비교시 주식 수/가격 단위를 3:1로 맞춰야 한다."
+      ],
+      "numerical_facts": [
+        {
+          "metric": "forward_split_ratio",
+          "value": 3,
+          "unit": "new_shares_per_old_share",
+          "definition": "3:1"
+        },
+        {
+          "metric": "record_date",
+          "value": "2026-11-03",
+          "unit": "date",
+          "definition": "scheduled record date"
+        },
+        {
+          "metric": "effective_after_close_date",
+          "value": "2026-11-04",
+          "unit": "date",
+          "definition": "scheduled after-close split"
+        },
+        {
+          "metric": "split_adjusted_trading_date",
+          "value": "2026-11-05",
+          "unit": "date",
+          "definition": "scheduled trading basis"
+        }
+      ],
+      "limitations": [
+        "기준시점에는 예정된 corporate action이며 실제 이행 확인은 기준시점 이후 자료이므로 사용하지 않음."
+      ]
+    },
+    {
+      "id": "TECH-IGV-ETF",
+      "url": "https://www.ishares.com/us/products/239771/ishares-north-american-techsoftware-etf",
+      "title": "iShares Expanded Tech-Software Sector ETF product page",
+      "publisher": "iShares / BlackRock",
+      "published_at": null,
+      "data_as_of": "2026-10-09",
+      "retrieved_at": "2026-10-12T00:26:10Z",
+      "availability_basis": "현재 원문의 데이터 기준일 표기를 확인. 페이지 게시시각과 과거 수정이력/보관본은 확보하지 못해 완전한 point-in-time publication vintage 증명은 제한됨.",
+      "available_at": null,
+      "lookahead_status": "eligible_observation_dated_publication_time_unverified",
+      "claims": [
+        "연간 수익이 작아도 3분기에 이미 큰 반등을 보였으므로 저평가의 충분조건이 아니다."
+      ],
+      "numerical_facts": [
+        {
+          "metric": "closing_price",
+          "value": 112.67,
+          "unit": "USD/share",
+          "definition": "발행사 Closing Price",
+          "as_of": "2026-10-09"
+        },
+        {
+          "metric": "nav",
+          "value": 112.58,
+          "unit": "USD/share",
+          "definition": "발행사 NAV",
+          "as_of": "2026-10-09"
+        },
+        {
+          "metric": "pe",
+          "value": 36.83,
+          "unit": "ratio",
+          "definition": "각 보유종목의 최신 종가를 최근 확정 회계연도 EPS로 나누는 issuer P/E. 음수 P/E 제외. TTM 또는 forward P/E로 표기하지 않음. HTML infoBubble 원문을 별도로 검증.",
+          "as_of": "2026-10-08"
+        },
+        {
+          "metric": "ytd_nav_total_return",
+          "value": 0.68,
+          "unit": "percent",
+          "definition": "NAV 총수익",
+          "as_of": "2026-09-30"
+        },
+        {
+          "metric": "one_month_nav_total_return",
+          "value": -3.38,
+          "unit": "percent",
+          "definition": "NAV 총수익",
+          "as_of": "2026-09-30"
+        },
+        {
+          "metric": "three_month_nav_total_return",
+          "value": 17.46,
+          "unit": "percent",
+          "definition": "NAV 총수익",
+          "as_of": "2026-09-30"
+        },
+        {
+          "metric": "latest_ytd_nav_total_return",
+          "value": 3.67,
+          "unit": "percent",
+          "definition": "헤더 전일 YTD",
+          "as_of": "2026-10-08"
+        },
+        {
+          "metric": "expense_ratio",
+          "value": 0.38,
+          "unit": "percent_per_year",
+          "definition": "공시 보수"
+        },
+        {
+          "metric": "holdings_count",
+          "value": 106,
+          "unit": "count",
+          "definition": "issuer holdings",
+          "as_of": "2026-10-09"
+        }
+      ],
+      "limitations": [
+        "낮은 회계연도 P/E를 SOXX 또는 S&P forward P/E와 그대로 할인율 비교하지 않음."
+      ]
+    },
+    {
+      "id": "TECH-IGV-HOLDINGS",
+      "url": "https://www.ishares.com/us/products/239771/ishares-expanded-tech-software-sector-etf/latest-holdings.csv",
+      "title": "IGV issuer holdings CSV",
+      "publisher": "iShares / BlackRock",
+      "published_at": null,
+      "data_as_of": "2026-10-09",
+      "retrieved_at": "2026-10-12T00:26:10Z",
+      "availability_basis": "현재 원문의 데이터 기준일 표기를 확인. 페이지 게시시각과 과거 수정이력/보관본은 확보하지 못해 완전한 point-in-time publication vintage 증명은 제한됨.",
+      "available_at": null,
+      "lookahead_status": "eligible_observation_dated_publication_time_unverified",
+      "claims": [
+        "IGV는 보안·AI 데이터·클라우드 비중이 큰 집중 포트폴리오로서 모든 SaaS 기업의 회복을 대변하지 않는다."
+      ],
+      "numerical_facts": [
+        {
+          "metric": "top_holdings_weights",
+          "value": {
+            "PANW": 9.62,
+            "PLTR": 9.5,
+            "CRWD": 8.7,
+            "MSFT": 8.38,
+            "ORCL": 6.74
+          },
+          "unit": "percent_of_fund",
+          "definition": "CSV weights"
+        },
+        {
+          "metric": "top5_weight",
+          "value": 42.94,
+          "unit": "percent_of_fund",
+          "definition": "9.62+9.50+8.70+8.38+6.74"
+        }
+      ],
+      "limitations": [
+        "CSV Price는 확정 종가로 사용하지 않음."
+      ]
+    },
+    {
+      "id": "TECH-SMH-ETF",
+      "url": "https://www.vaneck.com/us/en/investments/semiconductor-etf-smh/overview/",
+      "title": "VanEck Semiconductor ETF holdings and performance",
+      "publisher": "VanEck",
+      "published_at": null,
+      "data_as_of": "2026-10-09",
+      "retrieved_at": "2026-10-12T00:26:10Z",
+      "availability_basis": "현재 원문의 데이터 기준일 표기를 확인. 페이지 게시시각과 과거 수정이력/보관본은 확보하지 못해 완전한 point-in-time publication vintage 증명은 제한됨.",
+      "available_at": null,
+      "lookahead_status": "eligible_observation_dated_publication_time_unverified",
+      "claims": [
+        "SMH는 SOXX보다 NVIDIA 집중도가 높고 TSMC 등 미국 상장 외국기업 노출이 있다."
+      ],
+      "numerical_facts": [
+        {
+          "metric": "nav",
+          "value": 603.33,
+          "unit": "USD/share",
+          "definition": "NAV; 거래소 확정종가 아님",
+          "as_of": "2026-10-09"
+        },
+        {
+          "metric": "closing_price",
+          "value": null,
+          "unit": "USD/share",
+          "definition": "issuer page에서 확인하지 못함"
+        },
+        {
+          "metric": "ytd_nav_total_return",
+          "value": 68.93,
+          "unit": "percent",
+          "definition": "9/30 issuer fact sheet NAV total return로 날짜 검증",
+          "as_of": "2026-09-30"
+        },
+        {
+          "metric": "one_month_nav_total_return",
+          "value": 9.3,
+          "unit": "percent",
+          "definition": "월말 NAV 총수익",
+          "as_of": "2026-09-30"
+        },
+        {
+          "metric": "three_month_nav_total_return",
+          "value": -7.34,
+          "unit": "percent",
+          "definition": "월말 NAV 총수익",
+          "as_of": "2026-09-30"
+        },
+        {
+          "metric": "top_holdings_weights",
+          "value": {
+            "NVDA": 19.6,
+            "TSM": 9.3,
+            "AMD": 5.66,
+            "AVGO": 5.34,
+            "MU": 4.79
+          },
+          "unit": "percent_of_net_assets",
+          "definition": "issuer daily holdings",
+          "as_of": "2026-10-08"
+        },
+        {
+          "metric": "top5_weight",
+          "value": 44.69,
+          "unit": "percent_of_net_assets",
+          "definition": "top5 합",
+          "as_of": "2026-10-08"
+        },
+        {
+          "metric": "top2_weight",
+          "value": 28.9,
+          "unit": "percent_of_net_assets",
+          "definition": "NVDA+TSM",
+          "as_of": "2026-10-08"
+        },
+        {
+          "metric": "expense_ratio",
+          "value": 0.35,
+          "unit": "percent_per_year",
+          "definition": "공시 보수"
+        },
+        {
+          "metric": "pe",
+          "value": 34.49,
+          "unit": "ratio",
+          "definition": "9/30 issuer fact sheet Price/Earnings. forward/trailing 및 적자처리 미명시",
+          "as_of": "2026-09-30"
+        }
+      ],
+      "limitations": [
+        "현재 거래소 확정종가는 issuer overview에서 확인하지 못함. NAV를 시장 종가로 대체하지 않음.",
+        "9/30 성과는 issuer 9/30 factsheet와 대조하여 검증.",
+        "P/E 정의가 발행사 factsheet에서 미명시되어 다른 issuer 또는 FY1 배수와 정밀 비교 금지."
+      ],
+      "supporting_urls": [
+        "https://www.vaneck.com/us/en/investments/semiconductor-etf-smh-fact-sheet.pdf"
+      ]
+    },
+    {
+      "id": "TECH-GRID-ETF",
+      "url": "https://www.ftportfolios.com/Retail/etf/etfsummary.aspx?Ticker=GRID",
+      "title": "First Trust Nasdaq Clean Edge Smart Grid Infrastructure fund summary",
+      "publisher": "First Trust",
+      "published_at": null,
+      "data_as_of": "2026-10-09",
+      "retrieved_at": "2026-10-12T00:26:10Z",
+      "availability_basis": "현재 원문의 데이터 기준일 표기를 확인. 페이지 게시시각과 과거 수정이력/보관본은 확보하지 못해 완전한 point-in-time publication vintage 증명은 제한됨.",
+      "available_at": null,
+      "lookahead_status": "eligible_observation_dated_publication_time_unverified",
+      "claims": [
+        "전력망·전기장비·냉각·공사 노출의 ETF 예시. 글로벌 주식이어서 미국 산업재 ETF와 동일하지 않고 비USD 기초자산 환율 영향이 있다."
+      ],
+      "numerical_facts": [
+        {
+          "metric": "closing_price",
+          "value": 180.89,
+          "unit": "USD/share",
+          "definition": "Closing Market Price",
+          "as_of": "2026-10-09"
+        },
+        {
+          "metric": "nav",
+          "value": 180.47,
+          "unit": "USD/share",
+          "definition": "Closing NAV",
+          "as_of": "2026-10-09"
+        },
+        {
+          "metric": "ytd_nav_total_return",
+          "value": 16.47,
+          "unit": "percent",
+          "definition": "월말 NAV 총수익",
+          "as_of": "2026-09-30"
+        },
+        {
+          "metric": "one_month_nav_total_return",
+          "value": null,
+          "unit": "percent",
+          "definition": "issuer summary 미제공"
+        },
+        {
+          "metric": "three_month_nav_total_return",
+          "value": -7.13,
+          "unit": "percent",
+          "definition": "월말 NAV 총수익",
+          "as_of": "2026-09-30"
+        },
+        {
+          "metric": "pe",
+          "value": 29.11,
+          "unit": "ratio",
+          "definition": "issuer Price/Earnings; trailing/forward 및 적자처리 방법 미공시로 definition unknown",
+          "as_of": "2026-09-30"
+        },
+        {
+          "metric": "top_holdings_weights",
+          "value": {
+            "PWR": 9.15,
+            "JCI": 8.68,
+            "ETN": 8.41,
+            "ABB": 7.72,
+            "Schneider": 6.86
+          },
+          "unit": "percent_of_fund_ex_cash",
+          "definition": "issuer top holdings",
+          "as_of": "2026-10-09"
+        },
+        {
+          "metric": "top5_weight",
+          "value": 40.82,
+          "unit": "percent_of_fund_ex_cash",
+          "definition": "top5 합",
+          "as_of": "2026-10-09"
+        },
+        {
+          "metric": "electrical_components_weight",
+          "value": 32,
+          "unit": "percent_of_fund",
+          "definition": "sector exposure",
+          "as_of": "2026-10-09"
+        },
+        {
+          "metric": "expense_ratio",
+          "value": 0.56,
+          "unit": "percent_per_year",
+          "definition": "공시 보수"
+        }
+      ],
+      "limitations": [
+        "발행사 P/E 정의 미확정으로 iShares/FY1 P/E와 정밀 비교 금지."
+      ]
+    },
+    {
+      "id": "TECH-POWR-ETF",
+      "url": "https://www.ishares.com/us/products/239653/ishares-u-s-power-infrastructure-etf",
+      "title": "iShares U.S. Power Infrastructure ETF product page",
+      "publisher": "iShares / BlackRock",
+      "published_at": null,
+      "data_as_of": "2026-10-09",
+      "retrieved_at": "2026-10-12T00:26:10Z",
+      "availability_basis": "현재 원문의 데이터 기준일 표기를 확인. 페이지 게시시각과 과거 수정이력/보관본은 확보하지 못해 완전한 point-in-time publication vintage 증명은 제한됨.",
+      "available_at": null,
+      "lookahead_status": "eligible_observation_dated_publication_time_unverified",
+      "claims": [
+        "전력 장비의 성장과 규제 utility 및 가스생산 기업의 금리·상품가격 위험을 함께 담는다."
+      ],
+      "numerical_facts": [
+        {
+          "metric": "closing_price",
+          "value": 25.47,
+          "unit": "USD/share",
+          "definition": "Closing Price",
+          "as_of": "2026-10-09"
+        },
+        {
+          "metric": "nav",
+          "value": 25.46,
+          "unit": "USD/share",
+          "definition": "NAV",
+          "as_of": "2026-10-09"
+        },
+        {
+          "metric": "pe",
+          "value": 22.99,
+          "unit": "ratio",
+          "definition": "issuer fiscal-year P/E family; 이 페이지 개별 tooltip은 추가 확인하지 않음",
+          "as_of": "2026-10-08"
+        },
+        {
+          "metric": "ytd_nav_total_return",
+          "value": 3.91,
+          "unit": "percent",
+          "definition": "NAV total return",
+          "as_of": "2026-09-30"
+        },
+        {
+          "metric": "one_month_nav_total_return",
+          "value": -3.76,
+          "unit": "percent",
+          "definition": "NAV total return",
+          "as_of": "2026-09-30"
+        },
+        {
+          "metric": "three_month_nav_total_return",
+          "value": -13.26,
+          "unit": "percent",
+          "definition": "NAV total return",
+          "as_of": "2026-09-30"
+        },
+        {
+          "metric": "latest_ytd_nav_total_return",
+          "value": 8.54,
+          "unit": "percent",
+          "definition": "header NAV total return",
+          "as_of": "2026-10-08"
+        },
+        {
+          "metric": "sector_weights",
+          "value": {
+            "electric_utilities": 34.38,
+            "multi_utilities": 10.98,
+            "oil_gas_exploration_production": 11.28,
+            "electrical_components_equipment": 18.88
+          },
+          "unit": "percent_of_fund",
+          "definition": "issuer exposure",
+          "as_of": "2026-10-08"
+        },
+        {
+          "metric": "expense_ratio",
+          "value": 0.39,
+          "unit": "percent_per_year",
+          "definition": "공시 보수"
+        }
+      ],
+      "limitations": [
+        "전략/지수 변경 이력 확인 안 됨. 장기 beta·기존 과거 수익률을 현재 전략 고유성과로 해석하지 않음."
+      ]
+    },
+    {
+      "id": "TECH-POWR-HOLDINGS",
+      "url": "https://www.ishares.com/us/products/239653/ishares-u-s-power-infrastructure-etf/latest-holdings.csv",
+      "title": "POWR issuer holdings CSV",
+      "publisher": "iShares / BlackRock",
+      "published_at": null,
+      "data_as_of": "2026-10-09",
+      "retrieved_at": "2026-10-12T00:26:10Z",
+      "availability_basis": "현재 원문의 데이터 기준일 표기를 확인. 페이지 게시시각과 과거 수정이력/보관본은 확보하지 못해 완전한 point-in-time publication vintage 증명은 제한됨.",
+      "available_at": null,
+      "lookahead_status": "eligible_observation_dated_publication_time_unverified",
+      "claims": [
+        "GEV와 ETN 합계 노출은 12.59%이며 ETF 수익을 두 기업의 수익 가정으로 대체할 수 없다."
+      ],
+      "numerical_facts": [
+        {
+          "metric": "top_holdings_weights",
+          "value": {
+            "PWR": 6.78,
+            "GEV": 6.36,
+            "ETN": 6.23,
+            "NEE": 5.64,
+            "EQT": 4.6
+          },
+          "unit": "percent_of_fund",
+          "definition": "CSV Weight (%)"
+        },
+        {
+          "metric": "top5_weight",
+          "value": 29.61,
+          "unit": "percent_of_fund",
+          "definition": "top5 합"
+        }
+      ],
+      "limitations": [
+        "CSV vendor prices를 대표 기업 확정 종가로 사용하지 않음."
+      ]
+    },
+    {
+      "id": "TECH-SKYY-ETF",
+      "url": "https://www.ftportfolios.com/Retail/etf/etfsummary.aspx?Ticker=SKYY",
+      "title": "First Trust Cloud Computing ETF fund summary",
+      "publisher": "First Trust",
+      "published_at": null,
+      "data_as_of": "2026-10-09",
+      "retrieved_at": "2026-10-12T00:26:10Z",
+      "availability_basis": "현재 원문의 데이터 기준일 표기를 확인. 페이지 게시시각과 과거 수정이력/보관본은 확보하지 못해 완전한 point-in-time publication vintage 증명은 제한됨.",
+      "available_at": null,
+      "lookahead_status": "eligible_observation_dated_publication_time_unverified",
+      "claims": [
+        "클라우드 ETF에는 네트워킹·스토리지·중소형 플랫폼이 크게 포함되므로 hyperscaler의 실적을 ETF EPS로 대체하지 않는다."
+      ],
+      "numerical_facts": [
+        {
+          "metric": "closing_price",
+          "value": 174.89,
+          "unit": "USD/share",
+          "definition": "issuer Closing Market Price",
+          "as_of": "2026-10-09"
+        },
+        {
+          "metric": "nav",
+          "value": 174.85,
+          "unit": "USD/share",
+          "definition": "issuer Closing NAV",
+          "as_of": "2026-10-09"
+        },
+        {
+          "metric": "ytd_nav_total_return",
+          "value": 25.98,
+          "unit": "percent",
+          "definition": "월말 NAV 총수익",
+          "as_of": "2026-09-30"
+        },
+        {
+          "metric": "three_month_nav_total_return",
+          "value": 21.73,
+          "unit": "percent",
+          "definition": "월말 NAV 총수익",
+          "as_of": "2026-09-30"
+        },
+        {
+          "metric": "one_month_nav_total_return",
+          "value": null,
+          "unit": "percent",
+          "definition": "issuer summary 미제공"
+        },
+        {
+          "metric": "pe",
+          "value": 29.71,
+          "unit": "ratio",
+          "definition": "issuer Price/Earnings; definition 미명시",
+          "as_of": "2026-09-30"
+        },
+        {
+          "metric": "top_holdings_weights",
+          "value": {
+            "Everpure": 5.41,
+            "DOCN": 3.96,
+            "ANET": 3.6,
+            "NTNX": 3.54,
+            "MSFT": 3.43
+          },
+          "unit": "percent_of_fund_ex_cash",
+          "definition": "issuer top5",
+          "as_of": "2026-10-09"
+        },
+        {
+          "metric": "top5_weight",
+          "value": 19.94,
+          "unit": "percent_of_fund_ex_cash",
+          "definition": "top5 합"
+        },
+        {
+          "metric": "hyperscaler_msft_googl_amzn_weight",
+          "value": 10.09,
+          "unit": "percent_of_fund_ex_cash",
+          "definition": "3.43+3.37+3.29",
+          "as_of": "2026-10-09"
+        }
+      ],
+      "limitations": [
+        "web open 실패 후 동일 발행사 URL HTML을 PowerShell Invoke-WebRequest로 확인.",
+        "NAV 성과 표준과 Market Price performance(NBBO midpoint) 별개."
+      ]
+    },
+    {
+      "id": "TECH-CIBR-ETF",
+      "url": "https://www.ftportfolios.com/Retail/etf/etfsummary.aspx?Ticker=CIBR",
+      "title": "First Trust Nasdaq Cybersecurity ETF fund summary",
+      "publisher": "First Trust",
+      "published_at": null,
+      "data_as_of": "2026-10-09",
+      "retrieved_at": "2026-10-12T00:26:10Z",
+      "availability_basis": "현재 원문의 데이터 기준일 표기를 확인. 페이지 게시시각과 과거 수정이력/보관본은 확보하지 못해 완전한 point-in-time publication vintage 증명은 제한됨.",
+      "available_at": null,
+      "lookahead_status": "eligible_observation_dated_publication_time_unverified",
+      "claims": [
+        "AI 보안은 수요 근거가 있으나 연초 대비 크게 올랐고 대형 5종목에 집중되어 단순한 미반영 회복주가 아니다."
+      ],
+      "numerical_facts": [
+        {
+          "metric": "closing_price",
+          "value": 110,
+          "unit": "USD/share",
+          "definition": "issuer Closing Market Price",
+          "as_of": "2026-10-09"
+        },
+        {
+          "metric": "nav",
+          "value": 109.96,
+          "unit": "USD/share",
+          "definition": "issuer Closing NAV",
+          "as_of": "2026-10-09"
+        },
+        {
+          "metric": "ytd_nav_total_return",
+          "value": 44.56,
+          "unit": "percent",
+          "definition": "월말 NAV 총수익",
+          "as_of": "2026-09-30"
+        },
+        {
+          "metric": "three_month_nav_total_return",
+          "value": 14.65,
+          "unit": "percent",
+          "definition": "월말 NAV 총수익",
+          "as_of": "2026-09-30"
+        },
+        {
+          "metric": "one_month_nav_total_return",
+          "value": null,
+          "unit": "percent",
+          "definition": "issuer summary 미제공"
+        },
+        {
+          "metric": "pe",
+          "value": 37.01,
+          "unit": "ratio",
+          "definition": "issuer Price/Earnings; definition 미명시",
+          "as_of": "2026-09-30"
+        },
+        {
+          "metric": "top_holdings_weights",
+          "value": {
+            "CRWD": 8.65,
+            "FTNT": 8.28,
+            "PANW": 7.97,
+            "CSCO": 7.79,
+            "AVGO": 7.1
+          },
+          "unit": "percent_of_fund_ex_cash",
+          "definition": "issuer top5",
+          "as_of": "2026-10-09"
+        },
+        {
+          "metric": "top5_weight",
+          "value": 39.79,
+          "unit": "percent_of_fund_ex_cash",
+          "definition": "top5 합"
+        },
+        {
+          "metric": "expense_ratio",
+          "value": 0.58,
+          "unit": "percent_per_year",
+          "definition": "공시 보수"
+        }
+      ],
+      "limitations": [
+        "web open 실패 후 동일 발행사 URL HTML을 PowerShell로 확인."
+      ]
+    },
+    {
+      "id": "TECH-NVDA-FY27Q2",
+      "url": "https://nvidianews.nvidia.com/news/nvidia-announces-financial-results-for-second-quarter-fiscal-2027",
+      "title": "NVIDIA second quarter fiscal 2027 results",
+      "publisher": "NVIDIA",
+      "published_at": "2026-08-26",
+      "data_as_of": "2026-07-26",
+      "retrieved_at": "2026-10-12T00:26:10Z",
+      "available_at": "2026-08-27T00:00:00.000Z",
+      "availability_basis": "원문 명시 발표일이 기준시각 이전. 날짜 다음날 00:00 UTC를 보수적 사용 가능 시점으로 기록.",
+      "lookahead_status": "eligible_dated_primary",
+      "claims": [
+        "매출과 데이터센터 실적은 AI compute 수요를 입증한다. 다음 분기 전망은 중국 계산매출 없이 제시된다."
+      ],
+      "numerical_facts": [
+        {
+          "metric": "quarter_revenue",
+          "value": 96.221,
+          "unit": "USD_billion",
+          "definition": "FY27Q2; 분기수치"
+        },
+        {
+          "metric": "quarter_revenue_yoy",
+          "value": 106,
+          "unit": "percent",
+          "definition": "FY27Q2 대비FY26Q2"
+        },
+        {
+          "metric": "data_center_revenue",
+          "value": 89,
+          "unit": "USD_billion",
+          "definition": "FY27Q2"
+        },
+        {
+          "metric": "data_center_revenue_yoy",
+          "value": 117,
+          "unit": "percent",
+          "definition": "FY27Q2"
+        },
+        {
+          "metric": "gross_margin_gaap",
+          "value": 75,
+          "unit": "percent",
+          "definition": "FY27Q2"
+        },
+        {
+          "metric": "next_quarter_revenue_guidance",
+          "value": 108,
+          "unit": "USD_billion",
+          "definition": "FY27Q3 관리진 전망 midpoint ±2%; 중국DC compute매출 제외"
+        },
+        {
+          "metric": "next_quarter_revenue_guidance_tolerance",
+          "value": 2,
+          "unit": "percent",
+          "definition": "management guide tolerance, 확률CI아님"
+        }
+      ],
+      "limitations": [
+        "FY27Q1부터 non-GAAP도 주식보상비용을 포함하며 과거 비교치를 재표시했으므로 이전 vintage non-GAAP와 혼합 금지.",
+        "Vera Rubin 생산 주장은 회사 주장이고 연말 주가상승률 전망이 아님."
+      ]
+    },
+    {
+      "id": "TECH-AVGO-FY26Q3",
+      "url": "https://www.sec.gov/Archives/edgar/data/1730168/000173016826000076/avgo-08022026x8kxex99.htm",
+      "title": "Broadcom third quarter fiscal 2026 earnings Exhibit 99.1",
+      "publisher": "Broadcom / SEC",
+      "published_at": "2026-09-02",
+      "data_as_of": "2026-08-02",
+      "retrieved_at": "2026-10-12T00:26:10Z",
+      "available_at": "2026-09-03T00:00:00.000Z",
+      "availability_basis": "원문 명시 발표일이 기준시각 이전. 날짜 다음날 00:00 UTC를 보수적 사용 가능 시점으로 기록.",
+      "lookahead_status": "eligible_dated_primary",
+      "claims": [
+        "맞춤형 accelerator와 네트워킹이 GPU 외 AI 인프라의 추가 성장 경로를 제공한다."
+      ],
+      "numerical_facts": [
+        {
+          "metric": "quarter_revenue",
+          "value": 29.591,
+          "unit": "USD_billion",
+          "definition": "FY26Q3"
+        },
+        {
+          "metric": "quarter_ai_semiconductor_revenue",
+          "value": 16.7,
+          "unit": "USD_billion",
+          "definition": "FY26Q3 회사AI반도체 정의"
+        },
+        {
+          "metric": "quarter_ai_semiconductor_yoy",
+          "value": 221,
+          "unit": "percent",
+          "definition": "FY26Q3"
+        },
+        {
+          "metric": "quarter_fcf",
+          "value": 13.7,
+          "unit": "USD_billion",
+          "definition": "회사현금영업14.2-현금capex0.5"
+        },
+        {
+          "metric": "next_quarter_revenue_guidance",
+          "value": 34.8,
+          "unit": "USD_billion",
+          "definition": "FY26Q4 management guidance"
+        },
+        {
+          "metric": "next_quarter_ai_semiconductor_revenue_guidance",
+          "value": 21.7,
+          "unit": "USD_billion",
+          "definition": "FY26Q4 management guidance"
+        }
+      ],
+      "limitations": [
+        "issuer IR 403을 SEC 원문 exhibit로 해결. 같은 보도자료의 PRNewswire/재인용은 독립증거 아님.",
+        "few hyperscaler customers/ASIC 채택이 특정 고객 주문의 집중도를 높일 수 있음."
+      ],
+      "aliases": [
+        "https://investors.broadcom.com/news-releases/news-release-details/broadcom-inc-announces-third-quarter-fiscal-year-2026-financial"
+      ]
+    },
+    {
+      "id": "TECH-MSFT-FY26Q4",
+      "url": "https://www.microsoft.com/en-us/investor/earnings/fy-2026-q4/press-release-webcast",
+      "title": "Microsoft FY26 Q4 earnings release",
+      "publisher": "Microsoft",
+      "published_at": "2026-07-29",
+      "data_as_of": "2026-06-30",
+      "retrieved_at": "2026-10-12T00:26:10Z",
+      "available_at": "2026-07-30T00:00:00.000Z",
+      "availability_basis": "원문 명시 발표일이 기준시각 이전. 날짜 다음날 00:00 UTC를 보수적 사용 가능 시점으로 기록.",
+      "lookahead_status": "eligible_dated_primary",
+      "claims": [
+        "Azure 성장과 Copilot 도입은 데이터센터 투자와 AI 애플리케이션 매출을 연결하는 근거다."
+      ],
+      "numerical_facts": [
+        {
+          "metric": "quarter_revenue",
+          "value": 90.007,
+          "unit": "USD_billion",
+          "definition": "FY26Q4=2026년4~6월"
+        },
+        {
+          "metric": "quarter_revenue_yoy",
+          "value": 18,
+          "unit": "percent",
+          "definition": "FY26Q4"
+        },
+        {
+          "metric": "quarter_operating_income",
+          "value": 40.603,
+          "unit": "USD_billion",
+          "definition": "GAAP FY26Q4"
+        },
+        {
+          "metric": "azure_cloud_yoy",
+          "value": 43,
+          "unit": "percent",
+          "definition": "Azure and other cloud services growth;reported/CC동일"
+        },
+        {
+          "metric": "microsoft_cloud_revenue",
+          "value": 59.3,
+          "unit": "USD_billion",
+          "definition": "분기Cloud상품묶음;Azure단독매출아님"
+        }
+      ],
+      "limitations": [
+        "전체MSFT수익과IGV수익을동일시금지.",
+        "회계연도 끝이6월이고 Q4는 달력4분기가 아님."
+      ],
+      "dedup_group": "TECH-MSFT-FY26Q4"
+    },
+    {
+      "id": "TECH-MSFT-FY26Q4-CALL",
+      "url": "https://www.microsoft.com/en-us/investor/events/fy-2026/earnings-fy-2026-q4",
+      "title": "Microsoft FY26 Q4 conference call",
+      "publisher": "Microsoft",
+      "published_at": "2026-07-29",
+      "data_as_of": "2026-06-30",
+      "retrieved_at": "2026-10-12T00:26:10Z",
+      "available_at": "2026-07-30T00:00:00.000Z",
+      "availability_basis": "원문 명시 발표일이 기준시각 이전. 날짜 다음날 00:00 UTC를 보수적 사용 가능 시점으로 기록.",
+      "lookahead_status": "eligible_dated_primary",
+      "claims": [
+        "연간 CapEx 숫자의 하향 표시는 finance lease에서 operating lease로 재분류한 효과이며 수요 둔화로 읽을 수 없다."
+      ],
+      "numerical_facts": [
+        {
+          "metric": "quarter_capex",
+          "value": 41,
+          "unit": "USD_billion",
+          "definition": "financelease포함회사CapEx;FY26Q4"
+        },
+        {
+          "metric": "quarter_cash_ppe",
+          "value": 35.8,
+          "unit": "USD_billion",
+          "definition": "현금PP&E;FY26Q4"
+        },
+        {
+          "metric": "quarter_finance_leases",
+          "value": 5.6,
+          "unit": "USD_billion",
+          "definition": "finance leases;rounding으로cash합과일치안할수있음"
+        },
+        {
+          "metric": "quarter_fcf",
+          "value": 19.6,
+          "unit": "USD_billion",
+          "definition": "FY26Q4"
+        },
+        {
+          "metric": "cy2026_capex_guidance",
+          "value": 175,
+          "unit": "USD_billion",
+          "definition": "lease분류변경 후CY26기대액; 실제투자의향불변"
+        },
+        {
+          "metric": "m365_copilot_paid_seats",
+          "value": 30,
+          "unit": "million_seats_lower_bound",
+          "definition": "over30million atFY26Q4"
+        },
+        {
+          "metric": "next_quarter_capex_guidance",
+          "value": 50,
+          "unit": "USD_billion_lower_bound",
+          "definition": "FY27Q1; over50billion"
+        }
+      ],
+      "limitations": [
+        "현금PP&E,lease포함capex,연간가이던스는서로다른정의와기간.",
+        "FY27영업이익률은전년대비1pp미만하락전망;배수확장은금리하락및투자ROI확인에의존."
+      ],
+      "dedup_group": "TECH-MSFT-FY26Q4"
+    },
+    {
+      "id": "TECH-AMZN-2026Q2",
+      "url": "https://ir.aboutamazon.com/news-release/news-release-details/2026/Amazon-com-Announces-Second-Quarter-Results/default.aspx",
+      "title": "Amazon second quarter 2026 results",
+      "publisher": "Amazon",
+      "published_at": "2026-07-30",
+      "data_as_of": "2026-06-30",
+      "retrieved_at": "2026-10-12T00:26:10Z",
+      "available_at": "2026-07-31T00:00:00.000Z",
+      "availability_basis": "원문 명시 발표일이 기준시각 이전. 날짜 다음날 00:00 UTC를 보수적 사용 가능 시점으로 기록.",
+      "lookahead_status": "eligible_dated_primary",
+      "claims": [
+        "AWS 성장 가속은 수요를 확인하지만 전체 free cash flow는 막대한 설비 지출로 압박받는다."
+      ],
+      "numerical_facts": [
+        {
+          "metric": "quarter_revenue",
+          "value": 200.606,
+          "unit": "USD_billion",
+          "definition": "2026Q2"
+        },
+        {
+          "metric": "aws_revenue",
+          "value": 42.232,
+          "unit": "USD_billion",
+          "definition": "2026Q2"
+        },
+        {
+          "metric": "aws_revenue_yoy",
+          "value": 37,
+          "unit": "percent",
+          "definition": "2026Q2;rounded"
+        },
+        {
+          "metric": "aws_operating_margin",
+          "value": 39.4,
+          "unit": "percent",
+          "definition": "분기segmentmargin;공통회사AI비용배분방법주의"
+        },
+        {
+          "metric": "ttm_fcf",
+          "value": -7.604,
+          "unit": "USD_billion",
+          "definition": "12개월누적영업현금-PP&E순구입;분기손실아님"
+        },
+        {
+          "metric": "ttm_cash_ppe",
+          "value": 169.007,
+          "unit": "USD_billion",
+          "definition": "TTM Purchases ofproperty/equipment netofproceeds/incentives"
+        },
+        {
+          "metric": "cy2026_capex_guidance",
+          "value": null,
+          "unit": "USD_billion",
+          "definition": "보도된220bn은이번issuerrelease에서원문확인안되어채택하지않음"
+        }
+      ],
+      "limitations": [
+        "분기순이익에는Anthropic투자관련비영업세전기타이익53.4bn이포함되어headlineEPS를반복사업성장률로사용하지않음."
+      ]
+    },
+    {
+      "id": "TECH-GOOGL-2026Q2",
+      "url": "https://s206.q4cdn.com/479360582/files/doc_financials/2026/q2/2026q2-alphabet-earnings-release.pdf",
+      "title": "Alphabet second quarter 2026 earnings release",
+      "publisher": "Alphabet",
+      "published_at": "2026-07-22",
+      "data_as_of": "2026-06-30",
+      "retrieved_at": "2026-10-12T00:26:10Z",
+      "available_at": "2026-07-23T00:00:00.000Z",
+      "availability_basis": "원문 명시 발표일이 기준시각 이전. 날짜 다음날 00:00 UTC를 보수적 사용 가능 시점으로 기록.",
+      "lookahead_status": "eligible_dated_primary",
+      "claims": [
+        "클라우드 성장과 높은 기업별 회계현금지출을 함께 비교해야 한다."
+      ],
+      "numerical_facts": [
+        {
+          "metric": "quarter_revenue",
+          "value": 119.796,
+          "unit": "USD_billion",
+          "definition": "2026Q2"
+        },
+        {
+          "metric": "google_cloud_revenue",
+          "value": 24.768,
+          "unit": "USD_billion",
+          "definition": "2026Q2"
+        },
+        {
+          "metric": "google_cloud_revenue_yoy",
+          "value": 82,
+          "unit": "percent",
+          "definition": "2026Q2"
+        },
+        {
+          "metric": "quarter_cash_capex",
+          "value": 44.924,
+          "unit": "USD_billion",
+          "definition": "PP&E구입;2026Q2"
+        },
+        {
+          "metric": "quarter_fcf",
+          "value": -5.855,
+          "unit": "USD_billion",
+          "definition": "Q2분기;TTM아님"
+        },
+        {
+          "metric": "ttm_fcf",
+          "value": 53.273,
+          "unit": "USD_billion",
+          "definition": "TTM2026Q2"
+        },
+        {
+          "metric": "cy2026_capex_guidance",
+          "value": null,
+          "unit": "USD_billion",
+          "definition": "보도195~205bn은earningscall원문미확보로별도미채택"
+        }
+      ],
+      "limitations": [
+        "순이익 급증에는미실현지분증권관련대규모기타이익이포함;지속EPS로사용금지.",
+        "Q2분기FCF마이너스를TTMFCF마이너스로잘못표현하지않음."
+      ]
+    },
+    {
+      "id": "TECH-META-2026Q2",
+      "url": "https://investor.atmeta.com/investor-news/press-release-details/2026/Meta-Reports-Second-Quarter-2026-Results/",
+      "title": "Meta second quarter 2026 results",
+      "publisher": "Meta",
+      "published_at": "2026-07-29",
+      "data_as_of": "2026-06-30",
+      "retrieved_at": "2026-10-12T00:26:10Z",
+      "available_at": "2026-07-30T00:00:00.000Z",
+      "availability_basis": "원문 명시 발표일이 기준시각 이전. 날짜 다음날 00:00 UTC를 보수적 사용 가능 시점으로 기록.",
+      "lookahead_status": "eligible_dated_primary",
+      "claims": [
+        "AI 광고수익은 커지지만 legal/severance와 capex가 현금 전환을 약화시킨다."
+      ],
+      "numerical_facts": [
+        {
+          "metric": "quarter_revenue",
+          "value": 60.801,
+          "unit": "USD_billion",
+          "definition": "2026Q2"
+        },
+        {
+          "metric": "quarter_revenue_yoy",
+          "value": 28,
+          "unit": "percent",
+          "definition": "2026Q2"
+        },
+        {
+          "metric": "quarter_operating_income_yoy",
+          "value": -8,
+          "unit": "percent",
+          "definition": "GAAP2026Q2"
+        },
+        {
+          "metric": "quarter_capex",
+          "value": 31.08,
+          "unit": "USD_billion",
+          "definition": "PP&E+financeleaseprincipal;2026Q2"
+        },
+        {
+          "metric": "quarter_fcf",
+          "value": 0.784,
+          "unit": "USD_billion",
+          "definition": "분기FCF"
+        },
+        {
+          "metric": "cy2026_capex_guidance",
+          "value": [
+            130,
+            145
+          ],
+          "unit": "USD_billion",
+          "definition": "PP&E+financeleaseprincipal;CY2026management범위"
+        }
+      ],
+      "limitations": [
+        "분기영업이익에legal2.40bn,severance1.18bn비용;예상반복이익과GAAP분리.",
+        "META는GICS커뮤니케이션서비스로ITETF에없거나노출이달라분류중복주의."
+      ]
+    },
+    {
+      "id": "TECH-CRM-FY27Q2",
+      "url": "https://investor.salesforce.com/news/news-details/2026/Salesforce-Delivers-Record-Second-Quarter-Fiscal-2027-Results/default.aspx",
+      "title": "Salesforce second quarter fiscal 2027 results",
+      "publisher": "Salesforce",
+      "published_at": "2026-08-26",
+      "data_as_of": "2026-07-31",
+      "retrieved_at": "2026-10-12T00:26:10Z",
+      "available_at": "2026-08-27T00:00:00.000Z",
+      "availability_basis": "원문 명시 발표일이 기준시각 이전. 날짜 다음날 00:00 UTC를 보수적 사용 가능 시점으로 기록.",
+      "lookahead_status": "eligible_dated_primary",
+      "claims": [
+        "AI agent 수익화와 cRPO 개선은 coreSaaS회복의근거지만inorganic구분필수."
+      ],
+      "numerical_facts": [
+        {
+          "metric": "quarter_revenue",
+          "value": 11.345,
+          "unit": "USD_billion",
+          "definition": "FY27Q2"
+        },
+        {
+          "metric": "quarter_revenue_yoy",
+          "value": 11,
+          "unit": "percent",
+          "definition": "인수기여포함;organic아님"
+        },
+        {
+          "metric": "informatica_quarter_revenue",
+          "value": 0.456,
+          "unit": "USD_billion",
+          "definition": "FY27Q2인수기여"
+        },
+        {
+          "metric": "crpo_growth",
+          "value": 14,
+          "unit": "percent",
+          "definition": "reported/CC14%;FY27Q2"
+        },
+        {
+          "metric": "agentforce_arr",
+          "value": 1.5,
+          "unit": "USD_billion_lower_bound",
+          "definition": "exceeded1.5;새AIofferings/Slackbot/Headless360포함"
+        },
+        {
+          "metric": "quarter_fcf",
+          "value": 1.1,
+          "unit": "USD_billion",
+          "definition": "FY27Q2rounded"
+        },
+        {
+          "metric": "fy27_revenue_guidance",
+          "value": [
+            46.1,
+            46.4
+          ],
+          "unit": "USD_billion",
+          "definition": "FYends2027-01-31;인수conditional"
+        },
+        {
+          "metric": "fy27_fcf_growth_guidance",
+          "value": [
+            4,
+            5
+          ],
+          "unit": "percent",
+          "definition": "managementgrowth"
+        }
+      ],
+      "limitations": [
+        "AgentforceARR정의가FY27Q2부터확대되어+240%를순수동일제품유기성장으로해석금지.",
+        "FY27매출가이던스상향200m은organic100m+pendingacquisitions200m-FX100m."
+      ]
+    },
+    {
+      "id": "TECH-CRWD-FY27Q2",
+      "url": "https://ir.crowdstrike.com/news-releases/news-release-details/crowdstrike-reports-second-quarter-fiscal-year-2027-financial",
+      "title": "CrowdStrike second quarter fiscal 2027 results",
+      "publisher": "CrowdStrike",
+      "published_at": "2026-08-26",
+      "data_as_of": "2026-07-31",
+      "retrieved_at": "2026-10-12T00:26:10Z",
+      "available_at": "2026-08-27T00:00:00.000Z",
+      "availability_basis": "원문 명시 발표일이 기준시각 이전. 날짜 다음날 00:00 UTC를 보수적 사용 가능 시점으로 기록.",
+      "lookahead_status": "eligible_dated_primary",
+      "claims": [
+        "보안 지출의AI수요를계약ARR·현금으로확인할수있으나GAAP수익성은여전히약하다."
+      ],
+      "numerical_facts": [
+        {
+          "metric": "quarter_revenue",
+          "value": 1.47,
+          "unit": "USD_billion",
+          "definition": "FY27Q2rounded"
+        },
+        {
+          "metric": "quarter_revenue_yoy",
+          "value": 26,
+          "unit": "percent",
+          "definition": "FY27Q2"
+        },
+        {
+          "metric": "ending_arr",
+          "value": 5.84,
+          "unit": "USD_billion",
+          "definition": "July31ARRstock;분기매출아님"
+        },
+        {
+          "metric": "arr_yoy",
+          "value": 25,
+          "unit": "percent",
+          "definition": "endingARRYoY"
+        },
+        {
+          "metric": "net_new_arr",
+          "value": 0.3328,
+          "unit": "USD_billion",
+          "definition": "분기incrementARR"
+        },
+        {
+          "metric": "quarter_fcf",
+          "value": 0.3774,
+          "unit": "USD_billion",
+          "definition": "회사non-GAAPFCF"
+        },
+        {
+          "metric": "gaap_operating_income",
+          "value": -0.0332,
+          "unit": "USD_billion",
+          "definition": "Q2GAAPoperatingloss"
+        },
+        {
+          "metric": "fy27_net_new_arr_growth_guidance",
+          "value": 34,
+          "unit": "percent",
+          "definition": "midpoint;endingARRgrowth와다름"
+        },
+        {
+          "metric": "fy27_net_new_arr_growth_guidance_raise",
+          "value": 6.3,
+          "unit": "percentage_points",
+          "definition": "630basispoints;percentgrowth아님"
+        }
+      ],
+      "limitations": [
+        "endingARR성장25%와netnewARR가이던스성장34%를혼동금지.",
+        "non-GAAP는주식보상등을제외하여GAAP와같지않음.",
+        "2024Julyincident관련legalcosts와제품실행위험존재."
+      ]
+    },
+    {
+      "id": "TECH-ETN-2026Q2",
+      "url": "https://www.sec.gov/Archives/edgar/data/1551182/000155118226000027/etn06302026exhibit99.htm",
+      "title": "Eaton second quarter 2026 earnings Exhibit 99",
+      "publisher": "Eaton / SEC",
+      "published_at": "2026-07-31",
+      "data_as_of": "2026-06-30",
+      "retrieved_at": "2026-10-12T00:26:10Z",
+      "available_at": "2026-08-01T00:00:00.000Z",
+      "availability_basis": "원문 명시 발표일이 기준시각 이전. 날짜 다음날 00:00 UTC를 보수적 사용 가능 시점으로 기록.",
+      "lookahead_status": "eligible_dated_primary",
+      "claims": [
+        "전기장비와냉각의수주·매출은공급제약에대한실제사업노출을확인한다."
+      ],
+      "numerical_facts": [
+        {
+          "metric": "quarter_sales",
+          "value": 8.5,
+          "unit": "USD_billion",
+          "definition": "Q2rounded"
+        },
+        {
+          "metric": "organic_sales_growth",
+          "value": 14,
+          "unit": "percent",
+          "definition": "M&A제외;전체+21%"
+        },
+        {
+          "metric": "electrical_12m_orders_growth",
+          "value": 41,
+          "unit": "percent",
+          "definition": "ElectricalAmericas12개월rollingorders;분기수주증가아님"
+        },
+        {
+          "metric": "electrical_total_backlog_growth",
+          "value": 43,
+          "unit": "percent",
+          "definition": "companyElectricaltotalbacklogYoY"
+        },
+        {
+          "metric": "quarter_fcf",
+          "value": 0.874,
+          "unit": "USD_billion",
+          "definition": "Q2회사FCF"
+        },
+        {
+          "metric": "fy2026_adjusted_eps_guidance",
+          "value": [
+            13.4,
+            13.6
+          ],
+          "unit": "USD/share",
+          "definition": "GAAP와다른조정치"
+        },
+        {
+          "metric": "fy2026_gaap_eps_guidance",
+          "value": [
+            10.36,
+            10.56
+          ],
+          "unit": "USD/share",
+          "definition": "GAAP"
+        },
+        {
+          "metric": "fy2026_organic_growth_guidance",
+          "value": [
+            11,
+            13
+          ],
+          "unit": "percent",
+          "definition": "연간management"
+        }
+      ],
+      "limitations": [
+        "data center가성장동력이나분기매출중AI전용비중미공개.",
+        "인수와주식보상·무형자산상각등GAAP조정주의.",
+        "currentclose미확보로공식forwardPE계산하지않음."
+      ],
+      "aliases": [
+        "https://www.eaton.com/us/en-us/company/news-insights/news-releases/2026/eaton-reports-record-second-quarter-2026-results.html"
+      ]
+    },
+    {
+      "id": "TECH-GEV-2026Q2",
+      "url": "https://www.sec.gov/Archives/edgar/data/1996810/000199681026000147/gev2q2026form8-k.pdf",
+      "title": "GE Vernova second quarter 2026 Form 8-K release",
+      "publisher": "GE Vernova / SEC",
+      "published_at": "2026-07-22",
+      "data_as_of": "2026-06-30",
+      "retrieved_at": "2026-10-12T00:26:10Z",
+      "available_at": "2026-07-23T00:00:00.000Z",
+      "availability_basis": "원문 명시 발표일이 기준시각 이전. 날짜 다음날 00:00 UTC를 보수적 사용 가능 시점으로 기록.",
+      "lookahead_status": "eligible_dated_primary",
+      "claims": [
+        "Power/Electrification수주가강하고Wind는약하다. 전력인프라기업을모두같은AIbeta로묶지않는다."
+      ],
+      "numerical_facts": [
+        {
+          "metric": "quarter_orders",
+          "value": 24.2,
+          "unit": "USD_billion",
+          "definition": "Q2;organic+88%"
+        },
+        {
+          "metric": "backlog",
+          "value": 176,
+          "unit": "USD_billion",
+          "definition": "RPOstockendQ2;당년매출아님"
+        },
+        {
+          "metric": "datacenter_orders_ytd",
+          "value": 5,
+          "unit": "USD_billion_lower_bound",
+          "definition": "YTDover5;Q2단독수주아님"
+        },
+        {
+          "metric": "quarter_fcf",
+          "value": 5.107,
+          "unit": "USD_billion",
+          "definition": "Q2회사nonGAAPFCF"
+        },
+        {
+          "metric": "fy2026_fcf_guidance",
+          "value": [
+            11.5,
+            12.5
+          ],
+          "unit": "USD_billion",
+          "definition": "managementguidance"
+        },
+        {
+          "metric": "fy2026_revenue_guidance",
+          "value": [
+            45.5,
+            46.5
+          ],
+          "unit": "USD_billion",
+          "definition": "management"
+        },
+        {
+          "metric": "gas_backlog_plus_sras",
+          "value": 116,
+          "unit": "GW",
+          "definition": "53GWordersbacklog+63GWslotreservation;같은종류아님"
+        }
+      ],
+      "limitations": [
+        "FCF급증중workingcapital/고객선수금기여가크므로반복normalizedcashflow로사용금지.",
+        "SRA예약은확정수주와다르고발전capacity매출인식은다년간진행.",
+        "인수Prolec기여와유기성장분리."
+      ]
+    },
+    {
+      "id": "TECH-TSMC-2026Q2",
+      "url": "https://www.sec.gov/Archives/edgar/data/1046179/000104617926000451/a2q26presentatione.htm",
+      "title": "TSMC second quarter 2026 earnings presentation",
+      "publisher": "TSMC / SEC",
+      "published_at": "2026-07-16",
+      "data_as_of": "2026-06-30",
+      "retrieved_at": "2026-10-12T00:26:10Z",
+      "available_at": "2026-07-17T00:00:00.000Z",
+      "availability_basis": "원문 명시 발표일이 기준시각 이전. 날짜 다음날 00:00 UTC를 보수적 사용 가능 시점으로 기록.",
+      "lookahead_status": "eligible_dated_primary",
+      "claims": [
+        "반도체생산병목의매출·마진을확인한다."
+      ],
+      "numerical_facts": [
+        {
+          "metric": "quarter_revenue",
+          "value": 40.2,
+          "unit": "USD_billion",
+          "definition": "Q2USD"
+        },
+        {
+          "metric": "quarter_revenue_yoy_usd",
+          "value": 33.7,
+          "unit": "percent",
+          "definition": "USDQ2YoY"
+        },
+        {
+          "metric": "gross_margin",
+          "value": 67.7,
+          "unit": "percent",
+          "definition": "Q2"
+        },
+        {
+          "metric": "quarter_cash_capex",
+          "value": 496,
+          "unit": "TWD_billion",
+          "definition": "Q2;USD아님"
+        },
+        {
+          "metric": "quarter_fcf",
+          "value": 287.36,
+          "unit": "TWD_billion",
+          "definition": "Q2CFO783.36-capex496.00"
+        }
+      ],
+      "limitations": [
+        "quarterprofit에는Vanguard관련gains일부영향;매출/마진별분리.",
+        "NTD금액을USD로혼동금지.해외fab/대만지정학위험.",
+        "future3Qresults10/15를현재실적으로사용하지않음."
+      ]
+    },
+    {
+      "id": "TECH-TSMC-2026SEP-SALES",
+      "url": "https://investor.tsmc.com/english/monthly-revenue/2026",
+      "title": "TSMC 2026 monthly revenue",
+      "publisher": "TSMC",
+      "published_at": "2026-10-08",
+      "data_as_of": "2026-09-30",
+      "retrieved_at": "2026-10-12T00:26:10Z",
+      "available_at": "2026-10-09T00:00:00.000Z",
+      "availability_basis": "issuer monthly revenue + financial calendar Past Events: 2026-10-08 TSMC September sales. Calendar URL https://investor.cld.tsmc.com/english/financial-calendar",
+      "lookahead_status": "eligible_dated_primary",
+      "claims": [
+        "9월매출공개로최신반도체수요근거를보완할수있다."
+      ],
+      "numerical_facts": [
+        {
+          "metric": "september_revenue",
+          "value": 511857,
+          "unit": "TWD_million",
+          "definition": "9월consolidatedunaudited"
+        },
+        {
+          "metric": "september_revenue_yoy",
+          "value": 54.6,
+          "unit": "percent",
+          "definition": "9월YoY"
+        },
+        {
+          "metric": "july_revenue",
+          "value": 467580,
+          "unit": "TWD_million",
+          "definition": "7월"
+        },
+        {
+          "metric": "august_revenue",
+          "value": 514806,
+          "unit": "TWD_million",
+          "definition": "8월"
+        },
+        {
+          "metric": "q3_monthly_sum_revenue",
+          "value": 1494243,
+          "unit": "TWD_million",
+          "definition": "467580+514806+511857;derivedunaudited3Qsalesnot3Qearnings"
+        }
+      ],
+      "limitations": [
+        "availabledate10/8는issuerfinancialcalendar와대조.정확분시공개시각확인안됨.",
+        "월매출합은실적발표확정이익/가이던스가아님."
+      ],
+      "supporting_urls": [
+        "https://investor.cld.tsmc.com/english/financial-calendar"
+      ]
+    },
+    {
+      "id": "TECH-GS-2026OCT-AI",
+      "url": "https://www.goldmansachs.com/insights/the-markets/ai-is-becoming-a-stock-pickers-market",
+      "title": "AI Is Becoming a Stock Picker’s Market",
+      "publisher": "Goldman Sachs",
+      "published_at": "2026-10-02",
+      "data_as_of": "2026-09-30",
+      "retrieved_at": "2026-10-12T00:26:10Z",
+      "available_at": "2026-10-03T00:00:00.000Z",
+      "availability_basis": "원문 명시 발표일이 기준시각 이전. 날짜 다음날 00:00 UTC를 보수적 사용 가능 시점으로 기록.",
+      "lookahead_status": "eligible_dated_primary",
+      "claims": [
+        "기술주투자의관심이AIcapex와반도체에서구현·보안·데이터인프라로확장되고있다고대화에서평가한다.",
+        "기존SaaS애플리케이션의제품적합성과가격은계속검증중이며금리가이익성장외의배수확장을제약한다고설명한다."
+      ],
+      "numerical_facts": [],
+      "limitations": [
+        "FICC/Equitiessector specialist대화이며공식목표수익률/확률모델아님.",
+        "Podcastrecording9/30,publication10/2;독립상품research매매추천으로격상금지."
+      ]
+    },
+    {
+      "id": "TECH-FID-2026AUG-AI",
+      "url": "https://institutional.fidelity.com/advisors/insights/series/fidelity-market-signals-weekly/ais-next-test-delivering-results",
+      "title": "AI’s next test: Delivering results",
+      "publisher": "Fidelity Institutional Capital Markets Strategy Group",
+      "published_at": "2026-08-10",
+      "data_as_of": "2026-08-10",
+      "retrieved_at": "2026-10-12T00:26:10Z",
+      "available_at": "2026-08-11T00:00:00.000Z",
+      "availability_basis": "원문 명시 발표일이 기준시각 이전. 날짜 다음날 00:00 UTC를 보수적 사용 가능 시점으로 기록.",
+      "lookahead_status": "eligible_dated_primary",
+      "claims": [
+        "시장은AI지출액보다마진·현금흐름·투자수익률을구별하기시작한다는견해다.",
+        "전력·냉각·반도체·메모리·인력병목이추가산업기회를만들수있다고분석한다."
+      ],
+      "numerical_facts": [],
+      "limitations": [
+        "일부차트dataasof6/30,설문Stanford2025;8월발표를모든데이터8월관측으로취급하지않음.",
+        "정성적의견이며연말상승확률아님."
+      ]
+    },
+    {
+      "id": "TECH-BLK-2026AUG-THEMES",
+      "url": "https://www.blackrock.com/us/financial-professionals/insights/thematic-investing-2026-mid-year-update",
+      "title": "2026 Thematic Mid-Year Update",
+      "publisher": "BlackRock / Jay Jacobs",
+      "published_at": "2026-08-24",
+      "data_as_of": "2026-08-24",
+      "retrieved_at": "2026-10-12T00:26:10Z",
+      "available_at": "2026-08-25T00:00:00.000Z",
+      "availability_basis": "원문 명시 발표일이 기준시각 이전. 날짜 다음날 00:00 UTC를 보수적 사용 가능 시점으로 기록.",
+      "lookahead_status": "eligible_dated_primary",
+      "claims": [
+        "AI경제의다음국면은가치창출과물리적공급병목을함께봐야한다는견해다."
+      ],
+      "numerical_facts": [
+        {
+          "metric": "estimated_chips_datacenter_build_cost_share",
+          "value": 60,
+          "unit": "percent",
+          "definition": "2026연간기관추정;실제회계관측아님"
+        },
+        {
+          "metric": "estimated_memory_datacenter_build_cost_share",
+          "value": 18,
+          "unit": "percent",
+          "definition": "2026기관추정"
+        },
+        {
+          "metric": "estimated_memory_cost_share_2021",
+          "value": 2,
+          "unit": "percent",
+          "definition": "2021과거기관추정"
+        }
+      ],
+      "limitations": [
+        "비용mix는추정이고GPU량/메모리판매량/기업margin과동일하지않음.",
+        "운용사ETF상품을함께홍보하여비즈니스이해상충존재.",
+        "개별chart원시데이터별독립검증미완료."
+      ]
+    },
+    {
+      "id": "TECH-JPM-2026SEP-CAPEX",
+      "url": "https://am.jpmorgan.com/us/en/asset-management/institutional/insights/market-insights/market-updates/on-the-minds-of-investors/how-much-of-the-ai-boom-is-adding-to-us-growth/",
+      "title": "How much of the AI boom is adding to U.S. growth?",
+      "publisher": "J.P. Morgan Asset Management / Stephanie Aliaga",
+      "published_at": "2026-09-02",
+      "data_as_of": "2026-09-02",
+      "retrieved_at": "2026-10-12T00:26:10Z",
+      "available_at": "2026-09-03T00:00:00.000Z",
+      "availability_basis": "원문 명시 발표일이 기준시각 이전. 날짜 다음날 00:00 UTC를 보수적 사용 가능 시점으로 기록.",
+      "lookahead_status": "eligible_dated_primary",
+      "claims": [
+        "nominalcapex증가는메모리가격상승·해외지출·수입하드웨어를포함하여미국실질성장또는AIvolume과일대일대응하지않는다."
+      ],
+      "numerical_facts": [
+        {
+          "metric": "hyperscaler_2026_capex_estimate",
+          "value": 800,
+          "unit": "USD_billion_approximate",
+          "definition": "기관annualestimate;각issuer정의와통일된AIonly수치아님"
+        },
+        {
+          "metric": "estimated_ai_contribution_real_gdp_past_year",
+          "value": 0.47,
+          "unit": "percentage_points",
+          "definition": "기관proxyestimate;주가수익률아님"
+        }
+      ],
+      "limitations": [
+        "회사capex합과비교하면회사범위·lease처리·기간·원시vintage가달라질수있음.",
+        "기관GDP기여추정은섹터상승확률근거로사용하지않음."
+      ]
+    },
+    {
+      "id": "TECH-DLR-2026Q2",
+      "url": "https://investor.digitalrealty.com/news-releases/news-release-details/digital-realty-reports-second-quarter-2026-results",
+      "title": "Digital Realty second quarter 2026 results",
+      "publisher": "Digital Realty",
+      "published_at": "2026-07-23",
+      "data_as_of": "2026-06-30",
+      "available_at": "2026-07-24T00:00:00.000Z",
+      "availability_basis": "원문 명시 발표일. 날짜 다음날 00:00 UTC를 보수적 사용 가능 시점으로 기록.",
+      "lookahead_status": "eligible_dated_primary",
+      "numerical_facts": [
+        {
+          "metric": "quarter_core_ffo",
+          "value": 2.65,
+          "unit": "USD/share",
+          "definition": "promote포함"
+        },
+        {
+          "metric": "quarter_core_ffo_ex_net_promote",
+          "value": 2.13,
+          "unit": "USD/share",
+          "definition": "CoreFFOexnetpromote;전년1.87"
+        },
+        {
+          "metric": "bookings_annualized_base_rent_dlr_share",
+          "value": 208,
+          "unit": "USD_million_per_year",
+          "definition": "회사share;미인식연환산계약가치"
+        },
+        {
+          "metric": "bookings_annualized_base_rent_100percent_share",
+          "value": 307,
+          "unit": "USD_million_per_year",
+          "definition": "JV전체share;회사수치와합산금지"
+        },
+        {
+          "metric": "contract_commencement_lag",
+          "value": 9,
+          "unit": "months",
+          "definition": "Q2신규계약weightedaverage"
+        },
+        {
+          "metric": "fy2026_core_ffo_ex_net_promote_guidance",
+          "value": [
+            8.15,
+            8.2
+          ],
+          "unit": "USD/share",
+          "definition": "연간managementguide"
+        }
+      ],
+      "claims": [
+        "데이터센터임대료와계약수요가강하지만계약과매출의시간차가있다."
+      ],
+      "limitations": [
+        "FFO/AFFO는GAAP순이익또는FCF와동일하지않음.",
+        "일회성promote188m과보험보상일부영향.",
+        "현재종가및2027FFO컨센서스미확보로배수평가미완료."
+      ],
+      "retrieved_at": "2026-10-12T00:26:10Z"
+    },
+    {
+      "id": "TECH-EQIX-2026Q2",
+      "url": "https://investor.equinix.com/news-events/press-releases/detail/1114/equinix-reports-second-quarter-results-raises-2026",
+      "title": "Equinix second quarter 2026 results",
+      "publisher": "Equinix",
+      "published_at": "2026-07-29",
+      "data_as_of": "2026-06-30",
+      "available_at": "2026-07-30T00:00:00.000Z",
+      "availability_basis": "원문 명시 발표일. 날짜 다음날 00:00 UTC를 보수적 사용 가능 시점으로 기록.",
+      "lookahead_status": "eligible_dated_primary",
+      "numerical_facts": [
+        {
+          "metric": "monthly_recurring_revenue_yoy",
+          "value": 11,
+          "unit": "percent",
+          "definition": "Q2MRRreported/CC"
+        },
+        {
+          "metric": "quarter_total_revenue",
+          "value": 2.625,
+          "unit": "USD_billion",
+          "definition": "Q2xScaleoneofffees포함"
+        },
+        {
+          "metric": "quarter_total_revenue_yoy",
+          "value": 16,
+          "unit": "percent",
+          "definition": "Q2total;MRR과다름"
+        },
+        {
+          "metric": "fy2026_affo_per_share_guidance",
+          "value": [
+            42.69,
+            43.29
+          ],
+          "unit": "USD/share",
+          "definition": "managementFYguide"
+        },
+        {
+          "metric": "fy2026_total_capex_guidance",
+          "value": [
+            5,
+            6
+          ],
+          "unit": "USD_billion",
+          "definition": "excludesfutureM&A,realestateacquisitions,xScaleJVinvestments"
+        }
+      ],
+      "claims": [
+        "인터커넥션및기업데이터센터수요가이어지지만높아진증설과금리위험을함께평가해야한다."
+      ],
+      "limitations": [
+        "분기총수익growth에는oneoffxScalefees.분기AFFO를4배해연간화하지않음.",
+        "AFFO는현금FCF가아니며확장capex상당부분을제외한다.",
+        "현재종가/2027AFFO컨센서스미확보."
+      ],
+      "retrieved_at": "2026-10-12T00:26:10Z"
+    },
+    {
+      "source_id": "KR-001",
+      "url": "https://news.samsung.com/global/samsung-electronics-announces-earnings-guidance-for-third-quarter-2026",
+      "title": "Samsung Electronics Announces Earnings Guidance for Third Quarter 2026",
+      "publisher": "Samsung Electronics",
+      "published_at": "2026-10-08",
+      "data_as_of": "2026-09-30",
+      "retrieved_at": "2026-10-12T00:26:09Z",
+      "retrieved_at_basis": "batch evidence record time after examination; original per-tool timestamps not independently retained",
+      "available_at": "2026-10-08T23:59:59+09:00",
+      "availability_basis": "Dated publisher original; conservative end-of-publication-day bound precedes research cutoff",
+      "lookahead_status": "eligible_before_cutoff",
+      "horizon": "2026Q3 preliminary guidance",
+      "source_type": "primary",
+      "dedup_group": "KR-001",
+      "extraction_method": "web_search_then_open",
+      "claims": [
+        "삼성전자 3분기 잠정 연결 매출과 영업이익이 전분기보다 증가했다. 세부 사업부 결과는 이 자료에 없다."
+      ],
+      "numeric_definitions": {
+        "consolidated_sales": {
+          "value": 195,
+          "unit": "KRW trillion",
+          "kind": "company_guidance",
+          "fiscal_period": "2026Q3"
+        },
+        "consolidated_operating_profit": {
+          "value": 107.4,
+          "unit": "KRW trillion",
+          "kind": "company_guidance",
+          "fiscal_period": "2026Q3"
+        },
+        "sales_guidance_range": {
+          "low": 194,
+          "high": 196,
+          "unit": "KRW trillion"
+        },
+        "operating_profit_guidance_range": {
+          "low": 107.3,
+          "high": 107.5,
+          "unit": "KRW trillion"
+        }
+      },
+      "limitations": [
+        "10/29 상세 실적 발표는 컷오프 이후이며 이 연구에는 포함하지 않는다.",
+        "잠정 가이던스이고 주가 상승률이 아니다."
+      ],
+      "id": "KR-001"
+    },
+    {
+      "source_id": "KR-002",
+      "url": "https://news.samsung.com/global/samsung-electronics-announces-second-quarter-2026-results",
+      "title": "Samsung Electronics Announces Second Quarter 2026 Results",
+      "publisher": "Samsung Electronics",
+      "published_at": "2026-07-30",
+      "data_as_of": "2026-06-30",
+      "retrieved_at": "2026-10-12T00:26:09Z",
+      "retrieved_at_basis": "batch evidence record time after examination; original per-tool timestamps not independently retained",
+      "available_at": "2026-07-30T23:59:59+09:00",
+      "availability_basis": "Dated publisher original; conservative end-of-publication-day bound precedes research cutoff",
+      "lookahead_status": "eligible_before_cutoff",
+      "horizon": "2026Q2 reported and H2 company outlook",
+      "source_type": "primary",
+      "dedup_group": "KR-002",
+      "extraction_method": "web_search_then_open",
+      "claims": [
+        "메모리 실적과 HBM4 판매 확대가 DS 성장을 이끌었다. 회사는 하반기 서버 DRAM·eSSD·HBM 수요 강세와 공급 제약을 예상한다.",
+        "DX는 부품원가 및 소비수요 압력을 받았으므로 삼성전자 전체를 순수 HBM 기업으로 취급하지 않는다."
+      ],
+      "numeric_definitions": {
+        "consolidated_revenue": {
+          "value": 171.5,
+          "unit": "KRW trillion",
+          "kind": "reported",
+          "fiscal_period": "2026Q2"
+        },
+        "consolidated_operating_profit": {
+          "value": 89.5,
+          "unit": "KRW trillion",
+          "kind": "reported_rounded",
+          "fiscal_period": "2026Q2"
+        },
+        "ds_revenue": {
+          "value": 127.5,
+          "unit": "KRW trillion",
+          "kind": "reported",
+          "fiscal_period": "2026Q2"
+        },
+        "ds_operating_profit": {
+          "value": 89.2,
+          "unit": "KRW trillion",
+          "kind": "reported",
+          "fiscal_period": "2026Q2"
+        }
+      },
+      "limitations": [
+        "사업부 내부거래 때문에 매출을 단순 합산하지 않는다.",
+        "H2 전망은 회사의 미래 진술이며 확정 수요가 아니다."
+      ],
+      "id": "KR-002"
+    },
+    {
+      "source_id": "KR-003",
+      "url": "https://news.skhynix.com/en/q2-2026-business-results/",
+      "title": "SK hynix Announces 2Q26 Financial Results",
+      "publisher": "SK hynix",
+      "published_at": "2026-07-29",
+      "data_as_of": "2026-06-30",
+      "retrieved_at": "2026-10-12T00:26:09Z",
+      "retrieved_at_basis": "batch evidence record time after examination; original per-tool timestamps not independently retained",
+      "available_at": "2026-07-29T23:59:59+09:00",
+      "availability_basis": "Dated publisher original; conservative end-of-publication-day bound precedes research cutoff",
+      "lookahead_status": "eligible_before_cutoff",
+      "horizon": "2026Q2 preliminary; H2 ramp outlook",
+      "source_type": "primary",
+      "dedup_group": "KR-003",
+      "extraction_method": "web_search_then_open",
+      "claims": [
+        "AI 서버 제품 가격·믹스가 개선됐고 HBM4 대량 출하는 2분기에 시작되어 하반기 확대를 계획한다.",
+        "약 10개 고객과 장기계약을 체결했다고 발표했다. 321단 NAND 국내 생산비중을 연말 약 절반으로 높일 계획이다."
+      ],
+      "numeric_definitions": {
+        "revenue": {
+          "value": 79.3187,
+          "unit": "KRW trillion",
+          "kind": "preliminary_reported",
+          "fiscal_period": "2026Q2"
+        },
+        "operating_profit": {
+          "value": 60.5426,
+          "unit": "KRW trillion",
+          "kind": "preliminary_reported",
+          "fiscal_period": "2026Q2"
+        },
+        "net_income": {
+          "value": 93.9226,
+          "unit": "KRW trillion",
+          "kind": "preliminary_reported",
+          "fiscal_period": "2026Q2",
+          "used_for_valuation": false
+        },
+        "operating_margin": {
+          "value": 0.76,
+          "unit": "fraction",
+          "kind": "reported_rounded"
+        },
+        "net_cash": {
+          "value": 69.4,
+          "unit": "KRW trillion",
+          "kind": "company_reported",
+          "data_as_of": "2026-06-30"
+        }
+      },
+      "limitations": [
+        "자료가 잠정이고 독립 검토가 완료되지 않았다고 명시한다.",
+        "순이익이 매출보다 큰 원문 수치의 비영업/일회성 원인은 이 조사에서 검증되지 않았다. 정상화 이익·EPS로 재가공하지 않는다.",
+        "LTA 조건과 고객별 집중도가 공개되어 있지 않다."
+      ],
+      "id": "KR-003"
+    },
+    {
+      "source_id": "KR-004",
+      "url": "https://www.samsung.com/global/ir/reports-disclosures/public-disclosure-view.84755/",
+      "title": "Expected Amount and Implementation Plan for 2026 Shareholder Returns",
+      "publisher": "Samsung Electronics",
+      "published_at": "2026-08-21",
+      "data_as_of": "2026-08-21",
+      "retrieved_at": "2026-10-12T00:26:09Z",
+      "retrieved_at_basis": "batch evidence record time after examination; original per-tool timestamps not independently retained",
+      "available_at": "2026-08-21T23:59:59+09:00",
+      "availability_basis": "Dated publisher original; conservative end-of-publication-day bound precedes research cutoff",
+      "lookahead_status": "eligible_before_cutoff",
+      "horizon": "2026 return plan and late January 2027 final determination",
+      "source_type": "primary",
+      "dedup_group": "SAMSUNG_RETURN_20260821",
+      "extraction_method": "web_search_then_open",
+      "claims": [
+        "2026 주주환원 예정액을 90~110조원으로 추정하지만 실적·투자에 따라 바뀔 수 있다.",
+        "약 30조원 현금배당은 10월 말 이사회에서 세부 결정하고 잔여 환원은 2027년 1월 말에 규모·수단을 결정할 예정이다.",
+        "실제 정책 FCF 산정에서는 보증금 성격 메모리 LTA 선수금과 주식보상 관련 지출을 차감한다."
+      ],
+      "numeric_definitions": {
+        "planned_total_return": {
+          "low": 90,
+          "high": 110,
+          "unit": "KRW trillion",
+          "kind": "conditional_company_plan"
+        },
+        "planned_q3_cash_dividends": {
+          "value": 30,
+          "unit": "KRW trillion",
+          "kind": "conditional_plan"
+        },
+        "return_policy_share": {
+          "value": 0.5,
+          "unit": "fraction",
+          "basis": "cumulative 2024-2026 actual-policy FCF"
+        }
+      },
+      "limitations": [
+        "총 환원은 현금배당과 자사주 매입/소각을 포함한다. 2026년 마지막 거래일까지 모두 현금수익으로 받는다는 뜻이 아니다.",
+        "배당락 가격 하락과 배당을 중복 계산하지 않는다."
+      ],
+      "id": "KR-004"
+    },
+    {
+      "source_id": "KR-005",
+      "url": "https://www.sec.gov/Archives/edgar/data/2120882/000119312526356133/d428222d6k.htm",
+      "title": "SK hynix Form 6-K: Decision on Acquisition of Treasury Shares",
+      "publisher": "SK hynix / SEC",
+      "published_at": "2026-08-19",
+      "data_as_of": "2026-08-19",
+      "retrieved_at": "2026-10-12T00:26:09Z",
+      "retrieved_at_basis": "batch evidence record time after examination; original per-tool timestamps not independently retained",
+      "available_at": "2026-08-19T23:59:59+09:00",
+      "availability_basis": "Dated publisher original; conservative end-of-publication-day bound precedes research cutoff",
+      "lookahead_status": "eligible_before_cutoff",
+      "horizon": "August 20-November 19, 2026 planned acquisition",
+      "source_type": "primary",
+      "dedup_group": "KR-005",
+      "extraction_method": "web_search_then_open",
+      "claims": [
+        "자사주 매입 후 전량 소각 목적의 이사회 결의가 SEC 공시에 확인된다.",
+        "예정 매입기간은 8/20~11/19이고 실제 매입 주식수는 주가에 따라 달라질 수 있다."
+      ],
+      "numeric_definitions": {
+        "planned_acquisition_amount": {
+          "value": 40004340000000,
+          "unit": "KRW",
+          "kind": "board_decision"
+        },
+        "planned_shares": {
+          "value": 24070000,
+          "unit": "common shares",
+          "kind": "initial_plan"
+        }
+      },
+      "limitations": [
+        "완료·소각 실적을 확인한 자료는 아니다. 매입 종료 후 수급 약화를 별도 위험으로 본다."
+      ],
+      "id": "KR-005"
+    },
+    {
+      "source_id": "KR-006",
+      "url": "https://www.lsholdings.com/ko/media/news/61564b62656e354c446b79766e44394176764c4144566c6e6e77584733564b35",
+      "title": "LS ELECTRIC, 전력 슈퍼사이클 타고 분기 사상 최대 실적 기록",
+      "publisher": "LS Group / LS ELECTRIC",
+      "published_at": "2026-07-23",
+      "data_as_of": "2026-06-30",
+      "retrieved_at": "2026-10-12T00:26:09Z",
+      "retrieved_at_basis": "batch evidence record time after examination; original per-tool timestamps not independently retained",
+      "available_at": "2026-07-23T23:59:59+09:00",
+      "availability_basis": "Dated publisher original; conservative end-of-publication-day bound precedes research cutoff",
+      "lookahead_status": "eligible_before_cutoff",
+      "horizon": "2026Q2 reported",
+      "source_type": "primary",
+      "dedup_group": "KR-006",
+      "extraction_method": "web_search_then_open",
+      "claims": [
+        "전력 배전솔루션과 초고압변압기 고부가 제품의 성장이 실적을 뒷받침했다.",
+        "분기 신규수주와 수주잔고가 확대되어 향후 매출 가시성을 높인다."
+      ],
+      "numeric_definitions": {
+        "quarter_revenue": {
+          "value": 1577,
+          "unit": "KRW billion",
+          "kind": "company_reported",
+          "fiscal_period": "2026Q2"
+        },
+        "quarter_operating_profit": {
+          "value": 178.5,
+          "unit": "KRW billion",
+          "kind": "company_reported",
+          "fiscal_period": "2026Q2"
+        },
+        "revenue_yoy": {
+          "value": 0.322,
+          "unit": "fraction"
+        },
+        "operating_profit_yoy": {
+          "value": 0.644,
+          "unit": "fraction"
+        },
+        "quarter_new_orders": {
+          "value": 2.1,
+          "unit": "KRW trillion",
+          "kind": "company_reported"
+        },
+        "order_backlog": {
+          "value": 7,
+          "unit": "KRW trillion",
+          "kind": "company_reported",
+          "data_as_of": "2026-06-30"
+        }
+      },
+      "limitations": [
+        "수주는 매출·현금흐름과 다르며 고객의 공사 일정과 인도 조건에 좌우된다."
+      ],
+      "id": "KR-006"
+    },
+    {
+      "source_id": "KR-007",
+      "url": "https://www.hyundai-electric.com/elect/ko/index.jsp",
+      "title": "HD현대일렉트릭 2026년 2분기 실적 보도자료",
+      "publisher": "HD Hyundai Electric",
+      "published_at": "2026-07-28",
+      "data_as_of": "2026-06-30",
+      "retrieved_at": "2026-10-12T00:26:09Z",
+      "retrieved_at_basis": "batch evidence record time after examination; original per-tool timestamps not independently retained",
+      "available_at": "2026-07-28T23:59:59+09:00",
+      "availability_basis": "Dated publisher original; conservative end-of-publication-day bound precedes research cutoff",
+      "lookahead_status": "eligible_before_cutoff",
+      "horizon": "2026Q2 reported; H2 company expectation",
+      "source_type": "primary",
+      "dedup_group": "KR-007",
+      "extraction_method": "web_search_then_open",
+      "claims": [
+        "변압기와 배전기기 수익성이 개선됐고 반도체·데이터센터 수요가 수주를 뒷받침했다.",
+        "전력망 교체 수요가 성장 기반이며 데이터센터만의 매출로 분류할 수 없다."
+      ],
+      "numeric_definitions": {
+        "quarter_revenue": {
+          "value": 1141.8,
+          "unit": "KRW billion",
+          "kind": "company_reported",
+          "fiscal_period": "2026Q2"
+        },
+        "quarter_operating_profit": {
+          "value": 287,
+          "unit": "KRW billion",
+          "kind": "company_reported",
+          "fiscal_period": "2026Q2"
+        },
+        "operating_margin": {
+          "value": 0.251,
+          "unit": "fraction"
+        },
+        "order_backlog": {
+          "value": 8.49,
+          "unit": "USD billion",
+          "kind": "company_reported",
+          "data_as_of": "2026-06-30"
+        },
+        "backlog_yoy": {
+          "value": 0.296,
+          "unit": "fraction"
+        }
+      },
+      "limitations": [
+        "홈페이지 10/12 09:17:02 현재가격은 연구 cutoff 09:16:14 이후 장중가격이므로 사용하지 않았다.",
+        "7/28 제목·등록일을 공식 뉴스센터 목록과 IR 목록으로 대조했다.",
+        "현재 forward valuation과 10/8 확정종가는 확보하지 못했다."
+      ],
+      "id": "KR-007"
+    },
+    {
+      "source_id": "KR-008",
+      "url": "https://securities.miraeasset.com/bbs/download/2147584.pdf?attachmentId=2147584",
+      "title": "SK하이닉스: 작은 의심들까지 모두 소화했다",
+      "publisher": "Mirae Asset Securities",
+      "published_at": "2026-10-06",
+      "data_as_of": "2026-10-02",
+      "retrieved_at": "2026-10-12T00:26:09Z",
+      "retrieved_at_basis": "batch evidence record time after examination; original per-tool timestamps not independently retained",
+      "available_at": "2026-10-06T23:59:59+09:00",
+      "availability_basis": "Dated publisher original; conservative end-of-publication-day bound precedes research cutoff",
+      "lookahead_status": "eligible_before_cutoff",
+      "horizon": "12-month target; 2026-2028 annual and quarterly estimates",
+      "source_type": "primary",
+      "dedup_group": "KR-008",
+      "extraction_method": "public PDF downloaded to disposable temp; pages 1-3 rendered with Poppler and visually inspected",
+      "claims": [
+        "M15X 증설·선단 공정 전환과 HBM 수요 강세를 근거로 3Q·4Q 및 2027 영업이익 추정치를 올렸다.",
+        "낮은 예상 PER은 초고마진·수급의 지속 여부에 조건부이며 회사의 공식 실적이 아니다."
+      ],
+      "numeric_definitions": {
+        "reference_price": {
+          "value": 1841000,
+          "unit": "KRW/common share",
+          "kind": "reported_reference_close",
+          "price_date": "2026-10-02"
+        },
+        "pe_2026f": {
+          "value": 4.6,
+          "unit": "times",
+          "kind": "broker_forecast",
+          "price_date": "2026-10-02"
+        },
+        "pe_2027f": {
+          "value": 3.4,
+          "unit": "times",
+          "kind": "broker_forecast",
+          "price_date": "2026-10-02"
+        },
+        "eps_2026f": {
+          "value": 400359,
+          "unit": "KRW/common share",
+          "kind": "broker_forecast"
+        },
+        "eps_2027f": {
+          "value": 540162,
+          "unit": "KRW/common share",
+          "kind": "broker_forecast"
+        },
+        "op_2026q3f": {
+          "value": 77.1,
+          "unit": "KRW trillion",
+          "old": 73.2,
+          "kind": "broker_forecast"
+        },
+        "op_2026q4f": {
+          "value": 86.1,
+          "unit": "KRW trillion",
+          "kind": "broker_forecast"
+        },
+        "op_2027f": {
+          "value": 396.165,
+          "unit": "KRW trillion",
+          "kind": "broker_forecast"
+        },
+        "fcf_2027f_proxy": {
+          "value": 347.9,
+          "unit": "KRW trillion",
+          "kind": "broker_forecast_proxy",
+          "definition": "EBITDA - Capex; Capex uses recognition rather than cash-flow-statement value"
+        },
+        "target": {
+          "value": 3100000,
+          "unit": "KRW/common share",
+          "kind": "broker_12_month_target",
+          "used_for_eoy_return": false
+        }
+      },
+      "limitations": [
+        "이미지로 저장된 주요 표를 Poppler 페이지1~3 PNG로 시각 검증했다.",
+        "10/2 기준가격은 10/8 최신 확정종가가 아니다.",
+        "FCF proxy는 세금·운전자본·LTA선수금 조정 등을 반영한 실제FCF와 다르다.",
+        "목표가 상방68.4%를 남은 연말 수익률로 환산하지 않는다."
+      ],
+      "id": "KR-008"
+    },
+    {
+      "source_id": "KR-009",
+      "url": "https://securities.miraeasset.com/bbs/download/2147614.pdf?attachmentId=2147614",
+      "title": "삼성전자: 반도체 사상 첫 매출 천억불 달성 전망",
+      "publisher": "Mirae Asset Securities",
+      "published_at": "2026-10-06",
+      "data_as_of": "2026-10-02",
+      "retrieved_at": "2026-10-12T00:26:09Z",
+      "retrieved_at_basis": "batch evidence record time after examination; original per-tool timestamps not independently retained",
+      "available_at": "2026-10-06T23:59:59+09:00",
+      "availability_basis": "Dated publisher original; conservative end-of-publication-day bound precedes research cutoff",
+      "lookahead_status": "eligible_before_cutoff",
+      "horizon": "12-month target; 2026-2028 estimates",
+      "source_type": "primary",
+      "dedup_group": "KR-009",
+      "extraction_method": "public PDF rendered page1 and visually inspected",
+      "claims": [
+        "메모리 출하·LTA·HBM4 베이스다이 우위를 근거로 실적 전망을 상향했다.",
+        "보고서 본문은 주주환원 확대를 촉매로 제시하나 확정 배당수익과 추정치를 구분해야 한다."
+      ],
+      "numeric_definitions": {
+        "reference_price": {
+          "value": 276000,
+          "unit": "KRW/common share",
+          "kind": "reported_reference_close",
+          "price_date": "2026-10-02"
+        },
+        "pe_2026f": {
+          "value": 6.3,
+          "unit": "times",
+          "kind": "broker_forecast",
+          "price_date": "2026-10-02"
+        },
+        "pe_2027f": {
+          "value": 4.3,
+          "unit": "times",
+          "kind": "broker_forecast",
+          "price_date": "2026-10-02"
+        },
+        "eps_2026f": {
+          "value": 43757,
+          "unit": "KRW/common share",
+          "kind": "broker_forecast"
+        },
+        "eps_2027f": {
+          "value": 64080,
+          "unit": "KRW/common share",
+          "kind": "broker_forecast"
+        },
+        "op_2026f": {
+          "value": 371.209,
+          "unit": "KRW trillion",
+          "kind": "broker_forecast"
+        },
+        "target": {
+          "value": 400000,
+          "unit": "KRW/common share",
+          "kind": "broker_12_month_target",
+          "used_for_eoy_return": false
+        }
+      },
+      "limitations": [
+        "10/2 기준가격은 10/8 확정종가가 아니다.",
+        "본문2026 예상배당수익률6.5%와 요약표0.6%의 기준 차이가 설명되지 않았다. 계산에 쓰지 않는다.",
+        "2027 예상배당을 2026 연말 현금수익에 더하지 않는다.",
+        "10/8 회사가 발표한 Q3잠정치는 이보다 최신이며 별도 KR-001로 관리한다."
+      ],
+      "id": "KR-009"
+    },
+    {
+      "source_id": "KR-010",
+      "url": "https://securities.miraeasset.com/bbs/download/2147679.pdf?attachmentId=2147679",
+      "title": "LS ELECTRIC: 수주 가이던스 달성 이상 무",
+      "publisher": "Mirae Asset Securities",
+      "published_at": "2026-10-08",
+      "data_as_of": "2026-10-07",
+      "retrieved_at": "2026-10-12T00:26:09Z",
+      "retrieved_at_basis": "batch evidence record time after examination; original per-tool timestamps not independently retained",
+      "available_at": "2026-10-08T23:59:59+09:00",
+      "availability_basis": "Dated publisher original; conservative end-of-publication-day bound precedes research cutoff",
+      "lookahead_status": "eligible_before_cutoff",
+      "horizon": "2026Q3 preview; 2026-2028 annual estimates; 12-month target",
+      "source_type": "primary",
+      "dedup_group": "KR-010",
+      "extraction_method": "public PDF rendered page1 and visually inspected",
+      "claims": [
+        "북미 배전반·변압기 수주가 강하고 장기계약은 일부 2030년까지 이어진다고 분석했다.",
+        "매출 성장·원자재가격 안정화가 원화 강세 영향을 일부 상쇄할 것으로 추정하지만 관세 환급·일회성 비용 때문에 실제 실적은 달라질 수 있다."
+      ],
+      "numeric_definitions": {
+        "reference_price": {
+          "value": 205500,
+          "unit": "KRW/post-split common share",
+          "kind": "reported_reference_close",
+          "price_date": "2026-10-07"
+        },
+        "pe_2026f": {
+          "value": 56.7,
+          "unit": "times",
+          "kind": "broker_forecast",
+          "price_date": "2026-10-07"
+        },
+        "pe_2027f": {
+          "value": 42.3,
+          "unit": "times",
+          "kind": "broker_forecast",
+          "price_date": "2026-10-07"
+        },
+        "eps_2026f": {
+          "value": 3624,
+          "unit": "KRW/post-split common share",
+          "kind": "broker_forecast"
+        },
+        "eps_2027f": {
+          "value": 4856,
+          "unit": "KRW/post-split common share",
+          "kind": "broker_forecast"
+        },
+        "op_2026q3f": {
+          "value": 195.7,
+          "unit": "KRW billion",
+          "kind": "broker_forecast"
+        },
+        "target": {
+          "value": 280000,
+          "unit": "KRW/post-split common share",
+          "kind": "broker_12_month_target",
+          "used_for_eoy_return": false
+        }
+      },
+      "limitations": [
+        "높은 평가배수 때문에 좋은 산업과 높은 현재 가격의 상승여력은 다를 수 있다.",
+        "10/7 가격은 10/8 확정종가가 아니다.",
+        "LS ELECTRIC 5:1분할(4/10효력,4/13재상장) 이후 EPS/가격 기준이다."
+      ],
+      "id": "KR-010"
+    },
+    {
+      "source_id": "KR-011",
+      "url": "https://kbthink.com/securities-view.html?docId=20261008084434607K",
+      "title": "글로벌 긴축 우려 확산, AI 밸류체인 약세",
+      "publisher": "KB Securities",
+      "published_at": "2026-10-08",
+      "data_as_of": "2026-10-07",
+      "retrieved_at": "2026-10-12T00:26:09Z",
+      "retrieved_at_basis": "batch evidence record time after examination; original per-tool timestamps not independently retained",
+      "available_at": "2026-10-08T23:59:59+09:00",
+      "availability_basis": "Dated publisher original; conservative end-of-publication-day bound precedes research cutoff",
+      "lookahead_status": "eligible_before_cutoff",
+      "horizon": "near-term market risk commentary",
+      "source_type": "primary",
+      "dedup_group": "KR-011",
+      "extraction_method": "web_search_then_open",
+      "claims": [
+        "클라우드 사업자의 현금 소진과 CAPEX 지속 가능성 우려가 AI 하드웨어 조정 위험으로 제시된다.",
+        "연내 추가 미국 금리 인상과 고유가·장기금리는 기술주 평가배수의 상단을 제약할 수 있다."
+      ],
+      "numeric_definitions": {},
+      "limitations": [
+        "아시아시장 단기 시황 의견이며 한국 섹터 수익률 예측모델이 아니다.",
+        "보고서에서 제시한 중국 연휴 상승빈도는 본 연구의 섹터 상승확률로 사용하지 않는다."
+      ],
+      "id": "KR-011"
+    },
+    {
+      "source_id": "KR-012",
+      "url": "https://securities.miraeasset.com/bbs/download/2147690.pdf?attachmentId=2147690",
+      "title": "한국 마켓 클로징: 유가 금리 부담 확대",
+      "publisher": "Mirae Asset Securities",
+      "published_at": "2026-10-08",
+      "data_as_of": "2026-10-08",
+      "retrieved_at": "2026-10-12T00:26:09Z",
+      "retrieved_at_basis": "batch evidence record time after examination; original per-tool timestamps not independently retained",
+      "available_at": "2026-10-08T23:59:59+09:00",
+      "availability_basis": "Dated publisher original; conservative end-of-publication-day bound precedes research cutoff",
+      "lookahead_status": "eligible_before_cutoff",
+      "horizon": "same-day close and next-session calendar",
+      "source_type": "primary",
+      "dedup_group": "KR-012",
+      "extraction_method": "web_search_then_open",
+      "claims": [
+        "삼성전자 잠정실적 호조에도 유가·금리 부담으로 반도체 ETF가 하락했다.",
+        "10/9 한국 휴장이 원문에 명시된다. 10/10~11은 주말이고 10/12 종가는 cutoff 시점에 아직 확정되지 않았다."
+      ],
+      "numeric_definitions": {
+        "kospi_close": {
+          "value": 6625.93,
+          "unit": "index points",
+          "kind": "reported_close",
+          "price_date": "2026-10-08"
+        },
+        "kospi_daily_price_return": {
+          "value": -0.0262,
+          "unit": "fraction",
+          "kind": "reported_price_return"
+        },
+        "tiger_semiconductor_top10_daily_price_return": {
+          "value": -0.0173,
+          "unit": "fraction",
+          "kind": "reported_price_return",
+          "price_date": "2026-10-08"
+        }
+      },
+      "limitations": [
+        "ETF 절대 종가와 배당포함 장기 수익률은 이 자료에 없다.",
+        "휴장 캘린더는 최근 증권사 원문으로 확인했고 국가 공휴일 자료와 대조했다."
+      ],
+      "id": "KR-012"
+    },
+    {
+      "source_id": "KR-013",
+      "url": "https://www.bok.or.kr/portal/bbs/P0002068/view.do?depth=200031&menuNo=200031&nttId=11065403&programType=newsData&relate=Y",
+      "title": "금리 및 환율 동향 2026-10-08",
+      "publisher": "Bank of Korea",
+      "published_at": "2026-10-08",
+      "data_as_of": "2026-10-07",
+      "retrieved_at": "2026-10-12T00:26:09Z",
+      "retrieved_at_basis": "batch evidence record time after examination; original per-tool timestamps not independently retained",
+      "available_at": "2026-10-08T23:59:59+09:00",
+      "availability_basis": "Dated publisher original; conservative end-of-publication-day bound precedes research cutoff",
+      "lookahead_status": "eligible_before_cutoff",
+      "horizon": "historical daily global financial observations",
+      "source_type": "primary",
+      "dedup_group": "KR-013",
+      "extraction_method": "official attachment downloaded to temp and page1 visually inspected",
+      "claims": [
+        "10/8 게시 PDF의 실제 최신 관측은 10/7이다. 제목 게시일을 10/8가격일로 취급하지 않는다."
+      ],
+      "numeric_definitions": {
+        "us_treasury10y": {
+          "value": 0.0528,
+          "unit": "fraction per annum",
+          "kind": "published_observation",
+          "observation_date": "2026-10-07",
+          "quote_basis": "New York 17:00 Bloomberg"
+        },
+        "usd_krw": {
+          "value": null,
+          "unit": "KRW per USD",
+          "reason": "this BOK table does not report KRW"
+        }
+      },
+      "limitations": [
+        "공식 배포이지만 원시 데이터 공급원은 Bloomberg이다.",
+        "PDF의 환율은 원/달러를 포함하지 않아 KRW현재환율 수치는 여기서 만들지 않는다."
+      ],
+      "id": "KR-013"
+    },
+    {
+      "source_id": "KR-014",
+      "url": "https://www.federalreserve.gov/releases/h10/current/",
+      "title": "Foreign Exchange Rates H.10 October 5, 2026",
+      "publisher": "Federal Reserve Board",
+      "published_at": "2026-10-05",
+      "data_as_of": "2026-10-02",
+      "retrieved_at": "2026-10-12T00:26:09Z",
+      "retrieved_at_basis": "batch evidence record time after examination; original per-tool timestamps not independently retained",
+      "available_at": "2026-10-05T23:59:59+09:00",
+      "availability_basis": "Dated publisher original; conservative end-of-publication-day bound precedes research cutoff",
+      "lookahead_status": "eligible_before_cutoff",
+      "horizon": "latest available weekly official FX release before cutoff",
+      "source_type": "primary",
+      "dedup_group": "KR-014",
+      "extraction_method": "web_search_then_open",
+      "claims": [
+        "공식 H10 최신 게시일은 10/5, 한국 원화의 최신 관측일은 10/2이다."
+      ],
+      "numeric_definitions": {
+        "usd_krw": {
+          "value": 1345.75,
+          "unit": "KRW per USD",
+          "kind": "official_published_spot_observation",
+          "observation_date": "2026-10-02"
+        }
+      },
+      "limitations": [
+        "10/8 또는10/12현재환율이 아니므로 KRW환산 출발점으로 사용하지 않는다.",
+        "10/12 미국 오후에 발표될 이후 H10관측은 컷오프 이후 공개이므로 사용하지 않는다."
+      ],
+      "id": "KR-014"
+    },
+    {
+      "source_id": "KR-015",
+      "url": "https://www.samsungfund.com/upload/kodex/newsroom/20260325170636388.pdf",
+      "title": "Kodex RIA ETF 투자 가이드북 2026.03",
+      "publisher": "Samsung Asset Management",
+      "published_at": "2026-03-25",
+      "data_as_of": "2026-02-27",
+      "retrieved_at": "2026-10-12T00:26:09Z",
+      "retrieved_at_basis": "batch evidence record time after examination; original per-tool timestamps not independently retained",
+      "available_at": "2026-03-25T23:59:59+09:00",
+      "availability_basis": "Dated publisher original; conservative end-of-publication-day bound precedes research cutoff",
+      "lookahead_status": "eligible_before_cutoff",
+      "horizon": "historical ETF construction snapshot",
+      "source_type": "primary",
+      "dedup_group": "KR-015",
+      "extraction_method": "web_search_then_open",
+      "claims": [
+        "KODEX 반도체는 대형 메모리와 장비를 함께 보유하며 역사적 스냅샷에서 상위2개 비중은52.5%다.",
+        "AI전력핵심설비는 역사적 스냅샷에서 LS ELECTRIC·효성중공업·HD현대일렉트릭·LS 네 회사에72.2% 집중했다.",
+        "AI반도체핵심장비는 당시 한미반도체30.0%로 특정장비기업 집중도가 높았다."
+      ],
+      "numeric_definitions": {
+        "kodex_semiconductor": {
+          "ticker": "091160",
+          "benchmark": "KRX semiconductor",
+          "holdings_count": 35,
+          "top2_weight": {
+            "value": 0.525,
+            "unit": "fraction"
+          },
+          "top10_weight": {
+            "value": 0.791,
+            "unit": "fraction"
+          }
+        },
+        "kodex_ai_power_equipment": {
+          "ticker": "487240",
+          "benchmark": "iSelect AI전력핵심설비",
+          "holdings_count": 12,
+          "top4_weight": {
+            "value": 0.722,
+            "unit": "fraction"
+          },
+          "top10_weight": {
+            "value": 0.981,
+            "unit": "fraction"
+          },
+          "holdings": [
+            {
+              "name": "LS ELECTRIC",
+              "weight": 0.22
+            },
+            {
+              "name": "효성중공업",
+              "weight": 0.199
+            },
+            {
+              "name": "HD현대일렉트릭",
+              "weight": 0.179
+            },
+            {
+              "name": "LS",
+              "weight": 0.124
+            }
+          ]
+        },
+        "kodex_ai_semiconductor_equipment": {
+          "ticker": "471990",
+          "hanmi_weight": {
+            "value": 0.3,
+            "unit": "fraction"
+          },
+          "top10_weight": {
+            "value": 0.969,
+            "unit": "fraction"
+          }
+        }
+      },
+      "limitations": [
+        "최근 90일 밖의 오래된 스냅샷이다. 현재 구성종목/비중/수익률로 쓰지 않는다.",
+        "현재 상품 화면이 JS본문이라 point-in-time holdings를 확보하지 못했다.",
+        "투자대상·집중도 예시 확인용이며 기대수익 전망 근거가 아니다."
+      ],
+      "id": "KR-015"
+    },
+    {
+      "source_id": "KR-016",
+      "url": "https://kind.krx.co.kr/corpgeneral/irschedule.do?irSeq=45162&method=searchIRScheduleDetail",
+      "title": "한미반도체 2026년 2분기 경영실적 발표",
+      "publisher": "Hanmi Semiconductor / KRX KIND",
+      "published_at": "2026-07-16",
+      "data_as_of": "2026-07-16",
+      "retrieved_at": "2026-10-12T00:26:09Z",
+      "retrieved_at_basis": "batch evidence record time after examination; original per-tool timestamps not independently retained",
+      "available_at": "2026-07-16T23:59:59+09:00",
+      "availability_basis": "Dated publisher original; conservative end-of-publication-day bound precedes research cutoff",
+      "lookahead_status": "eligible_before_cutoff",
+      "horizon": "2026Q2 IR presentation scope",
+      "source_type": "primary",
+      "dedup_group": "KR-016",
+      "extraction_method": "web_search_then_open",
+      "claims": [
+        "회사 IR 범위는 HBM4 시설투자 대응 TC본더와 AI 시스템반도체 2.5D패키징 제품 확장을 포함한다."
+      ],
+      "numeric_definitions": {},
+      "limitations": [
+        "IR일정 설명이며 매출/이익/수주 확정값이 아니다.",
+        "현재 EPS·평가배수·10/8종가를 확보하지 못해 기업 수익률 순위는 보류한다."
+      ],
+      "id": "KR-016"
+    },
+    {
+      "source_id": "KR-017",
+      "url": "https://www.ls-electric.com/ko/company/invest/data/%EC%A3%BC%EC%8B%9D%EB%B6%84%ED%95%A0%EA%B3%B5%EA%B3%A0_260326.pdf",
+      "title": "주식분할 액면분할에 따른 기준일 공고",
+      "publisher": "LS ELECTRIC",
+      "published_at": "2026-03-26",
+      "data_as_of": "2026-04-10",
+      "retrieved_at": "2026-10-12T00:26:09Z",
+      "retrieved_at_basis": "batch evidence record time after examination; original per-tool timestamps not independently retained",
+      "available_at": "2026-03-26T23:59:59+09:00",
+      "availability_basis": "Dated publisher original; conservative end-of-publication-day bound precedes research cutoff",
+      "lookahead_status": "eligible_before_cutoff",
+      "horizon": "announced stock split effective 2026-04-10",
+      "source_type": "primary",
+      "dedup_group": "LS_SPLIT_20260410",
+      "extraction_method": "web_search_then_open",
+      "claims": [
+        "5:1분할은 발행주식수를3000만주에서1억5000만주로 증가시킨다. 4/13신주 상장 계획이다."
+      ],
+      "numeric_definitions": {
+        "split_ratio": {
+          "new": 5,
+          "old": 1
+        },
+        "par_value_before": {
+          "value": 5000,
+          "unit": "KRW/share"
+        },
+        "par_value_after": {
+          "value": 1000,
+          "unit": "KRW/share"
+        }
+      },
+      "limitations": [
+        "가격하락과 분할을 구분한다.",
+        "시행확인은 현재 공식 주식정보페이지의4/10분할 메모로 대조했다."
+      ],
+      "id": "KR-017"
+    },
+    {
+      "source_id": "KR-018",
+      "url": "https://research.ftserussell.com/products/index-notices/home/getnotice/?id=2618361",
+      "title": "2026 FTSE WGBI Markets Holiday Calendar",
+      "publisher": "FTSE Russell",
+      "published_at": "2026-01-05",
+      "data_as_of": "2026-01-05",
+      "retrieved_at": "2026-10-12T00:26:09Z",
+      "retrieved_at_basis": "batch evidence record time after examination; original per-tool timestamps not independently retained",
+      "available_at": "2026-01-05T23:59:59+09:00",
+      "availability_basis": "Dated publisher original; conservative end-of-publication-day bound precedes research cutoff",
+      "lookahead_status": "eligible_before_cutoff",
+      "horizon": "2026 calendar",
+      "source_type": "primary",
+      "dedup_group": "KR-018",
+      "extraction_method": "web_search_then_open",
+      "claims": [
+        "한국10/9가 한글날로 표시된다."
+      ],
+      "numeric_definitions": {},
+      "limitations": [
+        "WGBI시장 휴일표로 KRX주식 휴장규칙 자체는 아니다. 최근 KR-012의 한국 휴장표와 교차확인용이다."
+      ],
+      "id": "KR-018"
+    },
+    {
+      "source_id": "KR-019",
+      "url": "https://global.krx.co.kr/contents/GLB/01/0109/0109000000/guide_to_trading_in_the_korean_stock_market.pdf",
+      "title": "Guide to Trading in the Korean Stock Market",
+      "publisher": "Korea Exchange",
+      "published_at": null,
+      "data_as_of": null,
+      "retrieved_at": "2026-10-12T00:26:09Z",
+      "retrieved_at_basis": "batch evidence record time after examination; original per-tool timestamps not independently retained",
+      "available_at": null,
+      "availability_basis": "Undated publisher background page; not eligible as time-sensitive research input",
+      "lookahead_status": "undated_background_only",
+      "horizon": "general equity trading rules",
+      "source_type": "primary",
+      "dedup_group": "KR-019",
+      "extraction_method": "web_search_then_open",
+      "claims": [
+        "월~금 거래, 정규장9:00~15:30, 연말 마지막 영업일 휴장 규칙을 확인한다."
+      ],
+      "numeric_definitions": {},
+      "limitations": [
+        "공식 배경 자료에 공개일이 없다. 올해 최종거래일 확정공지로 취급하지 않는다."
+      ],
+      "id": "KR-019"
+    },
+    {
+      "source_id": "KR-020",
+      "url": "https://easylaw.go.kr/CSP/CnpClsMain.laf?ccfNo=2&cciNo=1&cnpClsNo=2&csmSeq=1701&menuType=onhunqna&popMenu=ov",
+      "title": "주식 매매거래일·거래시간 및 원칙 공식 안내",
+      "publisher": "Korea Ministry of Government Legislation / EasyLaw",
+      "published_at": null,
+      "data_as_of": "2026-09-15",
+      "retrieved_at": "2026-10-12T09:28:26.441505+09:00",
+      "retrieved_at_basis": "file record update time",
+      "available_at": null,
+      "availability_basis": "page footer states authored as of 2026-09-15; initial public release timestamp unavailable",
+      "lookahead_status": "official_background_rule; not time-sensitive forecast or quote input",
+      "horizon": "standing KRX Article 5 equity trading calendar rule",
+      "source_type": "official_primary_summary",
+      "dedup_group": "KRX_EQUITY_HOLIDAY_RULE",
+      "claims": [
+        "유가증권시장·코스닥시장 업무규정제5조를 인용해 12월31일 휴장과 임시휴장 가능성을 설명한다. 2026년12월31일은목요일이므로 일반규칙상의최종매매거래일은12월30일이다."
+      ],
+      "numeric_definitions": {},
+      "limitations": [
+        "연도별폐장세부운영공지는미확보이다. 날짜계산과공식규칙을구분한다."
+      ],
+      "id": "KR-020"
+    },
+    {
+      "id": "US-ISSUER-XLC",
+      "ticker": "XLC",
+      "publisher": "State Street Investment Management",
+      "url": "https://www.ssga.com/us/en/intermediary/etfs/state-street-communication-services-select-sector-spdr-etf-xlc",
+      "title": "XLC issuer fund table",
+      "source_class": "research_reference_proxy",
+      "retrieved_at": "2026-10-12T00:41:00.874723+00:00",
+      "published_at": null,
+      "availability_basis": "Dated issuer observations precede cutoff; precise page-publication time not supplied.",
+      "pit_certified": false,
+      "raw_html_sha256": "fd68410166d4bf6b30899625e24ff89c44d411c45f63a6cf6d1685825fc07a67",
+      "currency": "USD",
+      "close_date": "2026-10-08",
+      "expense_ratio_annual_fraction": 0.0008,
+      "expense_ratio_definition": "Issuer published gross annual fund expense ratio; explicit source percent converted to fraction.",
+      "close": 112.07,
+      "valuation_date": "2026-10-08",
+      "pe_fy1": 13.76,
+      "pe_definition": "Weighted harmonic average current share price / forecasted one-year EPS; includes negative and positive outliers; FY1, not necessarily NTM.",
+      "holdings_count": 22.0,
+      "distribution_yield_fraction": 0.0123,
+      "distribution_yield_definition": "Trailing 365-day distributions / NAV; not a promised remaining-year dividend.",
+      "performance_date": "2026-09-30",
+      "nav_total_return_1m": -0.0015,
+      "nav_total_return_3m": 0.0382,
+      "nav_total_return_ytd": -0.0487,
+      "performance_definition": "Issuer NAV before-tax total return; QTD at September 30 is the 3-month quarter; dividends reinvested, fees reflected.",
+      "source_text_excerpt": "",
+      "error": null,
+      "price_gap": "Issuer page does not provide the last completed US session close (2026-10-09); use only as a dated reference, not a current executable quote."
+    },
+    {
+      "id": "US-ISSUER-XLY",
+      "ticker": "XLY",
+      "publisher": "State Street Investment Management",
+      "url": "https://www.ssga.com/us/en/intermediary/etfs/state-street-consumer-discretionary-select-sector-spdr-etf-xly",
+      "title": "XLY issuer fund table",
+      "source_class": "research_reference_proxy",
+      "retrieved_at": "2026-10-12T00:41:00.861495+00:00",
+      "published_at": null,
+      "availability_basis": "Dated issuer observations precede cutoff; precise page-publication time not supplied.",
+      "pit_certified": false,
+      "raw_html_sha256": "9ce29ad19670959887d58c334efdaced718144426d8cddc36a4e915863be6074",
+      "currency": "USD",
+      "close_date": "2026-10-08",
+      "expense_ratio_annual_fraction": 0.0008,
+      "expense_ratio_definition": "Issuer published gross annual fund expense ratio; explicit source percent converted to fraction.",
+      "close": 111.71,
+      "valuation_date": "2026-10-08",
+      "pe_fy1": 22.27,
+      "pe_definition": "Weighted harmonic average current share price / forecasted one-year EPS; includes negative and positive outliers; FY1, not necessarily NTM.",
+      "holdings_count": 47.0,
+      "distribution_yield_fraction": 0.0084,
+      "distribution_yield_definition": "Trailing 365-day distributions / NAV; not a promised remaining-year dividend.",
+      "performance_date": "2026-09-30",
+      "nav_total_return_1m": -0.0645,
+      "nav_total_return_3m": -0.0701,
+      "nav_total_return_ytd": -0.0827,
+      "performance_definition": "Issuer NAV before-tax total return; QTD at September 30 is the 3-month quarter; dividends reinvested, fees reflected.",
+      "source_text_excerpt": "",
+      "error": null,
+      "price_gap": "Issuer page does not provide the last completed US session close (2026-10-09); use only as a dated reference, not a current executable quote."
+    },
+    {
+      "id": "US-ISSUER-XLP",
+      "ticker": "XLP",
+      "publisher": "State Street Investment Management",
+      "url": "https://www.ssga.com/us/en/intermediary/etfs/state-street-consumer-staples-select-sector-spdr-etf-xlp",
+      "title": "XLP issuer fund table",
+      "source_class": "research_reference_proxy",
+      "retrieved_at": "2026-10-12T00:41:00.846382+00:00",
+      "published_at": null,
+      "availability_basis": "Dated issuer observations precede cutoff; precise page-publication time not supplied.",
+      "pit_certified": false,
+      "raw_html_sha256": "e074459029a7460a71872b754c886204ac19354c837a4b00d4dfa94e3da1579c",
+      "currency": "USD",
+      "close_date": "2026-10-08",
+      "expense_ratio_annual_fraction": 0.0008,
+      "expense_ratio_definition": "Issuer published gross annual fund expense ratio; explicit source percent converted to fraction.",
+      "close": 83.42,
+      "valuation_date": "2026-10-08",
+      "pe_fy1": 19.91,
+      "pe_definition": "Weighted harmonic average current share price / forecasted one-year EPS; includes negative and positive outliers; FY1, not necessarily NTM.",
+      "holdings_count": 35.0,
+      "distribution_yield_fraction": 0.0263,
+      "distribution_yield_definition": "Trailing 365-day distributions / NAV; not a promised remaining-year dividend.",
+      "performance_date": "2026-09-30",
+      "nav_total_return_1m": -0.045599999999999995,
+      "nav_total_return_3m": -0.0242,
+      "nav_total_return_ytd": 0.057,
+      "performance_definition": "Issuer NAV before-tax total return; QTD at September 30 is the 3-month quarter; dividends reinvested, fees reflected.",
+      "source_text_excerpt": "",
+      "error": null,
+      "price_gap": "Issuer page does not provide the last completed US session close (2026-10-09); use only as a dated reference, not a current executable quote."
+    },
+    {
+      "id": "US-ISSUER-XLE",
+      "ticker": "XLE",
+      "publisher": "State Street Investment Management",
+      "url": "https://www.ssga.com/us/en/intermediary/etfs/state-street-energy-select-sector-spdr-etf-xle",
+      "title": "XLE issuer fund table",
+      "source_class": "research_reference_proxy",
+      "retrieved_at": "2026-10-12T00:41:00.832359+00:00",
+      "published_at": null,
+      "availability_basis": "Dated issuer observations precede cutoff; precise page-publication time not supplied.",
+      "pit_certified": false,
+      "raw_html_sha256": "d3002742618bef2125f01fa9c83189d0b2ddf0b2533446ae47cc1aa751aa73e4",
+      "currency": "USD",
+      "close_date": "2026-10-08",
+      "expense_ratio_annual_fraction": 0.0008,
+      "expense_ratio_definition": "Issuer published gross annual fund expense ratio; explicit source percent converted to fraction.",
+      "close": 65.24,
+      "valuation_date": "2026-10-08",
+      "pe_fy1": 12.43,
+      "pe_definition": "Weighted harmonic average current share price / forecasted one-year EPS; includes negative and positive outliers; FY1, not necessarily NTM.",
+      "holdings_count": 21.0,
+      "distribution_yield_fraction": 0.023399999999999997,
+      "distribution_yield_definition": "Trailing 365-day distributions / NAV; not a promised remaining-year dividend.",
+      "performance_date": "2026-09-30",
+      "nav_total_return_1m": -0.0329,
+      "nav_total_return_3m": 0.16269999999999998,
+      "nav_total_return_ytd": 0.40130000000000005,
+      "performance_definition": "Issuer NAV before-tax total return; QTD at September 30 is the 3-month quarter; dividends reinvested, fees reflected.",
+      "source_text_excerpt": "",
+      "error": null,
+      "price_gap": "Issuer page does not provide the last completed US session close (2026-10-09); use only as a dated reference, not a current executable quote."
+    },
+    {
+      "id": "US-ISSUER-XLF",
+      "ticker": "XLF",
+      "publisher": "State Street Investment Management",
+      "url": "https://www.ssga.com/us/en/intermediary/etfs/state-street-financial-select-sector-spdr-etf-xlf",
+      "title": "XLF issuer fund table",
+      "source_class": "research_reference_proxy",
+      "retrieved_at": "2026-10-12T00:41:01.037622+00:00",
+      "published_at": null,
+      "availability_basis": "Dated issuer observations precede cutoff; precise page-publication time not supplied.",
+      "pit_certified": false,
+      "raw_html_sha256": "51df3f8d92955200f4fcd7892e99dab7f5b6ae2d973f1fe817179706432c0a82",
+      "currency": "USD",
+      "close_date": "2026-10-08",
+      "expense_ratio_annual_fraction": 0.0008,
+      "expense_ratio_definition": "Issuer published gross annual fund expense ratio; explicit source percent converted to fraction.",
+      "close": 54.23,
+      "valuation_date": "2026-10-08",
+      "pe_fy1": 15.22,
+      "pe_definition": "Weighted harmonic average current share price / forecasted one-year EPS; includes negative and positive outliers; FY1, not necessarily NTM.",
+      "holdings_count": 76.0,
+      "distribution_yield_fraction": 0.0152,
+      "distribution_yield_definition": "Trailing 365-day distributions / NAV; not a promised remaining-year dividend.",
+      "performance_date": "2026-09-30",
+      "nav_total_return_1m": -0.0716,
+      "nav_total_return_3m": -0.0013,
+      "nav_total_return_ytd": -0.013500000000000002,
+      "performance_definition": "Issuer NAV before-tax total return; QTD at September 30 is the 3-month quarter; dividends reinvested, fees reflected.",
+      "source_text_excerpt": "",
+      "error": null,
+      "price_gap": "Issuer page does not provide the last completed US session close (2026-10-09); use only as a dated reference, not a current executable quote."
+    },
+    {
+      "id": "US-ISSUER-XLV",
+      "ticker": "XLV",
+      "publisher": "State Street Investment Management",
+      "url": "https://www.ssga.com/us/en/intermediary/etfs/state-street-health-care-select-sector-spdr-etf-xlv",
+      "title": "XLV issuer fund table",
+      "source_class": "research_reference_proxy",
+      "retrieved_at": "2026-10-12T00:41:01.097047+00:00",
+      "published_at": null,
+      "availability_basis": "Dated issuer observations precede cutoff; precise page-publication time not supplied.",
+      "pit_certified": false,
+      "raw_html_sha256": "c9aed822f0b0cb53a4a4d32dcb77d94f95c53233b0aa907228eac050f049fad4",
+      "currency": "USD",
+      "close_date": "2026-10-08",
+      "expense_ratio_annual_fraction": 0.0008,
+      "expense_ratio_definition": "Issuer published gross annual fund expense ratio; explicit source percent converted to fraction.",
+      "close": 168.16,
+      "valuation_date": "2026-10-08",
+      "pe_fy1": 20.15,
+      "pe_definition": "Weighted harmonic average current share price / forecasted one-year EPS; includes negative and positive outliers; FY1, not necessarily NTM.",
+      "holdings_count": 61.0,
+      "distribution_yield_fraction": 0.0152,
+      "distribution_yield_definition": "Trailing 365-day distributions / NAV; not a promised remaining-year dividend.",
+      "performance_date": "2026-09-30",
+      "nav_total_return_1m": -0.009000000000000001,
+      "nav_total_return_3m": 0.0644,
+      "nav_total_return_ytd": 0.1007,
+      "performance_definition": "Issuer NAV before-tax total return; QTD at September 30 is the 3-month quarter; dividends reinvested, fees reflected.",
+      "source_text_excerpt": "",
+      "error": null,
+      "price_gap": "Issuer page does not provide the last completed US session close (2026-10-09); use only as a dated reference, not a current executable quote."
+    },
+    {
+      "id": "US-ISSUER-XLI",
+      "ticker": "XLI",
+      "publisher": "State Street Investment Management",
+      "url": "https://www.ssga.com/us/en/intermediary/etfs/state-street-industrial-select-sector-spdr-etf-xli",
+      "title": "XLI issuer fund table",
+      "source_class": "research_reference_proxy",
+      "retrieved_at": "2026-10-12T00:41:01.081527+00:00",
+      "published_at": null,
+      "availability_basis": "Dated issuer observations precede cutoff; precise page-publication time not supplied.",
+      "pit_certified": false,
+      "raw_html_sha256": "3e7ad792ec6e8e065097056157412987f2c524d57c7dfe526b31fb70cf216dad",
+      "currency": "USD",
+      "close_date": "2026-10-08",
+      "expense_ratio_annual_fraction": 0.0008,
+      "expense_ratio_definition": "Issuer published gross annual fund expense ratio; explicit source percent converted to fraction.",
+      "close": 168.4,
+      "valuation_date": "2026-10-08",
+      "pe_fy1": 24.69,
+      "pe_definition": "Weighted harmonic average current share price / forecasted one-year EPS; includes negative and positive outliers; FY1, not necessarily NTM.",
+      "holdings_count": 83.0,
+      "distribution_yield_fraction": 0.011200000000000002,
+      "distribution_yield_definition": "Trailing 365-day distributions / NAV; not a promised remaining-year dividend.",
+      "performance_date": "2026-09-30",
+      "nav_total_return_1m": -0.044199999999999996,
+      "nav_total_return_3m": -0.0968,
+      "nav_total_return_ytd": 0.085,
+      "performance_definition": "Issuer NAV before-tax total return; QTD at September 30 is the 3-month quarter; dividends reinvested, fees reflected.",
+      "source_text_excerpt": "",
+      "error": null,
+      "price_gap": "Issuer page does not provide the last completed US session close (2026-10-09); use only as a dated reference, not a current executable quote."
+    },
+    {
+      "id": "US-ISSUER-XLB",
+      "ticker": "XLB",
+      "publisher": "State Street Investment Management",
+      "url": "https://www.ssga.com/us/en/intermediary/etfs/state-street-materials-select-sector-spdr-etf-xlb",
+      "title": "XLB issuer fund table",
+      "source_class": "research_reference_proxy",
+      "retrieved_at": "2026-10-12T00:41:01.080528+00:00",
+      "published_at": null,
+      "availability_basis": "Dated issuer observations precede cutoff; precise page-publication time not supplied.",
+      "pit_certified": false,
+      "raw_html_sha256": "2718adaf00d61b413935fc264dbbe0346065300cdb8afa968671b35e9b0f6b43",
+      "currency": "USD",
+      "close_date": "2026-10-08",
+      "expense_ratio_annual_fraction": 0.0008,
+      "expense_ratio_definition": "Issuer published gross annual fund expense ratio; explicit source percent converted to fraction.",
+      "close": 49.27,
+      "valuation_date": "2026-10-08",
+      "pe_fy1": 16.67,
+      "pe_definition": "Weighted harmonic average current share price / forecasted one-year EPS; includes negative and positive outliers; FY1, not necessarily NTM.",
+      "holdings_count": 24.0,
+      "distribution_yield_fraction": 0.0175,
+      "distribution_yield_definition": "Trailing 365-day distributions / NAV; not a promised remaining-year dividend.",
+      "performance_date": "2026-09-30",
+      "nav_total_return_1m": -0.07200000000000001,
+      "nav_total_return_3m": -0.0385,
+      "nav_total_return_ytd": 0.0875,
+      "performance_definition": "Issuer NAV before-tax total return; QTD at September 30 is the 3-month quarter; dividends reinvested, fees reflected.",
+      "source_text_excerpt": "",
+      "error": null,
+      "price_gap": "Issuer page does not provide the last completed US session close (2026-10-09); use only as a dated reference, not a current executable quote."
+    },
+    {
+      "id": "US-ISSUER-XLRE",
+      "ticker": "XLRE",
+      "publisher": "State Street Investment Management",
+      "url": "https://www.ssga.com/us/en/intermediary/etfs/state-street-real-estate-select-sector-spdr-etf-xlre",
+      "title": "XLRE issuer fund table",
+      "source_class": "research_reference_proxy",
+      "retrieved_at": "2026-10-12T00:41:01.381698+00:00",
+      "published_at": null,
+      "availability_basis": "Dated issuer observations precede cutoff; precise page-publication time not supplied.",
+      "pit_certified": false,
+      "raw_html_sha256": "b875ece57c5b4db15e61f302910530e39945266d55792b463cd5e4710a8bb7d0",
+      "currency": "USD",
+      "close_date": "2026-10-08",
+      "expense_ratio_annual_fraction": 0.0008,
+      "expense_ratio_definition": "Issuer published gross annual fund expense ratio; explicit source percent converted to fraction.",
+      "close": 40.85,
+      "valuation_date": "2026-10-08",
+      "pe_fy1": 32.52,
+      "pe_definition": "Weighted harmonic average current share price / forecasted one-year EPS; includes negative and positive outliers; FY1, not necessarily NTM.",
+      "holdings_count": 30.0,
+      "distribution_yield_fraction": 0.0353,
+      "distribution_yield_definition": "Trailing 365-day distributions / NAV; not a promised remaining-year dividend.",
+      "performance_date": "2026-09-30",
+      "nav_total_return_1m": -0.0649,
+      "nav_total_return_3m": -0.063,
+      "nav_total_return_ytd": 0.038,
+      "performance_definition": "Issuer NAV before-tax total return; QTD at September 30 is the 3-month quarter; dividends reinvested, fees reflected.",
+      "source_text_excerpt": "",
+      "error": null,
+      "price_gap": "Issuer page does not provide the last completed US session close (2026-10-09); use only as a dated reference, not a current executable quote."
+    },
+    {
+      "id": "US-ISSUER-XLK",
+      "ticker": "XLK",
+      "publisher": "State Street Investment Management",
+      "url": "https://www.ssga.com/us/en/intermediary/etfs/state-street-technology-select-sector-spdr-etf-xlk",
+      "title": "XLK issuer fund table",
+      "source_class": "research_reference_proxy",
+      "retrieved_at": "2026-10-12T00:41:01.368698+00:00",
+      "published_at": null,
+      "availability_basis": "Dated issuer observations precede cutoff; precise page-publication time not supplied.",
+      "pit_certified": false,
+      "raw_html_sha256": "e8325357a1e24dd2aa3b1efc7067210fbb41d3afa54a8b656574ac4ce079041f",
+      "currency": "USD",
+      "close_date": "2026-10-08",
+      "expense_ratio_annual_fraction": 0.0008,
+      "expense_ratio_definition": "Issuer published gross annual fund expense ratio; explicit source percent converted to fraction.",
+      "close": 197.78,
+      "valuation_date": "2026-10-08",
+      "pe_fy1": 24.78,
+      "pe_definition": "Weighted harmonic average current share price / forecasted one-year EPS; includes negative and positive outliers; FY1, not necessarily NTM.",
+      "holdings_count": 75.0,
+      "distribution_yield_fraction": 0.0042,
+      "distribution_yield_definition": "Trailing 365-day distributions / NAV; not a promised remaining-year dividend.",
+      "performance_date": "2026-09-30",
+      "nav_total_return_1m": 0.0507,
+      "nav_total_return_3m": 0.0282,
+      "nav_total_return_ytd": 0.3642,
+      "performance_definition": "Issuer NAV before-tax total return; QTD at September 30 is the 3-month quarter; dividends reinvested, fees reflected.",
+      "source_text_excerpt": "",
+      "error": null,
+      "price_gap": "Issuer page does not provide the last completed US session close (2026-10-09); use only as a dated reference, not a current executable quote."
+    },
+    {
+      "id": "US-ISSUER-XLU",
+      "ticker": "XLU",
+      "publisher": "State Street Investment Management",
+      "url": "https://www.ssga.com/us/en/intermediary/etfs/state-street-utilities-select-sector-spdr-etf-xlu",
+      "title": "XLU issuer fund table",
+      "source_class": "research_reference_proxy",
+      "retrieved_at": "2026-10-12T00:41:01.419212+00:00",
+      "published_at": null,
+      "availability_basis": "Dated issuer observations precede cutoff; precise page-publication time not supplied.",
+      "pit_certified": false,
+      "raw_html_sha256": "a46add4cda6450d153f039d9c94fd2d6c4631854fd9e835373d75ec28a5d60f5",
+      "currency": "USD",
+      "close_date": "2026-10-08",
+      "expense_ratio_annual_fraction": 0.0008,
+      "expense_ratio_definition": "Issuer published gross annual fund expense ratio; explicit source percent converted to fraction.",
+      "close": 41.07,
+      "valuation_date": "2026-10-08",
+      "pe_fy1": 17.14,
+      "pe_definition": "Weighted harmonic average current share price / forecasted one-year EPS; includes negative and positive outliers; FY1, not necessarily NTM.",
+      "holdings_count": 31.0,
+      "distribution_yield_fraction": 0.029500000000000002,
+      "distribution_yield_definition": "Trailing 365-day distributions / NAV; not a promised remaining-year dividend.",
+      "performance_date": "2026-09-30",
+      "nav_total_return_1m": -0.058899999999999994,
+      "nav_total_return_3m": -0.12380000000000001,
+      "nav_total_return_ytd": -0.0571,
+      "performance_definition": "Issuer NAV before-tax total return; QTD at September 30 is the 3-month quarter; dividends reinvested, fees reflected.",
+      "source_text_excerpt": "",
+      "error": null,
+      "price_gap": "Issuer page does not provide the last completed US session close (2026-10-09); use only as a dated reference, not a current executable quote."
+    },
+    {
+      "id": "US-ISSUER-SPY",
+      "ticker": "SPY",
+      "publisher": "State Street Investment Management",
+      "url": "https://www.ssga.com/us/en/intermediary/etfs/state-street-spdr-sp-500-etf-trust-spy",
+      "title": "SPY issuer fund table",
+      "source_class": "research_reference_proxy",
+      "retrieved_at": "2026-10-12T00:41:01.442753+00:00",
+      "published_at": null,
+      "availability_basis": "Dated issuer observations precede cutoff; precise page-publication time not supplied.",
+      "pit_certified": false,
+      "raw_html_sha256": "6ca0e9efec9a4d127a53b9fd376157e63a6ee91a3f10012800799f7eadaca740",
+      "currency": "USD",
+      "close_date": "2026-10-08",
+      "expense_ratio_annual_fraction": 0.000945,
+      "expense_ratio_definition": "Issuer published gross annual fund expense ratio; explicit source percent converted to fraction.",
+      "close": 773.93,
+      "valuation_date": "2026-10-08",
+      "pe_fy1": 20.69,
+      "pe_definition": "Weighted harmonic average current share price / forecasted one-year EPS; includes negative and positive outliers; FY1, not necessarily NTM.",
+      "holdings_count": 504.0,
+      "distribution_yield_fraction": 0.0098,
+      "distribution_yield_definition": "Trailing 365-day distributions / NAV; not a promised remaining-year dividend.",
+      "performance_date": "2026-09-30",
+      "nav_total_return_1m": -0.0034999999999999996,
+      "nav_total_return_3m": 0.022799999999999997,
+      "nav_total_return_ytd": 0.1265,
+      "performance_definition": "Issuer NAV before-tax total return; QTD at September 30 is the 3-month quarter; dividends reinvested, fees reflected.",
+      "source_text_excerpt": "",
+      "error": null,
+      "price_gap": "Issuer page does not provide the last completed US session close (2026-10-09); use only as a dated reference, not a current executable quote."
+    },
+    {
+      "id": "US-CLOSE-XLC",
+      "ticker": "XLC",
+      "close": 110.38,
+      "close_date": "2026-10-09",
+      "previous_close": 112.07,
+      "publisher": "Stock Analysis",
+      "url": "https://stockanalysis.com/etf/xlc/",
+      "retrieved_at": "2026-10-12T00:24:38Z",
+      "available_at": null,
+      "market_close_at": "2026-10-09T16:00:00-04:00",
+      "availability_basis": "Public regular-session closing quote; observed page labels 2026-10-09 4:00 PM; exact vendor delivery timestamp not supplied.",
+      "pit_certified": false,
+      "after_hours_included": false
+    },
+    {
+      "id": "US-CLOSE-XLI",
+      "ticker": "XLI",
+      "close": 169.25,
+      "close_date": "2026-10-09",
+      "previous_close": 168.4,
+      "publisher": "Stock Analysis",
+      "url": "https://stockanalysis.com/etf/xli/",
+      "retrieved_at": "2026-10-12T00:24:38Z",
+      "available_at": null,
+      "market_close_at": "2026-10-09T16:00:00-04:00",
+      "availability_basis": "Public regular-session closing quote; observed page labels 2026-10-09 4:00 PM; exact vendor delivery timestamp not supplied.",
+      "pit_certified": false,
+      "after_hours_included": false
+    },
+    {
+      "id": "US-CLOSE-XLV",
+      "ticker": "XLV",
+      "close": 170.81,
+      "close_date": "2026-10-09",
+      "previous_close": 168.16,
+      "publisher": "Stock Analysis",
+      "url": "https://stockanalysis.com/etf/xlv/",
+      "retrieved_at": "2026-10-12T00:24:38Z",
+      "available_at": null,
+      "market_close_at": "2026-10-09T16:00:00-04:00",
+      "availability_basis": "Public regular-session closing quote; observed page labels 2026-10-09 4:00 PM; exact vendor delivery timestamp not supplied.",
+      "pit_certified": false,
+      "after_hours_included": false
+    },
+    {
+      "id": "US-CLOSE-SPY",
+      "ticker": "SPY",
+      "close": 778.57,
+      "close_date": "2026-10-09",
+      "previous_close": 773.93,
+      "publisher": "Stock Analysis",
+      "url": "https://stockanalysis.com/etf/spy/",
+      "retrieved_at": "2026-10-12T00:24:38Z",
+      "available_at": null,
+      "market_close_at": "2026-10-09T16:00:00-04:00",
+      "availability_basis": "Public regular-session closing quote; observed page labels 2026-10-09 4:00 PM; exact vendor delivery timestamp not supplied.",
+      "pit_certified": false,
+      "after_hours_included": false
+    },
+    {
+      "id": "US-CLOSE-XLY",
+      "ticker": "XLY",
+      "close": 112.85,
+      "close_date": "2026-10-09",
+      "previous_close": 111.71,
+      "publisher": "Stock Analysis",
+      "url": "https://stockanalysis.com/etf/xly/",
+      "retrieved_at": "2026-10-12T00:24:38Z",
+      "available_at": null,
+      "market_close_at": "2026-10-09T16:00:00-04:00",
+      "availability_basis": "Public regular-session closing quote; observed page labels 2026-10-09 4:00 PM; exact vendor delivery timestamp not supplied.",
+      "pit_certified": false,
+      "after_hours_included": false
+    },
+    {
+      "id": "US-CLOSE-XLF",
+      "ticker": "XLF",
+      "close": 54.73,
+      "date": "2026-10-09",
+      "time_text": "Oct 9, 2026, 4:00 PM",
+      "previous_close": 54.23,
+      "close_date": "2026-10-09",
+      "publisher": "Stock Analysis",
+      "url": "https://stockanalysis.com/etf/xlf/",
+      "retrieved_at": "2026-10-12T00:24:38Z",
+      "available_at": null,
+      "market_close_at": "2026-10-09T16:00:00-04:00",
+      "availability_basis": "Public regular-session closing quote; observed page labels 2026-10-09 4:00 PM; exact vendor delivery timestamp not supplied.",
+      "pit_certified": false,
+      "after_hours_included": false
+    },
+    {
+      "id": "US-CLOSE-XLP",
+      "ticker": "XLP",
+      "close": 83.43,
+      "date": "2026-10-09",
+      "time_text": "Oct 9, 2026, 4:00 PM",
+      "previous_close": 83.42,
+      "close_date": "2026-10-09",
+      "publisher": "Stock Analysis",
+      "url": "https://stockanalysis.com/etf/xlp/",
+      "retrieved_at": "2026-10-12T00:24:38Z",
+      "available_at": null,
+      "market_close_at": "2026-10-09T16:00:00-04:00",
+      "availability_basis": "Public regular-session closing quote; observed page labels 2026-10-09 4:00 PM; exact vendor delivery timestamp not supplied.",
+      "pit_certified": false,
+      "after_hours_included": false
+    },
+    {
+      "id": "US-CLOSE-XLE",
+      "ticker": "XLE",
+      "close": 65.08,
+      "date": "2026-10-09",
+      "time_text": "Oct 9, 2026, 4:00 PM",
+      "previous_close": 65.24,
+      "close_date": "2026-10-09",
+      "publisher": "Stock Analysis",
+      "url": "https://stockanalysis.com/etf/xle/",
+      "retrieved_at": "2026-10-12T00:24:38Z",
+      "available_at": null,
+      "market_close_at": "2026-10-09T16:00:00-04:00",
+      "availability_basis": "Public regular-session closing quote; observed page labels 2026-10-09 4:00 PM; exact vendor delivery timestamp not supplied.",
+      "pit_certified": false,
+      "after_hours_included": false
+    },
+    {
+      "id": "US-CLOSE-XLB",
+      "ticker": "XLB",
+      "close": 49.43,
+      "date": "2026-10-09",
+      "time_text": "Oct 9, 2026, 4:00 PM",
+      "previous_close": 49.27,
+      "close_date": "2026-10-09",
+      "publisher": "Stock Analysis",
+      "url": "https://stockanalysis.com/etf/xlb/",
+      "retrieved_at": "2026-10-12T00:24:38Z",
+      "available_at": null,
+      "market_close_at": "2026-10-09T16:00:00-04:00",
+      "availability_basis": "Public regular-session closing quote; observed page labels 2026-10-09 4:00 PM; exact vendor delivery timestamp not supplied.",
+      "pit_certified": false,
+      "after_hours_included": false
+    },
+    {
+      "id": "US-CLOSE-XLRE",
+      "ticker": "XLRE",
+      "close": 41.61,
+      "date": "2026-10-09",
+      "time_text": "Oct 9, 2026, 4:00 PM",
+      "previous_close": 40.85,
+      "close_date": "2026-10-09",
+      "publisher": "Stock Analysis",
+      "url": "https://stockanalysis.com/etf/xlre/",
+      "retrieved_at": "2026-10-12T00:24:38Z",
+      "available_at": null,
+      "market_close_at": "2026-10-09T16:00:00-04:00",
+      "availability_basis": "Public regular-session closing quote; observed page labels 2026-10-09 4:00 PM; exact vendor delivery timestamp not supplied.",
+      "pit_certified": false,
+      "after_hours_included": false
+    },
+    {
+      "id": "US-CLOSE-XLK",
+      "ticker": "XLK",
+      "close": 198.78,
+      "date": "2026-10-09",
+      "time_text": "Oct 9, 2026, 4:00 PM",
+      "previous_close": 197.78,
+      "close_date": "2026-10-09",
+      "publisher": "Stock Analysis",
+      "url": "https://stockanalysis.com/etf/xlk/",
+      "retrieved_at": "2026-10-12T00:24:38Z",
+      "available_at": null,
+      "market_close_at": "2026-10-09T16:00:00-04:00",
+      "availability_basis": "Public regular-session closing quote; observed page labels 2026-10-09 4:00 PM; exact vendor delivery timestamp not supplied.",
+      "pit_certified": false,
+      "after_hours_included": false
+    },
+    {
+      "id": "US-CLOSE-XLU",
+      "ticker": "XLU",
+      "close": 41.41,
+      "date": "2026-10-09",
+      "time_text": "Oct 9, 2026, 4:00 PM",
+      "previous_close": 41.07,
+      "close_date": "2026-10-09",
+      "publisher": "Stock Analysis",
+      "url": "https://stockanalysis.com/etf/xlu/",
+      "retrieved_at": "2026-10-12T00:24:38Z",
+      "available_at": null,
+      "market_close_at": "2026-10-09T16:00:00-04:00",
+      "availability_basis": "Public regular-session closing quote; observed page labels 2026-10-09 4:00 PM; exact vendor delivery timestamp not supplied.",
+      "pit_certified": false,
+      "after_hours_included": false
+    }
+  ],
+  "source_count": 85,
+  "distinct_url_count": 85,
+  "dedup_policy": "same origin is not an independent vote; IDs retain fact roles"
+}

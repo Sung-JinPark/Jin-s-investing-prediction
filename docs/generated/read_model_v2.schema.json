@@ -620,6 +620,41 @@
           "const": "blocked_pending_rolling_origin_validation"
         }
       }
+    },
+    "market_context": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "model_id",
+        "status",
+        "probability_unit",
+        "predictive_validation",
+        "gate"
+      ],
+      "properties": {
+        "schema_version": {
+          "const": 1
+        },
+        "model_id": {
+          "const": "research.nasdaq_market_context_v1"
+        },
+        "status": {
+          "enum": [
+            "research_preview",
+            "hold",
+            "unavailable"
+          ]
+        },
+        "probability_unit": {
+          "const": "fraction"
+        },
+        "predictive_validation": {
+          "const": "not_established"
+        },
+        "gate": {
+          "type": "object"
+        }
+      }
     }
   },
   "additionalProperties": true

@@ -1,0 +1,15 @@
+vix25_h5   persistence_pb n_fit=2009 clim=0.3076 recon Δ e2l 0.00e+00 l2e 0.00e+00 layer=raw
+vix25_h21  persistence_pb n_fit=1993 clim=0.4195 recon Δ e2l 0.00e+00 l2e 0.00e+00 layer=raw
+vix25_h63  persistence_pb n_fit=1951 clim=0.6079 recon Δ e2l 0.00e+00 l2e 0.00e+00 layer=raw
+vix30_h5   persistence_pb n_fit=2009 clim=0.1782 recon Δ e2l 0.00e+00 l2e 0.00e+00 layer=raw
+vix30_h21  persistence_pb n_fit=1993 clim=0.2519 recon Δ e2l 0.00e+00 l2e 0.00e+00 layer=raw
+vix30_h63  persistence_pb n_fit=1951 clim=0.4070 recon Δ e2l 0.00e+00 l2e 0.00e+00 layer=raw
+rv_h5      persistence_pb n_fit=1993 clim=0.5524 recon Δ e2l 2.22e-16 l2e 3.33e-16 layer=raw
+rv_h21     persistence_pb n_fit=1993 clim=0.6708 recon Δ e2l 1.11e-16 l2e 5.55e-16 layer=raw
+rv_h63     persistence_pb n_fit=1951 clim=0.8765 recon Δ e2l 9.99e-16 l2e 2.00e-15 layer=raw
+
+wrote data\timeseries_v13\vol\champion_coefficients.json
+sha256=51815bde6db0e1b1d9f206eb7fe6a05210c11531af56a7a9d7e06364a5b256f2
+content_hash=66c408f6b13852aa2c2be8e7d7f2ddfb3d2ad496c32456f4644653b03693ee54
+finalist_id=V13VOL_champion_aec80c65038b  cells=9  reconciliation max|Δ|=2.00e-15
+contract pin: sha256 OK

@@ -1,0 +1,1115 @@
+{
+  "schema_version": 1,
+  "research_as_of": "2026-10-16T09:00:00+09:00",
+  "price_cutoff": "2026-10-15",
+  "horizon": {
+    "future_trading_return_intervals": 126,
+    "exact_end": null,
+    "approx_calendar_ko": "2027년4월"
+  },
+  "created_at_utc": "2026-10-16T00:36:02.500512+00:00",
+  "artifact_role": "separate research addendum; no official forecast or probabilities",
+  "canonical_probability_unit": "fraction",
+  "probabilities_assigned": false,
+  "numeric_contract": "Explicit source units; percentages normalized to fractions; bp normalized to fraction points. Money normalized to currency units. Null means unavailable, never zero.",
+  "point_in_time_contract_ko": [
+    "관측종료는10월15일, 판단기준은10월16일09:00KST. 원래 공개일이 있는 전일 이전 자료를 재조회한 사후 연구이며 원래의 수집 빈티지를 인증한 모델 입력이 아님.",
+    "retrieved_at은as_of이후일 수 있음. source.available_at은 공개일/엠바고 또는 보수적 당일 말 시각의 가정이며原수집시각을 뜻하지 않음. KOFIA카드·현재달력처럼 공개시각 미확인 자료는 별도 제한.",
+    "10월16일 Hynix OCP 글은09:00이전 공개시각 미확인으로 분석에서 제외. 이후 발표된3분기 확정 실적을 소급 사용하지 않음."
+  ],
+  "source_manifest": "source_manifest.json",
+  "observations": [
+    {
+      "evidence_id": "FA-E01",
+      "label_ko": "삼성전자 3분기 잠정 연결매출",
+      "original": {
+        "value": 195,
+        "unit": "KRW trillion"
+      },
+      "normalized": {
+        "value": 195000000000000,
+        "unit": "KRW"
+      },
+      "source_ids": [
+        "FA-SAMSUNG-Q3-PRELIM"
+      ],
+      "observation_period": "2026Q3",
+      "status": "management_preliminary_unaudited",
+      "source_locator": null,
+      "notes_ko": [
+        "10월8일 공시. 194~196조원 추정 범위의 중앙값이며 확정 실적이 아님."
+      ],
+      "formula": null,
+      "probability": false
+    },
+    {
+      "evidence_id": "FA-E02",
+      "label_ko": "삼성전자 3분기 잠정 연결영업이익",
+      "original": {
+        "value": 107.4,
+        "unit": "KRW trillion"
+      },
+      "normalized": {
+        "value": 107400000000000.0,
+        "unit": "KRW"
+      },
+      "source_ids": [
+        "FA-SAMSUNG-Q3-PRELIM"
+      ],
+      "observation_period": "2026Q3",
+      "status": "management_preliminary_unaudited",
+      "source_locator": null,
+      "notes_ko": [
+        "107.3~107.5조원 범위의 중앙값. 반도체/HBM 부문 실적이나 현금흐름은 이 공시에 없음."
+      ],
+      "formula": null,
+      "probability": false
+    },
+    {
+      "evidence_id": "FA-E03",
+      "label_ko": "삼성전자 2분기 연결매출",
+      "original": {
+        "value": 171499470,
+        "unit": "KRW million"
+      },
+      "normalized": {
+        "value": 171499470000000,
+        "unit": "KRW"
+      },
+      "source_ids": [
+        "FA-SAMSUNG-H1-REPORT"
+      ],
+      "observation_period": "2026Q2",
+      "status": "publisher_reported",
+      "source_locator": "PDF page45, three-month KRW column",
+      "notes_ko": [],
+      "formula": null,
+      "probability": false
+    },
+    {
+      "evidence_id": "FA-E04",
+      "label_ko": "삼성전자 2분기 연결영업이익",
+      "original": {
+        "value": 89492412,
+        "unit": "KRW million"
+      },
+      "normalized": {
+        "value": 89492412000000,
+        "unit": "KRW"
+      },
+      "source_ids": [
+        "FA-SAMSUNG-H1-REPORT"
+      ],
+      "observation_period": "2026Q2",
+      "status": "publisher_reported",
+      "source_locator": "PDF page45, three-month KRW column",
+      "notes_ko": [],
+      "formula": null,
+      "probability": false
+    },
+    {
+      "evidence_id": "FA-E05",
+      "label_ko": "삼성전자 잠정 3분기 영업이익 전분기 대비 변화",
+      "original": {
+        "value": 20.010174717382757,
+        "unit": "percent"
+      },
+      "normalized": {
+        "value": 0.20010174717382756,
+        "unit": "fraction"
+      },
+      "source_ids": [
+        "FA-SAMSUNG-Q3-PRELIM",
+        "FA-SAMSUNG-H1-REPORT"
+      ],
+      "observation_period": "2026Q3 vs 2026Q2",
+      "status": "derived_preliminary_vs_reported",
+      "source_locator": null,
+      "notes_ko": [
+        "약20.01% 증가. 공개된 잠정치와 직전 분기 보고 수치의 비교이며 컨센서스 대비 서프라이즈가 아님."
+      ],
+      "formula": "107.4 trillion / (89,492,412 million / 1,000,000) - 1",
+      "probability": false
+    },
+    {
+      "evidence_id": "FA-E06",
+      "label_ko": "삼성전자 잠정 3분기 매출 전분기 대비 변화",
+      "original": {
+        "value": 13.702975291993603,
+        "unit": "percent"
+      },
+      "normalized": {
+        "value": 0.13702975291993602,
+        "unit": "fraction"
+      },
+      "source_ids": [
+        "FA-SAMSUNG-Q3-PRELIM",
+        "FA-SAMSUNG-H1-REPORT"
+      ],
+      "observation_period": "2026Q3 vs 2026Q2",
+      "status": "derived_preliminary_vs_reported",
+      "source_locator": null,
+      "notes_ko": [],
+      "formula": "195 / 171.499470 - 1",
+      "probability": false
+    },
+    {
+      "evidence_id": "FA-E07",
+      "label_ko": "삼성전자 상반기 영업현금흐름",
+      "original": {
+        "value": 145355192,
+        "unit": "KRW million"
+      },
+      "normalized": {
+        "value": 145355192000000,
+        "unit": "KRW"
+      },
+      "source_ids": [
+        "FA-SAMSUNG-H1-REPORT"
+      ],
+      "observation_period": "2026H1",
+      "status": "publisher_reported",
+      "source_locator": "PDF page51, Net cash from operating activities",
+      "notes_ko": [],
+      "formula": null,
+      "probability": false
+    },
+    {
+      "evidence_id": "FA-E08",
+      "label_ko": "삼성전자 상반기 유형자산 현금취득 지출",
+      "original": {
+        "value": 31234818,
+        "unit": "KRW million"
+      },
+      "normalized": {
+        "value": 31234818000000,
+        "unit": "KRW"
+      },
+      "source_ids": [
+        "FA-SAMSUNG-H1-REPORT"
+      ],
+      "observation_period": "2026H1",
+      "status": "publisher_reported",
+      "source_locator": "PDF page51, Acquisition of property, plant and equipment",
+      "notes_ko": [
+        "현금흐름표의 취득 지출 절대값. 유형자산 주석의 회계상 취득/투자와 서로 다름."
+      ],
+      "formula": null,
+      "probability": false
+    },
+    {
+      "evidence_id": "FA-E09",
+      "label_ko": "삼성전자 상반기 무형자산 현금취득 지출",
+      "original": {
+        "value": 1725464,
+        "unit": "KRW million"
+      },
+      "normalized": {
+        "value": 1725464000000,
+        "unit": "KRW"
+      },
+      "source_ids": [
+        "FA-SAMSUNG-H1-REPORT"
+      ],
+      "observation_period": "2026H1",
+      "status": "publisher_reported",
+      "source_locator": "PDF page51, Acquisition of intangible assets",
+      "notes_ko": [],
+      "formula": null,
+      "probability": false
+    },
+    {
+      "evidence_id": "FA-E10",
+      "label_ko": "삼성전자 상반기 영업현금흐름 차감 유형·무형 현금취득 지출",
+      "original": {
+        "value": 112394910,
+        "unit": "KRW million"
+      },
+      "normalized": {
+        "value": 112394910000000,
+        "unit": "KRW"
+      },
+      "source_ids": [
+        "FA-SAMSUNG-H1-REPORT"
+      ],
+      "observation_period": "2026H1",
+      "status": "derived_cashflow_proxy",
+      "source_locator": "PDF page51",
+      "notes_ko": [
+        "112.394910조원. 본 연구의 명시적 현금창출 대용치이며 회사 공시 FCF 지표가 아님. 금융투자·인수·배당·자사주 등은 차감하지 않음.",
+        "현재 확인된 값은 상반기 누계이며 3분기 현금창출을 입증하지 않음."
+      ],
+      "formula": "145,355,192 - 31,234,818 - 1,725,464 million KRW",
+      "probability": false
+    },
+    {
+      "evidence_id": "FA-E11",
+      "label_ko": "삼성전자 상반기 영업현금흐름 중 매출채권 증가로 인한 현금유출",
+      "original": {
+        "value": -39341327,
+        "unit": "KRW million"
+      },
+      "normalized": {
+        "value": -39341327000000,
+        "unit": "KRW"
+      },
+      "source_ids": [
+        "FA-SAMSUNG-H1-REPORT"
+      ],
+      "observation_period": "2026H1",
+      "status": "publisher_reported",
+      "source_locator": "PDF page84, Note24",
+      "notes_ko": [],
+      "formula": null,
+      "probability": false
+    },
+    {
+      "evidence_id": "FA-E12",
+      "label_ko": "삼성전자 상반기 영업현금흐름 중 재고 증가로 인한 현금유출",
+      "original": {
+        "value": -16979591,
+        "unit": "KRW million"
+      },
+      "normalized": {
+        "value": -16979591000000,
+        "unit": "KRW"
+      },
+      "source_ids": [
+        "FA-SAMSUNG-H1-REPORT"
+      ],
+      "observation_period": "2026H1",
+      "status": "publisher_reported",
+      "source_locator": "PDF page84, Note24",
+      "notes_ko": [
+        "재고 증가 자체는 수요 붕괴나 분식 증거가 아님. 향후 매출원가·출하·재고회전과 함께 확인할 항목."
+      ],
+      "formula": null,
+      "probability": false
+    },
+    {
+      "evidence_id": "FA-E13",
+      "label_ko": "삼성전자 6월말 현금 및 현금성자산",
+      "original": {
+        "value": 92916382,
+        "unit": "KRW million"
+      },
+      "normalized": {
+        "value": 92916382000000,
+        "unit": "KRW"
+      },
+      "source_ids": [
+        "FA-SAMSUNG-H1-REPORT"
+      ],
+      "observation_period": "2026-06-30",
+      "status": "publisher_reported",
+      "source_locator": "PDF page52",
+      "notes_ko": [],
+      "formula": null,
+      "probability": false
+    },
+    {
+      "evidence_id": "FA-E14",
+      "label_ko": "SK하이닉스 2분기 잠정 연결영업이익",
+      "original": {
+        "value": 60542.6,
+        "unit": "KRW billion"
+      },
+      "normalized": {
+        "value": 60542600000000.0,
+        "unit": "KRW"
+      },
+      "source_ids": [
+        "FA-HYNIX-Q2-RESULTS"
+      ],
+      "observation_period": "2026Q2",
+      "status": "publisher_preliminary_July29_not_current_guidance",
+      "source_locator": null,
+      "notes_ko": [
+        "자료는 7월29일 기준이며 이후 시점에도 유효하다고 가정하지 말라는 회사 주의문구가 있음. 3분기 수치로 사용하지 않음."
+      ],
+      "formula": null,
+      "probability": false
+    },
+    {
+      "evidence_id": "FA-E15",
+      "label_ko": "SK하이닉스 2분기말 회사 발표 현금 및 현금성자산",
+      "original": {
+        "value": 88,
+        "unit": "KRW trillion"
+      },
+      "normalized": {
+        "value": 88000000000000,
+        "unit": "KRW"
+      },
+      "source_ids": [
+        "FA-HYNIX-Q2-RESULTS"
+      ],
+      "observation_period": "2026-06-30",
+      "status": "publisher_preliminary_July29_not_current_guidance",
+      "source_locator": null,
+      "notes_ko": [],
+      "formula": null,
+      "probability": false
+    },
+    {
+      "evidence_id": "FA-E16",
+      "label_ko": "SK하이닉스 2분기말 회사 발표 총차입금",
+      "original": {
+        "value": 18.6,
+        "unit": "KRW trillion"
+      },
+      "normalized": {
+        "value": 18600000000000.0,
+        "unit": "KRW"
+      },
+      "source_ids": [
+        "FA-HYNIX-Q2-RESULTS"
+      ],
+      "observation_period": "2026-06-30",
+      "status": "publisher_preliminary_July29_not_current_guidance",
+      "source_locator": null,
+      "notes_ko": [],
+      "formula": null,
+      "probability": false
+    },
+    {
+      "evidence_id": "FA-E17",
+      "label_ko": "SK하이닉스 2분기말 회사 발표 순현금",
+      "original": {
+        "value": 69.4,
+        "unit": "KRW trillion"
+      },
+      "normalized": {
+        "value": 69400000000000.01,
+        "unit": "KRW"
+      },
+      "source_ids": [
+        "FA-HYNIX-Q2-RESULTS"
+      ],
+      "observation_period": "2026-06-30",
+      "status": "publisher_preliminary_July29_not_current_guidance",
+      "source_locator": null,
+      "notes_ko": [
+        "현금 잔액이나 순현금은 영업현금흐름과 다름. 이번 연구는 이 보도자료만으로 2분기 CFO를 추정하지 않음."
+      ],
+      "formula": null,
+      "probability": false
+    },
+    {
+      "evidence_id": "FA-E18",
+      "label_ko": "SK하이닉스 장기공급계약을 체결했다고 발표한 고객 수",
+      "original": {
+        "value": 10,
+        "unit": "approximately customers"
+      },
+      "normalized": {
+        "value": 10,
+        "unit": "approximately customers"
+      },
+      "source_ids": [
+        "FA-HYNIX-Q2-RESULTS"
+      ],
+      "observation_period": "as stated 2026-07-29",
+      "status": "company_statement_approximate",
+      "source_locator": null,
+      "notes_ko": [
+        "정확한 수주금액·취소조항·가격보장·선수금·이행시점은 공개되지 않음. 10곳을 현재 확정 주문잔고나 2027년 이익 보장으로 해석할 수 없음."
+      ],
+      "formula": null,
+      "probability": false
+    },
+    {
+      "evidence_id": "FA-E19",
+      "label_ko": "SK하이닉스 HBM4 출하와 증산 계획",
+      "original": {
+        "value": null,
+        "unit": "qualitative"
+      },
+      "normalized": {
+        "value": null,
+        "unit": "qualitative"
+      },
+      "source_ids": [
+        "FA-HYNIX-Q2-RESULTS"
+      ],
+      "observation_period": "2026Q2 actual / 2026H2 plan",
+      "status": "company_statement_actual_plus_plan",
+      "source_locator": null,
+      "notes_ko": [
+        "회사는 2분기 양산 출하 개시를 발표했고 하반기 증산을 계획함. 출하 개시와 향후 증산 계획을 구분해야 함."
+      ],
+      "formula": null,
+      "probability": false
+    },
+    {
+      "evidence_id": "FA-E20",
+      "label_ko": "SK하이닉스 9월28일 기술 포트폴리오 업데이트",
+      "original": {
+        "value": null,
+        "unit": "qualitative"
+      },
+      "normalized": {
+        "value": null,
+        "unit": "qualitative"
+      },
+      "source_ids": [
+        "FA-HYNIX-TSMC-SEP28"
+      ],
+      "observation_period": "2026-09-28",
+      "status": "company_technology_statement",
+      "source_locator": null,
+      "notes_ko": [
+        "TSMC 행사에서 HBM4·SOCAMM2 등을 전시한 기술 발표. 새 수주금액·매출·확정 고객투자 증가의 증거로 사용하지 않음."
+      ],
+      "formula": null,
+      "probability": false
+    },
+    {
+      "evidence_id": "FA-E21",
+      "label_ko": "9월 반도체 수출액, 10월14일 ICT 발표",
+      "original": {
+        "value": 603.3,
+        "unit": "USD hundred million"
+      },
+      "normalized": {
+        "value": 60329999999.99999,
+        "unit": "USD"
+      },
+      "source_ids": [
+        "FA-ICT-SEP-OCT14"
+      ],
+      "observation_period": "2026-09",
+      "status": "publisher_reported",
+      "source_locator": "반도체 수출 현황",
+      "notes_ko": [
+        "가격·물량·환율·제품 구성 효과가 섞인 명목 수출액. 영업이익이나 HBM 주문액과 같지 않음."
+      ],
+      "formula": null,
+      "probability": false
+    },
+    {
+      "evidence_id": "FA-E22",
+      "label_ko": "9월 반도체 수출액 전년 동월 대비 증가율",
+      "original": {
+        "value": 262.8,
+        "unit": "percent"
+      },
+      "normalized": {
+        "value": 2.628,
+        "unit": "fraction"
+      },
+      "source_ids": [
+        "FA-ICT-SEP-OCT14"
+      ],
+      "observation_period": "2026-09",
+      "status": "publisher_reported",
+      "source_locator": null,
+      "notes_ko": [],
+      "formula": null,
+      "probability": false
+    },
+    {
+      "evidence_id": "FA-E23",
+      "label_ko": "최근 4개월 반도체 수출액, 10월14일 ICT 발표",
+      "original": {
+        "value": [
+          448.2,
+          410.2,
+          466.7,
+          603.3
+        ],
+        "unit": "USD hundred million"
+      },
+      "normalized": {
+        "value": [
+          44820000000.0,
+          41020000000.0,
+          46670000000.0,
+          60329999999.99999
+        ],
+        "unit": "USD"
+      },
+      "source_ids": [
+        "FA-ICT-SEP-OCT14"
+      ],
+      "observation_period": [
+        "2026-06",
+        "2026-07",
+        "2026-08",
+        "2026-09"
+      ],
+      "status": "publisher_reported",
+      "source_locator": null,
+      "notes_ko": [
+        "월별 조업일수 차이를 아직 보정하지 않은 원계열. 이 네 값만으로 3개월 일평균 전기비 조건을 평가하지 않음."
+      ],
+      "formula": null,
+      "probability": false
+    },
+    {
+      "evidence_id": "FA-E24",
+      "label_ko": "9월 반도체 수출액 전월 대비 명목 증가율",
+      "original": {
+        "value": 29.2693379044354,
+        "unit": "percent"
+      },
+      "normalized": {
+        "value": 0.292693379044354,
+        "unit": "fraction"
+      },
+      "source_ids": [
+        "FA-ICT-SEP-OCT14"
+      ],
+      "observation_period": "2026-09 vs 2026-08",
+      "status": "derived_unadjusted_monthly_change",
+      "source_locator": null,
+      "notes_ko": [
+        "약29.27%. 조업일수·계절·제품구성 미조정."
+      ],
+      "formula": "603.3 / 466.7 - 1",
+      "probability": false
+    },
+    {
+      "evidence_id": "FA-E25",
+      "label_ko": "범용 DDR5 16Gb 고정거래가격",
+      "original": {
+        "value": [
+          40,
+          45,
+          46.5,
+          48
+        ],
+        "unit": "USD per 16Gb chip"
+      },
+      "normalized": {
+        "value": [
+          40,
+          45,
+          46.5,
+          48
+        ],
+        "unit": "USD per 16Gb chip"
+      },
+      "source_ids": [
+        "FA-ICT-SEP-OCT14",
+        "FA-MOTIR-SEP-EXPORTS"
+      ],
+      "observation_period": [
+        "2026-06",
+        "2026-07",
+        "2026-08",
+        "2026-09"
+      ],
+      "status": "publisher_reported",
+      "source_locator": null,
+      "notes_ko": [
+        "10월1일 자료에서 DDR5 16Gb로 명시. 10월14일 표기는 D램16Gb. 범용 메모리 벤치마크이며 HBM ASP가 아님."
+      ],
+      "formula": null,
+      "probability": false
+    },
+    {
+      "evidence_id": "FA-E26",
+      "label_ko": "범용 NAND 128Gb 고정거래가격",
+      "original": {
+        "value": [
+          28.8,
+          30.1,
+          30.5,
+          30.6
+        ],
+        "unit": "USD per 128Gb chip"
+      },
+      "normalized": {
+        "value": [
+          28.8,
+          30.1,
+          30.5,
+          30.6
+        ],
+        "unit": "USD per 128Gb chip"
+      },
+      "source_ids": [
+        "FA-ICT-SEP-OCT14",
+        "FA-MOTIR-SEP-EXPORTS"
+      ],
+      "observation_period": [
+        "2026-06",
+        "2026-07",
+        "2026-08",
+        "2026-09"
+      ],
+      "status": "publisher_reported",
+      "source_locator": null,
+      "notes_ko": [
+        "제품 규격 또는 집계 방법이 바뀌면 같은 시계열로 접합하지 않고 단절 표시."
+      ],
+      "formula": null,
+      "probability": false
+    },
+    {
+      "evidence_id": "FA-E27",
+      "label_ko": "9월 반도체 수출액, 10월1일 발표의 별도 빈티지",
+      "original": {
+        "value": 603.0,
+        "unit": "USD hundred million"
+      },
+      "normalized": {
+        "value": 60300000000.0,
+        "unit": "USD"
+      },
+      "source_ids": [
+        "FA-MOTIR-SEP-EXPORTS",
+        "FA-MOTIR-SEP-PDF"
+      ],
+      "observation_period": "2026-09",
+      "status": "older_publication_vintage_not_overwritten",
+      "source_locator": null,
+      "notes_ko": [
+        "10월14일 ICT 발표603.3과 별도 보존. 분류·개정 설명을 확보하지 못했으므로 단순 오타나 통계 개정으로 단정하지 않음."
+      ],
+      "formula": null,
+      "probability": false
+    },
+    {
+      "evidence_id": "FA-E28",
+      "label_ko": "BOK의 10월 주가 하락 설명",
+      "original": {
+        "value": null,
+        "unit": "qualitative"
+      },
+      "normalized": {
+        "value": null,
+        "unit": "qualitative"
+      },
+      "source_ids": [
+        "FA-BOK-SEP-MARKET-PDF"
+      ],
+      "observation_period": "through 2026-10-14",
+      "status": "publisher_reported",
+      "source_locator": "PDF pages1-2",
+      "notes_ko": [
+        "AI 투자 둔화 및 반도체 경쟁 심화에 대한 우려를 제시. 실제 이익 붕괴가 이미 확인됐다는 서술이 아님."
+      ],
+      "formula": null,
+      "probability": false
+    },
+    {
+      "evidence_id": "FA-E29",
+      "label_ko": "CP A1 91일 금리",
+      "original": {
+        "value": 3.66,
+        "unit": "percent"
+      },
+      "normalized": {
+        "value": 0.0366,
+        "unit": "fraction"
+      },
+      "source_ids": [
+        "FA-BOK-SEP-MARKET-PDF"
+      ],
+      "observation_period": "2026-10-14",
+      "status": "publisher_reported",
+      "source_locator": "PDF page2",
+      "notes_ko": [],
+      "formula": null,
+      "probability": false
+    },
+    {
+      "evidence_id": "FA-E30",
+      "label_ko": "8월말 CP A1 91일 금리",
+      "original": {
+        "value": 3.25,
+        "unit": "percent"
+      },
+      "normalized": {
+        "value": 0.0325,
+        "unit": "fraction"
+      },
+      "source_ids": [
+        "FA-BOK-SEP-MARKET-PDF"
+      ],
+      "observation_period": "2026-08-31",
+      "status": "publisher_reported",
+      "source_locator": "PDF page2",
+      "notes_ko": [],
+      "formula": null,
+      "probability": false
+    },
+    {
+      "evidence_id": "FA-E31",
+      "label_ko": "CP금리 8월말 대비 상승폭",
+      "original": {
+        "value": 41,
+        "unit": "basis points"
+      },
+      "normalized": {
+        "value": 0.0041,
+        "unit": "fraction_point"
+      },
+      "source_ids": [
+        "FA-BOK-SEP-MARKET-PDF"
+      ],
+      "observation_period": "2026-08-31 to 2026-10-14",
+      "status": "derived",
+      "source_locator": null,
+      "notes_ko": [
+        "단기자금 조달비용 지표. 개별 주식 반대매매액을 측정하지 않음."
+      ],
+      "formula": "(3.66 - 3.25)/100",
+      "probability": false
+    },
+    {
+      "evidence_id": "FA-E32",
+      "label_ko": "국고채 3년 금리",
+      "original": {
+        "value": 3.88,
+        "unit": "percent"
+      },
+      "normalized": {
+        "value": 0.0388,
+        "unit": "fraction"
+      },
+      "source_ids": [
+        "FA-BOK-SEP-MARKET-PDF"
+      ],
+      "observation_period": "2026-10-14",
+      "status": "publisher_reported",
+      "source_locator": "PDF page2",
+      "notes_ko": [],
+      "formula": null,
+      "probability": false
+    },
+    {
+      "evidence_id": "FA-E33",
+      "label_ko": "회사채 AA- 3년 금리",
+      "original": {
+        "value": 4.56,
+        "unit": "percent"
+      },
+      "normalized": {
+        "value": 0.045599999999999995,
+        "unit": "fraction"
+      },
+      "source_ids": [
+        "FA-BOK-SEP-MARKET-PDF"
+      ],
+      "observation_period": "2026-10-14",
+      "status": "publisher_reported",
+      "source_locator": "PDF page2",
+      "notes_ko": [],
+      "formula": null,
+      "probability": false
+    },
+    {
+      "evidence_id": "FA-E34",
+      "label_ko": "AA- 3년 회사채-국고채 금리차",
+      "original": {
+        "value": 68,
+        "unit": "basis points"
+      },
+      "normalized": {
+        "value": 0.0068,
+        "unit": "fraction_point"
+      },
+      "source_ids": [
+        "FA-BOK-SEP-MARKET-PDF"
+      ],
+      "observation_period": "2026-10-14",
+      "status": "derived",
+      "source_locator": null,
+      "notes_ko": [
+        "8월말도4.52-3.84=68bp. CP금리 상승과 별개로 이 지표에서는 신용스프레드 확대가 확인되지 않음."
+      ],
+      "formula": "(4.56 - 3.88)/100",
+      "probability": false
+    },
+    {
+      "evidence_id": "FA-E35",
+      "label_ko": "9월 은행 기타 가계대출 증감",
+      "original": {
+        "value": -2.3,
+        "unit": "KRW trillion"
+      },
+      "normalized": {
+        "value": -2300000000000.0,
+        "unit": "KRW"
+      },
+      "source_ids": [
+        "FA-BOK-SEP-MARKET-PDF"
+      ],
+      "observation_period": "2026-09",
+      "status": "publisher_reported",
+      "source_locator": "PDF page3",
+      "notes_ko": [
+        "개인 주식투자 감소와 부실채권 정리·명절 상여금 유입이 함께 작용했다는 BOK 설명. 일반신용·부동산·예적금/주식 담보 등을 포함하므로 주식 신용융자 감소액으로 대체할 수 없음."
+      ],
+      "formula": null,
+      "probability": false
+    },
+    {
+      "evidence_id": "FA-E36",
+      "label_ko": "9월말 증권사 투자자예탁금",
+      "original": {
+        "value": 104.7,
+        "unit": "KRW trillion"
+      },
+      "normalized": {
+        "value": 104700000000000.0,
+        "unit": "KRW"
+      },
+      "source_ids": [
+        "FA-BOK-SEP-MARKET-PDF"
+      ],
+      "observation_period": "2026-09-30",
+      "status": "publisher_reported",
+      "source_locator": "PDF page7",
+      "notes_ko": [
+        "속보·반올림 수치. 9월 증감+5.0조원. KOFIA10월14일 카드와 날짜·반올림·집계 범위를 먼저 맞춘 뒤 비교해야 함."
+      ],
+      "formula": null,
+      "probability": false
+    },
+    {
+      "evidence_id": "FA-E37",
+      "label_ko": "9월 주식형펀드 수신 잔액 증감",
+      "original": {
+        "value": 5.1,
+        "unit": "KRW trillion"
+      },
+      "normalized": {
+        "value": 5100000000000.0,
+        "unit": "KRW"
+      },
+      "source_ids": [
+        "FA-BOK-SEP-MARKET-PDF"
+      ],
+      "observation_period": "2026-09",
+      "status": "publisher_reported",
+      "source_locator": "PDF pages5,7",
+      "notes_ko": [
+        "평가액이 반영되는 NAV 기반 공시 표이므로 개인 순매수·신규 현금 유입액과 동일시하지 않음."
+      ],
+      "formula": null,
+      "probability": false
+    },
+    {
+      "evidence_id": "FA-E38",
+      "label_ko": "8월 M2 계절조정 평잔 전월비",
+      "original": {
+        "value": 0.9,
+        "unit": "percent"
+      },
+      "normalized": {
+        "value": 0.009000000000000001,
+        "unit": "fraction"
+      },
+      "source_ids": [
+        "FA-BOK-AUG-MONEY-PDF"
+      ],
+      "observation_period": "2026-08",
+      "status": "provisional_publisher_statistic",
+      "source_locator": "PDF page3",
+      "notes_ko": [
+        "원계열 전년동월비는5.6%. 통화총량 증가만으로 주식시장 매수자금 증가를 추론하지 않음."
+      ],
+      "formula": null,
+      "probability": false
+    },
+    {
+      "evidence_id": "FA-E39",
+      "label_ko": "KOFIA 보존 카드의 신용융자 잔액",
+      "original": {
+        "value": 33705742,
+        "unit": "KRW million"
+      },
+      "normalized": {
+        "value": 33705742000000,
+        "unit": "KRW"
+      },
+      "source_ids": [
+        "FA-KOFIA-PRECUTOFF-CARDS"
+      ],
+      "observation_period": "10-14 (2026 inferred from research context)",
+      "status": "frozen_public_widget_year_inferred_not_strict_PIT_certified",
+      "source_locator": null,
+      "notes_ko": [
+        "원문에 월/일만 표시됨. 검색 시점의2026년 문맥으로 연도를 추론했으며 원래 역사적 빈티지를 인증한 것은 아님. 카드8개 블록은 완전하지만 HTML전체는 부분응답."
+      ],
+      "formula": null,
+      "probability": false
+    },
+    {
+      "evidence_id": "FA-E40",
+      "label_ko": "KOFIA 보존 카드의 투자자예탁금",
+      "original": {
+        "value": 97428012,
+        "unit": "KRW million"
+      },
+      "normalized": {
+        "value": 97428012000000,
+        "unit": "KRW"
+      },
+      "source_ids": [
+        "FA-KOFIA-PRECUTOFF-CARDS"
+      ],
+      "observation_period": "10-14 (2026 inferred from research context)",
+      "status": "frozen_public_widget_year_inferred_not_strict_PIT_certified",
+      "source_locator": null,
+      "notes_ko": [
+        "97.428012조원. 일별 증감이나 반대매매액을 이 단일 잔액에서 추정하지 않음."
+      ],
+      "formula": null,
+      "probability": false
+    },
+    {
+      "evidence_id": "FA-E41",
+      "label_ko": "신용융자/투자자예탁금 단순 비율",
+      "original": {
+        "value": 34.595535008966415,
+        "unit": "percent"
+      },
+      "normalized": {
+        "value": 0.34595535008966416,
+        "unit": "fraction"
+      },
+      "source_ids": [
+        "FA-KOFIA-PRECUTOFF-CARDS"
+      ],
+      "observation_period": "10-14 (2026 inferred)",
+      "status": "derived_conditional_on_widget_date",
+      "source_locator": null,
+      "notes_ko": [
+        "약34.60%. 차입 투자자 개개인의 담보비율이나 부실률이 아니며, 특정 하락폭을 예측하도록 보정된 지표도 아님."
+      ],
+      "formula": "33,705,742 / 97,428,012",
+      "probability": false
+    },
+    {
+      "evidence_id": "FA-E42",
+      "label_ko": "FSC 10월15일 2차 국민참여성장펀드 설명",
+      "original": {
+        "value": null,
+        "unit": "qualitative"
+      },
+      "normalized": {
+        "value": null,
+        "unit": "qualitative"
+      },
+      "source_ids": [
+        "FA-FSC-OCT15-FUND"
+      ],
+      "observation_period": "2026-10-15",
+      "status": "agency_position_not_independent_demand_measure",
+      "source_locator": "PDF pages1-2",
+      "notes_ko": [
+        "가입대상·배정 조건 차이를 들어 1차와 판매속도 수평 비교가 부적절하다고 설명하고 판매 독촉 지시를 부인. 전국민의 현재 매수 열기나 수요 붕괴를 이 자료 하나로 확정할 수 없음."
+      ],
+      "formula": null,
+      "probability": false
+    },
+    {
+      "evidence_id": "FA-E43",
+      "label_ko": "SK하이닉스 3분기 발표 예정 일정",
+      "original": {
+        "value": "2026-10-28T09:00:00+09:00",
+        "unit": "scheduled datetime"
+      },
+      "normalized": {
+        "value": "2026-10-28T09:00:00+09:00",
+        "unit": "scheduled datetime"
+      },
+      "source_ids": [
+        "FA-HYNIX-SEC-Q3-CALL"
+      ],
+      "observation_period": "future event in primary filing signed 2026-10-14",
+      "status": "primary_calendar_context_publication_timestamp_unconfirmed",
+      "source_locator": null,
+      "notes_ko": [
+        "SEC6-K10월14일 서명. 자료는10월28일 제공 예정. 10월16일 기준3분기 실적·CFO가 발표됐다고 취급하지 않음.",
+        "서명일과공개일은다름. SEC접수헤더/인덱스조회는403으로실패해정확한공개시각미인증. 현재공식일정확인용이며엄격한PIT신호가아님."
+      ],
+      "formula": null,
+      "probability": false
+    },
+    {
+      "evidence_id": "FA-E44",
+      "label_ko": "삼성전자 3분기 컨퍼런스콜 현재 표시 일정",
+      "original": {
+        "value": "2026-10-29T10:00:00+09:00",
+        "unit": "scheduled datetime"
+      },
+      "normalized": {
+        "value": "2026-10-29T10:00:00+09:00",
+        "unit": "scheduled datetime"
+      },
+      "source_ids": [
+        "FA-SAMSUNG-EVENTS"
+      ],
+      "observation_period": "current calendar display",
+      "status": "calendar_context_only_timestamp_unconfirmed",
+      "source_locator": null,
+      "notes_ko": [
+        "공식IR 달력에 표시된 일정이나 게시시각이 없어09:00기준 원래 공개 여부를 인증하지 못함. 실적 숫자나 엄격한PIT신호로 사용하지 않음."
+      ],
+      "formula": null,
+      "probability": false
+    },
+    {
+      "evidence_id": "FA-E45",
+      "label_ko": "동일 제공자·동일 구성의 2027년 이익전망 수정 패널",
+      "original": {
+        "value": null,
+        "unit": "unavailable"
+      },
+      "normalized": {
+        "value": null,
+        "unit": "unavailable"
+      },
+      "source_ids": [],
+      "observation_period": "as of 2026-10-15",
+      "status": "missing_not_assessable",
+      "source_locator": null,
+      "notes_ko": [
+        "5월 목표가·당시 전망치를 현재 전망치로 재사용하지 않음. 현재 컨센서스가 유지/하향됐다고 단정할 근거가 없음."
+      ],
+      "formula": null,
+      "probability": false
+    },
+    {
+      "evidence_id": "FA-E46",
+      "label_ko": "일별 반대매매 및 구성종목 상승 폭 데이터",
+      "original": {
+        "value": null,
+        "unit": "unavailable"
+      },
+      "normalized": {
+        "value": null,
+        "unit": "unavailable"
+      },
+      "source_ids": [],
+      "observation_period": "as of 2026-10-15",
+      "status": "missing_not_assessable",
+      "source_locator": null,
+      "notes_ko": [
+        "과거 시점에 이용 가능한 공식 일별 반대매매·20일 신용 시계열·구성종목60일선 비중을 확보하지 못함. 결측은 조건 충족으로 처리하지 않음."
+      ],
+      "formula": null,
+      "probability": false
+    }
+  ],
+  "memo_ko": [
+    "현재 가격 국면이2008년초 반등 실패형에 가까워도, 경제적 진행단계까지 동일하다는 근거는 없음. 삼성3분기 잠정OP는전분기보다약20%크고9월반도체수출·범용메모리가격은높음. 실현이익붕괴 판정은유보해야 함.",
+    "그러나 주식은과거최고이익보다다음수요·가격·이익수준을먼저반영할수있음. 10월15일BOK자료도AI투자둔화·경쟁심화우려를제시하므로 이익강세만으로바닥을확정할수없음.",
+    "확인순서는고정연도이익전망수정→HBM주문/범용가격/조업일수보정수출→현금창출·재고→강제청산/조달금리→종목확산과가격회복. 한지표만충족한경우는부분증거로남겨야함.",
+    "정책기금판매나기준금리만으로정부의주가유도효과또는향후하락방어를정량화할수없음. 펀드모집규모와실제KOSPI매입액은다름."
+  ],
+  "open_gaps_ko": [
+    "FY2027고정이익전망의10월15일빈티지와동일패널주간수정시계열.",
+    "삼성·하이닉스3분기확정세부사업실적, 현금흐름, HBM물량/가격/계약취소조건.",
+    "반도체일평균수출3개월비교용동일정의6개월이상시계열과조업일수.",
+    "공식반대매매발생액·미수금·일별신용/예탁금과구성종목생존편향없는breadth시계열."
+  ],
+  "official_state_changes": false,
+  "dependencies_changed": false
+}

@@ -749,7 +749,7 @@ def test_future_default_uses_three_scenarios_without_legacy_fallback() -> None:
     assert "renderScenarioV52(candidate52,initialState);" in html
     # champion·조회 경로도 future_paths.json을 받는다(계약 fetch_failure의 champion_route 배너가 도달
     # 가능해야 한다) — 연구 후보 렌더 여부만 modelView/lookup으로 분기한다(검수 2차).
-    assert "const futurePathsRequested=v==='flow';" in html
+    assert "const futurePathsRequested=v==='flow'&&arg?.futureGraph!=='original';" in html
     assert "const researchPathsRequested=futurePathsRequested&&arg?.modelView!=='champion'" in html
     assert "const candidate52Requested=initialState.modelView!=='champion'" in html
     # 소유자 승인 B안 (DECISIONS.md 2026-09-02): eligible 외에 stale_last_valid
@@ -805,7 +805,7 @@ def test_future_graph_switch_reads_as_model_cards() -> None:
     css = dashboard.DASHBOARD_STYLES.read_text(encoding="utf-8")
     # 카드 콘텐츠: 마이크로 힌트 + mono 라벨
     assert "과거 국면 3개 DB의 실제 잔차" in html
-    assert "최근 1년 변동성 무작위 2만 경로" in html
+    assert "전체 모의 경로의 실제 중앙 멤버 · 일별" in html
     assert "GRAPH 01" in html and "GRAPH 02" in html
     # 글리프 색은 그래프 상수를 보간해 재사용한다 — 하드코딩 금지 계약
     assert 'stroke="${V52_SCENARIO_META.S1.color}"' in html
@@ -1433,14 +1433,15 @@ def test_repository_snapshot_stays_within_dashboard_budget(tmp_path: Path) -> No
     assert embedded["embed_field_projection"]["projected"] is True
 
 
-def test_future_paths_are_split_with_semantic_identity_and_fixed_budgets() -> None:
+def test_future_paths_are_split_with_semantic_identity_and_fixed_budgets(tmp_path: Path) -> None:
     candidate_path = (
         dashboard.config.ROOT
         / "data/scenarios/candidates/scenario_v5_2_scenario_clustered_db_v4_latest.json"
     )
     candidate = json.loads(candidate_path.read_text(encoding="utf-8"))
     stable_now = dashboard.datetime.fromisoformat(candidate["generated_at"])
-    conn = ingest.connect(dashboard.config.ROOT / "db" / "index.db")
+    conn = ingest.connect(tmp_path / "index.db")
+    ingest.sync(conn, dashboard.config.ROOT)
     try:
         model = dashboard.build_read_model(
             conn, dashboard.config.ROOT, now=stable_now,
@@ -1521,7 +1522,7 @@ def test_future_paths_split_keeps_gated_candidate_inline_without_deferred_marker
     assert again["scenario_v5_2"] == gated
 
 
-def test_future_paths_split_defers_last_valid_gated_candidate() -> None:
+def test_future_paths_split_defers_last_valid_gated_candidate(tmp_path: Path) -> None:
     """소유자 승인 B안 (DECISIONS.md 2026-09-02): 게이트가 닫혀도 봉인 산출물이
     온전하면(stale_last_valid) 경로 데이터는 정상 분리되어 프런트가 마지막 유효
     차트를 명시 공시 배너와 함께 렌더할 수 있어야 한다."""
@@ -1533,7 +1534,8 @@ def test_future_paths_split_defers_last_valid_gated_candidate() -> None:
     stale_now = dashboard.datetime.fromisoformat(
         candidate["knowledge_cutoff"]
     ) + dashboard.timedelta(days=10)
-    conn = ingest.connect(dashboard.config.ROOT / "db" / "index.db")
+    conn = ingest.connect(tmp_path / "index.db")
+    ingest.sync(conn, dashboard.config.ROOT)
     try:
         model = dashboard.build_read_model(
             conn, dashboard.config.ROOT, now=stale_now,

@@ -1,0 +1,2559 @@
+{
+  "schema": "v12.final_report/1",
+  "task_id": "S5-1",
+  "title": "V12 이벤트 트랙 일요일 루프 — 최종 보고의 수치 원천",
+  "generated_by": "tools/v12_s5_report.py",
+  "read_only": true,
+  "no_new_measurement": "S5 는 새 가설·새 후보·새 검정·문턱 조정을 하지 않는다. 여기 실린 판정 수치는 전부 S1~S4 산출 JSON 의 필드이며, 이 스크립트가 새로 계산하는 것은 산출물 해시와 앵커뿐이다.",
+  "provenance": {
+    "inputs_sha256": {
+      "data/timeseries_v12/diagnostics/first_touch_diagnostic.json": "42b188578bc9855e3c432ec3628bbb3f22729301697ff3068fc4a4bc0dab8d39",
+      "data/timeseries_v12/diagnostics/reflection_baseline.json": "86b1253acde3a10d463891d975f4b7eee5599cc5a62868e9a286fb94b1786c2f",
+      "data/timeseries_v12/diagnostics/s2_entry_verdict.json": "13ad17295ca681c217f0c31c10cf380f4fadfebdc067c970de676754cba14216",
+      "data/timeseries_v12/diagnostics/transfer_results.json": "b2c0f0c511bab590c3ca84b4376b116ab8715bd5d7a2c202c49149b1fa3db394",
+      "data/timeseries_v12/diagnostics/s3_verdict.json": "c406e30652130388fdc4eb6b915f95d8b3bc2eb66c15a058a7d5fc27eac10f4f",
+      "data/timeseries_v12/design/gate_design.json": "dd14463d2cae10c55cbc9e434ac781db60c8e5a2be992bc6b1f50eae9b67059e",
+      "data/timeseries_v12/prereg/hypotheses.json": "a2c1a9e72a1265dc68bf3e9d4660ce6c4095dc0e943f46d1cb3c61fb7a3bf4df",
+      "data/contracts/multivariate_timeseries_v12.draft.yaml": "0f68455fb6a5fc9dbcc41f6b0c61d92e0c0f285c00bb945e767f3bf168ae495b",
+      "docs/review/verdict_recompute.json": "671ed504f6ea0273a00b112480d8e62fec02a6ce8410a48dd9d0545e8f92ded8",
+      "docs/review/lowcost_options.json": "839c6d72a0a6a0fe290f732f54cfbc86140cdb7cfa82337b9c308b02a579ba92",
+      "outputs/timeseries_v12/loop/checkpoint_monday.json": "e15733b1d697f6a92e5d1af09f2e961b2bb05346e6047bf778b765b45de3fe1f",
+      "data/timeseries_v12/reports/inventory_result.json": "7db7e555ce5f911d573ef9fb8861d861e85fae3fc7249410499e8415fd8270d1"
+    },
+    "run_path": "data/timeseries_v8/runs/dev_tsv8-exp-61cee7b7fb7c41399534.json",
+    "run_sha256": "38dde7a8d029f2f02000d6174f995da52cdc2428e072926f0d8b08067e0a6727"
+  },
+  "seal_state": {
+    "sealed_sha256": "e3ff2fdb64ac71c0f05ae8e4508ef1c5a7c8fba7b78d81548918881032c8d224",
+    "sealed_baseline": "e3ff2fdb64ac71c0f05ae8e4508ef1c5a7c8fba7b78d81548918881032c8d224",
+    "sealed_matches_baseline": true,
+    "sealed_prefix_ok": true,
+    "ledger_sha256": "b9c492be276f684832aac373f80252b305cee980d4312ba3d1e5a707b04bf803",
+    "ledger_baseline": "b9c492be276f684832aac373f80252b305cee980d4312ba3d1e5a707b04bf803",
+    "ledger_matches_baseline": true,
+    "immutable_paths": [
+      "forecasts",
+      "calibration",
+      "src",
+      "data/timeseries_v8",
+      "data/timeseries_v2",
+      "questions"
+    ],
+    "immutable_paths_dirty": []
+  },
+  "loop": {
+    "window": {
+      "start_epoch": 1788652800,
+      "monday_ckpt_epoch": 1788706800,
+      "deadline_epoch": 1788739200
+    },
+    "tasks": [
+      {
+        "id": "S1-1",
+        "priority": 1,
+        "title": "세 동결 독립 재계산",
+        "accept": "verdict_recompute.json 존재, 세 트랙 유지/번복 각 1건",
+        "backlog_status": "완료",
+        "result_status": "완료",
+        "commit": "b99971a",
+        "artifacts": 3,
+        "forbidden_verbs_executed": 0
+      },
+      {
+        "id": "S1-2",
+        "priority": 2,
+        "title": "공통 방법론 민감도",
+        "accept": "민감도 표 커밋",
+        "backlog_status": "완료",
+        "result_status": "완료",
+        "commit": "76fe01d0 (산출물) + 후속 커밋(§4·§6 CI 정밀화 + result JSON)",
+        "artifacts": 6,
+        "forbidden_verbs_executed": 0
+      },
+      {
+        "id": "S1-3",
+        "priority": 3,
+        "title": "저비용 옵션 판정 + PROMPT 5문 답",
+        "accept": "5문 답 + 트랙별 최종 권고",
+        "backlog_status": "완료",
+        "result_status": "완료",
+        "commit": "7400f994 (산출물) + 후속 커밋(본 필드 기록)",
+        "artifacts": 5,
+        "forbidden_verbs_executed": 0
+      },
+      {
+        "id": "S2-1",
+        "priority": 4,
+        "title": "first_touch 실력 계측",
+        "accept": "과신 구조 재현 여부 명시",
+        "backlog_status": "완료",
+        "result_status": "완료",
+        "commit": "27dce89f (산출물) + 후속 커밋(본 필드 기록)",
+        "artifacts": 8,
+        "forbidden_verbs_executed": 0
+      },
+      {
+        "id": "S2-2",
+        "priority": 5,
+        "title": "반사원리 기계 기준선",
+        "accept": "기준선 Brier 표 커밋",
+        "backlog_status": "완료",
+        "result_status": "완료",
+        "commit": "0c2e1a02 (산출물) + 후속 커밋(본 필드 기록)",
+        "artifacts": 12,
+        "forbidden_verbs_executed": 0
+      },
+      {
+        "id": "S2-3",
+        "priority": 6,
+        "title": "S2 진단서",
+        "accept": "진입/중단 판정 1건",
+        "backlog_status": "완료",
+        "result_status": "완료",
+        "commit": "65061b4d (산출물) + 후속 커밋(본 필드 기록)",
+        "artifacts": 9,
+        "forbidden_verbs_executed": 0
+      },
+      {
+        "id": "S3-0",
+        "priority": 7,
+        "title": "가설 사전등록 커밋",
+        "accept": "커밋 해시 로그",
+        "backlog_status": "완료",
+        "result_status": "완료",
+        "commit": "ec496463 (등록부) · 74bd474a (커밋 해시 로그) · 후속 커밋(본 result JSON)",
+        "artifacts": 6,
+        "forbidden_verbs_executed": 0
+      },
+      {
+        "id": "S3-1",
+        "priority": 8,
+        "title": "T1~T4 양방향 전이 + CI + 귀무",
+        "accept": "전 가설 결과 + P(≥k 통과)",
+        "backlog_status": "완료",
+        "result_status": "완료",
+        "commit": "2020047f (산출물) · 후속 커밋(본 result JSON)",
+        "artifacts": 6,
+        "forbidden_verbs_executed": 0
+      },
+      {
+        "id": "S3-2",
+        "priority": 9,
+        "title": "S3 판정",
+        "accept": "채택 목록 또는 부정 결과",
+        "backlog_status": "완료",
+        "result_status": "완료",
+        "commit": "a2107f42 (판정서·판정 JSON·표·검증 스크립트) · 후속 커밋(본 result JSON + result_check + V13 낱말단위 정확일치 수정본 v12_s3_verify.py)",
+        "artifacts": 8,
+        "forbidden_verbs_executed": 0
+      },
+      {
+        "id": "CKPT",
+        "priority": 10,
+        "title": "월요일 체크포인트 봉인",
+        "accept": "state.json 봉인",
+        "backlog_status": "완료",
+        "result_status": "완료",
+        "commit": "efa20d0b (봉인 JSON·표·봉인 스크립트·표 렌더·정찰 스크립트·백로그 상태) · 후속 커밋(본 result JSON + 자기주장 대사 스크립트)",
+        "artifacts": 7,
+        "forbidden_verbs_executed": 0
+      },
+      {
+        "id": "S4-1",
+        "priority": 11,
+        "title": "V12 계약 draft",
+        "accept": "계약 draft 커밋",
+        "backlog_status": "완료",
+        "result_status": "완료",
+        "commit": "7f75d46f (계약 draft·생성기·검증기·표 렌더러·탐침·요약표) · 후속 커밋(본 result JSON + result_check)",
+        "artifacts": 6,
+        "forbidden_verbs_executed": 0
+      },
+      {
+        "id": "S4-2",
+        "priority": 12,
+        "title": "V12 게이트 설계서",
+        "accept": "설계서 커밋",
+        "backlog_status": "완료",
+        "result_status": "완료",
+        "commit": "a78a58dd (설계서·산출 JSON·생성기·렌더러·검사기·탐침) · 후속 커밋(본 result JSON + result_check)",
+        "artifacts": 7,
+        "forbidden_verbs_executed": 0
+      },
+      {
+        "id": "S5-1",
+        "priority": 13,
+        "title": "최종 보고·결정표·inventory",
+        "accept": "보고 커밋",
+        "backlog_status": "완료",
+        "result_status": null,
+        "commit": null,
+        "artifacts": 0,
+        "forbidden_verbs_executed": 0
+      }
+    ],
+    "tasks_total": 13,
+    "status_counts": {
+      "완료": 13,
+      "부분완료": 0,
+      "차단": 0,
+      "진행": 0,
+      "대기": 0
+    },
+    "forbidden_verbs_executed_total": 0,
+    "backtests_run": 0,
+    "holdout_touched": false,
+    "stages": [
+      "S1 독립 반박 검증",
+      "S2 이벤트 표적 진단",
+      "S3 사전등록 가설 검정",
+      "CKPT 체크포인트 봉인",
+      "S4 계약·게이트 설계",
+      "S5 종합 보고"
+    ]
+  },
+  "artifact_inventory": {
+    "by_task": {
+      "S1-1": {
+        "docs/review/verdict_recompute.json": {
+          "declared": "671ed504f6ea0273a00b112480d8e62fec02a6ce8410a48dd9d0545e8f92ded8",
+          "actual": "671ed504f6ea0273a00b112480d8e62fec02a6ce8410a48dd9d0545e8f92ded8",
+          "match": true
+        },
+        "docs/review/V12_S1_1_RECOMPUTE_VERDICT.md": {
+          "declared": "44b90d40fbe7243af3b6e039bc56bb8a3658c8f7cabe27497dff7c600f537dce",
+          "actual": "44b90d40fbe7243af3b6e039bc56bb8a3658c8f7cabe27497dff7c600f537dce",
+          "match": true
+        },
+        "tools/v12_recompute_verdict.py": {
+          "declared": "7bec8545e758ad642ef4548568702b452dbf6e2473f1db4ce936fefbd209857c",
+          "actual": "7bec8545e758ad642ef4548568702b452dbf6e2473f1db4ce936fefbd209857c",
+          "match": true
+        }
+      },
+      "S1-2": {
+        "docs/review/V12_S1_2_SENSITIVITY.md": {
+          "declared": "76d19cad029b0e4dca73af28b09ce614ffca3325f090e5838824d6b8bcf88efb",
+          "actual": "76d19cad029b0e4dca73af28b09ce614ffca3325f090e5838824d6b8bcf88efb",
+          "match": true
+        },
+        "docs/review/v10_sensitivity_grid.json": {
+          "declared": "ddbf9e0f06446589702edf2e6405a11ecbcc195963416489aa8c57a233569ef2",
+          "actual": "ddbf9e0f06446589702edf2e6405a11ecbcc195963416489aa8c57a233569ef2",
+          "match": true
+        },
+        "docs/review/v11_sensitivity_grid.json": {
+          "declared": "c500cda80e5eb8783519dfa2a9190bffda3aadf21bf358459ea9d96c696ecadc",
+          "actual": "c500cda80e5eb8783519dfa2a9190bffda3aadf21bf358459ea9d96c696ecadc",
+          "match": true
+        },
+        "tools/v12_sensitivity_v10.py": {
+          "declared": "cd50ed5648c015a3f7fccc4a5cc5b36c623ea49052e8785494296e0dc056c79c",
+          "actual": "cd50ed5648c015a3f7fccc4a5cc5b36c623ea49052e8785494296e0dc056c79c",
+          "match": true
+        },
+        "tools/v12_sensitivity_v11.py": {
+          "declared": "6fd240e896bbf7d3615c5bf4cdfe3de95a070052438237fe5270458be645eeab",
+          "actual": "6fd240e896bbf7d3615c5bf4cdfe3de95a070052438237fe5270458be645eeab",
+          "match": true
+        },
+        "tools/v12_sensitivity_tables.py": {
+          "declared": "73e5b5f5b0f07eb8121fcc30cd3588c5f8d2397d7e7f657111bfa01fb847f26c",
+          "actual": "73e5b5f5b0f07eb8121fcc30cd3588c5f8d2397d7e7f657111bfa01fb847f26c",
+          "match": true
+        }
+      },
+      "S1-3": {
+        "docs/review/V9_V10_V11_INDEPENDENT_VERDICT.md": {
+          "declared": "dc677f56ea81f1b42b0fa2498aea0cfac0ae172474e4988e30e6f140be81d76f",
+          "actual": "dc677f56ea81f1b42b0fa2498aea0cfac0ae172474e4988e30e6f140be81d76f",
+          "match": true
+        },
+        "docs/review/lowcost_options.json": {
+          "declared": "839c6d72a0a6a0fe290f732f54cfbc86140cdb7cfa82337b9c308b02a579ba92",
+          "actual": "839c6d72a0a6a0fe290f732f54cfbc86140cdb7cfa82337b9c308b02a579ba92",
+          "match": true
+        },
+        "tools/v12_lowcost_options.py": {
+          "declared": "6d8b45b65f01311c74b42fcd089ac7d05ba16e65ad33b32dcd1ee91d9548da6f",
+          "actual": "6d8b45b65f01311c74b42fcd089ac7d05ba16e65ad33b32dcd1ee91d9548da6f",
+          "match": true
+        },
+        "tools/v12_lowcost_tables.py": {
+          "declared": "d0ec13d42049362352a940a1384ebaac6491fa3a0710e9b82f205a39a8982eec",
+          "actual": "d0ec13d42049362352a940a1384ebaac6491fa3a0710e9b82f205a39a8982eec",
+          "match": true
+        },
+        "outputs/timeseries_v12/loop/_s1_3_tables.md": {
+          "declared": "4fd4637764219a4a4f923453294c6c8dc21a03ab03f2e97ba219ef5daad96eca",
+          "actual": "4fd4637764219a4a4f923453294c6c8dc21a03ab03f2e97ba219ef5daad96eca",
+          "match": true
+        }
+      },
+      "S2-1": {
+        "data/timeseries_v12/diagnostics/first_touch_diagnostic.json": {
+          "declared": "42b188578bc9855e3c432ec3628bbb3f22729301697ff3068fc4a4bc0dab8d39",
+          "actual": "42b188578bc9855e3c432ec3628bbb3f22729301697ff3068fc4a4bc0dab8d39",
+          "match": true
+        },
+        "docs/review/V12_S2_1_FIRST_TOUCH_MEASUREMENT.md": {
+          "declared": "274fda6c4e85eead730f3eb4ca21627f659c44067c90ab7edf63141e6f1d0104",
+          "actual": "274fda6c4e85eead730f3eb4ca21627f659c44067c90ab7edf63141e6f1d0104",
+          "match": true
+        },
+        "outputs/timeseries_v12/loop/_s2_1_tables.md": {
+          "declared": "13c5dae9ae3dc6a00be1c3f2bed9dc8e6e7718ebe2b1c6c4f33db8bc84af20f0",
+          "actual": "13c5dae9ae3dc6a00be1c3f2bed9dc8e6e7718ebe2b1c6c4f33db8bc84af20f0",
+          "match": true
+        },
+        "tools/v12_first_touch_diag.py": {
+          "declared": "bdaaa6d6c67a28ce0426e5f76eab4485d069c48702fc40a09f86925e31e23207",
+          "actual": "bdaaa6d6c67a28ce0426e5f76eab4485d069c48702fc40a09f86925e31e23207",
+          "match": true
+        },
+        "tools/v12_ft_tables.py": {
+          "declared": "7256a4e1c37411e6f7eb3ce56374a03ffbe9828853c0574825a459d5753c166a",
+          "actual": "7256a4e1c37411e6f7eb3ce56374a03ffbe9828853c0574825a459d5753c166a",
+          "match": true
+        },
+        "tools/v12_ft_verify.py": {
+          "declared": "058b8c84e9c76bf8826fff25104a71b8cb3a4b0ee702f3c6213034c323142b60",
+          "actual": "058b8c84e9c76bf8826fff25104a71b8cb3a4b0ee702f3c6213034c323142b60",
+          "match": true
+        },
+        "tools/v12_ft_check.py": {
+          "declared": "1df5ac065224faa4d9d28477498167696575964c24d0faa01776ac9d9acca162",
+          "actual": "1df5ac065224faa4d9d28477498167696575964c24d0faa01776ac9d9acca162",
+          "match": true
+        },
+        "tools/v12_ft_probe.py": {
+          "declared": "ff36a7720b00c1556baf873c15d5967e90919928569eafacf8a5cb2988ea4a65",
+          "actual": "ff36a7720b00c1556baf873c15d5967e90919928569eafacf8a5cb2988ea4a65",
+          "match": true
+        }
+      },
+      "S2-2": {
+        "data/timeseries_v12/diagnostics/reflection_baseline.json": {
+          "declared": "86b1253acde3a10d463891d975f4b7eee5599cc5a62868e9a286fb94b1786c2f",
+          "actual": "86b1253acde3a10d463891d975f4b7eee5599cc5a62868e9a286fb94b1786c2f",
+          "match": true
+        },
+        "docs/review/V12_S2_2_REFLECTION_BASELINE.md": {
+          "declared": "000a6f7b0e3a62f5db417f570e257d89ccc7744de200b2d944eaa51c97f25890",
+          "actual": "000a6f7b0e3a62f5db417f570e257d89ccc7744de200b2d944eaa51c97f25890",
+          "match": true
+        },
+        "outputs/timeseries_v12/loop/_s2_2_tables.md": {
+          "declared": "fbbcafad40759d74a8b3f6970353f33cf97461675349cfc76540b843bf4fd4fb",
+          "actual": "fbbcafad40759d74a8b3f6970353f33cf97461675349cfc76540b843bf4fd4fb",
+          "match": true
+        },
+        "tools/v12_reflect_baseline.py": {
+          "declared": "8bd481277f1ba93bd6690ad82f4ccdfe0dfa2b1e0befbf1db75bb16a0152ec82",
+          "actual": "8bd481277f1ba93bd6690ad82f4ccdfe0dfa2b1e0befbf1db75bb16a0152ec82",
+          "match": true
+        },
+        "tools/v12_reflect_tables.py": {
+          "declared": "5b2d844d557ace05cb00f6093208260548fbe1793d3e34d9d54444d8392027b9",
+          "actual": "5b2d844d557ace05cb00f6093208260548fbe1793d3e34d9d54444d8392027b9",
+          "match": true
+        },
+        "tools/v12_reflect_verify.py": {
+          "declared": "df550b8c84af619ca108dcf45fb6733540f63e9096390362c9bc95ddec98b5fc",
+          "actual": "df550b8c84af619ca108dcf45fb6733540f63e9096390362c9bc95ddec98b5fc",
+          "match": true
+        },
+        "tools/v12_reflect_dump.py": {
+          "declared": "31bec300e56bd4a709644792c7a09e854971bbd159458548eb028f7dbf3254e1",
+          "actual": "31bec300e56bd4a709644792c7a09e854971bbd159458548eb028f7dbf3254e1",
+          "match": true
+        },
+        "tools/v12_reflect_mde.py": {
+          "declared": "93914876a021d1a50fca82e043056a76ae0624516a140d1ab189723e57c090aa",
+          "actual": "93914876a021d1a50fca82e043056a76ae0624516a140d1ab189723e57c090aa",
+          "match": true
+        },
+        "tools/v12_reflect_probe.py": {
+          "declared": "b14e7d6404a6e9f10e41eb693e485bb31569a31777a37feba9b3cac4a472e68f",
+          "actual": "b14e7d6404a6e9f10e41eb693e485bb31569a31777a37feba9b3cac4a472e68f",
+          "match": true
+        },
+        "tools/v12_reflect_headline.py": {
+          "declared": "d7c7ae023d2a31ed231c2add03b3ff90b30b5c102d4a77dec3d189c4d36c8367",
+          "actual": "d7c7ae023d2a31ed231c2add03b3ff90b30b5c102d4a77dec3d189c4d36c8367",
+          "match": true
+        },
+        "tools/v12_reflect_result_check.py": {
+          "declared": "c411fcc83e23dcfcc7e07a2af84737a7d5baea195528ee52c7a58200517188a5",
+          "actual": "c411fcc83e23dcfcc7e07a2af84737a7d5baea195528ee52c7a58200517188a5",
+          "match": true
+        },
+        "tools/v12_reflect_doc_check.py": {
+          "declared": "0979675be3ad5df5bf3669e76dd30b99fba2cceadcba7098ebb523ae9ea47546",
+          "actual": "0979675be3ad5df5bf3669e76dd30b99fba2cceadcba7098ebb523ae9ea47546",
+          "match": true
+        }
+      },
+      "S2-3": {
+        "docs/design/v12_event_target_diagnostic.md": {
+          "declared": "53e4818e4936ec88284a084b75ae6d65f6ac929b931626213a7eb46f7a6e4fea",
+          "actual": "53e4818e4936ec88284a084b75ae6d65f6ac929b931626213a7eb46f7a6e4fea",
+          "match": true
+        },
+        "data/timeseries_v12/diagnostics/s2_entry_verdict.json": {
+          "declared": "13ad17295ca681c217f0c31c10cf380f4fadfebdc067c970de676754cba14216",
+          "actual": "13ad17295ca681c217f0c31c10cf380f4fadfebdc067c970de676754cba14216",
+          "match": true
+        },
+        "outputs/timeseries_v12/loop/_s2_3_tables.md": {
+          "declared": "ae86e6870061c92f6513924f4d6756fa9ee6822a6c2a097f112a1f2136bbe15f",
+          "actual": "ae86e6870061c92f6513924f4d6756fa9ee6822a6c2a097f112a1f2136bbe15f",
+          "match": true
+        },
+        "tools/v12_s2_verdict.py": {
+          "declared": "8d2dba02bf80d89af3ed910e7672e43f5927e91b2da5acd51695ae2e13dc8627",
+          "actual": "8d2dba02bf80d89af3ed910e7672e43f5927e91b2da5acd51695ae2e13dc8627",
+          "match": true
+        },
+        "tools/v12_s2_tables.py": {
+          "declared": "cc31649baa49fbfd76e078bb5328b549bc32c517f326d6d427c9859e72a3b1ba",
+          "actual": "cc31649baa49fbfd76e078bb5328b549bc32c517f326d6d427c9859e72a3b1ba",
+          "match": true
+        },
+        "tools/v12_s2_verify.py": {
+          "declared": "d3719cb0ea4e70ce4c85e7b616edebb0901a7a48a77695aa4432833c7ee2a792",
+          "actual": "d3719cb0ea4e70ce4c85e7b616edebb0901a7a48a77695aa4432833c7ee2a792",
+          "match": true
+        },
+        "tools/v12_s2_doc_check.py": {
+          "declared": "140b76a38972afebdc47d3ee23259ab9845a71faab21849389f97d959e0ff314",
+          "actual": "140b76a38972afebdc47d3ee23259ab9845a71faab21849389f97d959e0ff314",
+          "match": true
+        },
+        "tools/v12_s2_probe.py": {
+          "declared": "49a95f4bfd9e4b1c27e9411755db46ae43e756f07d35bb05caa04bcde3ec9559",
+          "actual": "49a95f4bfd9e4b1c27e9411755db46ae43e756f07d35bb05caa04bcde3ec9559",
+          "match": true
+        },
+        "tools/v12_s2_probe2.py": {
+          "declared": "41eac1fbb1965ff0408dfdd62f7c0de6e90436e58152fb967909af6aa30cf43c",
+          "actual": "41eac1fbb1965ff0408dfdd62f7c0de6e90436e58152fb967909af6aa30cf43c",
+          "match": true
+        }
+      },
+      "S3-0": {
+        "data/timeseries_v12/prereg/hypotheses.json": {
+          "declared": "a2c1a9e72a1265dc68bf3e9d4660ce6c4095dc0e943f46d1cb3c61fb7a3bf4df",
+          "actual": "a2c1a9e72a1265dc68bf3e9d4660ce6c4095dc0e943f46d1cb3c61fb7a3bf4df",
+          "match": true
+        },
+        "data/timeseries_v12/prereg/prereg_commit_log.json": {
+          "declared": "4ac4b9dc498090c4f23c8156b7cc04ee99ef53d124ecf145077164a475837717",
+          "actual": "4ac4b9dc498090c4f23c8156b7cc04ee99ef53d124ecf145077164a475837717",
+          "match": true
+        },
+        "tools/v12_prereg_check.py": {
+          "declared": "1c64ce52edfdefcf73bfc9d426ebeb576fcbed9b0e92ff1c736652d2cab1b557",
+          "actual": "1c64ce52edfdefcf73bfc9d426ebeb576fcbed9b0e92ff1c736652d2cab1b557",
+          "match": true
+        },
+        "tools/v12_prereg_tables.py": {
+          "declared": "15ba7efac733873c376a7d14f7221e54b9611833b41fbb4e7191b70ff9cb86fe",
+          "actual": "15ba7efac733873c376a7d14f7221e54b9611833b41fbb4e7191b70ff9cb86fe",
+          "match": true
+        },
+        "tools/v12_s3_0_result_check.py": {
+          "declared": "af80726af8f3d165bfceddc5b5212b38531421b0f8805d9b089528635eae54ff",
+          "actual": "af80726af8f3d165bfceddc5b5212b38531421b0f8805d9b089528635eae54ff",
+          "match": true
+        },
+        "outputs/timeseries_v12/loop/_s3_0_tables.md": {
+          "declared": "d12db2320b0e5d7f2a0fd8aa18cf01014b7ae6118c993d98af17bea604bd7b7a",
+          "actual": "d12db2320b0e5d7f2a0fd8aa18cf01014b7ae6118c993d98af17bea604bd7b7a",
+          "match": true
+        }
+      },
+      "S3-1": {
+        "data/timeseries_v12/diagnostics/transfer_results.json": {
+          "declared": "b2c0f0c511bab590c3ca84b4376b116ab8715bd5d7a2c202c49149b1fa3db394",
+          "actual": "b2c0f0c511bab590c3ca84b4376b116ab8715bd5d7a2c202c49149b1fa3db394",
+          "match": true
+        },
+        "tools/v12_transfer_test.py": {
+          "declared": "7637fb966a051ca56574c9f9780bfe89a23a7fe599d96b58725ad3ff9de24ddb",
+          "actual": "7637fb966a051ca56574c9f9780bfe89a23a7fe599d96b58725ad3ff9de24ddb",
+          "match": true
+        },
+        "tools/v12_transfer_verify.py": {
+          "declared": "66432a24e6b47c828472dfc5a157793da486ba1f7b72355c142372eba3b1c1b6",
+          "actual": "66432a24e6b47c828472dfc5a157793da486ba1f7b72355c142372eba3b1c1b6",
+          "match": true
+        },
+        "tools/v12_transfer_tables.py": {
+          "declared": "94018ac95928ca757cd67535a730cd04c77b8472f7f14377931fa37818f0be50",
+          "actual": "94018ac95928ca757cd67535a730cd04c77b8472f7f14377931fa37818f0be50",
+          "match": true
+        },
+        "tools/v12_s3_1_result_check.py": {
+          "declared": "5e7b29b7e6a68ef2f15b0ec308a525e0ce9c80f8f1f2aa68929358a3532a9933",
+          "actual": "5e7b29b7e6a68ef2f15b0ec308a525e0ce9c80f8f1f2aa68929358a3532a9933",
+          "match": true
+        },
+        "outputs/timeseries_v12/loop/_s3_1_tables.md": {
+          "declared": "cbce2cdbf21832b6b3fe58027a4f3491c707b3e0ecf9767154db7bc6b0153bd0",
+          "actual": "cbce2cdbf21832b6b3fe58027a4f3491c707b3e0ecf9767154db7bc6b0153bd0",
+          "match": true
+        }
+      },
+      "S3-2": {
+        "docs/design/v12_s3_verdict.md": {
+          "declared": "2020b95b6899e3376c6d2faaad6f304d9271fd07ee817d61eeb96a987b0dbe74",
+          "actual": "2020b95b6899e3376c6d2faaad6f304d9271fd07ee817d61eeb96a987b0dbe74",
+          "match": true
+        },
+        "data/timeseries_v12/diagnostics/s3_verdict.json": {
+          "declared": "c406e30652130388fdc4eb6b915f95d8b3bc2eb66c15a058a7d5fc27eac10f4f",
+          "actual": "c406e30652130388fdc4eb6b915f95d8b3bc2eb66c15a058a7d5fc27eac10f4f",
+          "match": true
+        },
+        "outputs/timeseries_v12/loop/_s3_2_tables.md": {
+          "declared": "4f7c7a31897f94d88d6ca1d5a8bc408e7aeab1b274c36f739273c796c0dbd36e",
+          "actual": "4f7c7a31897f94d88d6ca1d5a8bc408e7aeab1b274c36f739273c796c0dbd36e",
+          "match": true
+        },
+        "tools/v12_s3_verdict.py": {
+          "declared": "06e91f1940c058293e87ad855fef29806dfe04b6dd04a086d4bade94d72ff0f3",
+          "actual": "06e91f1940c058293e87ad855fef29806dfe04b6dd04a086d4bade94d72ff0f3",
+          "match": true
+        },
+        "tools/v12_s3_tables.py": {
+          "declared": "ab4ffe96de9268acf9ff150dc33cfa09a2b822c699ec9b1460314bf9386ca6e8",
+          "actual": "ab4ffe96de9268acf9ff150dc33cfa09a2b822c699ec9b1460314bf9386ca6e8",
+          "match": true
+        },
+        "tools/v12_s3_verify.py": {
+          "declared": "61695aee668e607c8c04a28c5cb21c8bb96323050fe3eefcad9f5cc1e1b34af2",
+          "actual": "61695aee668e607c8c04a28c5cb21c8bb96323050fe3eefcad9f5cc1e1b34af2",
+          "match": true
+        },
+        "tools/v12_s3_doc_check.py": {
+          "declared": "20f8f16d8d69ba77603066003fc5ff5064147800af528e6198ee48dcb342ce5c",
+          "actual": "20f8f16d8d69ba77603066003fc5ff5064147800af528e6198ee48dcb342ce5c",
+          "match": true
+        },
+        "tools/v12_s3_2_result_check.py": {
+          "declared": "b9c2745b64769d4497fe4a848947d179b68c1ebc1aba07fe01737e0d01f0a9f0",
+          "actual": "b9c2745b64769d4497fe4a848947d179b68c1ebc1aba07fe01737e0d01f0a9f0",
+          "match": true
+        }
+      },
+      "CKPT": {
+        "outputs/timeseries_v12/loop/checkpoint_monday.json": {
+          "declared": "e15733b1d697f6a92e5d1af09f2e961b2bb05346e6047bf778b765b45de3fe1f",
+          "actual": "e15733b1d697f6a92e5d1af09f2e961b2bb05346e6047bf778b765b45de3fe1f",
+          "match": true
+        },
+        "outputs/timeseries_v12/loop/_ckpt_tables.md": {
+          "declared": "e9e7b8f80b1314d04f186a4a50046068980a618133794301f312b4e50e128c8e",
+          "actual": "e9e7b8f80b1314d04f186a4a50046068980a618133794301f312b4e50e128c8e",
+          "match": true
+        },
+        "outputs/timeseries_v12/loop/state.json": {
+          "declared": "1c6ea866e2dcdcfbb1fe13433104a9be6d3f82d6a2060388d581ddbd9340ecef",
+          "actual": "1c6ea866e2dcdcfbb1fe13433104a9be6d3f82d6a2060388d581ddbd9340ecef",
+          "match": true
+        },
+        "tools/v12_ckpt_seal.py": {
+          "declared": "02e77ac13c6a8b6d2a3aa035ad32a1215b596b5dead6e76a6e7cd06b84e8b636",
+          "actual": "02e77ac13c6a8b6d2a3aa035ad32a1215b596b5dead6e76a6e7cd06b84e8b636",
+          "match": true
+        },
+        "tools/v12_ckpt_tables.py": {
+          "declared": "0e9eed40485719908f3232e27fca4ef378db27b331fc538132167e7819279ed8",
+          "actual": "0e9eed40485719908f3232e27fca4ef378db27b331fc538132167e7819279ed8",
+          "match": true
+        },
+        "tools/v12_ckpt_probe.py": {
+          "declared": "7cb66e9c327bb1239ea9a01b9fd4b9e168d91c352bad8bfc45b4f97246aab35b",
+          "actual": "7cb66e9c327bb1239ea9a01b9fd4b9e168d91c352bad8bfc45b4f97246aab35b",
+          "match": true
+        },
+        "tools/v12_ckpt_result_check.py": {
+          "declared": "e443a7edb2fecffb5064e8c87f65981657dfffaa6094da56150a6ceb3f35d07a",
+          "actual": "e443a7edb2fecffb5064e8c87f65981657dfffaa6094da56150a6ceb3f35d07a",
+          "match": true
+        }
+      },
+      "S4-1": {
+        "data/contracts/multivariate_timeseries_v12.draft.yaml": {
+          "declared": "0f68455fb6a5fc9dbcc41f6b0c61d92e0c0f285c00bb945e767f3bf168ae495b",
+          "actual": "0f68455fb6a5fc9dbcc41f6b0c61d92e0c0f285c00bb945e767f3bf168ae495b",
+          "match": true
+        },
+        "tools/v12_s4_contract.py": {
+          "declared": "b77f47f68f64cb537708e3dedfbacaf45e0754cb653bdcd07c4d13527e4d0185",
+          "actual": "b77f47f68f64cb537708e3dedfbacaf45e0754cb653bdcd07c4d13527e4d0185",
+          "match": true
+        },
+        "tools/v12_s4_contract_check.py": {
+          "declared": "97c3c52be30acf833f6e779a8c78d3549287e28df5cfd338adaf4f415323bf6f",
+          "actual": "97c3c52be30acf833f6e779a8c78d3549287e28df5cfd338adaf4f415323bf6f",
+          "match": true
+        },
+        "tools/v12_s4_tables.py": {
+          "declared": "0f811f676eade331ee180af855ad8c2f572eefa08a6929188cfa3c7f951913e6",
+          "actual": "0f811f676eade331ee180af855ad8c2f572eefa08a6929188cfa3c7f951913e6",
+          "match": true
+        },
+        "tools/v12_s4_probe.py": {
+          "declared": "e0d7b7f62d7a81c1e071750882a567d6f508f944898a9fe9ddef0daf2b3bbf39",
+          "actual": "e0d7b7f62d7a81c1e071750882a567d6f508f944898a9fe9ddef0daf2b3bbf39",
+          "match": true
+        },
+        "outputs/timeseries_v12/loop/_s4_1_tables.md": {
+          "declared": "344d87d7f083dfbe85aa00a256063fb49a9831c1df9a83b9bbbe7e9a67461c8f",
+          "actual": "344d87d7f083dfbe85aa00a256063fb49a9831c1df9a83b9bbbe7e9a67461c8f",
+          "match": true
+        }
+      },
+      "S4-2": {
+        "docs/design/v12_gate_design.md": {
+          "declared": "ea10c29503b39e1d5daf8d51592c93ae94102761d20df0e2a76b31dfa447b3af",
+          "actual": "ea10c29503b39e1d5daf8d51592c93ae94102761d20df0e2a76b31dfa447b3af",
+          "match": true
+        },
+        "data/timeseries_v12/design/gate_design.json": {
+          "declared": "dd14463d2cae10c55cbc9e434ac781db60c8e5a2be992bc6b1f50eae9b67059e",
+          "actual": "dd14463d2cae10c55cbc9e434ac781db60c8e5a2be992bc6b1f50eae9b67059e",
+          "match": true
+        },
+        "tools/v12_s4_2_gate_design.py": {
+          "declared": "d6e136ef6bad2354a95ef5d22867ebbe85669ed5ed55905c145523d741ed6a94",
+          "actual": "d6e136ef6bad2354a95ef5d22867ebbe85669ed5ed55905c145523d741ed6a94",
+          "match": true
+        },
+        "tools/v12_s4_2_tables.py": {
+          "declared": "ef9c53050b12920387afdd47007bda430b80d77f887ae4d34d9c82189c9f2b0c",
+          "actual": "ef9c53050b12920387afdd47007bda430b80d77f887ae4d34d9c82189c9f2b0c",
+          "match": true
+        },
+        "tools/v12_s4_2_doc_check.py": {
+          "declared": "efdb75e85d48ac6693f356ba2f199dc2c2ef4e7d7d5b09e0ddc6a1da21c609a3",
+          "actual": "efdb75e85d48ac6693f356ba2f199dc2c2ef4e7d7d5b09e0ddc6a1da21c609a3",
+          "match": true
+        },
+        "tools/v12_s4_2_probe.py": {
+          "declared": "10a111ccc58ebb5580856e05e82722679b1c41333a023298c50b16cad6e4cb7e",
+          "actual": "10a111ccc58ebb5580856e05e82722679b1c41333a023298c50b16cad6e4cb7e",
+          "match": true
+        },
+        "outputs/timeseries_v12/loop/_s4_2_tables.md": {
+          "declared": "b5666b6a84a305cf4650deb7510cdc87300730b41476917773af798cb879e548",
+          "actual": "b5666b6a84a305cf4650deb7510cdc87300730b41476917773af798cb879e548",
+          "match": true
+        }
+      }
+    },
+    "declared_artifacts": 83,
+    "unique_artifact_paths": 83,
+    "result_json_count": 12,
+    "files_total": 95,
+    "missing": [],
+    "drifted": [],
+    "clean": true,
+    "anchors": {
+      "convention": "sha256 over sorted '<sha256> *<relpath>' lines (sealed_hash() 규약)",
+      "artifacts_anchor": "4553b841cf691ba81b6c2b1a73ea904a54d665e98b0996750ac396610d11f2d9",
+      "results_anchor": "6f63ae94f4af8dd925aa7359205cf7793c88e717b3abb2bded88b0692743c787",
+      "loop_anchor": "c2d28a6c4ccaf59c8457d36e5fc6bb24855aef05ae5e71b0473f9b3cf055ccaf"
+    }
+  },
+  "ckpt_reproduction": {
+    "files_rehashed": 63,
+    "result_files_rehashed": 9,
+    "missing": [],
+    "artifacts_anchor_now": "cdf359100d55097a13392a8105f45b4f161be4a87ec291a51c6cfcf46711c75f",
+    "artifacts_anchor_declared": "cdf359100d55097a13392a8105f45b4f161be4a87ec291a51c6cfcf46711c75f",
+    "artifacts_anchor_match": true,
+    "results_anchor_now": "7a50cb3c58dbe1a3935ccc2fad444330fef198aa8da7e584bcbd2a69f054f2d0",
+    "results_anchor_declared": "7a50cb3c58dbe1a3935ccc2fad444330fef198aa8da7e584bcbd2a69f054f2d0",
+    "results_anchor_match": true,
+    "checkpoint_anchor_now": "a4b817d445847d18302c7c6dd8da28915e36842f6e071404193e828113eaeb9e",
+    "checkpoint_anchor_declared": "a4b817d445847d18302c7c6dd8da28915e36842f6e071404193e828113eaeb9e",
+    "checkpoint_anchor_match": true,
+    "meaning": "CKPT 이후 S1~S3 산출물이 한 바이트라도 바뀌었다면 세 앵커 중 하나 이상이 어긋난다."
+  },
+  "stage_findings": {
+    "S1": {
+      "question": "세 동결(V9·V10·V11)이 옳았는가 — 독립 재계산",
+      "verdicts": {
+        "v10": "유지",
+        "v11": "유지",
+        "v9": "유지"
+      },
+      "overturned": 0,
+      "v10": {
+        "paired_mean_delta": 0.00027711301229635605,
+        "relative_improvement": 0.006354686945628619,
+        "ci90": [
+          1.6385889763018458e-05,
+          0.0006794259629344273
+        ],
+        "mde50": 0.00034223294872644326,
+        "gfc_delta_share": 0.8380715093075743,
+        "top5pct_mean_after_removal": -1.153645521611733e-05,
+        "top5pct_share_of_net": 1.0395343493995175,
+        "bit_identical_to_ledger": true
+      },
+      "v11": {
+        "combos_tested": 12,
+        "combos_meeting_adoption_rule": 0,
+        "permutation_null_p": 0.118
+      },
+      "v9": {
+        "pairs": 5,
+        "pairs_with_positive_mean": 0,
+        "max_abs_mean_delta": 4.3346692950706955e-05
+      },
+      "sensitivity": {
+        "cells_total": 33,
+        "cells_overturn": 2,
+        "overturn_cells": [
+          "win[-1y,-1y] | ℓ=5",
+          "win[+1y,+1y] | ℓ=5"
+        ],
+        "canonical_cell_verdict": "유지",
+        "freeze_recommendation": "변경 없음",
+        "overturn_character": "위기창이 순이득 81.0%를 담은 2008H2 를 미포함 → 판정식 전제 붕괴형. 비율 1.12·1.09 이고 같은 창이 ℓ=13/26 에서는 0.96~0.99 로 임계 바로 아래 — 부호 변화가 아니라 mde50 문턱 하락(se −11%)으로 뒤집힘."
+      },
+      "lowcost": {
+        "v10_combination_grid_admissible": 12,
+        "v10_best_combo_relative": 0.011469812028853105,
+        "cboe_permission_request": "미발송 (초안 docs/cboe_permission_request_draft.md, 소유자 직접 발송 사항)",
+        "intraday": "[미검증] — 설계도 §0 의 '합법 일중 소스 부재'를 뒷받침하는 조사 기록이 저장소에 없음 (12-8 전수 조사는 일별 대체만 다룸)"
+      }
+    },
+    "S2": {
+      "question": "V8 first_touch 확률의 실력과 과신이 실재하는가 — 기계 기준선 대비",
+      "target": {
+        "run": "data/timeseries_v8/runs/dev_tsv8-exp-61cee7b7fb7c41399534.json",
+        "origins": 417,
+        "window": [
+          "2007-01-05",
+          "2014-12-24"
+        ],
+        "event": "지평 내 지수 경로 최소값 ≤ 0.90 (원점 대비 −10% first-passage)"
+      },
+      "h21": {
+        "touches": null,
+        "brier_v8": null
+      },
+      "skill_vs_climatology": {
+        "h21_bss": 0.049803137153394794,
+        "h21_loss_diff_ci90": [
+          -0.01188400194829748,
+          0.02055859491651282
+        ],
+        "h63_bss": 0.09064410855097038,
+        "h63_loss_diff_ci90": [
+          -0.02205399343532367,
+          0.05764263979499854
+        ],
+        "both_contain_zero": true
+      },
+      "reflection_baseline": {
+        "h21_brier_v8": 0.061485287170263796,
+        "h21_brier_reflection": 0.06013478760059581,
+        "h21_bss_v8_vs_reflection": -0.022457875442044584,
+        "h21_loss_diff_ci90": [
+          -0.006667905993966078,
+          0.0025106697143828785
+        ],
+        "h63_brier_v8": 0.1449727356115108,
+        "h63_brier_reflection": 0.1498894152922163,
+        "h63_bss_v8_vs_reflection": 0.03280204723675917,
+        "h63_loss_diff_ci90": [
+          -0.0018552566258136375,
+          0.010981973134203677
+        ],
+        "spearman_h21": 0.9514073167466846,
+        "spearman_h63": 0.9126256772883196,
+        "verdict": "h21 은 V8 점추정 열세·CI90 0 포함, h63 은 V8 점추정 우세·CI90 0 포함. 어느 쪽도 엄밀 우수 아님."
+      },
+      "overconfidence": {
+        "h21_v8_top_gap_ci90": [
+          -0.009725483011325746,
+          0.2394382539682539
+        ],
+        "h63_v8_top_gap_ci90": [
+          0.035458080808080765,
+          0.38166
+        ],
+        "h21_reflection_top_gap_ci90": [
+          0.007791958738629742,
+          0.22327382767806073
+        ],
+        "h63_reflection_top_gap_ci90": [
+          0.06544053564927471,
+          0.40688665618727177
+        ],
+        "shared_cells": "8/8"
+      },
+      "entry": {
+        "decision": "진입",
+        "rule": "채택 = R0(설계도 문자·사전등록) AND R2(엄격·주체=표적 구조). R1 은 함께 공표, R3 는 보강 증거로만 사용(S2-1 gate_definition 승계).",
+        "R0": true,
+        "R1": false,
+        "R2": true,
+        "R3": false,
+        "dissent": "R1(주체=V8)은 h21 에서 미달(CI90 하한 −0.009725). 진입은 '표적의 과신 구조가 확립됐다'는 뜻이지 'V8 의 과신이 확립됐다'는 뜻이 아니다."
+      }
+    },
+    "S3": {
+      "question": "등록된 네 재보정 맵이 창을 넘어 전이되는가 — 사전등록 양방향 검정",
+      "prereg_commit": "ec49646345f1f60292e418a366cb07c3e822f49c",
+      "prereg_sha256": "a2c1a9e72a1265dc68bf3e9d4660ce6c4095dc0e943f46d1cb3c61fb7a3bf4df",
+      "results_seen_at_registration": false,
+      "rule_A1": "가설 H, 지평 h 의 셀이 채택되려면 early_to_late 와 late_to_early 두 방향 **모두** Δ 의 CI90 하한 > 0.",
+      "directions": 16,
+      "cells": 8,
+      "adopted_cells": 0,
+      "k_obs": 0,
+      "decision": "전이 불가 (부정 결과 확정)",
+      "decision_code": "NEGATIVE_RESULT",
+      "governing_branch": "T5_fail",
+      "T5_failed": true,
+      "T5_pass_rate_pooled": 0.254,
+      "T5_threshold": 0.1,
+      "failure_modes": {
+        "하한<0": 10,
+        "하한=0": 6,
+        "하한>0": 0
+      },
+      "inconclusive_by_mde_directions": 9,
+      "k_mean_under_null": 2.764,
+      "cell_null_pass_rate": {
+        "T1_h21": 0.503,
+        "T1_h63": 0.005,
+        "T2_h21": 0.576,
+        "T2_h63": 0.005,
+        "T3_h21": 0.739,
+        "T3_h63": 0.148,
+        "T4_h21": 0.788,
+        "T4_h63": 0.0
+      },
+      "scope_established": [
+        "이 표본·이 창·이 분할에서, 사전등록된 네 파생층 맵(T1~T4) 중 어느 것도 두 방향 모두에서 Brier 개선의 CI90 하한을 0 위로 올리지 못했다 — 8 셀 전부 미달, k_obs=0.",
+        "T3(반사 앵커 혼합)은 전→후 두 지평에서 CI90 **상한**이 0 미만이다 — 미달을 넘어 유의하게 악화다. S2-3 이 정정 등록한 기대(비GFC·calm 에서 w>0 은 악화 방향)와 일치한다.",
+        "T4(지평 단조 제약)는 이 표본에서 위반이 0 건이라 교정할 것이 없다 — 무비용이자 무효과.",
+        "음성 대조 T5 가 실패했다. 무작위로 짝지은 p 로도 T1 이 pooled 25.4% 확률로 채택 요건을 만족하므로, 이 검정 기계가 낸 '통과'는 증거로 쓸 수 없었다."
+      ],
+      "scope_not_established": [
+        "'V8 first_touch 확률이 잘 보정돼 있다' 가 아니다 — S2-1 의 과신 구조와 S2-2 의 기준선 대비 결론은 그대로다.",
+        "'어떤 재보정도 불가능하다' 가 아니다 — 부정된 것은 등록된 네 맵과 이 검정 절차이며, 다른 맵·다른 표본·다른 분할은 검정되지 않았다.",
+        "'V8 이 반사원리 기준선을 이긴다/진다' 를 새로 말하지 않는다 — S3 는 p′ vs p 검정이며, 기준선 대비는 A2 로 기록만 했다(셀 단위 통과 0).",
+        "2015+ 봉인창에 대한 어떤 주장도 아니다 — 홀드아웃 미계산."
+      ],
+      "cells_detail": [
+        {
+          "cell": "T1_h21",
+          "binding_direction": "late_to_early",
+          "min_ci90_lower": -0.008377412781673218,
+          "binding_failure_mode": "하한<0",
+          "shortfall_share_of_brier": 0.09175390693338582,
+          "null_cell_pass_rate": 0.503,
+          "null_regime": "관대",
+          "A1": false,
+          "A2": false,
+          "degenerate_directions": 0,
+          "inconclusive_directions": 2
+        },
+        {
+          "cell": "T1_h63",
+          "binding_direction": "late_to_early",
+          "min_ci90_lower": -0.08494290630347795,
+          "binding_failure_mode": "하한<0",
+          "shortfall_share_of_brier": 0.46202808550209085,
+          "null_cell_pass_rate": 0.005,
+          "null_regime": "보수",
+          "A1": false,
+          "A2": false,
+          "degenerate_directions": 0,
+          "inconclusive_directions": 2
+        },
+        {
+          "cell": "T2_h21",
+          "binding_direction": "late_to_early",
+          "min_ci90_lower": -0.00797896797590031,
+          "binding_failure_mode": "하한<0",
+          "shortfall_share_of_brier": 0.087389926241524,
+          "null_cell_pass_rate": 0.576,
+          "null_regime": "관대",
+          "A1": false,
+          "A2": false,
+          "degenerate_directions": 0,
+          "inconclusive_directions": 2
+        },
+        {
+          "cell": "T2_h63",
+          "binding_direction": "late_to_early",
+          "min_ci90_lower": -0.025196882899629198,
+          "binding_failure_mode": "하한<0",
+          "shortfall_share_of_brier": 0.1370528520079538,
+          "null_cell_pass_rate": 0.005,
+          "null_regime": "보수",
+          "A1": false,
+          "A2": false,
+          "degenerate_directions": 0,
+          "inconclusive_directions": 2
+        },
+        {
+          "cell": "T3_h21",
+          "binding_direction": "early_to_late",
+          "min_ci90_lower": -0.0022872107282011513,
+          "binding_failure_mode": "하한<0",
+          "shortfall_share_of_brier": 0.07255422508575948,
+          "null_cell_pass_rate": 0.739,
+          "null_regime": "관대",
+          "A1": false,
+          "A2": false,
+          "degenerate_directions": 1,
+          "inconclusive_directions": 1
+        },
+        {
+          "cell": "T3_h63",
+          "binding_direction": "early_to_late",
+          "min_ci90_lower": -0.002965107777663757,
+          "binding_failure_mode": "하한<0",
+          "shortfall_share_of_brier": 0.02799631550585686,
+          "null_cell_pass_rate": 0.148,
+          "null_regime": "관대",
+          "A1": false,
+          "A2": false,
+          "degenerate_directions": 1,
+          "inconclusive_directions": 0
+        },
+        {
+          "cell": "T4_h21",
+          "binding_direction": "early_window",
+          "min_ci90_lower": 0.0,
+          "binding_failure_mode": "하한=0",
+          "shortfall_share_of_brier": 0.0,
+          "null_cell_pass_rate": 0.788,
+          "null_regime": "관대",
+          "A1": false,
+          "A2": false,
+          "degenerate_directions": 2,
+          "inconclusive_directions": 0
+        },
+        {
+          "cell": "T4_h63",
+          "binding_direction": "early_window",
+          "min_ci90_lower": 0.0,
+          "binding_failure_mode": "하한=0",
+          "shortfall_share_of_brier": 0.0,
+          "null_cell_pass_rate": 0.0,
+          "null_regime": "보수",
+          "A1": false,
+          "A2": false,
+          "degenerate_directions": 2,
+          "inconclusive_directions": 0
+        }
+      ]
+    },
+    "S4": {
+      "question": "부정 결과를 계약·게이트로 어떻게 고정하는가",
+      "contract_kind": "negative_result_contract",
+      "contract_status": "negative_result_draft",
+      "gates_armed": false,
+      "evaluated_candidates": 0,
+      "gates_registered": [
+        "G0_crps_no_damage",
+        "G1_skill_vs_climatology",
+        "G2_skill_vs_reflection",
+        "G3_bidirectional_transfer",
+        "G4_reliability",
+        "G5_reporting_obligations"
+      ],
+      "binding_baseline": "reflection_bgk",
+      "prohibitions_total": 31,
+      "thresholds": {
+        "h21": {
+          "climatology_brier": 0.06470794587351701,
+          "brier_v8": 0.061485287170263796,
+          "bss_v8_vs_climatology": 0.049803137153394794,
+          "bgk_baseline_brier": 0.05814044800432014,
+          "bgk_required_candidate_brier": 0.051040699625265154,
+          "bgk_required_bss": 0.21121434259351823,
+          "bgk_headroom_vs_ceiling": -0.012846635921322291,
+          "bgk_paired_ci90_lower": -0.011146916834499336,
+          "2phi_required_bss": 0.14281892571483867,
+          "2phi_headroom_vs_ceiling": 0.05554878095735727
+        },
+        "h63": {
+          "climatology_brier": 0.15942354030444705,
+          "brier_v8": 0.1449727356115108,
+          "bss_v8_vs_climatology": 0.09064410855097005,
+          "bgk_baseline_brier": 0.145938111458916,
+          "bgk_required_candidate_brier": 0.1353898505287459,
+          "bgk_required_bss": 0.15075370757545992,
+          "bgk_headroom_vs_ceiling": 0.01317399869034308,
+          "bgk_paired_ci90_lower": -0.010022102098993587,
+          "2phi_required_bss": 0.1017616912912217,
+          "2phi_headroom_vs_ceiling": 0.062166014974581296
+        }
+      },
+      "feasibility": {
+        "definition": "재보정 상한 = 1 − (BS_V8 − REL)/BS_기후 — Murphy REL 을 0 으로 만든 가상 후보의 BSS. 상한 < 요구 BSS 면 재보정 경로로는 도달 불가.",
+        "h21": {
+          "ceiling_fixed_bins": 0.198368,
+          "ceiling_quantile_bins": 0.101276,
+          "bgk_required": 0.211214,
+          "bgk_reachable": false,
+          "bgk_headroom": -0.012847,
+          "2phi_required": 0.142819,
+          "2phi_reachable_under_any_binning": true,
+          "2phi_reachable_under_quantile_binning": false
+        },
+        "h63": {
+          "ceiling_fixed_bins": 0.163928,
+          "ceiling_quantile_bins": 0.15599,
+          "bgk_required": 0.150754,
+          "bgk_reachable": true,
+          "bgk_headroom": 0.013174,
+          "2phi_required": 0.101762,
+          "2phi_reachable_under_any_binning": true
+        },
+        "caveat": "상한의 REL 이 in-sample 추정이라 상한 자체가 낙관 편의를 안는다. '도달 가능' 은 가능성 진술이지 예측이 아니며, 이 산술은 어떤 문턱도 낮추지 않는다 (C-gate-arith)."
+      },
+      "current_v8_position": {
+        "note": "오늘의 V8 원값이 게이트 앞에 선 위치. 후보 평가가 아니다 — 게이트는 armed=false.",
+        "h21": {
+          "G1_vs_climatology": "미달",
+          "G1_ci90_lower": -0.011884,
+          "G2_vs_bgk": "미달",
+          "G2_bgk_ci90_lower": -0.011147,
+          "G4_overconfidence_significant": true
+        },
+        "h63": {
+          "G1_vs_climatology": "미달",
+          "G1_ci90_lower": -0.022054,
+          "G2_vs_bgk": "미달",
+          "G2_bgk_ci90_lower": -0.010022,
+          "G4_overconfidence_significant": true
+        }
+      },
+      "g4_decision": "D-G4 — 판정 다리는 상위분위 gap 단독, reliability 는 보고 의무(두 binning 병기). 요구 하락폭 h21 0.007792 · h63 0.065441 (반사 기준선 주체).",
+      "g1_decision": "D-G1 — 구속 기후 = in-sample(더 엄격), expanding = 병기 전용. 병기는 적격 부분표본 위의 쌍대 검정(Δ·se·CI90)으로 하고 eligible_n 을 명기. 표본이 다른 두 BSS 비율을 나란히 비교하는 서술 금지.",
+      "g1_decisive_contrast": {
+        "paired_vs_expanding_ci90_lower": 0.004900624367821013,
+        "paired_vs_insample_climatology_ci90_lower": -0.026411916441428117,
+        "meaning": "같은 후보·같은 표본에서 기준선 선택 하나가 G1 판정을 뒤집는다."
+      },
+      "budget": {
+        "maximum_development_evaluations": 24,
+        "remaining_if_s3_counted": 20.0,
+        "per_cell_null_pass_rate": 0.3455,
+        "inflation_vs_nominal": 6.909999999999999,
+        "per_cell_mean_h21": 0.6515,
+        "per_cell_mean_h63": 0.0395,
+        "budget_rule": "검정 기계가 수리되기 전에는 예산을 1 단위도 배정하지 않는다 — 현재 기계에서 얻는 통과는 P(귀무 통과)≈0.345/셀 이라 증거가 아니다.",
+        "data_budget": {
+          "h21|vs_climatology_insample": {
+            "defined": true,
+            "extra_years": 208.23266578132396,
+            "multiple": 27.13641964832597,
+            "n_star_origins": 11315.886993351929
+          },
+          "h21|vs_reflection_2phi": {
+            "defined": false,
+            "extra_years": null,
+            "multiple": null,
+            "n_star_origins": null
+          },
+          "h21|vs_reflection_bgk": {
+            "defined": false,
+            "extra_years": null,
+            "multiple": null,
+            "n_star_origins": null
+          },
+          "h63|vs_climatology_insample": {
+            "defined": true,
+            "extra_years": 56.520237217122705,
+            "multiple": 8.094163795035762,
+            "n_star_origins": 3375.2663025299125
+          },
+          "h63|vs_reflection_2phi": {
+            "defined": true,
+            "extra_years": 6.779465886554289,
+            "multiple": 1.8509278058639016,
+            "n_star_origins": 771.8368950452469
+          },
+          "h63|vs_reflection_bgk": {
+            "defined": true,
+            "extra_years": 943.2324013724806,
+            "multiple": 119.39025244030876,
+            "n_star_origins": 49785.735267608754
+          }
+        }
+      },
+      "deployment": {
+        "files_scanned": 435,
+        "minus10_sites": 16,
+        "src_refs_to_v12": 0,
+        "publication_status": "not_published",
+        "p3_gate_status": "미통과 — 모든 출력은 '참고 의견' 지위 (CLAUDE.md 하드 게이트)",
+        "rule_X1": "두 수의 라벨·지평·보정 상태를 화면에서 구분할 수 없다면 표시하지 않는다."
+      },
+      "amendment_proposals": [
+        "P1",
+        "P2",
+        "P3",
+        "P4",
+        "P5"
+      ]
+    }
+  },
+  "decisions": [
+    {
+      "id": "V12-D1",
+      "title": "V12 이벤트 확률 트랙 개시 여부",
+      "source": "설계도 §5 (S3 결과 조건부)",
+      "state": "미결 — 계약은 track_open=false, gates.armed=false 로 대기",
+      "evidence": [
+        "S3 채택 0/8 셀 · k_obs=0 · 양방향 CI90 하한>0 인 방향 0/16",
+        "T5 음성 대조 실패 — 귀무 아래 통과율 pooled 0.254 > 문턱 0.1. 등록부는 이 경로가 adopted_0 보다 우선한다고 사전 규정했다.",
+        "귀무 아래 평균 통과 셀 수 2.764 인 기계에서 실측이 0 — 무작위 p 가 실측 p 보다 자주 요건을 만족한다.",
+        "독립 산술도 같은 방향 — h21 은 완전 재보정 상한 0.198368 가 구속 기준선 요구 BSS 0.211214 에 미달(여유 -0.012847)."
+      ],
+      "options": [
+        "(a) 트랙 미개시 유지 — 계약을 부정 결과 draft 로 동결",
+        "(b) 검정 기계 수리 후 재개 — 계약 reopen_protocol 전제 5종(사용자 결정·기계 수리·새 사전등록·데이터 등급·봉인 무변경) 전부 충족 시",
+        "(c) 트랙 폐기 — V12 를 V9/V10/V11 과 같은 동결 대장에 편입"
+      ],
+      "recommendation_short": "(a) 트랙 미개시 유지 — 검정 기계가 수리되기 전에는 예산 배정 0",
+      "recommendation": "(a). 지금 트랙을 여는 것은 '증거가 되지 못하는 기계'로 예산을 쓰는 일이다. (b) 는 전제가 갖춰진 뒤의 선택지이지 지금의 선택지가 아니다. (c) 는 아직 이르다 — 부정된 것은 등록된 네 맵과 이 검정 절차이지 '어떤 재보정도 불가능'이 아니다.",
+      "cost_of_deferral": "0 — 홀드아웃 미소모(2015+ 미계산), 봉인 무변경, 개발 예산 미배정. 미루는 데 드는 비용이 없다.",
+      "irreversible": "없음"
+    },
+    {
+      "id": "V12-D2",
+      "title": "V12 게이트 임계 승인 (Brier skill 하한·양방향 CI·구속 기준선)",
+      "source": "설계도 §5",
+      "state": "draft 등재 완료 · 승인 미결 (계약 YAML 무수정, 개정 제안 P1~P5 는 문서에만)",
+      "evidence": [
+        "구속 기준선 BGK 기준 요구 BSS — h21 0.21121434259351823 · h63 0.15075370757545992 (병기 2Φ 는 각각 0.14281892571483867 · 0.1017616912912217).",
+        "기준선 선택 하나가 판정을 뒤집는 실례 — h63 적격표본에서 expanding 대비 CI90 하한 0.004900624367821013(통과) vs in-sample 대비 -0.026411916441428117(미달).",
+        "G4 결정 — D-G4 — 판정 다리는 상위분위 gap 단독, reliability 는 보고 의무(두 binning 병기). 요구 하락폭 h21 0.007792 · h63 0.065441 (반사 기준선 주체).",
+        "G1 결정 — D-G1 — 구속 기후 = in-sample(더 엄격), expanding = 병기 전용. 병기는 적격 부분표본 위의 쌍대 검정(Δ·se·CI90)으로 하고 eligible_n 을 명기. 표본이 다른 두 BSS 비율을 나란히 비교하는 서술 금지.",
+        "오늘의 V8 원값 위치(후보 아님) — h21 G2 CI90 하한 -0.011147 · h63 -0.010022 로 두 지평 미달."
+      ],
+      "options": [
+        "(a) draft 값 그대로 승인 + 개정 제안 P1~P5 반영 (전부 강화 방향)",
+        "(b) draft 값 승인 + P1~P5 는 별도 계약 개정 태스크로 분리",
+        "(c) 구속 기준선을 2Φ 로 완화 — 문턱이 낮아진다"
+      ],
+      "recommendation_short": "(a)/(b) draft 값 승인 · 구속 기준선은 BGK 유지 · P4 병행 신설",
+      "recommendation": "(a) 또는 (b). 어느 쪽이든 (c) 는 아니다 — BGK 는 판정 규약(일간 종가 최소값)과 정합하고 2Φ 보다 엄격하며, 낮은 문턱을 고르는 것은 계약이 금지 등재한 사후 완화다. P4(셀별 귀무 통과율 ≤ 0.05)는 병행 신설 권고.",
+      "scope_question": "구속 기준선 지정(BGK)과 채택 규칙의 주체 선택(R2=표적 구조 vs R1=V8)이 이 결정의 범위에 포함되는지 명시적 확인 필요 — S2-3 부터 이월된 미결이다.",
+      "irreversible": "없음 — 게이트가 무장되지 않았고 평가된 후보가 0 이라 임계 변경이 과거 판정을 오염시키지 않는다. 단 후보를 한 번이라도 본 뒤의 변경은 사후 완화가 된다."
+    },
+    {
+      "id": "V12-D3",
+      "title": "파생층 배포 — 라이브 카드에 이벤트 확률 표시 여부",
+      "source": "설계도 §5",
+      "state": "미표시(T0) · 배선 없음",
+      "evidence": [
+        "제품 코드의 timeseries_v12 참조 0 건 (스캔 435 파일) — 파생층은 표시면과 배선되어 있지 않다.",
+        "이름 충돌 실측 — '−10% 접촉' 계열 확률이 표시 계통에 이미 16 곳 존재한다. 산출 모델·지평 규약·보정 상태가 모두 다르다.",
+        "규칙 X1 — 두 수의 라벨·지평·보정 상태를 화면에서 구분할 수 없다면 표시하지 않는다.",
+        "CLAUDE.md P3 게이트 상태 — 미통과 — 모든 출력은 '참고 의견' 지위 (CLAUDE.md 하드 게이트)"
+      ],
+      "options": [
+        "(a) T0 유지 — 표시하지 않는다",
+        "(b) T1(내부 산출물에만 기록) 로 한 칸 전진",
+        "(c) T2 이상 — 대시보드 패널 표시"
+      ],
+      "recommendation_short": "(a) T0 유지 — 표시하지 않는다",
+      "recommendation": "(a). 표시할 후보가 없다(평가 후보 0·게이트 무장 0). (c) 는 규칙 X1 위반이자 P3 게이트 위반이다. T4(실전 자금 근거)는 P3 게이트 전까지 어떤 조건으로도 열리지 않는다.",
+      "irreversible": "표시하면 되돌리기 어렵다 — 같은 화면에 뜻이 다른 같은 이름의 수가 생기면 사용자 기억에서 분리되지 않는다."
+    },
+    {
+      "id": "V12-D4",
+      "title": "'다른 데이터' — CBOE 허가 요청 발송 여부",
+      "source": "설계도 §5 (S1 저비용 옵션 판정 참고)",
+      "state": "미발송 (초안 docs/cboe_permission_request_draft.md, 소유자 직접 발송 사항)",
+      "evidence": [
+        "데이터 예산 산술이 '시간으로는 못 산다'를 보인다 — 구속 기준선 기준 필요 표본 n* 는 h21 두 셀에서 정의되지 않고(Δ̂≤0), h63 은 +943.2324013724806 년이다.",
+        "무료 공개표시 허용 미국 지수 옵션 소스 부재 (DECISIONS 12-5 — OPRA Vendor Agreement 구조 제약).",
+        "일중 데이터 합법 소스는 [미검증] — 설계도 §0 의 '합법 일중 소스 부재'를 뒷받침하는 조사 기록이 저장소에 없음 (12-8 전수 조사는 일별 대체만 다룸)"
+      ],
+      "options": [
+        "(a) 발송 — 초안 docs/cboe_permission_request_draft.md 를 소유자가 직접 보낸다",
+        "(b) 보류 — 트랙 자체가 닫혀 있으므로 데이터도 미룬다",
+        "(c) 발송 + 일중 합법 소스 전수 조사(DECISIONS 12-8 형식: 엔드포인트 실호출 + 약관 원문)를 별도 태스크로"
+      ],
+      "recommendation_short": "(c) 허가 요청 발송 + 일중 합법 소스 전수 조사를 별도 태스크로",
+      "recommendation": "(c). 비용이 낮고(메일 1통), 리드타임이 길며, 남은 유일한 경로가 다른 데이터라는 결론을 S1·S3·S4 세 단계가 독립적으로 가리킨다. 일중 조사는 현재 [미검증] 상태의 주장을 근거로 바꾸는 작업이라 별도로 세어야 한다.",
+      "irreversible": "외부 발송이므로 되돌릴 수 없다 — 소유자 판단 사항이며 이 루프는 발송하지 않았다."
+    },
+    {
+      "id": "V12-D5",
+      "title": "V10 조합 격자 재개 여부 (신규 제안 — 설계도 §5 밖)",
+      "source": "S1-3 제안 (V10-D7 스킵 사유가 사실과 달랐던 것의 후속)",
+      "state": "미결 — S1-3 이 판정만 하고 실행하지 않았다(백테스트 금지 verb)",
+      "evidence": [
+        "적격 조합 12 개 중 최상이 상대개선 0.011469812028853105 — 챔피언(+0.006355)보다 크다.",
+        "그러나 적격 12조합 전부 상위5% 원점 제거 후 CI90 하한이 음수이고, 최상값도 홀드아웃 게이트(+2%)에 미달하며, 12조합 최선 선택에 다중비교 보정이 없다.",
+        "V10-D7 의 스킵 사유('W3 외 축이 모두 0 또는 음')는 자체 SINGLES 보고와 모순된다 — 사유 정정은 기록으로 남았다."
+      ],
+      "options": [
+        "(a) 재개하지 않음 — 사유 정정만 기록으로 남긴다",
+        "(b) 계약에 조합 격자를 사전등록한 뒤 개발 예산에서 재개"
+      ],
+      "recommendation_short": "(a) 재개하지 않음 — D7 스킵 사유 정정만 기록으로 남긴다",
+      "recommendation": "(a). 채택 가능성이 낮다는 근거가 다섯 가지이고, 재개는 홀드아웃이 아니라 개발 예산을 쓰지만 같은 표본에서 검정력을 더 소모한다. 다만 'D7 사유가 사실과 달랐다'는 기록은 남겨야 한다 — 그 정정이 이 항목의 실질 산출이다.",
+      "irreversible": "없음 — 홀드아웃 슬롯 3/3 은 어느 쪽을 골라도 보존된다."
+    }
+  ],
+  "incomplete": {
+    "not_done_rows": [
+      {
+        "task": "S1-2",
+        "item": "V9 트랙의 ℓ·calm 민감도는 미수행 — envelope spec 이 'V10 챔피언 CI 재산출'로 한정. V9 는 5쌍 전부 |Δ| ≤ 4.3e-05 로 손잡이와 무관하게 무효익이라 우선순위 낮음(S1-3 판정 시 필요하면 같은 스크립트로 확장 가능).",
+        "category": "자원·범위 밖",
+        "named_paths_exist_now": null
+      },
+      {
+        "task": "S1-2",
+        "item": "hermetic pytest 미실행 — src/ 변경 0(신규 tools/ 스크립트와 docs/ 산출물만), 제품 코드 무영향.",
+        "category": "자원·범위 밖",
+        "named_paths_exist_now": null
+      },
+      {
+        "task": "S1-3",
+        "item": "V9 트랙의 ℓ·calm 민감도는 여전히 미수행 (S1-2 이월) — 5쌍 전부 측정 하한 아래라 우선순위 낮음.",
+        "category": "자원·범위 밖",
+        "named_paths_exist_now": null
+      },
+      {
+        "task": "S1-3",
+        "item": "hermetic pytest 미실행 — src/ 변경 0 (신규 tools/ 스크립트와 docs/ 산출물만), 제품 코드 무영향.",
+        "category": "자원·범위 밖",
+        "named_paths_exist_now": null
+      },
+      {
+        "task": "S1-3",
+        "item": "조합 격자의 커버리지·게이트 마진은 원리적으로 산출 불가 — 파이프라인 재실행 필요(금지 verb).",
+        "category": "자원·범위 밖",
+        "named_paths_exist_now": null
+      },
+      {
+        "task": "S2-1",
+        "item": "2015+ 봉인창 first_touch 진단 미산출 — 의도적 홀드아웃 보존 결정(태만 아님). 탐색 중 관측된 것은 봉인 run 전체 집계 터치율뿐이며 본 진단 어떤 수치에도 미사용.",
+        "category": "의도적 보존",
+        "named_paths_exist_now": null
+      },
+      {
+        "task": "S2-1",
+        "item": "반사원리 기계 기준선(2Φ) 대비 skill 미산출 — 백로그상 S2-2 태스크.",
+        "category": "후속 태스크 소관",
+        "named_paths_exist_now": null
+      },
+      {
+        "task": "S2-1",
+        "item": "h1(터치 0건)·h5(4건)은 계측만 하고 국면 분해·판정에서 제외.",
+        "category": "규약 승계 미산출",
+        "named_paths_exist_now": null
+      },
+      {
+        "task": "S2-1",
+        "item": "hermetic pytest 미실행 — src/ 변경 0(신규 tools/·docs/·data/timeseries_v12 산출물만), 제품 코드 무영향.",
+        "category": "자원·범위 밖",
+        "named_paths_exist_now": null
+      },
+      {
+        "task": "S2-2",
+        "item": "T3 혼합 앵커 p′=(1−w)p+w·p_reflect 의 w 탐색 미실행 — S3-0 사전등록 뒤 S3-1 소관. p_reflect 자체만 산출하고 어떤 혼합도 평가하지 않았다.",
+        "category": "후속 태스크 소관",
+        "named_paths_exist_now": null
+      },
+      {
+        "task": "S2-2",
+        "item": "2015+ 봉인창 기준선 미산출 — 의도적 홀드아웃 보존(태만 아님). 본 태스크의 어떤 수치도 봉인창을 보지 않았다.",
+        "category": "의도적 보존",
+        "named_paths_exist_now": null
+      },
+      {
+        "task": "S2-2",
+        "item": "h1(터치 0건)·h5(4건)은 계측만 하고 국면 분해·판정에서 제외. h1 의 BSS(V8|반사) −2.7302 는 해석 대상 아님(기후 BS=0).",
+        "category": "규약 승계 미산출",
+        "named_paths_exist_now": null
+      },
+      {
+        "task": "S2-2",
+        "item": "과신 잔여분의 기제 식별(첨도·변동성 평균회귀) 미수행 — 진단 범위 밖.",
+        "category": "자원·범위 밖",
+        "named_paths_exist_now": null
+      },
+      {
+        "task": "S2-2",
+        "item": "국면 부분표본 CI 의 층화 부트스트랩 미적용 — S2-1 과 동일 근사 유지(규약 일관성 우선). storm_p80 은 전역 상위분위 경계가 부분표본 거의 전부를 덮어 상위 gap ≈ 평균 gap 이므로 독립 정보가 아님을 명기.",
+        "category": "규약 승계 미산출",
+        "named_paths_exist_now": null
+      },
+      {
+        "task": "S2-2",
+        "item": "hermetic pytest 미실행 — src/ 변경 0(신규 tools/·docs/·data/timeseries_v12·outputs/ 산출물만), 제품 코드 무영향.",
+        "category": "자원·범위 밖",
+        "named_paths_exist_now": null
+      },
+      {
+        "task": "S2-3",
+        "item": "후보 맵(T1~T5) 미생성·미평가 — S3-0 사전등록 전이므로 의도적. p′ 를 만드는 코드는 본 태스크에 없다.",
+        "category": "의도적 보존",
+        "named_paths_exist_now": null
+      },
+      {
+        "task": "S2-3",
+        "item": "2015+ 봉인창 미계산 — 의도적 홀드아웃 보존.",
+        "category": "의도적 보존",
+        "named_paths_exist_now": null
+      },
+      {
+        "task": "S2-3",
+        "item": "S3-0 사전등록 파일(data/timeseries_v12/prereg/hypotheses.json) 미작성 — S3-0 소관. 본 태스크는 그 파일에 들어갈 제약 6종을 공표만 했다.",
+        "category": "후속 태스크 소관",
+        "named_paths_exist_now": true
+      },
+      {
+        "task": "S2-3",
+        "item": "국면 셀 CI 층화 미적용 · h1/h5 판정 제외 — S2-1/S2-2 규약 그대로 승계.",
+        "category": "규약 승계 미산출",
+        "named_paths_exist_now": null
+      },
+      {
+        "task": "S2-3",
+        "item": "hermetic pytest 미실행 — src/ 변경 0(신규 tools/·docs/·data/timeseries_v12·outputs/ 산출물만), 제품 코드 무영향.",
+        "category": "자원·범위 밖",
+        "named_paths_exist_now": null
+      },
+      {
+        "task": "S3-0",
+        "item": "T1~T5 의 어떤 맵도 계산하지 않았다 — 사전등록의 정의상 의도적. p′ 를 만드는 코드가 저장소에 없음을 C7-a 가 증명한다.",
+        "category": "의도적 보존",
+        "named_paths_exist_now": null
+      },
+      {
+        "task": "S3-0",
+        "item": "transfer_results.json 미작성 — S3-1 소관 (R7 이 부재를 확인).",
+        "category": "후속 태스크 소관",
+        "named_paths_exist_now": null
+      },
+      {
+        "task": "S3-0",
+        "item": "2015+ 봉인창 미계산 — 의도적 홀드아웃 보존.",
+        "category": "의도적 보존",
+        "named_paths_exist_now": null
+      },
+      {
+        "task": "S3-0",
+        "item": "순열 귀무의 실제 소요 시간 미측정 — 계산 예산 초과 시의 행동은 등록했으나 투영치는 S3-1 이 실측해야 한다.",
+        "category": "자원·범위 밖",
+        "named_paths_exist_now": null
+      },
+      {
+        "task": "S3-0",
+        "item": "국면 셀 CI 층화 미적용 · h1/h5 판정 제외 — S2-1/S2-2 규약 그대로 승계.",
+        "category": "규약 승계 미산출",
+        "named_paths_exist_now": null
+      },
+      {
+        "task": "S3-0",
+        "item": "hermetic pytest 미실행 — src/ 변경 0(신규 tools/·data/timeseries_v12/prereg·outputs/ 산출물만), 제품 코드 무영향.",
+        "category": "자원·범위 밖",
+        "named_paths_exist_now": null
+      },
+      {
+        "task": "S3-1",
+        "item": "S3-2 판정 문서(docs/design/v12_s3_verdict.md) 미작성 — 다음 태스크 소관.",
+        "category": "후속 태스크 소관",
+        "named_paths_exist_now": true
+      },
+      {
+        "task": "S3-1",
+        "item": "대안 귀무(블록 순열·y 치환)를 계산하지 않았다 — 사전등록된 귀무는 N1 하나뿐이고, 결과를 본 뒤 귀무를 추가하는 것이 등록부 위반이기 때문. S4-2 재검토 항목으로 이월.",
+        "category": "자원·범위 밖",
+        "named_paths_exist_now": null
+      },
+      {
+        "task": "S3-1",
+        "item": "국면(GFC/calm) 층화 CI 미산출 — S2 규약 승계.",
+        "category": "규약 승계 미산출",
+        "named_paths_exist_now": null
+      },
+      {
+        "task": "S3-1",
+        "item": "h1·h5 지평 미평가 — S2 에서 이미 판정 제외.",
+        "category": "규약 승계 미산출",
+        "named_paths_exist_now": null
+      },
+      {
+        "task": "S3-1",
+        "item": "2015+ 봉인창 미계산 — 홀드아웃 보존.",
+        "category": "의도적 보존",
+        "named_paths_exist_now": null
+      },
+      {
+        "task": "S3-1",
+        "item": "hermetic pytest 미실행 — src/ 변경 0(신규 tools/·data/timeseries_v12/diagnostics·outputs/ 산출물만), 제품 코드 무영향.",
+        "category": "자원·범위 밖",
+        "named_paths_exist_now": null
+      },
+      {
+        "task": "S3-2",
+        "item": "S4 부정 결과 계약 미작성 — 다음 단계(S4-1) 소관. 본 태스크는 계약의 성격만 등록부 원문으로 확정했다.",
+        "category": "후속 태스크 소관",
+        "named_paths_exist_now": null
+      },
+      {
+        "task": "S3-2",
+        "item": "대안 귀무 미계산 — 결과를 본 뒤 귀무 추가는 등록부 위반. S4-2 이월.",
+        "category": "자원·범위 밖",
+        "named_paths_exist_now": null
+      },
+      {
+        "task": "S3-2",
+        "item": "국면(GFC/calm) 층화 CI 미산출 — S2 규약 승계.",
+        "category": "규약 승계 미산출",
+        "named_paths_exist_now": null
+      },
+      {
+        "task": "S3-2",
+        "item": "h1·h5 지평 미평가 — S2 에서 판정 제외.",
+        "category": "규약 승계 미산출",
+        "named_paths_exist_now": null
+      },
+      {
+        "task": "S3-2",
+        "item": "2015+ 봉인창 미계산 — 홀드아웃 보존.",
+        "category": "의도적 보존",
+        "named_paths_exist_now": null
+      },
+      {
+        "task": "S3-2",
+        "item": "hermetic pytest 미실행 — src/ 변경 0(신규 tools/·data/timeseries_v12/diagnostics·docs/·outputs/ 산출물만), 제품 코드 무영향.",
+        "category": "자원·범위 밖",
+        "named_paths_exist_now": null
+      },
+      {
+        "task": "CKPT",
+        "item": "S4 산출물(data/contracts/multivariate_timeseries_v12.draft.yaml · docs/design/v12_gate_design.md)은 이 태스크 범위 밖 — 미작성 상태를 자기검사가 확인한다.",
+        "category": "후속 태스크 소관",
+        "named_paths_exist_now": true
+      },
+      {
+        "task": "CKPT",
+        "item": "감독 스크립트가 00:00 KST(epoch 1788706800)에 자동으로 남기는 monday_ckpt.sha256 은 아직 발동 전이다. 본 태스크는 그와 독립인 태스크 단위 봉인이며, 두 기록은 나중에 공존한다.",
+        "category": "기타",
+        "named_paths_exist_now": null
+      },
+      {
+        "task": "CKPT",
+        "item": "state.json 은 .gitignore 대상이라 커밋되지 않는다(git add 거부 실측). 봉인의 git 내구성은 checkpoint_monday.json 이 담당한다.",
+        "category": "의도적 보존",
+        "named_paths_exist_now": null
+      },
+      {
+        "task": "CKPT",
+        "item": "봉인은 '선언 해시 vs 현재 파일' 대사다. 각 단계가 선언한 해시 자체가 그 단계에서 옳았는지는 해당 단계의 result_check·verify 스크립트가 이미 검증했고, 여기서 다시 계산하지 않는다.",
+        "category": "기타",
+        "named_paths_exist_now": null
+      },
+      {
+        "task": "S4-1",
+        "item": "docs/design/v12_gate_design.md 미작성 — S4-2 소관. 본 태스크는 계약 YAML 만 냈고 게이트 산술의 서술적 설계서·예산·파생층 배포 경계는 다음 태스크다.",
+        "category": "후속 태스크 소관",
+        "named_paths_exist_now": true
+      },
+      {
+        "task": "S4-1",
+        "item": "게이트 무장 0 — 어떤 후보도 이 게이트로 평가하지 않았다 (설계상 의도).",
+        "category": "의도적 보존",
+        "named_paths_exist_now": null
+      },
+      {
+        "task": "S4-1",
+        "item": "대안 귀무 미계산 — 결과를 본 뒤 귀무 추가는 등록부 위반. 재개 프로토콜 P2 로 이월.",
+        "category": "자원·범위 밖",
+        "named_paths_exist_now": null
+      },
+      {
+        "task": "S4-1",
+        "item": "국면(GFC/calm) 층화 CI 미산출 · h1·h5 지평 미평가 — S2 규약 승계.",
+        "category": "규약 승계 미산출",
+        "named_paths_exist_now": null
+      },
+      {
+        "task": "S4-1",
+        "item": "2015+ 봉인창 미계산 — 홀드아웃 보존.",
+        "category": "의도적 보존",
+        "named_paths_exist_now": null
+      },
+      {
+        "task": "S4-1",
+        "item": "data/timeseries_v12/ledgers/ 미생성 — 트랙이 열리지 않아 실험 원장을 만들지 않았다. 계약은 경로만 등록하고 ledger_exists=false 를 싣는다.",
+        "category": "의도적 보존",
+        "named_paths_exist_now": null
+      },
+      {
+        "task": "S4-1",
+        "item": "전체 pytest 미실행 — src/ 변경 0. 계약 파일 추가가 닿는 경로(inventory glob)와 인접 계약 테스트만 선별 실행했다.",
+        "category": "자원·범위 밖",
+        "named_paths_exist_now": null
+      },
+      {
+        "task": "S4-2",
+        "item": "계약 YAML 미개정 — P1~P5 는 제안이며 data/contracts/multivariate_timeseries_v12.draft.yaml 은 무수정이다(입력 해시 0f68455f… 그대로). 계약 개정은 사용자 결정 뒤의 별도 작업.",
+        "category": "의도적 보존",
+        "named_paths_exist_now": true
+      },
+      {
+        "task": "S4-2",
+        "item": "게이트 무장 0 · 후보 맵 0 — 설계상 의도. 후보를 만들면 등록부 위반이다.",
+        "category": "의도적 보존",
+        "named_paths_exist_now": null
+      },
+      {
+        "task": "S4-2",
+        "item": "쌍대 ΔREL se 미계량 — 후보 부재. 대신 비쌍대 상한만 냈다.",
+        "category": "자원·범위 밖",
+        "named_paths_exist_now": null
+      },
+      {
+        "task": "S4-2",
+        "item": "국면(GFC/calm) 층화 CI 미산출 · h1·h5 지평 미평가 — S2 규약 승계.",
+        "category": "규약 승계 미산출",
+        "named_paths_exist_now": null
+      },
+      {
+        "task": "S4-2",
+        "item": "2015+ 봉인창 미계산 — 홀드아웃 보존.",
+        "category": "의도적 보존",
+        "named_paths_exist_now": null
+      },
+      {
+        "task": "S4-2",
+        "item": "data/timeseries_v12/ledgers/ 미생성 — 트랙 미개시로 실험 원장 없음(계약 ledger_exists=false 유지).",
+        "category": "의도적 보존",
+        "named_paths_exist_now": null
+      },
+      {
+        "task": "S4-2",
+        "item": "표시면 스캔은 src/**/*.py + dashboard_parts/**/*.js 435 파일 한정 — 정적 빌드 산출물·리뷰 스냅샷은 스캔 밖(reports/future_paths.json 만 예외로 키 등장 횟수 계수).",
+        "category": "자원·범위 밖",
+        "named_paths_exist_now": true
+      },
+      {
+        "task": "S4-2",
+        "item": "전체 pytest 미실행 — src/ 변경 0 이라 신규 파일이 닿는 경로(inventory)만 선별 실행.",
+        "category": "자원·범위 밖",
+        "named_paths_exist_now": null
+      }
+    ],
+    "not_done_total": 57,
+    "not_done_by_category": {
+      "자원·범위 밖": 20,
+      "의도적 보존": 16,
+      "후속 태스크 소관": 8,
+      "규약 승계 미산출": 11,
+      "기타": 2
+    },
+    "named_paths_exist_now_true": 6,
+    "named_paths_exist_now_false": 0,
+    "named_paths_absent": 51,
+    "followup": {
+      "rows": [
+        {
+          "task": "S2-1",
+          "item": "반사원리 기계 기준선(2Φ) 대비 skill 미산출 — 백로그상 S2-2 태스크.",
+          "category": "후속 태스크 소관",
+          "named_paths_exist_now": null
+        },
+        {
+          "task": "S2-2",
+          "item": "T3 혼합 앵커 p′=(1−w)p+w·p_reflect 의 w 탐색 미실행 — S3-0 사전등록 뒤 S3-1 소관. p_reflect 자체만 산출하고 어떤 혼합도 평가하지 않았다.",
+          "category": "후속 태스크 소관",
+          "named_paths_exist_now": null
+        },
+        {
+          "task": "S2-3",
+          "item": "S3-0 사전등록 파일(data/timeseries_v12/prereg/hypotheses.json) 미작성 — S3-0 소관. 본 태스크는 그 파일에 들어갈 제약 6종을 공표만 했다.",
+          "category": "후속 태스크 소관",
+          "named_paths_exist_now": true
+        },
+        {
+          "task": "S3-0",
+          "item": "transfer_results.json 미작성 — S3-1 소관 (R7 이 부재를 확인).",
+          "category": "후속 태스크 소관",
+          "named_paths_exist_now": null
+        },
+        {
+          "task": "S3-1",
+          "item": "S3-2 판정 문서(docs/design/v12_s3_verdict.md) 미작성 — 다음 태스크 소관.",
+          "category": "후속 태스크 소관",
+          "named_paths_exist_now": true
+        },
+        {
+          "task": "S3-2",
+          "item": "S4 부정 결과 계약 미작성 — 다음 단계(S4-1) 소관. 본 태스크는 계약의 성격만 등록부 원문으로 확정했다.",
+          "category": "후속 태스크 소관",
+          "named_paths_exist_now": null
+        },
+        {
+          "task": "CKPT",
+          "item": "S4 산출물(data/contracts/multivariate_timeseries_v12.draft.yaml · docs/design/v12_gate_design.md)은 이 태스크 범위 밖 — 미작성 상태를 자기검사가 확인한다.",
+          "category": "후속 태스크 소관",
+          "named_paths_exist_now": true
+        },
+        {
+          "task": "S4-1",
+          "item": "docs/design/v12_gate_design.md 미작성 — S4-2 소관. 본 태스크는 계약 YAML 만 냈고 게이트 산술의 서술적 설계서·예산·파생층 배포 경계는 다음 태스크다.",
+          "category": "후속 태스크 소관",
+          "named_paths_exist_now": true
+        }
+      ],
+      "total": 8,
+      "named_paths_exist_now_true": 4,
+      "no_named_path": 4,
+      "named_paths_missing": 0
+    },
+    "other_rows": [
+      {
+        "task": "CKPT",
+        "item": "감독 스크립트가 00:00 KST(epoch 1788706800)에 자동으로 남기는 monday_ckpt.sha256 은 아직 발동 전이다. 본 태스크는 그와 독립인 태스크 단위 봉인이며, 두 기록은 나중에 공존한다.",
+        "category": "기타",
+        "named_paths_exist_now": null
+      },
+      {
+        "task": "CKPT",
+        "item": "봉인은 '선언 해시 vs 현재 파일' 대사다. 각 단계가 선언한 해시 자체가 그 단계에서 옳았는지는 해당 단계의 result_check·verify 스크립트가 이미 검증했고, 여기서 다시 계산하지 않는다.",
+        "category": "기타",
+        "named_paths_exist_now": null
+      }
+    ],
+    "open_questions_rows": [
+      {
+        "task": "S1-1",
+        "item": "h21 저모멘텀 tertile 은 3 split 중 2 split 에서 forward CI90 하한이 양수(+4.892e-05, +1.540e-05). 양방향 요건·순열 귀무 모두 탈락이라 신호는 아니나, forward 편향의 구조 설명은 S2 국면 분해 대상."
+      },
+      {
+        "task": "S1-1",
+        "item": "V11 CI 난수 규약 차: 렌즈3 원본 seed 12345 vs 본 재계산 seed 20260902(V10/V9 파이프라인 규약). 결론 동일, 병기 필요."
+      },
+      {
+        "task": "S1-1",
+        "item": "블록길이 ℓ∈{5,13,26}·창 경계 ±1y·calm 60/80/90% 민감도는 본 태스크 범위 밖 — S1-2 로 이월(본 재계산은 ℓ=13·calm 80% 고정)."
+      },
+      {
+        "task": "S1-2",
+        "item": "날짜창 calm 의 유의성이 상태분위 calm 에서 사라지는 원인 귀속(2010H2 이후 고변동 origin 기여 가설)은 [미검증] — 국면별 분해 필요, S2 국면 분해에서 부수적으로 확인 가능."
+      },
+      {
+        "task": "S1-2",
+        "item": "calm p80 규약 슬랙(명목 80% vs 실효 85.4%)은 V10·V11·V12 공유 정의 문제 — S4-1 V12 계약에서 '≤ 임계' vs 순위 기반 중 택일 명문화 필요."
+      },
+      {
+        "task": "S1-2",
+        "item": "S1-1 미해소 이월: V11 CI 난수 규약 차(원본 seed 12345 vs 재계산 20260902)는 본 태스크에서도 20260902 유지 — 결론 동일, 병기 필요."
+      },
+      {
+        "task": "S1-3",
+        "item": "V10 조합 격자 재개 여부는 사용자 결정 — 본 태스크는 판정만 하고 실행하지 않음(백테스트 금지 verb)."
+      },
+      {
+        "task": "S1-3",
+        "item": "가법 대리지표의 정확도는 층 간 독립성에 의존 — W1(상태 가중 FHS)·W3(블렌드 γ)은 같은 분산 축이라 근사. 실측 검증은 파이프라인 재실행이 필요해 이 루프에서 불가."
+      },
+      {
+        "task": "S1-3",
+        "item": "일중 데이터 합법 소스 전수 조사는 12-8 형식(엔드포인트 실호출 + 약관 원문)으로 별도 수행 필요 — 현재 [미검증]."
+      },
+      {
+        "task": "S1-3",
+        "item": "S1-2 이월: calm p80 규약 슬랙(명목 80% vs 실효 85.4%)은 S4-1 V12 계약에서 명문화 필요."
+      },
+      {
+        "task": "S1-3",
+        "item": "S1-1 이월: V11 CI 난수 규약 차(원본 seed 12345 vs 재계산 20260902) 병기 필요."
+      },
+      {
+        "task": "S2-1",
+        "item": "S2-3 판정 입력: 엄격 기준(O1∧O3)과 설계도 문자 기준이 갈림 — 어느 쪽을 V12 게이트로 승계할지는 S2-3/S4-2 결정 사항."
+      },
+      {
+        "task": "S2-1",
+        "item": "이 과신이 V8 특유인지 경로 최소값 first-passage 몬테카를로 추정의 일반 성질인지 미확정 [미검증] — S2-2 기계 기준선이 같은 방향으로 과신이면 '모델 결함'이 아니라 '표적의 구조'."
+      },
+      {
+        "task": "S2-1",
+        "item": "h21 풀표본이 자기 부분표본(non_gfc)보다 약한 것은 GFC 블록 55/84 원점이 상위분위를 채워 블록 부트스트랩 분산을 키우기 때문 — 표본 구조이지 방법 인공물이 아니나, S3 에서 국면 층화 부트스트랩을 쓸지 사전 결정 필요."
+      },
+      {
+        "task": "S2-1",
+        "item": "로짓 기울기의 소표본 편의 미보정(h21 터치 29건) — 보강 증거로만 사용, 게이트 미포함."
+      },
+      {
+        "task": "S2-1",
+        "item": "S1-3 이월 유지: V10 조합 격자 재개 여부는 사용자 결정(V12-D5 제안)."
+      },
+      {
+        "task": "S2-1",
+        "item": "S1-1 이월 유지: V11 CI 난수 규약 차(원본 seed 12345 vs 재계산 20260902) 병기 필요."
+      },
+      {
+        "task": "S2-2",
+        "item": "S2-3 판정 입력: '과신 구조 재현'(S2-1 문자 기준, 충족)과 '기계 기준선 대비 실력'(S2-2, 두 지평 미충족)이 갈린다. 어느 쪽을 S3 진입 조건으로 삼을지는 S2-3 결정 — S2-2 는 어느 쪽도 사후 선택하지 않았다."
+      },
+      {
+        "task": "S2-2",
+        "item": "T3 사전등록에 대한 사실 통지(S3-0 전 공개): 설계도 §2 의 T3 앵커(p′=(1−w)p+w·p_reflect)는 비GFC·calm 4셀에서 V8 보다 더 과신한다(예: h63 calm 반사 +0.3897 vs V8 +0.1126). 그 국면에서 w>0 은 악화 방향이다. 본 커밋으로 시점을 못박아 공개했으며 w 는 계산하지 않았다. T3 유지·수정·폐기는 S3-0 결정."
+      },
+      {
+        "task": "S2-2",
+        "item": "S4-2 결정 필요: 게이트 기준선을 2Φ 원식으로 할지 BGK 이산보정판으로 할지. 느슨한 판본(원식·λ=0.99) 선택은 게이트 통과를 위한 사후 완화가 되므로 근거 명문화 필요."
+      },
+      {
+        "task": "S2-2",
+        "item": "S4-2 결정 필요: 현 표본(417 원점, 유효표본 ≈32)에서는 기준선 대비 실력 게이트가 사실상 통과 불가 구간이다. 원점 격자 조밀화·홀드아웃 편입 조건 없이 임계값만 정하는 설계는 불가능."
+      },
+      {
+        "task": "S2-2",
+        "item": "과신 잔여분의 기제 [미검증] — 연속 모니터링이 기준선분의 20~45% 를 설명하고 드리프트는 0. 나머지(수익률 첨도·변동성 평균회귀·군집)는 본 태스크에서 식별하지 않았다."
+      },
+      {
+        "task": "S2-2",
+        "item": "V8 의 h63 × 비GFC·calm 잔여 우위가 진짜 구조인지, 부분표본 블록 부트스트랩의 근사 오차인지 미확정 — calm/storm 은 시간축이 비연속이다(S2-1 이월 한계)."
+      },
+      {
+        "task": "S2-2",
+        "item": "S1-3 이월 유지: V10 조합 격자 재개 여부는 사용자 결정(V12-D5 제안)."
+      },
+      {
+        "task": "S2-2",
+        "item": "S1-1 이월 유지: V11 CI 난수 규약 차(원본 seed 12345 vs 재계산 20260902) 병기 필요."
+      },
+      {
+        "task": "S2-3",
+        "item": "채택 규칙의 주체 선택(R2 = 표적 구조)이 옳은 독해인지는 최종적으로 사용자 판단 — S4-2/V12-D2 에서 V12 게이트로 승계할 때 재확인 필요. 본 태스크는 R0 AND 로 묶어 위험을 줄였을 뿐 논쟁을 종결하지 않았다."
+      },
+      {
+        "task": "S2-3",
+        "item": "R3(기울기)과 상위분위 gap 이 같은 표본에서 갈리는 이유 [미검증] — 소표본 로짓 편의인지 과신의 형태가 상단 국소적이어서인지 식별하지 않았다. S4-2 게이트가 어느 지표를 쓸지 결정 필요."
+      },
+      {
+        "task": "S2-3",
+        "item": "h21 후반창 집중도 34.5% 가 구조인지 표본 인공물인지 미확정 — 원점 격자 조밀화 없이는 분리 불가."
+      },
+      {
+        "task": "S2-3",
+        "item": "국면 부분표본 CI 의 층화 부트스트랩 미적용(S2-1·S2-2 이월). calm/storm 은 시간축 비연속."
+      },
+      {
+        "task": "S2-3",
+        "item": "과신 잔여분의 기제 [미검증] — 연속 모니터링이 기준선분의 20~45%, 드리프트 0. 나머지(첨도·변동성 평균회귀·군집) 미식별."
+      },
+      {
+        "task": "S2-3",
+        "item": "S1-3 이월 유지: V10 조합 격자 재개 여부는 사용자 결정(V12-D5 제안)."
+      },
+      {
+        "task": "S2-3",
+        "item": "S1-1 이월 유지: V11 CI 난수 규약 차(원본 seed 12345 vs 재계산 20260902) 병기 필요."
+      },
+      {
+        "task": "S3-0",
+        "item": "N1 귀무가 시계열 의존을 파괴한다는 비대칭을 보정하지 않았다 [미검증] — 블록 순열(시간 구조 보존 귀무)이 더 옳은 귀무일 수 있으나, 결과를 본 뒤 귀무를 바꾸는 것이 더 큰 위험이라 등록된 N1 을 그대로 간다. S4-2 에서 재검토 대상."
+      },
+      {
+        "task": "S3-0",
+        "item": "T4 의 두 셀(h21·h63)은 같은 교정에서 파생돼 독립이 아니다. family 8셀의 다중검정 산술이 이 상관을 무시한다 — P(≥k) 는 보수/비보수 중 어느 쪽으로 치우치는지 미확정 [미검증]."
+      },
+      {
+        "task": "S3-0",
+        "item": "S2-3 이월 유지 — 채택 규칙의 주체 선택(R2 = 표적 구조)이 옳은 독해인지는 최종적으로 사용자 판단. S4-2/V12-D2 에서 재확인 필요."
+      },
+      {
+        "task": "S3-0",
+        "item": "S2-3 이월 유지 — R3(로짓 기울기)과 상위분위 gap 이 같은 표본에서 갈리는 이유 [미검증]. S4-2 게이트가 어느 지표를 쓸지 결정 필요."
+      },
+      {
+        "task": "S3-0",
+        "item": "S2-3 이월 유지 — h21 후반창 집중도 34.5% 가 구조인지 표본 인공물인지 미확정."
+      },
+      {
+        "task": "S3-0",
+        "item": "S1-3 이월 유지 — V10 조합 격자 재개 여부는 사용자 결정(V12-D5 제안)."
+      },
+      {
+        "task": "S3-0",
+        "item": "S1-1 이월 유지 — V11 CI 난수 규약 차(원본 seed 12345 vs 재계산 20260902) 병기 필요."
+      },
+      {
+        "task": "S3-1",
+        "item": "N1 이 T1 의 대립가설을 파괴하지 못한다는 진단은 사후 관찰이며 정량 검증이 없다 [미검증]. 올바른 귀무의 후보 — (a) y 를 섞는 귀무, (b) p 와 y 를 블록 단위로 함께 섞어 시계열 구조를 보존하는 귀무, (c) 창 안에서 p 의 순위는 유지하고 y 만 재배치하는 귀무 — 중 무엇이 T1 류 수축 맵의 적법한 귀무인지 S4-2 에서 결정해야 한다. 결과를 본 뒤 귀무를 갈아끼우는 것은 이 태스크에서 하지 않았다."
+      },
+      {
+        "task": "S3-1",
+        "item": "N1 이 p_reflect(T3)와 상대 지평 확률(T4)을 치환하지 않으므로 그 두 가설의 귀무 통과율(T3_h21 73.9%·T4_h21 78.8%)은 '맵이 쓰는 외생 정보가 살아 있는' 귀무의 값이다. family P(k≥·) 가 그만큼 보수적으로 커진다 [미검증 — 얼마나 커지는지는 미계량]."
+      },
+      {
+        "task": "S3-1",
+        "item": "T4 의 두 셀은 같은 교정에서 파생돼 독립이 아니다. family 8셀 산술이 이 상관을 무시한다 [미검증] (S3-0 이월)."
+      },
+      {
+        "task": "S3-1",
+        "item": "귀무 통과율의 지평 간 100배 격차(h21 50.3% vs h63 0.5%)의 기전은 상단 과신 폭 차이로 설명했으나 계측하지 않았다 [미검증]."
+      },
+      {
+        "task": "S3-1",
+        "item": "S2-3 이월 유지 — 채택 규칙의 주체 선택(R2 = 표적 구조)이 옳은 독해인지는 최종적으로 사용자 판단(V12-D2)."
+      },
+      {
+        "task": "S3-1",
+        "item": "S2-3 이월 유지 — R3(로짓 기울기)과 상위분위 gap 이 같은 표본에서 갈리는 이유 [미검증]."
+      },
+      {
+        "task": "S3-1",
+        "item": "S2-3 이월 유지 — h21 후반창 집중도가 구조인지 표본 인공물인지 미확정."
+      },
+      {
+        "task": "S3-1",
+        "item": "S1-3 이월 유지 — V10 조합 격자 재개 여부는 사용자 결정(V12-D5 제안)."
+      },
+      {
+        "task": "S3-1",
+        "item": "S1-1 이월 유지 — V11 CI 난수 규약 차(원본 seed 12345 vs 재계산 20260902) 병기 필요."
+      },
+      {
+        "task": "S3-2",
+        "item": "N1 이 T1 류 상단 수축 맵의 적법한 귀무인지 [미검증] — S3-1 의 기전 진단(귀무 p 의 상단 과신을 T1 이 교정한다)은 사후 관찰이고 정량 검증이 없다. 대안 귀무 후보(y 치환·블록 순열·창 내 순위 보존) 중 무엇이 옳은지는 S4-2 결정 사항. 결과를 본 뒤 귀무를 갈아끼우는 것은 이 태스크에서 하지 않았다."
+      },
+      {
+        "task": "S3-2",
+        "item": "귀무 통과율의 지평 간 100배 격차(h21 0.503 vs h63 0.005)의 기전 [미검증]."
+      },
+      {
+        "task": "S3-2",
+        "item": "N1 이 p_reflect(T3)·상대 지평 확률(T4)을 치환하지 않으므로 그 두 가설의 귀무 통과율은 '외생 정보가 살아 있는' 귀무의 값이다. P(k≥·) 가 그만큼 보수적으로 커진다 [미검증 — 미계량]."
+      },
+      {
+        "task": "S3-2",
+        "item": "T4 두 셀의 비독립성을 family 8셀 산술이 무시한다 [미검증] (S3-0 이월)."
+      },
+      {
+        "task": "S3-2",
+        "item": "관대/보수 분류의 문턱을 명목 단측 5% 로 잡은 것은 A1 이 단측 검정이라는 사실에서 왔지만, 다중검정 하에서 셀별 명목 수준이 적절한 기준인지는 [미검증]."
+      },
+      {
+        "task": "S3-2",
+        "item": "S2-3 이월 유지 — 채택 규칙의 주체 선택(R2 = 표적 구조)이 옳은 독해인지는 최종적으로 사용자 판단(V12-D2)."
+      },
+      {
+        "task": "S3-2",
+        "item": "S2-3 이월 유지 — R3(로짓 기울기)과 상위분위 gap 이 같은 표본에서 갈리는 이유 [미검증]."
+      },
+      {
+        "task": "S3-2",
+        "item": "S2-3 이월 유지 — h21 후반창 집중도가 구조인지 표본 인공물인지 미확정."
+      },
+      {
+        "task": "S3-2",
+        "item": "S1-3 이월 유지 — V10 조합 격자 재개 여부는 사용자 결정(V12-D5 제안)."
+      },
+      {
+        "task": "S3-2",
+        "item": "S1-1 이월 유지 — V11 CI 난수 규약 차(원본 seed 12345 vs 재계산 20260902) 병기 필요."
+      },
+      {
+        "task": "CKPT",
+        "item": "S4-1 부정 결과 계약의 서술 범위: '이벤트 확률 재보정도 전이 불가'를 계약 문서에 어느 강도로 못 박을지(트랙 종료 vs 조건부 재개 조항) — 설계도 §5 V12-D1 사용자 결정 대상."
+      },
+      {
+        "task": "CKPT",
+        "item": "체크포인트 앵커를 S5 최종 보고에도 인용해 루프 전체 산출물의 단일 지문으로 쓸지 여부."
+      },
+      {
+        "task": "S4-1",
+        "item": "G4 의 reliability 감소 요건을 '얼마나' 로 정량화하지 않았다 — 현재는 부등호(V8 실측값보다 작을 것)뿐이고 최소 감소폭이 없다. S4-2 게이트 설계서에서 MDE 와 함께 정할 사항."
+      },
+      {
+        "task": "S4-1",
+        "item": "구속 기준선 BGK 지정이 사용자 승인 대상인지 [미확정] — V12-D2 의 범위에 기준선 선택이 포함되는지 명시적 결정 필요."
+      },
+      {
+        "task": "S4-1",
+        "item": "h21 의 재보정 상한 초과(도달 불가)가 '재보정류 전부' 에 대한 진술인지, Murphy REL 정의가 포착하는 재보정에 한한 진술인지 [미검증] — 후자가 정확하나 그 경계를 계량하지 않았다."
+      },
+      {
+        "task": "S4-1",
+        "item": "expanding climatology 는 eligible_n 이 in-sample 기후와 달라(h21 392·h63 384) 두 기후 대비 skill 이 직접 비교되지 않는다 — G1 의 병기 의무를 어떤 표본으로 맞출지 S4-2 소관."
+      },
+      {
+        "task": "S4-1",
+        "item": "N1 귀무의 적법성 [미검증] — S3-2 이월 유지. 대안 귀무 미계산이며 재개 프로토콜 P2 의 대상이다."
+      },
+      {
+        "task": "S4-1",
+        "item": "S3-2 이월 유지 — 채택 규칙의 주체 선택(R2=표적 구조)이 옳은 독해인지는 사용자 판단(V12-D2). 계약은 R2 를 쓰되 R1 기준 h21 이 0 을 포함한다는 사실을 한계 대장에 실었다."
+      },
+      {
+        "task": "S4-1",
+        "item": "S3-2 이월 유지 — R3(로짓 기울기)과 상위분위 gap 이 갈리는 이유 [미검증] · h21 후반창 집중도가 구조인지 표본 인공물인지 미확정."
+      },
+      {
+        "task": "S4-1",
+        "item": "S1 이월 유지 — V10 조합 격자 재개 여부는 사용자 결정(V12-D5) · V11 CI 난수 규약 차(원본 seed 12345 vs 재계산 20260902) 병기 필요."
+      },
+      {
+        "task": "S4-2",
+        "item": "쌍대 ΔREL 의 se [미검증] — 후보가 없어 계량 불가. D-G4 의 '무장 불가' 진술이 의존하는 유일한 가정이며, 트랙 개시 후 첫 후보에서 즉시 재야 한다."
+      },
+      {
+        "task": "S4-2",
+        "item": "n* 외삽의 타당성 [미검증] — se ∝ n^(−1/2) 근사·점추정을 참값으로 본 가정·새 표본에서 효과 유지 가정. 943년 같은 수는 자릿수 감각이지 계획 수치가 아니다."
+      },
+      {
+        "task": "S4-2",
+        "item": "귀무 통과율의 지평 비대칭(h21 0.651 vs h63 0.040) 기전 [미검증] — 재개 프로토콜 P2 수리의 핵심 대상. S3-2 이월 유지."
+      },
+      {
+        "task": "S4-2",
+        "item": "N1 귀무의 적법성 [미검증] — S3-2·S4-1 이월 유지. 대안 귀무 미계산."
+      },
+      {
+        "task": "S4-2",
+        "item": "P1~P5 개정 제안의 계약 반영 시점 [미확정] — 이 문서는 계약을 고치지 않았다. S5 가 결정표에 올릴지, 사용자 승인(V12-D2/-D3) 후 별도 계약 개정 태스크로 갈지 미정."
+      },
+      {
+        "task": "S4-2",
+        "item": "배포 사다리 T2 의 '대시보드 내부 패널' 이 기존 검증대기 라벨 체계와 어떻게 합쳐지는지 [미확정] — UI 계층 설계는 이 문서 범위 밖."
+      },
+      {
+        "task": "S4-2",
+        "item": "S4-1 이월 유지 — 구속 기준선 BGK 지정과 gap 주체(R2 vs R1)가 V12-D2 범위에 포함되는지 사용자 확인 필요."
+      },
+      {
+        "task": "S4-2",
+        "item": "S1 이월 유지 — V10 조합 격자 재개 여부(V12-D5)·V11 CI 난수 규약 차 병기."
+      }
+    ],
+    "open_questions_total": 76,
+    "open_questions_distinct": 56,
+    "open_questions_folded": {
+      "h21 저모멘텀 tertile 은 3 split 중 2 split 에서 ": {
+        "first_raised": "S1-1",
+        "repeats": 1,
+        "item": "h21 저모멘텀 tertile 은 3 split 중 2 split 에서 forward CI90 하한이 양수(+4.892e-05, +1.540e-05). 양방향 요건·순열 귀무 모두 탈락이라 신호는 아니나, forward 편향의 구조 설명은 S2 국면 분해 대상.",
+        "tasks": [
+          "S1-1"
+        ]
+      },
+      "V11 CI 난수 규약 차: 렌즈3 원본 seed 12345 vs 본 재": {
+        "first_raised": "S1-1",
+        "repeats": 1,
+        "item": "V11 CI 난수 규약 차: 렌즈3 원본 seed 12345 vs 본 재계산 seed 20260902(V10/V9 파이프라인 규약). 결론 동일, 병기 필요.",
+        "tasks": [
+          "S1-1"
+        ]
+      },
+      "블록길이 ℓ∈{5,13,26}·창 경계 ±1y·calm 60/80/90%": {
+        "first_raised": "S1-1",
+        "repeats": 1,
+        "item": "블록길이 ℓ∈{5,13,26}·창 경계 ±1y·calm 60/80/90% 민감도는 본 태스크 범위 밖 — S1-2 로 이월(본 재계산은 ℓ=13·calm 80% 고정).",
+        "tasks": [
+          "S1-1"
+        ]
+      },
+      "날짜창 calm 의 유의성이 상태분위 calm 에서 사라지는 원인 귀속(": {
+        "first_raised": "S1-2",
+        "repeats": 1,
+        "item": "날짜창 calm 의 유의성이 상태분위 calm 에서 사라지는 원인 귀속(2010H2 이후 고변동 origin 기여 가설)은 [미검증] — 국면별 분해 필요, S2 국면 분해에서 부수적으로 확인 가능.",
+        "tasks": [
+          "S1-2"
+        ]
+      },
+      "calm p80 규약 슬랙(명목 80% vs 실효 85.4%)은 V10·": {
+        "first_raised": "S1-2",
+        "repeats": 1,
+        "item": "calm p80 규약 슬랙(명목 80% vs 실효 85.4%)은 V10·V11·V12 공유 정의 문제 — S4-1 V12 계약에서 '≤ 임계' vs 순위 기반 중 택일 명문화 필요.",
+        "tasks": [
+          "S1-2"
+        ]
+      },
+      "S1-1 미해소 이월: V11 CI 난수 규약 차(원본 seed 1234": {
+        "first_raised": "S1-2",
+        "repeats": 1,
+        "item": "S1-1 미해소 이월: V11 CI 난수 규약 차(원본 seed 12345 vs 재계산 20260902)는 본 태스크에서도 20260902 유지 — 결론 동일, 병기 필요.",
+        "tasks": [
+          "S1-2"
+        ]
+      },
+      "V10 조합 격자 재개 여부는 사용자 결정": {
+        "first_raised": "S1-3",
+        "repeats": 1,
+        "item": "V10 조합 격자 재개 여부는 사용자 결정 — 본 태스크는 판정만 하고 실행하지 않음(백테스트 금지 verb).",
+        "tasks": [
+          "S1-3"
+        ]
+      },
+      "가법 대리지표의 정확도는 층 간 독립성에 의존": {
+        "first_raised": "S1-3",
+        "repeats": 1,
+        "item": "가법 대리지표의 정확도는 층 간 독립성에 의존 — W1(상태 가중 FHS)·W3(블렌드 γ)은 같은 분산 축이라 근사. 실측 검증은 파이프라인 재실행이 필요해 이 루프에서 불가.",
+        "tasks": [
+          "S1-3"
+        ]
+      },
+      "일중 데이터 합법 소스 전수 조사는 12-8 형식(엔드포인트 실호출 + ": {
+        "first_raised": "S1-3",
+        "repeats": 1,
+        "item": "일중 데이터 합법 소스 전수 조사는 12-8 형식(엔드포인트 실호출 + 약관 원문)으로 별도 수행 필요 — 현재 [미검증].",
+        "tasks": [
+          "S1-3"
+        ]
+      },
+      "S1-2 이월: calm p80 규약 슬랙(명목 80% vs 실효 85.": {
+        "first_raised": "S1-3",
+        "repeats": 1,
+        "item": "S1-2 이월: calm p80 규약 슬랙(명목 80% vs 실효 85.4%)은 S4-1 V12 계약에서 명문화 필요.",
+        "tasks": [
+          "S1-3"
+        ]
+      },
+      "S1-1 이월: V11 CI 난수 규약 차(원본 seed 12345 vs": {
+        "first_raised": "S1-3",
+        "repeats": 1,
+        "item": "S1-1 이월: V11 CI 난수 규약 차(원본 seed 12345 vs 재계산 20260902) 병기 필요.",
+        "tasks": [
+          "S1-3"
+        ]
+      },
+      "S2-3 판정 입력: 엄격 기준(O1∧O3)과 설계도 문자 기준이 갈림": {
+        "first_raised": "S2-1",
+        "repeats": 1,
+        "item": "S2-3 판정 입력: 엄격 기준(O1∧O3)과 설계도 문자 기준이 갈림 — 어느 쪽을 V12 게이트로 승계할지는 S2-3/S4-2 결정 사항.",
+        "tasks": [
+          "S2-1"
+        ]
+      },
+      "이 과신이 V8 특유인지 경로 최소값 first-passage 몬테카를로": {
+        "first_raised": "S2-1",
+        "repeats": 1,
+        "item": "이 과신이 V8 특유인지 경로 최소값 first-passage 몬테카를로 추정의 일반 성질인지 미확정 [미검증] — S2-2 기계 기준선이 같은 방향으로 과신이면 '모델 결함'이 아니라 '표적의 구조'.",
+        "tasks": [
+          "S2-1"
+        ]
+      },
+      "h21 풀표본이 자기 부분표본(non_gfc)보다 약한 것은 GFC 블록": {
+        "first_raised": "S2-1",
+        "repeats": 1,
+        "item": "h21 풀표본이 자기 부분표본(non_gfc)보다 약한 것은 GFC 블록 55/84 원점이 상위분위를 채워 블록 부트스트랩 분산을 키우기 때문 — 표본 구조이지 방법 인공물이 아니나, S3 에서 국면 층화 부트스트랩을 쓸지 사전 결정 필요.",
+        "tasks": [
+          "S2-1"
+        ]
+      },
+      "로짓 기울기의 소표본 편의 미보정(h21 터치 29건)": {
+        "first_raised": "S2-1",
+        "repeats": 1,
+        "item": "로짓 기울기의 소표본 편의 미보정(h21 터치 29건) — 보강 증거로만 사용, 게이트 미포함.",
+        "tasks": [
+          "S2-1"
+        ]
+      },
+      "S1-3 이월 유지: V10 조합 격자 재개 여부는 사용자 결정(V12-": {
+        "first_raised": "S2-1",
+        "repeats": 3,
+        "item": "S1-3 이월 유지: V10 조합 격자 재개 여부는 사용자 결정(V12-D5 제안).",
+        "tasks": [
+          "S2-1",
+          "S2-2",
+          "S2-3"
+        ]
+      },
+      "S1-1 이월 유지: V11 CI 난수 규약 차(원본 seed 12345": {
+        "first_raised": "S2-1",
+        "repeats": 3,
+        "item": "S1-1 이월 유지: V11 CI 난수 규약 차(원본 seed 12345 vs 재계산 20260902) 병기 필요.",
+        "tasks": [
+          "S2-1",
+          "S2-2",
+          "S2-3"
+        ]
+      },
+      "S2-3 판정 입력: '과신 구조 재현'(S2-1 문자 기준, 충족)과 ": {
+        "first_raised": "S2-2",
+        "repeats": 1,
+        "item": "S2-3 판정 입력: '과신 구조 재현'(S2-1 문자 기준, 충족)과 '기계 기준선 대비 실력'(S2-2, 두 지평 미충족)이 갈린다. 어느 쪽을 S3 진입 조건으로 삼을지는 S2-3 결정 — S2-2 는 어느 쪽도 사후 선택하지 않았다.",
+        "tasks": [
+          "S2-2"
+        ]
+      },
+      "T3 사전등록에 대한 사실 통지(S3-0 전 공개): 설계도 §2 의 T": {
+        "first_raised": "S2-2",
+        "repeats": 1,
+        "item": "T3 사전등록에 대한 사실 통지(S3-0 전 공개): 설계도 §2 의 T3 앵커(p′=(1−w)p+w·p_reflect)는 비GFC·calm 4셀에서 V8 보다 더 과신한다(예: h63 calm 반사 +0.3897 vs V8 +0.1126). 그 국면에서 w>0 은 악화 방향이다. 본 커밋으로 시점을 못박아 공개했으며 w 는 계산하지 않았다. T3 유지·수정·폐기는 S3-0 결정.",
+        "tasks": [
+          "S2-2"
+        ]
+      },
+      "S4-2 결정 필요: 게이트 기준선을 2Φ 원식으로 할지 BGK 이산보정": {
+        "first_raised": "S2-2",
+        "repeats": 1,
+        "item": "S4-2 결정 필요: 게이트 기준선을 2Φ 원식으로 할지 BGK 이산보정판으로 할지. 느슨한 판본(원식·λ=0.99) 선택은 게이트 통과를 위한 사후 완화가 되므로 근거 명문화 필요.",
+        "tasks": [
+          "S2-2"
+        ]
+      },
+      "S4-2 결정 필요: 현 표본(417 원점, 유효표본 ≈32)에서는 기준": {
+        "first_raised": "S2-2",
+        "repeats": 1,
+        "item": "S4-2 결정 필요: 현 표본(417 원점, 유효표본 ≈32)에서는 기준선 대비 실력 게이트가 사실상 통과 불가 구간이다. 원점 격자 조밀화·홀드아웃 편입 조건 없이 임계값만 정하는 설계는 불가능.",
+        "tasks": [
+          "S2-2"
+        ]
+      },
+      "과신 잔여분의 기제": {
+        "first_raised": "S2-2",
+        "repeats": 2,
+        "item": "과신 잔여분의 기제 [미검증] — 연속 모니터링이 기준선분의 20~45% 를 설명하고 드리프트는 0. 나머지(수익률 첨도·변동성 평균회귀·군집)는 본 태스크에서 식별하지 않았다.",
+        "tasks": [
+          "S2-2",
+          "S2-3"
+        ]
+      },
+      "V8 의 h63 × 비GFC·calm 잔여 우위가 진짜 구조인지, 부분표": {
+        "first_raised": "S2-2",
+        "repeats": 1,
+        "item": "V8 의 h63 × 비GFC·calm 잔여 우위가 진짜 구조인지, 부분표본 블록 부트스트랩의 근사 오차인지 미확정 — calm/storm 은 시간축이 비연속이다(S2-1 이월 한계).",
+        "tasks": [
+          "S2-2"
+        ]
+      },
+      "채택 규칙의 주체 선택(R2 = 표적 구조)이 옳은 독해인지는 최종적으로": {
+        "first_raised": "S2-3",
+        "repeats": 1,
+        "item": "채택 규칙의 주체 선택(R2 = 표적 구조)이 옳은 독해인지는 최종적으로 사용자 판단 — S4-2/V12-D2 에서 V12 게이트로 승계할 때 재확인 필요. 본 태스크는 R0 AND 로 묶어 위험을 줄였을 뿐 논쟁을 종결하지 않았다.",
+        "tasks": [
+          "S2-3"
+        ]
+      },
+      "R3(기울기)과 상위분위 gap 이 같은 표본에서 갈리는 이유": {
+        "first_raised": "S2-3",
+        "repeats": 1,
+        "item": "R3(기울기)과 상위분위 gap 이 같은 표본에서 갈리는 이유 [미검증] — 소표본 로짓 편의인지 과신의 형태가 상단 국소적이어서인지 식별하지 않았다. S4-2 게이트가 어느 지표를 쓸지 결정 필요.",
+        "tasks": [
+          "S2-3"
+        ]
+      },
+      "h21 후반창 집중도 34.5% 가 구조인지 표본 인공물인지 미확정": {
+        "first_raised": "S2-3",
+        "repeats": 1,
+        "item": "h21 후반창 집중도 34.5% 가 구조인지 표본 인공물인지 미확정 — 원점 격자 조밀화 없이는 분리 불가.",
+        "tasks": [
+          "S2-3"
+        ]
+      },
+      "국면 부분표본 CI 의 층화 부트스트랩 미적용(S2-1·S2-2 이월).": {
+        "first_raised": "S2-3",
+        "repeats": 1,
+        "item": "국면 부분표본 CI 의 층화 부트스트랩 미적용(S2-1·S2-2 이월). calm/storm 은 시간축 비연속.",
+        "tasks": [
+          "S2-3"
+        ]
+      },
+      "N1 귀무가 시계열 의존을 파괴한다는 비대칭을 보정하지 않았다": {
+        "first_raised": "S3-0",
+        "repeats": 1,
+        "item": "N1 귀무가 시계열 의존을 파괴한다는 비대칭을 보정하지 않았다 [미검증] — 블록 순열(시간 구조 보존 귀무)이 더 옳은 귀무일 수 있으나, 결과를 본 뒤 귀무를 바꾸는 것이 더 큰 위험이라 등록된 N1 을 그대로 간다. S4-2 에서 재검토 대상.",
+        "tasks": [
+          "S3-0"
+        ]
+      },
+      "T4 의 두 셀(h21·h63)은 같은 교정에서 파생돼 독립이 아니다. ": {
+        "first_raised": "S3-0",
+        "repeats": 1,
+        "item": "T4 의 두 셀(h21·h63)은 같은 교정에서 파생돼 독립이 아니다. family 8셀의 다중검정 산술이 이 상관을 무시한다 — P(≥k) 는 보수/비보수 중 어느 쪽으로 치우치는지 미확정 [미검증].",
+        "tasks": [
+          "S3-0"
+        ]
+      },
+      "S2-3 이월 유지": {
+        "first_raised": "S3-0",
+        "repeats": 9,
+        "item": "S2-3 이월 유지 — 채택 규칙의 주체 선택(R2 = 표적 구조)이 옳은 독해인지는 최종적으로 사용자 판단. S4-2/V12-D2 에서 재확인 필요.",
+        "tasks": [
+          "S3-0",
+          "S3-0",
+          "S3-0",
+          "S3-1",
+          "S3-1",
+          "S3-1",
+          "S3-2",
+          "S3-2",
+          "S3-2"
+        ]
+      },
+      "S1-3 이월 유지": {
+        "first_raised": "S3-0",
+        "repeats": 3,
+        "item": "S1-3 이월 유지 — V10 조합 격자 재개 여부는 사용자 결정(V12-D5 제안).",
+        "tasks": [
+          "S3-0",
+          "S3-1",
+          "S3-2"
+        ]
+      },
+      "S1-1 이월 유지": {
+        "first_raised": "S3-0",
+        "repeats": 3,
+        "item": "S1-1 이월 유지 — V11 CI 난수 규약 차(원본 seed 12345 vs 재계산 20260902) 병기 필요.",
+        "tasks": [
+          "S3-0",
+          "S3-1",
+          "S3-2"
+        ]
+      },
+      "N1 이 T1 의 대립가설을 파괴하지 못한다는 진단은 사후 관찰이며 정량": {
+        "first_raised": "S3-1",
+        "repeats": 1,
+        "item": "N1 이 T1 의 대립가설을 파괴하지 못한다는 진단은 사후 관찰이며 정량 검증이 없다 [미검증]. 올바른 귀무의 후보 — (a) y 를 섞는 귀무, (b) p 와 y 를 블록 단위로 함께 섞어 시계열 구조를 보존하는 귀무, (c) 창 안에서 p 의 순위는 유지하고 y 만 재배치하는 귀무 — 중 무엇이 T1 류 수축 맵의 적법한 귀무인지 S4-2 에서 결정해야 한다. 결과를 본 뒤 귀무를 갈아끼우는 것은 이 태스크에서 하지 않았다.",
+        "tasks": [
+          "S3-1"
+        ]
+      },
+      "N1 이 p_reflect(T3)와 상대 지평 확률(T4)을 치환하지 않": {
+        "first_raised": "S3-1",
+        "repeats": 1,
+        "item": "N1 이 p_reflect(T3)와 상대 지평 확률(T4)을 치환하지 않으므로 그 두 가설의 귀무 통과율(T3_h21 73.9%·T4_h21 78.8%)은 '맵이 쓰는 외생 정보가 살아 있는' 귀무의 값이다. family P(k≥·) 가 그만큼 보수적으로 커진다 [미검증 — 얼마나 커지는지는 미계량].",
+        "tasks": [
+          "S3-1"
+        ]
+      },
+      "T4 의 두 셀은 같은 교정에서 파생돼 독립이 아니다. family 8셀": {
+        "first_raised": "S3-1",
+        "repeats": 1,
+        "item": "T4 의 두 셀은 같은 교정에서 파생돼 독립이 아니다. family 8셀 산술이 이 상관을 무시한다 [미검증] (S3-0 이월).",
+        "tasks": [
+          "S3-1"
+        ]
+      },
+      "귀무 통과율의 지평 간 100배 격차(h21 50.3% vs h63 0.": {
+        "first_raised": "S3-1",
+        "repeats": 1,
+        "item": "귀무 통과율의 지평 간 100배 격차(h21 50.3% vs h63 0.5%)의 기전은 상단 과신 폭 차이로 설명했으나 계측하지 않았다 [미검증].",
+        "tasks": [
+          "S3-1"
+        ]
+      },
+      "N1 이 T1 류 상단 수축 맵의 적법한 귀무인지": {
+        "first_raised": "S3-2",
+        "repeats": 1,
+        "item": "N1 이 T1 류 상단 수축 맵의 적법한 귀무인지 [미검증] — S3-1 의 기전 진단(귀무 p 의 상단 과신을 T1 이 교정한다)은 사후 관찰이고 정량 검증이 없다. 대안 귀무 후보(y 치환·블록 순열·창 내 순위 보존) 중 무엇이 옳은지는 S4-2 결정 사항. 결과를 본 뒤 귀무를 갈아끼우는 것은 이 태스크에서 하지 않았다.",
+        "tasks": [
+          "S3-2"
+        ]
+      },
+      "귀무 통과율의 지평 간 100배 격차(h21 0.503 vs h63 0.": {
+        "first_raised": "S3-2",
+        "repeats": 1,
+        "item": "귀무 통과율의 지평 간 100배 격차(h21 0.503 vs h63 0.005)의 기전 [미검증].",
+        "tasks": [
+          "S3-2"
+        ]
+      },
+      "N1 이 p_reflect(T3)·상대 지평 확률(T4)을 치환하지 않으": {
+        "first_raised": "S3-2",
+        "repeats": 1,
+        "item": "N1 이 p_reflect(T3)·상대 지평 확률(T4)을 치환하지 않으므로 그 두 가설의 귀무 통과율은 '외생 정보가 살아 있는' 귀무의 값이다. P(k≥·) 가 그만큼 보수적으로 커진다 [미검증 — 미계량].",
+        "tasks": [
+          "S3-2"
+        ]
+      },
+      "T4 두 셀의 비독립성을 family 8셀 산술이 무시한다": {
+        "first_raised": "S3-2",
+        "repeats": 1,
+        "item": "T4 두 셀의 비독립성을 family 8셀 산술이 무시한다 [미검증] (S3-0 이월).",
+        "tasks": [
+          "S3-2"
+        ]
+      },
+      "관대/보수 분류의 문턱을 명목 단측 5% 로 잡은 것은 A1 이 단측 검": {
+        "first_raised": "S3-2",
+        "repeats": 1,
+        "item": "관대/보수 분류의 문턱을 명목 단측 5% 로 잡은 것은 A1 이 단측 검정이라는 사실에서 왔지만, 다중검정 하에서 셀별 명목 수준이 적절한 기준인지는 [미검증].",
+        "tasks": [
+          "S3-2"
+        ]
+      },
+      "S4-1 부정 결과 계약의 서술 범위: '이벤트 확률 재보정도 전이 불가": {
+        "first_raised": "CKPT",
+        "repeats": 1,
+        "item": "S4-1 부정 결과 계약의 서술 범위: '이벤트 확률 재보정도 전이 불가'를 계약 문서에 어느 강도로 못 박을지(트랙 종료 vs 조건부 재개 조항) — 설계도 §5 V12-D1 사용자 결정 대상.",
+        "tasks": [
+          "CKPT"
+        ]
+      },
+      "체크포인트 앵커를 S5 최종 보고에도 인용해 루프 전체 산출물의 단일 지": {
+        "first_raised": "CKPT",
+        "repeats": 1,
+        "item": "체크포인트 앵커를 S5 최종 보고에도 인용해 루프 전체 산출물의 단일 지문으로 쓸지 여부.",
+        "tasks": [
+          "CKPT"
+        ]
+      },
+      "G4 의 reliability 감소 요건을 '얼마나' 로 정량화하지 않았": {
+        "first_raised": "S4-1",
+        "repeats": 1,
+        "item": "G4 의 reliability 감소 요건을 '얼마나' 로 정량화하지 않았다 — 현재는 부등호(V8 실측값보다 작을 것)뿐이고 최소 감소폭이 없다. S4-2 게이트 설계서에서 MDE 와 함께 정할 사항.",
+        "tasks": [
+          "S4-1"
+        ]
+      },
+      "구속 기준선 BGK 지정이 사용자 승인 대상인지": {
+        "first_raised": "S4-1",
+        "repeats": 1,
+        "item": "구속 기준선 BGK 지정이 사용자 승인 대상인지 [미확정] — V12-D2 의 범위에 기준선 선택이 포함되는지 명시적 결정 필요.",
+        "tasks": [
+          "S4-1"
+        ]
+      },
+      "h21 의 재보정 상한 초과(도달 불가)가 '재보정류 전부' 에 대한 진": {
+        "first_raised": "S4-1",
+        "repeats": 1,
+        "item": "h21 의 재보정 상한 초과(도달 불가)가 '재보정류 전부' 에 대한 진술인지, Murphy REL 정의가 포착하는 재보정에 한한 진술인지 [미검증] — 후자가 정확하나 그 경계를 계량하지 않았다.",
+        "tasks": [
+          "S4-1"
+        ]
+      },
+      "expanding climatology 는 eligible_n 이 in-": {
+        "first_raised": "S4-1",
+        "repeats": 1,
+        "item": "expanding climatology 는 eligible_n 이 in-sample 기후와 달라(h21 392·h63 384) 두 기후 대비 skill 이 직접 비교되지 않는다 — G1 의 병기 의무를 어떤 표본으로 맞출지 S4-2 소관.",
+        "tasks": [
+          "S4-1"
+        ]
+      },
+      "N1 귀무의 적법성": {
+        "first_raised": "S4-1",
+        "repeats": 2,
+        "item": "N1 귀무의 적법성 [미검증] — S3-2 이월 유지. 대안 귀무 미계산이며 재개 프로토콜 P2 의 대상이다.",
+        "tasks": [
+          "S4-1",
+          "S4-2"
+        ]
+      },
+      "S3-2 이월 유지": {
+        "first_raised": "S4-1",
+        "repeats": 2,
+        "item": "S3-2 이월 유지 — 채택 규칙의 주체 선택(R2=표적 구조)이 옳은 독해인지는 사용자 판단(V12-D2). 계약은 R2 를 쓰되 R1 기준 h21 이 0 을 포함한다는 사실을 한계 대장에 실었다.",
+        "tasks": [
+          "S4-1",
+          "S4-1"
+        ]
+      },
+      "S1 이월 유지": {
+        "first_raised": "S4-1",
+        "repeats": 2,
+        "item": "S1 이월 유지 — V10 조합 격자 재개 여부는 사용자 결정(V12-D5) · V11 CI 난수 규약 차(원본 seed 12345 vs 재계산 20260902) 병기 필요.",
+        "tasks": [
+          "S4-1",
+          "S4-2"
+        ]
+      },
+      "쌍대 ΔREL 의 se": {
+        "first_raised": "S4-2",
+        "repeats": 1,
+        "item": "쌍대 ΔREL 의 se [미검증] — 후보가 없어 계량 불가. D-G4 의 '무장 불가' 진술이 의존하는 유일한 가정이며, 트랙 개시 후 첫 후보에서 즉시 재야 한다.",
+        "tasks": [
+          "S4-2"
+        ]
+      },
+      "n* 외삽의 타당성": {
+        "first_raised": "S4-2",
+        "repeats": 1,
+        "item": "n* 외삽의 타당성 [미검증] — se ∝ n^(−1/2) 근사·점추정을 참값으로 본 가정·새 표본에서 효과 유지 가정. 943년 같은 수는 자릿수 감각이지 계획 수치가 아니다.",
+        "tasks": [
+          "S4-2"
+        ]
+      },
+      "귀무 통과율의 지평 비대칭(h21 0.651 vs h63 0.040) 기": {
+        "first_raised": "S4-2",
+        "repeats": 1,
+        "item": "귀무 통과율의 지평 비대칭(h21 0.651 vs h63 0.040) 기전 [미검증] — 재개 프로토콜 P2 수리의 핵심 대상. S3-2 이월 유지.",
+        "tasks": [
+          "S4-2"
+        ]
+      },
+      "P1~P5 개정 제안의 계약 반영 시점": {
+        "first_raised": "S4-2",
+        "repeats": 1,
+        "item": "P1~P5 개정 제안의 계약 반영 시점 [미확정] — 이 문서는 계약을 고치지 않았다. S5 가 결정표에 올릴지, 사용자 승인(V12-D2/-D3) 후 별도 계약 개정 태스크로 갈지 미정.",
+        "tasks": [
+          "S4-2"
+        ]
+      },
+      "배포 사다리 T2 의 '대시보드 내부 패널' 이 기존 검증대기 라벨 체계": {
+        "first_raised": "S4-2",
+        "repeats": 1,
+        "item": "배포 사다리 T2 의 '대시보드 내부 패널' 이 기존 검증대기 라벨 체계와 어떻게 합쳐지는지 [미확정] — UI 계층 설계는 이 문서 범위 밖.",
+        "tasks": [
+          "S4-2"
+        ]
+      },
+      "S4-1 이월 유지": {
+        "first_raised": "S4-2",
+        "repeats": 1,
+        "item": "S4-1 이월 유지 — 구속 기준선 BGK 지정과 gap 주체(R2 vs R1)가 V12-D2 범위에 포함되는지 사용자 확인 필요.",
+        "tasks": [
+          "S4-2"
+        ]
+      }
+    },
+    "unverified_flagged": 28,
+    "method": "12 개 result JSON 의 not_done·open_questions 를 전량 수집했다. 사람이 고른 목록이 아니며, 분류 규칙은 코드 상수(CATEGORY_RULES)다."
+  },
+  "inventory": {
+    "schema": "v12.s5_inventory/1",
+    "task_id": "S5-1",
+    "generated_by": "tools/v12_s5_inventory.py",
+    "equivalent_cli": "cd src && python -m ai_fc inventory",
+    "why_not_cli": "루프 헌법 §1 — python -m ai_fc 는 권한 목록 밖. cmd_inventory 의 호출을 그대로 재현했다.",
+    "output_target": "docs/generated/inventory.generated.md",
+    "sync": {
+      "ok": true,
+      "summary": "[경고] W8 repository context changed; rebuilding the SQLite read index from source files\n[경고] W2 등록필터: amzn-fcf-negative-fy2026: created 2026-08-31 ≥ 2026-07-21 인데 notes에 '등록필터:' 근거 없음 — FACTORY_GUIDE.md 필터 (a)/(b) 충족 근거를 기재 후 재실행\n[경고] W2 등록필터: ai-investment-gdp-share-2026q4: created 2026-08-31 ≥ 2026-07-21 인데 notes에 '등록필터:' 근거 없음 — FACTORY_GUIDE.md 필터 (a)/(b) 충족 근거를 기재 후 재실행\n[경고] W2 등록필터: fedfunds-upper-550-2027h1: created 2026-08-31 ≥ 2026-07-21 인데 notes에 '등록필터:' 근거 없음 — FACTORY_GUIDE.md 필터 (a)/(b) 충족 근거를 기재 후 재실행\n[경고] W2 등록필터: fedfunds-upper-hold-2026ye: created 2026-08-31 ≥ 2026-07-21 인데 notes에 '등록필터:' 근거 없음 — FACTORY_GUIDE.md 필터 (a)/(b) 충족 근거를 기재 후 재실행\n[경고] W2 등록필터: sox-ndx-relative-strength-2026ye: created 2026-08-31 ≥ 2026-07-21 인데 notes에 '등록필터:' 근거 없음 — FACTORY_GUIDE.md 필터 (a)/(b) 충족 근거를 기재 후 재실행\n[경고] Q1 quarantined probability benchmark/2026-07-10_fomc-2026-07-29-hike_r1@2026-07-31|market: probability 22.0 (fraction) is outside the canonical [0, 1] range\n[경고] Q1 quarantined probability benchmark/2026-07-20_fomc-2026-07-29-hike_r4@2026-07-31|market: probability 5.0 (fraction) is outside the canonical [0, 1] range",
+      "errors": [],
+      "warnings": [
+        "W8 repository context changed; rebuilding the SQLite read index from source files",
+        "W2 등록필터: amzn-fcf-negative-fy2026: created 2026-08-31 ≥ 2026-07-21 인데 notes에 '등록필터:' 근거 없음 — FACTORY_GUIDE.md 필터 (a)/(b) 충족 근거를 기재 후 재실행",
+        "W2 등록필터: ai-investment-gdp-share-2026q4: created 2026-08-31 ≥ 2026-07-21 인데 notes에 '등록필터:' 근거 없음 — FACTORY_GUIDE.md 필터 (a)/(b) 충족 근거를 기재 후 재실행",
+        "W2 등록필터: fedfunds-upper-550-2027h1: created 2026-08-31 ≥ 2026-07-21 인데 notes에 '등록필터:' 근거 없음 — FACTORY_GUIDE.md 필터 (a)/(b) 충족 근거를 기재 후 재실행",
+        "W2 등록필터: fedfunds-upper-hold-2026ye: created 2026-08-31 ≥ 2026-07-21 인데 notes에 '등록필터:' 근거 없음 — FACTORY_GUIDE.md 필터 (a)/(b) 충족 근거를 기재 후 재실행",
+        "W2 등록필터: sox-ndx-relative-strength-2026ye: created 2026-08-31 ≥ 2026-07-21 인데 notes에 '등록필터:' 근거 없음 — FACTORY_GUIDE.md 필터 (a)/(b) 충족 근거를 기재 후 재실행",
+        "Q1 quarantined probability benchmark/2026-07-10_fomc-2026-07-29-hike_r1@2026-07-31|market: probability 22.0 (fraction) is outside the canonical [0, 1] range",
+        "Q1 quarantined probability benchmark/2026-07-20_fomc-2026-07-29-hike_r4@2026-07-31|market: probability 5.0 (fraction) is outside the canonical [0, 1] range"
+      ],
+      "db_path": "db/index.db (gitignore — 파생 인덱스)"
+    },
+    "snapshot": {
+      "source_fingerprint": "7812ab59c4c285e7cc542deacf492b5c6a0c803fa0be9466995b95c500fd9941",
+      "questions": 43,
+      "forecast_files": 51,
+      "evidence_files": 20,
+      "resolution_rows": 9,
+      "benchmark_rows": 9,
+      "correction_rows": 22,
+      "contracts": 54,
+      "dualdb_eras": 8,
+      "tables": {
+        "questions": 43,
+        "forecasts": 51,
+        "resolutions": 9,
+        "benchmark_scores": 9,
+        "resolution_event": 5,
+        "score_observation": 9,
+        "probability_record": 158,
+        "source_registry": 14,
+        "model_registry": 14
+      }
+    },
+    "was_current_before_run": false,
+    "mode": "write",
+    "files": {
+      "docs/generated/inventory.generated.md": {
+        "sha256_before": "0c1e8a1800db3845644d91148f94567f45f987c38f41386fd2d0a8f4bc515a49",
+        "sha256_after": "5527962187a75245b91247e5c0de84991b74db4982f3d9a4a6ab69263bd1d26b",
+        "changed": true,
+        "created": false
+      },
+      "docs/generated/licenses.generated.md": {
+        "sha256_before": "ff50ebf488e8a5b696b8ac6e0fb73c1d9afe81f986819e69df4de4724b509599",
+        "sha256_after": "ff50ebf488e8a5b696b8ac6e0fb73c1d9afe81f986819e69df4de4724b509599",
+        "changed": false,
+        "created": false
+      },
+      "docs/generated/read_model_v2.schema.json": {
+        "sha256_before": "ce4f0d50399af7a06aa19efa8ece0937d8374c7564d8268d56ecb5400aadd72e",
+        "sha256_after": "ce4f0d50399af7a06aa19efa8ece0937d8374c7564d8268d56ecb5400aadd72e",
+        "changed": false,
+        "created": false
+      }
+    },
+    "files_changed": [
+      "docs/generated/inventory.generated.md"
+    ],
+    "is_current_after_run": true,
+    "immutable_paths": {
+      "checked": [
+        "forecasts",
+        "calibration",
+        "src",
+        "data/timeseries_v8",
+        "data/timeseries_v2",
+        "questions"
+      ],
+      "dirty_before": [],
+      "dirty_after": [],
+      "clean": true
+    },
+    "status": "완료"
+  },
+  "pr": {
+    "branch": "claude/v12-sunday",
+    "base_branch": "main",
+    "head": "6058aa07db38a3057a2d191054e00526f27f2f7b",
+    "merge_base_with_main": "0c14900fec2f1276e799df09f68c8270fd5d9646",
+    "loop_range": "af7b8d63^..HEAD",
+    "loop_commits": 30,
+    "loop_commit_list": [
+      "6058aa07 loop(v12): S4-2 result JSON + 자기주장 대사 자동화",
+      "a78a58dd loop(v12): S4-2 V12 게이트 설계서",
+      "11f8a2ba loop(v12): S4-1 result JSON + 자기주장 대사 자동화",
+      "7f75d46f loop(v12): S4-1 V12 계약 draft — 부정 결과 계약",
+      "81eebfa7 loop(v12): CKPT result JSON + 자기주장 대사 자동화",
+      "efa20d0b loop(v12): CKPT 월요일 체크포인트 봉인 — S1~S3 산출물 63개·result 9종 해시 대사, 봉인 재대사",
+      "96f705d1 loop(v12): S3-2 result JSON + 자기주장 대사 자동화",
+      "a2107f42 loop(v12): S3-2 S3 판정 — 채택 0/8, 전이 불가 부정 결과 확정",
+      "bfecb3bd loop(v12): S3-1 result JSON + 자기주장 대사 자동화",
+      "2020047f loop(v12): S3-1 T1~T4 양방향 전이 + CI90 + 순열 귀무 — 채택 0, T5 실패",
+      "bc782055 loop(v12): S3-0 result JSON + 자기주장 대사 자동화",
+      "74bd474a loop(v12): S3-0 사전등록 커밋 해시 로그 (accept 산출물)",
+      "ec496463 loop(v12): S3-0 가설 사전등록 커밋 — T1~T5 결과 보기 전 고정",
+      "dc368ed3 loop(v12): S2-3 result JSON + 전사 대사 자동화",
+      "65061b4d loop(v12): S2-3 S2 진단서 — S3 진입 (표적의 과신 구조, V8 의 과신 아님)",
+      "fe54907c loop(v12): S2-2 result JSON + 전사 대사 자동화",
+      "0c2e1a02 loop(v12): S2-2 반사원리 기계 기준선 — V8 first_touch 는 1-파라미터 공식을 이기지 못한다",
+      "9d3d9fc6 loop(v12): S2-1 result JSON 에 산출물 커밋 해시 기록",
+      "27dce89f loop(v12): S2-1 first_touch 실력 계측 — 과신은 방향 8/8 재현, 강도는 h63·비GFC 만",
+      "62c255a9 loop(v12): S1-3 result JSON 에 산출물 커밋 해시 기록",
+      "7400f994 loop(v12): S1-3 저비용 옵션 판정 + PROMPT 5문 답 — V10 조합 격자는 실재한 미실행 옵션(D7 사유 정정)",
+      "06f0f101 loop(v12): S1-2 결과 JSON 기록 + calm CI 의 블록길이 의존 정밀화",
+      "76fe01d0 loop(v12): S1-2 공통 방법론 민감도 — V10 챔피언 CI 33셀 재산출(번복 2셀, 전제 붕괴형)",
+      "2f490533 chore(v12): 스모크2 통과 — S1-1 완료 상태 backlog 커밋(일요일 부팅 시 S1-2부터), 루프 런타임 gitignore",
+      "3bdb9645 loop(v12): S1-1 결과 JSON 기록 (완료 — 세 트랙 유지, 번복 0)",
+      "b99971a8 loop(v12): S1-1 세 동결 독립 재계산 — 세 트랙 모두 유지(번복 0), 봉인 대사기 결함 1건 수정",
+      "683a89db fix(v12): 권한 해소 — v12_run.py 래퍼 + 검증된 --allowedTools 스코프(래퍼·git add/commit·pytest만) + 마스터에 래퍼 경유 실행 명문화",
+      "706d29d7 test(v12): 스모크 blocker 기록 — acceptEdits가 Bash 실행 미부여로 S1-1 차단(Opus 재계산 스크립트 미검증 보존), backlog 대기 복원",
+      "9b8604c3 fix(v12): 루프 봉인 해시를 정본(V8+V2봉인8)으로 교정 — 비봉인 3파일 제외해 e3ff2fdb 재현 + BOOT 접두사 강제 가드 추가",
+      "af7b8d63 feat(v12): 일요일 Opus 이벤트-확률화 루프 팩 배치 — 설계도·ralph(백로그·마스터)·감독 스크립트 (LF·bash -n 통과)"
+    ],
+    "loop_files_changed": 123,
+    "loop_shortstat": "123 files changed, 43379 insertions(+)",
+    "branch_commits_ahead_of_main": 545,
+    "scope_warning": "브랜치는 main 보다 훨씬 앞서 있다 — PR 을 이 브랜치 전체로 열면 루프 밖 작업이 함께 실린다. 아래 loop_range 가 이번 루프의 실제 기여 범위다.",
+    "push": "금지 (envelope spec) — 이 태스크는 원격에 아무것도 보내지 않았다",
+    "working_tree_dirty_entries": 58,
+    "immutable_paths_dirty": []
+  }
+}

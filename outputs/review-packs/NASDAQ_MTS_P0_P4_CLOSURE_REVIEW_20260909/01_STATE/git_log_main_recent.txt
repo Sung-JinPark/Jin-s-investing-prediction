@@ -1,0 +1,30 @@
+e0b728f9 data: publish V13-VOL volatility base-rate pointer
+5b0fb387 data: publish V13-VOL volatility base-rate pointer
+180db6ed ots: .hashes 앵커 비트코인 스탬프
+090ce91c Merge pull request #183 from Sung-JinPark/claude/c5-sharpness-strategy
+d28e6472 data(base-rates): Adobe non-GAAP EPS 서프라이즈 — SEC 8-K 원문 전건 검증
+874a6e71 feat(c5): v1.1 예측률 제고 전략 — 실측된 지렛대 하나에 건다
+805c9d93 data: publish V13-VOL volatility base-rate pointer
+2853e7cb ots: .hashes 앵커 비트코인 스탬프
+80c9943f Merge pull request #177 from Sung-JinPark/claude/c5-calibration-program
+7f4d8797 data: publish V13-VOL volatility base-rate pointer
+e3b6da92 data: publish V13-VOL volatility base-rate pointer
+9a8dc862 fix(c5-q3): 과거 사건 질문 3건 폐기 — corporate_event 군 전멸 (5원칙 5 위반)
+a39777f2 Merge remote-tracking branch 'origin/main' into claude/c5-calibration-program
+49679621 fix+forecast(boj): 판정일 오류 질문 폐기·재등록 + r1 83%
+08faf775 data: publish V13-VOL volatility base-rate pointer
+f691688b forecast(fomc-2026-09-16): 만장일치 아님 72% · 2027<2026 점도표 78%
+ad04a660 fix(c5-q3): 판정기준 결함 질문 2건 폐기 + 대체 등록 (예측 0건 상태)
+2a78e68d Merge origin/main into claude/c5-calibration-program
+e3c07f3f data: append V8 shadow forecast/resolution
+6b1dd315 data(timeseries): refresh V5 research read model
+7112bc49 Merge pull request #180 from Sung-JinPark/claude/v5-protected-drift-criterion
+b6f23b5c fix(timeseries-v5): commit the read model only from main
+0671cc56 fix(timeseries-v5): judge protected isolation against the checkout, not a frozen manifest
+4c69b9d6 data: publish V13-VOL volatility base-rate pointer
+1eaca4b2 Merge pull request #181 from Sung-JinPark/claude/roadmap-provenance
+63eb0b97 fix(tools): 로드맵 상태에 읽은 체크아웃 표시 — 낡은 워크트리를 조용히 보고하던 것
+e71be0bb Merge pull request #179 from Sung-JinPark/claude/v13-mobile-default
+9708a9fb data: publish V13-VOL volatility base-rate pointer
+27ac91a3 data: monitor candidate sources 2026-09-09
+2da700ed data: refresh NASDAQ time-series shadow 2026-09-09

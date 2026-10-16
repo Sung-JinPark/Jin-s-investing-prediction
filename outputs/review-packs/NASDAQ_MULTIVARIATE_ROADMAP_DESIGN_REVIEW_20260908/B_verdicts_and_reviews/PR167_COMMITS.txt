@@ -1,0 +1,8 @@
+a789a2c2 Merge pull request #167 from Sung-JinPark/claude/v13-next
+bcae3076 Merge pull request #168 from Sung-JinPark/claude/analytics-owner-optout
+2df3a5fc Merge origin/main (8b546cc6) into claude/v13-next — inventory 재생성으로 충돌 해소
+3363f9fa feat(analytics): 소유자 방문을 GoatCounter 집계에서 제외 — 관리자 브라우저 기본 제외 + 토글
+8b546cc6 data: append V8 shadow forecast/resolution
+c9c88116 fix(v13-vol): 푸시 전 적대적 검토 정정 — band80 부트스트랩 좌표 고정·재동결(sha 1a857850…), 승인 영수증 시각 정정(r2), 홀드아웃 FAIL/계약 disarm/비-dict 포인터 페일클로즈, 원장↔포인터 교차검사, V2 refresh 종속 트리거, 라이브 전진 게이트 사전등록, 테스트 22건 추가
+4db7cde6 data: monitor candidate sources 2026-09-08
+f50f2e6b data: refresh NASDAQ time-series shadow 2026-09-08

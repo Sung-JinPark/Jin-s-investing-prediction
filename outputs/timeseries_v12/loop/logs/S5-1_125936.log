@@ -1,0 +1,36 @@
+S5-1 완료. 루프 마지막 태스크이자 종결 보고입니다.
+
+## 산출물
+
+| 파일 | 내용 |
+|---|---|
+| `docs/review/SUNDAY_LOOP_FINAL_REPORT.md` | §0 판정 ~ §9, 표 11종 전부 렌더러 출력 복사본 |
+| `data/timeseries_v12/reports/final_report.json` | 수치 원천 (생성기 `tools/v12_s5_report.py`) |
+| `data/timeseries_v12/reports/inventory_result.json` | inventory 재생성 기록 |
+| `outputs/timeseries_v12/loop/PR_BODY.md` | PR 본문 초안 (푸시 없음) |
+| `outputs/timeseries_v12/loop/results/S5-1.json` | 루프 종결 result JSON |
+
+커밋 2건: `b0982528`(보고·산출물) · `18d9e3a0`(result JSON + 대사 자동화)
+
+## 핵심 결과
+
+- **루프 13/13 완료** — 부분완료 0·차단 0·금지 verb 실행 0·백테스트 0회·홀드아웃 미접촉
+- **무결성 재대사**: 12태스크가 선언한 산출물 83개 + result 12종 = 95파일 재해시 → **drift 0·missing 0**, 루프 앵커 `c2d28a6c…`. CKPT 앵커 `a4b817d4…` 재현 → 체크포인트 이후 상류 무변경
+- **봉인** `e3ff2fdb…`·**V8 원장** `b9c492be…` BOOT 기준선 일치, 불변 경로 변경 0
+- **inventory**: `docs/generated/inventory.generated.md` 1건만 갱신 — 계약 53→54(V12 draft 추가분)와 fingerprint. 질문·예측·해소·원장 수치는 전부 불변
+- **미완 정직 기록**: 12태스크 `not_done` 57건·`open_questions` 76건 전량 수집·분류. '후속 태스크가 실제로 낸 것' 8건을 분리해 **루프 밖으로 나가는 미완 49건**을 따로 계산
+- **결정표 V12-D1~D5** — '되돌릴 수 있는가' 축으로 정렬. D1·D2·D5는 되돌릴 수 있고 미루는 비용 0, D3는 표시 후 되돌리기 어렵고, D4는 외부 발송이라 되돌릴 수 없음. **D2만 시점 의존적** — 후보가 0인 지금이 사후 완화 없이 임계를 정할 수 있는 마지막 시점
+
+## 검증
+
+`tools/v12_s5_doc_check.py` **29항목 전부 PASS** (표 140행 바이트 일치·산문 소수 27개 전부 원천 유래·음성 대조 2종 포함), `tools/v12_s5_result_check.py` **71항목 전부 PASS**, pytest 4 passed(`test_inventory`·`test_integrity_context`).
+
+검사가 초안 오류 3건을 잡았고 `corrections`에 남겼습니다. 그중 둘이 재사용할 함정입니다 — ① 보고서 산문수치 후보집합에 자기 result JSON을 넣으면 음성대조값 자체가 '원천의 수'가 되어 검사가 무너짐 ② 금지 verb를 낱말로 찾으면 `Path.resolve()`·`ingest.sync()`·`"…/holdout"` 경로·자기 주석의 `git push`를 스스로 적발함 → AST 호출노드 기준으로 좁히고 양방향 대조 추가.
+
+## 두 가지 짚어둘 점
+
+**envelope와 헌법 충돌 1건**: spec은 `cd src && python -m ai_fc inventory`를 지시했으나 헌법 §1이 그 실행을 금지합니다. 우회가 아니라 `cmd_inventory`의 호출(connect→sync(strict)→write_inventory)을 같은 순서·인자로 재현했고, 근거를 스크립트 독스트링·보고서 §5·result JSON 세 곳에 적었습니다.
+
+**PR 범위 주의**: 브랜치가 main보다 545 커밋 앞서 있어 브랜치 전체를 PR로 열면 루프 밖 작업이 함께 실립니다. 이번 루프 기여는 `af7b8d63^..HEAD` 30커밋/123파일이며, 범위 분리는 사용자 판단입니다. push·PR 생성·원격 접촉 0.
+
+RESULT: 완료

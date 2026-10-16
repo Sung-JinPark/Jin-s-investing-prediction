@@ -1,0 +1,23 @@
+{
+  "as_of": "2026-10-16T09:00:00+09:00",
+  "price_cutoff": "2026-10-15",
+  "official_forecast": false,
+  "scope": "independent research; no production model, API, database, ledger or site changes",
+  "ratio_storage_unit": "fraction",
+  "probabilities": null,
+  "horizons_trading_sessions": [
+    126,
+    252
+  ],
+  "future_loss_event": "min(P[t]/P[as_of]-1) <= -0.20 over the specified future horizon",
+  "future_max_drawdown": "min(P[t]/running_max(P[as_of:t])-1), distinct from loss versus origin",
+  "primary_comparison": [
+    "SSE Composite",
+    "KOSPI"
+  ],
+  "supplement": "SSE A Share",
+  "alignment": "fixed 19 calendar years; 2006/2025 first trading close normalized to 100",
+  "global_rank": "require common provider, contemporaneous ACWI country universe and earnings definition; otherwise unverified",
+  "missing_data_policy": "null with reason; no clipping, interpolation, unit guessing or hidden normalization",
+  "historical_information_policy": "later yearbooks describe outcomes; not available-at evidence for past decisions"
+}

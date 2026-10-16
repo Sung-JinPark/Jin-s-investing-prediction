@@ -53,9 +53,32 @@ outputs/timeseries_v12/loop/*nohup*
 outputs/timeseries_v12/loop/*head_before*
 outputs/timeseries_v12/loop/_*.json
 
+# Daily6m full simulated paths and local writer locks are artifact-only.
+/outputs/timeseries_daily6m/paths/
+/outputs/timeseries_daily6m/.writer.lock
+
+# Market-context full joint paths and local locks are optional research artifacts.
+/outputs/market_context/paths/
+/outputs/market_context/.writer.lock
+/outputs/market_context_preview/
+/outputs/market_context_checks/
+
 # FirstRate raw (라이선스: raw 재배포 금지 — 로컬 전용)
 data/intraday/firstrate_raw/
 
 # 2026-09-10 백업 정리 — 유일본 보존 아카이브 (커밋 대상 아님)
 _archive_v7_rundata_20260825/
 _archive_backup_unique_20260910/
+
+# Research: keep processed reports/analysis only; third-party originals stay local (2026-10-16)
+reports/research/**/sources/
+reports/research/**/source_html/
+reports/research/**/source_pdfs/
+reports/research/**/raw/
+reports/research/**/downloads/
+reports/research/**/context/
+reports/research/**/*.pdf
+reports/research/**/source_*.html
+# SQLite transient files
+*.sqlite-shm
+*.sqlite-wal

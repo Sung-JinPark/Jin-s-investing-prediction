@@ -1,0 +1,126 @@
+{
+  "schema_version": 1,
+  "reviewed_at_utc": "2026-10-16T01:02:48.185060+00:00",
+  "research_as_of": "2026-10-16T09:00:00+09:00",
+  "price_cutoff": "2026-10-15",
+  "scope_ko": "통합보고서의한국수치·판정·선후관계·PIT서술독립대조. 중국측새원문수치의독립감사는타담당자검토범위.",
+  "verdict": "passed_subject_to_known_BOK_wording_correction",
+  "checks": [
+    {
+      "check": "Samsung_Q3_preliminary",
+      "passed": true,
+      "detail_ko": "107.4조원은잠정치이며89.492412조원대비20.0102%증가. 보고서는종료분기실적과FY2027전망을구분함."
+    },
+    {
+      "check": "September_semiconductor_exports",
+      "passed": true,
+      "detail_ko": "603.3억달러와전년비262.8%는10월14일ICT공식발표값. 미래주문으로대체하지않음."
+    },
+    {
+      "check": "May_guidance_July_August_actual_hikes",
+      "passed": true,
+      "detail_ko": "5월28일2.50%동결·인상예고→6월22일고점→7월16일2.75%→8월27일3.00%순서일치. 7월15일종가7284.41/9114.55-1=-20.0793%로본문20.08%일치."
+    },
+    {
+      "check": "Current_rate_scope",
+      "passed": true,
+      "detail_ko": "공식실제변경표마지막8월27일3.00%,정책일정8월27일다음10월22일예정. 9월금통위의사록공개를추가금리결정으로세지않고현재조회빈티지한계를공개함."
+    },
+    {
+      "check": "Retail_conditional_sample",
+      "passed": true,
+      "detail_ko": "본문83행은5%이상급락일의개인순매수평균7.3→3.5조원(약-52.1%)임을명시. 전체월평균/순매도전환으로대체하지않음."
+    },
+    {
+      "check": "Credit_scope_and_liquidation",
+      "passed": true,
+      "detail_ko": "63.2→56.0조원은-11.3924%,8월말33.3조원은별도신용융자범위로구분. 잔액감소를반대매매액으로대체하지않고10월재청산은미확인으로유지. 범주명미세권고는별도기록."
+    },
+    {
+      "check": "Deposits_not_market_flow",
+      "passed": true,
+      "detail_ko": "예탁금6~8월감소후9월+5조원으로지속이탈서사를제한. 단일순매수/예탁금/신용지표를바닥·붕괴신호로사용하지않는다고명시함."
+    },
+    {
+      "check": "Policy_rate_vs_credit_crisis",
+      "passed": true,
+      "detail_ko": "정책긴축과CP상승은관찰하되AA-3년스프레드68bp불변을분리해광범위신용위기로일반화하지않음."
+    },
+    {
+      "check": "Current_EPS_revision_missing",
+      "passed": true,
+      "detail_ko": "고정FY2027·공통제공자·동일구성패널미확보를현재미확인으로표시. 높은실현이익을전망하향부재로대체하지않음."
+    },
+    {
+      "check": "PIT_and_causality",
+      "passed": true,
+      "detail_ko": "판단09:00KST·가격10월15일종가고정. 관측기간/공개일을구분하고회고수집·원빈티지미인증을공개. 긴축/수급의가격하락기여도를순서만으로추정하지않음."
+    }
+  ],
+  "required_corrections": [
+    {
+      "id": "KR-R01",
+      "severity": "wording_correction_already_committed_by_parent",
+      "locations": [
+        "report.md:66",
+        "report.md:87"
+      ],
+      "issue_ko": "8월무렵상향이라는관측일확정은원문보다구체적임.",
+      "requested_ko": "9월10일보고서의최근상황정성평가이며문장자체의관측일·표본·제공자·전망연도·EPS/OP는불명으로정정.",
+      "known_parent_action": "Parent stated this correction will be applied."
+    }
+  ],
+  "nonblocking_advisories": [
+    {
+      "id": "KR-A01",
+      "severity": "nonblocking_precision",
+      "locations": [
+        "report.md:81",
+        "report.md:93"
+      ],
+      "issue_ko": "요약의일반적인매수규모/매수여력축소는본문의급락일조건부평균보다범위가넓거나매수능력으로읽힐수있음.",
+      "suggested_ko": "급락일의개인매수완충약화로좁히면더정확함. 본문83행의제한은이미적절함."
+    },
+    {
+      "id": "KR-A02",
+      "severity": "nonblocking_source_category_label",
+      "locations": [
+        "report.md:85"
+      ],
+      "issue_ko": "원표분류는증권담보대출이며주식담보대출보다넓음.",
+      "suggested_ko": "주식담보대출→증권담보대출로원표명칭을맞춤."
+    }
+  ],
+  "quantitative_or_causal_blocking_defects": [],
+  "report_snapshot_sha256": "2c94838a48928144d46911df4a511f96f3b24d9b89325b52f804fa6929122565",
+  "evidence_snapshot_sha256": "d8a82ac249be77d0eac95bed7b71cf62d5c7069f7d55abc3e3b289c35191d5ab",
+  "parent_report_mutated": false,
+  "new_source_collection": false,
+  "final_snapshot_confirmation": {
+    "recorded_at_utc": "2026-10-16T01:03:27.965791+00:00",
+    "final_report_sha256": "f8b38b7f05598201f59fa7bf9e9b644b03e8d58dd69ca8c3f747dbe711493fee",
+    "original_review_hash_preserved": true,
+    "resolved_wording_items": [
+      {
+        "id": "KR-R01",
+        "resolved": true,
+        "change_ko": "9월10일보고서의최근상황정성평가이며정확한관측일불명으로한정"
+      },
+      {
+        "id": "KR-A01",
+        "resolved": true,
+        "change_ko": "요약의범위를급락일개인매수완충약화로한정"
+      },
+      {
+        "id": "KR-A02",
+        "resolved": true,
+        "change_ko": "증권담보대출로원표범주명을일치시킴"
+      }
+    ],
+    "confirmation_basis": "Parent reported all three prose-only recommendations applied; final artifact hash recorded without repeating numeric validation or source collection.",
+    "final_verdict": "passed_with_explicit_data_limitations",
+    "new_source_collection": false,
+    "numeric_validation_repeated": false,
+    "parent_report_mutated": false
+  }
+}

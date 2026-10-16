@@ -1,0 +1,32 @@
+test_after_cutoff_rejected (test_price_analytics.PriceAnalyticsTests.test_after_cutoff_rejected) ... ok
+test_constant_and_small_samples_not_false_correlations (test_price_analytics.PriceAnalyticsTests.test_constant_and_small_samples_not_false_correlations) ... ok
+test_duplicates_rejected (test_price_analytics.PriceAnalyticsTests.test_duplicates_rejected) ... ok
+test_fixed_calendar_shift (test_price_analytics.PriceAnalyticsTests.test_fixed_calendar_shift) ... ok
+test_fx_no_same_date_is_unavailable (test_price_analytics.PriceAnalyticsTests.test_fx_no_same_date_is_unavailable) ... ok
+test_fx_quotation_direction (test_price_analytics.PriceAnalyticsTests.test_fx_quotation_direction) ... ok
+test_invalid_prices_rejected (test_price_analytics.PriceAnalyticsTests.test_invalid_prices_rejected) ... ok
+test_known_opposite_correlation (test_price_analytics.PriceAnalyticsTests.test_known_opposite_correlation) ... ok
+test_missing_currency_rejected (test_price_analytics.PriceAnalyticsTests.test_missing_currency_rejected) ... ok
+test_missing_month_not_filled (test_price_analytics.PriceAnalyticsTests.test_missing_month_not_filled) ... ok
+test_missing_provenance_rejected (test_price_analytics.PriceAnalyticsTests.test_missing_provenance_rejected) ... ok
+test_missing_week_not_filled (test_price_analytics.PriceAnalyticsTests.test_missing_week_not_filled) ... ok
+test_n_returns_require_n_plus_one_closes (test_price_analytics.PriceAnalyticsTests.test_n_returns_require_n_plus_one_closes) ... ok
+test_rank_ties_are_averaged (test_price_analytics.PriceAnalyticsTests.test_rank_ties_are_averaged) ... ok
+test_summary_has_true_path_drawdown (test_price_analytics.PriceAnalyticsTests.test_summary_has_true_path_drawdown) ... ok
+test_unverified_global_benchmark_is_suppressed (test_price_analytics.PriceAnalyticsTests.test_unverified_global_benchmark_is_suppressed) ... ok
+test_wrong_currency_and_adjustment_rejected (test_price_analytics.PriceAnalyticsTests.test_wrong_currency_and_adjustment_rejected) ... ok
+test_drawdown_is_distinct_from_origin_loss (test_research_math.ResearchMathTests.test_drawdown_is_distinct_from_origin_loss) ... ok
+test_exact_twenty_percent_loss_counts (test_research_math.ResearchMathTests.test_exact_twenty_percent_loss_counts) ... ok
+test_growth_can_coexist_with_price_loss (test_research_math.ResearchMathTests.test_growth_can_coexist_with_price_loss) ... ok
+test_incompatible_profit_units_rejected (test_research_math.ResearchMathTests.test_incompatible_profit_units_rejected) ... ok
+test_invalid_inputs_are_rejected_not_clipped (test_research_math.ResearchMathTests.test_invalid_inputs_are_rejected_not_clipped) ... ok
+test_joint_eps_and_multiple_shock_is_multiplicative (test_research_math.ResearchMathTests.test_joint_eps_and_multiple_shock_is_multiplicative) ... ok
+test_negative_or_empty_price_path_rejected (test_research_math.ResearchMathTests.test_negative_or_empty_price_path_rejected) ... ok
+test_profit_growth_concentration_not_market_contribution (test_research_math.ResearchMathTests.test_profit_growth_concentration_not_market_contribution) ... ok
+test_required_multiple_for_twenty_percent_loss (test_research_math.ResearchMathTests.test_required_multiple_for_twenty_percent_loss) ... ok
+test_unit_is_not_inferred_from_magnitude (test_research_math.ResearchMathTests.test_unit_is_not_inferred_from_magnitude) ... ok
+
+----------------------------------------------------------------------
+Ran 27 tests in 0.017s
+
+OK

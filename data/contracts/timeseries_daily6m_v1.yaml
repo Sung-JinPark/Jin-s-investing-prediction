@@ -1,0 +1,98 @@
+schema_version: 1
+contract_id: timeseries_daily6m_v1
+model_id: research.nasdaq_daily6m_varx_v1
+model_version: 1
+status: independent_research_preview
+target:
+  series_id: NASDAQCOM
+  exchange: XNAS
+  calendar_months: 6
+  calendar_end_rule: same_day_clamped_to_month_end
+  sessions: all_exchange_sessions_after_origin_through_calendar_end
+  transform: daily_log_return
+  stored_return_unit: fraction
+probability_contract:
+  stored_unit: fraction
+  bounds: [0.0, 1.0]
+  space: research_timeseries_daily6m_conditional
+  daily_event: index_at_target_session_gt_index_at_previous_session
+  origin_relative_event: index_at_target_session_gt_origin_close
+  tie_rule: unchanged_is_not_up
+  combine_with_official_forecasts: false
+  combine_with_scenarios: false
+model:
+  family: correlated_ridge_varx_joint_paths
+  immutable_kernel: timeseries_v2
+  minimum_training_sessions: 800
+  endogenous: [nasdaq_return, vix_change, dgs2_change_bps, curve_change_bps, dollar_change]
+  exogenous: [growth_factor, inflation_factor, dfm_age_since_release]
+  lag_candidates: [1, 2, 5]
+  ridge_alpha_candidates: [0.0001, 0.001, 0.01, 0.1, 1.0, 10.0, 100.0]
+  inner_purge_sessions: 63
+  inner_embargo_sessions: 5
+  rolling_sessions: 2520
+  ensemble_weights: {expanding: 0.5, rolling_10y: 0.5}
+  path_count: 20000
+  block_length_candidates: [5, 10, 21]
+  ewma_lambda_candidates: [0.94, 0.97]
+  distribution_validation_horizon: 21
+  exogenous_projection: latest_known_values_held_constant
+  per_horizon_calibration: none
+  seed_rule: sha256_model_id_model_version_origin_session
+  quantiles: [0.10, 0.25, 0.50, 0.75, 0.90]
+  displayed_sample_paths: endpoint_rank_nearest_10_25_50_75_90_percentiles
+comparison:
+  v8_reference: raw_joint_kernel_only_same_inputs_same_horizon_same_seed
+  v8_calibrated_marginals_inherited: false
+  fhs:
+    role: independent_benchmark_only
+    paths: all_completed_contiguous_full_horizon_windows
+    ewma_lambda: 0.97
+    burn_in_sessions: 60
+    drift: expanding_mean
+    scale: current_ewma_over_historical_window_start_ewma
+    calibration: none
+data_policy:
+  native_market_series: [NASDAQCOM, VIXCLS, DGS2, T10Y2Y, DTWEXB, DTWEXBGS]
+  curve_source: native_T10Y2Y
+  dollar_source_switch_session: 2019-01-02
+  level_carry: explicitly_audited_latest_known_macro_and_rate_levels
+  target_and_vix_missing_session: hold
+  issuance_available_at_required: true
+  maximum_input_availability: forecast_as_of
+  native_vintages_and_capture_times_preserved: true
+  historical_capture_not_relabelled_as_past_availability: true
+  unresolved_gaps_or_features: reject_with_auditable_reason
+  no_input_collection_or_secrets_in_generation: true
+freshness:
+  required_market_max_age_hours: 48
+  dollar_max_age_hours: 216
+  origin_warn_after_sessions: 1
+  origin_hold_after_sessions: 10
+cadence:
+  forecast: weekly_last_completed_session
+  immutable_revisions_with_supersedes: true
+preview_gate:
+  future_input_leakage_count: 0
+  lineage_linkage: 1.0
+  shared_daily_joint_paths: true
+  finite_positive_index_paths: true
+  ordered_quantiles: true
+  probability_bounds: [0.0, 1.0]
+  same_input_replay_tolerance: 0.000000000001
+  raw_v8_identity_tolerance: 0.000000000001
+  comparison_report_required: true
+  requires_predictive_performance_pass: false
+publication:
+  tier: research_preview
+  predictive_validation: not_established
+  caveat: "연구 프리뷰 · 일별 및 6개월 전망의 전진 검증 전"
+  pointwise_bands_are_not_simultaneous_path_coverage: true
+  official_ledger_write: false
+  automatic_promotion: false
+evaluation:
+  historical_windows_not_reopened: [2015_2018_holdout, 2019_plus_sealed]
+  genuine_pit_only_for_predictive_scoring: true
+  late_capture_history_is_not_a_pit_validation_pass: true
+  forward_resolutions: append_only_after_close_and_observation_availability
+  future_promotion: separate_preregistered_contract_and_owner_decision

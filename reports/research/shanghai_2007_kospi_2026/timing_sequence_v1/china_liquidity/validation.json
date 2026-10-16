@@ -1,0 +1,17 @@
+{
+  "status": "passed",
+  "retained_valid_source_hashes_checked": 44,
+  "monthly_observations": 18,
+  "all_reported_trading_day_counts_match_SSE_actual": true,
+  "rrr_2007_announcements": 10,
+  "rrr_2007_effective_hikes": 10,
+  "benchmark_rate_2007_hikes": 6,
+  "timeline_rows": 70,
+  "original_price_input_unchanged": true,
+  "published_daily_averages_within_standard_rounding_all": false,
+  "arithmetic_discrepancies_preserved_without_correction": true,
+  "maximum_published_daily_average_discrepancy_CNY_100million": 0.018333333333430346,
+  "retail_net_flow_verified": false,
+  "forced_liquidation_verified": false,
+  "unique_retail_person_count_verified": false
+}

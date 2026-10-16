@@ -1,0 +1,98 @@
+{
+  "created_at_utc": "2026-10-16T01:56:47.721870+00:00",
+  "price_cutoff": "2026-10-15",
+  "image_comparison_cutoff": "2026-10-14",
+  "research_only": true,
+  "probability_outputs": [],
+  "source_csv_relative_to_study": "prices/prices.csv",
+  "source_sha256": "77049dd7d90c981b73000d78e0c4897171941451f24e814b865acdb9a9940715",
+  "attachments": [
+    {
+      "path": "C:/Users/91ssj/AppData/Local/Temp/codex-clipboard-e2001a52-b398-4d23-ba9d-1cb3120759ec.png",
+      "sha256": "713a208a87f702634840dd88a9d2fe48a7de90ff91439765267e2ef2f4cc7474"
+    },
+    {
+      "path": "C:/Users/91ssj/AppData/Local/Temp/codex-clipboard-11a904a2-2274-4eb1-8dfc-ce69c3b70acb.png",
+      "sha256": "a6fd9094bad26c6cae8305909a2be7996fa4d69be363bceb782376941f9d7587"
+    },
+    {
+      "path": "C:/Users/91ssj/AppData/Local/Temp/codex-clipboard-827bae96-81eb-4ac7-a1dc-972d4c72fa8c.png",
+      "sha256": "f7d311fffce317609d028b696879958b861225f8c0692611da47929fb8dc65c7"
+    }
+  ],
+  "anchors": {
+    "KOSPI": {
+      "index_id": "KOSPI",
+      "label_ko": "코스피",
+      "box_start": "2026-02-26",
+      "box_start_close": 6307.27,
+      "box_low": "2026-03-31",
+      "box_low_close": 5052.46,
+      "box_first_closing_recovery": "2026-04-21",
+      "recovery_close": 6388.47,
+      "actual_return_intervals": 37,
+      "observed_peak": "2026-06-22",
+      "peak_close": 9114.55,
+      "return_unit": "fraction",
+      "box_drawdown_fraction": -0.198946612401245
+    },
+    "SSE_A": {
+      "index_id": "SSE_A",
+      "label_ko": "상해 A주",
+      "box_start": "2007-05-29",
+      "box_start_close": 4544.48,
+      "box_low": "2007-07-05",
+      "box_low_close": 3794.38,
+      "box_first_closing_recovery": "2007-07-26",
+      "recovery_close": 4558.54,
+      "actual_return_intervals": 42,
+      "observed_peak": "2007-10-16",
+      "peak_close": 6395.76,
+      "return_unit": "fraction",
+      "box_drawdown_fraction": -0.16505738830405225
+    }
+  },
+  "attachment_index": "SSE_A, 000002.SS; attachment intraday high 6429.68 differs from Composite 6124.04",
+  "boundary_rule": "Hand-drawn boxes interpreted as the completed closing-price correction, not exact pixel tracing",
+  "time_transforms": {
+    "actual_trading_days": {
+      "KOSPI": 1.0,
+      "SSE_A": 1.0
+    },
+    "box_width_matched": {
+      "KOSPI": 1.0,
+      "SSE_A": 0.8809523809523809
+    }
+  },
+  "vertical_transform": "Each index divided by its own box-start close times100; no independent trough/peak fitting",
+  "window_bounds": {
+    "box_width_matched": {
+      "KOSPI": {
+        "first_date": "2025-07-01",
+        "last_date": "2026-10-15",
+        "last_x": 154.0
+      },
+      "SSE_A": {
+        "first_date": "2006-12-01",
+        "last_date": "2008-02-13",
+        "last_x": 153.28571428571428
+      }
+    },
+    "actual_trading_days": {
+      "KOSPI": {
+        "first_date": "2025-07-01",
+        "last_date": "2026-10-15",
+        "last_x": 154.0
+      },
+      "SSE_A": {
+        "first_date": "2006-12-01",
+        "last_date": "2008-01-09",
+        "last_x": 154.0
+      }
+    }
+  },
+  "extra_Korean_point": "October15 is an observed close, dashed to distinguish from the October14 image cutoff",
+  "future_Korean_path": null,
+  "no_outcome_optimization": true,
+  "no_official_model_changes": true
+}

@@ -1,0 +1,1112 @@
+{
+ "_note": "설계자 3렌즈(classical 8 · ml 8 · infoset 8)가 낸 원안 24개 — 반박 검증 이전 상태. 회의론자 2명의 판정과 최종 점수는 01b 와 본문 §5 에 반영되어 있다.",
+ "vetted_count": 24,
+ "survivors_after_fatal_refutation": 23,
+ "directions": [
+  {
+   "id": "infoset-1",
+   "name": "VIX 기간구조·VVIX·SKEW 지수 → V13 변동성 이벤트 셀의 PB 대비 증분 (0 신규 데이터)",
+   "hypothesis": "조건 시점의 VIX 기간구조 기울기 ln(VIX/VIX3M)·ln(VIX9D/VIX), VVIX(vol-of-vol), SKEW(리스크중립 왜도)를 '당일 VIX 수준 단독' 로짓(PB, V13 champion)에 중첩 추가하면 P(VIX≥K within h)의 쌍대 Brier가 PB 대비 early↔late 양방향 CI90 하한>0으로 개선된다. 기대가 가장 큰 셀은 vix25/vix30 × h5/h21(기울기가 VIX의 단기 평균회귀·롤 방향을 담음). 반증 조건: 9셀×4피처 중 양방향 채택 0, 또는 y-block 귀무 통과율>0.10.",
+   "information_set": "옵션 시장의 만기 간 IV 구조(9일/30일/3개월)·vol-of-vol·행사가 비대칭 — 일간 종가 정보집합(수익률·VIX 종가·금리·달러)에는 없는 옵션 파생 정보. 데이터는 이미 저장소에 있음: data/timeseries_v4/ledgers/observations.jsonl 실측 SKEW 1990-01-02~2026-08-20(9,210행), VVIX 2006-03-06~(5,087행), VIX3M 2009-09-18~(4,256행), VIX9D 2011-01-04~(3,930행), 등급 reconstructed_market_archive(CBOE 공개 CSV).",
+   "method": "V13 사다리와 동일 적합기(tools/v13_vol_run._logit_fit = timeseries_v13/features.py::logit_fit: zscore ddof0·Newton 200·l2 1e-3)로 중첩 로짓 PB=[x_t] ⊂ PB+{slope} ⊂ PB+{slope, VVIX, SKEW}. 피처 1개씩 단독 ablation 4개 + 사전등록 조합 1개. 표적·K∈{25,30}·θ=0.1694·h∈{5,21,63}는 V13 계약 고정값을 그대로 재사용(새 표적 추가 없음). 파생 isotonic 없음(raw 확률로 판정). VIX3M은 설계창 부분 온셋이라 서브창(2009-09-18~2014-12-31, split 2012-03-31)을 사전등록; VIX9D(2011~)는 서브창 표본 부족으로 h63 셀 사전 제외.",
+   "papers": [
+    {
+     "citation": "Johnson (2017) 'Risk Premia and the VIX Term Structure', Journal of Financial and Quantitative Analysis",
+     "why": "VIX 기간구조 기울기가 VIX 선물 수익률·미래 VIX 변화를 예측 — 기울기 공변량의 직접 근거",
+     "confidence": "medium (저자 Travis L. Johnson, JFQA 2017로 기억하나 권·호 미확인)"
+    },
+    {
+     "citation": "Mixon (2007) 'The implied volatility term structure of stock index options', Journal of Empirical Finance",
+     "why": "기간구조가 기대가설 대비 미래 단기 IV를 과대예측하지만 방향 정보는 있음 — 계수 부호 기대(backwardation→상승) 사전등록 근거",
+     "confidence": "medium"
+    },
+    {
+     "citation": "Huang, Schlag, Shaliastovich & Thimme (2019) 'Volatility-of-Volatility Risk', Journal of Financial and Quantitative Analysis",
+     "why": "VVIX가 vol-of-vol 위험 프리미엄을 담아 VIX 급등 확률 정보를 가질 수 있음",
+     "confidence": "medium"
+    },
+    {
+     "citation": "Bekaert & Hoerova (2014) 'The VIX, the variance premium and stock market volatility', Journal of Econometrics",
+     "why": "VIX와 RV의 결합이 미래 실현변동성 예측을 개선 — rv 셀에서 VIX 파생 정보의 증분 근거",
+     "confidence": "high"
+    },
+    {
+     "citation": "Simon & Campasano (2014) 'The VIX Futures Basis: Evidence and Trading Strategies', Journal of Derivatives",
+     "why": "VIX 선물 베이시스(≈기간구조)가 VIX 변화를 예측한다는 실증 — 단 수익률 전략 문헌이라 이벤트 확률로의 전이는 [미검증]",
+     "confidence": "medium"
+    },
+    {
+     "citation": "Christensen & Prabhala (1998) 'The relation between implied and realized volatility', Journal of Financial Economics",
+     "why": "IV가 역사 변동성을 포섭 — PB(VIX 수준)가 강한 기준선인 이유이자 증분이 작을 것이라는 정직한 사전의 근거",
+     "confidence": "high"
+    }
+   ],
+   "data_needed": "V4 스토어(기보유, $0). PIT: reconstructed_market_archive(available_at ≤ origin, native PIT 아님 명기). 라이선스: CBOE 공개 CSV는 12-1/12-5 회색지대(내부 연구는 기존 판정 범위, 라이브 표시는 cboe_permission_request_draft 미발송 caveat). VVIX·SKEW는 설계창 전체, VIX3M/VIX9D는 서브창 프로토콜(V9-D7 선례).",
+   "governance_fit": "결정론 로짓의 design 창 적합·워크포워드(dualdb 스펙 v1.0 §8 예외, DECISIONS 8-6) — 산출은 base rate 참조이지 캘리브레이션 표본 아님, K·θ·창 선택이 정점지식을 간접 내포한다는 caveat 유지. V13 계약은 champion 확정·예산 3/8·post_hoc_target_addition 금지 상태이므로 V13 rung 추가가 아니라 **새 계약 ID(예: multivariate_timeseries_v14_vol_options)**로 개설 — V13 동결 계수(sha256 1a857850…)·T3 라이브 카드·V8/V2 봉인 바이트 무접촉. LLM 개입 0. 홀드아웃(2015–2018)은 사전등록 finalist 1회·사용자 승인 원문 시에만, 봉인 미열람. 출력은 참고 의견(P3 게이트 전 자본 결정 근거 아님).",
+   "test_protocol": "① 사전등록 커밋(피처 정의·서브창·split·조합 1개·계수 부호 기대·예산 ≤6) → ② design 2007–2014 양방향 전이(early 2007–2010 ↔ late 2011–2014; 서브창은 전반↔후반) → ③ 쌍대 Brier d_t = BS_PB − BS_cand, stationary block bootstrap ℓ=13·B=2000·seed 사전 고정·CI90 [5,95] 하한>0 양방향(엄격) → ④ 건전 음성대조 = y-block(ℓ=13) 순열 통과율 ≤0.10(p-순열 금지) → ⑤ MDE=1.645·se 셀별 병기, |Δ|<MDE는 '결정적 증거 없음' → ⑥ 다중검정: 9셀×(4단독+1조합)=45검정 → Benjamini & Hochberg (1995) FDR 0.10 또는 Romano & Wolf (2005) stepdown을 계약에 처음 정식 도입(현 저장소는 family P(k≥k_obs) 이항 근사만) → ⑦ 상위 5% 원점 제거 후 부호 유지(V10 위기원점 인공물 검사) → ⑧ 통과 셀만 finalist → 홀드아웃은 'V14-D3' 승인 원문 시 1회, 결과 무관 원장 append. in-sample 통과 ≠ 채택.",
+   "expected_effect": "문헌상 기간구조 기울기는 VIX 단기 변화의 유의한 예측변수이나 표적이 '수준 터치'라 PB가 대부분을 설명. 정직한 사전: vix25/30 h5·h21 셀 BSS(vs PB) +1~4%p, h63 ≈0, rv 셀 ≈0. 서브창 표본(VIX3M 약 1,330거래일, ℓ=13 유효표본 ≈100)이라 MDE가 커 '결정적 증거 없음' 판정 확률 높음. 최소 1셀 양방향 채택 확률(주관) 30~40%. 실패해도 '옵션 지수 수준은 PB를 넘지 못한다'는 측정된 영이 infoset-2(행사가 표면 구매) 결정의 근거가 됨.",
+   "cost": "데이터 $0 · 계산 노트북급(로짓 45개×부트 2000 ≈ 수십 분) · 엔지니어링 3~5일(계약·도구·테스트·리뷰팩).",
+   "stage": "사전등록 → 설계창(서브창 포함, 예산 ≤6) → (사용자 승인) 홀드아웃 1회 → T0 내부 산출·T1 리뷰팩. 통과 시 V13 카드에 셀 추가가 아니라 별도 카드로 T2 숨김 패널 → T3(참고 의견·홀드아웃 caveat)까지만. T4 없음.",
+   "why_not_already_refuted": "V4(pit_market_event_distribution_v4)는 같은 지수들을 **가격 분포 CRPS 표적**의 event-state 성분으로 넣어 HOLD였고, 단독 ablation·변동성 이벤트 표적으로는 미검정. V13 rung-1~3은 VIX·NASDAQCOM 두 계열만 사용(계약 data_policy.series) — 기간구조·VVIX·SKEW는 정보집합에 없었다. V11 P4(누적 vix_change − RV21 = VRP 프록시)는 평시 하위 80% 서브샘플에서 V8 PIT/CRPS 결함을 예측하는 검정이라 표적·표본 모두 다르다."
+  },
+  {
+   "id": "infoset-2",
+   "name": "QQQ 옵션 표면(CBOE DataShop EOD) → 리스크중립 꼬리 확률·VRP 공변량의 가격 꼬리 이벤트 hazard",
+   "hypothesis": "행사가별 IV 표면에서 추출한 리스크중립 종점 확률 ln P_Q(S_T ≤ 0.9·S_0)(Breeden–Litzenberger), 25Δ 풋–콜 IV 스큐, 좌측 꼬리 지수(Bollerslev–Todorov), VRP=IV²−RV²를 공변량으로 한 이산시간 hazard 모형은 EWMA σ 단독 로짓(PB σ)·반사원리 2Φ 대비 P(−10% 종가 터치 within h21/h63)의 쌍대 Brier를 양방향 CI90 하한>0으로 개선한다. 반증: h21·h63 모두 채택 실패, 또는 리스크중립 공변량 계수 부호가 early/late에서 반전.",
+   "information_set": "행사가 차원(만기×델타 IV 표면, 리스크중립 밀도·꼬리 프리미엄) — 캠페인 전체가 VIX 계열 '지수 수준'(ATM-ish 30일)만 보유했고 행사가 차원은 전무(외부 검토 §C-4 '유일한 미검증 정보집합'). QQQ는 NDX 지수옵션의 제3자 오버레이를 피하는 프록시(Composite↔NDX↔QQQ 이중 프록시 caveat).",
+   "method": "(a) EOD IV/그릭스(Calcs) → 만기 30/60/90일 델타 격자 보간 → Breeden–Litzenberger 리스크중립 CDF → 종점 확률 P_Q(S_T≤0.9S_0)·스큐·좌측 꼬리 지수·VRP 일간 시계열. (b) 이산시간 hazard: 일별 h_t = logit(a + b·z(σ_EWMA) + c·ln P_Q + d·skew + e·VRP), 지평 확률 = 1−∏(1−h_s), 검열 처리; 기준선 = PB σ 로짓(중첩) + 반사원리 2Φ(−ln0.9/(σ√T))·BGK 보정(0-파라미터). 리스크중립→물리 recovery(Ross)는 쓰지 않고 공변량으로만 투입(Borovička–Hansen–Scheinkman 반박 수용). 채점 Brier/log·Murphy 분해·AUC 병기.",
+   "papers": [
+    {
+     "citation": "Breeden & Litzenberger (1978) 'Prices of State-Contingent Claims Implicit in Option Prices', Journal of Business",
+     "why": "옵션 가격→리스크중립 밀도 추출의 원리 — P_Q 공변량 구성",
+     "confidence": "high"
+    },
+    {
+     "citation": "Bollerslev & Todorov (2011) 'Tails, Fears, and Risk Premia', Journal of Finance",
+     "why": "리스크중립 좌측 꼬리와 물리 꼬리의 괴리(공포 프리미엄)가 정보를 가짐 — 꼬리 지수 공변량 근거",
+     "confidence": "high"
+    },
+    {
+     "citation": "Bollerslev, Todorov & Xu (2015) 'Tail risk premia and return predictability', Journal of Financial Economics",
+     "why": "좌측 꼬리 프리미엄이 1~6개월 수익률을 예측 — h63 셀 기대의 근거",
+     "confidence": "high"
+    },
+    {
+     "citation": "Bollerslev, Tauchen & Zhou (2009) 'Expected Stock Returns and Variance Risk Premia', Review of Financial Studies",
+     "why": "VRP의 분기 지평 예측력(R² 수%) — 정직한 효과 크기 앵커",
+     "confidence": "high"
+    },
+    {
+     "citation": "Martin (2017) 'What is the Expected Return on the Market?', Quarterly Journal of Economics",
+     "why": "SVIX 하한 — 옵션 표면에서 물리 기대의 하한을 얻는 대안 공변량",
+     "confidence": "high"
+    },
+    {
+     "citation": "Bliss & Panigirtzoglou (2004) 'Option-Implied Risk Aversion Estimates', Journal of Finance",
+     "why": "리스크중립→물리 변환에 위험회피 보정이 필요함 — 왜 P_Q를 직접 확률이 아니라 공변량으로만 쓰는지",
+     "confidence": "medium"
+    },
+    {
+     "citation": "Borovička, Hansen & Scheinkman (2016) 'Misspecified Recovery', Journal of Finance",
+     "why": "Ross (2015) 'The Recovery Theorem', JF의 recovery가 일반적으로 오식별 — recovery 미사용 결정 근거",
+     "confidence": "medium"
+    }
+   ],
+   "data_needed": "Cboe DataShop QQQ 옵션 EOD IV/그릭스 2007~현재(DataShop 2004+). 질의 초안 docs/design/v13_cboe_datashop_qqq_request_260907.md 미발송(V12-D4, 사용자 결정) — §2b 파생표시 조건(재배포권 선택·역설계 불가·지수 아님) 확인 필요. PIT: as-traded EOD 스냅샷은 first-print 성격이나 벤더 이력이라 reconstructed_market_archive 등급 + 캡처 영수증(sha256). 비용: EOD $500/월급, 이력 일회 구매 견적 [미검증]. 진짜 일중 IV 표면 2007–2014는 무벤더 공백(조사 §4) — EOD로 한정.",
+   "governance_fit": "사용자 구매·발송 결정 선행(V12-D4). 결정론 모형 design 적합(§8 예외). 새 계약 ID; V8 first_touch 산출은 비교군으로 read-only 열람만 하되 R8-D4로 비공개 지표이므로 비교는 T0 내부 문서에 한정. 표시 시 '옵션 내재는 risk-neutral 측도 + QQQ 프록시 가정' 병기(CLAUDE.md 하드 게이트). V12 계약(negative_result_draft)은 무수정 — 이 트랙은 재보정 맵이 아니라 직접 hazard이므로 별개. 홀드아웃 승인 1회, 봉인 미열람, 참고 의견.",
+   "test_protocol": "① 사전등록(공변량 4개·hazard 형·기준선 2종·지평 {21,63}·예산 ≤8·계수 부호 기대) → ② design 2007–2014 양방향(early↔late) → ③ 쌍대 Brier vs PB σ 로짓 및 vs 반사원리, ℓ=13·B=2000·CI90 하한>0 양방향 → ④ y-block(ℓ=13) 귀무 ≤0.10 → ⑤ MDE 병기·검정력 공시(h21 터치 29건·h63 83건 = 설계창 실측, MDE 큼) → ⑥ 상위 5% 원점 제거 부호 유지 → ⑦ 2지평×(4단독+1조합)=10검정 BH 0.10 → ⑧ 홀드아웃 승인 시 1회. 표면 보간 손잡이(델타 격자·만기 보간법)는 결과 전 고정.",
+   "expected_effect": "캠페인 중 문헌 사전확률이 가장 높은 정보집합. 정직한 사전: h63·−10% BSS(vs PB σ) +2~6%p, h21은 표본 부족으로 MDE 미달 가능성 높음. 채택 확률(주관) 35~45%. 단 리스크중립 꼬리는 위기에서 급증·지속하므로 위기원점 인공물 검사(⑥)가 관건.",
+   "cost": "데이터 $500~수천(구매 방식별 견적 [미검증]) · 계산 중(표면 보간 8년×일간, 수시간) · 엔지니어링 10~15일(적재·PIT 영수증·표면 파이프라인·hazard·리뷰팩).",
+   "stage": "행정(질의 발송·구매 = 사용자) → 사전등록 → 설계창 → (승인) 홀드아웃 → T0/T1. 라이브 표시(T2→T3)는 Cboe §2b 허가 회신 후에만.",
+   "why_not_already_refuted": "행사가 차원 정보는 V1~V13 어디에도 없었다. V12는 V8 자체 first_touch 확률의 1-파라미터 재보정 맵(T1~T4)만 검정해 0/8·T5 실패였고, 직접 hazard 모형·외부 옵션 공변량은 미시도. V12 S2는 V8 접촉확률이 EWMA σ의 단조변환과 구분되지 않음을 보였으므로 'σ 밖의 정보'가 정확히 이 방향의 검정 대상."
+  },
+  {
+   "id": "infoset-3",
+   "name": "발표 캘린더(FOMC/CPI/NFP) + 고빈도 통화정책 서프라이즈 → 발표창 조건부 변동성 이벤트 hazard (0 신규 데이터 우선)",
+   "hypothesis": "조건 시점부터 h 영업일 내 예정된 FOMC·CPI·NFP 발표 수, 최근접 FOMC까지 거리, pre-FOMC 더미를 PB 로짓에 중첩하면 vix25/vix30/rv × h5 셀(및 약하게 h21)의 쌍대 Brier가 PB 대비 양방향 개선된다; h63 셀은 모든 창이 ~3회 FOMC를 포함하므로 증분 0(부정 대조 예측을 함께 등록). 2단계: 발표일 원점 서브패널에서 |통화정책 서프라이즈|(공개 학술 고빈도 시계열)가 21영업일 VIX≥25 터치 확률을 높인다. 반증: h5 3셀 전부 채택 실패.",
+   "information_set": "(1) 미래에 알려진 발표 일정 — 가격·거시 수준 어디에도 없는 '타이밍' 정보. 2007–2014 NFP·CPI 발표일은 저장소 ALFRED 스토어(data/timeseries/facts/observations.parquet)의 PAYEMS·CPIAUCSL vintage realtime_start 그 자체로 재구성 가능(native PIT, 신규 수집 0); FOMC 일정은 Fed 공식 역사 캘린더(공공저작물). (2) 고빈도 통화정책 서프라이즈(FOMC 발표 30분 창 fed funds/ED 선물 변화) — Nakamura–Steinsson(1995~2014), Bauer–Swanson(1988~2023) 공개 학술 시계열 [배포 약관 미검증]; 대안 프록시는 발표일 DGS2 일간 변화(V2 아카이브 기보유, 조야함).",
+   "method": "V13 적합기로 PB=[x_t] ⊂ PB+{n_fomc_in_h, n_cpi_nfp_in_h, days_to_next_fomc, pre_fomc_dummy} 중첩 로짓, 표적 V13 9셀 고정값 재사용. 2단계: FOMC 발표 다음 원점만의 서브패널(설계창 64회)에서 |surprise| 공변량 vs PB — 표본 부족을 사전에 인쇄. 채점 Brier/log·Murphy.",
+   "papers": [
+    {
+     "citation": "Savor & Wilson (2013) 'How Much Do Investors Care About Macroeconomic Risk? Evidence from Scheduled Economic Announcements', Journal of Financial and Quantitative Analysis",
+     "why": "예정 발표일에 위험 프리미엄·변동성이 집중됨 — 캘린더 공변량의 핵심 근거",
+     "confidence": "high"
+    },
+    {
+     "citation": "Lucca & Moench (2015) 'The Pre-FOMC Announcement Drift', Journal of Finance",
+     "why": "FOMC 전 24시간 드리프트·변동성 패턴 — pre_fomc 더미 근거",
+     "confidence": "high"
+    },
+    {
+     "citation": "Andersen, Bollerslev, Diebold & Vega (2003) 'Micro Effects of Macro Announcements: Real-Time Price Discovery in Foreign Exchange', American Economic Review",
+     "why": "발표 서프라이즈가 가격·변동성에 즉각 반영됨 — 2단계 서프라이즈 공변량 근거",
+     "confidence": "high"
+    },
+    {
+     "citation": "Bomfim (2003) 'Pre-announcement effects, news effects, and volatility: Monetary policy and the stock market', Journal of Banking & Finance",
+     "why": "FOMC 전 변동성 억제·후 확대 패턴 — h5 셀 비대칭 기대",
+     "confidence": "medium"
+    },
+    {
+     "citation": "Nakamura & Steinsson (2018) 'High-Frequency Identification of Monetary Non-Neutrality: The Information Effect', Quarterly Journal of Economics",
+     "why": "공개된 30분 창 통화정책 충격 시계열(설계창 커버) — 데이터 소스; 배포 약관은 [미검증]",
+     "confidence": "medium (논문 high, 데이터 접근·약관 미확인)"
+    },
+    {
+     "citation": "Bauer & Swanson (2023) 'A Reassessment of Monetary Policy Surprises and High-Frequency Identification', NBER Macroeconomics Annual",
+     "why": "1988~2023 서프라이즈 시계열 공개·직교화 논점 — 대체 소스",
+     "confidence": "medium"
+    },
+    {
+     "citation": "Gürkaynak, Sack & Swanson (2005) 'Do Actions Speak Louder Than Words? The Response of Asset Prices to Monetary Policy Actions and Statements', International Journal of Central Banking",
+     "why": "목표·경로 두 요인 분해 — 서프라이즈 정의의 표준",
+     "confidence": "high"
+    }
+   ],
+   "data_needed": "저장소 ALFRED 스토어(native_pit)·Fed FOMC 역사 캘린더(무료 공공)·data/calendar/events.csv 형식의 2007–2014 역사행 backfill(calendar_sources.yaml confirmed_definition = 기관 발표일 준수, supersedes 행 규칙). 서프라이즈 시계열은 학술 배포물 [라이선스 미검증] → 불가 시 DGS2 발표일 변화 프록시. $0.",
+   "governance_fit": "결정론 로짓 design 적합(§8 예외). 주의: calendar_sources.yaml policy `probability_linkage: forbidden`은 LLM 예측에 캘린더 확률을 연결하지 않는다는 규칙 — 수치모델 공변량 사용이 이 정책 범위인지 해석·개정을 사용자 결정으로 선행. 새 계약 ID, V13·V8 무접촉. 결과는 EXIT 트리거 'FOMC 2026-10-28'·`vix-25-90d` 질문의 base rate 공급원(V13-D6 형식, 표시만·산술 결합 0). 홀드아웃 승인 1회, 참고 의견.",
+   "test_protocol": "① 사전등록(공변량 정의·h5 주효과·h63 영효과를 함께 등록해 부정 대조 내장·예산 ≤5) → ② design 양방향 → ③ 쌍대 Brier vs PB ℓ=13·B=2000·CI90 하한>0 양방향 → ④ 음성대조: 캘린더는 결정론 주기라 y-block 순열 후에도 발표 주기가 잔존할 수 있음 → y-block(ℓ=13) 귀무에 더해 '발표일 라벨 블록 순열'(캘린더를 순열, y 고정) 보수적 귀무를 별도 등록, 둘 다 ≤0.10 → ⑤ MDE 병기 → ⑥ 9셀×4공변량 BH 0.10 → ⑦ 홀드아웃 승인 시 1회.",
+   "expected_effect": "발표일 변동성 상승(FOMC일 vol 2~3배)은 가장 강건한 실증이지만 표적이 'VIX 종가≥25 터치'라 VIX가 22~25 근방일 때만 결정적. 정직한 사전: h5 셀 BSS(vs PB) +2~5%p, h21 +0~2%p, h63 ≈0. h5 셀 ≥1 채택 확률(주관) 40~50% — 캠페인 중 가장 값싼 검정이며 EXIT FOMC 트리거에 직결.",
+   "cost": "$0 · 계산 소 · 엔지니어링 3~4일(캘린더 backfill·ALFRED realtime_start 대사·도구·테스트).",
+   "stage": "사전등록 → 설계창 → (승인) 홀드아웃 → T0/T1 → 통과 셀만 vix-25-90d·FOMC 질문 base rate 공급(별도 결정) → T2/T3는 별도 승인.",
+   "why_not_already_refuted": "V9는 거시 **수준·first-print 변화**(M2SL·TOTCI·TOTLL·WRMFNS)를 일간 CRPS 표적에 넣어 무효익이었고, 발표 **타이밍** 자체는 어느 트랙의 정보집합에도 없었다. V3~V5 'event' 성분은 가격 분포 앙상블 내부 요소로 HOLD(단독 ablation·이벤트 표적 없음). V13은 VIX·NASDAQCOM만 사용."
+  },
+  {
+   "id": "infoset-4",
+   "name": "일중 실현 측도(FirstRate NDX/QQQ 1분봉) → 서명 세미분산·점프·overnight 분해 → 변동성 이벤트 + V12b 경로 생성기 재개",
+   "hypothesis": "(a) 5분 RV, 음의 실현 세미분산 RS⁻, 점프 변동 JV=RV−BPV, overnight/일중 분산 비율을 PB(당일 VIX 또는 RV21 수준) 로짓에 중첩하면 rv_h5/rv_h21·vix25_h5 셀에서 양방향 개선을 준다. (b) 일중 수익률의 되돌림(VR) 실측이 V12b 블록 재표집 ℓ_z의 사전 기대를 고정하고, 잔차 블록 재표집 경로 생성기가 CRPS 무손상 하에서 −10% 터치 Brier를 개선한다. 반증: (a) 9셀 채택 0, (b) CRPS 손상 또는 터치 Brier 양방향 비개선.",
+   "information_set": "일중 가격 경로 — 현재 data/intraday/ 부재(캠페인 전체 0). 일간 종가 RV21은 5분 RV 대비 측정오차가 크고, 서명 세미분산·점프·overnight 분해는 일간 종가에서 정의 자체가 불가.",
+   "method": "(a) HAR-RV 변형이 아니라 PB ⊂ PB+{RS⁻, JV, overnight_ratio} 중첩 로짓(V13 적합기), 표적 V13 9셀 고정값. 측정오차 반영은 Bollerslev–Patton–Quaedvlieg HARQ식 realized quarticity 가중을 선택지로 사전등록. (b) V12b 사전등록 격자 그대로(ℓ_z∈{2,3,5}, AR(1) φ; ℓ_z=1=E0 항등 비트검증) — V8 코드 포크(source_pins), 봉인 무접촉.",
+   "papers": [
+    {
+     "citation": "Andersen, Bollerslev, Diebold & Labys (2003) 'Modeling and Forecasting Realized Volatility', Econometrica",
+     "why": "고빈도 RV의 이론·예측 프레임 — 일중 측도의 근거",
+     "confidence": "high"
+    },
+    {
+     "citation": "Patton & Sheppard (2015) 'Good Volatility, Bad Volatility: Signed Jumps and the Persistence of Volatility', Review of Economics and Statistics",
+     "why": "음의 세미분산이 미래 변동성을 더 잘 예측 — RS⁻ 공변량의 직접 근거",
+     "confidence": "high"
+    },
+    {
+     "citation": "Andersen, Bollerslev & Diebold (2007) 'Roughing It Up: Including Jump Components in the Measurement, Modeling, and Forecasting of Return Volatility', Review of Economics and Statistics",
+     "why": "점프 성분 분리(BPV)와 예측력 — JV 공변량",
+     "confidence": "high"
+    },
+    {
+     "citation": "Liu, Patton & Sheppard (2015) 'Does Anything Beat 5-Minute RV? A Comparison of Realized Measures Across Multiple Asset Classes', Journal of Econometrics",
+     "why": "5분 RV가 강건한 기본 측도 — 표본 주기 선택의 사전 고정 근거",
+     "confidence": "high"
+    },
+    {
+     "citation": "Bollerslev, Patton & Quaedvlieg (2016) 'Exploiting the errors: A simple approach for improved volatility forecasting', Journal of Econometrics",
+     "why": "측정오차 가중(HARQ) — 일간 RV 대비 일중 RV의 이득이 나오는 기전",
+     "confidence": "high"
+    },
+    {
+     "citation": "Lou, Polk & Skouras (2019) 'A tug of war: Overnight versus intraday expected returns', Journal of Financial Economics",
+     "why": "overnight/일중 분해가 독립 정보 — overnight_ratio 공변량",
+     "confidence": "high"
+    }
+   ],
+   "data_needed": "FirstRate Data NDX(또는 QQQ) 1분봉 2000+(~$300 일회, FR-1 사용자 결정, 무료 2주 샘플 선검증 권고). 백조정 재구성본·vintage 아님 → captured_forward 등급 + 라이선스 캡처(data/intraday/receipts.jsonl), raw gitignore(재배포 금지·파생물 발행 허용 귀속표기). 지수(NDX)는 조정 무관. 계획서 docs/design/v13_firstrate_acquisition_plan_260907.md.",
+   "governance_fit": "결정론(§8 예외). (a) 새 계약 ID. (b) docs/review/V12B_PARKED_20260908.md 재개 조건 4항(일중 데이터·새 사전등록·건전 y-block 귀무·CRPS 무손상) 충족 경로 — 새 ID로, V8 봉인 바이트 불변·E0 항등 강제. LLM 0. 홀드아웃 승인 1회. 참고 의견.",
+   "test_protocol": "(a) ① 사전등록(측도 정의·표본주기 5분·공변량 3개·예산 ≤5) → ② design 양방향 → ③ 쌍대 Brier vs PB ℓ=13·B=2000·CI90 양방향 → ④ y-block ≤0.10 → ⑤ MDE 병기 → ⑥ 9셀×3 BH 0.10 → 홀드아웃 승인 시. (b) E0 항등(ℓ_z=1 비트동일) → B(2)·B(3)·B(5)·AR1 ≤6 → CRPS 게이트 무손상(h21/63 coverage 밴드 [0.76,0.84]·쌍대 CRPS 비열위) ∧ 터치 Brier 양방향 CI90>0 ∧ y-block ≤0.10 ∧ 상위5% 원점 제거 부호 유지.",
+   "expected_effect": "정직하게 낮음~중간. V13 rung-2(일간 HAR) 증분 0/9·rung-3 EWMA 증분 0/9이므로 VIX 셀에서 일중 RV 증분은 작을 것(VIX가 이미 시장의 vol 예측). rv 셀(RV21>θ)에서만 RS⁻·JV가 +1~3%p 가능. (b)는 P1 진단 VR(5)=0.874로 온건 → h21 터치 BSS +1~3%p(포스트모템 수치). 채택 확률(주관) 25~35%.",
+   "cost": "$300 일회 · 계산 중(1분봉 8년 집계 수분~수십 분, 경로 2000×원점 417) · 엔지니어링 6~10일(적재·집계·PIT 영수증·(b) 포크 검정).",
+   "stage": "행정(FR-1) → 사전등록 → 설계창 → (승인) 홀드아웃 → T0/T1. 표시 승격은 통과 후 별도.",
+   "why_not_already_refuted": "일중 정보집합은 캠페인 전체에서 0 — V13 HAR은 일간 종가 RV였다. V12b는 '폐기→보류' 재라벨(반증 아님)이며 재개 조건에 일중 데이터가 명시돼 있다. 정직하게 V13 rung-2·3 결과가 (a)의 사전확률을 낮춘다는 점을 계약에 명기한다."
+  },
+  {
+   "id": "infoset-5",
+   "name": "포지셔닝 — CFTC TFF(VIX 선물·NDX 선물) 유형별 순포지션 → 21/63영업일 변동성 급등·드로다운 이벤트",
+   "hypothesis": "레버리지펀드의 VIX 선물 순매도(미결제약정 대비 정규화·52주 백분위)가 클수록 P(VIX≥25/30 within 21/63)가 PB 대비 높다(숏볼 군집→언와인드 증폭); 자산운용사·레버리지펀드의 NDX 선물 순포지션 극단은 P(−10% 터치 within 63)를 PB σ 대비 개선한다. 반증: 두 표적 모두 양방향 채택 0.",
+   "information_set": "시장 참여자 유형별 포지션(주간, 화요일 기준·금요일 15:30 ET 발표) — 가격·옵션·거시 정보집합 어디에도 없는 '누가 얼마나 들고 있나' 정보. 캠페인 V-트랙 피처로 등록된 적 0(BTC D0 monitoring 계약만).",
+   "method": "PB ⊂ PB+{net_pos/OI z-score, 52주 백분위} 중첩 로짓, 주간 값을 available_at(발표 금요일) 이후 일간 원점에 carry-forward. h21/h63 셀만 사전등록(h5는 주간 케이던스 불일치로 사전 제외 — V9 함정 회피). 표적: V13 vix 셀 + −10% first-passage(infoset-6 hazard 틀 재사용). 채점 Brier/log·Murphy.",
+   "papers": [
+    {
+     "citation": "Brunnermeier, Nagel & Pedersen (2008) 'Carry Trades and Currency Crashes', NBER Macroeconomics Annual",
+     "why": "포지션 군집(crowded trade)이 크래시 위험·꼬리를 키운다는 기전 — 숏볼 군집 가설의 근거",
+     "confidence": "high"
+    },
+    {
+     "citation": "Hong & Yogo (2012) 'What does futures market interest tell us about the macroeconomy and asset prices?', Journal of Financial Economics",
+     "why": "선물 미결제약정이 자산가격·거시를 예측 — OI 정규화 공변량 근거",
+     "confidence": "high"
+    },
+    {
+     "citation": "Cheng, Kirilenko & Xiong (2015) 'Convective Risk Flows in Commodity Futures Markets', Review of Finance",
+     "why": "VIX 상승기 금융 트레이더의 포지션 축소 흐름 — 포지션과 vol 국면의 동학",
+     "confidence": "medium"
+    },
+    {
+     "citation": "Wang (2003) 'The Behavior and Performance of Major Types of Futures Traders', Journal of Futures Markets",
+     "why": "COT 유형별 포지션의 예측력 실증(혼재) — 정직한 사전 하향",
+     "confidence": "medium"
+    },
+    {
+     "citation": "Sanders, Irwin & Merrin (2009) 'Smart Money: The Forecasting Ability of CFTC Large Traders in Agricultural Futures Markets', Journal of Agricultural and Resource Economics",
+     "why": "COT 예측력에 대한 부정 결과(농산물) — 실패 사전확률의 문헌 근거",
+     "confidence": "medium"
+    },
+    {
+     "citation": "Rapach, Ringgenberg & Zhou (2016) 'Short interest and aggregate stock returns', Journal of Financial Economics",
+     "why": "총량 포지셔닝(공매도잔고)이 월간 지수 수익률의 강한 예측변수 — 포지셔닝 정보집합의 일반 근거(단 공매도잔고≠COT, FINRA는 blocked_legal_terms)",
+     "confidence": "high"
+    }
+   ],
+   "data_needed": "CFTC TFF 역사 파일 fut_fin_txt_YYYY.zip(공공, 12-8 선례로 깨끗). src/ai_fc/timeseries_v5/sources.py::cftc_tff 스펙 존재(현재 2010+만 열거; TFF 역사 2006-06 시작 여부 [미검증] → 설계창 부분이면 서브창 사전등록). VIX 선물이 TFF 금융 보고서에 포함되는지·상품 코드 [미검증]. PIT: 발표일 규칙(금요일)로 reconstructed_official_archive, 이후 captured_forward(v5 코드는 보수적으로 +6일). $0.",
+   "governance_fit": "결정론(§8 예외). 새 계약 ID + D0 계약 신설(cftc_cot_bitcoin_d0.yaml 선례를 금융선물로 확장, monitoring→model_use 승격은 사용자 결정). 홀드아웃 승인 1회. 참고 의견. EXIT 트리거 VIX 25+·드로다운 룰의 base rate 공급 후보.",
+   "test_protocol": "① 사전등록(정규화·창·h21/63 한정·서브창 split·예산 ≤4) → ② design 양방향 → ③ 쌍대 Brier vs PB ℓ=13·B=2000·CI90 양방향 → ④ y-block ≤0.10 → ⑤ MDE 병기 → ⑥ 상위 5% 원점 제거 부호 유지(위기원점 인공물) → ⑦ (2표적×2지평×2공변량)=8검정 BH 0.10 → 홀드아웃 승인 시.",
+   "expected_effect": "낮음~중간. 문헌은 COT 예측력을 대체로 약하게 보고, 'VIX 숏볼 군집→급등' 서사는 2018-02 등 일화 중심 [체계적 증거 미검증]. 정직한 사전: vix25_h63 BSS +0~3%p, first-passage ≈0. 채택 확률(주관) 15~25%. $0·PIT 깨끗·정보집합 진짜 신규라 '측정된 영' 자체가 축 하나를 닫는 가치.",
+   "cost": "$0 · 계산 소 · 엔지니어링 4~6일(TFF 파서 연도 확장·상품 코드 매핑·PIT 규칙·D0 계약).",
+   "stage": "사전등록 → 설계창(서브창 가능) → (승인) 홀드아웃 → T0/T1.",
+   "why_not_already_refuted": "포지셔닝은 V1~V13 피처로 0회 등록. V9의 '주간 저주파 exog 무효익' 교훈은 **일간 CRPS 표적**에 대한 것 — 여기 표적은 21/63일 이벤트라 케이던스 불일치가 완화되고 h5를 사전 제외해 그 함정을 명시적으로 회피한다."
+  },
+  {
+   "id": "infoset-6",
+   "name": "표적·모형 전환 — 이산시간 hazard/survival로 다중 배리어 first-passage·드로다운 깊이 분포를 직접 모형화(EVT 꼬리 스케일), 0 신규 데이터",
+   "hypothesis": "V8 경로 생성기에서 파생하는 대신, 일별 hazard h_t = logit(a + b·z(σ_EWMA) + c·z(고점 대비 현재 드로다운) + d·(배리어까지 거리 ln(S_t/K)/σ_t) + e·z(21일 누적수익))와 POT-GPD 꼬리 스케일(McNeil–Frey)로 표준화한 이산시간 생존모형이 −5/−10/−15% 다중 배리어 터치 확률과 P(21/63일 최대 드로다운 ≥ q)를 PB σ 로짓·반사원리 대비 양방향 개선한다. 핵심 신정보는 '현재 드로다운 깊이·배리어까지 거리'라는 조건 상태. 반증: 3배리어×2지평 전부 채택 0.",
+   "information_set": "외부 데이터 0 — 그러나 **조건 상태의 정의**가 바뀐다: V8·V12는 σ가 사실상 유일 정보였다(V12 S2: V8 접촉확률 ≈ EWMA σ 단조변환, AUC의 77~83%가 σ). 고점 대비 드로다운·배리어 거리·EVT 꼬리 형태(ξ)는 경로 의존 사건에 산술적으로 관련되지만 어느 트랙도 공변량으로 넣지 않았다. 표적도 고정 −10% 단일 배리어에서 다중 배리어·드로다운 깊이 분포(EXIT 드로다운 하드룰 직결)로 확장.",
+   "method": "이산시간 hazard(Shumway식 로짓 hazard; 비례 hazard 가정 불필요), 지평 확률 = 1−∏_{s≤h}(1−h_s), 검열 처리. 꼬리 스케일 = FHS 표준화 잔차의 POT-GPD(임계 = 학습창 상위 10%) ξ,β를 σ_t로 스케일. 0-파라미터 기준선: 반사원리 2Φ + BGK 이산 보정(이미 V12 등록), 드로다운 깊이는 Magdon-Ismail et al. BM 최대 드로다운 분포. 채점: 배리어별 Brier/log, 드로다운 깊이 CRPS·Murphy.",
+   "papers": [
+    {
+     "citation": "McNeil & Frey (2000) 'Estimation of tail-related risk measures for heteroscedastic financial time series: an extreme value approach', Journal of Empirical Finance",
+     "why": "GARCH/FHS 표준화 잔차에 POT-GPD를 얹는 표준 절차 — 꼬리 스케일 방법",
+     "confidence": "high"
+    },
+    {
+     "citation": "Magdon-Ismail, Atiya, Pratap & Abu-Mostafa (2004) 'On the Maximum Drawdown of a Brownian Motion', Journal of Applied Probability",
+     "why": "드로다운 깊이 분포의 해석적 0-파라미터 기준선",
+     "confidence": "high"
+    },
+    {
+     "citation": "Broadie, Glasserman & Kou (1997) 'A Continuity Correction for Discrete Barrier Options', Mathematical Finance",
+     "why": "일간 종가 판정 배리어의 이산 보정 — 반사원리 기준선(V12 계약 승계)",
+     "confidence": "high"
+    },
+    {
+     "citation": "Shumway (2001) 'Forecasting Bankruptcy More Accurately: A Simple Hazard Model', Journal of Business",
+     "why": "이산시간 hazard = 로짓 동치·검열 처리 — 모형 형태의 통계적 근거",
+     "confidence": "high"
+    },
+    {
+     "citation": "Singer & Willett (1993) 'It's About Time: Using Discrete-Time Survival Analysis to Study Duration and the Timing of Events', Journal of Educational Statistics",
+     "why": "이산시간 생존분석의 추정·해석 표준",
+     "confidence": "medium"
+    },
+    {
+     "citation": "Chekhlov, Uryasev & Zabarankin (2005) 'Drawdown Measure in Portfolio Optimization', International Journal of Theoretical and Applied Finance",
+     "why": "드로다운을 위험 측도로 정식화 — EXIT 드로다운 룰과의 연결",
+     "confidence": "medium"
+    }
+   ],
+   "data_needed": "V2 아카이브 NASDAQCOM·VIX read-only(기보유, captured_forward/reconstructed). $0.",
+   "governance_fit": "결정론(§8 예외). V8 봉인 무접촉(V8 first_touch는 R8-D4 비공개 지표 → 비교는 T0 내부 문서). V12 계약(negative_result_draft, post_hoc_target_addition 금지)은 무수정 — 이 방향은 재보정 맵이 아니라 새 표적·새 모형이므로 **새 계약 ID**. 다중 배리어·드로다운 표적은 결과 전 등록. 홀드아웃 승인 1회. 참고 의견 — EXIT 드로다운 룰은 기계적 유지, 시스템은 조기경보.",
+   "test_protocol": "① 사전등록(공변량 4개·배리어 {−5,−10,−15}·지평 {21,63}·기준선 2종·GPD 임계·예산 ≤6·검정력 공시: 설계창 −10% 터치 h21 29건/h63 83건 실측 → MDE 큼) → ② design 양방향(early↔late) → ③ 쌍대 Brier vs PB σ 로짓 및 vs 반사원리 ℓ=13·B=2000·CI90 양방향 → ④ y-block(ℓ=13) 귀무 ≤0.10(p-순열 금지, T-A 교훈) → ⑤ 상위 5% 원점 제거 부호 유지 → ⑥ 3배리어×2지평=6검정 BH 0.10 → ⑦ 21일 누적수익 공변량은 V11 P1과 겹치므로 '기대 약함·부호 불안정 예상'을 사전 등록 → 홀드아웃 승인 시 1회.",
+   "expected_effect": "낮음~중간. V12 S2대로 σ가 판별력 대부분을 만든다. 드로다운·거리 공변량은 반사원리(거리 포함) 대비 증분이 작지만 PB σ 단독 대비는 유의할 수 있음. 정직한 사전: h63·−10% BSS +2~5%p vs PB σ, 반사원리 대비 ±1%p; −5% 배리어(사건 많음)에서 검정력 최고. 채택 확률(주관) 25~35%. 주된 가치는 EXIT 드로다운 룰의 base rate 표를 다중 배리어·깊이 분포로 공급하는 것.",
+   "cost": "$0 · 계산 소 · 엔지니어링 4~6일.",
+   "stage": "사전등록 → 설계창 → (승인) 홀드아웃 → T0/T1 → 통과 셀의 base rate 배선은 V13-D6 형식의 별도 결정.",
+   "why_not_already_refuted": "V12는 (i) V8 산출의 1-파라미터 재보정 맵 T1~T4만 검정했고 (ii) 단일 배리어·반사원리 기준선이었다. 직접 hazard·드로다운 상태 공변량·다중 배리어·EVT 스케일은 미시도. V5 E6(GPD EVT)은 CRPS 앙상블 성분으로 HOLD였지 단독 이벤트 표적 검정이 아니다. V11 P1(모멘텀→PIT) 실패는 평시 서브샘플·V8 결함 표적이라 다르며, 겹치는 공변량은 사전에 약한 기대로 등록한다."
+  },
+  {
+   "id": "infoset-7",
+   "name": "교차자산 꼬리 의존(copula λ_L) → 동조 급락 이벤트 확률(NASDAQ ∧ 금리/달러/NDX·SOX), 0 신규 데이터",
+   "hypothesis": "NASDAQ–DGS10(또는 DGS2)·NASDAQ–달러·NASDAQ–NDX100(가능 시 SOX)의 롤링 하방 꼬리 의존계수 λ_L(t-copula 또는 Clayton)은 '동조 꼬리 이벤트' P(NASDAQ 5일 수익 ≤ 학습창 5% 분위 ∧ VIX≥25 within h21)를 PB(VIX 수준) 대비 양방향 개선한다; 선형 피어슨 롤링 상관은 개선하지 못한다(부정 대조로 등록). 반증: 꼬리 의존 공변량 채택 0.",
+   "information_set": "자산 간 **비선형 하방 꼬리 의존** — V8 VARX는 선형 lag 관계, V11 P8은 nasdaq–달러 선형 롤링 상관만. 데이터는 V2 아카이브(NASDAQCOM·VIX·DGS2·DGS10·DTWEXB/DTWEXBGS) + V4 NASDAQ100(1995~) 전부 기보유. SOX는 FRED NASDAQSOX가 통계 스토어(statistics_lab_v1.yaml)에 reference_only·model_use 금지 등급 → 포함 시 계약 개정 결정 필요 [FRED NASDAQSOX 이력 범위 미검증].",
+   "method": "63/126일 롤링 창에서 FHS 표준화 잔차 쌍에 t-copula(ν,ρ)·Clayton θ 최우추정 → λ_L 공변량; PB ⊂ PB+λ_L 중첩 로짓. 표적: 동조 꼬리 이벤트 2종(주식∧vol, 주식∧금리 flight-to-quality 실패) + V13 vix25_h21(교차검증용). 채점 Brier/log·Murphy. 상관 국면 '부호 반전'(2022형)은 설계창에 대리가 없어 표적에서 제외(정직한 한계).",
+   "papers": [
+    {
+     "citation": "Longin & Solnik (2001) 'Extreme Correlation of International Equity Markets', Journal of Finance",
+     "why": "하락장 꼬리에서만 상관이 증가 — 꼬리 의존과 선형 상관의 분리 근거",
+     "confidence": "high"
+    },
+    {
+     "citation": "Ang & Chen (2002) 'Asymmetric Correlations of Equity Portfolios', Journal of Financial Economics",
+     "why": "하방 비대칭 상관의 실증·검정 — 부정 대조(피어슨) 설계 근거",
+     "confidence": "high"
+    },
+    {
+     "citation": "Patton (2006) 'Modelling Asymmetric Exchange Rate Dependence', International Economic Review",
+     "why": "시변 조건부 copula의 추정 프레임 — 롤링 copula 방법",
+     "confidence": "high"
+    },
+    {
+     "citation": "Poon, Rockinger & Tawn (2004) 'Extreme Value Dependence in Financial Markets: Diagnostics, Models, and Financial Implications', Review of Financial Studies",
+     "why": "꼬리 의존 진단(χ, χ̄)과 점근 독립 검정 — λ_L 추정의 통계적 주의",
+     "confidence": "high"
+    },
+    {
+     "citation": "Christoffersen, Errunza, Jacobs & Langlois (2012) 'Is the Potential for International Diversification Disappearing? A Dynamic Copula Approach', Review of Financial Studies",
+     "why": "동적 copula로 꼬리 의존 상승 추세 실증 — 국면 지속성(=PB 강함)의 근거",
+     "confidence": "high"
+    },
+    {
+     "citation": "Engle (2002) 'Dynamic Conditional Correlation: A Simple Class of Multivariate GARCH Models', Journal of Business & Economic Statistics",
+     "why": "DCC 대안 공변량(선형 동적 상관) — 부정 대조 변형",
+     "confidence": "high"
+    }
+   ],
+   "data_needed": "기보유 V2/V4 아카이브. $0. SOX 포함 시 FRED NASDAQSOX 등급 재판정(사용자).",
+   "governance_fit": "결정론(§8 예외). 새 계약 ID. 봉인 무접촉. EXIT 트리거 'SOXX 추세'·드로다운 룰과 연결되는 동조 급락 base rate. 홀드아웃 승인 1회. 참고 의견.",
+   "test_protocol": "① 사전등록(쌍 3개·창·copula 족·표적 정의·피어슨 부정 대조·예산 ≤5) → ② design 양방향 → ③ 쌍대 Brier vs PB ℓ=13·B=2000·CI90 양방향 → ④ y-block ≤0.10 → ⑤ MDE 병기 → ⑥ 상위 5% 원점 제거 부호 유지 — 이 방향은 2008 원점 지배 위험이 최고(V10 W3 교훈)이므로 GFC 제외 서브샘플 CI90도 병기 → ⑦ 3쌍×2표적=6검정+부정 대조 BH 0.10 → 홀드아웃 승인 시.",
+   "expected_effect": "낮음. 꼬리 의존은 위기에서 급증·지속하므로 V10 W3와 같은 'GFC 원점 인공물' 위험이 가장 크다. 정직한 사전: 설계창 in-sample 양방향 통과 가능성은 있으나 상위 5% 제거 후 부호 유지 확률 낮음. 채택 확률(주관) 10~20%. 가치는 동조 급락 이벤트 base rate 표와 '상관 국면은 vol 수준 이상의 정보가 없다'는 측정된 영.",
+   "cost": "$0 · 계산 소~중(롤링 copula MLE 8년×3쌍) · 엔지니어링 4~6일.",
+   "stage": "사전등록 → 설계창 → (통과 시 승인) 홀드아웃 → T0/T1.",
+   "why_not_already_refuted": "V11 P8은 선형 롤링 상관을 평시 서브샘플·V8 결함 표적에 검정했고, V8 VARX는 선형. 꼬리 의존·동조 꼬리 이벤트 표적은 미시도. 반증 지도 §2 #10이 '0 신규 데이터로 사전등록 가능'하다고 지목한 축."
+  },
+  {
+   "id": "infoset-8",
+   "name": "텍스트 — FOMC 성명·의사록 결정론 사전(dictionary) 톤 변화 + SEC EDGAR 8-K 공시 밀도 → 이벤트 확률 (LLM 0)",
+   "hypothesis": "FOMC 성명의 전회 대비 톤 변화(Loughran–McDonald 불확실성/부정 단어 비율의 Δ)와 성명 길이 변화는 발표 후 21영업일 VIX≥25 터치 확률을 PB+캘린더(infoset-3) 대비 개선한다; NASDAQ 상장사 8-K Item 2.02(실적) 군집 밀도는 rv_h5 셀을 개선한다. 반증: 두 공변량 모두 양방향 채택 0.",
+   "information_set": "텍스트(중앙은행 커뮤니케이션·규제 공시 흐름) — 가격·옵션·포지셔닝 어디에도 없음. 현재 저장소의 텍스트 자산은 GDELT 헤드라인 FinBERT 비방향 지수(2015+, base rate 전용 D-3)뿐이라 설계창 검정 자체가 없었다.",
+   "method": "결정론 사전 기반 톤(LM 2011 단어목록 버전 고정 — 2008 이전 10-K로 구축돼 설계창 일부와 겹치는 약한 사전지식 caveat 명기) → Δ톤·Δ길이 공변량; EDGAR full-text search(2001+)의 accepted 타임스탬프로 8-K 카운트(native PIT). PB+캘린더 로짓에 중첩. 2단계 옵션: FinBERT(추론 전용·가중치 갱신 0) — 기반 BERT 사전학습(2018 위키)이 설계창 사건 서술을 포함할 수 있어 CLAUDE.md 원칙 5 예외 적용 여부는 사용자 결정 필요 [오염 정도 미검증].",
+   "papers": [
+    {
+     "citation": "Loughran & McDonald (2011) 'When Is a Liability Not a Liability? Textual Analysis, Dictionaries, and 10-Ks', Journal of Finance",
+     "why": "금융 텍스트용 결정론 단어목록 — 톤 측정의 표준",
+     "confidence": "high"
+    },
+    {
+     "citation": "Hansen & McMahon (2016) 'Shocking language: Understanding the macroeconomic effects of central bank communication', Journal of International Economics",
+     "why": "FOMC 성명 텍스트의 두 차원(경제 상태·전망 지침)이 시장·거시에 영향 — 톤 공변량 근거",
+     "confidence": "high"
+    },
+    {
+     "citation": "Hansen, McMahon & Prat (2018) 'Transparency and Deliberation within the FOMC: A Computational Linguistics Approach', Quarterly Journal of Economics",
+     "why": "FOMC 텍스트의 계량화 방법론 선례",
+     "confidence": "high"
+    },
+    {
+     "citation": "Tetlock (2007) 'Giving Content to Investor Sentiment: The Role of Media in the Stock Market', Journal of Finance",
+     "why": "미디어 톤이 단기 가격 압력·거래량과 연결 — 텍스트→변동성 경로의 원형",
+     "confidence": "high"
+    },
+    {
+     "citation": "Baker, Bloom & Davis (2016) 'Measuring Economic Policy Uncertainty', Quarterly Journal of Economics",
+     "why": "텍스트 기반 불확실성 지수(EPU)가 변동성과 공행 — 대체 공변량(일간 EPU 공개, 약관 [미검증])",
+     "confidence": "high (논문), medium (데이터 약관)"
+    },
+    {
+     "citation": "Gentzkow, Kelly & Taddy (2019) 'Text as Data', Journal of Economic Literature",
+     "why": "텍스트 계량화의 방법론 지도·과적합 경고 — 사전 기반 결정론 선택의 근거",
+     "confidence": "high"
+    }
+   ],
+   "data_needed": "FOMC 성명·의사록(federalreserve.gov 공공저작물, 발표 시각 PIT), SEC EDGAR FTS(sec_edgar 계약 approved, 연락처 UA 규약 KNOWN_LIMITS 35), EPU 일간 지수(policyuncertainty.com [약관 미검증]). $0.",
+   "governance_fit": "원칙 5 — LLM 개입 0(사전 기반 결정론, §8 예외 범위). FinBERT는 추론 전용·가중치 갱신 0이나 사전학습 오염 판단은 사용자 결정. GDELT는 2015+라 설계창 불가 → 라이브 포워드만. 새 계약 ID. 홀드아웃 승인 1회. 참고 의견.",
+   "test_protocol": "① 사전등록(단어목록 버전·Δ 정의·8-K 카운트 정의·예산 ≤4) → ② design 양방향 — FOMC 서브패널은 64회(8년×8)로 검정력 부족을 사전에 인쇄(MDE 큼) → ③ 쌍대 Brier vs PB+캘린더 ℓ=13·B=2000·CI90 양방향 → ④ y-block ≤0.10 → ⑤ 2공변량×3셀 BH 0.10 → 홀드아웃은 통과 시에만 승인 요청.",
+   "expected_effect": "낮음. 문헌은 중앙은행 텍스트가 금리·거시에 영향을 준다는 것이지 VIX 터치 확률의 증분을 보인 것은 아님. 정직한 사전: BSS +0~2%p, 채택 확률(주관) 10~15%. 가치: 텍스트 축의 '측정된 영' 확보와 EXIT FOMC 질문의 정성 base rate.",
+   "cost": "$0 · 계산 소 · 엔지니어링 4~6일(EDGAR FTS 페이징·성명 파싱·테스트).",
+   "stage": "사전등록 → 설계창 → T0/T1 (통과 시에만 홀드아웃 승인 요청).",
+   "why_not_already_refuted": "텍스트는 V-트랙 피처 0회. FinBERT는 base rate 비방향 지수(D-3)로만 존재하며 설계창 검정이 없었다. 반증 지도 §2 #7이 '라이브 포워드만' 가능하다고 본 것은 GDELT 온셋 때문이고, FOMC 성명·EDGAR은 설계창 전체를 native PIT로 덮는다."
+  },
+  {
+   "id": "classical-1",
+   "name": "VIX 기간구조·VVIX·SKEW·VIX 일중범위 → V13 변동성 이벤트 확률 (보유 데이터, 정보집합 확장)",
+   "hypothesis": "P(VIX_close ≥ K within h), K∈{25,30}, h∈{5,21,63} 에서 당일 VIX 수준 단독 로짓(persistence_pb) 위에 (a) 기간구조 기울기 s_t=ln(VIX3M_t/VIX_t), (b) VVIX_t, (c) SKEW_t, (d) VIX 일중 범위 ln(High_t/Low_t)·(High_t−Close_t)/Close_t 를 얹은 nested 로짓이 9셀 중 ≥1셀에서 PB 대비 쌍대 Brier CI90 하한>0 를 early↔late 양방향으로 만족한다 — 특히 평균회귀 정보가 작동하는 h21/h63. 0/9 이면 기각(V13 rung-3 와 같은 '측정된 영').",
+   "information_set": "일간 종가 VIX 수준 밖의 옵션시장 정보: SPX 옵션 3개월 만기 내재변동성(기간구조 = 시장의 VIX 기대경로), VIX 옵션 내재 vol-of-vol(VVIX), 행사가별 스큐 지수(SKEW), 그리고 VIX 일중 고가·저가(당일 종가가 버린 경로 정보 — 특히 '고가가 K 에 근접했으나 종가는 미달'). 전부 이미 저장소에 있음: `data/timeseries_v4/ledgers/observations.jsonl`(VIX3M 2009-09-18~, VIX9D 2011-01-04~, VVIX 2006-03-06~, SKEW 1990-01-02~; data_grade reconstructed_market_archive, available_at 보유), `data/timeseries_v2/raw/market/cboe_vix_archive/*.gz`(DATE,OPEN,HIGH,LOW,CLOSE — 현재 V2 파서는 CLOSE 만 사용, 봉인 바이트 무접촉으로 새 파서에서 HIGH/LOW 추출).",
+   "method": "V13 계약과 동일 적합기(`tools/v13_vol_run._logit_fit`: zscore ddof0·Newton 200·l2 1e-3)로 PB ⊂ PB+1피처 ⊂ PB+전체 의 중첩 로짓. 각 피처 단독 ablation 4종 + 결합 1종. 보조로 기대가설 회귀 ΔlnVIX_{t→t+h} = a + b·s_t + e (Johnson 2017 형)를 설계창에서 진단만(판정 다리 아님). 기간구조(VIX3M)는 온셋 2009-09 라 서브창 프로토콜(V9-D7 선례): split early=2009-09-18~2011-12-31 ↔ late=2012~2014(GFC 미포함 caveat). VVIX·SKEW·범위는 표준 split(2007-2010↔2011-2014). Murphy 분해·신뢰도 곡선 보고 의무.",
+   "papers": [
+    {
+     "citation": "Johnson, T. L. (2017) 'Risk Premia and the VIX Term Structure', Journal of Financial and Quantitative Analysis",
+     "confidence": "high",
+     "why": "VIX 기간구조 기울기가 향후 VIX 변화·분산위험프리미엄을 예측함을 보인 핵심 근거 — h21/h63 셀의 정보원 가설"
+    },
+    {
+     "citation": "Mixon, S. (2007) 'The implied volatility term structure of stock index options', Journal of Empirical Finance",
+     "confidence": "medium",
+     "why": "내재변동성 기간구조의 기대가설 검정과 과잉반응 증거 — 기울기 피처의 부호·크기 사전 기대"
+    },
+    {
+     "citation": "Bekaert, G. & Hoerova, M. (2014) 'The VIX, the variance premium and stock market volatility', Journal of Econometrics",
+     "confidence": "high",
+     "why": "VIX = 조건부 분산 기대 + 분산프리미엄 분해; 실현변동성 예측에서 VIX 성분의 역할을 정식화 — rv 셀 해석 틀"
+    },
+    {
+     "citation": "Huang, D., Schlag, C., Shaliastovich, I. & Thimme, J. (2019) 'Volatility-of-Volatility Risk', Journal of Financial and Quantitative Analysis",
+     "confidence": "medium",
+     "why": "VVIX 가 가격에 반영되는 별도 위험요인임을 보임 — VVIX 를 VIX 와 직교하는 상태변수로 등록하는 근거"
+    },
+    {
+     "citation": "Whaley, R. E. (2009) 'Understanding the VIX', Journal of Portfolio Management",
+     "confidence": "high",
+     "why": "VIX 의 구성·평균회귀·수준 해석 — PB 기준선이 왜 강한지와 무엇이 남는지의 설명"
+    },
+    {
+     "citation": "Parkinson, M. (1980) 'The Extreme Value Method for Estimating the Variance of the Rate of Return', Journal of Business",
+     "confidence": "high",
+     "why": "고가-저가 범위가 종가 대비 정보효율이 높다는 고전 결과 — VIX 일중범위 피처의 근거"
+    }
+   ],
+   "data_needed": "신규 구매 0. (1) V4 스토어 4계열(재사용, PIT: reconstructed_market_archive + available_at 규칙 상속). (2) CBOE VIX raw OHLC 재파싱 → 새 원장 `data/timeseries_v14/ledgers/`(V2 원장·raw 바이트 무수정). 라이선스: CBOE 회색지대(DECISIONS 12-1/12-5, 허가 요청 초안 미발송) — 기존 VIX 종가 사용과 동일 자세, raw 비재배포. VIX3M 온셋 2009-09 는 설계창 하단 결측(서브창 전용).",
+   "governance_fit": "결정론 수치모형(로짓)의 설계창 적합·워크포워드 = dualdb 스펙 v1.0 §8 예외(DECISIONS 8-6): 산출은 EXIT 트리거(VIX 25+) base rate 참조이지 캘리브레이션 표본 아님; K·θ·h·서브창 경계는 정점지식 간접 내포 caveat 명기. LLM 0회. V13 계약 `post_hoc_target_addition` 금지 → 표적 K/θ/h 무변경, 피처 추가는 결과 전 사전등록 개정 커밋 또는 새 계약 ID(`event_probability.volatility_v14`)로만. 홀드아웃(2015-18)·봉인(2019+) 무접촉; champion 발생 시 루프 정지·사용자 승인 원문 없이는 verb 부재. 출력 = 참고 의견(T3 카드 caveat 굵게 유지), P3 게이트 전 자본결정 근거 아님.",
+   "test_protocol": "사전등록(피처 정의·서브창 split·격자 없음) 커밋 → 설계창 2007-2014 walk-forward(주간 원점, purge 63/embargo 5) → 셀×피처 = 9×5 = 45 검정, 쌍대 Brier 손실차 d_t=BS_PB−BS_cand, stationary block bootstrap ℓ=13·B=2000·seed 고정, CI90 [5,95], MDE=1.645·se 병기(|Δ|<MDE 는 '결정적 증거 없음'), 채택 = 양방향 CI90 하한>0(엄격) ∧ y-block(ℓ=13) 귀무 통과율 ≤0.10 — p-순열 귀무 금지(T-A 교훈). 다중검정: family P(k≥k_obs)≤0.05 병기 + Benjamini–Hochberg FDR q=0.10 (45검정) — 저장소에 없는 도구이므로 사전등록 부록으로 추가. 보조: Giacomini–White 조건부 검정(calm vs high-VIX 원점) 보고. 예산 ≤6(단독 4 + 결합 1 + 예비 1), stop-loss: 단독 4종 0/36 이면 결합 미실행. 홀드아웃은 사용자 'V13-D3' 형식 승인 시 finalist 1개·1회.",
+   "expected_effect": "정직한 사전확률: h5 셀 ≈0(PB 포화, V13 rung-3 실측 |EWMA−PB|≤0.008). h21/h63 vix 셀에서 기간구조 기울기 BSS(대 PB) +1~4%p 가능(Johnson 2017 의 월간 R² 는 한 자리 % 수준 — 정확 수치 [미검증]); VVIX·SKEW 는 +0~2%p; VIX 범위는 h5 에서만 소폭. ≥1셀 양방향 통과 확률 약 30~35%. 실패해도 '옵션지수 수준 정보는 VIX 지속성에 흡수됨'이라는 반증 가치.",
+   "cost": "데이터 $0. 계산 수 분(로짓 45회 + 부트스트랩). 엔지니어링 약 2~3일(추정): VIX OHLC 파서·V4 피처 조인·numpy 피처 모듈·계약/사전등록·FDR 유틸.",
+   "stage": "사전등록 개정 커밋(결과 전) → 설계창 dev(≤6) → [champion 시] 사용자 승인 후 홀드아웃 1회 → T1 판정서·리뷰팩 → PASS 셀 한정 T3 base rate 카드 갱신(V13-D6 배선 규칙 승계). T4 없음.",
+   "why_not_already_refuted": "V3/V4 는 `market_implied: [vix_term_structure, option_skew]`·VVIX 를 7성분 가격분포 스태킹의 한 성분으로 CRPS 채점(pseudo-OOS, coverage 사유 HOLD)했을 뿐 단독 ablation·이벤트 표적·PB 중첩 판정을 한 적이 없다. V9 E5/E6 은 Δlog(VXN/VIX)(지수 간 스프레드)를 h21/63 CRPS 에서 검정했지 기간구조·vol-of-vol·스큐·일중범위를 VIX 임계 사건에 검정하지 않았다. V11 P4(누적 vix_change−RV21)는 평시 V8 결함 진단 공변량이었다. V13 은 VIX 종가·RV21 만 썼다. 즉 '정보집합(옵션 파생지수·일중범위) × 표적(변동성 사건)' 조합은 미표집."
+  },
+  {
+   "id": "classical-2",
+   "name": "주식-채권 상관 국면 이벤트 (신규 표적, 신규 데이터 0): '채권 헤지 실패' 확률",
+   "hypothesis": "표적 E1: 1{ρ̂21(r_NASDAQ, Δy_DGS10) 창 종료 t+h 에서 <0} (주식 하락·금리 상승 동행 = 채권 헤지 실패), 보조 E2: 1{h 내 flight-to-safety 일(주식 −z 하위 5% ∧ 채권 상승) ≥1}. VIX 수준·DFM 인플레이션 팩터·달러 추세를 공변량으로 한 Markov-switching 또는 DCC 예측이 지속성 기준선(당일 ρ21 단독 로짓) 대비 h21/h63 에서 쌍대 Brier CI90 하한>0 양방향. 지속성만 통과하면 'V13 형 결과(기준율 공급)'로 기록하고 모형 채택은 기각.",
+   "information_set": "신규 외부 데이터 없음. V8 5변량(NASDAQCOM·VIX·DGS2·커브·달러) 원재료를 '상관 표적'으로 재조직 — 지금까지 모든 트랙은 NASDAQ 주변분포·VIX 사건만 채점했고 자산 간 공조 구조는 표적이 아니었다. `data/timeseries_v2/ledgers/market_observations.jsonl`(DGS10·DGS2 1990~ Treasury XML 9,176행, NASDAQCOM 1995~, DTWEXB) + V2 DFM inflation factor(ALFRED PIT, read-only).",
+   "method": "사다리(전부 기후 내포): 기후 → 지속성 PB(logit on ρ21_t) → PB+VIX_t+inflation_factor_t+dollar_trend_63 로짓 → 2상태 Markov-switching(Hamilton 1989) 상관 국면, 전이확률에 VIX·인플레 팩터(Diebold–Lee–Weinbach 형 TVTP [세부 미검증]) → DCC-GARCH(1,1)-t(Engle 2002) 시뮬레이션 P(ρ_{t+h}<0). 추정 MLE(scipy; statsmodels 0.14.6 MarkovRegression 가용). 채점 Brier/log + Murphy.",
+   "papers": [
+    {
+     "citation": "Connolly, R., Stivers, C. & Sun, L. (2005) 'Stock Market Uncertainty and the Stock-Bond Return Relation', Journal of Financial and Quantitative Analysis",
+     "confidence": "high",
+     "why": "VIX 수준이 주식-채권 상관의 부호·크기를 예측 — 공변량 선택의 직접 근거"
+    },
+    {
+     "citation": "Baele, L., Bekaert, G. & Inghelbrecht, K. (2010) 'The Determinants of Stock and Bond Return Comovements', Review of Financial Studies",
+     "confidence": "high",
+     "why": "거시 팩터보다 유동성·변동성 팩터가 상관 변동을 설명 — 인플레 팩터 단독 기대를 낮추는 반대증거"
+    },
+    {
+     "citation": "Baele, L., Bekaert, G., Inghelbrecht, K. & Wei, M. (2020) 'Flights to Safety', Review of Financial Studies",
+     "confidence": "high",
+     "why": "flight-to-safety 일의 조작적 정의와 빈도·특성 — 보조 표적 E2 정의를 그대로 차용"
+    },
+    {
+     "citation": "Engle, R. F. (2002) 'Dynamic Conditional Correlation: A Simple Class of Multivariate GARCH Models', Journal of Business & Economic Statistics",
+     "confidence": "high",
+     "why": "동적 상관 예측의 표준 결정론 모형 — rung 상단"
+    },
+    {
+     "citation": "Hamilton, J. D. (1989) 'A New Approach to the Economic Analysis of Nonstationary Time Series and the Business Cycle', Econometrica",
+     "confidence": "high",
+     "why": "국면전환 모형 — 렌즈(regime-switching)를 '표적이 국면인' 문제에 정합하게 적용"
+    },
+    {
+     "citation": "Campbell, J. Y., Sunderam, A. & Viceira, L. M. (2017) 'Inflation Bets or Deflation Hedges? The Changing Risks of Nominal Bonds', Critical Finance Review",
+     "confidence": "medium",
+     "why": "주식-채권 공분산의 저주파 국면(인플레 vs 디플레 헤지) 구조 — h63 표적의 경제적 해석"
+    }
+   ],
+   "data_needed": "$0. V2 시장 아카이브 read-only(reconstructed_market_archive, available_at≤origin). DFM 팩터는 V2 캐시 재사용. 설계창 실측 기저율은 사전진단(0 백테스트)으로 먼저 계측·등록: 2007-2014 에 부(−) 상관 에피소드는 2013 taper tantrum 등 소수라 E1 기저율이 낮을 수 있음 [미검증] → 검정력 사전 계획 필수. 가장 중요한 국면(2022)은 봉인창에 있어 설계창에서 검정 불가 — 명시 한계.",
+   "governance_fit": "결정론 모형 설계창 워크포워드(§8 예외), 산출 = 드로다운·헤지 관련 EXIT 룰의 base rate 참조. 하이퍼파라미터(21일 창, −5% z 임계, 2상태) 정점지식 caveat. 새 표적 = 새 계약 ID(`event_probability.crossasset_v14`), V8/V2 무접촉, LLM 0. 홀드아웃·봉인은 승인 전 verb 부재. 참고 의견 지위.",
+   "test_protocol": "P0 사전진단(기저율·에피소드 수·MDE 계획) → 사전등록 커밋 → 설계창 walk-forward 주간 원점 → 셀 = 2표적×3지평 = 6, rung 3(공변량 로짓·MS·DCC) → 18 검정. 쌍대 Brier vs PB, ℓ=13·B=2000 CI90, MDE 병기, 양방향 early/late 전이(early 가 GFC 지배 caveat), y-block 귀무 ≤0.10, family P(k≥k_obs) + BH FDR q=0.10. 채택 = PB 대비 양방향 엄격 통과; PB 만 기후 대비 통과 시 '지속성 기준율' 로 기록(V13 G2 (b) 규칙 승계). 예산 ≤6, stop-loss 3회 후 최고 셀 |Δ|<MDE 이면 종료.",
+   "expected_effect": "기후 대비 지속성 통과 확률 높음(상관은 강한 자기상관). 모형이 PB 를 양방향으로 이길 확률은 낮~중(약 25~30%): 문헌은 VIX 가 상관 부호를 설명하나 V13 교훈(EWMA·HAR 조차 PB 대비 0/9)이 그대로 적용될 위험. 통과 시 BSS(대 PB) +2~5%p 규모 기대. 주된 가치는 사용자 드로다운 룰에 '채권이 못 막는 국면' base rate 를 공급하는 것.",
+   "cost": "$0. 계산 수 분~수십 분(DCC MLE·MS EM). 엔지니어링 약 3~4일(추정): 표적 라벨러·사전진단·세 rung·계약.",
+   "stage": "사전진단(T0) → 사전등록 → 설계창 dev → [champion 시] 홀드아웃 승인 1회 → T1 판정서 → PASS 셀 한정 T3 '교차자산 기준율' 카드(참고 의견). T4 없음.",
+   "why_not_already_refuted": "어느 트랙도 자산 간 상관을 표적으로 삼지 않았다. V8 VARX 는 조건부 평균의 공동 동학을 쓰지만 채점은 NASDAQ 주변분포 CRPS 뿐이고 경로 의존성은 rank-Gaussian copula 가정(V3)이다. V10 국면은 vol 수준 단일축, V11 P8 은 nasdaq–달러 롤링 상관을 '평시 V8 결함 진단 공변량'으로만 검정(미통과)했고 주식-채권 상관은 등장하지 않았다. 표적을 바꾸므로 '일간 종가 위 h21/63 CRPS 벽' 진술의 범위 밖."
+  },
+  {
+   "id": "classical-3",
+   "name": "예정 매크로 발표 캘린더(사전 공개·결정론) → 발표일 분산 승수와 V13 h5 셀",
+   "hypothesis": "H3a: FOMC 성명일·CPI·NFP 발표일(및 FOMC 전일)에 설계창 추정 분산 승수 m_k 를 V8 FHS 일별 σ 에 곱한 포크(E0 항등: m=1)가 h1/h5 CRPS 에서 E0 대비 쌍대 CI90 상단<0 양방향이며 h21/h63 은 비열화(CI90 하한 ≤ +0.0004 투영 기준 내). H3b: V13 h5 셀(P(VIX≥K within 5d))에서 '지평 내 FOMC/CPI/NFP 포함 개수' 더미가 PB 대비 양방향 CI90 하한>0. 가짜 캘린더(±3/±7 영업일 이동) placebo 에서 효과 소멸이 부수 조건.",
+   "information_set": "미래에 대해 t 시점에 '확실히' 아는 유일한 정보 = 공식 발표 일정(Fed FOMC 캘린더, BLS CPI·Employment Situation 일정, BEA GDP 일정, 옵션 만기 3째 금요일). 종가 시계열에는 전혀 없는 결정론 정보이며 PIT 성립이 가장 깨끗하다(일정은 수개월 전 공표). 저장소는 2026 캘린더만 보유(`data/calendar/events.csv` 53건, `calendar_sources.yaml`) → 2007-2014 역사 캘린더 신규 구축 필요.",
+   "method": "V10 패턴의 V8 포크(source_pins·E0 비트 항등) 에서 FHS 필터의 표준화 잔차를 발표일 더미로 회귀: m_k = mean(z²|발표일 k)/mean(z²|비발표일) 를 research_train 에서 추정(유형별 1파라미터, 격자 없음) → 경로 생성 시 해당 미래 일자 σ 에 √m_k 곱함(Andersen & Bollerslev 1998 형 결정론 계절 승수). V13 쪽은 PB+count 더미 로짓. Lucca–Moench 평균 효과는 부호 위험이 커서 등록하지 않음(분산만).",
+   "papers": [
+    {
+     "citation": "Savor, P. & Wilson, M. (2013) 'How Much Do Investors Care About Macroeconomic Risk? Evidence from Scheduled Economic Announcements', Journal of Financial and Quantitative Analysis",
+     "confidence": "high",
+     "why": "예정 발표일의 수익·변동성이 비발표일과 체계적으로 다름 — 승수 m_k>1 의 사전 기대"
+    },
+    {
+     "citation": "Lucca, D. O. & Moench, E. (2015) 'The Pre-FOMC Announcement Drift', Journal of Finance",
+     "confidence": "high",
+     "why": "FOMC 전 24시간의 이상 수익·낮은 변동성 — FOMC 전일을 별도 더미로 두는 이유(부호 반대 가능성 caveat)"
+    },
+    {
+     "citation": "Andersen, T. G., Bollerslev, T., Diebold, F. X. & Vega, C. (2003) 'Micro Effects of Macro Announcements: Real-Time Price Discovery in Foreign Exchange', American Economic Review",
+     "confidence": "high",
+     "why": "발표 직후 분산 점프의 실증 — 효과가 h1 에 집중되고 장기 지평에서 희석됨을 예상하는 근거"
+    },
+    {
+     "citation": "Jones, C. M., Lamont, O. & Lumsdaine, R. L. (1998) 'Macroeconomic news and bond market volatility', Journal of Financial Economics",
+     "confidence": "high",
+     "why": "발표일 분산이 지속되지 않고 당일에 소진됨 — 승수를 GARCH 재귀 밖의 결정론 항으로 두는 설계 근거"
+    },
+    {
+     "citation": "Andersen, T. G. & Bollerslev, T. (1998) 'Deutsche Mark–Dollar Volatility: Intraday Activity Patterns, Macroeconomic Announcements, and Longer Run Dependencies', Journal of Finance",
+     "confidence": "high",
+     "why": "발표 더미를 분산의 곱셈 성분으로 모형화하는 고전 형식 — 구현 원형"
+    },
+    {
+     "citation": "Ai, H. & Bansal, R. (2018) 'Risk Preferences and the Macro Announcement Premium', Econometrica",
+     "confidence": "high",
+     "why": "발표 프리미엄의 이론적 기초 — 효과가 우연이 아닌 구조임을 뒷받침"
+    }
+   ],
+   "data_needed": "$0. 신규 구축: `data/calendar/historical_events.csv`(2006-2015 FOMC 성명일 — federalreserve.gov 역사 캘린더; BLS CPI/NFP 발표일 — bls.gov 역사 일정 아카이브 [2007년분 원본 일정 보존 여부 미검증]; 옵션 만기 결정론). 공공저작물. PIT 원칙: '당시 예정일' 사용, 실제 발표일이 아님(2013 셧다운 지연 NFP 는 예정일 기준 — 원본 일정 미보존 시 caveat). 2008 비정기 FOMC(1/22, 10/8)는 더미 0 = 정직한 서프라이즈.",
+   "governance_fit": "결정론 승수(§8 예외), LLM 0, V3 `actual_before_release: prohibited` 규율 승계(실제 발표값 미사용, 일정만). V8 봉인 바이트 무접촉 — 포크·source_pins·E0 항등 테스트 강제(V10 선례). 새 계약 ID·dev 예산 신규. 출력은 참고 의견; h1/h5 개선은 V8 publication_gate 의 단기 '비열위' 항목이라 챔피언 승격 근거가 아니며 EXIT 타이밍(예: 사용자 트리거 2026-10-28 FOMC) base rate 정보로만 쓰인다.",
+   "test_protocol": "캘린더 구축 → 사전등록(유형 3+옵션만기, 승수 정의, placebo 규칙) → 설계창 dev(E0 항등 1 + 승수 1 + placebo 2 + V13 h5 더미 1 ≤ 5회). CRPS 트랙: 원점당 h1+h5 평균 손실차·h21+h63 평균 손실차 각각 ℓ=10·B=2000 CI90(V8 좌표), 양방향 전이, coverage 밴드 유지. 음성대조: (i) placebo 캘린더(±3/±7일 이동)에서 CI90 이 0 포함해야 함, (ii) V13 h5 는 y-block 귀무 ≤0.10. 다중검정: 4유형×2지평군 + 6 V13 셀 → family P + BH q=0.10. MDE 병기. 홀드아웃 승인 시 1회.",
+   "expected_effect": "h1 CRPS 발표일 한정 개선은 클 수 있으나(FOMC 일 분산 ≈ 평일 1.5~2.5배 [정확 배수 미검증]) 전체 원점 평균 h5 CRPS +0.5~1.5%, h21/h63 ≈ 0(희석). V13 h5 셀 BSS(대 PB) +1~3%p 가능성 중간. 양방향 통과 확률 h5: 약 40%(효과가 구조적·결정론이라 전이 위험 낮음), h21+: <10%. 가치는 '언제' 변동성 사건이 나는지의 시계열 형상.",
+   "cost": "$0. 계산 소(FHS 재실행 2000경로×417원점 수 회). 엔지니어링 약 3~5일(추정): 역사 캘린더 구축·검증 영수증, 포크, placebo 도구.",
+   "stage": "캘린더 구축(T0) → 사전등록 → 설계창 dev(≤5) → T1 판정서 → [승인 시] 홀드아웃 1회 → PASS 시 V13 h5 카드 caveat 개정 또는 V8 카드 발표일 표기(T3, 참고 의견). T4 없음.",
+   "why_not_already_refuted": "V3 만 `events` 블록(CPI/NFP/FOMC, branch_labels soft/near/hot, `numerical_use_requires_event_ablation_pass`)을 가졌으나 실제 발표값에 의존하는 스태킹 성분이었고 단독 ablation 결과는 기록에 없다(V3 HOLD 사유는 극단 coverage·stress). V8~V13 은 캘린더를 전혀 쓰지 않았고, V9 exog 는 first-print '수준'이지 '일정'이 아니다. V10 상태는 vol 수준. 즉 결정론·사전 공개 정보집합은 미표집이며 V9 의 '저주파 수준 변수 무익' 결과와 무관하다."
+  },
+  {
+   "id": "classical-4",
+   "name": "옵션 표면(CBOE DataShop QQQ EOD) → VRP·위험중립 스큐·꼬리 → 가격 꼬리 사건·V13",
+   "hypothesis": "H4a(가격 꼬리): logit(반사 기준선 σ_IV 자유 파라미터 0) 대비, VRP_t=MFIV²_30d−HAR-RV̂ 와 위험중립 스큐(BKM 2003)·좌측 꼬리 측도를 얹은 로짓이 P(−10% first-touch within h21/h63) 에서 쌍대 Brier CI90 하한>0 양방향. 선행 rung: 'EWMA σ 를 IV σ 로 교체'만으로 V8 대비 개선되는지(정보의 주인이 IV 수준인지 스큐인지 분리). H4b(V13): NASDAQ 고유 IV 기간구조·스큐가 PB 를 이기는 셀 ≥1.",
+   "information_set": "행사가별 IV 표면(만기×델타) — 모형자유 내재분산, 위험중립 왜도·첨도, 좌측 꼬리 점프 강도, NASDAQ 고유(QQQ) 기간구조. VIX(SPX 30일 MFIV 1개 수치)와 VXN 수준 스프레드(V9 반증)가 담지 못하는 '분포 형태' 정보. 외부 검토가 '유일한 미검증 정보집합'으로 지목.",
+   "method": "(1) EOD 체인 → 무차익 필터·델타 격자 보간 → MFIV(Jiang–Tian 2005 방식), BKM 왜도, 25델타 리스크리버설, 1M/3M 기간구조. (2) VRP = MFIV²−HAR-RV 예측(설계창 HAR 계수는 research_train). (3) 가격 꼬리: 반사원리 2Φ(ln0.9/(σ√T)) 에 σ=IV 대입한 0-파라미터 기준선 → +VRP → +스큐 nested 로짓. (4) V13: PB+IV 기간구조+스큐 nested 로짓. 모두 결정론.",
+   "papers": [
+    {
+     "citation": "Bollerslev, T., Tauchen, G. & Zhou, H. (2009) 'Expected Stock Returns and Variance Risk Premia', Review of Financial Studies",
+     "confidence": "high",
+     "why": "VRP 의 수익률 예측력(분기 지평 최대) — h63 꼬리 사건에 대한 사전 기대의 원천"
+    },
+    {
+     "citation": "Bollerslev, T., Todorov, V. & Xu, L. (2015) 'Tail risk premia and return predictability', Journal of Financial Economics",
+     "confidence": "high",
+     "why": "좌측 꼬리 위험프리미엄이 VRP 예측력의 대부분을 담당 — 꼬리 측도를 별도 피처로 등록하는 근거"
+    },
+    {
+     "citation": "Bakshi, G., Kapadia, N. & Madan, D. (2003) 'Stock Return Characteristics, Skew Laws, and the Differential Pricing of Individual Equity Options', Review of Financial Studies",
+     "confidence": "high",
+     "why": "모형자유 위험중립 왜도·첨도 추출 공식 — 구현 원형"
+    },
+    {
+     "citation": "Jiang, G. J. & Tian, Y. S. (2005) 'The Model-Free Implied Volatility and Its Information Content', Review of Financial Studies",
+     "confidence": "high",
+     "why": "MFIV 가 역사 변동성·BS IV 를 정보적으로 포섭 — 'IV σ 교체' 선행 rung 의 근거"
+    },
+    {
+     "citation": "Blair, B. J., Poon, S.-H. & Taylor, S. J. (2001) 'Forecasting S&P 100 volatility: the incremental information content of implied volatilities and high-frequency index returns', Journal of Econometrics",
+     "confidence": "high",
+     "why": "IV 가 실현변동성 예측에서 거의 모든 정보를 담음 — rv 셀에서 IV 기간구조의 기대와 한계"
+    },
+    {
+     "citation": "Andersen, T. G., Fusari, N. & Todorov, V. (2015) 'The risk premia embedded in index options', Journal of Financial Economics",
+     "confidence": "medium",
+     "why": "옵션 표면에서 분리한 좌측 꼬리 요인이 향후 수익·변동성을 예측 — 표면 파라미터화의 대안 참조"
+    }
+   ],
+   "data_needed": "CBOE DataShop QQQ EOD 옵션 체인 2004+ (EOD 약 $500/월, 과거 일괄 가격 [미검증]) — 사용자 결정 V12-D4(질의 초안 `docs/design/v13_cboe_datashop_qqq_request_260907.md` 미발송). PIT: 벤더 as-traded EOD 스냅샷 = 새 등급 `vendor_eod_archive`(재구성 아님, first-print 상당) — 영수증·sha 캡처. 라이선스: Subscriber Agreement §1 내부연구 허용, §2b 파생 표시 조건부 — 소유자 원문 재확인 필수, raw 비커밋. QQQ↔Composite 프록시(배당·조기행사·미국식) caveat. 설계창 2007-2014 전 구간 커버.",
+   "governance_fit": "구매·발송은 사용자 결정. 결정론 피처·로짓(§8 예외), LLM 0. V8/V2 봉인 무접촉(가격 꼬리 로짓은 V8 산출 p 를 입력으로 쓰지 않고 독립 기준선에서 시작 → V12 재보정 맵 계보와 분리). 새 계약 ID, dev 예산 신규, 홀드아웃·봉인 승인 전 verb 부재. 옵션 내재확률은 risk-neutral 임을 병기(CLAUDE.md 하드 게이트) — 물리확률 변환은 설계창 회귀로만. 산출 = 드로다운 EXIT 룰 base rate, 참고 의견.",
+   "test_protocol": "T-D 행정(발송·계약 캡처) → 무료 샘플로 파서 검증 → 사전등록(피처 정의·rung 순서·격자 없음) → 설계창 walk-forward. 가격 꼬리: 셀 2(h21/h63)×rung 3 = 6, V13: 9셀×2 = 18 → 24 검정, family P + BH q=0.10 + Romano–Wolf stepdown(같은 블록 부트스트랩 재표집으로 계산). 쌍대 Brier ℓ=13·B=2000 CI90, MDE, 양방향 전이, y-block 귀무 ≤0.10. V12 S2 실측(V8 AUC h21 0.8054, BSS|기후 CI90 0 걸침)을 비교 앵커로 병기. 예산 ≤8, stop-loss: 'IV σ 교체' rung 이 반사 기준선 대비 비열화 실패면 후속 rung 미실행.",
+   "expected_effect": "문헌 기준 정직한 사전확률: 가격 꼬리 h63 BSS +2~6%p(VRP 분기 R² 한 자리 % → 사건확률로 환산 시 이 정도), h21 +0~3%p; V13 h21/h63 셀 +1~3%p. 어느 하나 양방향 통과 확률 약 40~50% — 캠페인 잔여 후보 중 최고이나 V11 P4(VIX−RV21 프록시) 미통과가 'VRP→중심 CRPS' 기대는 낮춘다(꼬리·사건 표적은 별개).",
+   "cost": "데이터 약 $500/월(EOD, 과거분 일괄가 [미검증]) — 3개월 가정 $1,500. 계산 중(일별 체인 보간 2007-2014 ≈ 2,000일). 엔지니어링 약 8~12일(추정): 파서·무차익 필터·MFIV/BKM·영수증·계약.",
+   "stage": "T-D 행정(V12-D4 발송, 사용자) → 샘플 검증 → 사전등록 → 설계창 dev(≤8) → T1 → [승인 시] 홀드아웃 1회 → PASS 시 T3 base rate 카드(참고 의견). T4 없음.",
+   "why_not_already_refuted": "V4 는 SPX 기반 지수 수준(VVIX·SKEW·VIX3M)을 V3 계보 스태킹에 넣었고, V9 E5/E6 은 VXN/VIX 수준 스프레드를 CRPS 에 검정했으며, V11 P4 는 VIX−RV21 을 평시 결함 진단에 썼다 — 행사가별 표면에서 추출한 왜도·꼬리·NASDAQ 고유 기간구조는 어떤 트랙에도 없고, 사건 표적(−10% 접촉, VIX≥K)에 결합된 적도 없다. V12 는 V8 의 p 를 재보정하는 맵이었지 새 정보로 p 를 다시 만드는 트랙이 아니었다."
+  },
+  {
+   "id": "classical-5",
+   "name": "꼬리 표적·꼬리 손실 재채점 + 조건부 EVT/CAViaR 꼬리 교체 (신규 데이터 0)",
+   "hypothesis": "H5a(진단, 반증 가능): V8 E10 의 h21/h63 좌측 꼬리(p5·p1·ES5)를 quantile-weighted CRPS(좌측 가중)·pinball(τ=0.05,0.01)·Fissler–Ziegel (VaR,ES) 손실로 재채점하면 historical simulation 대비 개선폭이 CRPS 의 +3.96%/+4.21%(전체창)보다 작다(CI90 이 그 값을 배제). H5b: EWMA/GARCH 필터링 POT-GPD(McNeil–Frey) 또는 CAViaR 비대칭 기울기로 V8 경로분포의 p≤0.05 꼬리만 교체한 하이브리드가 꼬리 손실에서 E0 대비 쌍대 CI90 상단<0 양방향이면서 CRPS·coverage 비열화.",
+   "information_set": "정보집합은 일간 종가 그대로 — 바뀌는 것은 '표적(좌측 꼬리 분위수·ES)'과 '손실함수'. 사용자 EXIT 룰(드로다운·VIX 25+)이 사는 곳은 분포 중심이 아니라 좌측 꼬리인데, 캠페인 전체가 중심 가중 CRPS 로만 채점했다. 선택적 중첩 공변량: 보유 SKEW 지수(CAViaR 외생항).",
+   "method": "V10 패턴 V8 포크(E0 항등). (a) 재채점: 동일 경로 표본에서 좌측 가중 CRPS(Gneiting–Ranjan 2011, w(α)=(1−α)²), pinball τ∈{0.05,0.01}, FZ0 손실(VaR5,ES5). (b) 꼬리 교체: 표준화 잔차 z 의 u=90분위 초과분에 GPD MLE(ξ,β) → 경로의 p≤0.05 영역을 GPD 분위수로 대체(McNeil–Frey 2000); 대안 CAViaR 비대칭 기울기(Engle–Manganelli 2004, 분위회귀 수치최적화). 채점은 (a) 손실 + Christoffersen(1998) 독립성 검정 보고.",
+   "papers": [
+    {
+     "citation": "McNeil, A. J. & Frey, R. (2000) 'Estimation of tail-related risk measures for heteroscedastic financial time series: an extreme value approach', Journal of Empirical Finance",
+     "confidence": "high",
+     "why": "GARCH 필터 + POT-GPD 꼬리 — 구현 원형이자 FHS 꼬리 대비 개선 증거"
+    },
+    {
+     "citation": "Engle, R. F. & Manganelli, S. (2004) 'CAViaR: Conditional Autoregressive Value at Risk by Regression Quantiles', Journal of Business & Economic Statistics",
+     "confidence": "high",
+     "why": "분위수 직접 동학 — 렌즈(quantile) 의 정합 모형, 분포 가정 없는 대안 rung"
+    },
+    {
+     "citation": "Gneiting, T. & Ranjan, R. (2011) 'Comparing density forecasts using threshold- and quantile-weighted scoring rules', Journal of Business & Economic Statistics",
+     "confidence": "high",
+     "why": "꼬리 가중 CRPS 의 proper 성질과 정의 — 재채점 규칙의 근거"
+    },
+    {
+     "citation": "Fissler, T. & Ziegel, J. F. (2016) 'Higher order elicitability and Osband's principle', Annals of Statistics",
+     "confidence": "high",
+     "why": "(VaR,ES) 쌍의 공동 elicitability — ES 를 정직하게 채점하는 유일한 손실 형식"
+    },
+    {
+     "citation": "Kuester, K., Mittnik, S. & Paolella, M. S. (2006) 'Value-at-Risk Prediction: A Comparison of Alternative Strategies', Journal of Financial Econometrics",
+     "confidence": "high",
+     "why": "FHS 와 EVT 가 VaR 예측에서 상위권 — H5b 의 기대 이득이 크지 않다는 반대증거"
+    },
+    {
+     "citation": "Christoffersen, P. F. (1998) 'Evaluating Interval Forecasts', International Economic Review",
+     "confidence": "high",
+     "why": "구간·VaR 위반의 무조건/독립성 검정 — coverage 사후검사의 정식화"
+    }
+   ],
+   "data_needed": "$0. V8 설계창 dev 재실행(경로 표본이 원장에 미보존이면 포크 replay 1회 = dev 평가 1회 소모 [원장 저장 형식 미검증]). 선택적 SKEW(V4 스토어). 봉인 원장·코드 바이트 무수정.",
+   "governance_fit": "손실함수 변경 = 새 사전등록(결과 본 뒤 손실함수 교체 금지 — V12 C-gate-arith 정신; 여기서는 재계산 '전'에 손실을 고정). 결정론 모형·§8 예외, GPD 임계 u·τ 는 정점지식 caveat. V8 승자·게이트 수치는 무변경(재채점은 별도 계약의 진단·꼬리 트랙). LLM 0. 산출은 드로다운 EXIT 룰의 base rate, 참고 의견.",
+   "test_protocol": "사전등록(손실 3종·τ·u·꼬리 교체 규칙·비열화 조건) → 포크 E0 항등 → (a) 재채점: 2지평×3손실 = 6 진단(판정 아님, 부트스트랩 CI90 보고) → (b) GPD·CAViaR 2 rung × 2지평 × 3손실 = 12 검정: 쌍대 손실차 원점당 평균, ℓ=10·B=2000(V8 좌표) CI90, MDE, 양방향 early/late, family P + BH q=0.10. 음성대조: 위반 지시자 y-block 순열(ℓ=13)에서 통과율 ≤0.10 + Christoffersen 독립성. 비열화: CRPS 쌍대 CI90 하한 ≤ +0.0004·coverage 밴드 유지. 예산 ≤6. 홀드아웃은 승인 시 1회.",
+   "expected_effect": "H5a: V8 이득이 꼬리에서 더 작을 확률 약 60%(V10 W3 폭 이득이 GFC 인공물이었던 것과 정합) — 결과가 어느 쪽이든 EXIT 룰 관점의 정보. H5b: Kuester et al. 기준 FHS 는 이미 경쟁력 → 꼬리 손실 개선 +0~3%, 양방향 통과 확률 약 25%. 중심 CRPS 개선은 기대하지 않음(등록 안 함).",
+   "cost": "$0. 계산 소~중(포크 replay 수 회). 엔지니어링 약 4~6일(추정): 손실 함수 3종·GPD/CAViaR·포크·계약.",
+   "stage": "사전등록 → 설계창 dev(≤6) → T1 진단 판정서(H5a 는 T1 종료) → H5b champion 시 [승인] 홀드아웃 1회 → PASS 시 V8 카드에 꼬리 분위수 caveat·기준율 병기(T3). T4 없음.",
+   "why_not_already_refuted": "모든 트랙의 게이트는 CRPS·coverage(V1~V10)·Brier(V12·V13)였고 꼬리 가중·분위수·ES 손실은 한 번도 판정 다리가 아니었다(V3 tail_weighted_crps 는 HOLD 계보의 보조 지표). V5/V6 의 GPD-EVT(E6)는 8~11패밀리 앙상블 성분으로 CRPS 채점된 HOLD 계보이며 V8 위 단독 꼬리 교체·꼬리 손실 판정은 없다. '반증된 방향' 표 #11 이 명시적으로 미시험으로 분류."
+  },
+  {
+   "id": "classical-6",
+   "name": "일중 실현측도(FirstRate 1분봉) — 반분산·점프·범위 σ → V13 rv/vix 셀과 경로 생성기(T-B 재개)",
+   "hypothesis": "H6a: 5분 RV·음의 반분산 RS⁻(Patton–Sheppard)·점프분산(BNS)·RQ 보정(HARQ)·Parkinson/GK 범위 σ 를 PB 에 얹은 nested 로짓이 V13 rv 셀(RV21>θ) h5/h21 과 vix 셀 h5 에서 PB 대비 양방향 CI90 하한>0. H6b(T-B 재개 조건 충족 시): 일중 측도 기반 σ 를 FHS 경로 생성기에 넣은 V8 포크가 h21 first-touch Brier 에서 E0 대비 개선(양방향) ∧ CRPS 무손상. 실패 시 '정밀 σ 도 지속성을 넘지 못함'으로 T-B 영구 종결.",
+   "information_set": "일중 가격 경로(1분봉 NDX/QQQ 2000+): 종가 대비 5~8배 효율의 분산 추정, 부호 정보(하락 반분산), 점프-확산 분리, 야간/일중 분해 — V13 rung-2 HAR 이 쓴 close-to-close 제곱수익률(잡음 큼)과 정보 정밀도가 다르다. 저장소 `data/intraday/` 부재.",
+   "method": "5분 RV·BPV·RS⁻·RQ 를 일간 집계 → HAR-RS(Patton–Sheppard 2015)·HARQ(BPQ 2016) 예측치를 피처로 한 PB-nested 로짓(V13 적합기). 범위 σ(Parkinson 1980·Garman–Klass 1980)는 일간 OHLC 집계. H6b 는 V8 포크에서 EWMA σ→HARQ σ 교체(E0 항등 = EWMA). 모두 결정론.",
+   "papers": [
+    {
+     "citation": "Andersen, T. G., Bollerslev, T., Diebold, F. X. & Labys, P. (2003) 'Modeling and Forecasting Realized Volatility', Econometrica",
+     "confidence": "high",
+     "why": "실현변동성의 측정·예측 이론 — 일중 측도가 종가 기반 추정보다 우월한 근거"
+    },
+    {
+     "citation": "Patton, A. J. & Sheppard, K. (2015) 'Good Volatility, Bad Volatility: Signed Jumps and the Persistence of Volatility', Review of Economics and Statistics",
+     "confidence": "high",
+     "why": "음의 반분산이 미래 변동성을 더 잘 예측 — RS⁻ 피처의 직접 근거(vix 셀 상승 사건과 정합)"
+    },
+    {
+     "citation": "Bollerslev, T., Patton, A. J. & Quaedvlieg, R. (2016) 'Exploiting the errors: A simple approach for improved volatility forecasting', Journal of Econometrics",
+     "confidence": "high",
+     "why": "측정오차(RQ)에 따라 HAR 계수를 조정하는 HARQ — 잡음 큰 일간 RV 로 HAR 이 0/9 였던 이유를 설명·개선"
+    },
+    {
+     "citation": "Liu, L. Y., Patton, A. J. & Sheppard, K. (2015) 'Does anything beat 5-minute RV? A comparison of realized measures across multiple asset classes', Journal of Econometrics",
+     "confidence": "high",
+     "why": "5분 RV 가 이기기 어렵다는 대규모 비교 — 측도 선택을 5분 RV 로 사전 고정하는 근거"
+    },
+    {
+     "citation": "Barndorff-Nielsen, O. E. & Shephard, N. (2004) 'Power and Bipower Variation with Stochastic Volatility and Jumps', Journal of Financial Econometrics",
+     "confidence": "high",
+     "why": "점프분산 분리(BPV) — 점프 피처 정의"
+    },
+    {
+     "citation": "Garman, M. B. & Klass, M. J. (1980) 'On the Estimation of Security Price Volatilities from Historical Data', Journal of Business",
+     "confidence": "high",
+     "why": "OHLC 범위 추정량 — V12 포스트모템 A3 경로의 문헌"
+    }
+   ],
+   "data_needed": "FirstRate Data NDX/QQQ 1분봉(2000+, 약 $300 일회, FR-1 사용자 결정, 계획서 `docs/design/v13_firstrate_acquisition_plan_260907.md`). PIT: back-adjusted 재구성본(first-print 아님, 등급 중) — 캡처 영수증 `data/intraday/receipts.jsonl`, raw gitignore. 라이선스: 연구·파생물 허용(귀속), raw 재배포 금지. Composite 아닌 NDX/QQQ 프록시 caveat [Composite 1분봉 보유 여부 미검증]. 무료 2주 샘플 선검증.",
+   "governance_fit": "구매는 사용자 결정. 결정론 측도·로짓(§8 예외), LLM 0. V13 표적 무변경(피처 추가 = 결과 전 사전등록 개정 또는 새 계약 ID). H6b 는 V12B_PARKED 재개 조건 4항(일중 데이터·새 사전등록·y-block 귀무·CRPS 무손상) 그대로. 홀드아웃·봉인 승인 전 verb 부재. 산출 = 참고 의견.",
+   "test_protocol": "샘플 검증(집계·결측·거래시간 규칙) → 사전등록(측도 5분 고정, 피처 5종, rung 순서) → 설계창 walk-forward. H6a: 9셀×5피처 = 45 검정, 쌍대 Brier vs PB ℓ=13·B=2000 CI90·MDE·양방향·y-block ≤0.10, family P + BH q=0.10. H6b: V8 포크 E0 항등 + σ 교체 1 + ℓ_z 블록 2 ≤ 4회, first-touch Brier 양방향 + CRPS 비열화. 예산 총 ≤8. stop-loss: H6a rv 셀 0/15 이면 H6b 미실행.",
+   "expected_effect": "정직하게 낮~중: rung-2(일간 HAR) 0/9 가 사전확률을 깎는다. rv 셀 h5 BSS(대 PB) +1~3%p(측정 정밀도 효과는 단기에 집중), vix 셀 ≈0, h63 ≈0. first-touch h21 BSS +1~3%p(T-B 추정). ≥1셀 양방향 통과 확률 약 30~35%.",
+   "cost": "데이터 약 $300. 계산 소(집계 후 일간). 엔지니어링 약 5~8일(추정): 1분봉 파서·집계·측도 5종·영수증·계약·포크.",
+   "stage": "FR-1 결정(사용자) → 샘플 검증(T0) → 사전등록 → 설계창 dev(≤8) → T1 → [승인] 홀드아웃 1회 → PASS 셀 T3 카드 갱신. T4 없음.",
+   "why_not_already_refuted": "V13 rung-2 는 일간 종가 제곱수익률 HAR(1/5/22)였고 반분산·점프·RQ·범위는 일중 데이터 없이는 계산 불가해 미시험. V12b(경로 생성기)는 '일중 데이터 확보 후 새 ID' 조건으로 파킹됐지 반증되지 않았다(P1 진단 VR(5)=0.874 는 방향 확증). V9 exog 무익은 저주파 수준 변수 진술이며 일중 정밀 측도와 무관."
+  },
+  {
+   "id": "classical-7",
+   "name": "log-VIX 평균회귀·점프 첫통과 모형 — h63 셀 지평 정합·오보정 표적 (동일 정보집합, 구조 결함 교정)",
+   "hypothesis": "V13 h63 셀의 신뢰도 결함(rel≈0.08, cross-fit isotonic 은 악화로 fallback)은 '정적 로짓 맵의 지평 비정합'에서 오며, research_train 에서 추정한 AR(1)/OU log-VIX(Student-t 또는 복합 포아송 점프 혁신)로 시뮬레이션한 P(max_{s≤h} VIX_s ≥ K) 가 (a) h5≤h21≤h63 단조·정합을 구조적으로 만족하고 (b) h63 두 셀(vix25·vix30)에서 PB 대비 쌍대 Brier CI90 하한>0 양방향 ∧ rel<0.04 이다. h5/h21 은 PB 와 동률(비열화)만 요구. 실패하면 'h63 오보정은 정보 부족'으로 결론(classical-1/4 로 이관).",
+   "information_set": "신규 정보 없음(VIX 종가만) — 과제 지침상 후순위이나 포함 이유: 실패가 정보가 아닌 '구조(정적 맵의 지평 불일치)'에 있다는 진단이 있고, V13 계약이 예정한 동적 rung(garch_t_sim)이 `arch` 미설치로 미실행이라 사다리의 그 칸이 비어 있다.",
+   "method": "x_t=ln VIX_t: x_{t+1}−x_t = κ(μ−x_t) + σ ε_{t+1}(ε~t_ν) [+ J·N_{t+1}, 강도 λ] 를 research_train MLE(scipy, 격자 없음, ν·λ 자유). 원점별 20,000 경로 시뮬레이션(seed 규칙 sha256, V8 seed_rule 승계)으로 첫통과 확률 → 9셀 동시 산출. 대조: PB 로짓(계수 sha `1a857850…` 동결본 그대로). 렌즈: 이는 HAR/GARCH 가 아닌 연속시간 VIX 동학 문헌의 결정론 이산화.",
+   "papers": [
+    {
+     "citation": "Dotsis, G., Psychoyios, D. & Skiadopoulos, G. (2007) 'An empirical comparison of continuous-time models of implied volatility indices', Journal of Banking & Finance",
+     "confidence": "medium",
+     "why": "VIX 류 지수에 대한 평균회귀·점프 모형 비교 — 점프 항이 필요함을 보인 근거(세부 결론 [미검증])"
+    },
+    {
+     "citation": "Mencía, J. & Sentana, E. (2013) 'Valuation of VIX derivatives', Journal of Financial Economics",
+     "confidence": "medium",
+     "why": "log-VIX 의 중심 평균회귀 + 확률적 장기수준 모형이 VIX 파생상품 가격을 잘 설명 — 모형 형태 선택 근거"
+    },
+    {
+     "citation": "Psychoyios, D., Dotsis, G. & Markellos, R. N. (2010) 'A jump diffusion model for VIX volatility options and futures', Review of Quantitative Finance and Accounting",
+     "confidence": "medium",
+     "why": "VIX 점프-확산 모형의 추정 — 점프 강도·크기 파라미터화 참조"
+    },
+    {
+     "citation": "Andersen, T. G., Bollerslev, T. & Diebold, F. X. (2007) 'Roughing It Up: Including Jump Components in the Measurement, Modeling, and Forecasting of Return Volatility', Review of Economics and Statistics",
+     "confidence": "high",
+     "why": "점프 성분의 예측 기여가 지속성 성분과 다름 — 점프 항을 넣는 이유"
+    },
+    {
+     "citation": "Hansen, P. R. & Lunde, A. (2005) 'A forecast comparison of volatility models: does anything beat a GARCH(1,1)?', Journal of Applied Econometrics",
+     "confidence": "high",
+     "why": "단순 모형을 이기기 어렵다는 대규모 증거 — 이 방향의 낮은 사전확률을 정직하게 정하는 반대증거"
+    }
+   ],
+   "data_needed": "$0. V2 아카이브 VIX 종가(read-only). PIT 문제 없음.",
+   "governance_fit": "결정론 모형(§8 예외), LLM 0, 훈련 아님. V13 계약 `model_ladder` 확장은 결과 전 개정 커밋(표적 무변경이라 `post_hoc_target_addition` 비해당; `gate_threshold_relaxation` 0). 예산 3/8 → 잔여 5 중 ≤2 사용. champion 발견 시 루프 정지·사용자 질문(자동 홀드아웃 금지). 산출 = 참고 의견, T3 caveat 유지.",
+   "test_protocol": "사전등록 개정(모형식·혁신분포·seed·경로수) → 설계창 walk-forward, 9셀 동시 산출(예산 1~2회). 판정은 V13 G2 형 그대로: h63 2셀 = PB 대비 양방향 CI90 하한>0(엄격) ∧ y-block 귀무 ≤0.10 → champion 교체, 아니면 PB 유지; h5/h21 은 비열화 보고. Murphy rel/res/unc + 신뢰도 곡선(raw) 보고 의무. MDE 병기, family P(k≥k_obs) ≤0.05 (9셀). 홀드아웃은 finalist 재등록 후 'V13-D3' 원문 승인 시 1회.",
+   "expected_effect": "낮~중: h5/h21 은 PB 와 동률(≈0). h63 에서 BSS(대 PB) +1~3%p 와 rel 0.08→0.04 개선 가능성 약 25%. 실패해도 h63 오보정의 원인을 '구조 아님 → 정보'로 좁혀 classical-1/4 의 우선순위를 확정하는 정보 가치.",
+   "cost": "$0. 계산 소~중(원점 417×20,000 경로×63일 ≈ 수 분). 엔지니어링 약 2~3일(추정).",
+   "stage": "V13 사전등록 개정 → 설계창 dev(≤2) → T1 판정서 → champion 시 [승인] 홀드아웃 1회 → PASS 시 h63 카드 '▲ 보정 약함' 배지 해제(T3). T4 없음.",
+   "why_not_already_refuted": "V13 이 시험한 rung 은 전부 정적 로짓(EWMA·HAR·PB)이며 동적 첫통과 모형·GARCH-t 시뮬레이션은 미실행(`arch` 미설치). h63 cross-fit isotonic 도 실패했으므로 'h63 오보정'은 열린 결함이다. V10 의 국면 이득이 GFC 인공물이었다는 결과는 가격 CRPS 폭에 대한 것이며 VIX 첫통과 확률의 지평 정합 문제와 다르다."
+  },
+  {
+   "id": "classical-8",
+   "name": "주간 포지셔닝(CFTC TFF NASDAQ-100 선물) → 월간 드로다운 사건 (주기 정합 표적, 무료·공공)",
+   "hypothesis": "레버리지펀드·자산운용사 순포지션(3년 롤링 백분위)의 극단이 P(NASDAQ 최대 드로다운 ≥10% within 63 영업일) 을 지속성 기준선(당일 드로다운 상태 + VIX 수준 로짓) 대비 개선한다(쌍대 Brier CI90 하한>0 양방향). 예상 MDE 가 문헌 효과보다 클 가능성이 높아 '결정적 증거 없음'으로 끝날 확률을 사전 공표한다.",
+   "information_set": "시장 참여자 포지셔닝(주간, 화요일 기준·금요일 15:30 ET 공표) — 가격·변동성 종가에 없는 수급·레버리지 정보. 저장소에는 BTC D0 계약(`cftc_cot_bitcoin_d0.yaml`)·v5 `cftc_tff` 스펙만 있고 NDX 선물 포지션은 미수집.",
+   "method": "주간 원점(공표일 기준 available_at) 로짓: PB(dd_t, VIX_t) ⊂ PB+pos_z_t(레버리지펀드 순/OI) ⊂ +자산운용사. 표적은 월간급(63일) 사건으로 V9 형 주기 불일치를 피함. 보조: Hong–Yogo 형 OI 증가율. 결정론.",
+   "papers": [
+    {
+     "citation": "Rapach, D. E., Ringgenberg, M. C. & Zhou, G. (2016) 'Short interest and aggregate stock returns', Journal of Financial Economics",
+     "confidence": "high",
+     "why": "총포지셔닝(공매도잔고)이 월간 지수 수익의 강한 예측변수 — 포지셔닝 정보집합의 동기(FINRA 는 법적 차단이라 COT 로 대체)"
+    },
+    {
+     "citation": "Hong, H. & Yogo, M. (2012) 'What does futures market interest tell us about the macroeconomy and asset prices?', Journal of Financial Economics",
+     "confidence": "high",
+     "why": "선물 미결제약정 증가율의 자산가격 예측력 — OI 피처 근거"
+    },
+    {
+     "citation": "Wang, C. (2003) 'The Behavior and Performance of Major Types of Futures Traders', Journal of Futures Markets",
+     "confidence": "medium",
+     "why": "트레이더 유형별 COT 포지션의 예측력 — 혼재 결과라 사전확률을 낮추는 근거"
+    },
+    {
+     "citation": "Sanders, D. R., Irwin, S. H. & Merrin, R. P. (2009) 'Smart Money: The Forecasting Ability of CFTC Large Traders in Agricultural Futures Markets', Journal of Agricultural and Resource Economics",
+     "confidence": "medium",
+     "why": "COT 대형 트레이더의 예측력 부재 — 반대증거(농산물 시장이라 지수선물 이전은 [미검증])"
+    },
+    {
+     "citation": "Brunnermeier, M. K., Nagel, S. & Pedersen, L. H. (2008) 'Carry Trades and Currency Crashes', NBER Macroeconomics Annual",
+     "confidence": "medium",
+     "why": "포지셔닝 극단과 급락(crash) 위험의 연결 — 드로다운 사건 표적 설계 근거"
+    }
+   ],
+   "data_needed": "$0. cftc.gov TFF 역사 파일(공공, 12-8 깨끗 소스 선례). PIT: 공표일 규칙(금요일 15:30 ET)으로 reconstructed(available_at = 공표일), 이후 captured_forward. TFF 역사 시작 2006-06 [미검증 — 분리 보고서 도입 시점 확인 필요]. 설계창 주간 ≈417원점이나 63일 드로다운≥10% 사건은 GFC 군집 → 유효표본 작음.",
+   "governance_fit": "결정론 로짓(§8 예외), LLM 0, 새 계약 ID(D0→PIT 레인 승격 절차 포함), 임계 10%·63일·3년 백분위 정점지식 caveat. 산출은 드로다운 EXIT 룰 base rate, 참고 의견. 홀드아웃·봉인 승인 전 verb 부재.",
+   "test_protocol": "수집·PIT 정렬 영수증 → 사전진단(사건 수·MDE 계획 공표) → 사전등록 → 설계창 주간 원점 walk-forward, 셀 1표적×(h21,h63) = 2 × 피처 2 = 4 검정. 쌍대 Brier ℓ=13·B=2000 CI90, MDE, 양방향(early GFC 지배 caveat), y-block ≤0.10, family P. 예산 ≤3, stop-loss: |Δ|<MDE 전부면 '검정력 부족 종결'로 기록.",
+   "expected_effect": "낮음(양방향 통과 확률 약 15%). 문헌이 혼재하고 설계창 사건 수가 작아 MDE 가 클 것. 가치: (i) 값싸게 포지셔닝 질문을 닫음, (ii) CFTC D0→PIT 레인을 만들어 향후 라이브 포워드 축적의 인프라가 됨.",
+   "cost": "$0. 계산 소. 엔지니어링 약 2~3일(추정).",
+   "stage": "수집·D0 계약(T0) → 사전등록 → 설계창 dev(≤3) → T1 판정서(대부분 여기서 종료) → champion 시 [승인] 홀드아웃 1회. T3 이상은 기대하지 않음.",
+   "why_not_already_refuted": "어느 트랙도 포지셔닝 변수를 쓰지 않았다. V9 의 실패는 '주간·월간 수준 변수를 일간 CRPS 분포에 얹은' 주기 불일치였고, 여기서는 표적을 63일 드로다운 사건으로 정렬해 그 함정을 피한다. 다만 V11 평시 상태신호 실패(저주파 상태의 표본외 전이 실패)와 같은 유형의 위험이 있어 사전확률을 낮게 둔다."
+  },
+  {
+   "id": "ml-1",
+   "name": "옵션내재 형상(VIX 기간구조 기울기·VVIX·SKEW) → V13 변동성 이벤트 rung-4 [보유 데이터, $0]",
+   "hypothesis": "당일 VIX 수준(PB)을 조건으로 한 뒤에도, 옵션내재 '형상' 변수 — log(VIX/VIX3M) 기간구조 기울기, log VVIX(vol-of-vol), SKEW 수준·5일 변화 — 는 P(VIX≥K within h)·P(RV21>θ within h)에 증분 정보를 가지며, 3~4피처 ridge-logit 이 9셀 중 최소 1셀에서 early↔late 양방향 쌍대 Brier CI90 하한>0(FDR 보정 후)으로 persistence_pb 를 이긴다. 반증: 전 9셀에서 PB 대비 양방향 우세 0 이면 '옵션 지수 수준의 형상은 PB 에 흡수된다'로 기각.",
+   "information_set": "신규: VIX 기간구조 기울기(VIX3M 2009-09~ → 서브창 2010–14), VVIX(2006-03~, 설계창 전 구간), SKEW(1990~, 전 구간), VIX9D(2011~, 서브창). V13 는 VIX 종가 수준 + NASDAQ RV21 만 사용했고, V8/V9 번들의 옵션 파생 입력은 VIX 종가 1개(V9_E6 는 VXN/VIX 교차지수 스프레드로 기간구조가 아님). 전부 `data/timeseries_v4/ledgers/observations.jsonl`(reconstructed_market_archive, 113,615행) 에 이미 적재돼 있다(실측: SKEW 1990-01-02~, VVIX 2006-03-06~, VIX3M 2009-09-18~, VIX9D 2011-01-04~).",
+   "method": "V13 사다리에 rung-4 `pb_plus_shape_logit` 추가: 기존 `src/ai_fc/timeseries_v13/features.py::logit_fit`(Newton, zscore ddof0, clip) 그대로 사용, 피처 = [z log VIX, z log VVIX, z SKEW, z ΔSKEW_5d] (전 구간 변형 A) 와 [+ z log(VIX/VIX3M)] (서브창 2010–14 변형 B, V9-D7 서브창 프로토콜). l2 격자 {1e-3, 1e-2, 1e-1} 사전등록, 선택 규칙 = early 적합→late 채점의 log score 로 고정. 선택적 rung-5: sklearn HistGradientBoostingClassifier(monotonic_cst 로 VIX·VVIX 단조 증가 제약, max_depth 2, max_iter 50, learning_rate 0.05 — V5 E3 HGB 선례와 같은 결정론 수치모델 지위)로 '비선형 여지' 1회 검사. 결합은 없음 — G2 규칙(우월-아니면-PB) 그대로.",
+   "papers": [
+    {
+     "citation": "Johnson, T. L. (2017) 'Risk Premia and the VIX Term Structure', Journal of Financial and Quantitative Analysis",
+     "confidence": "medium-high",
+     "why": "VIX 기간구조 기울기가 VIX 선물 수익·향후 분산 변화를 예측 — '수준 다음의 정보'가 기울기에 있다는 직접 근거"
+    },
+    {
+     "citation": "Bekaert, G. & Hoerova, M. (2014) 'The VIX, the variance premium and stock market volatility', Journal of Econometrics",
+     "confidence": "high",
+     "why": "VIX² = 조건부 분산 예측 + 분산 프리미엄 분해; VIX 수준이 RV 예측을 거의 포섭한다는 사실이 PB 강세를 설명하고, 증분은 프리미엄·형상에서만 나온다는 사전확률의 근거"
+    },
+    {
+     "citation": "Christensen, B. J. & Prabhala, N. R. (1998) 'The relation between implied and realized volatility', Journal of Financial Economics",
+     "confidence": "high",
+     "why": "내재변동성이 역사변동성을 포섭(subsume) — V13 rung-2 HAR 무증분·PB 승리와 정합"
+    },
+    {
+     "citation": "Park, Y.-H. (2015) 'Volatility-of-volatility and tail risk', Journal of Financial Economics",
+     "confidence": "medium",
+     "why": "VVIX 가 꼬리위험 헤지 수익·꼬리 사건을 예측 — vix30 셀(꼬리 쪽)에 VVIX 증분 기대의 근거"
+    },
+    {
+     "citation": "Huang, D., Schlag, C., Shaliastovich, I. & Thimme, J. (2019) 'Volatility-of-Volatility Risk', Journal of Financial and Quantitative Analysis",
+     "confidence": "medium",
+     "why": "vol-of-vol 위험이 가격화된 별도 요인 — VVIX 가 VIX 수준과 직교하는 정보라는 근거"
+    },
+    {
+     "citation": "Mixon, S. (2007) 'The implied volatility term structure of stock index options', Journal of Empirical Finance",
+     "confidence": "medium",
+     "why": "지수옵션 IV 기간구조의 기대가설 편차 — 기울기가 미래 단기 IV 를 부분 예측한다는 초기 실증"
+    }
+   ],
+   "data_needed": "DB: `data/timeseries_v4/ledgers/observations.jsonl`(SKEW·VVIX·VIX3M·VIX9D, CBOE 원본 CSV 재구성본) + V2 아카이브(VIX·NASDAQCOM, read-only). PIT: 지수 수준은 사후 개정이 없으므로 reconstructed_market_archive 등급으로 설계창 사용 가능(단 native first-print 아님을 caveat, 캡처 영수증 2026-08-20 스냅샷). 라이선스: CBOE 약관 회색지대(KNOWN_LIMITS 12-1 명시 금지 vs fair use 유보, 12-5 대체 경로 없음) — 내부 연구는 현행 VIX 사용과 동일 지위, 파생값 공개 표시는 `docs/cboe_permission_request_draft.md` 발송(사용자) 후. 구매 $0.",
+   "governance_fit": "결정론 로짓의 설계창(2007–2014) 적합·워크포워드 = CLAUDE.md 원칙 5 예외(dualdb 스펙 §8, DECISIONS 8-6): 산출은 EXIT 트리거 base rate 참조이지 캘리브레이션 표본 아님, 문턱(K∈{25,30}, θ=0.1694)·창·서브창 선택이 정점 지식을 간접 내포한다는 caveat 병기. LLM 개입 0. ML 게이트: 학습되는 자유도는 로짓 계수 4~5개 + l2 격자 3 — V13 rung-1~3 과 같은 급(HGB rung-5 는 V5 E3 선례, 계수 동결·재적합 금지 조항 승계). 앙상블 가중 학습 없음(해소 200+ 게이트 뒤). 홀드아웃(2015–18)·봉인(2019+) 무접촉 — V13 계약 `holdout_execution_path: absent_by_construction` 유지, 통과 시에도 finalist 추가는 '결과 전 개정'으로만(계약 L86). 절차: V13 계약 개정 커밋(rung-4/5 사전등록, `evaluations_spent` 3/8 → 최대 5/8) → 원장 append → 판정서. 모든 출력 '참고 의견', P3 게이트 전 자금 결정 근거 아님.",
+   "test_protocol": "설계창 2007-01-01~2014-12-31, split early 2007–2010 ↔ late 2011–2014 양방향(변형 B 는 2010-01~2012-06 ↔ 2012-07~2014-12 서브창 split 을 사전등록, GFC 부재 caveat). 1차 게이트: 셀별 쌍대 Brier(PB − rung4) stationary block bootstrap ℓ=13, B=2000, seed 20260907, CI90 [5,95] 하한>0 양방향. MDE=1.645·se 병기, |Δ|<MDE 는 '결정적 증거 없음'. 음성대조: y-block 순열(ℓ=13, draws 120) 통과율 ≤0.10 — p-순열 귀무 금지(계약 prohibitions). 다중검정: 9셀×2변형=18검정 → Benjamini–Hochberg q=0.10 사전등록 + family P(k≥k_obs) 병기; 셀별 {PB, EWMA, HAR, rung4, rung5} Model Confidence Set(Hansen, Lunde & Nason 2011, α=0.10) 보고. Murphy 신뢰도 분해·h63 cross-fit isotonic fallback 규칙 승계. 홀드아웃은 통과 셀 한정·사용자 승인 원문(V13-D3 형식) 후 1회. 봉인 미열람.",
+   "expected_effect": "정직한 사전확률: PB 가 이미 IV 수준을 쓰므로 증분은 형상에만 있다. 문헌(Johnson 2017; Park 2015)상 기울기·VVIX 는 VIX 변화·꼬리를 예측하나 효과 크기는 R² 수 % 수준. 기대: h21/h63 vix 셀 BSS +0.01~+0.05, h5 셀 ≈0, rv 셀 ≈0 [필자 사전확률, 미검증]. '≥1셀 양방향 통과(FDR 후)' 확률 30~40%. 실패해도 ml-2(구매) 의 vol 표적 사전확률을 낮추는 정보 가치가 있다.",
+   "cost": "데이터 $0(보유). 컴퓨트: 2014원점×9셀×B2000 로짓 — 로컬 CPU 수십 분. 엔지니어링 2~3일(V4 스토어 조인 + 계약 개정 + 판정서 + 리뷰팩). 예산 소모: V13 dev 2회(rung-4 A/B) [+1 rung-5].",
+   "stage": "사전등록(V13 계약 개정 커밋) → 설계창(양방향) → [통과 셀만] finalist 사전등록 → 사용자 승인 후 홀드아웃 1회 → T2 숨김 패널 → T3 카드(파생값 표시는 CBOE 허가 서신 후). 봉인 접촉 없음.",
+   "why_not_already_refuted": "V4 는 같은 시리즈(log_vix_vix3m·log_vvix_change_5d·skew_change_5d)를 '가격 CRPS 분포의 폭 이상치 밴드' 입력으로 썼고 V3 비교군·coverage 사유로 hold 됐다 — 표적이 가격 분포였고 단독 ablation 이 아니었다. V13 은 형상 변수를 한 번도 넣지 않았고, V9_E6(VXN/VIX 스프레드)은 교차지수 스프레드로 기간구조 기울기·vol-of-vol 과 다르다. V13 이 밝힌 '스킬=지속성' 은 수준 변수의 결론이지 형상 변수의 결론이 아니다. V8 B1 '기간구조' 는 실현변동성 평균회귀(s_h²=v̄+φ^h(v_now−v̄))이지 내재 기간구조가 아니다.",
+   "confidence_note": "[미검증] 표기: 기대 효과 수치는 필자 사전확률."
+  },
+  {
+   "id": "ml-2",
+   "name": "Cboe DataShop QQQ EOD IV 표면 → VRP·위험중립 꼬리 → V13 셀 + −10% first-passage [유일 미검증 정보집합, 구매]",
+   "hypothesis": "행사가별 IV 표면에서 결정론으로 계산한 (i) VRP = IV²(30d) − RV²(21d), (ii) 25Δ 풋-콜 스큐 기울기, (iii) 행사가 K=0.9·S₀ 의 IV 로 계산한 위험중립 배리어 접촉확률 p_Q 는, V8 의 물리 first-passage 확률 p_V8 과 반사원리 기준선을 조건으로 한 뒤에도 −10% 접촉 사건 Brier 를 양방향 CI90 하한>0 으로 개선한다(h63 우선). 병행 가설: 같은 형상 변수가 V13 vix30/rv 셀에서 PB 를 이긴다. 반증: 두 표적 모두 0셀 통과면 '옵션 표면 정보는 VIX 수준과 EWMA σ 에 흡수된다'.",
+   "information_set": "신규: 행사가 차원(스큐·곡률)·고정 만기 기간구조·VRP — 저장소에는 옵션 표면 이력이 0 이다(`data/ml_history/2026.jsonl` 의 CBOE 지연시세 N(d2) 는 2026-07 이후 captured_forward 21행). 외부 검토가 '유일한 미검증 정보집합'으로 지목(`CAMPAIGN_REVIEW_NEXT_DESIGN_260908.md` §C-4).",
+   "method": "결정론 파생층(V14-OPT): ① 표면 전처리 — 만기 [21, 63]영업일 보간, 델타 격자 {10,25,50}Δ, 원자료 재배포 없음(gitignore raw, 영수증만 커밋). ② p_Q = 2Φ(ln0.9/(σ_IV(K=0.9S₀,T)√T)) (반사원리 + BGK 이산 보정 β=0.5826 는 V12 S2 와 동일 식). ③ 사건 모형: ridge-logit [logit p_V8, logit p_Q, z VRP, z skew25Δ] — Newton `logit_fit` 재사용, l2 격자 사전등록; 이는 V12 T1~T4 의 1-파라미터 p-맵이 아니라 새 정보의 조건화이며, T-A 교훈에 따라 y-block 귀무로만 검정. ④ V13 셀: rung-4 형식과 동일하게 PB + [z VRP, z skew, z slope]. ⑤ 선택 분포 변형(V14-OPT-D): V8 FHS 의 EWMA σ 자리에 IV 기간구조 σ_IV(T=h) 를 convex 혼합(ω∈{0,0.25,0.5}, ω=0=E0 항등)으로 넣고 h21/63 CRPS 무손상 제약 하에 채점 — V8 코드 read-only 포크(V10 source_pins 방식). QQQ↔NDX 차이(ETF 배당·미국형 조기행사·트래킹) caveat 명기, 위험중립≠물리 확률 병기 의무.",
+   "papers": [
+    {
+     "citation": "Bollerslev, T., Tauchen, G. & Zhou, H. (2009) 'Expected Stock Returns and Variance Risk Premia', Review of Financial Studies",
+     "confidence": "high",
+     "why": "VRP 가 분기 지평 수익률을 예측(R² 수 %) — h63 에서 가장 유력, h21 에서 약하다는 사전확률의 원천"
+    },
+    {
+     "citation": "Bollerslev, T. & Todorov, V. (2011) 'Tails, Fears, and Risk Premia', Journal of Finance",
+     "confidence": "high",
+     "why": "옵션내재 좌측 꼬리(fear) 가 물리 꼬리보다 크고 시변 — p_Q 를 그대로 쓰지 말고 조건화 변수로 써야 하는 이유"
+    },
+    {
+     "citation": "Bollerslev, T., Todorov, V. & Xu, L. (2015) 'Tail risk premia and return predictability', Journal of Financial Economics",
+     "confidence": "medium-high",
+     "why": "좌꼬리 점프 프리미엄이 VRP 보다 수익률 예측력이 큼 — 스큐 변수 포함 근거"
+    },
+    {
+     "citation": "Carr, P. & Wu, L. (2009) 'Variance Risk Premiums', Review of Financial Studies",
+     "confidence": "high",
+     "why": "VRP 의 모델프리 정의·측정 — 파생층 VRP 계산식의 표준"
+    },
+    {
+     "citation": "Martin, I. (2017) 'What is the Expected Return on the Market?', Quarterly Journal of Economics",
+     "confidence": "high",
+     "why": "SVIX 하한: 위험중립 분포에서 물리 기대의 하한을 결정론으로 얻는 방법 — 위험중립→물리 변환에 학습 없이 쓸 수 있는 구속"
+    },
+    {
+     "citation": "Andersen, T. G., Fusari, N. & Todorov, V. (2015) 'The risk premia embedded in index options', Journal of Financial Economics",
+     "confidence": "medium",
+     "why": "지수옵션 표면의 프리미엄 요인 구조 — 기울기·곡률이 별개 정보를 담는다는 근거"
+    }
+   ],
+   "data_needed": "DB: Cboe DataShop QQQ 옵션 EOD IV/Greeks(Calcs) 2007–2014(+현재까지) — 초안 `docs/design/v13_cboe_datashop_qqq_request_260907.md` 기준 EOD $500/월 티어, 일회 이력 주문가 [미확인], 일중 애드혹 $1.5–2.5k/월. PIT: as-traded EOD 스냅샷을 reconstructed_market_archive 등급 + 구매 영수증(Cboe 의 Calcs 산출 시점이 사후인지 [미검증] — 사후면 IV 는 자체 재계산으로 대체). 라이선스: Historical Market Data Subscriber Agreement §1 내부연구, §2b 파생 표시 조건 3항(재배포권 옵션·역설계 불가·지수 아님) 소유자 재확인 필요; QQQ 선택으로 Nasdaq 오버레이 회피. 병행 저장소 자산: V8 first_touch 원장(417원점, h21 터치 29/h63 83 — 표본 작음), V12 S2 반사 기준선 코드.",
+   "governance_fit": "사용자 결정 2건 선행(V12-D4 질의 발송, 구매). 결정론 수치모델의 설계창 적합 = §8 예외, 산출은 base rate 참조. 하이퍼파라미터 caveat: 배리어 −10%·만기 격자·델타 격자가 정점 지식 내포 가능. 위험중립 측도 병기 의무(CLAUDE.md market 계층 규칙과 동일). 학습 자유도 = 로짓 계수 ≤4 + l2 격자; 앙상블 가중 학습 없음. V8 봉인 바이트 무접촉(포크·read-only). 새 트랙 ID(V14-OPT) 사전등록 커밋이 결과보다 선행. 홀드아웃 1회·승인 후, 봉인은 V8 봉인 공개(1/1)와 별개 버전으로만, 그리고 2019+ 점수 공개로 '준청정'임을 caveat. 표시는 T2 이상에서 §2b 회신 조건부. 참고 의견 지위.",
+   "test_protocol": "설계창 2007–2014 양방향(early/late). 표적 A(first-passage): 쌍대 Brier(p_V8 − 후보)·(반사 − 후보) 두 비교군 모두 ℓ=13·B=2000 CI90 하한>0 양방향, 사건 수 소표본(h21 29건)이라 MDE 를 먼저 공표하고 h21 은 '검정력 부족 셀'로 사전 라벨. 표적 B(V13 셀): ml-1 과 동일. 음성대조: y-block 순열 ≤0.10(p-순열 금지). 분포 변형: h21/63 CRPS 쌍대 CI90 상단 ≤0 무손상 제약 양방향. 다중검정: (2 지평 A + 9셀 B + 3 ω) → Romano–Wolf stepdown(부트스트랩 공유) 또는 BH q=0.10, 사전등록에서 택1 고정; MCS {V8, 반사, IV-조건화} 보고. 시드·블록 민감도(ℓ∈{8,13,21}, 시드 5) 표 병기. 홀드아웃: 통과 표적만, 승인 원문 후 1회.",
+   "expected_effect": "vol 표적: IV 형상이 PB 를 이길 가장 유력한 후보(Christensen–Prabhala/Bekaert–Hoerova 계열) — vix30·rv h21/h63 BSS +0.02~+0.08 [사전확률, 미검증]. first-passage: 위험중립 꼬리는 물리 꼬리를 과대(fear premium)하므로 수준 이동이 필요하고, 문헌 R² 가 월간 1~3% 급이라 h63 BSS +0.02~+0.05, h21 ≈0 [미검증]. 분포 변형 CRPS: ≈0~+1%(V8 B1 실현 기간구조가 기각된 전례가 내재 기간구조에도 부분 적용될 수 있음). 어느 한 표적 양방향 통과 확률 25~35%.",
+   "cost": "데이터 $500~$6k(티어·기간에 따라; EOD 이력 일회 주문이 최선) + 소유자 대외 커뮤니케이션. 컴퓨트 낮음. 엔지니어링 5~8일(표면 파서·보간·영수증·파생층·계약·판정서). 리드타임: Cboe 회신 ~5영업일.",
+   "stage": "사용자 결정(V12-D4 발송 → 구매) → 사전등록 V14-OPT → 설계창 양방향 → 홀드아웃(승인) → T2 숨김 패널(§2b 조건부) → T3 는 홀드아웃 PASS 셀 한정. 봉인 공개는 별도 버전·1회.",
+   "why_not_already_refuted": "V12 는 V8 의 자기 확률 p 에 대한 1-파라미터 맵(T1~T4)만 검정했고, T-A 가 그 '통과'는 창 y-평균으로의 수축임을 증명했다 — 정보집합은 불변이었다. 여기서는 새 정보(행사가 차원·VRP)가 들어오며 처음부터 y-block 귀무를 쓴다. V4 의 VIX3M/VVIX/SKEW 는 지수 수준이었지 표면이 아니다. V13 의 PB 승리는 VIX 수준의 결론이며 스큐·VRP 는 미시험. 반사원리 기준선과 p_V8 의 ρ_s 0.95/0.91(V12 S2)은 '기존 정보가 σ 하나로 환원됨'을 뜻하므로, 남은 여지는 σ 밖의 정보 — 정확히 옵션 표면이다."
+  },
+  {
+   "id": "ml-3",
+   "name": "예정 발표 캘린더(FOMC·CPI·NFP) → 발표일 조건부 FHS 스케일 + V13 h5 셀 [완전 PIT, $0]",
+   "hypothesis": "(a) V8 FHS 경로 생성기에 발표일 분산 승수 m_e(e∈{FOMC, CPI, NFP}, 학습창에서 폐형 추정: 발표일 표준화잔차² 평균 / 비발표일 평균)를 곱하면 h1/h5 CRPS 와 발표일 포함 지평의 조건부 커버리지(Christoffersen 1998)가 E0 대비 개선되고 h21/h63 CRPS 는 손상되지 않는다. (b) V13 h5 셀(vix25_h5·rv_h5)에서 '향후 5영업일 내 예정 FOMC/CPI/NFP 건수' 가 PB 에 증분을 준다. 반증: h1/h5 쌍대 CRPS CI90 상단>0 또는 조건부 커버리지 무개선이면 '지수 일간 분포에서 예정 발표 효과는 EWMA σ 에 흡수된다'.",
+   "information_set": "신규: 예정 발표 '일정' 자체(미래 날짜) — 사전에 공표되므로 개정 위험 0 인 완전 PIT 정보집합. V8·V13 은 캘린더 맹목(`chronos_fc.py` 헤더가 이 한계를 자인). V9 가 시험한 것은 거시 '수준'(first-print 값)이지 '시점'이 아니다.",
+   "method": "V14-CAL = V8 model/backtest read-only 포크(V10 source_pins 방식). FHS 단계에서 경로 일자 d 가 예정 발표일이면 표준화 잔차 추출값에 √m_e 를 곱함(옵티마이저 없음, 파라미터 3개, m_e=1 이 E0 항등). 학습창 = 각 원점 이전 확장창(purge 63/embargo 5 승계). Lucca–Moench 전일 드리프트는 위치 파라미터라 사전등록에서 제외(CRPS 중심 지배 + 소표본). V13 측: rung-4c 로짓 = PB + n_FOMC(h) + n_CPI+NFP(h), `logit_fit` 재사용. 캘린더 백필: Fed 역사 FOMC 일정(federalreserve.gov, 공공저작물)·BLS 역사 발표 일정(bls.gov 아카이브) 2007–2014 를 `data/calendar/` 에 영수증과 함께 캡처(현재 `events.csv` 53건은 2026 만).",
+   "papers": [
+    {
+     "citation": "Andersen, T. G., Bollerslev, T., Diebold, F. X. & Vega, C. (2003) 'Micro Effects of Macro Announcements: Real-Time Price Discovery in Foreign Exchange', American Economic Review",
+     "confidence": "high",
+     "why": "예정 거시 발표가 조건부 분산을 즉각·체계적으로 키운다는 고빈도 실증 — 발표일 승수의 근거"
+    },
+    {
+     "citation": "Savor, P. & Wilson, M. (2013) 'How Much Do Investors Care About Macroeconomic Risk? Evidence from Scheduled Economic Announcements', Journal of Financial and Quantitative Analysis",
+     "confidence": "high",
+     "why": "예정 발표일의 주식 수익·변동성이 비발표일과 구조적으로 다름 — 일간 지수 표적에 직접 해당"
+    },
+    {
+     "citation": "Lucca, D. O. & Moench, E. (2015) 'The Pre-FOMC Announcement Drift', Journal of Finance",
+     "confidence": "high",
+     "why": "FOMC 전 24시간 드리프트 — 위치 효과는 이번 등록에서 제외하되, FOMC 일이 특별한 날임을 뒷받침"
+    },
+    {
+     "citation": "Ederington, L. H. & Lee, J. H. (1993) 'How Markets Process Information: News Releases and Volatility', Journal of Finance",
+     "confidence": "high",
+     "why": "발표 시각 주변 변동성 집중과 빠른 소멸 — h1 에서 효과가 크고 h21/63 에서 희석된다는 사전확률"
+    },
+    {
+     "citation": "Bollerslev, T., Li, J. & Xue, Y. (2018) 'Volume, Volatility, and Public News Announcements', Review of Economic Studies",
+     "confidence": "medium",
+     "why": "발표일 점프·변동성의 구조 — 발표일을 별도 분산 성분으로 다루는 정당화"
+    },
+    {
+     "citation": "Ai, H. & Bansal, R. (2018) 'Risk Preferences and the Macroeconomic Announcement Premium', Econometrica",
+     "confidence": "medium",
+     "why": "발표 프리미엄의 이론 — 효과가 우연 아닌 구조임을 뒷받침"
+    }
+   ],
+   "data_needed": "DB: Fed FOMC 역사 일정·BLS CPI/Employment Situation 역사 일정(공공저작물, `calendar_sources.yaml` 소스 ID 이미 등록: federal_reserve_fomc·bls_cpi·bls_employment) → `data/calendar/events.csv` 2007–2014 백필 + 영수증. PIT 주의: 2013-10 정부 셧다운 등 일정 변경은 '변경 공표일' 이후에만 반영(as-scheduled 원칙, `correction_method: append_new_row_with_supersedes` 승계). 시장 데이터는 V2 아카이브 read-only. 구매 $0.",
+   "governance_fit": "결정론 폐형 승수(9-1 결정의 '닫힌형·학습 자유도 0' 판정 기준과 동일 급) — ML 게이트 비저촉. 설계창 적합 = §8 예외, base rate 참조 지위, caveat: 이벤트 유형 선택·승수 형태가 설계자 지식 내포. V8 봉인 바이트 무접촉(포크). LLM 0. 새 트랙 사전등록 커밋 선행. 홀드아웃·봉인 1회·승인. 표시는 T0/T1 — h1/h5 개선은 현 카드의 초점이 아니고 가치는 EXIT 트리거 캘린더 base rate. 참고 의견.",
+   "test_protocol": "설계창 2007–2014 양방향. 1차: h1·h5 쌍대 CRPS(E0 − V14-CAL) ℓ=13·B=2000·seed 신규 사전등록, CI90 하한>0 양방향; 무손상: h21/63 쌍대 CI90 상단 ≤0 아님(즉 악화 CI90 하한<0 배제) 양방향. 조건부 커버리지: 발표일 포함 h1/h5 원점 부분집합에서 p10–p90 coverage 와 Christoffersen LR_cc(독립성+무조건) 보고, E0 대비 개선 여부. V13 rung-4c: 쌍대 Brier vs PB, y-block 귀무 ≤0.10. 다중검정: 3승수×2지평 + 2셀 → Holm. MDE 병기. 발표일 원점 수(연 ~32일 ≈ 13%)로 검정력 사전 계산 공표. 홀드아웃은 승인 후 1회.",
+   "expected_effect": "발표일 조건부 분산이 1.5~2.5× 라는 문헌 크기(NASDAQ 구체값은 [미검증])라도 발표일이 전체의 ~13% 라 무조건 h1 CRPS 개선은 +0.5~+1.5% 수준, h5 +0.3~+1%, h21/63 ≈0 [사전확률]. 봉인창 V8 h1 DM p=0.288 처럼 h1 은 검정력이 약한 지평이라 CI90 통과 확률 30~45%. 실질 가치는 '발표일 포함 지평의 조건부 커버리지' 개선과 EXIT 트리거의 발표 캘린더 base rate — 헤드라인 CRPS 개선은 작다.",
+   "cost": "데이터 $0. 엔지니어링 2~4일(역사 일정 캡처·영수증·FHS 훅·판정서). 컴퓨트: 2000경로×417원점 재실행 ~수십 분(V10 포크 실측과 유사).",
+   "stage": "사전등록 → 설계창 → [h1/h5 통과 시] 홀드아웃 승인 1회 → T1 리포트 → (V13 셀 통과 시) T2. 봉인 무접촉.",
+   "why_not_already_refuted": "V9 의 무효익은 거시 '수준' 변수(M2SL·TOTCI·TOTLL·WRMFNS)의 결론이고 '시점' 정보는 미시험. V3/V4 의 events 블록(CPI·NFP·FOMC 등)은 7성분 스택 안의 한 성분으로, `numerical_use_requires_event_ablation_pass` 가 요구한 단독 ablation 은 V3 hold(coverage·<2%) 로 실행되지 않았다 [V3 run 원문 미확인 — 미검증]. V8 FHS 는 캘린더 맹목이며 E0 항등 대비 단독 ablation 이 한 번도 없었다. V10/V11 은 vol 상태·모멘텀이지 일정이 아니다."
+  },
+  {
+   "id": "ml-4",
+   "name": "표적 전환 — 교차자산 동조 국면 이벤트(주식-채권 상관 부호 전환·동반 급락) [V8 5변량 아카이브, 신규 데이터 0]",
+   "hypothesis": "(a) P(21일 rolling corr(ΔlogNASDAQ, ΔDGS10) 가 h 내에 음(주가↓·금리↓ = 채권 헤지 작동)에서 양(주가↓·금리↑ = 헤지 소멸)으로 전환), (b) P(NASDAQ −5% AND 달러지수 +2% within h) 두 이벤트는 기후 대비 예측 가능하고, V13 과 같은 사다리(기후 → 지속성 PB=EWMA 상관 → PB+VIX·커브 기울기)에서 챔피언이 결정된다. 반증: PB 조차 기후를 양방향으로 못 이기면 '상관 국면은 일간 정보집합에서 사건으로 예측 불가'.",
+   "information_set": "신규 통계량: 교차자산 '상관 동학'(EWMA 상관, 부호 국면) — V8 VARX 는 5변량 수준/수익을 쓰지만 상관 상태변수를 갖지 않고, V10 상태는 단변량 vol 비율, V11 은 모멘텀·성장 팩터였다. 데이터는 V2 아카이브의 NASDAQCOM·DGS10·DGS2·DTWEXB/DTWEXBGS·VIX (전부 보유, read-only).",
+   "method": "결정론 사다리(V14-XA): rung-0 기후(학습창 무조건 빈도, walk-forward); rung-1 persistence_pb = 로짓(현재 EWMA 상관 ρ_t, λ∈{0.94,0.97} 사전등록); rung-2 = PB + z log VIX + z 커브(DGS10−DGS2) + z 달러 21일 변화; `logit_fit` 재사용. DCC-GARCH(Engle 2002)는 `arch` 미설치·학습 자유도 큼 → 참조 문헌으로만, 사다리에서 제외. 문턱(−5%/+2%, 상관 부호) 은 사전등록 고정. 주의: 설계창 2007–2014 는 주식-채권 상관이 대부분 음(디플레 국면) 이라 양 전환 사건이 희소 → (a) 는 사건 수 사전 공표 후 검정력 부족이면 '표적 (b) 만' 로 사전 축소.",
+   "papers": [
+    {
+     "citation": "Engle, R. (2002) 'Dynamic Conditional Correlation: A Simple Class of Multivariate GARCH Models', Journal of Business & Economic Statistics",
+     "confidence": "high",
+     "why": "조건부 상관의 지속성·동학 — 지속성 PB 가 강한 기준선일 것이라는 사전확률"
+    },
+    {
+     "citation": "Longin, F. & Solnik, B. (2001) 'Extreme Correlation of International Equity Markets', Journal of Finance",
+     "confidence": "high",
+     "why": "하락 꼬리에서 상관이 커지는 비대칭 — '동반 급락' 표적의 이론적 근거"
+    },
+    {
+     "citation": "Ang, A. & Chen, J. (2002) 'Asymmetric Correlations of Equity Portfolios', Journal of Financial Economics",
+     "confidence": "high",
+     "why": "하방 상관 비대칭이 국면 모형으로 설명됨 — 표적 정의(하방 조건부)의 근거"
+    },
+    {
+     "citation": "Campbell, J. Y., Pflueger, C. & Viceira, L. M. (2020) 'Macroeconomic Drivers of Bond and Stock Risks', Journal of Political Economy",
+     "confidence": "medium-high",
+     "why": "주식-채권 상관 부호가 거시 국면(인플레 vs 성장 충격)에 따라 전환 — 2022 형 국면의 구조적 원인, 설계창 대표성 부족 caveat 의 근거"
+    },
+    {
+     "citation": "Baele, L., Bekaert, G. & Inghelbrecht, K. (2010) 'The Determinants of Stock and Bond Return Comovements', Review of Financial Studies",
+     "confidence": "medium-high",
+     "why": "거시 변수만으로는 상관 동학 설명이 어렵고 유동성·변동성 요인이 필요 — rung-2 피처(VIX·커브) 선택 근거"
+    },
+    {
+     "citation": "Ilmanen, A. (2003) 'Stock-Bond Correlations', Journal of Fixed Income",
+     "confidence": "medium",
+     "why": "상관 국면의 장기 역사·전환 조건 개관 — base rate 서술용"
+    }
+   ],
+   "data_needed": "DB: `data/timeseries_v2/ledgers/market_observations.jsonl`(NASDAQCOM·VIX·DGS2·DGS10·DTWEXB/DTWEXBGS, 브리지 규칙 `v1.yaml` registered_historical_bridges). PIT: reconstructed_market_archive + captured_forward(available_at ≤ origin). 라이선스: FRED·Treasury·Fed 공식(VIX 만 CBOE 회색). 구매 $0.",
+   "governance_fit": "결정론 로짓·설계창 = §8 예외, 산출은 EXIT 트리거(교차자산 동조 급락)의 base rate 참조. caveat: 문턱·상관창·설계창(2007–14 의 상관 부호 분포가 2022 와 다름)이 설계자 지식 내포 — 특히 '2022 국면을 알고 표적을 정했다'는 정점지식 caveat 를 계약에 명기. 학습 자유도 ≤4 계수. 새 트랙 ID 사전등록 커밋 선행. 홀드아웃·봉인 무접촉(승인 시 1회). 표시는 V13 카드와 분리된 read-model 키(V13-D4/D5 fail-closed 규칙 승계). 참고 의견.",
+   "test_protocol": "설계창 양방향(early/late). 사건 수 사전 공표(표적 a 가 한 방향에서 <20건이면 그 셀 '검정력 부족' 사전 라벨, 채점은 하되 채택 불가). 쌍대 Brier(기후 − rung, PB − rung2) ℓ=13·B=2000·seed 신규, CI90 하한>0 양방향; y-block 귀무 ≤0.10; MDE; 다중검정: 2표적×3지평×2 rung=12 → BH q=0.10 + family P(k≥k_obs); MCS 병기. Murphy 분해 보고. 홀드아웃은 승인 후 1회.",
+   "expected_effect": "상관은 강하게 지속적이라 V13 과 같이 PB 가 기후를 9/9 급으로 이기고 rung-2 증분은 0~소폭일 확률이 높다(PB 초과 통과 10~25% [사전확률]). 즉 '시장 엣지' 가 아니라 CLAUDE.md 1차 목표용 base rate 공급 — 헤지 소멸 국면·동반 급락 확률을 참고 의견으로 상시 공급하는 것이 가치. 설계창 대표성 부족으로 홀드아웃(2015–18, 상관 대부분 음)도 표적 (a) 검정력이 약하다.",
+   "cost": "데이터 $0. 엔지니어링 2~3일(사다리 스크립트는 V13 `tools/v13_vol_run.py` 재사용). 컴퓨트 수십 분.",
+   "stage": "사전등록 → 설계창 → T1 판정서 → (기후 대비 PB 양방향 통과 시) T2 숨김 → T3 카드(홀드아웃 미검증 굵게) → 홀드아웃 승인 시 1회.",
+   "why_not_already_refuted": "어떤 트랙도 상관 국면을 표적으로 삼지 않았다. V10/V11 의 상태변수는 단변량 NASDAQ vol·모멘텀·성장이고 V9 는 외생 열 추가였다. 같은 원자료라도 '통계량과 표적'이 다르며, V13 은 '이벤트 확률 표적으로 바꾸면 지속성 스킬은 실재한다'는 것을 보여줬다 — 이 방향은 그 결과를 교차자산으로 확장한다."
+  },
+  {
+   "id": "ml-5",
+   "name": "일중(FirstRate NDX 1분) → V12b 경로 생성기 재개 + 부호 점프·반분산(RS⁻) 피처 [파킹 트랙 재개 조건 4항 충족 설계]",
+   "hypothesis": "(a) V8 FHS 의 상수-σ i.i.d. 표준화잔차 추출을 블록 재표집(ℓ_z∈{2,3,5}, ℓ_z=1=E0 항등) 과 overnight/intraday 2성분 σ(일중 RV 기반) 로 바꾸면 −10% first-passage Brier 가 h21 에서 MDE 이상 양방향 개선되고 h21/63 CRPS 는 무손상이다. (b) 일간 종가로는 관측 불가한 실현 음의 반분산 RS⁻·점프변동(RV−BPV) 은 V13 rv_h21/rv_h63 셀에서 PB 를 이긴다. 반증: (a) 개선<MDE 또는 CRPS 손상, (b) 0/6 셀 → '일중 정보는 일간 이벤트 확률에서 EWMA·PB 에 흡수'.",
+   "information_set": "신규: 일중 실현 측도(RV_5min, BPV, RS⁺/RS⁻, 점프, overnight 갭 vs 일중 수익) — `data/intraday/` 부재(구조적 공백 2). 일간 ACF(1)=−0.076·VR(5)=0.874(V13 P1 진단)의 되돌림 구조를 일중 해상도로 계측.",
+   "method": "V14-INT: ① 실현 측도 파이프라인(5분 서브샘플 RV, Barndorff-Nielsen–Shephard BPV, Patton–Sheppard 부호 반분산) — numpy 결정론. ② 경로 생성기: V8 model read-only 포크에서 FHS 잔차를 stationary block(ℓ_z) 재표집, 일중/overnight σ 분리(σ²_day = RV_intraday + r²_overnight 의 EWMA), AR(1) φ 격자 {0, φ̂}. ③ V13 rung-4d: PB + z log RS⁻_21 + z log(RV−BPV)_21, `logit_fit`. ④ HARQ(Bollerslev–Patton–Quaedvlieg 2016) 는 측정오차 가중 HAR — V13 rung-2 HAR 실패를 감안해 1개 rung 만 허용.",
+   "papers": [
+    {
+     "citation": "Andersen, T. G., Bollerslev, T. & Diebold, F. X. (2007) 'Roughing It Up: Including Jump Components in the Estimation and Forecasting of Return Volatility', Review of Economics and Statistics",
+     "confidence": "high",
+     "why": "점프와 연속 성분 분리가 변동성 예측을 개선 — 점프변동 피처 근거"
+    },
+    {
+     "citation": "Patton, A. J. & Sheppard, K. (2015) 'Good Volatility, Bad Volatility: Signed Jumps and the Persistence of Volatility', Review of Economics and Statistics",
+     "confidence": "high",
+     "why": "음의 반분산(RS⁻)이 미래 변동성을 더 잘 예측 — 일간 종가로는 계산 불가한 증분 정보"
+    },
+    {
+     "citation": "Barndorff-Nielsen, O. E. & Shephard, N. (2004) 'Power and Bipower Variation with Stochastic Volatility and Jumps', Journal of Financial Econometrics",
+     "confidence": "high",
+     "why": "BPV 로 점프 분리하는 표준 방법"
+    },
+    {
+     "citation": "Liu, L. Y., Patton, A. J. & Sheppard, K. (2015) 'Does anything beat 5-minute RV? A comparison of realized measures across multiple asset classes', Journal of Econometrics",
+     "confidence": "high",
+     "why": "5분 RV 가 대부분의 정교한 측도와 통계적으로 구분 불가 — 측도 격자를 5분 RV 로 단순화하는 근거(스누핑 억제)"
+    },
+    {
+     "citation": "Bollerslev, T., Patton, A. J. & Quaedvlieg, R. (2016) 'Exploiting the errors: A simple approach for improved volatility forecasting', Journal of Econometrics",
+     "confidence": "high",
+     "why": "측정오차를 반영한 HARQ — HAR 실패 뒤 유일하게 허용할 변형"
+    },
+    {
+     "citation": "Lou, D., Polk, C. & Skouras, M. (2019) 'A tug of war: Overnight versus intraday expected returns', Journal of Financial Economics",
+     "confidence": "medium-high",
+     "why": "overnight 와 일중 수익의 구조적 차이 — 2성분 σ 분리의 근거"
+    }
+   ],
+   "data_needed": "DB: FirstRate Data NDX 지수 1분봉 2000+(~$300 일회, 무키). 지수 수준은 배당·분할 조정이 없어 back-adjust 문제 회피(QQQ 대신 NDX 선택 — `v13_firstrate_acquisition_plan_260907.md`); first-print 는 아니나 지수 값은 사후 개정이 없어 캡처 영수증으로 PIT 보강(`data/intraday/receipts.jsonl`). 라이선스: 연구·파생물 발행 허용(귀속 표기), raw 재배포 금지 → `data/intraday/firstrate_raw/` gitignore. 무료 2주 샘플 선검증 권고. NDX↔NASDAQCOM 표적 불일치 caveat(경로 생성기는 Composite 표적 유지, 일중 측도는 NDX 프록시).",
+   "governance_fit": "사용자 결정 FR-1 선행. `V12B_PARKED_20260908.md` 재개 조건 4항(일중 데이터·새 사전등록·y-block 귀무·CRPS 무손상)을 설계에 그대로 내장, 새 트랙 ID(V12c/V14-INT). 결정론 §8 예외·base rate 지위·하이퍼파라미터(ℓ_z 격자·5분 샘플링) caveat. 학습 자유도: 블록 길이 격자 3×φ 2 + 로짓 계수 ≤3. V8 봉인 무접촉(포크). 홀드아웃 승인 1회. 참고 의견.",
+   "test_protocol": "설계창 양방향. (a) 쌍대 Brier(E0 first-passage − 후보) h21/h63, ℓ=13·B=2000, CI90 하한>0 양방향, 사건 소표본 MDE 사전 공표; CRPS 무손상: h21/63 쌍대 CRPS 악화 CI90 하한<0 배제 양방향; 격자 6조합 → Holm + MCS. (b) V13 셀: 쌍대 Brier vs PB, y-block 귀무 ≤0.10, BH q=0.10(6셀). PIT·coverage 밴드 [0.76,0.84] 승계. 시드·블록 민감도 표. 홀드아웃 승인 후 1회.",
+   "expected_effect": "(a) 포스트모템 추정 h21 BSS +1~3%p(VR(5)=0.874 로 되돌림 크기 온건) [저장소 추정]. (b) V13 rung-2 HAR 이 EWMA 대비 0/9 였으므로 일중 측도의 '이벤트 Brier' 증분은 작을 가능성 — 문헌 이득은 연속 RV 예측 R² 수 %p 이고 이진화에서 살아남을지 불확실: rv 셀 BSS +0.00~+0.03 [사전확률]. 종합 통과 확률 20~30%. 가치의 본체는 경로 의존 사건(EXIT 드로다운 트리거)의 경로 생성기 정직화.",
+   "cost": "데이터 ~$300 일회. 엔지니어링 4~6일(실현 측도 파이프라인·경로 생성기 포크·영수증·계약). 컴퓨트: 2000경로×417원점×격자 6 — 수 시간.",
+   "stage": "사용자 결정(FR-1) → 사전등록(V12c/V14-INT) → 설계창 → 홀드아웃 승인 1회 → T0/T1 (경로 생성기 변경은 V8 후속 버전의 새 봉인 공개로만 라이브 반영).",
+   "why_not_already_refuted": "V12b 는 '파킹'이지 반증이 아니다(재라벨 문서 명시). T-A 가 반증한 것은 p-맵의 검정 기계이지 경로 생성기가 아니며, 경로 생성기는 y-block 귀무로 검정 가능하다. V13 rung-2 의 HAR 실패는 일간 RV 스케일의 결론이고 부호 반분산·점프는 일간 종가에서 정의조차 안 된다. V8 B1(실현 vol 평균회귀)·E11 기각은 σ 의 시간 경로에 관한 것이지 잔차 블록 구조·overnight 분리에 관한 것이 아니다."
+  },
+  {
+   "id": "ml-6",
+   "name": "표적 전환 — 최대 드로다운 깊이의 분포 회귀(distributional regression, 최소 CRPS 추정) + 옵션 형상 피처, 브라운 MDD 해석 기준선 [$0]",
+   "hypothesis": "h 영업일 내 최대 드로다운 MDD_h = max_{t≤h}(1 − S_t/max_{s≤t}S_s) 를 연속 표적으로 삼아 location-scale 분포 회귀(log MDD ~ 로그정규/GEV, μ·σ 가 [log EWMA σ, log VVIX, SKEW, VIX 기울기] 의 선형함수, 최소 CRPS 추정) 로 예측하면, 자유 파라미터 0 의 브라운 운동 MDD 해석 분포(Magdon-Ismail et al. 2004, σ=EWMA) 및 V8 경로 앙상블의 MDD 분포를 양방향 CRPS CI90 하한>0 으로 이긴다. 파생: 이 분포에서 얻는 P(MDD_h ≥ 10%) 가 V8 first_touch 보다 Brier 개선. 반증: 해석 기준선 대비 CRPS 무개선이면 '드로다운 분포는 σ 하나의 함수'.",
+   "information_set": "표적 전환(이진 −10% 접촉 → 연속 MDD 깊이: 417원점 전부가 정보를 주므로 h21 29건 이진 표적의 검정력 문제를 해소) + 옵션 형상 피처(ml-1 과 동일 V4 스토어, $0). 정보집합 확장이 없는 변형(피처=EWMA σ 만)도 사전등록해 '표적 전환 단독' 효과와 '피처' 효과를 분리.",
+   "method": "결정론 분포 회귀(GAMLSS 급 선형 location-scale, Rigby–Stasinopoulos 2005): log MDD_h ~ N(μ_t, σ_t²) 또는 GEV, μ_t=β'x_t, log σ_t=γ'x_t, 추정 = 학습창 CRPS 최소화(Gneiting et al. 2005 EMOS 방식, scipy L-BFGS, 폐형 CRPS) — 파라미터 ≤10. 대안 rung: 분위수 회귀(Koenker–Bassett 1978, statsmodels QuantReg, τ∈{.5,.75,.9,.95}) 후 단조 보정. DL(N-BEATS/PatchTST/TFT) 학습은 CLAUDE.md 'DL 가격 예측 학습 금지' + n≈2014일·유효표본 ≈32분기로 원천 제외. 기준선 3종: 브라운 MDD 해석 분포(σ=EWMA97, μ=0), V8 2000경로의 경험 MDD 분포(원장 재분석, 0 백테스트), 학습창 기후. 채점 CRPS + 꼬리가중 CRPS(Gneiting–Ranjan 2011, 우측 꼬리 가중 — 드로다운 큰 쪽) 둘 다 사전등록.",
+   "papers": [
+    {
+     "citation": "Magdon-Ismail, M., Atiya, A. F., Pratap, A. & Abu-Mostafa, Y. S. (2004) 'On the Maximum Drawdown of a Brownian Motion', Journal of Applied Probability",
+     "confidence": "high",
+     "why": "MDD 의 해석 분포 — 자유 파라미터 0 의 구속 기준선(V12 의 반사원리 역할)"
+    },
+    {
+     "citation": "Gneiting, T., Raftery, A. E., Westveld, A. H. & Goldman, T. (2005) 'Calibrated Probabilistic Forecasting Using Ensemble Model Output Statistics and Minimum CRPS Estimation', Monthly Weather Review",
+     "confidence": "high",
+     "why": "최소 CRPS 추정(EMOS) — 학습 자유도 작은 분포 회귀의 표준 추정법"
+    },
+    {
+     "citation": "Rigby, R. A. & Stasinopoulos, D. M. (2005) 'Generalized additive models for location, scale and shape', Journal of the Royal Statistical Society Series C",
+     "confidence": "high",
+     "why": "location-scale-shape 회귀 틀(GAMLSS) — 여기서는 선형 항만 사용"
+    },
+    {
+     "citation": "Gneiting, T. & Ranjan, R. (2011) 'Comparing density forecasts using threshold- and quantile-weighted scoring rules', Journal of Business & Economic Statistics",
+     "confidence": "high",
+     "why": "꼬리 가중 CRPS — 드로다운 큰 쪽에 가중한 채점을 사전등록하는 근거(결과 후 손실함수 교체 금지)"
+    },
+    {
+     "citation": "Kelly, B. & Jiang, H. (2014) 'Tail Risk and Asset Prices', Review of Financial Studies",
+     "confidence": "high",
+     "why": "시변 꼬리위험이 지수 수익·꼬리를 예측 — 꼬리 형상 피처가 드로다운 깊이에 정보를 줄 사전확률"
+    },
+    {
+     "citation": "Koenker, R. & Bassett, G. (1978) 'Regression Quantiles', Econometrica",
+     "confidence": "high",
+     "why": "분위수 회귀 rung 의 원전"
+    }
+   ],
+   "data_needed": "DB: V2 아카이브 NASDAQCOM(표적·EWMA σ), V4 스토어 VVIX·SKEW(·VIX3M 서브창), V8 원장의 2000경로 재분석(`data/timeseries_v8/` 원장 read-only; 경로 자체가 저장돼 있지 않으면 봉인 코드 read-only 재실행 — 바이트 무변경). PIT: reconstructed_market_archive. 라이선스: FRED + CBOE 회색(ml-1 과 동일). 구매 $0.",
+   "governance_fit": "결정론 분포 회귀·설계창 = §8 예외, 산출은 드로다운 base rate 참조(사용자 드로다운 하드룰의 조기경보 — 대체 아님). caveat: 지평·분포족·꼬리가중 함수 선택이 설계자 지식 내포. ML 게이트: 학습 자유도 ≤10(로짓·EMOS 급), 앙상블 가중 학습 없음, DL 학습 없음(명시 배제). 채점 규칙(CRPS+꼬리가중) 은 결과 전 사전등록 커밋 — V12 C-gate-arith 정신. V8 봉인 무접촉. 홀드아웃 승인 1회. 참고 의견.",
+   "test_protocol": "설계창 양방향. 1차: 쌍대 CRPS(브라운 해석 − 후보) 및 (V8 경험 MDD − 후보), 주간 원점 417, ℓ=13·B=2000, CI90 하한>0 양방향; 꼬리가중 CRPS 동일 형식 병기(둘 다 통과해야 채택). 파생 P(MDD≥10%) Brier vs V8 first_touch — 보고만(판정 다리 아님). PIT 히스토그램·coverage. 음성대조: y-block 순열(연속 y 의 블록 순열) 통과율 ≤0.10. 다중검정: 분포족 2×피처 세트 2×지평 2=8 → Holm; MCS. MDE 병기. 홀드아웃 승인 후 1회.",
+   "expected_effect": "표적 전환 단독(피처=σ 만) 은 브라운 기준선과 거의 동률일 확률 높음(V12 S2 가 보인 'σ 환원'). 옵션 형상 피처가 더해질 때 h63 CRPS +2~5% 개선 [사전확률, 미검증], h21 +0~2%. 통과 확률 25~35%. 이진 표적보다 검정력이 크게 좋아지므로 '측정된 영' 이든 '실재' 든 결론이 명확해지는 것이 부차 가치.",
+   "cost": "데이터 $0. 엔지니어링 3~5일(표적 생성·EMOS 추정기·해석 기준선·채점·계약). 컴퓨트 수십 분.",
+   "stage": "사전등록(채점 규칙 포함) → 설계창 → 홀드아웃 승인 1회 → T1 판정서 → T2/T3 (드로다운 base rate 카드, 홀드아웃 미검증 굵게).",
+   "why_not_already_refuted": "V12 는 이진 −10% 접촉의 1-파라미터 재보정만 검정했고 사건 29/83건의 검정력 한계·p-순열 누수로 끝났다. 연속 MDD 표적은 미시험이며, 손실함수(꼬리가중 CRPS)도 미시험(반증된 방향 §2 #10·#11). V10 W3 의 '폭' 이득이 꼬리에서 어떤지 채점된 적이 없다. 옵션 형상 피처는 V4 가격 CRPS 밴드에서만 쓰였다."
+  },
+  {
+   "id": "ml-7",
+   "name": "Adaptive Conformal Inference(ACI) 래퍼 — V8 분위수의 커버리지 보증·조건부 커버리지 표적 [$0, 섀도 전진 경로]",
+   "hypothesis": "V8 p10/p90(·p25/p75) 에 ACI 갱신 α_{t+1}=α_t+γ(α−err_t)(γ∈{0.005,0.01,0.02} 사전등록, 원점별 성숙 라벨만 사용, purge 63/embargo 5) 를 씌우면 분포 이동 국면에서도 명목 80% 커버리지가 유지되고(2020 형 과잉폭 0.917·2022 형 과소폭 0.750 — 봉인 원장 실측), interval score 는 V8 대비 악화되지 않으며 Christoffersen 조건부 커버리지 검정 통과율이 오른다. CRPS 는 ≈0 으로 사전 선언(판정 다리 아님). 반증: interval score 악화 CI90 또는 조건부 커버리지 무개선.",
+   "information_set": "신규 데이터 없음 — '표적/손실' 전환(CRPS → interval score + 조건부 커버리지)이 핵심. 이는 봉인창 V8 의 HOLD 사유(국면 커버리지 비대칭)를 직접 겨눈다.",
+   "method": "`src/ai_fc/timeseries_v14_aci/`(V8 read-only 래퍼): 분위수 수준 조정만 수행(V8 경로 표본에서 조정된 분위수 재추출), 학습 가중치 없음, 상태 α_t 는 결정론 점화식. 대안 rung: Conformal PID(Angelopoulos et al. 2023) 의 적분 항만 추가(파라미터 1개). 비대칭 국면 진단용으로 Giacomini–White(2006) 조건부 예측능력 검정(조건 변수=EWMA 분산비)을 표시 지표로 병기.",
+   "papers": [
+    {
+     "citation": "Gibbs, I. & Candès, E. (2021) 'Adaptive Conformal Inference Under Distribution Shift', NeurIPS",
+     "confidence": "high",
+     "why": "분포 이동 하에서도 장기 커버리지를 보증하는 온라인 규칙 — 방법의 원전"
+    },
+    {
+     "citation": "Zaffran, M., Féron, O., Goude, Y., Josse, J. & Dieuleveut, A. (2022) 'Adaptive Conformal Predictions for Time Series', ICML",
+     "confidence": "medium-high",
+     "why": "시계열에서 γ 선택·집계(AgACI) — γ 격자 사전등록의 근거"
+    },
+    {
+     "citation": "Angelopoulos, A. N., Candès, E. & Tibshirani, R. J. (2023) 'Conformal PID Control for Time Series Prediction', NeurIPS",
+     "confidence": "medium",
+     "why": "적분·예측 항 추가로 과소/과잉 커버리지 반응 개선 — 대안 rung"
+    },
+    {
+     "citation": "Christoffersen, P. F. (1998) 'Evaluating Interval Forecasts', International Economic Review",
+     "confidence": "high",
+     "why": "조건부 커버리지 LR 검정 — 이 방향의 1차 판정 지표"
+    },
+    {
+     "citation": "Gneiting, T. & Raftery, A. E. (2007) 'Strictly Proper Scoring Rules, Prediction, and Estimation', Journal of the American Statistical Association",
+     "confidence": "high",
+     "why": "interval(Winkler) score 정의 — 커버리지와 폭을 동시에 채점"
+    },
+    {
+     "citation": "Giacomini, R. & White, H. (2006) 'Tests of Conditional Predictive Ability', Econometrica",
+     "confidence": "high",
+     "why": "국면 조건부 예측능력 비교의 정식 검정 — 방법론 자산 §8 결손을 메움(표시 지표)"
+    }
+   ],
+   "data_needed": "DB: V8 design 백테스트 산출(원점별 분위수·실현값)·`shadow_forecasts/resolutions.jsonl`(전진 2행). 신규 데이터 0, 구매 $0. PIT: V8 산출 그대로(available_at 규율 승계).",
+   "governance_fit": "결정론 점화식(γ 사전등록, 학습 가중치 0) — 9-1 결정의 '닫힌형·자유도 0' 기준에 준하나, '온라인 재보정' 성격이라 ML 게이트 저촉 여부를 DECISIONS 항목으로 사용자 판정받는 것을 전제(V8 B4 isotonic 재보정이 §8 수치모델로 이미 허용된 선례 인용). V8 봉인 바이트 무접촉(래퍼). 홀드아웃·봉인 소모 0 — 설계창 무손상 검정 뒤 '섀도 전진 126세션' 경로로만 검증(봉인 재열람 불필요). 표시: T0/T2 숨김 패널, V8 카드 대체 없음. 참고 의견.",
+   "test_protocol": "설계창 양방향(split 에서 α 상태 리셋): 쌍대 interval score(V8 − ACI) ℓ=13·B=2000 CI90 하한 ≥0(무손상) 및 p10–p90 coverage 밴드 [0.76,0.84]; Christoffersen LR_uc/LR_ind/LR_cc 를 V8 vs ACI 병기; 국면 부분집합(GFC 2008 78원점) coverage. 음성대조: α 를 랜덤워크로 흔든 대조군(스킬 주장이 아니므로 y-block 은 보조). 다중검정: γ 3×밴드 2=6 → Holm. 전진: 섀도 원장 126세션 누적 후 coverage·interval score 재판정, 자동 승격 없음(`automatic_champion: false` 승계).",
+   "expected_effect": "설계창에서는 V8 coverage 가 이미 0.80 근방이라 구분 불가(무손상만 확인)일 확률 높음. 가치는 전진 보증 — 2020/2022 형 이동에서 커버리지가 명목으로 회귀. CRPS ≈0, interval score 개선은 이동 국면에서만 +1~3% [사전확률]. '설계창 통과' 확률(무손상) 70%+, '전진에서 유의한 개선' 은 국면 발생 여부에 종속.",
+   "cost": "$0. 엔지니어링 2일. 컴퓨트 분 단위.",
+   "stage": "사전등록 → 설계창(무손상) → 섀도 전진 126세션(T0) → T2 숨김 패널. 홀드아웃·봉인 무접촉이 특징.",
+   "why_not_already_refuted": "V10 W4a isotonic(+0.03%) 은 CRPS 표적의 정적 재보정이었고, V8 B4 는 identity 수축 0.5 의 PIT 재보정 — 둘 다 이동 하 보증이 없다. V8 계보에 conformal 은 0 회(v3 GroupConformalScale 은 별도 계보·HOLD). 봉인창의 HOLD 사유가 정확히 '국면 커버리지' 이므로 반증된 축(CRPS 개선)과 다른 표적이다."
+  },
+  {
+   "id": "ml-8",
+   "name": "Chronos-2 zero-shot(추론 전용) VIX 경로 표본 → V13 챌린저 [V6 E10 미실행 공백, 최하위·오염 caveat]",
+   "hypothesis": "동결 체크포인트 Chronos-2(공변량: NASDAQ 수익·RV21) 의 zero-shot VIX 경로 표본(context 512일, 20 표본 이상)에서 계산한 P(max VIX ≥ K within h) 는 persistence_pb 를 양방향으로 이기지 못한다(귀무 가설이 사실상 기대치). 반증(놀라운 결과): ≥1셀 양방향 CI90 하한>0 이면 '사전학습 분포 사전(prior)이 지속성 이상의 정보를 담는다'. 어느 쪽이든 V6 E10 이 남긴 공백(체크포인트·라이선스 영수증 부재로 미실행)을 0 비용으로 닫는다.",
+   "information_set": "엄밀히는 신규 시장 정보가 아니라 '사전학습 사전(prior)' — 대규모 비금융 시계열에서 학습된 형상 prior. 이 lens 에서 유일하게 허용되는 딥러닝 사용 형태(추론 전용).",
+   "method": "`src/ai_fc/ml/chronos_fc.py` 의 C2 파이프라인(`amazon/chronos-2`, Apache-2.0) 을 설계창 원점별로 호출, 표본 경로 → 터치 확률; 결합은 고정 규칙만(예: median{PB, Chronos} 1 rung) — 가중 학습 0. 체크포인트 sha256·라이선스 영수증 커밋(V6 E10 `frozen_checkpoint_hash_required`·`license_receipt_required` 충족). 파인튜닝·가중치 갱신 절대 금지.",
+   "papers": [
+    {
+     "citation": "Ansari, A. F. et al. (2024) 'Chronos: Learning the Language of Time Series', Transactions on Machine Learning Research (arXiv:2403.07815)",
+     "confidence": "medium",
+     "why": "모델 원전; 학습 코퍼스 구성(금융 일간 계열 포함 여부)이 설계창 오염 판단의 근거 — 코퍼스 세부는 [미검증]"
+    },
+    {
+     "citation": "Das, A., Kong, W., Sen, R. & Zhou, Y. (2024) 'A decoder-only foundation model for time-series forecasting', ICML",
+     "confidence": "medium-high",
+     "why": "TSFM zero-shot 의 일반 성능 범위 — 금융 계열에서 단순 기준선 급이라는 사전확률"
+    },
+    {
+     "citation": "Makridakis, S., Spiliotis, E. & Assimakopoulos, V. (2018) 'Statistical and Machine Learning forecasting methods: Concerns and ways forward', PLOS ONE",
+     "confidence": "high",
+     "why": "ML 계열이 통계 기준선을 못 이기는 경우가 흔하다는 대규모 비교 — 낮은 사전확률의 근거"
+    },
+    {
+     "citation": "Hansen, P. R. & Lunde, A. (2005) 'A forecast comparison of volatility models: does anything beat a GARCH(1,1)?', Journal of Applied Econometrics",
+     "confidence": "high",
+     "why": "변동성 예측에서 단순 모형을 이기기 어렵다는 고전 — V13 PB 승리와 정합"
+    },
+    {
+     "citation": "Aksu, T. et al. (2024) 'GIFT-Eval: A Benchmark for General Time Series Forecasting Model Evaluation', arXiv",
+     "confidence": "medium",
+     "why": "TSFM 벤치마크에서 도메인·주기별 성능 편차 — 금융 일간의 약세 [세부 미검증]"
+    },
+    {
+     "citation": "Amazon (2025) 'Chronos-2' technical report",
+     "confidence": "low",
+     "why": "공변량 지원 모델의 원전 — 서지·식별번호 [미검증]"
+    }
+   ],
+   "data_needed": "DB: V2 아카이브 VIX·NASDAQCOM(read-only). 모델 가중치 ~480MB 로컬 캐시(Apache-2.0). 구매 $0. PIT: 입력은 captured/reconstructed 아카이브지만 **모델 사전학습 코퍼스가 2007–2014(및 2019+) 금융 계열을 포함할 수 있어 설계창 점수도 '준청정' 이하** — 봉인창 평가는 구조적으로 불가(포스트모템 D1).",
+   "governance_fit": "추론 전용(가중치 갱신 0), 결합은 고정 중앙값만(CLAUDE.md ML 게이트 문언 그대로). 산출은 base rate 참조. 오염 caveat 상시. 홀드아웃·봉인 소모 0 — 이 방향은 T0 을 넘지 못하도록 사전등록에 명기(오염 때문에 홀드아웃 검증도 무의미). LLM 개입 0. DL 학습(N-BEATS/PatchTST/TFT) 은 CLAUDE.md 'DL 가격 예측 학습 금지' 로 제외 — 이 lens 가 제안하지 않는 이유를 기록.",
+   "test_protocol": "설계창 양방향(적합 없음이라 'early→late' 는 형식상 동일 — 대신 두 반창 각각에서 PB 대비 쌍대 Brier CI90, ℓ=13·B=2000), y-block 귀무 ≤0.10, MDE, BH q=0.10(9셀), MCS. V13 dev 예산 1회 소모(8 중). 컴퓨트 영수증(체크포인트 sha·버전) 원장 append.",
+   "expected_effect": "PB 를 이길 확률 <10% [사전확률]. 기대 결과는 '지속성보다 못하거나 동률' 의 문서화된 음성 — 그 자체가 TSFM 관련 후속 제안을 차단하는 정보 가치(≈V9 '측정된 영' 과 같은 역할). 결합 median{PB,Chronos} 도 PB 열위 예상.",
+   "cost": "$0. CPU 추론 2014원점×9셀 — Chronos-2 ~1–3초/원점 → 1~2시간. 엔지니어링 1~2일.",
+   "stage": "사전등록(V13 계약 rung 추가, T0 상한 명기) → 설계창 → T1 판정서. 홀드아웃·봉인·표시 없음.",
+   "why_not_already_refuted": "V6 E10 `foundation_model_challenger` 는 `deferred_candidate_eligibility.json` 실측상 체크포인트·라이선스 영수증 부재로 weight 0·미실행이었다 — 반증이 아니라 미실행. `ml/` 계층의 Chronos 는 주간 base rate 참조로만 돌았고 설계창 사전등록 검정을 받은 적이 없다. 다만 '모델 패밀리 변경 on 일간 종가' 라는 반증된 축 위에 있으므로 최하위이며, 정보 가치는 긍정보다 문서화된 음성에 있다."
+  }
+ ]
+}

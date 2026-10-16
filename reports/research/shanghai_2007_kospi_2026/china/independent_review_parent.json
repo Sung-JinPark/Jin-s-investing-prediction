@@ -1,0 +1,119 @@
+{
+  "schema_version": 1,
+  "reviewed_at_utc": "2026-10-16T00:20:20.400107+00:00",
+  "reviewer": "independent China research subagent",
+  "scope": "China historical facts, source/vintage treatment, descriptive methodology, conditional-drawdown diagnostic and numerical overclaims. No changes outside china/.",
+  "status": "passed_with_non_blocking_clarifications",
+  "blocking_findings": [],
+  "reviewed_snapshots": [
+    {
+      "path": "report.md",
+      "sha256": "360006922b35a57f6d8db0ac777e365eb5af952e762a016a8e865c3e9fa2f027"
+    },
+    {
+      "path": "report.html",
+      "sha256": "6f748c6a5fdf9b40c2508e854e67e068259e1537b36b06766751df85db945749"
+    },
+    {
+      "path": "build_report.py",
+      "sha256": "93e64edbab2ae38f3e6c83aa629fced0ba780717a96d2326d72a50667e59b2f2"
+    },
+    {
+      "path": "research_math.py",
+      "sha256": "2e3547a327c1909b4520e0196831aceb145d55bdb5b2e03c46fa9777d24144cb"
+    },
+    {
+      "path": "research_contract.json",
+      "sha256": "232153f6cf1e734f226c8577dfcba52051fb67c7a8798ae1cb5728247a867cd7"
+    },
+    {
+      "path": "prices/analytics.py",
+      "sha256": "d746c54eccd7c805c0550b0659d4fc3f342a5d383c0d0d470f06340762252c6f"
+    },
+    {
+      "path": "prices/consolidate.py",
+      "sha256": "e8bf32e5244bedb85e5e8c06604278e87d5afcf71acb7729bd7361e37d2c4bf4"
+    },
+    {
+      "path": "prices/source_manifest.json",
+      "sha256": "5b6a860ce69f57c17db6ec95af244136db89dad368e58912c7861fcf9e92318a"
+    },
+    {
+      "path": "prices/analytics.json",
+      "sha256": "28c13c1dcfd1ccbf4c1f5f20284ba4736be3665f531b2fbf6702918134a3fdc0"
+    },
+    {
+      "path": "build_supporting_analysis.py",
+      "sha256": "a4346dd5137b081e7e2c31d157b91dc7dfcbb62cebeae69d42e8eeb1940b2ae7"
+    },
+    {
+      "path": "supporting_analysis.json",
+      "sha256": "af0b173cf200dab7bc7d079292d194425b87651488b71bdbd704ab2e91b33cd8"
+    }
+  ],
+  "checks": [
+    {
+      "id": "china_source_facts",
+      "status": "passed",
+      "detail": "Verified Composite vs A Share intraday/close highs; annual performance growth47.5% published2008-06-02; yearly PE16.33/33.30/59.24 with prior-year annual earnings denominator; 51.87% full-issued year-end top10 concentration; natural-person86.01% trading share and2854.45 CNY100million net purchase;150.5/1867.4 ten-thousand new natural-person A accounts;1713.51/6701.33 CNY100million capital raised."
+    },
+    {
+      "id": "vintage_integrity",
+      "status": "passed",
+      "detail": "Later yearbooks and 2008 results explicitly treated as hindsight, never as information available at2007 peak. Global earnings-growth ranking and matched EPS/PE decomposition left unverified/null."
+    },
+    {
+      "id": "correlation_interpretation",
+      "status": "passed",
+      "detail": "Report restricts zero-near correlations to fixed alignments; explicitly does not infer all-lag independence, causal evidence or a crash probability from91 weekly pairs/two episodes."
+    },
+    {
+      "id": "policy_window_indexing",
+      "status": "passed",
+      "detail": "For event index t, pre window close[t-21] to close[t-1] comprises20 returns; post close[t-1] to close[t+19] comprises20 returns. No abnormal-return or causal interpretation; announcement time uncertainty disclosed."
+    },
+    {
+      "id": "valuation_math",
+      "status": "passed",
+      "detail": "(1+EPSchange)*(1+PEchange)-1 and implied PE threshold correct under positive comparable endpoint EPS/PE. Hypothetical inputs separated from measured/model outputs."
+    },
+    {
+      "id": "benchmark_conflict",
+      "status": "passed",
+      "detail": "Current analytics suppress world-relative outputs to null unless explicit benchmark_verified; retained real dataset usesfalse. FX translation retains exact-date joins and asynchronous-price caveat."
+    }
+  ],
+  "independent_same_drawdown_recalculation": {
+    "source": "china/daily_indices_2005_2008.csv, direct arithmetic without parent helper",
+    "composite_close_peak_date": "2007-10-16",
+    "composite_close_peak": 6092.06,
+    "korea_threshold_fraction": -0.39062049141208277,
+    "first_crossing_date": "2008-03-18",
+    "crossing_close": 3668.9,
+    "actual_crossing_drawdown_fraction": -0.3977570805277689,
+    "previous_session_drawdown_fraction": -0.3729460970509154,
+    "future126_end_date": "2008-09-17",
+    "future126_return_fraction": -0.47421570497969423,
+    "future252_observations_available": 196,
+    "future252_result": null,
+    "status": "matches_parent_results",
+    "interpretation": "Single retrospective first-crossing example conditioned on current Korean drawdown. No independent frequency estimate or forecast probability."
+  },
+  "clarifications": [
+    {
+      "id": "descriptive_vs_causal_first_hypothesis",
+      "priority": "P2",
+      "location": "report.md hypothesis table first row",
+      "detail": "Current first row says world-factory/AI trends drove actual company profits and labels confirmed. Saved China macro data show strong exports and profits but do not isolate causal attribution. Rest of report correctly acknowledges causal limitations.",
+      "recommended_edit": "Phrase confirmed fact as exports/industrial profits and AI-memory earnings growth being observed; treat causal attribution and all-index benefit as partially supported."
+    },
+    {
+      "id": "first_crossing_overshoot",
+      "priority": "P3",
+      "location": "report.md conditional historical drawdown paragraph",
+      "detail": "Selected Chinese close first crossed the Korean39.06% drawdown threshold; its actual drawdown was39.7757%, not an exact39.06% match. Calculation is correct and already labeled a retrospective diagnostic.",
+      "recommended_edit": "Explicitly call this a first crossing and disclose China actual39.78% drawdown versus Korea39.06% threshold."
+    }
+  ],
+  "additional_note": "Report was reviewed at saved hashes; parent may revise wording after this snapshot. No finding implies price-path similarity is disproven under every possible alignment."
+}

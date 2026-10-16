@@ -1,0 +1,74 @@
+{
+  "reviewed_at_utc": "2026-10-16T00:20:13.109927+00:00",
+  "reviewed_report": "../report.md",
+  "report_sha256_at_review": "360006922b35a57f6d8db0ac777e365eb5af952e762a016a8e865c3e9fa2f027",
+  "review_scope": "Korea facts,profit exclusions and conditional contribution,political causality,point-in-time/vintage; no parentfiles edited",
+  "verdict": "passed",
+  "numeric_checks": {
+    "krx_H1_sample634_OP_growth_254_15_and_ex2_75_61": "pass",
+    "NI_growth333_30_and_ex2_119_68": "pass",
+    "conditional_OP_share63_1_and_increment77_9": "pass; correctly labelled secondarydenominator and notindexreturn contribution",
+    "BOK_ETF42_8_and_loans52_3_63_2_56_0_credit33_3_minus10_9": "pass; separate universes retained",
+    "KOFIA_deposits97_43_credit33_71": "pass; observedmonthday and inferredyear caveat retained",
+    "MSCI74constituents_concentration": "consistent with rootprovided factsheet; distinct from KOSPI explicitlystated",
+    "full_year2026_vsH1_actual": "pass",
+    "asof09_00_vs_current_retrieved_vintage": "pass; clearly disclaims historicaltradablesignal or originalvintagecertification",
+    "fundamentals_figure_Korea_growthbars": "pass; OP/NIgrowth and samplelabels match primaryarchive"
+  },
+  "issues": [
+    {
+      "id": "KR-REVIEW-01",
+      "priority": "P2",
+      "required": true,
+      "section": "가설별 판정 / 정부가 내내 국민의 주식 매수를 독려했다",
+      "issue_ko": "검증 대상에 원요청의 정부주도 가설보다 강한 내내 명제를 추가했다. 특히 독립적인 한국은행의 금리 인상은 정부의 국내주식 투자유도 정책 자체를 논리적으로 반증하지 않는다. 본문 뒤에서 정책의 독립 인과효과 미산출을 잘 설명하므로 표도 같은 판정 기준으로 맞추는 편이 정확하다.",
+      "suggested_change_ko": "표를 정부의 국내투자 유도가 개인 열풍을 유발했다 / 미확인 / 유도정책의 존재는 확인되나 순인과효과는 미산출,긴축·투자자보호 병행으로 단일 정책기조 해석에 제약 으로 교체.또는 일방향 매수독려만 있었다는 단순화는 부적절 이라고 범위를 제한.",
+      "evidence_source_ids": [
+        "KR-RIA-PROPOSAL",
+        "KR-FSC-GROWTH-DESIGN",
+        "KR-BOK-RATE-HISTORY"
+      ],
+      "resolution": "resolved in regenerated report; full prior finding retained for audit"
+    },
+    {
+      "id": "KR-REVIEW-02",
+      "priority": "P3",
+      "required": false,
+      "section": "한국 정부 / 1차 펀드 30258명",
+      "issue_ko": "가입자30258명은5월29일 모집기간중 취소·재판매 변동가능 집계다. 본문은 최종확정 인원처럼 읽힐 수 있다.",
+      "suggested_change_ko": "5월29일 집계에서6000억원이 판매됐고30258명이 가입했다 로 시점을 덧붙이기.",
+      "evidence_source_ids": [
+        "KR-FSC-GROWTH-SOLD"
+      ],
+      "resolution": "resolved in regenerated report; full prior finding retained for audit"
+    },
+    {
+      "id": "KR-REVIEW-03",
+      "priority": "P2",
+      "required": true,
+      "section": "한국 정부 / 최신10월15일 펀드 설명",
+      "issue_ko": "최신10월15일 금융위의2차펀드 판매 설명이 아직 이 검토본에는 없다.5월 첫판매 열기를 기준시각까지 그대로 연장하지 않도록 넣으면 좋다. 단 금융위 입장임을 명시하고,설계변경 때문에 수요붕괴의 독립 증거로 단정하지 않는다.부모가 추가중이라고 알린 항목이다.",
+      "suggested_change_ko": "금융위는10월15일2차판매가 차분하며1차와 설계·가입대상이 달라 단순비교가 어렵다고 설명했고 판매 독촉 지시를 부인했다고 추가.",
+      "source_url": "https://www.fsc.go.kr/no010102/87936",
+      "pdf_url": "https://www.fsc.go.kr/comm/getFile?srvcId=BBSTY1&upperNo=87936&fileTy=ATTACH&fileNo=2",
+      "evidence_source_ids": [
+        "KR-FSC-GROWTH-SECOND-PDF"
+      ],
+      "resolution": "resolved in regenerated report; full prior finding retained for audit"
+    }
+  ],
+  "no_parent_mutations": true,
+  "post_revision_check_pending": false,
+  "post_revision_reviewed_at_utc": "2026-10-16T00:21:45.243846+00:00",
+  "final_report_sha256": "cf266fb28090106d7d43f080674fdb142d220f471f0956efe81e72de8c30aa53",
+  "final_html_sha256": "96af5979e01a542b1c3f3e154a68e6271ce7724ca6d3676e9bb5ea8b80fceae1",
+  "post_revision_checks": {
+    "causal_policy_row_unconfirmed": true,
+    "old_persistent_encouragement_falsification_removed": true,
+    "fund_count_may29_snapshot": true,
+    "latest_fsc_position_attributed": true,
+    "conditional_profit_contribution_preserved": true,
+    "original_vintage_limit_preserved": true,
+    "html_contains_latest_fsc": true
+  }
+}

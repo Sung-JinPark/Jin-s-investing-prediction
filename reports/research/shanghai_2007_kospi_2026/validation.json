@@ -1,0 +1,74 @@
+{
+  "validated_at": "2026-10-16T00:22:58.593984+00:00",
+  "as_of": "2026-10-16T09:00:00+09:00",
+  "passed": true,
+  "errors": [],
+  "checks": [
+    {
+      "check": "protected_original_files",
+      "count": 492,
+      "changed": [],
+      "passed": true
+    },
+    {
+      "check": "raw_response_hashes",
+      "checked": 79,
+      "source_records": 88,
+      "note": "Counts include challenge and partial responses; usable source content is identified separately.",
+      "passed": true
+    },
+    {
+      "check": "independent_pandas_scipy_weekly_computation",
+      "n": 91,
+      "pearson": 0.0008900712540681685,
+      "spearman": -0.03226628444019749,
+      "passed": true
+    },
+    {
+      "check": "canonical_price_boundary",
+      "rows": 7287,
+      "symbols": 6,
+      "passed": true
+    },
+    {
+      "check": "unverified_benchmark_suppressed",
+      "passed": true
+    },
+    {
+      "check": "full_research_unit_suite",
+      "passed": true,
+      "record": "test_results.txt"
+    },
+    {
+      "check": "desktop_tablet_mobile_render",
+      "passed": true,
+      "viewports": [
+        1440,
+        768,
+        390
+      ]
+    }
+  ],
+  "output_sha256": {
+    "report.md": "cf266fb28090106d7d43f080674fdb142d220f471f0956efe81e72de8c30aa53",
+    "report.html": "96af5979e01a542b1c3f3e154a68e6271ce7724ca6d3676e9bb5ea8b80fceae1",
+    "prices/analytics.json": "28c13c1dcfd1ccbf4c1f5f20284ba4736be3665f531b2fbf6702918134a3fdc0",
+    "prices/prices.csv": "77049dd7d90c981b73000d78e0c4897171941451f24e814b865acdb9a9940715",
+    "supporting_analysis.json": "6ad2400596bc09e1a6bf990f84beea68fc142900c5ee8b96682f6691cee85f50"
+  },
+  "failure_categories": {
+    "code_defects": [],
+    "environment_or_dependency": "Playwright bundled browser missing; resolved using installed Chrome without installation",
+    "data_or_artifact_gaps": [
+      "full matched global country EPS panel",
+      "constant-definition index EPS/P-E decomposition",
+      "daily investor flows for causal policy estimate",
+      "world benchmark conflicting quotes",
+      "252-session post-2008-March diagnostic right-censored"
+    ]
+  },
+  "production_tests": "Not run: production code is unchanged; several repository tests can mutate durable databases. Full isolated research suite and protected-file hashes used.",
+  "official_forecast": false,
+  "durable_database_writes": 0,
+  "dependencies_installed": 0
+}

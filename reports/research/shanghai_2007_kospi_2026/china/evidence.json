@@ -1,0 +1,1343 @@
+{
+  "schema_version": 1,
+  "created_at_utc": "2026-10-16T00:17:10.866066+00:00",
+  "research_as_of_date": "2026-10-16",
+  "purpose": "Historical China comparator evidence for Shanghai 2007 versus KOSPI 2026; descriptive research only.",
+  "official_forecast": false,
+  "probability_outputs": [],
+  "unit_policy": "Every original numeric unit is explicit. Growth, return and share percentages normalize by /100; per mille by /1000; percentage-point changes by /100 to fraction-point changes. These rates are not forecast probabilities. No magnitude-based unit inference, clipping or normalization to force validity.",
+  "source_manifest": "source_manifest.json",
+  "claims": [
+    {
+      "claim_id": "world_factory_beneficiary",
+      "status": "partially_supported",
+      "evidence_ids": [
+        "CN_EXPORTS_2007",
+        "CN_EXPORT_RANK",
+        "CN_MANUFACTURING_TREND"
+      ],
+      "conclusion": "Strong export/profit boom is established; a uniquely first-place country beneficiary and direct listed-index exposure are not established."
+    },
+    {
+      "claim_id": "china_2007_global_first_earnings_growth",
+      "status": "unverified",
+      "evidence_ids": [
+        "CN_EARNINGS_2007_REPORTED",
+        "CN_EXPORTS_2007"
+      ],
+      "conclusion": "No matched global country-index EPS growth ranking or contemporary forecast vintage is available in this China evidence pack."
+    },
+    {
+      "claim_id": "retail_frenzy",
+      "status": "supported_with_qualification",
+      "evidence_ids": [
+        "CN_RETAIL_TURNOVER",
+        "CN_RETAIL_ACCOUNTS",
+        "CN_RETAIL_HOLDINGS",
+        "CN_DORMANT_CLEANUP"
+      ],
+      "conclusion": "Heavy natural-person turnover, positive annual net purchases and very rapid account growth; not literal universal participation."
+    },
+    {
+      "claim_id": "uniform_government_buying_encouragement",
+      "status": "contradicted_as_a_uniform_claim",
+      "evidence_ids": [
+        "CN_SPLIT_SHARE_REFORM",
+        "CN_MONETARY_TIGHTENING",
+        "CN_STAMP_DUTY",
+        "CN_RETAIL_OFFICIAL_WARNING"
+      ],
+      "conclusion": "Market development reform coexisted with tightening, tax increases and risk warnings. No evidence here of an unconditional household-buying directive."
+    },
+    {
+      "claim_id": "chart_path_predicts_korea_crash",
+      "status": "not_established",
+      "evidence_ids": [
+        "CN_INDEX_IDENTITY",
+        "CN_PRICE_2008",
+        "CN_CONCENTRATION",
+        "CN_MARGIN_STRUCTURE"
+      ],
+      "conclusion": "Two selected episodes cannot establish a predictive crash probability or causal correlation. Prospective matched-universe analysis and counterexamples are required."
+    }
+  ],
+  "observations": [
+    {
+      "evidence_id": "CN_INDEX_IDENTITY",
+      "statement": "2007-10-16 intraday highs differ between SSE Composite and SSE A Share; the attachment's approximately 6429 level is consistent with A Share, conditional on chart identity verification.",
+      "claim_status": "supported",
+      "data_period": "2007-10-16",
+      "source_id": "sse_yearbook_2008",
+      "source_url": "https://www.sse.com.cn/aboutus/publication/yearly/documents/c/10061086/files/c6db3f91030b4533ad5bd85cb421b18e.pdf",
+      "source_local_path": "sources/sse_yearbook_2008.pdf",
+      "source_sha256": "3913f07a8740e08e9fa868d31dc8f4c78221868a47ba11291ae5fc21ee31dec0",
+      "source_locator": "PDF page 19 (1-based), printed page 7, Data of SSE Index Series 2007",
+      "source_published_at": null,
+      "retrieved_at_utc": "2026-10-16T00:07:04.289169+00:00",
+      "available_at": null,
+      "availability_note": "Exact original public availability timestamp is not established. Publication date is separate metadata, not an intraday availability timestamp.",
+      "pit_relation_to_2007_10_16_peak": "retrospective_source_or_publication_date_unknown",
+      "measurements": [
+        {
+          "name": "composite_intraday_high",
+          "original_value": 6124.04,
+          "original_unit": "index_points",
+          "normalized_value": 6124.04,
+          "normalized_unit": "index_points"
+        },
+        {
+          "name": "a_share_intraday_high",
+          "original_value": 6429.68,
+          "original_unit": "index_points",
+          "normalized_value": 6429.68,
+          "normalized_unit": "index_points"
+        }
+      ],
+      "interpretation_caveat": "Intraday highs are not daily closes. Do not compare Composite peak 6124 with A Share level 6429 or treat chart annotations as an independently authenticated series."
+    },
+    {
+      "evidence_id": "CN_PRICE_2007",
+      "statement": "SSE Composite 2007 annual price return was 96.66%; A Share was 96.14%.",
+      "claim_status": "supported",
+      "data_period": "2007-01-01/2007-12-31",
+      "source_id": "sse_yearbook_2008",
+      "source_url": "https://www.sse.com.cn/aboutus/publication/yearly/documents/c/10061086/files/c6db3f91030b4533ad5bd85cb421b18e.pdf",
+      "source_local_path": "sources/sse_yearbook_2008.pdf",
+      "source_sha256": "3913f07a8740e08e9fa868d31dc8f4c78221868a47ba11291ae5fc21ee31dec0",
+      "source_locator": "PDF page 19 (1-based), printed page 7",
+      "source_published_at": null,
+      "retrieved_at_utc": "2026-10-16T00:07:04.289169+00:00",
+      "available_at": null,
+      "availability_note": "Exact original public availability timestamp is not established. Publication date is separate metadata, not an intraday availability timestamp.",
+      "pit_relation_to_2007_10_16_peak": "retrospective_source_or_publication_date_unknown",
+      "measurements": [
+        {
+          "name": "composite_annual_price_return",
+          "original_value": 96.66,
+          "original_unit": "percent",
+          "normalized_value": 0.9666,
+          "normalized_unit": "fraction",
+          "semantic_type": "price_return",
+          "conversion": "original percent / 100",
+          "is_probability": false
+        },
+        {
+          "name": "a_share_annual_price_return",
+          "original_value": 96.14,
+          "original_unit": "percent",
+          "normalized_value": 0.9614,
+          "normalized_unit": "fraction",
+          "semantic_type": "price_return",
+          "conversion": "original percent / 100",
+          "is_probability": false
+        }
+      ],
+      "interpretation_caveat": "Price returns exclude dividends and currency translation."
+    },
+    {
+      "evidence_id": "CN_PRICE_2008",
+      "statement": "2008 annual price returns were -65.39% for Composite and -65.38% for A Share.",
+      "claim_status": "supported",
+      "data_period": "2008-01-01/2008-12-31",
+      "source_id": "sse_yearbook_2009",
+      "source_url": "https://www.sse.com.cn/aboutus/publication/yearly/documents/c/10061085/files/10093621bdad44b2aaf7fc39c85c9256.pdf",
+      "source_local_path": "sources/sse_yearbook_2009.pdf",
+      "source_sha256": "cb4fd0e7f3f6a87724e436289042e48302188ffc8a90227ebd3386be551470d4",
+      "source_locator": "PDF page 13 (1-based), printed page 7",
+      "source_published_at": null,
+      "retrieved_at_utc": "2026-10-16T00:07:04.302872+00:00",
+      "available_at": null,
+      "availability_note": "Exact original public availability timestamp is not established. Publication date is separate metadata, not an intraday availability timestamp.",
+      "pit_relation_to_2007_10_16_peak": "retrospective_source_or_publication_date_unknown",
+      "measurements": [
+        {
+          "name": "composite_annual_price_return",
+          "original_value": -65.39,
+          "original_unit": "percent",
+          "normalized_value": -0.6539,
+          "normalized_unit": "fraction",
+          "semantic_type": "price_return",
+          "conversion": "original percent / 100",
+          "is_probability": false
+        },
+        {
+          "name": "a_share_annual_price_return",
+          "original_value": -65.38,
+          "original_unit": "percent",
+          "normalized_value": -0.6537999999999999,
+          "normalized_unit": "fraction",
+          "semantic_type": "price_return",
+          "conversion": "original percent / 100",
+          "is_probability": false
+        }
+      ],
+      "interpretation_caveat": "This outcome is hindsight and cannot be used to select an ex ante 2007 warning rule or as a Korea forecast probability."
+    },
+    {
+      "evidence_id": "CN_PE_DEFINITION",
+      "statement": "The historical SSE definition uses stock price divided by prior-year after-tax EPS; aggregate PE is sum(close*issued shares)/sum(EPS*issued shares).",
+      "claim_status": "supported",
+      "data_period": "2007",
+      "source_id": "sse_yearbook_2008",
+      "source_url": "https://www.sse.com.cn/aboutus/publication/yearly/documents/c/10061086/files/c6db3f91030b4533ad5bd85cb421b18e.pdf",
+      "source_local_path": "sources/sse_yearbook_2008.pdf",
+      "source_sha256": "3913f07a8740e08e9fa868d31dc8f4c78221868a47ba11291ae5fc21ee31dec0",
+      "source_locator": "PDF page 5 (1-based), printed page 1, definitions 14 and 17; visually checked in qa/pe_definition_2008.png",
+      "source_published_at": null,
+      "retrieved_at_utc": "2026-10-16T00:07:04.289169+00:00",
+      "available_at": null,
+      "availability_note": "Exact original public availability timestamp is not established. Publication date is separate metadata, not an intraday availability timestamp.",
+      "pit_relation_to_2007_10_16_peak": "retrospective_source_or_publication_date_unknown",
+      "measurements": [],
+      "interpretation_caveat": "A lagged annual earnings denominator, not TTM or forward consensus. Published loss-company treatment and revision schedules have not been separately established. Average PE is not the arithmetic mean of constituent PE values."
+    },
+    {
+      "evidence_id": "CN_PE_LEVELS",
+      "statement": "Year-end SSE average PE rose materially from 2005 through 2007.",
+      "claim_status": "supported",
+      "data_period": "2005-12-31/2007-12-31",
+      "source_id": "sse_yearbook_2008",
+      "source_url": "https://www.sse.com.cn/aboutus/publication/yearly/documents/c/10061086/files/c6db3f91030b4533ad5bd85cb421b18e.pdf",
+      "source_local_path": "sources/sse_yearbook_2008.pdf",
+      "source_sha256": "3913f07a8740e08e9fa868d31dc8f4c78221868a47ba11291ae5fc21ee31dec0",
+      "source_locator": "PDF page 16 (1-based), printed page 4, Overview / Average P/E Ratio",
+      "source_published_at": null,
+      "retrieved_at_utc": "2026-10-16T00:07:04.289169+00:00",
+      "available_at": null,
+      "availability_note": "Exact original public availability timestamp is not established. Publication date is separate metadata, not an intraday availability timestamp.",
+      "pit_relation_to_2007_10_16_peak": "retrospective_source_or_publication_date_unknown",
+      "measurements": [
+        {
+          "name": "2005_year_end_average_pe",
+          "original_value": 16.33,
+          "original_unit": "times",
+          "normalized_value": 16.33,
+          "normalized_unit": "times"
+        },
+        {
+          "name": "2006_year_end_average_pe",
+          "original_value": 33.3,
+          "original_unit": "times",
+          "normalized_value": 33.3,
+          "normalized_unit": "times"
+        },
+        {
+          "name": "2007_year_end_average_pe",
+          "original_value": 59.24,
+          "original_unit": "times",
+          "normalized_value": 59.24,
+          "normalized_unit": "times"
+        }
+      ],
+      "interpretation_caveat": "2007 year-end PE follows the October peak. Denominators, index membership, issuance, accounting changes and valuation date must match before any earnings/valuation decomposition."
+    },
+    {
+      "evidence_id": "CN_EQUITY_SUPPLY",
+      "statement": "The boom also coincided with sharply higher A-share capital raising and a large difference between issued and negotiable capitalization.",
+      "claim_status": "supported",
+      "data_period": "2006-12-31/2007-12-31",
+      "source_id": "sse_yearbook_2008",
+      "source_url": "https://www.sse.com.cn/aboutus/publication/yearly/documents/c/10061086/files/c6db3f91030b4533ad5bd85cb421b18e.pdf",
+      "source_local_path": "sources/sse_yearbook_2008.pdf",
+      "source_sha256": "3913f07a8740e08e9fa868d31dc8f4c78221868a47ba11291ae5fc21ee31dec0",
+      "source_locator": "PDF page 15 (1-based), printed page 3, Overview / Capital Raised and Market Capitalization",
+      "source_published_at": null,
+      "retrieved_at_utc": "2026-10-16T00:07:04.289169+00:00",
+      "available_at": null,
+      "availability_note": "Exact original public availability timestamp is not established. Publication date is separate metadata, not an intraday availability timestamp.",
+      "pit_relation_to_2007_10_16_peak": "retrospective_source_or_publication_date_unknown",
+      "measurements": [
+        {
+          "name": "2007_a_share_capital_raised",
+          "original_value": 6701.33,
+          "original_unit": "CNY_100_million",
+          "normalized_value": 670133000000,
+          "normalized_unit": "CNY"
+        },
+        {
+          "name": "2006_a_share_capital_raised",
+          "original_value": 1713.51,
+          "original_unit": "CNY_100_million",
+          "normalized_value": 171351000000,
+          "normalized_unit": "CNY"
+        },
+        {
+          "name": "2007_year_end_total_stock_market_capitalization",
+          "original_value": 269838.87,
+          "original_unit": "CNY_100_million",
+          "normalized_value": 26983887000000,
+          "normalized_unit": "CNY"
+        },
+        {
+          "name": "2007_year_end_negotiable_market_capitalization",
+          "original_value": 64532.17,
+          "original_unit": "CNY_100_million",
+          "normalized_value": 6453217000000,
+          "normalized_unit": "CNY"
+        }
+      ],
+      "interpretation_caveat": "Capital raised is not labeled IPO-only and should not be described as such. Total issued and negotiable capitalization are different universes. Supply changes and listing composition confound a simple earnings-versus-PE return attribution."
+    },
+    {
+      "evidence_id": "CN_SECTOR_PRICE_RETURNS",
+      "statement": "The exchange reports different 2007 price returns across its legacy sector indices.",
+      "claim_status": "supported",
+      "data_period": "2007-01-01/2007-12-31",
+      "source_id": "sse_yearbook_2008",
+      "source_url": "https://www.sse.com.cn/aboutus/publication/yearly/documents/c/10061086/files/c6db3f91030b4533ad5bd85cb421b18e.pdf",
+      "source_local_path": "sources/sse_yearbook_2008.pdf",
+      "source_sha256": "3913f07a8740e08e9fa868d31dc8f4c78221868a47ba11291ae5fc21ee31dec0",
+      "source_locator": "PDF page 19 (1-based), printed page 7, Data of SSE Index Series 2007",
+      "source_published_at": null,
+      "retrieved_at_utc": "2026-10-16T00:07:04.289169+00:00",
+      "available_at": null,
+      "availability_note": "Exact original public availability timestamp is not established. Publication date is separate metadata, not an intraday availability timestamp.",
+      "pit_relation_to_2007_10_16_peak": "retrospective_source_or_publication_date_unknown",
+      "measurements": [
+        {
+          "name": "industrial_index_price_return",
+          "original_value": 137.47,
+          "original_unit": "percent",
+          "normalized_value": 1.3747,
+          "normalized_unit": "fraction",
+          "semantic_type": "price_return",
+          "conversion": "original percent / 100",
+          "is_probability": false
+        },
+        {
+          "name": "real_estate_index_price_return",
+          "original_value": 148.6,
+          "original_unit": "percent",
+          "normalized_value": 1.486,
+          "normalized_unit": "fraction",
+          "semantic_type": "price_return",
+          "conversion": "original percent / 100",
+          "is_probability": false
+        },
+        {
+          "name": "utilities_index_price_return",
+          "original_value": 174.75,
+          "original_unit": "percent",
+          "normalized_value": 1.7475,
+          "normalized_unit": "fraction",
+          "semantic_type": "price_return",
+          "conversion": "original percent / 100",
+          "is_probability": false
+        },
+        {
+          "name": "conglomerates_index_price_return",
+          "original_value": 52.53,
+          "original_unit": "percent",
+          "normalized_value": 0.5253,
+          "normalized_unit": "fraction",
+          "semantic_type": "price_return",
+          "conversion": "original percent / 100",
+          "is_probability": false
+        }
+      ],
+      "interpretation_caveat": "These are sector-index price returns, not sector contributions to Composite or A Share returns. Legacy sector definitions and contemporaneous weights need separate reconciliation."
+    },
+    {
+      "evidence_id": "CN_RETAIL_TURNOVER",
+      "statement": "In the SSE's 2007 share-investor table, natural persons had 86.01% trading share and a positive net purchase balance.",
+      "claim_status": "supported",
+      "data_period": "2007-01-01/2007-12-31",
+      "source_id": "sse_yearbook_2008",
+      "source_url": "https://www.sse.com.cn/aboutus/publication/yearly/documents/c/10061086/files/c6db3f91030b4533ad5bd85cb421b18e.pdf",
+      "source_local_path": "sources/sse_yearbook_2008.pdf",
+      "source_sha256": "3913f07a8740e08e9fa868d31dc8f4c78221868a47ba11291ae5fc21ee31dec0",
+      "source_locator": "PDF page 352 (1-based), printed page 340, Balance of Investors in 2007",
+      "source_published_at": null,
+      "retrieved_at_utc": "2026-10-16T00:07:04.289169+00:00",
+      "available_at": null,
+      "availability_note": "Exact original public availability timestamp is not established. Publication date is separate metadata, not an intraday availability timestamp.",
+      "pit_relation_to_2007_10_16_peak": "retrospective_source_or_publication_date_unknown",
+      "measurements": [
+        {
+          "name": "natural_person_trading_share",
+          "original_value": 86.01,
+          "original_unit": "percent",
+          "normalized_value": 0.8601000000000001,
+          "normalized_unit": "fraction",
+          "semantic_type": "share",
+          "conversion": "original percent / 100",
+          "is_probability": false
+        },
+        {
+          "name": "natural_person_net_purchase",
+          "original_value": 2854.45,
+          "original_unit": "CNY_100_million",
+          "normalized_value": 285445000000,
+          "normalized_unit": "CNY",
+          "conversion": "original 100 million CNY * 100000000"
+        },
+        {
+          "name": "general_corporation_net_purchase",
+          "original_value": -4100.18,
+          "original_unit": "CNY_100_million",
+          "normalized_value": -410018000000,
+          "normalized_unit": "CNY"
+        },
+        {
+          "name": "professional_institution_net_purchase",
+          "original_value": 1246.12,
+          "original_unit": "CNY_100_million",
+          "normalized_value": 124612000000,
+          "normalized_unit": "CNY"
+        }
+      ],
+      "interpretation_caveat": "Do not generalize this share-investor table to all securities such as bond/repo trades. Annual exchange-level net balance is not household new cash contributed or continuous daily buying. Source rounding means investor-category balances need not sum exactly to zero."
+    },
+    {
+      "evidence_id": "CN_RETAIL_ACCOUNTS",
+      "statement": "Natural-person new A-share accounts rose sharply; accounts are not a national unique-investor headcount.",
+      "claim_status": "supported",
+      "data_period": "2006-01-01/2007-12-31",
+      "source_id": "sse_yearbook_2008",
+      "source_url": "https://www.sse.com.cn/aboutus/publication/yearly/documents/c/10061086/files/c6db3f91030b4533ad5bd85cb421b18e.pdf",
+      "source_local_path": "sources/sse_yearbook_2008.pdf",
+      "source_sha256": "3913f07a8740e08e9fa868d31dc8f4c78221868a47ba11291ae5fc21ee31dec0",
+      "source_locator": "PDF pages 349-350 (1-based), printed pages 337-338, Historical Data of Shareholder's Accounts",
+      "source_published_at": null,
+      "retrieved_at_utc": "2026-10-16T00:07:04.289169+00:00",
+      "available_at": null,
+      "availability_note": "Exact original public availability timestamp is not established. Publication date is separate metadata, not an intraday availability timestamp.",
+      "pit_relation_to_2007_10_16_peak": "retrospective_source_or_publication_date_unknown",
+      "measurements": [
+        {
+          "name": "2006_new_natural_person_a_accounts",
+          "original_value": 150.5,
+          "original_unit": "ten_thousand_accounts",
+          "normalized_value": 1505000,
+          "normalized_unit": "accounts"
+        },
+        {
+          "name": "2007_new_natural_person_a_accounts",
+          "original_value": 1867.4,
+          "original_unit": "ten_thousand_accounts",
+          "normalized_value": 18674000,
+          "normalized_unit": "accounts"
+        },
+        {
+          "name": "2006_natural_person_a_account_total",
+          "original_value": 3778.5,
+          "original_unit": "ten_thousand_accounts",
+          "normalized_value": 37785000,
+          "normalized_unit": "accounts"
+        },
+        {
+          "name": "2007_natural_person_a_account_total",
+          "original_value": 5645.9,
+          "original_unit": "ten_thousand_accounts",
+          "normalized_value": 56459000,
+          "normalized_unit": "accounts"
+        }
+      ],
+      "interpretation_caveat": "This SSE-only A-share count must not be mixed with CSRC combined-exchange or SSE fund-inclusive account counts. Account activity, dormant-account treatment and unique-person coverage differ."
+    },
+    {
+      "evidence_id": "CN_RETAIL_HOLDINGS",
+      "statement": "Natural persons held 48.29% of the year-end shareholding market value reported in the investor table, while their trading share was substantially higher.",
+      "claim_status": "supported",
+      "data_period": "2007-12-31",
+      "source_id": "sse_yearbook_2008",
+      "source_url": "https://www.sse.com.cn/aboutus/publication/yearly/documents/c/10061086/files/c6db3f91030b4533ad5bd85cb421b18e.pdf",
+      "source_local_path": "sources/sse_yearbook_2008.pdf",
+      "source_sha256": "3913f07a8740e08e9fa868d31dc8f4c78221868a47ba11291ae5fc21ee31dec0",
+      "source_locator": "PDF page 352 (1-based), printed page 340, Share Hold of Investors by 2007",
+      "source_published_at": null,
+      "retrieved_at_utc": "2026-10-16T00:07:04.289169+00:00",
+      "available_at": null,
+      "availability_note": "Exact original public availability timestamp is not established. Publication date is separate metadata, not an intraday availability timestamp.",
+      "pit_relation_to_2007_10_16_peak": "retrospective_source_or_publication_date_unknown",
+      "measurements": [
+        {
+          "name": "natural_person_shareholding_value_share",
+          "original_value": 48.29,
+          "original_unit": "percent",
+          "normalized_value": 0.4829,
+          "normalized_unit": "fraction",
+          "semantic_type": "share",
+          "conversion": "original percent / 100",
+          "is_probability": false
+        },
+        {
+          "name": "natural_person_holding_accounts",
+          "original_value": 24867825,
+          "original_unit": "accounts",
+          "normalized_value": 24867825,
+          "normalized_unit": "accounts"
+        }
+      ],
+      "interpretation_caveat": "Investor table's holdings universe differs from total issued capitalization. Do not equate 48.29% with natural persons owning that share of all Chinese corporate equity."
+    },
+    {
+      "evidence_id": "CN_RETAIL_MONTHLY_ACCOUNT_CUMULATIVE",
+      "statement": "The monthly 2007 account-opening table reports cumulative year-to-date additions, not additions during each month.",
+      "claim_status": "supported",
+      "data_period": "2007-01-01/2007-12-31",
+      "source_id": "sse_yearbook_2008",
+      "source_url": "https://www.sse.com.cn/aboutus/publication/yearly/documents/c/10061086/files/c6db3f91030b4533ad5bd85cb421b18e.pdf",
+      "source_local_path": "sources/sse_yearbook_2008.pdf",
+      "source_sha256": "3913f07a8740e08e9fa868d31dc8f4c78221868a47ba11291ae5fc21ee31dec0",
+      "source_locator": "PDF page 353 (1-based), printed page 341, Open Account of Investor",
+      "source_published_at": null,
+      "retrieved_at_utc": "2026-10-16T00:07:04.289169+00:00",
+      "available_at": null,
+      "availability_note": "Exact original public availability timestamp is not established. Publication date is separate metadata, not an intraday availability timestamp.",
+      "pit_relation_to_2007_10_16_peak": "retrospective_source_or_publication_date_unknown",
+      "measurements": [
+        {
+          "name": "a_share_ytd_openings_end_january",
+          "original_value": 69.26,
+          "original_unit": "ten_thousand_accounts",
+          "normalized_value": 692600,
+          "normalized_unit": "accounts"
+        },
+        {
+          "name": "a_share_ytd_openings_end_may",
+          "original_value": 756.67,
+          "original_unit": "ten_thousand_accounts",
+          "normalized_value": 7566700,
+          "normalized_unit": "accounts"
+        },
+        {
+          "name": "a_share_ytd_openings_end_october",
+          "original_value": 1599.88,
+          "original_unit": "ten_thousand_accounts",
+          "normalized_value": 15998800,
+          "normalized_unit": "accounts"
+        },
+        {
+          "name": "a_share_ytd_openings_end_december",
+          "original_value": 1873.24,
+          "original_unit": "ten_thousand_accounts",
+          "normalized_value": 18732400,
+          "normalized_unit": "accounts"
+        }
+      ],
+      "interpretation_caveat": "December value equals the stated annual total; summing monthly rows would double count. Original rows include all A-share accounts, whereas the natural-person annual table excludes institutions."
+    },
+    {
+      "evidence_id": "CN_DORMANT_CLEANUP",
+      "statement": "20.23 million dormant accounts were segregated on October 8, 2007 under the account-standardization process.",
+      "claim_status": "supported",
+      "data_period": "2007-10-08",
+      "source_id": "csrc_dormant_accounts_20071009",
+      "source_url": "https://www.csrc.gov.cn/csrc/c100028/c1002861/content.shtml",
+      "source_local_path": "sources/csrc_dormant_accounts_20071009.html",
+      "source_sha256": "938a5ff137e5b377288c0f09ab9ac3a2d2309b1b4dae3c0ff388d460a1067dab",
+      "source_locator": "Article body, account segregation effective October 8",
+      "source_published_at": "2007-10-09",
+      "retrieved_at_utc": "2026-10-16T00:09:02.610146+00:00",
+      "available_at": null,
+      "availability_note": "Exact original public availability timestamp is not established. Publication date is separate metadata, not an intraday availability timestamp.",
+      "pit_relation_to_2007_10_16_peak": "contemporaneous_or_earlier_source",
+      "measurements": [
+        {
+          "name": "dormant_accounts_segregated",
+          "original_value": 2023,
+          "original_unit": "ten_thousand_accounts",
+          "normalized_value": 20230000,
+          "normalized_unit": "accounts"
+        }
+      ],
+      "interpretation_caveat": "Account cleaning creates a potential measurement break in active/total account series; this is not equivalent to investors withdrawing on that day."
+    },
+    {
+      "evidence_id": "CN_RETAIL_OFFICIAL_WARNING",
+      "statement": "CSRC acknowledged rapid entry by inexperienced small investors and explicitly emphasized risk education and cautious participation.",
+      "claim_status": "supported",
+      "data_period": "2007-10-17",
+      "source_id": "csrc_retail_risk_20071018",
+      "source_url": "https://www.csrc.gov.cn/csrc/c100028/c1002860/content.shtml",
+      "source_local_path": "sources/csrc_retail_risk_20071018.html",
+      "source_sha256": "aa2dd426d3642414097e7a319bedae1dcb04f88ebc4e981cb63e939ef7a79e1d",
+      "source_locator": "Interview on October 17, article published October 18; section on current priority of investor risk education",
+      "source_published_at": "2007-10-18",
+      "retrieved_at_utc": "2026-10-16T00:09:01.208647+00:00",
+      "available_at": null,
+      "availability_note": "Exact original public availability timestamp is not established. Publication date is separate metadata, not an intraday availability timestamp.",
+      "pit_relation_to_2007_10_16_peak": "retrospective_source_or_publication_date_unknown",
+      "measurements": [],
+      "interpretation_caveat": "Published two days after the October 16 peak, so this particular article is not a pre-peak warning observation. Earlier risk education is described but primary publication timestamps must be established separately."
+    },
+    {
+      "evidence_id": "CN_CONCENTRATION",
+      "statement": "Year-end 2007 A-share capitalization was concentrated in energy, banks and insurers rather than a pure export-manufacturing basket.",
+      "claim_status": "supported",
+      "data_period": "2007-12-31",
+      "source_id": "sse_yearbook_2008",
+      "source_url": "https://www.sse.com.cn/aboutus/publication/yearly/documents/c/10061086/files/c6db3f91030b4533ad5bd85cb421b18e.pdf",
+      "source_local_path": "sources/sse_yearbook_2008.pdf",
+      "source_sha256": "3913f07a8740e08e9fa868d31dc8f4c78221868a47ba11291ae5fc21ee31dec0",
+      "source_locator": "PDF page 77 (1-based), printed page 65, Top 10 A Shares by Market Capitalization",
+      "source_published_at": null,
+      "retrieved_at_utc": "2026-10-16T00:07:04.289169+00:00",
+      "available_at": null,
+      "availability_note": "Exact original public availability timestamp is not established. Publication date is separate metadata, not an intraday availability timestamp.",
+      "pit_relation_to_2007_10_16_peak": "retrospective_source_or_publication_date_unknown",
+      "measurements": [
+        {
+          "name": "top10_share",
+          "original_value": 51.87,
+          "original_unit": "percent",
+          "normalized_value": 0.5186999999999999,
+          "normalized_unit": "fraction",
+          "semantic_type": "share",
+          "conversion": "original percent / 100",
+          "is_probability": false
+        },
+        {
+          "name": "petrochina_share",
+          "original_value": 18.67,
+          "original_unit": "percent",
+          "normalized_value": 0.1867,
+          "normalized_unit": "fraction",
+          "semantic_type": "share",
+          "conversion": "original percent / 100",
+          "is_probability": false
+        },
+        {
+          "name": "icbc_share",
+          "original_value": 7.6,
+          "original_unit": "percent",
+          "normalized_value": 0.076,
+          "normalized_unit": "fraction",
+          "semantic_type": "share",
+          "conversion": "original percent / 100",
+          "is_probability": false
+        },
+        {
+          "name": "sinopec_share",
+          "original_value": 6.1,
+          "original_unit": "percent",
+          "normalized_value": 0.061,
+          "normalized_unit": "fraction",
+          "semantic_type": "share",
+          "conversion": "original percent / 100",
+          "is_probability": false
+        },
+        {
+          "name": "china_life_share",
+          "original_value": 4.49,
+          "original_unit": "percent",
+          "normalized_value": 0.0449,
+          "normalized_unit": "fraction",
+          "semantic_type": "share",
+          "conversion": "original percent / 100",
+          "is_probability": false
+        },
+        {
+          "name": "bank_of_china_share",
+          "original_value": 4.38,
+          "original_unit": "percent",
+          "normalized_value": 0.0438,
+          "normalized_unit": "fraction",
+          "semantic_type": "share",
+          "conversion": "original percent / 100",
+          "is_probability": false
+        },
+        {
+          "name": "china_shenhua_share",
+          "original_value": 4.03,
+          "original_unit": "percent",
+          "normalized_value": 0.0403,
+          "normalized_unit": "fraction",
+          "semantic_type": "share",
+          "conversion": "original percent / 100",
+          "is_probability": false
+        }
+      ],
+      "interpretation_caveat": "These are year-end full-issued capitalization shares, not free-float weights at the October peak. PetroChina entered in November 2007. Do not project this membership back onto the pre-peak period."
+    },
+    {
+      "evidence_id": "CN_EARNINGS_2007_REPORTED",
+      "statement": "SSE's review states overall listed-company performance grew 47.5% and weighted EPS reached CNY 0.42.",
+      "claim_status": "supported",
+      "data_period": "2007-01-01/2007-12-31",
+      "source_id": "sse_2007_earnings_review",
+      "source_url": "https://www.sse.com.cn/aboutus/mediacenter/hotandd/c/c_20150912_3988204.shtml",
+      "source_local_path": "sources/sse_2007_earnings_review.html",
+      "source_sha256": "34283735db104d46bd47879ed791595476ecfeac94c514a002558c1ae254d29f",
+      "source_locator": "Article dated 2008-06-02, opening paragraph; reports disclosed by 2008-04-30",
+      "source_published_at": "2008-06-02",
+      "retrieved_at_utc": "2026-10-16T00:07:04.572686+00:00",
+      "available_at": null,
+      "availability_note": "Exact original public availability timestamp is not established. Publication date is separate metadata, not an intraday availability timestamp.",
+      "pit_relation_to_2007_10_16_peak": "retrospective_source_or_publication_date_unknown",
+      "measurements": [
+        {
+          "name": "exchange_reported_overall_performance_yoy",
+          "original_value": 47.5,
+          "original_unit": "percent",
+          "normalized_value": 0.475,
+          "normalized_unit": "fraction",
+          "semantic_type": "earnings_growth",
+          "conversion": "original percent / 100",
+          "is_probability": false
+        },
+        {
+          "name": "weighted_earnings_per_share",
+          "original_value": 0.42,
+          "original_unit": "CNY_per_share",
+          "normalized_value": 0.42,
+          "normalized_unit": "CNY_per_share"
+        }
+      ],
+      "interpretation_caveat": "The source labels 47.5% as overall performance, not a same-constituent point-in-time index EPS growth series. Realized 2007 annual performance released in 2008 cannot validate what investors knew at the 2007 peak. Global first-place ranking remains unverified."
+    },
+    {
+      "evidence_id": "CN_ACCOUNTING_2007",
+      "statement": "The 2007 new accounting standards changed opening equity and introduced a fair-value change line in reported earnings.",
+      "claim_status": "supported",
+      "data_period": "2007-01-01/2007-12-31",
+      "source_id": "sse_2007_earnings_review",
+      "source_url": "https://www.sse.com.cn/aboutus/mediacenter/hotandd/c/c_20150912_3988204.shtml",
+      "source_local_path": "sources/sse_2007_earnings_review.html",
+      "source_sha256": "34283735db104d46bd47879ed791595476ecfeac94c514a002558c1ae254d29f",
+      "source_locator": "Second substantive paragraph on new accounting standards",
+      "source_published_at": "2008-06-02",
+      "retrieved_at_utc": "2026-10-16T00:07:04.572686+00:00",
+      "available_at": null,
+      "availability_note": "Exact original public availability timestamp is not established. Publication date is separate metadata, not an intraday availability timestamp.",
+      "pit_relation_to_2007_10_16_peak": "retrospective_source_or_publication_date_unknown",
+      "measurements": [
+        {
+          "name": "opening_equity_upward_adjustment_approximate",
+          "original_value": 9,
+          "original_unit": "percent",
+          "normalized_value": 0.09,
+          "normalized_unit": "fraction",
+          "semantic_type": "accounting_adjustment",
+          "conversion": "original percent / 100",
+          "is_probability": false
+        },
+        {
+          "name": "fair_value_change_share_of_annual_net_profit",
+          "original_value": 2.6,
+          "original_unit": "percent",
+          "normalized_value": 0.026000000000000002,
+          "normalized_unit": "fraction",
+          "semantic_type": "share",
+          "conversion": "original percent / 100",
+          "is_probability": false
+        }
+      ],
+      "interpretation_caveat": "The 2.6% line alone does not measure all investment-related gains or all accounting comparability effects. Adjustments need an explicit reconciliation; no silent restatement."
+    },
+    {
+      "evidence_id": "CN_EXPORTS_2007",
+      "statement": "China's goods exports and industrial profits expanded strongly in 2007, supporting the real-economy boom hypothesis.",
+      "claim_status": "supported",
+      "data_period": "2007-01-01/2007-12-31",
+      "source_id": "nbs_2007_communique",
+      "source_url": "https://www.stats.gov.cn/english/NewsEvents/200802/t20080228_25995.html",
+      "source_local_path": "sources/nbs_2007_communique.html",
+      "source_sha256": "0f56393fe04dbc6c58c81f56b598cf2448c720ee223e6b9b32f4cd023b1c29fc",
+      "source_locator": "Foreign Economic Relations / Table 6; Industrial and Construction / Table 3",
+      "source_published_at": "2008-02-28",
+      "retrieved_at_utc": "2026-10-16T00:09:05.657209+00:00",
+      "available_at": null,
+      "availability_note": "Exact original public availability timestamp is not established. Publication date is separate metadata, not an intraday availability timestamp.",
+      "pit_relation_to_2007_10_16_peak": "retrospective_source_or_publication_date_unknown",
+      "measurements": [
+        {
+          "name": "goods_exports_yoy",
+          "original_value": 25.7,
+          "original_unit": "percent",
+          "normalized_value": 0.257,
+          "normalized_unit": "fraction",
+          "semantic_type": "growth_rate",
+          "conversion": "original percent / 100",
+          "is_probability": false
+        },
+        {
+          "name": "goods_exports_value",
+          "original_value": 1218.0,
+          "original_unit": "USD_billion",
+          "normalized_value": 1218000000000,
+          "normalized_unit": "USD"
+        },
+        {
+          "name": "industrial_profit_jan_nov_yoy",
+          "original_value": 36.7,
+          "original_unit": "percent",
+          "normalized_value": 0.36700000000000005,
+          "normalized_unit": "fraction",
+          "semantic_type": "growth_rate",
+          "conversion": "original percent / 100",
+          "is_probability": false
+        },
+        {
+          "name": "private_industrial_profit_jan_nov_yoy",
+          "original_value": 50.9,
+          "original_unit": "percent",
+          "normalized_value": 0.509,
+          "normalized_unit": "fraction",
+          "semantic_type": "growth_rate",
+          "conversion": "original percent / 100",
+          "is_probability": false
+        }
+      ],
+      "interpretation_caveat": "Industrial profits cover designated-size enterprises and only January-November, not the listed index or full calendar-year earnings. All figures belong to the February 2008 vintage."
+    },
+    {
+      "evidence_id": "CN_GDP_VINTAGE",
+      "statement": "The February 2008 statistical communique initially reported 2007 real GDP growth of 11.4%.",
+      "claim_status": "supported",
+      "data_period": "2007-01-01/2007-12-31",
+      "source_id": "nbs_2007_communique",
+      "source_url": "https://www.stats.gov.cn/english/NewsEvents/200802/t20080228_25995.html",
+      "source_local_path": "sources/nbs_2007_communique.html",
+      "source_sha256": "0f56393fe04dbc6c58c81f56b598cf2448c720ee223e6b9b32f4cd023b1c29fc",
+      "source_locator": "General Outlook, opening GDP paragraph",
+      "source_published_at": "2008-02-28",
+      "retrieved_at_utc": "2026-10-16T00:09:05.657209+00:00",
+      "available_at": null,
+      "availability_note": "Exact original public availability timestamp is not established. Publication date is separate metadata, not an intraday availability timestamp.",
+      "pit_relation_to_2007_10_16_peak": "retrospective_source_or_publication_date_unknown",
+      "measurements": [
+        {
+          "name": "initial_reported_real_gdp_yoy",
+          "original_value": 11.4,
+          "original_unit": "percent",
+          "normalized_value": 0.114,
+          "normalized_unit": "fraction",
+          "semantic_type": "growth_rate",
+          "conversion": "original percent / 100",
+          "is_probability": false
+        }
+      ],
+      "interpretation_caveat": "Subsequently revised GDP histories must be stored as separate vintages. Do not silently substitute later revisions in an ex ante reconstruction."
+    },
+    {
+      "evidence_id": "CN_EXPORT_RANK",
+      "statement": "WTO ranks China second in 2007 merchandise exports after Germany; China moved ahead of the United States.",
+      "claim_status": "supported",
+      "data_period": "2007-01-01/2007-12-31",
+      "source_id": "wto_2008_trade_review_pdf",
+      "source_url": "https://www.wto.org/english/news_e/pres08_e/pr520_e.pdf",
+      "source_local_path": "sources/wto_2008_trade_review_pdf.pdf",
+      "source_sha256": "be83b510c50ca2ef1e4cbf5a940e8ddf521f6f4fc1c192c130c355c15f9d2829",
+      "source_locator": "Press/520/Rev.1; ranking discussion and Appendix leading merchandise exporters",
+      "source_published_at": "2008-04-17",
+      "retrieved_at_utc": "2026-10-16T00:12:48.756848+00:00",
+      "available_at": null,
+      "availability_note": "Exact original public availability timestamp is not established. Publication date is separate metadata, not an intraday availability timestamp.",
+      "pit_relation_to_2007_10_16_peak": "retrospective_source_or_publication_date_unknown",
+      "measurements": [
+        {
+          "name": "merchandise_export_country_rank",
+          "original_value": 2,
+          "original_unit": "ordinal_rank",
+          "normalized_value": 2,
+          "normalized_unit": "ordinal_rank"
+        }
+      ],
+      "interpretation_caveat": "Export rank is not earnings-growth rank, manufacturing value-added rank, or stock-return rank. PDF is dated April 17, 2008; the HTML and PDF are this revised release vintage."
+    },
+    {
+      "evidence_id": "CN_SPLIT_SHARE_REFORM",
+      "statement": "The nontradable share reform began in April 2005; by April 2006 almost 900 of approximately 1350 companies, representing 70% of capitalization, had completed it.",
+      "claim_status": "supported",
+      "data_period": "2005-04/2006-04",
+      "source_id": "imf_2006_article_iv",
+      "source_url": "https://www.elibrary.imf.org/view/journals/002/2006/394/article-A001-en.xml",
+      "source_local_path": "sources/imf_2006_article_iv.html",
+      "source_sha256": "53ec691517b4438fa78d708456238e56645372012bf90aef975e7c9fc9d4496d",
+      "source_locator": "Equity market box / non-tradable share reform discussion",
+      "source_published_at": "2006-10-31",
+      "retrieved_at_utc": "2026-10-16T00:07:06.061248+00:00",
+      "available_at": null,
+      "availability_note": "Exact original public availability timestamp is not established. Publication date is separate metadata, not an intraday availability timestamp.",
+      "pit_relation_to_2007_10_16_peak": "contemporaneous_or_earlier_source",
+      "measurements": [
+        {
+          "name": "companies_completed_approximate",
+          "original_value": 900,
+          "original_unit": "companies",
+          "normalized_value": 900,
+          "normalized_unit": "companies"
+        },
+        {
+          "name": "companies_total_approximate",
+          "original_value": 1350,
+          "original_unit": "companies",
+          "normalized_value": 1350,
+          "normalized_unit": "companies"
+        },
+        {
+          "name": "capitalization_completed_share",
+          "original_value": 70,
+          "original_unit": "percent",
+          "normalized_value": 0.7,
+          "normalized_unit": "fraction",
+          "semantic_type": "share",
+          "conversion": "original percent / 100",
+          "is_probability": false
+        }
+      ],
+      "interpretation_caveat": "This supports government-led market institution reform; it does not prove an official promise to prevent price declines or an instruction for every household to buy."
+    },
+    {
+      "evidence_id": "CN_MANUFACTURING_TREND",
+      "statement": "An IMF September 2007 analysis describes export integration, investment incentives and low capital cost as multi-year drivers of China becoming a world workshop.",
+      "claim_status": "supported",
+      "data_period": "1994/2007",
+      "source_id": "imf_rebalancing_200709",
+      "source_url": "https://www.imf.org/external/pubs/ft/fandd/2007/09/aziz.htm",
+      "source_local_path": "sources/imf_rebalancing_200709.html",
+      "source_sha256": "58e13f719e7863266927e3fa094e6e4c652dd5ed4862a36524a563159253a4f1",
+      "source_locator": "How it began / Why is investment high?",
+      "source_published_at": "2007-09",
+      "retrieved_at_utc": "2026-10-16T00:07:06.066247+00:00",
+      "available_at": null,
+      "availability_note": "Exact original public availability timestamp is not established. Publication date is separate metadata, not an intraday availability timestamp.",
+      "pit_relation_to_2007_10_16_peak": "contemporaneous_or_earlier_source",
+      "measurements": [],
+      "interpretation_caveat": "A policy-and-finance mechanism extending over years, not a megatrend first appearing in 2007. The document is an IMF staff analysis, not proof that 2007 China led global listed-company earnings growth."
+    },
+    {
+      "evidence_id": "CN_MONETARY_TIGHTENING",
+      "statement": "PBC records six benchmark rate increases and ten reserve-requirement increases in 2007, with reserve ratios rising by 5.5 percentage points.",
+      "claim_status": "supported",
+      "data_period": "2007-01-01/2007-12-31",
+      "source_id": "pbc_policy_2007q4",
+      "source_url": "https://www.pbc.gov.cn/eportal/fileDir/history_file/files/att_20306_1.pdf",
+      "source_local_path": "sources/pbc_policy_2007q4.pdf",
+      "source_sha256": "5f0eafa8252043e8d5e7eb44e6b6c9779dd3a88d53155ad7f9f1a40aa9f281c1",
+      "source_locator": "PDF pages 2 and 14 (1-based), Executive Summary and printed page 9",
+      "source_published_at": "2008-02-22",
+      "retrieved_at_utc": "2026-10-16T00:09:03.324214+00:00",
+      "available_at": null,
+      "availability_note": "Exact original public availability timestamp is not established. Publication date is separate metadata, not an intraday availability timestamp.",
+      "pit_relation_to_2007_10_16_peak": "retrospective_source_or_publication_date_unknown",
+      "measurements": [
+        {
+          "name": "benchmark_rate_hike_count",
+          "original_value": 6,
+          "original_unit": "events",
+          "normalized_value": 6,
+          "normalized_unit": "events"
+        },
+        {
+          "name": "reserve_ratio_hike_count",
+          "original_value": 10,
+          "original_unit": "events",
+          "normalized_value": 10,
+          "normalized_unit": "events"
+        },
+        {
+          "name": "cumulative_reserve_ratio_change",
+          "original_value": 5.5,
+          "original_unit": "percentage_points",
+          "normalized_value": 0.055,
+          "normalized_unit": "fraction_point_change",
+          "conversion": "percentage points / 100",
+          "is_probability": false
+        }
+      ],
+      "interpretation_caveat": "Historical policy action chronology is available in Appendix 1. The annual narrative is dated February 22, 2008. Monetary policy addressed inflation/liquidity; a direct stock-price causal effect is a separate hypothesis."
+    },
+    {
+      "evidence_id": "CN_STAMP_DUTY",
+      "statement": "The May 30, 2007 MOF/SAT notice imposed securities stamp duty at 3 per mille on each counterparty to A/B share transfers.",
+      "claim_status": "supported",
+      "data_period": "2007-05-30",
+      "source_id": "mof_stamp_duty_20070530",
+      "source_url": "https://www.mofcom.gov.cn/zcfb/zgdwjjmywg/art/2007/art_99829a5529ff4223a7bf6ca48ffc4b24.html",
+      "source_local_path": "sources/mof_stamp_duty_20070530.html",
+      "source_sha256": "e74cb945545ca67082d98c732f3d638d0b77fcd8e0f2c162b0a844c397f6eae3",
+      "source_locator": "Caishui [2007] 84, stated issuance/effective date May 30; MOFCOM repost July 4",
+      "source_published_at": "2007-07-04",
+      "retrieved_at_utc": "2026-10-16T00:07:05.352570+00:00",
+      "available_at": null,
+      "availability_note": "Exact original public availability timestamp is not established. Publication date is separate metadata, not an intraday availability timestamp.",
+      "pit_relation_to_2007_10_16_peak": "contemporaneous_or_earlier_source",
+      "measurements": [
+        {
+          "name": "stamp_duty_rate_per_side",
+          "original_value": 3,
+          "original_unit": "per_mille",
+          "normalized_value": 0.003,
+          "normalized_unit": "fraction",
+          "conversion": "per mille / 1000",
+          "is_probability": false
+        }
+      ],
+      "interpretation_caveat": "Original notice date and repost date are distinct. This notice establishes the new rate; the prior 1-per-mille rate is not independently established by this archived notice alone."
+    },
+    {
+      "evidence_id": "CN_STAMP_DUTY_PRIOR_RATE",
+      "statement": "MOF's fiscal-revenue analysis explicitly confirms the May 30, 2007 stamp duty increase from 1 per mille to 3 per mille, charged to both sides.",
+      "claim_status": "supported",
+      "data_period": "2007-05-30",
+      "source_id": "mof_2007_revenue_review",
+      "source_url": "https://szs.mof.gov.cn/gongzuodongtai/200808/t20080815_63551.htm",
+      "source_local_path": "sources/mof_2007_revenue_review.html",
+      "source_sha256": "eba99039b06265b06358a79c196192e89f85491a48de135a97fda38d08ef1282",
+      "source_locator": "Section 7, securities transaction stamp tax; footer states publication date March 5, 2008",
+      "source_published_at": "2008-03-05",
+      "retrieved_at_utc": "2026-10-16T00:16:26.238904+00:00",
+      "available_at": null,
+      "availability_note": "Exact original public availability timestamp is not established. Publication date is separate metadata, not an intraday availability timestamp.",
+      "pit_relation_to_2007_10_16_peak": "retrospective_source_or_publication_date_unknown",
+      "measurements": [
+        {
+          "name": "prior_stamp_rate_per_side",
+          "original_value": 1,
+          "original_unit": "per_mille",
+          "normalized_value": 0.001,
+          "normalized_unit": "fraction",
+          "conversion": "per mille / 1000",
+          "is_probability": false
+        },
+        {
+          "name": "new_stamp_rate_per_side",
+          "original_value": 3,
+          "original_unit": "per_mille",
+          "normalized_value": 0.003,
+          "normalized_unit": "fraction",
+          "conversion": "per mille / 1000",
+          "is_probability": false
+        }
+      ],
+      "interpretation_caveat": "Retrospective corroboration of the prior rate. URL includes August 2008 migration date; the visible footer publication date is March 5, 2008."
+    },
+    {
+      "evidence_id": "CN_MARGIN_STRUCTURE",
+      "statement": "CSRC's January 8, 2010 notice announces approval in principle of margin-trading pilot and stock-index futures.",
+      "claim_status": "supported",
+      "data_period": "2010-01-08",
+      "source_id": "csrc_margin_pilot_20100108",
+      "source_url": "https://www.csrc.gov.cn/csrc/c100028/c1002676/content.shtml",
+      "source_local_path": "sources/csrc_margin_pilot_20100108.html",
+      "source_sha256": "300bd0f917ff4aa16ea2fcda08d779a63ce55f65a2837519b8d3c4cc468a4190",
+      "source_locator": "Article body on State Council approval",
+      "source_published_at": "2010-01-08",
+      "retrieved_at_utc": "2026-10-16T00:09:11.318074+00:00",
+      "available_at": null,
+      "availability_note": "Exact original public availability timestamp is not established. Publication date is separate metadata, not an intraday availability timestamp.",
+      "pit_relation_to_2007_10_16_peak": "retrospective_source_or_publication_date_unknown",
+      "measurements": [],
+      "interpretation_caveat": "2007 should not be analyzed using the 2015 official margin-financing mechanism or current Korean margin balances without recognizing different market structures. This notice does not exclude every possible informal leverage channel in 2007."
+    }
+  ],
+  "policy_events": [
+    {
+      "event_id": "CN_RRR_2007-01-05",
+      "event_type": "reserve_requirement_increase",
+      "announcement_date": "2007-01-05",
+      "effective_date": "2007-01-15",
+      "source_id": "pbc_policy_2007q4",
+      "source_pdf_page_1based": 59,
+      "source_printed_page": 54,
+      "source_published_at": "2008-02-22",
+      "available_at": null,
+      "original_change_percentage_points": 0.5,
+      "normalized_change_fraction_points": 0.005,
+      "original_target_percent": null,
+      "normalized_target_fraction": null,
+      "timing_caveat": "Retrospective chronology reports original announcement/effective dates; exact original announcement timestamp not independently archived here. December action continues on PDF page 65."
+    },
+    {
+      "event_id": "CN_RRR_2007-02-16",
+      "event_type": "reserve_requirement_increase",
+      "announcement_date": "2007-02-16",
+      "effective_date": "2007-02-25",
+      "source_id": "pbc_policy_2007q4",
+      "source_pdf_page_1based": 59,
+      "source_printed_page": 54,
+      "source_published_at": "2008-02-22",
+      "available_at": null,
+      "original_change_percentage_points": 0.5,
+      "normalized_change_fraction_points": 0.005,
+      "original_target_percent": null,
+      "normalized_target_fraction": null,
+      "timing_caveat": "Retrospective chronology reports original announcement/effective dates; exact original announcement timestamp not independently archived here. December action continues on PDF page 65."
+    },
+    {
+      "event_id": "CN_RRR_2007-04-05",
+      "event_type": "reserve_requirement_increase",
+      "announcement_date": "2007-04-05",
+      "effective_date": "2007-04-16",
+      "source_id": "pbc_policy_2007q4",
+      "source_pdf_page_1based": 60,
+      "source_printed_page": 55,
+      "source_published_at": "2008-02-22",
+      "available_at": null,
+      "original_change_percentage_points": 0.5,
+      "normalized_change_fraction_points": 0.005,
+      "original_target_percent": 10.5,
+      "normalized_target_fraction": 0.105,
+      "timing_caveat": "Retrospective chronology reports original announcement/effective dates; exact original announcement timestamp not independently archived here. December action continues on PDF page 65."
+    },
+    {
+      "event_id": "CN_RRR_2007-04-29",
+      "event_type": "reserve_requirement_increase",
+      "announcement_date": "2007-04-29",
+      "effective_date": "2007-05-15",
+      "source_id": "pbc_policy_2007q4",
+      "source_pdf_page_1based": 60,
+      "source_printed_page": 55,
+      "source_published_at": "2008-02-22",
+      "available_at": null,
+      "original_change_percentage_points": 0.5,
+      "normalized_change_fraction_points": 0.005,
+      "original_target_percent": 11.0,
+      "normalized_target_fraction": 0.11,
+      "timing_caveat": "Retrospective chronology reports original announcement/effective dates; exact original announcement timestamp not independently archived here. December action continues on PDF page 65."
+    },
+    {
+      "event_id": "CN_RRR_2007-05-18",
+      "event_type": "reserve_requirement_increase",
+      "announcement_date": "2007-05-18",
+      "effective_date": "2007-06-05",
+      "source_id": "pbc_policy_2007q4",
+      "source_pdf_page_1based": 61,
+      "source_printed_page": 56,
+      "source_published_at": "2008-02-22",
+      "available_at": null,
+      "original_change_percentage_points": 0.5,
+      "normalized_change_fraction_points": 0.005,
+      "original_target_percent": 11.5,
+      "normalized_target_fraction": 0.115,
+      "timing_caveat": "Retrospective chronology reports original announcement/effective dates; exact original announcement timestamp not independently archived here. December action continues on PDF page 65."
+    },
+    {
+      "event_id": "CN_RRR_2007-07-30",
+      "event_type": "reserve_requirement_increase",
+      "announcement_date": "2007-07-30",
+      "effective_date": "2007-08-15",
+      "source_id": "pbc_policy_2007q4",
+      "source_pdf_page_1based": 62,
+      "source_printed_page": 57,
+      "source_published_at": "2008-02-22",
+      "available_at": null,
+      "original_change_percentage_points": 0.5,
+      "normalized_change_fraction_points": 0.005,
+      "original_target_percent": 12.0,
+      "normalized_target_fraction": 0.12,
+      "timing_caveat": "Retrospective chronology reports original announcement/effective dates; exact original announcement timestamp not independently archived here. December action continues on PDF page 65."
+    },
+    {
+      "event_id": "CN_RRR_2007-09-06",
+      "event_type": "reserve_requirement_increase",
+      "announcement_date": "2007-09-06",
+      "effective_date": "2007-09-25",
+      "source_id": "pbc_policy_2007q4",
+      "source_pdf_page_1based": 63,
+      "source_printed_page": 58,
+      "source_published_at": "2008-02-22",
+      "available_at": null,
+      "original_change_percentage_points": 0.5,
+      "normalized_change_fraction_points": 0.005,
+      "original_target_percent": 12.5,
+      "normalized_target_fraction": 0.125,
+      "timing_caveat": "Retrospective chronology reports original announcement/effective dates; exact original announcement timestamp not independently archived here. December action continues on PDF page 65."
+    },
+    {
+      "event_id": "CN_RRR_2007-10-13",
+      "event_type": "reserve_requirement_increase",
+      "announcement_date": "2007-10-13",
+      "effective_date": "2007-10-25",
+      "source_id": "pbc_policy_2007q4",
+      "source_pdf_page_1based": 64,
+      "source_printed_page": 59,
+      "source_published_at": "2008-02-22",
+      "available_at": null,
+      "original_change_percentage_points": 0.5,
+      "normalized_change_fraction_points": 0.005,
+      "original_target_percent": 13.0,
+      "normalized_target_fraction": 0.13,
+      "timing_caveat": "Retrospective chronology reports original announcement/effective dates; exact original announcement timestamp not independently archived here. December action continues on PDF page 65."
+    },
+    {
+      "event_id": "CN_RRR_2007-11-10",
+      "event_type": "reserve_requirement_increase",
+      "announcement_date": "2007-11-10",
+      "effective_date": "2007-11-26",
+      "source_id": "pbc_policy_2007q4",
+      "source_pdf_page_1based": 64,
+      "source_printed_page": 59,
+      "source_published_at": "2008-02-22",
+      "available_at": null,
+      "original_change_percentage_points": 0.5,
+      "normalized_change_fraction_points": 0.005,
+      "original_target_percent": 13.5,
+      "normalized_target_fraction": 0.135,
+      "timing_caveat": "Retrospective chronology reports original announcement/effective dates; exact original announcement timestamp not independently archived here. December action continues on PDF page 65."
+    },
+    {
+      "event_id": "CN_RRR_2007-12-08",
+      "event_type": "reserve_requirement_increase",
+      "announcement_date": "2007-12-08",
+      "effective_date": "2007-12-25",
+      "source_id": "pbc_policy_2007q4",
+      "source_pdf_page_1based": 64,
+      "source_printed_page": 59,
+      "source_published_at": "2008-02-22",
+      "available_at": null,
+      "original_change_percentage_points": 1.0,
+      "normalized_change_fraction_points": 0.01,
+      "original_target_percent": 14.5,
+      "normalized_target_fraction": 0.145,
+      "timing_caveat": "Retrospective chronology reports original announcement/effective dates; exact original announcement timestamp not independently archived here. December action continues on PDF page 65."
+    },
+    {
+      "event_id": "CN_RATE_2007-03-18",
+      "event_type": "benchmark_rate_increase",
+      "action_date_as_stated": "2007-03-18",
+      "announcement_date": null,
+      "effective_date": null,
+      "source_id": "pbc_policy_2007q4",
+      "source_pdf_page_1based": 60,
+      "source_printed_page": 55,
+      "source_published_at": "2008-02-22",
+      "available_at": null,
+      "one_year_deposit_old_percent": 2.52,
+      "one_year_deposit_new_percent": 2.79,
+      "one_year_lending_old_percent": 6.12,
+      "one_year_lending_new_percent": 6.39,
+      "one_year_deposit_old_fraction": 0.0252,
+      "one_year_deposit_new_fraction": 0.0279,
+      "one_year_lending_old_fraction": 0.061200000000000004,
+      "one_year_lending_new_fraction": 0.0639,
+      "timing_caveat": "Appendix uses an action/decision date. Do not assume this is a precise announcement timestamp. May 19 effective date is separately stated in pbc_rate_20070519."
+    },
+    {
+      "event_id": "CN_RATE_2007-05-19",
+      "event_type": "benchmark_rate_increase",
+      "action_date_as_stated": "2007-05-19",
+      "announcement_date": null,
+      "effective_date": null,
+      "source_id": "pbc_policy_2007q4",
+      "source_pdf_page_1based": 61,
+      "source_printed_page": 56,
+      "source_published_at": "2008-02-22",
+      "available_at": null,
+      "one_year_deposit_old_percent": 2.79,
+      "one_year_deposit_new_percent": 3.06,
+      "one_year_lending_old_percent": 6.39,
+      "one_year_lending_new_percent": 6.57,
+      "one_year_deposit_old_fraction": 0.0279,
+      "one_year_deposit_new_fraction": 0.030600000000000002,
+      "one_year_lending_old_fraction": 0.0639,
+      "one_year_lending_new_fraction": 0.06570000000000001,
+      "timing_caveat": "Appendix uses an action/decision date. Do not assume this is a precise announcement timestamp. May 19 effective date is separately stated in pbc_rate_20070519."
+    },
+    {
+      "event_id": "CN_RATE_2007-07-21",
+      "event_type": "benchmark_rate_increase",
+      "action_date_as_stated": "2007-07-21",
+      "announcement_date": null,
+      "effective_date": null,
+      "source_id": "pbc_policy_2007q4",
+      "source_pdf_page_1based": 62,
+      "source_printed_page": 57,
+      "source_published_at": "2008-02-22",
+      "available_at": null,
+      "one_year_deposit_old_percent": 3.06,
+      "one_year_deposit_new_percent": 3.33,
+      "one_year_lending_old_percent": 6.57,
+      "one_year_lending_new_percent": 6.84,
+      "one_year_deposit_old_fraction": 0.030600000000000002,
+      "one_year_deposit_new_fraction": 0.0333,
+      "one_year_lending_old_fraction": 0.06570000000000001,
+      "one_year_lending_new_fraction": 0.0684,
+      "timing_caveat": "Appendix uses an action/decision date. Do not assume this is a precise announcement timestamp. May 19 effective date is separately stated in pbc_rate_20070519."
+    },
+    {
+      "event_id": "CN_RATE_2007-08-22",
+      "event_type": "benchmark_rate_increase",
+      "action_date_as_stated": "2007-08-22",
+      "announcement_date": null,
+      "effective_date": null,
+      "source_id": "pbc_policy_2007q4",
+      "source_pdf_page_1based": 63,
+      "source_printed_page": 58,
+      "source_published_at": "2008-02-22",
+      "available_at": null,
+      "one_year_deposit_old_percent": 3.33,
+      "one_year_deposit_new_percent": 3.6,
+      "one_year_lending_old_percent": 6.84,
+      "one_year_lending_new_percent": 7.02,
+      "one_year_deposit_old_fraction": 0.0333,
+      "one_year_deposit_new_fraction": 0.036000000000000004,
+      "one_year_lending_old_fraction": 0.0684,
+      "one_year_lending_new_fraction": 0.0702,
+      "timing_caveat": "Appendix uses an action/decision date. Do not assume this is a precise announcement timestamp. May 19 effective date is separately stated in pbc_rate_20070519."
+    },
+    {
+      "event_id": "CN_RATE_2007-09-15",
+      "event_type": "benchmark_rate_increase",
+      "action_date_as_stated": "2007-09-15",
+      "announcement_date": null,
+      "effective_date": null,
+      "source_id": "pbc_policy_2007q4",
+      "source_pdf_page_1based": 63,
+      "source_printed_page": 58,
+      "source_published_at": "2008-02-22",
+      "available_at": null,
+      "one_year_deposit_old_percent": 3.6,
+      "one_year_deposit_new_percent": 3.87,
+      "one_year_lending_old_percent": 7.02,
+      "one_year_lending_new_percent": 7.29,
+      "one_year_deposit_old_fraction": 0.036000000000000004,
+      "one_year_deposit_new_fraction": 0.0387,
+      "one_year_lending_old_fraction": 0.0702,
+      "one_year_lending_new_fraction": 0.0729,
+      "timing_caveat": "Appendix uses an action/decision date. Do not assume this is a precise announcement timestamp. May 19 effective date is separately stated in pbc_rate_20070519."
+    },
+    {
+      "event_id": "CN_RATE_2007-12-21",
+      "event_type": "benchmark_rate_increase",
+      "action_date_as_stated": "2007-12-21",
+      "announcement_date": null,
+      "effective_date": null,
+      "source_id": "pbc_policy_2007q4",
+      "source_pdf_page_1based": 65,
+      "source_printed_page": 60,
+      "source_published_at": "2008-02-22",
+      "available_at": null,
+      "one_year_deposit_old_percent": 3.87,
+      "one_year_deposit_new_percent": 4.14,
+      "one_year_lending_old_percent": 7.29,
+      "one_year_lending_new_percent": 7.47,
+      "one_year_deposit_old_fraction": 0.0387,
+      "one_year_deposit_new_fraction": 0.0414,
+      "one_year_lending_old_fraction": 0.0729,
+      "one_year_lending_new_fraction": 0.0747,
+      "timing_caveat": "Appendix uses an action/decision date. Do not assume this is a precise announcement timestamp. May 19 effective date is separately stated in pbc_rate_20070519."
+    },
+    {
+      "event_id": "CN_STAMP_20070530",
+      "event_type": "securities_stamp_duty_change",
+      "announcement_date": null,
+      "effective_date": "2007-05-30",
+      "source_id": "mof_stamp_duty_20070530",
+      "source_published_at": "2007-07-04",
+      "original_notice_date": "2007-05-30",
+      "available_at": null,
+      "rate_original_per_mille_per_side": 3,
+      "rate_fraction_per_side": 0.003,
+      "direction": "increased_transaction_cost",
+      "timing_caveat": "Saved page is July 4 repost with original May 30 notice; original announcement date/time not independently authenticated. Effective date is not assumed to be the announcement date."
+    }
+  ],
+  "daily_data": {
+    "canonical_all_years": "daily_indices_2005_2008.csv",
+    "core_2006_2008": "daily_indices_2006_2008.csv",
+    "all_years_audit": "daily_extraction_audit_2005_2008.json",
+    "origin": "Original SSE numeric tables, not generated prices. No interpolated dates or inferred levels.",
+    "vintage": "Retrospective official yearbooks; original daily release timestamps unverified."
+  },
+  "remaining_gaps": [
+    "Comparable global point-in-time country-index forward EPS growth rankings for 2007 and 2026",
+    "2007 peak-date composition/free-float sector contribution and same-company earnings growth",
+    "Authenticated original timestamps for every policy announcement and historical consensus snapshot",
+    "Comparable unique household ownership/active-account metrics across China and Korea",
+    "A causal identification design separating trend earnings, revaluation, liquidity, regulation and the global financial crisis"
+  ]
+}

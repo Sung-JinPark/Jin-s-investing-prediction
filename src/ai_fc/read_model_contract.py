@@ -215,6 +215,18 @@ def schema() -> dict[str, Any]:
             "numbers_visible": {"type": "boolean"},
         },
     }
+    properties["market_context"] = {
+        "type": "object",
+        "required": ["schema_version", "model_id", "status", "probability_unit", "predictive_validation", "gate"],
+        "properties": {
+            "schema_version": {"const": 1},
+            "model_id": {"const": "research.nasdaq_market_context_v1"},
+            "status": {"enum": ["research_preview", "hold", "unavailable"]},
+            "probability_unit": {"const": "fraction"},
+            "predictive_validation": {"const": "not_established"},
+            "gate": {"type": "object"},
+        },
+    }
     properties["timeseries_v13_vol"] = {
         "type": "object",
         "required": [
@@ -296,6 +308,21 @@ def validate(model: dict[str, Any]) -> list[str]:
                 f"read-model key {key} must be {value_type.__name__}, "
                 f"got {type(model[key]).__name__}"
             )
+    context = model.get("market_context")
+    if "market_context" in model:
+        if not isinstance(context, dict):
+            errors.append("market_context must be a separate object")
+        elif (context.get("schema_version") != 1
+              or context.get("model_id") != "research.nasdaq_market_context_v1"
+              or context.get("probability_unit") != "fraction"
+              or context.get("predictive_validation") != "not_established"):
+            errors.append("market_context research identity/unit mismatch")
+        elif (context.get("status") not in {"research_preview", "hold", "unavailable"}
+              or not isinstance(context.get("gate"), dict)):
+            errors.append("market_context state/gate mismatch")
+        elif (context.get("status") != "research_preview"
+              and any(context.get(key) for key in ("records", "representative", "baseline_median"))):
+            errors.append("market_context HOLD must not contain numerical paths")
     era = model.get("era_analog")
     if isinstance(era, dict):
         if era.get("probability_space") != "reference_only":

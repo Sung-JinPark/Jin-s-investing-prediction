@@ -1,0 +1,569 @@
+{
+  "as_of": "2026-10-12T09:16:14+09:00",
+  "role": "hypothetical_research_assumptions_not_validated_forecasts",
+  "official_forecast": false,
+  "probability_unit": "fraction",
+  "return_unit": "fraction",
+  "weights": {
+    "bull": 0.3,
+    "base": 0.45,
+    "bear": 0.25
+  },
+  "calendar_days": 83,
+  "assets": [
+    {
+      "id": "SOXX",
+      "name": "AI 반도체",
+      "class": "industry",
+      "priority": true,
+      "price": 559.4,
+      "price_date": "2026-10-09",
+      "currency": "USD",
+      "cases": {
+        "bull": {
+          "mid": 0.2319095890410961,
+          "low": 0.16524958904109605,
+          "high": 0.299509589041096
+        },
+        "base": {
+          "mid": 0.06990958904109594,
+          "low": 0.007249589041095897,
+          "high": 0.13350958904109606
+        },
+        "bear": {
+          "mid": -0.21989041095890421,
+          "low": -0.273950410958904,
+          "high": -0.16489041095890417
+        }
+      },
+      "weighted_assumption_mid": 0.046059589041095944,
+      "weighted_assumption_low": -0.015650410958904033,
+      "weighted_assumption_high": 0.10870958904109598,
+      "rationale": "Confirmed AI chip demand and strong forward company revenue guides support earnings-power upside; YTD appreciation and high volatility require large derating stress.",
+      "return_confidence": "low_not_empirically_validated",
+      "conditional_excess_vs_spy_mid": 0.03862647945205482
+    },
+    {
+      "id": "GRID",
+      "name": "전력망·전기 장비",
+      "class": "global_industry_proxy",
+      "priority": true,
+      "price": 180.89,
+      "price_date": "2026-10-09",
+      "currency": "USD",
+      "cases": {
+        "bull": {
+          "mid": 0.16712657534246586,
+          "low": 0.1011265753424658,
+          "high": 0.23272657534246596
+        },
+        "base": {
+          "mid": 0.07172657534246593,
+          "low": 0.02337657534246559,
+          "high": 0.11897657534246572
+        },
+        "bear": {
+          "mid": -0.14567342465753422,
+          "low": -0.2032734246575343,
+          "high": -0.08847342465753419
+        }
+      },
+      "weighted_assumption_mid": 0.04599657534246587,
+      "weighted_assumption_low": -0.009960924657534325,
+      "weighted_assumption_high": 0.10123907534246582,
+      "rationale": "Electrical orders/backlog support durable demand, but multi-year delivery, advance-payment FCF and unknown normalized sector valuation limit precision.",
+      "return_confidence": "low_not_empirically_validated",
+      "conditional_excess_vs_spy_mid": 0.03856346575342475
+    },
+    {
+      "id": "XLC",
+      "name": "AI 수익화 플랫폼",
+      "class": "sector_proxy",
+      "priority": true,
+      "price": 110.38,
+      "price_date": "2026-10-09",
+      "currency": "USD",
+      "cases": {
+        "bull": {
+          "mid": 0.1690150821917809,
+          "low": 0.10221808219178087,
+          "high": 0.234615082191781
+        },
+        "base": {
+          "mid": 0.08421508219178094,
+          "low": 0.030018082191780825,
+          "high": 0.1368150821917809
+        },
+        "bear": {
+          "mid": -0.18038491780821925,
+          "low": -0.24578191780821923,
+          "high": -0.11538491780821918
+        }
+      },
+      "weighted_assumption_mid": 0.04350508219178088,
+      "weighted_assumption_low": -0.017271917808219177,
+      "weighted_assumption_high": 0.10310508219178091,
+      "rationale": "Low comparable issuer FY1 valuation and monetization exposure create an alternative to pure capex suppliers; concentration and investment spending threaten cash conversion.",
+      "return_confidence": "low_not_empirically_validated",
+      "conditional_excess_vs_spy_mid": 0.03607197260273976
+    },
+    {
+      "id": "IGV",
+      "name": "선별 소프트웨어",
+      "class": "industry",
+      "priority": false,
+      "price": 112.67,
+      "price_date": "2026-10-09",
+      "currency": "USD",
+      "cases": {
+        "bull": {
+          "mid": 0.20753589041095905,
+          "low": 0.12183589041095894,
+          "high": 0.29623589041095905
+        },
+        "base": {
+          "mid": 0.05993589041095887,
+          "low": -0.0012641095890410519,
+          "high": 0.12273589041095906
+        },
+        "bear": {
+          "mid": -0.23946410958904113,
+          "low": -0.31686410958904104,
+          "high": -0.1580641095890411
+        }
+      },
+      "weighted_assumption_mid": 0.02936589041095892,
+      "weighted_assumption_low": -0.04323410958904106,
+      "weighted_assumption_high": 0.10458589041095902,
+      "rationale": "AI implementation/security demand can support selected businesses; prior-quarter rebound, SBC and disruption risk make broad software a conditional rates-relief alternative.",
+      "return_confidence": "low_not_empirically_validated",
+      "conditional_excess_vs_spy_mid": 0.021932780821917797
+    },
+    {
+      "id": "SPY",
+      "name": "S&P 500 비교 기준",
+      "class": "benchmark",
+      "priority": false,
+      "price": 778.57,
+      "price_date": "2026-10-09",
+      "currency": "USD",
+      "cases": {
+        "bull": {
+          "mid": 0.10441310958904114,
+          "low": 0.0501851095890411,
+          "high": 0.1576131095890413
+        },
+        "base": {
+          "mid": 0.03201310958904112,
+          "low": -0.02051489041095889,
+          "high": 0.08351310958904122
+        },
+        "bear": {
+          "mid": -0.1531868904109589,
+          "low": -0.219014890410959,
+          "high": -0.08718689041095885
+        }
+      },
+      "weighted_assumption_mid": 0.00743310958904112,
+      "weighted_assumption_low": -0.04892989041095892,
+      "weighted_assumption_high": 0.06306810958904122,
+      "rationale": "Broad positive earnings expectations coexist with rate pressure; benchmark assumptions are distinct from Nasdaq probability/path artifacts.",
+      "return_confidence": "low_not_empirically_validated",
+      "conditional_excess_vs_spy_mid": 0.0
+    }
+  ],
+  "weight_grid": [
+    {
+      "bull_weight": 0.15,
+      "base_weight": 0.7,
+      "bear_weight": 0.15,
+      "SOXX": 0.050739589041095934,
+      "GRID": 0.05342657534246589,
+      "XLC": 0.0572450821917809,
+      "highest_in_this_assumed_combination": "XLC",
+      "role": "chosen_grid_not_winning_probability"
+    },
+    {
+      "bull_weight": 0.15,
+      "base_weight": 0.6,
+      "bear_weight": 0.25,
+      "SOXX": 0.02175958904109592,
+      "GRID": 0.031686575342465884,
+      "XLC": 0.030785082191780885,
+      "highest_in_this_assumed_combination": "GRID",
+      "role": "chosen_grid_not_winning_probability"
+    },
+    {
+      "bull_weight": 0.15,
+      "base_weight": 0.5,
+      "bear_weight": 0.35,
+      "SOXX": -0.007220410958904092,
+      "GRID": 0.00994657534246587,
+      "XLC": 0.004325082191780866,
+      "highest_in_this_assumed_combination": "GRID",
+      "role": "chosen_grid_not_winning_probability"
+    },
+    {
+      "bull_weight": 0.15,
+      "base_weight": 0.39999999999999997,
+      "bear_weight": 0.45,
+      "SOXX": -0.03620041095890411,
+      "GRID": -0.011793424657534149,
+      "XLC": -0.022134917808219152,
+      "highest_in_this_assumed_combination": "GRID",
+      "role": "chosen_grid_not_winning_probability"
+    },
+    {
+      "bull_weight": 0.25,
+      "base_weight": 0.6,
+      "bear_weight": 0.15,
+      "SOXX": 0.06693958904109595,
+      "GRID": 0.06296657534246589,
+      "XLC": 0.0657250821917809,
+      "highest_in_this_assumed_combination": "SOXX",
+      "role": "chosen_grid_not_winning_probability"
+    },
+    {
+      "bull_weight": 0.25,
+      "base_weight": 0.5,
+      "bear_weight": 0.25,
+      "SOXX": 0.03795958904109594,
+      "GRID": 0.041226575342465877,
+      "XLC": 0.03926508219178088,
+      "highest_in_this_assumed_combination": "GRID",
+      "role": "chosen_grid_not_winning_probability"
+    },
+    {
+      "bull_weight": 0.25,
+      "base_weight": 0.4,
+      "bear_weight": 0.35,
+      "SOXX": 0.008979589041095928,
+      "GRID": 0.019486575342465867,
+      "XLC": 0.012805082191780864,
+      "highest_in_this_assumed_combination": "GRID",
+      "role": "chosen_grid_not_winning_probability"
+    },
+    {
+      "bull_weight": 0.25,
+      "base_weight": 0.3,
+      "bear_weight": 0.45,
+      "SOXX": -0.02000041095890409,
+      "GRID": -0.002253424657534156,
+      "XLC": -0.013654917808219154,
+      "highest_in_this_assumed_combination": "GRID",
+      "role": "chosen_grid_not_winning_probability"
+    },
+    {
+      "bull_weight": 0.35,
+      "base_weight": 0.5,
+      "bear_weight": 0.15,
+      "SOXX": 0.08313958904109597,
+      "GRID": 0.07250657534246588,
+      "XLC": 0.0742050821917809,
+      "highest_in_this_assumed_combination": "SOXX",
+      "role": "chosen_grid_not_winning_probability"
+    },
+    {
+      "bull_weight": 0.35,
+      "base_weight": 0.4,
+      "bear_weight": 0.25,
+      "SOXX": 0.054159589041095954,
+      "GRID": 0.05076657534246587,
+      "XLC": 0.04774508219178088,
+      "highest_in_this_assumed_combination": "SOXX",
+      "role": "chosen_grid_not_winning_probability"
+    },
+    {
+      "bull_weight": 0.35,
+      "base_weight": 0.30000000000000004,
+      "bear_weight": 0.35,
+      "SOXX": 0.025179589041095938,
+      "GRID": 0.029026575342465857,
+      "XLC": 0.021285082191780862,
+      "highest_in_this_assumed_combination": "GRID",
+      "role": "chosen_grid_not_winning_probability"
+    },
+    {
+      "bull_weight": 0.35,
+      "base_weight": 0.2,
+      "bear_weight": 0.45,
+      "SOXX": -0.0038004109589040783,
+      "GRID": 0.007286575342465837,
+      "XLC": -0.005174917808219159,
+      "highest_in_this_assumed_combination": "GRID",
+      "role": "chosen_grid_not_winning_probability"
+    },
+    {
+      "bull_weight": 0.45,
+      "base_weight": 0.4,
+      "bear_weight": 0.15,
+      "SOXX": 0.099339589041096,
+      "GRID": 0.08204657534246589,
+      "XLC": 0.0826850821917809,
+      "highest_in_this_assumed_combination": "SOXX",
+      "role": "chosen_grid_not_winning_probability"
+    },
+    {
+      "bull_weight": 0.45,
+      "base_weight": 0.30000000000000004,
+      "bear_weight": 0.25,
+      "SOXX": 0.07035958904109597,
+      "GRID": 0.06030657534246586,
+      "XLC": 0.05622508219178089,
+      "highest_in_this_assumed_combination": "SOXX",
+      "role": "chosen_grid_not_winning_probability"
+    },
+    {
+      "bull_weight": 0.45,
+      "base_weight": 0.20000000000000007,
+      "bear_weight": 0.35,
+      "SOXX": 0.04137958904109597,
+      "GRID": 0.03856657534246585,
+      "XLC": 0.029765082191780874,
+      "highest_in_this_assumed_combination": "SOXX",
+      "role": "chosen_grid_not_winning_probability"
+    },
+    {
+      "bull_weight": 0.45,
+      "base_weight": 0.10000000000000003,
+      "bear_weight": 0.45,
+      "SOXX": 0.012399589041095947,
+      "GRID": 0.016826575342465837,
+      "XLC": 0.0033050821917808525,
+      "highest_in_this_assumed_combination": "GRID",
+      "role": "chosen_grid_not_winning_probability"
+    }
+  ],
+  "grid_highest_count": {
+    "XLC": 1,
+    "GRID": 9,
+    "SOXX": 6
+  },
+  "grid_count_is_not_probability": true,
+  "driver_stresses": [
+    {
+      "asset": "SOXX",
+      "earnings_shock": -0.02,
+      "multiple_shock": 0,
+      "zero_dividend": false,
+      "weighted_assumption_mid": 0.02630958904109595,
+      "role": "assumption_stress_not_confidence_interval"
+    },
+    {
+      "asset": "SOXX",
+      "earnings_shock": 0.02,
+      "multiple_shock": 0,
+      "zero_dividend": false,
+      "weighted_assumption_mid": 0.0658095890410959,
+      "role": "assumption_stress_not_confidence_interval"
+    },
+    {
+      "asset": "SOXX",
+      "earnings_shock": 0,
+      "multiple_shock": -0.03,
+      "zero_dividend": false,
+      "weighted_assumption_mid": 0.014484589041095952,
+      "role": "assumption_stress_not_confidence_interval"
+    },
+    {
+      "asset": "SOXX",
+      "earnings_shock": 0,
+      "multiple_shock": 0.03,
+      "zero_dividend": false,
+      "weighted_assumption_mid": 0.07763458904109591,
+      "role": "assumption_stress_not_confidence_interval"
+    },
+    {
+      "asset": "SOXX",
+      "earnings_shock": 0,
+      "multiple_shock": 0,
+      "zero_dividend": true,
+      "weighted_assumption_mid": 0.04539958904109595,
+      "role": "assumption_stress_not_confidence_interval"
+    },
+    {
+      "asset": "GRID",
+      "earnings_shock": -0.02,
+      "multiple_shock": 0,
+      "zero_dividend": false,
+      "weighted_assumption_mid": 0.02593657534246575,
+      "role": "assumption_stress_not_confidence_interval"
+    },
+    {
+      "asset": "GRID",
+      "earnings_shock": 0.02,
+      "multiple_shock": 0,
+      "zero_dividend": false,
+      "weighted_assumption_mid": 0.06605657534246587,
+      "role": "assumption_stress_not_confidence_interval"
+    },
+    {
+      "asset": "GRID",
+      "earnings_shock": 0,
+      "multiple_shock": -0.03,
+      "zero_dividend": false,
+      "weighted_assumption_mid": 0.014826575342465838,
+      "role": "assumption_stress_not_confidence_interval"
+    },
+    {
+      "asset": "GRID",
+      "earnings_shock": 0,
+      "multiple_shock": 0.03,
+      "zero_dividend": false,
+      "weighted_assumption_mid": 0.0771665753424658,
+      "role": "assumption_stress_not_confidence_interval"
+    },
+    {
+      "asset": "GRID",
+      "earnings_shock": 0,
+      "multiple_shock": 0,
+      "zero_dividend": true,
+      "weighted_assumption_mid": 0.04399657534246587,
+      "role": "assumption_stress_not_confidence_interval"
+    },
+    {
+      "asset": "XLC",
+      "earnings_shock": -0.02,
+      "multiple_shock": 0,
+      "zero_dividend": false,
+      "weighted_assumption_mid": 0.023365082191780795,
+      "role": "assumption_stress_not_confidence_interval"
+    },
+    {
+      "asset": "XLC",
+      "earnings_shock": 0.02,
+      "multiple_shock": 0,
+      "zero_dividend": false,
+      "weighted_assumption_mid": 0.06364508219178086,
+      "role": "assumption_stress_not_confidence_interval"
+    },
+    {
+      "asset": "XLC",
+      "earnings_shock": 0,
+      "multiple_shock": -0.03,
+      "zero_dividend": false,
+      "weighted_assumption_mid": 0.012620082191780846,
+      "role": "assumption_stress_not_confidence_interval"
+    },
+    {
+      "asset": "XLC",
+      "earnings_shock": 0,
+      "multiple_shock": 0.03,
+      "zero_dividend": false,
+      "weighted_assumption_mid": 0.07439008219178081,
+      "role": "assumption_stress_not_confidence_interval"
+    },
+    {
+      "asset": "XLC",
+      "earnings_shock": 0,
+      "multiple_shock": 0,
+      "zero_dividend": true,
+      "weighted_assumption_mid": 0.04070808219178089,
+      "role": "assumption_stress_not_confidence_interval"
+    },
+    {
+      "asset": "IGV",
+      "earnings_shock": -0.02,
+      "multiple_shock": 0,
+      "zero_dividend": false,
+      "weighted_assumption_mid": 0.00929589041095898,
+      "role": "assumption_stress_not_confidence_interval"
+    },
+    {
+      "asset": "IGV",
+      "earnings_shock": 0.02,
+      "multiple_shock": 0,
+      "zero_dividend": false,
+      "weighted_assumption_mid": 0.04943589041095909,
+      "role": "assumption_stress_not_confidence_interval"
+    },
+    {
+      "asset": "IGV",
+      "earnings_shock": 0,
+      "multiple_shock": -0.03,
+      "zero_dividend": false,
+      "weighted_assumption_mid": -0.0012641095890410497,
+      "role": "assumption_stress_not_confidence_interval"
+    },
+    {
+      "asset": "IGV",
+      "earnings_shock": 0,
+      "multiple_shock": 0.03,
+      "zero_dividend": false,
+      "weighted_assumption_mid": 0.05999589041095892,
+      "role": "assumption_stress_not_confidence_interval"
+    },
+    {
+      "asset": "IGV",
+      "earnings_shock": 0,
+      "multiple_shock": 0,
+      "zero_dividend": true,
+      "weighted_assumption_mid": 0.02936589041095892,
+      "role": "assumption_stress_not_confidence_interval"
+    },
+    {
+      "asset": "SPY",
+      "earnings_shock": -0.02,
+      "multiple_shock": 0,
+      "zero_dividend": false,
+      "weighted_assumption_mid": -0.01220689041095888,
+      "role": "assumption_stress_not_confidence_interval"
+    },
+    {
+      "asset": "SPY",
+      "earnings_shock": 0.02,
+      "multiple_shock": 0,
+      "zero_dividend": false,
+      "weighted_assumption_mid": 0.027073109589041168,
+      "role": "assumption_stress_not_confidence_interval"
+    },
+    {
+      "asset": "SPY",
+      "earnings_shock": 0,
+      "multiple_shock": -0.03,
+      "zero_dividend": false,
+      "weighted_assumption_mid": -0.023211890410958922,
+      "role": "assumption_stress_not_confidence_interval"
+    },
+    {
+      "asset": "SPY",
+      "earnings_shock": 0,
+      "multiple_shock": 0.03,
+      "zero_dividend": false,
+      "weighted_assumption_mid": 0.03807810958904112,
+      "role": "assumption_stress_not_confidence_interval"
+    },
+    {
+      "asset": "SPY",
+      "earnings_shock": 0,
+      "multiple_shock": 0,
+      "zero_dividend": true,
+      "weighted_assumption_mid": 0.005205109589041119,
+      "role": "assumption_stress_not_confidence_interval"
+    }
+  ],
+  "fx_assumptions": [
+    {
+      "usd_return": 0.1,
+      "usdkrw_change": -0.05,
+      "krw_return": 0.04499999999999993
+    },
+    {
+      "usd_return": 0.1,
+      "usdkrw_change": 0,
+      "krw_return": 0.10000000000000009
+    },
+    {
+      "usd_return": 0.1,
+      "usdkrw_change": 0.05,
+      "krw_return": 0.15500000000000025
+    }
+  ],
+  "limitations": [
+    "Return values are conditional arithmetic, not calibrated expected returns, confidence intervals, target prices or measured winning probabilities.",
+    "ETF source publication vintages are incomplete. These inputs are not promoted to official numerical/forecast contracts.",
+    "Main three expected midpoints are not a robust ordering. Treat them as joint research priorities and use the sensitivity output.",
+    "GRID is a globally invested US-listed ETF; XLC is a broad communication-services proxy, not pure cloud/AI.",
+    "No Korean numerical return forecast is produced without current prices, normalized earnings and corporate-action-adjusted inputs."
+  ]
+}

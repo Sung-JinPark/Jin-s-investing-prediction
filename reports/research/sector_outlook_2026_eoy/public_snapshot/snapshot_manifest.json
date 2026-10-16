@@ -1,0 +1,26 @@
+{
+  "https://sung-jinpark.github.io/Jin-s-investing-prediction/data.json": {
+    "url": "https://sung-jinpark.github.io/Jin-s-investing-prediction/data.json",
+    "http_status": 200,
+    "response_sha256": "f13dcd6cd6388162d1e9eb7889bfaf309134c0503610b9c1c2744e837e9d8189",
+    "response_bytes": 780700,
+    "snapshot_path": "reports/research/sector_outlook_2026_eoy/public_snapshot/data.json",
+    "fetched_at": "2026-10-12T00:24:15.923143+00:00"
+  },
+  "https://sung-jinpark.github.io/Jin-s-investing-prediction/statistics.json": {
+    "url": "https://sung-jinpark.github.io/Jin-s-investing-prediction/statistics.json",
+    "http_status": 200,
+    "response_sha256": "865e2e05d414b0eea613981165919effef34374d95e6f61616f467224af87808",
+    "response_bytes": 131343,
+    "snapshot_path": "reports/research/sector_outlook_2026_eoy/public_snapshot/statistics.json",
+    "fetched_at": "2026-10-12T00:24:16.038889+00:00"
+  },
+  "https://sung-jinpark.github.io/Jin-s-investing-prediction/future_paths.json": {
+    "url": "https://sung-jinpark.github.io/Jin-s-investing-prediction/future_paths.json",
+    "http_status": 200,
+    "response_sha256": "05148e062d94e3688f52239f0035df5cbf128aa6a96bbf3fbae1573a83a2fc55",
+    "response_bytes": 190567,
+    "snapshot_path": "reports/research/sector_outlook_2026_eoy/public_snapshot/future_paths.json",
+    "fetched_at": "2026-10-12T00:24:16.169741+00:00"
+  }
+}

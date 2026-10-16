@@ -1,0 +1,1034 @@
+{
+  "schema_version": 1,
+  "as_of": "2026-10-16T09:00:00+09:00",
+  "data_role": "Retrospective historical source verification; original publication timestamps not always authenticated",
+  "sources": [
+    {
+      "source_id": "sse_yearbook_2008",
+      "title": "SSE Statistical Yearbook 2008 (2007 observations)",
+      "publisher": "www.sse.com.cn",
+      "url": "https://www.sse.com.cn/aboutus/publication/yearly/documents/c/10061086/files/c6db3f91030b4533ad5bd85cb421b18e.pdf",
+      "published_at": null,
+      "data_period": "2007-01-01/2007-12-31",
+      "published_at_note": "Original date where verified; null means not established. URL migration timestamps are not publication dates.",
+      "local_path": "raw/sse_yearbook_2008.pdf",
+      "source_kind": "official_document",
+      "access": "public_unauthenticated",
+      "resolved_url": "https://www.sse.com.cn/aboutus/publication/yearly/documents/c/10061086/files/c6db3f91030b4533ad5bd85cb421b18e.pdf",
+      "http_status": 200,
+      "content_type": "application/pdf",
+      "status": "saved",
+      "sha256": "3913f07a8740e08e9fa868d31dc8f4c78221868a47ba11291ae5fc21ee31dec0",
+      "bytes": 2474400,
+      "copied_at_utc": "2026-10-16T00:53:42.061720+00:00",
+      "reuse_origin": "C:\\workspace\\ai-investing\\reports\\research\\shanghai_2007_kospi_2026\\china\\sources\\sse_yearbook_2008.pdf",
+      "original_retrieved_at_utc": "2026-10-16T00:07:04.289169+00:00",
+      "published_date": null,
+      "pdf_pages": 406,
+      "text_path": "raw/sse_yearbook_2008.txt"
+    },
+    {
+      "source_id": "sse_yearbook_2009",
+      "title": "SSE Statistical Yearbook 2009 (2008 observations)",
+      "publisher": "www.sse.com.cn",
+      "url": "https://www.sse.com.cn/aboutus/publication/yearly/documents/c/10061085/files/10093621bdad44b2aaf7fc39c85c9256.pdf",
+      "published_at": null,
+      "data_period": "2008-01-01/2008-12-31",
+      "published_at_note": "Original date where verified; null means not established. URL migration timestamps are not publication dates.",
+      "local_path": "raw/sse_yearbook_2009.pdf",
+      "source_kind": "official_document",
+      "access": "public_unauthenticated",
+      "resolved_url": "https://www.sse.com.cn/aboutus/publication/yearly/documents/c/10061085/files/10093621bdad44b2aaf7fc39c85c9256.pdf",
+      "http_status": 200,
+      "content_type": "application/pdf",
+      "status": "saved",
+      "sha256": "cb4fd0e7f3f6a87724e436289042e48302188ffc8a90227ebd3386be551470d4",
+      "bytes": 2406226,
+      "copied_at_utc": "2026-10-16T00:53:44.686284+00:00",
+      "reuse_origin": "C:\\workspace\\ai-investing\\reports\\research\\shanghai_2007_kospi_2026\\china\\sources\\sse_yearbook_2009.pdf",
+      "original_retrieved_at_utc": "2026-10-16T00:07:04.302872+00:00",
+      "published_date": null,
+      "pdf_pages": 405,
+      "text_path": "raw/sse_yearbook_2009.txt"
+    },
+    {
+      "source_id": "csrc_retail_risk_20071018",
+      "title": "CSRC Vice Chairman Tu Guangshao on investor risk education",
+      "publisher": "www.csrc.gov.cn",
+      "url": "https://www.csrc.gov.cn/csrc/c100028/c1002860/content.shtml",
+      "published_at": "2007-10-18",
+      "data_period": "2007-10-17",
+      "published_at_note": "Original date where verified; null means not established. URL migration timestamps are not publication dates.",
+      "local_path": "raw/csrc_retail_risk_20071018.html",
+      "source_kind": "official_document",
+      "access": "public_unauthenticated",
+      "urllib_error": "URLError: <urlopen error [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate in certificate chain (_ssl.c:1010)>",
+      "http_status": 200,
+      "resolved_url": "https://www.csrc.gov.cn/csrc/c100028/c1002860/content.shtml",
+      "content_type": "text/html",
+      "transport": "curl_windows_schannel_default_tls_verification",
+      "status": "saved",
+      "sha256": "aa2dd426d3642414097e7a319bedae1dcb04f88ebc4e981cb63e939ef7a79e1d",
+      "bytes": 25049,
+      "copied_at_utc": "2026-10-16T00:53:46.257606+00:00",
+      "reuse_origin": "C:\\workspace\\ai-investing\\reports\\research\\shanghai_2007_kospi_2026\\china\\sources\\csrc_retail_risk_20071018.html",
+      "original_retrieved_at_utc": "2026-10-16T00:09:01.208647+00:00",
+      "published_date": "2007-10-18"
+    },
+    {
+      "source_id": "csrc_dormant_accounts_20071009",
+      "title": "CSRC dormant account segregation implementation",
+      "publisher": "www.csrc.gov.cn",
+      "url": "https://www.csrc.gov.cn/csrc/c100028/c1002861/content.shtml",
+      "published_at": "2007-10-09",
+      "data_period": "2007-10-08",
+      "published_at_note": "Original date where verified; null means not established. URL migration timestamps are not publication dates.",
+      "local_path": "raw/csrc_dormant_accounts_20071009.html",
+      "source_kind": "official_document",
+      "access": "public_unauthenticated",
+      "urllib_error": "URLError: <urlopen error [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate in certificate chain (_ssl.c:1010)>",
+      "http_status": 200,
+      "resolved_url": "https://www.csrc.gov.cn/csrc/c100028/c1002861/content.shtml",
+      "content_type": "text/html",
+      "transport": "curl_windows_schannel_default_tls_verification",
+      "status": "saved",
+      "sha256": "938a5ff137e5b377288c0f09ab9ac3a2d2309b1b4dae3c0ff388d460a1067dab",
+      "bytes": 16573,
+      "copied_at_utc": "2026-10-16T00:53:46.260126+00:00",
+      "reuse_origin": "C:\\workspace\\ai-investing\\reports\\research\\shanghai_2007_kospi_2026\\china\\sources\\csrc_dormant_accounts_20071009.html",
+      "original_retrieved_at_utc": "2026-10-16T00:09:02.610146+00:00",
+      "published_date": "2007-10-09"
+    },
+    {
+      "source_id": "mof_stamp_duty_20070530",
+      "title": "MOF/SAT Caishui [2007] 84 securities stamp duty notice",
+      "publisher": "www.mofcom.gov.cn",
+      "url": "https://www.mofcom.gov.cn/zcfb/zgdwjjmywg/art/2007/art_99829a5529ff4223a7bf6ca48ffc4b24.html",
+      "published_at": "2007-07-04",
+      "data_period": "2007-05-30",
+      "published_at_note": "Original date where verified; null means not established. URL migration timestamps are not publication dates.",
+      "local_path": "raw/mof_stamp_duty_20070530.html",
+      "source_kind": "official_document",
+      "access": "public_unauthenticated",
+      "resolved_url": "https://www.mofcom.gov.cn/zcfb/zgdwjjmywg/art/2007/art_99829a5529ff4223a7bf6ca48ffc4b24.html",
+      "http_status": 200,
+      "content_type": "text/html",
+      "status": "saved",
+      "sha256": "e74cb945545ca67082d98c732f3d638d0b77fcd8e0f2c162b0a844c397f6eae3",
+      "bytes": 12478,
+      "copied_at_utc": "2026-10-16T00:53:46.262652+00:00",
+      "reuse_origin": "C:\\workspace\\ai-investing\\reports\\research\\shanghai_2007_kospi_2026\\china\\sources\\mof_stamp_duty_20070530.html",
+      "original_retrieved_at_utc": "2026-10-16T00:07:05.352570+00:00",
+      "published_date": "2007-07-04"
+    },
+    {
+      "source_id": "pbc_policy_2007q4",
+      "title": "PBC China Monetary Policy Report Quarter Four 2007",
+      "publisher": "www.pbc.gov.cn",
+      "url": "https://www.pbc.gov.cn/eportal/fileDir/history_file/files/att_20306_1.pdf",
+      "published_at": "2008-02-22",
+      "data_period": "2007-01-01/2007-12-31",
+      "published_at_note": "Original date where verified; null means not established. URL migration timestamps are not publication dates.",
+      "local_path": "raw/pbc_policy_2007q4.pdf",
+      "source_kind": "official_document",
+      "access": "public_unauthenticated",
+      "urllib_error": "URLError: <urlopen error [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate in certificate chain (_ssl.c:1010)>",
+      "http_status": 200,
+      "resolved_url": "https://www.pbc.gov.cn/eportal/fileDir/history_file/files/att_20306_1.pdf",
+      "content_type": "application/pdf",
+      "transport": "curl_windows_schannel_default_tls_verification",
+      "status": "saved",
+      "sha256": "5f0eafa8252043e8d5e7eb44e6b6c9779dd3a88d53155ad7f9f1a40aa9f281c1",
+      "bytes": 260162,
+      "copied_at_utc": "2026-10-16T00:53:46.266654+00:00",
+      "reuse_origin": "C:\\workspace\\ai-investing\\reports\\research\\shanghai_2007_kospi_2026\\china\\sources\\pbc_policy_2007q4.pdf",
+      "original_retrieved_at_utc": "2026-10-16T00:09:03.324214+00:00",
+      "published_date": "2008-02-22",
+      "pdf_pages": 68,
+      "text_path": "raw/pbc_policy_2007q4.txt"
+    },
+    {
+      "source_id": "pbc_policy_2007q3_highlights",
+      "title": "PBC Highlights of China's Monetary Policy in Q3 2007",
+      "publisher": "www.pbc.gov.cn",
+      "url": "https://www.pbc.gov.cn/english/130721/2025080815063195107/index.html",
+      "published_at": "2007-11-14",
+      "data_period": "2007-07-01/2007-09-30",
+      "published_at_note": "Original date where verified; null means not established. URL migration timestamps are not publication dates.",
+      "local_path": "raw/pbc_policy_2007q3_highlights.html",
+      "source_kind": "official_document",
+      "access": "public_unauthenticated",
+      "urllib_error": "URLError: <urlopen error [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate in certificate chain (_ssl.c:1010)>",
+      "http_status": 200,
+      "resolved_url": "https://www.pbc.gov.cn/english/130721/2025080815063195107/index.html",
+      "content_type": "text/html",
+      "transport": "curl_windows_schannel_default_tls_verification",
+      "status": "saved",
+      "sha256": "847c71c7a2599292d15e5e45096bcbd83c59196e9ad20607a30b245a09646817",
+      "bytes": 22655,
+      "copied_at_utc": "2026-10-16T00:53:46.446545+00:00",
+      "reuse_origin": "C:\\workspace\\ai-investing\\reports\\research\\shanghai_2007_kospi_2026\\china\\sources\\pbc_policy_2007q3_highlights.html",
+      "original_retrieved_at_utc": "2026-10-16T00:09:04.429924+00:00",
+      "published_date": "2007-11-14"
+    },
+    {
+      "source_id": "pbc_rate_20070519",
+      "title": "PBC May 2007 rate and reserve requirement adjustment",
+      "publisher": "www.pbc.gov.cn",
+      "url": "https://www.pbc.gov.cn/english/130721/2025080815063242147/index.html",
+      "published_at": "2007-06-04",
+      "data_period": "2007-05-19/2007-06-05",
+      "published_at_note": "Original date where verified; null means not established. URL migration timestamps are not publication dates.",
+      "local_path": "raw/pbc_rate_20070519.html",
+      "source_kind": "official_document",
+      "access": "public_unauthenticated",
+      "urllib_error": "URLError: <urlopen error [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate in certificate chain (_ssl.c:1010)>",
+      "http_status": 200,
+      "resolved_url": "https://www.pbc.gov.cn/english/130721/2025080815063242147/index.html",
+      "content_type": "text/html",
+      "transport": "curl_windows_schannel_default_tls_verification",
+      "status": "saved",
+      "sha256": "9093feb44016af45f4aa49aace9f28ecc265268155c6bf98253c9ca052f287ee",
+      "bytes": 35003,
+      "copied_at_utc": "2026-10-16T00:53:46.449568+00:00",
+      "reuse_origin": "C:\\workspace\\ai-investing\\reports\\research\\shanghai_2007_kospi_2026\\china\\sources\\pbc_rate_20070519.html",
+      "original_retrieved_at_utc": "2026-10-16T00:09:04.925022+00:00",
+      "published_date": "2007-06-04"
+    },
+    {
+      "source_id": "CSRC_AR2007",
+      "url": "https://www.csrc.gov.cn/csrc/c100024/c1492164/1492164/files/fded535cf23d451ab65c3f2786685950.pdf",
+      "published_date": "2008",
+      "local_path": "raw/CSRC_AR2007.pdf",
+      "retrieved_at_utc": "2026-10-16T00:53:46.455602+00:00",
+      "access": "public unauthenticated historical document",
+      "http_status": 200,
+      "resolved_url": "https://www.csrc.gov.cn/",
+      "transport": "urllib_default_tls",
+      "status": "invalid_content",
+      "bytes": 222452,
+      "sha256": "4901650540fb52b7804db0641f0baf48b303172d988bfead96b9ca957769d5a7",
+      "pdf_pages": 3,
+      "text_path": "raw/CSRC_AR2007.txt",
+      "exclusion_reason": "Downloaded PDF contains current CSRC navigation/homepage, not the2007 annual report indicated by search result; excluded from evidence."
+    },
+    {
+      "source_id": "PBOC_DEC20_QA",
+      "url": "https://www.gov.cn/zwhd/2007-12/20/content_839594.htm",
+      "published_date": "2007-12-20",
+      "local_path": "raw/PBOC_DEC20_QA.html",
+      "retrieved_at_utc": "2026-10-16T00:53:46.458601+00:00",
+      "access": "public unauthenticated historical document",
+      "urllib_error": "HTTP Error 404: Not Found",
+      "status": "unavailable",
+      "error": "RuntimeError: curl: (22) The requested URL returned error: 404"
+    },
+    {
+      "source_id": "NDRC_MONETARY2008",
+      "url": "https://www.ndrc.gov.cn/fzggw/jgsj/cjd/sjdt/200903/t20090303_1111305.html",
+      "published_date": "2009-03-03",
+      "local_path": "raw/NDRC_MONETARY2008.html",
+      "retrieved_at_utc": "2026-10-16T00:53:46.460110+00:00",
+      "access": "public unauthenticated historical document",
+      "http_status": 200,
+      "resolved_url": "https://www.ndrc.gov.cn/fzggw/jgsj/cjd/sjdt/200903/t20090303_1111305.html",
+      "transport": "urllib_default_tls",
+      "status": "saved",
+      "bytes": 27684,
+      "sha256": "d6c20e87f86a8bfa48bf87ec90042df9c9467686998003eacac5abd1fa9e0dc9"
+    },
+    {
+      "source_id": "MOF_STAMP20080424",
+      "url": "https://www.mof.gov.cn/zhengwuxinxi/caizhengxinwen/200805/t20080519_29133.htm",
+      "published_date": "2008-04-24",
+      "local_path": "raw/MOF_STAMP20080424.html",
+      "retrieved_at_utc": "2026-10-16T00:53:46.461630+00:00",
+      "access": "public unauthenticated historical document",
+      "http_status": 200,
+      "resolved_url": "https://www.mof.gov.cn/zhengwuxinxi/caizhengxinwen/200805/t20080519_29133.htm",
+      "transport": "urllib_default_tls",
+      "status": "saved",
+      "bytes": 19754,
+      "sha256": "ed6923348210ba9cc03a05a06b1542d2e531f102a7c0d4a641c9149869aa1cf4"
+    },
+    {
+      "source_id": "CSRC_OCT2007",
+      "url": "https://www.csrc.gov.cn/csrc/c105936/c1004300/content.shtml",
+      "published_date": null,
+      "local_path": "raw/CSRC_OCT2007.html",
+      "retrieved_at_utc": "2026-10-16T00:53:46.643694+00:00",
+      "access": "public unauthenticated historical document",
+      "http_status": 200,
+      "resolved_url": "https://www.csrc.gov.cn/csrc/c105936/c1004300/content.shtml",
+      "transport": "urllib_default_tls",
+      "status": "saved",
+      "bytes": 11882,
+      "sha256": "4ef6adcdca47e5f37d50f91eaa32c373d40aed24016ae5ab8eae241654e5c718"
+    },
+    {
+      "source_id": "CSRC_MONTHLY_INDEX",
+      "url": "https://www.csrc.gov.cn/csrc/c100120/common_list_11.shtml",
+      "published_date": null,
+      "local_path": "raw/CSRC_MONTHLY_INDEX.html",
+      "retrieved_at_utc": "2026-10-16T00:53:46.795805+00:00",
+      "access": "public unauthenticated historical document",
+      "http_status": 200,
+      "resolved_url": "https://www.csrc.gov.cn/csrc/c100120/common_list_11.shtml",
+      "transport": "urllib_default_tls",
+      "status": "saved",
+      "bytes": 15404,
+      "sha256": "a9f5ee3147e96dc1e9ffe933dd50e058813533c842965f8db7f0668e56cef544"
+    },
+    {
+      "source_id": "CSDC_AR2006",
+      "url": "https://www.chinaclear.cn/old_files/1192763915494.pdf",
+      "published_date": null,
+      "local_path": "raw/CSDC_AR2006.pdf",
+      "retrieved_at_utc": "2026-10-16T00:53:47.345545+00:00",
+      "access": "public unauthenticated historical document",
+      "http_status": 200,
+      "resolved_url": "https://www.chinaclear.cn/old_files/1192763915494.pdf",
+      "transport": "urllib_default_tls",
+      "status": "unavailable",
+      "bytes": 984,
+      "sha256": "ba421e318999ae7df7478514b534a796dd5dfb8955c711c48294121879847ddb",
+      "error": "FileDataError: Failed to open file 'C:\\\\workspace\\\\ai-investing\\\\reports\\\\research\\\\shanghai_2007_kospi_2026\\\\timing_sequence_v1\\\\china_liquidity\\\\raw\\\\CSDC_AR2006.pdf' as type pdf."
+    },
+    {
+      "source_id": "SIN_PBOC20071013",
+      "url": "https://finance.sina.com.cn/china/hgjj/20071013/15064057871.shtml",
+      "published_date": "2007-10-13",
+      "local_path": "raw/SIN_PBOC20071013.html",
+      "retrieved_at_utc": "2026-10-16T00:53:47.378593+00:00",
+      "access": "public unauthenticated historical document",
+      "http_status": 200,
+      "resolved_url": "https://finance.sina.com.cn/china/hgjj/20071013/15064057871.shtml",
+      "transport": "urllib_default_tls",
+      "status": "saved",
+      "bytes": 102865,
+      "sha256": "9a3b6007f8ef1e95c488fff2b156c1a3338f94752043a1a16bef12cadf4dd0bf"
+    },
+    {
+      "source_id": "SIN_PBOC20071110",
+      "url": "https://finance.sina.com.cn/g/20071110/23294160050.shtml",
+      "published_date": "2007-11-10",
+      "local_path": "raw/SIN_PBOC20071110.html",
+      "retrieved_at_utc": "2026-10-16T00:53:47.668993+00:00",
+      "access": "public unauthenticated historical document",
+      "http_status": 200,
+      "resolved_url": "https://finance.sina.com.cn/g/20071110/23294160050.shtml",
+      "transport": "urllib_default_tls",
+      "status": "saved",
+      "bytes": 101160,
+      "sha256": "071e76b9ffebb5ec88446d22063892f963547313b0d68471da701c6c8710b8f2"
+    },
+    {
+      "source_id": "THS_NEWACC20071122",
+      "url": "https://fund.10jqka.com.cn/content/200711/24/1531989.shtml",
+      "published_date": "2007-11-24",
+      "local_path": "raw/THS_NEWACC20071122.html",
+      "retrieved_at_utc": "2026-10-16T00:53:47.711135+00:00",
+      "access": "public unauthenticated historical document",
+      "http_status": 200,
+      "resolved_url": "https://fund.10jqka.com.cn/content/200711/24/1531989.shtml",
+      "transport": "urllib_default_tls",
+      "status": "saved",
+      "bytes": 19102,
+      "sha256": "47a5b9ed2133543b2dc57f88f91b1cb196ea98cb23b451e46f31a525fb030fa6"
+    },
+    {
+      "source_id": "SIN_NEWACC20080111",
+      "url": "https://finance.sina.com.cn/stock/data/20080114/17304402882.shtml",
+      "published_date": "2008-01-14",
+      "local_path": "raw/SIN_NEWACC20080111.html",
+      "retrieved_at_utc": "2026-10-16T00:53:47.730699+00:00",
+      "access": "public unauthenticated historical document",
+      "http_status": 200,
+      "resolved_url": "https://finance.sina.com.cn/stock/data/20080114/17304402882.shtml",
+      "transport": "urllib_default_tls",
+      "status": "saved",
+      "bytes": 120274,
+      "sha256": "21c1c80bb430af282c6a57089e1e2a1fe7b7df44b102cb556bf705dc4cb113dc"
+    },
+    {
+      "source_id": "CSRC_MONTH_200707",
+      "url": "https://www.csrc.gov.cn/csrc/c105936/c1004303/content.shtml",
+      "observation_period": "2007-07",
+      "published_date": "2007-08-10",
+      "published_date_basis": "CSRC_MONTHLY_INDEX dated listing, not migration-year URL",
+      "retrieved_at_utc": "2026-10-16T00:55:57.065036+00:00",
+      "access": "unauthenticated original historical XLS download",
+      "status": "saved",
+      "attachment_url": "https://www.csrc.gov.cn/csrc/c105936/c1004303/1004303/files/2007%E5%B9%B47%E6%9C%88%E7%BB%9F%E8%AE%A1%E6%95%B0%E6%8D%AE.xls",
+      "local_path": "raw/CSRC_MONTH_200707.xls",
+      "bytes": 30720,
+      "sha256": "5a7c87322e78d9a81d05c8e9ff0c4888cbcf2c0b710c46ba533a1596bf180cf4",
+      "html_path": "raw/CSRC_MONTH_200707.html",
+      "html_sha256": "83d6c3753cd841dbd8c9c21dfa782cbd60e56d3b569ef35c9434a33f17304aa2",
+      "sheets": [
+        {
+          "name": "概况",
+          "nrows": 20,
+          "ncols": 10
+        },
+        {
+          "name": "筹资",
+          "nrows": 14,
+          "ncols": 11
+        },
+        {
+          "name": "交易",
+          "nrows": 13,
+          "ncols": 12
+        },
+        {
+          "name": "期货",
+          "nrows": 13,
+          "ncols": 7
+        }
+      ]
+    },
+    {
+      "source_id": "CSRC_MONTH_200708",
+      "url": "https://www.csrc.gov.cn/csrc/c105936/c1004302/content.shtml",
+      "observation_period": "2007-08",
+      "published_date": "2007-09-11",
+      "published_date_basis": "CSRC_MONTHLY_INDEX dated listing, not migration-year URL",
+      "retrieved_at_utc": "2026-10-16T00:55:57.068554+00:00",
+      "access": "unauthenticated original historical XLS download",
+      "status": "saved",
+      "attachment_url": "https://www.csrc.gov.cn/csrc/c105936/c1004302/1004302/files/2007%E5%B9%B48%E6%9C%88%E7%BB%9F%E8%AE%A1%E6%95%B0%E6%8D%AE.xls",
+      "local_path": "raw/CSRC_MONTH_200708.xls",
+      "bytes": 31232,
+      "sha256": "2e7cbfbb3a35a7d2f5b9cb92c36e968e8d1f3bcbacb9353fc56c0b83e98bb3c9",
+      "html_path": "raw/CSRC_MONTH_200708.html",
+      "html_sha256": "f0c503dee213cd2d2a26b9ce689647e3737b30140f7c2eed3c14bcff3703a459",
+      "sheets": [
+        {
+          "name": "概况",
+          "nrows": 20,
+          "ncols": 11
+        },
+        {
+          "name": "筹资",
+          "nrows": 15,
+          "ncols": 11
+        },
+        {
+          "name": "交易",
+          "nrows": 14,
+          "ncols": 12
+        },
+        {
+          "name": "期货",
+          "nrows": 14,
+          "ncols": 7
+        }
+      ]
+    },
+    {
+      "source_id": "CSRC_MONTH_200709",
+      "url": "https://www.csrc.gov.cn/csrc/c105936/c1004301/content.shtml",
+      "observation_period": "2007-09",
+      "published_date": "2007-10-11",
+      "published_date_basis": "CSRC_MONTHLY_INDEX dated listing, not migration-year URL",
+      "retrieved_at_utc": "2026-10-16T00:55:57.230346+00:00",
+      "access": "unauthenticated original historical XLS download",
+      "status": "saved",
+      "attachment_url": "https://www.csrc.gov.cn/csrc/c105936/c1004301/1004301/files/2007%E5%B9%B49%E6%9C%88%E7%BB%9F%E8%AE%A1%E6%95%B0%E6%8D%AE.xls",
+      "local_path": "raw/CSRC_MONTH_200709.xls",
+      "bytes": 31744,
+      "sha256": "6aba922872f5e2e382a66ed85e3eb10742f44d53c2a14897e1a3354d8d3d937d",
+      "html_path": "raw/CSRC_MONTH_200709.html",
+      "html_sha256": "d0f88a38ac12a4cf227f21d5ab0423d03545b4626af994dff1391d18372c04ff",
+      "sheets": [
+        {
+          "name": "概况",
+          "nrows": 20,
+          "ncols": 12
+        },
+        {
+          "name": "筹资",
+          "nrows": 16,
+          "ncols": 11
+        },
+        {
+          "name": "交易",
+          "nrows": 15,
+          "ncols": 12
+        },
+        {
+          "name": "期货",
+          "nrows": 15,
+          "ncols": 7
+        }
+      ]
+    },
+    {
+      "source_id": "CSRC_MONTH_200710",
+      "url": "https://www.csrc.gov.cn/csrc/c105936/c1004300/content.shtml",
+      "observation_period": "2007-10",
+      "published_date": "2007-11-12",
+      "published_date_basis": "CSRC_MONTHLY_INDEX dated listing, not migration-year URL",
+      "retrieved_at_utc": "2026-10-16T00:55:57.300626+00:00",
+      "access": "unauthenticated original historical XLS download",
+      "status": "saved",
+      "attachment_url": "https://www.csrc.gov.cn/csrc/c105936/c1004300/1004300/files/2007%E5%B9%B410%E6%9C%88%E7%BB%9F%E8%AE%A1%E6%95%B0%E6%8D%AE.xls",
+      "local_path": "raw/CSRC_MONTH_200710.xls",
+      "bytes": 32256,
+      "sha256": "7c644942c6226f0a96b54fa125db23796d1971d072dc677b89ed1e9bceae27be",
+      "html_path": "raw/CSRC_MONTH_200710.html",
+      "html_sha256": "4ef6adcdca47e5f37d50f91eaa32c373d40aed24016ae5ab8eae241654e5c718",
+      "sheets": [
+        {
+          "name": "概况",
+          "nrows": 20,
+          "ncols": 13
+        },
+        {
+          "name": "筹资",
+          "nrows": 17,
+          "ncols": 11
+        },
+        {
+          "name": "交易",
+          "nrows": 16,
+          "ncols": 12
+        },
+        {
+          "name": "期货",
+          "nrows": 16,
+          "ncols": 7
+        }
+      ]
+    },
+    {
+      "source_id": "CSRC_MONTH_200711",
+      "url": "https://www.csrc.gov.cn/csrc/c105936/c1004299/content.shtml",
+      "observation_period": "2007-11",
+      "published_date": "2007-12-10",
+      "published_date_basis": "CSRC_MONTHLY_INDEX dated listing, not migration-year URL",
+      "retrieved_at_utc": "2026-10-16T00:55:57.334978+00:00",
+      "access": "unauthenticated original historical XLS download",
+      "status": "saved",
+      "attachment_url": "https://www.csrc.gov.cn/csrc/c105936/c1004299/1004299/files/2007%E5%B9%B411%E6%9C%88%E7%BB%9F%E8%AE%A1%E6%95%B0%E6%8D%AE.xls",
+      "local_path": "raw/CSRC_MONTH_200711.xls",
+      "bytes": 32768,
+      "sha256": "738db5f90fc2809ab00d921fa42ad7cf2daa12dc479b68b44a69149a8c0020b1",
+      "html_path": "raw/CSRC_MONTH_200711.html",
+      "html_sha256": "223409949007b4a73614786c1158d7bd8477ddcb5a1464c10898f22940c7ff9f",
+      "sheets": [
+        {
+          "name": "概况",
+          "nrows": 20,
+          "ncols": 14
+        },
+        {
+          "name": "筹资",
+          "nrows": 18,
+          "ncols": 11
+        },
+        {
+          "name": "交易",
+          "nrows": 17,
+          "ncols": 12
+        },
+        {
+          "name": "期货",
+          "nrows": 17,
+          "ncols": 7
+        }
+      ]
+    },
+    {
+      "source_id": "CSRC_MONTH_200712",
+      "url": "https://www.csrc.gov.cn/csrc/c105936/c1004298/content.shtml",
+      "observation_period": "2007-12",
+      "published_date": "2008-01-10",
+      "published_date_basis": "CSRC_MONTHLY_INDEX dated listing, not migration-year URL",
+      "retrieved_at_utc": "2026-10-16T00:55:57.741459+00:00",
+      "access": "unauthenticated original historical XLS download",
+      "status": "saved",
+      "attachment_url": "https://www.csrc.gov.cn/csrc/c105936/c1004298/1004298/files/2007%E5%B9%B412%E6%9C%88%E7%BB%9F%E8%AE%A1%E6%95%B0%E6%8D%AE.xls",
+      "local_path": "raw/CSRC_MONTH_200712.xls",
+      "bytes": 32768,
+      "sha256": "c0eb5e0b41bdcc983914f09e01cdfe60cca6f2306c5f0b00c0f7894bc046f8c0",
+      "html_path": "raw/CSRC_MONTH_200712.html",
+      "html_sha256": "8d53eee902726ba70a7dce63e896dc3e432e4f7028de0845c62c201aa5d98b20",
+      "sheets": [
+        {
+          "name": "概况",
+          "nrows": 20,
+          "ncols": 15
+        },
+        {
+          "name": "筹资",
+          "nrows": 19,
+          "ncols": 11
+        },
+        {
+          "name": "交易",
+          "nrows": 18,
+          "ncols": 12
+        },
+        {
+          "name": "期货",
+          "nrows": 18,
+          "ncols": 7
+        }
+      ]
+    },
+    {
+      "source_id": "CSRC_MONTH_200801",
+      "url": "https://www.csrc.gov.cn/csrc/c105936/c1004297/content.shtml",
+      "observation_period": "2008-01",
+      "published_date": "2008-02-11",
+      "published_date_basis": "CSRC_MONTHLY_INDEX dated listing, not migration-year URL",
+      "retrieved_at_utc": "2026-10-16T00:55:57.904967+00:00",
+      "access": "unauthenticated original historical XLS download",
+      "status": "saved",
+      "attachment_url": "https://www.csrc.gov.cn/csrc/c105936/c1004297/1004297/files/2008%E5%B9%B41%E6%9C%88%E7%BB%9F%E8%AE%A1%E6%95%B0%E6%8D%AE.xls",
+      "local_path": "raw/CSRC_MONTH_200801.xls",
+      "bytes": 28160,
+      "sha256": "7a4c2ae5b3b0489fd59f48b26ea5600f7fd039d09dbed810af760aee615f33fd",
+      "html_path": "raw/CSRC_MONTH_200801.html",
+      "html_sha256": "0aaf53f9c6bc88a63b8778ddb2f005a10cb66a8ee52fe6bd25c9bef489aee66d",
+      "sheets": [
+        {
+          "name": "概况",
+          "nrows": 21,
+          "ncols": 4
+        },
+        {
+          "name": "筹资",
+          "nrows": 8,
+          "ncols": 11
+        },
+        {
+          "name": "交易",
+          "nrows": 7,
+          "ncols": 12
+        },
+        {
+          "name": "期货",
+          "nrows": 7,
+          "ncols": 7
+        }
+      ]
+    },
+    {
+      "source_id": "CSRC_MONTH_200802",
+      "url": "https://www.csrc.gov.cn/csrc/c105936/c1004296/content.shtml",
+      "observation_period": "2008-02",
+      "published_date": "2008-03-10",
+      "published_date_basis": "CSRC_MONTHLY_INDEX dated listing, not migration-year URL",
+      "retrieved_at_utc": "2026-10-16T00:55:57.916894+00:00",
+      "access": "unauthenticated original historical XLS download",
+      "status": "saved",
+      "attachment_url": "https://www.csrc.gov.cn/csrc/c105936/c1004296/1004296/files/2008%E5%B9%B42%E6%9C%88%E7%BB%9F%E8%AE%A1%E6%95%B0%E6%8D%AE.xls",
+      "local_path": "raw/CSRC_MONTH_200802.xls",
+      "bytes": 28672,
+      "sha256": "e4789decb3581740abbbcc3157247130f4d21e243cd627d06c700fb28c89eb81",
+      "html_path": "raw/CSRC_MONTH_200802.html",
+      "html_sha256": "b5e52351cc9f20dc09fa87d99e3d2d85f33297c369a3f1d2a18556d311aa73f6",
+      "sheets": [
+        {
+          "name": "概况",
+          "nrows": 21,
+          "ncols": 5
+        },
+        {
+          "name": "筹资",
+          "nrows": 9,
+          "ncols": 11
+        },
+        {
+          "name": "交易",
+          "nrows": 8,
+          "ncols": 12
+        },
+        {
+          "name": "期货",
+          "nrows": 8,
+          "ncols": 7
+        }
+      ]
+    },
+    {
+      "source_id": "CSRC_MONTH_200803",
+      "url": "https://www.csrc.gov.cn/csrc/c105936/c1004295/content.shtml",
+      "observation_period": "2008-03",
+      "published_date": "2008-04-11",
+      "published_date_basis": "CSRC_MONTHLY_INDEX dated listing, not migration-year URL",
+      "retrieved_at_utc": "2026-10-16T00:55:57.984350+00:00",
+      "access": "unauthenticated original historical XLS download",
+      "status": "saved",
+      "attachment_url": "https://www.csrc.gov.cn/csrc/c105936/c1004295/1004295/files/2008%E5%B9%B43%E6%9C%88%E7%BB%9F%E8%AE%A1%E6%95%B0%E6%8D%AE.xls",
+      "local_path": "raw/CSRC_MONTH_200803.xls",
+      "bytes": 29184,
+      "sha256": "d2771dcacb1698f648334b7b79d4b27ac8a8714f890a7b8af778e568d5a53b05",
+      "html_path": "raw/CSRC_MONTH_200803.html",
+      "html_sha256": "4b4793253ace34c21300f3251f1f3ebfa94f08f2179118abd58795d853ff1e63",
+      "sheets": [
+        {
+          "name": "概况",
+          "nrows": 21,
+          "ncols": 6
+        },
+        {
+          "name": "筹资",
+          "nrows": 10,
+          "ncols": 11
+        },
+        {
+          "name": "交易",
+          "nrows": 9,
+          "ncols": 12
+        },
+        {
+          "name": "期货",
+          "nrows": 9,
+          "ncols": 7
+        }
+      ]
+    },
+    {
+      "source_id": "CSRC_MONTH_200804",
+      "url": "https://www.csrc.gov.cn/csrc/c105936/c1004294/content.shtml",
+      "observation_period": "2008-04",
+      "published_date": "2008-05-12",
+      "published_date_basis": "CSRC_MONTHLY_INDEX dated listing, not migration-year URL",
+      "retrieved_at_utc": "2026-10-16T00:55:58.084698+00:00",
+      "access": "unauthenticated original historical XLS download",
+      "status": "saved",
+      "attachment_url": "https://www.csrc.gov.cn/csrc/c105936/c1004294/1004294/files/2008%E5%B9%B44%E6%9C%88%E7%BB%9F%E8%AE%A1%E6%95%B0%E6%8D%AE.xls",
+      "local_path": "raw/CSRC_MONTH_200804.xls",
+      "bytes": 29696,
+      "sha256": "4ea09fd96cf2111d7490c04926af1e8e37c01e033e6500685f86bc06ba206473",
+      "html_path": "raw/CSRC_MONTH_200804.html",
+      "html_sha256": "6032b1c2ae722f64b32039c13496edccc1839f3532e61be5268c3a9c3207d164",
+      "sheets": [
+        {
+          "name": "概况",
+          "nrows": 21,
+          "ncols": 7
+        },
+        {
+          "name": "筹资",
+          "nrows": 11,
+          "ncols": 11
+        },
+        {
+          "name": "交易",
+          "nrows": 10,
+          "ncols": 12
+        },
+        {
+          "name": "期货",
+          "nrows": 10,
+          "ncols": 7
+        }
+      ]
+    },
+    {
+      "source_id": "CSRC_MONTH_200805",
+      "url": "https://www.csrc.gov.cn/csrc/c105936/c1004293/content.shtml",
+      "observation_period": "2008-05",
+      "published_date": "2008-06-09",
+      "published_date_basis": "CSRC_MONTHLY_INDEX dated listing, not migration-year URL",
+      "retrieved_at_utc": "2026-10-16T00:55:58.334547+00:00",
+      "access": "unauthenticated original historical XLS download",
+      "status": "saved",
+      "attachment_url": "https://www.csrc.gov.cn/csrc/c105936/c1004293/1004293/files/2008%E5%B9%B45%E6%9C%88%E7%BB%9F%E8%AE%A1%E6%95%B0%E6%8D%AE.xls",
+      "local_path": "raw/CSRC_MONTH_200805.xls",
+      "bytes": 30208,
+      "sha256": "1e508f0778339e05d1f9c2f118f6093ef6bbeb70c7eb88ced1d33905c4ef4ee2",
+      "html_path": "raw/CSRC_MONTH_200805.html",
+      "html_sha256": "9f51fd2ade2d90d884031a4c8fb8e43c5c7bd82af93f93b05c04129226adb286",
+      "sheets": [
+        {
+          "name": "概况",
+          "nrows": 21,
+          "ncols": 8
+        },
+        {
+          "name": "筹资",
+          "nrows": 12,
+          "ncols": 11
+        },
+        {
+          "name": "交易",
+          "nrows": 11,
+          "ncols": 12
+        },
+        {
+          "name": "期货",
+          "nrows": 11,
+          "ncols": 7
+        }
+      ]
+    },
+    {
+      "source_id": "CSRC_MONTH_200806",
+      "url": "https://www.csrc.gov.cn/csrc/c105936/c1004292/content.shtml",
+      "observation_period": "2008-06",
+      "published_date": "2008-07-08",
+      "published_date_basis": "CSRC_MONTHLY_INDEX dated listing, not migration-year URL",
+      "retrieved_at_utc": "2026-10-16T00:55:58.362087+00:00",
+      "access": "unauthenticated original historical XLS download",
+      "status": "saved",
+      "attachment_url": "https://www.csrc.gov.cn/csrc/c105936/c1004292/1004292/files/2008%E5%B9%B46%E6%9C%88%E7%BB%9F%E8%AE%A1%E6%95%B0%E6%8D%AE.xls",
+      "local_path": "raw/CSRC_MONTH_200806.xls",
+      "bytes": 30720,
+      "sha256": "01784451e8bdac541d0ef9d37538a7f1e84854d72e0f0a3d1f685444c96345e2",
+      "html_path": "raw/CSRC_MONTH_200806.html",
+      "html_sha256": "926f0256256b5cb9ad0d418f962e22652740242707c138f6d66de8130b9053e8",
+      "sheets": [
+        {
+          "name": "概况",
+          "nrows": 21,
+          "ncols": 9
+        },
+        {
+          "name": "筹资",
+          "nrows": 13,
+          "ncols": 11
+        },
+        {
+          "name": "交易",
+          "nrows": 12,
+          "ncols": 12
+        },
+        {
+          "name": "期货",
+          "nrows": 12,
+          "ncols": 7
+        }
+      ]
+    },
+    {
+      "source_id": "XIN_RATE20071220",
+      "url": "https://finance.sina.com.cn/g/20071220/19524318248.shtml",
+      "published_date": "2007-12-20",
+      "local_path": "raw/XIN_RATE20071220.html",
+      "retrieved_at_utc": "2026-10-16T00:57:51.542248+00:00",
+      "access": "public unauthenticated historical document",
+      "http_status": 200,
+      "resolved_url": "https://finance.sina.com.cn/g/20071220/19524318248.shtml",
+      "transport": "urllib_default_tls",
+      "status": "saved",
+      "bytes": 104168,
+      "sha256": "aca330e0dc4a28c1d176975fcf935a680a32d4e75459073262e9f8e28801e3a2"
+    },
+    {
+      "source_id": "XIN_CEWC20071205",
+      "url": "https://finance.sina.com.cn/g/20071205/20214255429.shtml",
+      "published_date": "2007-12-05",
+      "local_path": "raw/XIN_CEWC20071205.html",
+      "retrieved_at_utc": "2026-10-16T00:57:51.543249+00:00",
+      "access": "public unauthenticated historical document",
+      "http_status": 200,
+      "resolved_url": "https://finance.sina.com.cn/g/20071205/20214255429.shtml",
+      "transport": "urllib_default_tls",
+      "status": "saved",
+      "bytes": 89182,
+      "sha256": "f22ad72a429bba349d77761fb5418d547b0cd711ae65728ca611ff931699c307"
+    },
+    {
+      "source_id": "XIN_SURVEY2007Q4",
+      "url": "https://finance.sina.com.cn/stock/t/20071221/11154321816.shtml",
+      "published_date": "2007-12-21",
+      "local_path": "raw/XIN_SURVEY2007Q4.html",
+      "retrieved_at_utc": "2026-10-16T00:57:51.544249+00:00",
+      "access": "public unauthenticated historical document",
+      "http_status": 200,
+      "resolved_url": "https://finance.sina.com.cn/stock/t/20071221/11154321816.shtml",
+      "transport": "urllib_default_tls",
+      "status": "saved",
+      "bytes": 105785,
+      "sha256": "9c9bb2620aef2972c1d1d05b7c3c0c2ed035f15e5f3b5dd8195729ada58d1a0a"
+    },
+    {
+      "source_id": "SHNEWS_PREPEAK_NEWACC",
+      "url": "https://finance.sina.com.cn/money/fund/20071017/03014067654.shtml",
+      "published_date": "2007-10-17",
+      "local_path": "raw/SHNEWS_PREPEAK_NEWACC.html",
+      "retrieved_at_utc": "2026-10-16T00:57:51.545539+00:00",
+      "access": "public unauthenticated historical document",
+      "http_status": 200,
+      "resolved_url": "https://finance.sina.com.cn/money/fund/20071017/03014067654.shtml",
+      "transport": "urllib_default_tls",
+      "status": "saved",
+      "bytes": 96195,
+      "sha256": "282f43824e8f816a38de9ed38fa31a0d4dd859bb1e6c0732b14f81ba524c0eda"
+    },
+    {
+      "source_id": "CAIJING_ACTIVE20080118",
+      "url": "https://finance.sina.com.cn/roll/20080124/09011958362.shtml",
+      "published_date": "2008-01-24",
+      "local_path": "raw/CAIJING_ACTIVE20080118.html",
+      "retrieved_at_utc": "2026-10-16T00:57:51.628274+00:00",
+      "access": "public unauthenticated historical document",
+      "http_status": 200,
+      "resolved_url": "https://finance.sina.com.cn/roll/20080124/09011958362.shtml",
+      "transport": "urllib_default_tls",
+      "status": "saved",
+      "bytes": 101146,
+      "sha256": "bd26736ad85d431cdf0728f12b3dd0348052e52fa70453c492b8ebc5655e03ff"
+    },
+    {
+      "source_id": "SIN_NEWACC20070921",
+      "url": "https://finance.sina.com.cn/stock/data/20070924/17554009437.shtml",
+      "published_date": "2007-09-24",
+      "local_path": "raw/SIN_NEWACC20070921.html",
+      "retrieved_at_utc": "2026-10-16T00:57:51.768308+00:00",
+      "access": "public unauthenticated historical document",
+      "http_status": 200,
+      "resolved_url": "https://finance.sina.com.cn/stock/data/20070924/17554009437.shtml",
+      "transport": "urllib_default_tls",
+      "status": "saved",
+      "bytes": 99056,
+      "sha256": "1f8b2d58df48f05d855acc1b9dea3867899c787663e99aa700aab781bdf52f62"
+    },
+    {
+      "source_id": "XIN_RRR20080116",
+      "url": "https://finance.sina.com.cn/g/20080116/18024413676.shtml",
+      "published_date": "2008-01-16",
+      "local_path": "raw/XIN_RRR20080116.html",
+      "retrieved_at_utc": "2026-10-16T00:57:52.198101+00:00",
+      "access": "public unauthenticated historical document",
+      "http_status": 200,
+      "resolved_url": "https://finance.sina.com.cn/g/20080116/18024413676.shtml",
+      "transport": "urllib_default_tls",
+      "status": "saved",
+      "bytes": 80249,
+      "sha256": "75ce8bbf1945834cd538d356b8e144f6d5fecd22e1473e6d971cfabfa652c09f"
+    },
+    {
+      "source_id": "PBC_RATE20070518_PRIMARY",
+      "url": "https://www.pbc.gov.cn/zhengcehuobisi/125207/125213/125440/125835/2825420/index.html",
+      "published_date": "2007-05-18",
+      "local_path": "raw/PBC_RATE20070518_PRIMARY.html",
+      "retrieved_at_utc": "2026-10-16T01:01:44.459644+00:00",
+      "access": "public unauthenticated historical document",
+      "http_status": 200,
+      "resolved_url": "https://www.pbc.gov.cn/zhengcehuobisi/125207/125213/125440/125835/2825420/index.html",
+      "transport": "urllib_default_tls",
+      "status": "saved",
+      "bytes": 48080,
+      "sha256": "7449988dd606a9920a91b90d10d1b5a44dd3c11a2d419c1a31608f629235931b"
+    },
+    {
+      "source_id": "PBC_DEPOSIT_HISTORY",
+      "url": "https://www.pbc.gov.cn/zhengcehuobisi/125207/125213/125440/125838/125888/2887261/index.html",
+      "published_date": "2015-03-01",
+      "local_path": "raw/PBC_DEPOSIT_HISTORY.html",
+      "retrieved_at_utc": "2026-10-16T01:01:44.461656+00:00",
+      "access": "public unauthenticated historical document",
+      "http_status": 200,
+      "resolved_url": "https://www.pbc.gov.cn/zhengcehuobisi/125207/125213/125440/125838/125888/2887261/index.html",
+      "transport": "urllib_default_tls",
+      "status": "saved",
+      "bytes": 163842,
+      "sha256": "a5b985895b97225fa258c00176915b0d10eafbf0ad4a6561c1a02676769c6ad2"
+    },
+    {
+      "source_id": "PBC_LENDING_HISTORY",
+      "url": "https://www.pbc.gov.cn/zhengcehuobisi/125207/125213/125440/125838/125888/2861226/index.html",
+      "published_date": "2012-06-08",
+      "local_path": "raw/PBC_LENDING_HISTORY.html",
+      "retrieved_at_utc": "2026-10-16T01:01:44.463656+00:00",
+      "access": "public unauthenticated historical document",
+      "http_status": 200,
+      "resolved_url": "https://www.pbc.gov.cn/zhengcehuobisi/125207/125213/125440/125838/125888/2861226/index.html",
+      "transport": "urllib_default_tls",
+      "status": "saved",
+      "bytes": 125906,
+      "sha256": "2db1140287eb6b09fb9f54fed546554b03952a76dc30c6095c0df7351375de22"
+    },
+    {
+      "source_id": "PBC_RATE20070914_REPRINT",
+      "url": "https://newyork.china-consulate.gov.cn/xw/200709/t20070914_4232058.htm",
+      "published_date": "2007-09-14",
+      "local_path": "raw/PBC_RATE20070914_REPRINT.html",
+      "retrieved_at_utc": "2026-10-16T01:01:44.671697+00:00",
+      "access": "public unauthenticated historical document",
+      "http_status": 200,
+      "resolved_url": "https://newyork.china-consulate.gov.cn/xw/200709/t20070914_4232058.htm",
+      "transport": "urllib_default_tls",
+      "status": "saved",
+      "bytes": 6928,
+      "sha256": "4f6d3527e9527f0062651014b2423c3194d921d3270ddd58329faaaf919e869a"
+    },
+    {
+      "source_id": "XIN_RATE20070720",
+      "url": "https://finance.sina.com.cn/g/20070720/18543806375.shtml",
+      "published_date": "2007-07-20",
+      "local_path": "raw/XIN_RATE20070720.html",
+      "retrieved_at_utc": "2026-10-16T01:01:44.702007+00:00",
+      "access": "public unauthenticated historical document",
+      "http_status": 200,
+      "resolved_url": "https://finance.sina.com.cn/g/20070720/18543806375.shtml",
+      "transport": "urllib_default_tls",
+      "status": "saved",
+      "bytes": 113251,
+      "sha256": "b06eb4234f124f7f9ac452ecd5af872848b301e2f07e1f2a241562f489996f34"
+    },
+    {
+      "source_id": "XIN_RATE20070821",
+      "url": "https://finance.sina.com.cn/china/hgjj/20070821/19173903527.shtml",
+      "published_date": "2007-08-21",
+      "local_path": "raw/XIN_RATE20070821.html",
+      "retrieved_at_utc": "2026-10-16T01:01:45.185745+00:00",
+      "access": "public unauthenticated historical document",
+      "http_status": 200,
+      "resolved_url": "https://finance.sina.com.cn/china/hgjj/20070821/19173903527.shtml",
+      "transport": "urllib_default_tls",
+      "status": "saved",
+      "bytes": 94151,
+      "sha256": "1d8ea6be3b824be5a32e9599bce927dd2b7f6f1a07f2d24178b7bbe53e5b1229"
+    },
+    {
+      "source_id": "CYD_RATE20070317",
+      "url": "https://news.sohu.com/20070318/n248797144.shtml",
+      "published_date": "2007-03-18",
+      "local_path": "raw/CYD_RATE20070317.html",
+      "retrieved_at_utc": "2026-10-16T01:01:45.209923+00:00",
+      "access": "public unauthenticated historical document",
+      "http_status": 200,
+      "resolved_url": "https://news.sohu.com/20070318/n248797144.shtml",
+      "transport": "urllib_default_tls",
+      "status": "saved",
+      "bytes": 105920,
+      "sha256": "2f08a3ad0d9747df9e8cfb36ac1d08bf64d4969a0c6898968692a23212cb7d1d"
+    },
+    {
+      "source_id": "CSRC_UNLOCK20080420",
+      "url": "https://www.csrc.gov.cn/csrc/c100028/c1002810/content.shtml",
+      "published_date": "2008-04-20",
+      "local_path": "raw/CSRC_UNLOCK20080420.html",
+      "retrieved_at_utc": "2026-10-16T01:04:52.831391+00:00",
+      "access": "public unauthenticated historical document",
+      "http_status": 200,
+      "resolved_url": "https://www.csrc.gov.cn/csrc/c100028/c1002810/content.shtml",
+      "transport": "urllib_default_tls",
+      "status": "saved",
+      "bytes": 17442,
+      "sha256": "81539e160ab45c6dd3330071d12e662f7d4673da0b5bec261eb076b2d5642d7e"
+    },
+    {
+      "source_id": "CSRC_UNLOCK_DISCLOSURE",
+      "url": "https://www.csrc.gov.cn/csrc/c100028/c1002771/content.shtml",
+      "published_date": "2008-08-15",
+      "local_path": "raw/CSRC_UNLOCK_DISCLOSURE.html",
+      "retrieved_at_utc": "2026-10-16T01:04:52.832392+00:00",
+      "access": "public unauthenticated historical document",
+      "http_status": 200,
+      "resolved_url": "https://www.csrc.gov.cn/csrc/c100028/c1002771/content.shtml",
+      "transport": "urllib_default_tls",
+      "status": "saved",
+      "bytes": 26489,
+      "sha256": "a9b1b37db592c40301669646c6675e45cd788b199e50cba6b9e5bf316f2ecb61"
+    }
+  ]
+}

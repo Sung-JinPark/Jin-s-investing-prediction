@@ -1,0 +1,142 @@
+{
+ "all_pass_cells_clear_prepublished_mde": true,
+ "approval_time": "2026-09-09T11:35:57+09:00 (V13-D3) — 사전 공표가 승인보다 앞선다",
+ "caveat": "설계창 MDE 는 설계창 표본 크기·기저율에서 나온 값이라 홀드아웃 창의 검출력과 같지 않다. 이 표는 '사후 MDE 만 있었다'는 지적을 반박할 뿐, 사후 MDE 사용 자체를 정당화하지 않는다.",
+ "cells": [
+  {
+   "G1_pass": true,
+   "G4_pass": true,
+   "cell": "rv_h21",
+   "clears_prepublished_mde": true,
+   "holdout_observed_mean": 0.196249,
+   "holdout_posthoc_mde": 0.046762,
+   "holdout_verdict": "pass",
+   "prepublished_mde_design_early": 0.05503,
+   "prepublished_mde_design_late": 0.035775,
+   "prepublished_mde_design_max": 0.05503,
+   "ratio_observed_over_prepublished": 3.566
+  },
+  {
+   "G1_pass": true,
+   "G4_pass": true,
+   "cell": "rv_h5",
+   "clears_prepublished_mde": true,
+   "holdout_observed_mean": 0.227943,
+   "holdout_posthoc_mde": 0.022065,
+   "holdout_verdict": "pass",
+   "prepublished_mde_design_early": 0.050848,
+   "prepublished_mde_design_late": 0.033372,
+   "prepublished_mde_design_max": 0.050848,
+   "ratio_observed_over_prepublished": 4.483
+  },
+  {
+   "G1_pass": true,
+   "G4_pass": false,
+   "cell": "rv_h63",
+   "clears_prepublished_mde": true,
+   "holdout_observed_mean": 0.103282,
+   "holdout_posthoc_mde": 0.038291,
+   "holdout_verdict": "fail",
+   "prepublished_mde_design_early": 0.012031,
+   "prepublished_mde_design_late": 0.007556,
+   "prepublished_mde_design_max": 0.012031,
+   "ratio_observed_over_prepublished": 8.585
+  },
+  {
+   "G1_pass": true,
+   "G4_pass": true,
+   "cell": "vix25_h21",
+   "clears_prepublished_mde": true,
+   "holdout_observed_mean": 0.090874,
+   "holdout_posthoc_mde": 0.034639,
+   "holdout_verdict": "pass",
+   "prepublished_mde_design_early": 0.045028,
+   "prepublished_mde_design_late": 0.067646,
+   "prepublished_mde_design_max": 0.067646,
+   "ratio_observed_over_prepublished": 1.343
+  },
+  {
+   "G1_pass": true,
+   "G4_pass": false,
+   "cell": "vix25_h5",
+   "clears_prepublished_mde": true,
+   "holdout_observed_mean": 0.078706,
+   "holdout_posthoc_mde": 0.010041,
+   "holdout_verdict": "fail",
+   "prepublished_mde_design_early": 0.012857,
+   "prepublished_mde_design_late": 0.075655,
+   "prepublished_mde_design_max": 0.075655,
+   "ratio_observed_over_prepublished": 1.04
+  },
+  {
+   "G1_pass": false,
+   "G4_pass": true,
+   "cell": "vix25_h63",
+   "clears_prepublished_mde": false,
+   "holdout_observed_mean": 0.041925,
+   "holdout_posthoc_mde": 0.078248,
+   "holdout_verdict": "fail",
+   "prepublished_mde_design_early": 0.064405,
+   "prepublished_mde_design_late": 0.046364,
+   "prepublished_mde_design_max": 0.064405,
+   "ratio_observed_over_prepublished": 0.651
+  },
+  {
+   "G1_pass": true,
+   "G4_pass": false,
+   "cell": "vix30_h21",
+   "clears_prepublished_mde": false,
+   "holdout_observed_mean": 0.034401,
+   "holdout_posthoc_mde": 0.016796,
+   "holdout_verdict": "fail",
+   "prepublished_mde_design_early": 0.01561,
+   "prepublished_mde_design_late": 0.083586,
+   "prepublished_mde_design_max": 0.083586,
+   "ratio_observed_over_prepublished": 0.412
+  },
+  {
+   "G1_pass": true,
+   "G4_pass": false,
+   "cell": "vix30_h5",
+   "clears_prepublished_mde": false,
+   "holdout_observed_mean": 0.0294,
+   "holdout_posthoc_mde": 0.003341,
+   "holdout_verdict": "fail",
+   "prepublished_mde_design_early": 0.025696,
+   "prepublished_mde_design_late": 0.082743,
+   "prepublished_mde_design_max": 0.082743,
+   "ratio_observed_over_prepublished": 0.355
+  },
+  {
+   "G1_pass": false,
+   "G4_pass": false,
+   "cell": "vix30_h63",
+   "clears_prepublished_mde": false,
+   "holdout_observed_mean": 0.031314,
+   "holdout_posthoc_mde": 0.052493,
+   "holdout_verdict": "fail",
+   "prepublished_mde_design_early": 0.034478,
+   "prepublished_mde_design_late": 0.076341,
+   "prepublished_mde_design_max": 0.076341,
+   "ratio_observed_over_prepublished": 0.41
+  }
+ ],
+ "cells_clearing_prepublished_mde": [
+  "rv_h21",
+  "rv_h5",
+  "rv_h63",
+  "vix25_h21",
+  "vix25_h5"
+ ],
+ "content_hash": "7c90044ca3f9bd235641ee991f990d5d0f0a0a05e61826169712e82dabe29bf2",
+ "definition": "사전 공표 MDE = 설계창 두 반창 pb_vs_clim.mde 중 큰 값(보수적)",
+ "holdout_pass_cells": [
+  "rv_h21",
+  "rv_h5",
+  "vix25_h21"
+ ],
+ "posthoc_source": "홀드아웃 실행 자신의 부트스트랩 se × 1.645",
+ "prepublished_source": "data/timeseries_v13/vol/guard_mde_design.json (generated_at 2026-09-09T02:06:01+00:00, 커밋 978e8936 2026-09-09T11:26:36+09:00)",
+ "purpose": "완결성 비평 S1-1 — 판정에 쓰인 MDE 가 사후 산출(1.645×se)이라는 지적에 대한 대조표.",
+ "schema": "v13_vol_mde_prepublished_vs_posthoc"
+}

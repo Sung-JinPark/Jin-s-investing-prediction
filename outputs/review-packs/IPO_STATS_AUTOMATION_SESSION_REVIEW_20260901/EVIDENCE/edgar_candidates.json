@@ -1,0 +1,184 @@
+{
+  "schema_version": 1,
+  "dataset_id": "ipo_edgar_424b4_candidates_v1",
+  "cadence": "biweekly",
+  "checked_at": "2026-08-31T11:17:43+00:00",
+  "reviewed_through": "2026-08-12",
+  "window_start": "2026-08-13",
+  "window_end": "2026-08-31",
+  "status": "current",
+  "form": "424B4",
+  "source": "sec_edgar_full_text_search",
+  "keywords": [
+    "artificial intelligence",
+    "machine learning",
+    "generative AI",
+    "large language model",
+    "deep learning",
+    "neural network"
+  ],
+  "window_clipped_to_max_lookback": false,
+  "applies_to_published_counts": false,
+  "historical_rows_locked": true,
+  "allowed_update_scope": "current_era_rows_only_after_review",
+  "counts": {
+    "candidates": 11,
+    "already_in_cohort": 0,
+    "pending_review": 11
+  },
+  "errors": [],
+  "candidates": [
+    {
+      "company": "Silexion Therapeutics Corp",
+      "cik": "0002022416",
+      "accession": "0001178913-26-004116",
+      "filed_at": "2026-08-13",
+      "form": "424B4",
+      "filing_url": "https://www.sec.gov/Archives/edgar/data/2022416/000117891326004116/zk2635948.htm",
+      "matched_keywords": [
+        "artificial intelligence"
+      ],
+      "already_in_cohort": false,
+      "review_status": "pending"
+    },
+    {
+      "company": "SunScout Holding Ltd",
+      "cik": "0002101240",
+      "accession": "0001213900-26-088617",
+      "filed_at": "2026-08-13",
+      "form": "424B4",
+      "filing_url": "https://www.sec.gov/Archives/edgar/data/2101240/000121390026088617/ea0268485-18.htm",
+      "matched_keywords": [
+        "artificial intelligence",
+        "deep learning",
+        "machine learning"
+      ],
+      "already_in_cohort": false,
+      "review_status": "pending"
+    },
+    {
+      "company": "Londian Wason New Energy Tech Inc.",
+      "cik": "0002006960",
+      "accession": "0001193125-26-351136",
+      "filed_at": "2026-08-14",
+      "form": "424B4",
+      "filing_url": "https://www.sec.gov/Archives/edgar/data/2006960/000119312526351136/d476818d424b4.htm",
+      "matched_keywords": [
+        "artificial intelligence"
+      ],
+      "already_in_cohort": false,
+      "review_status": "pending"
+    },
+    {
+      "company": "Karman Line Acquisition Corp.",
+      "cik": "0002134856",
+      "accession": "0001829126-26-009017",
+      "filed_at": "2026-08-18",
+      "form": "424B4",
+      "filing_url": "https://www.sec.gov/Archives/edgar/data/2134856/000182912626009017/karmanlineacq_424b4.htm",
+      "matched_keywords": [
+        "artificial intelligence"
+      ],
+      "already_in_cohort": false,
+      "review_status": "pending"
+    },
+    {
+      "company": "Alliance Laundry Holdings Inc.",
+      "cik": "0001317685",
+      "accession": "0001104659-26-098828",
+      "filed_at": "2026-08-19",
+      "form": "424B4",
+      "filing_url": "https://www.sec.gov/Archives/edgar/data/1317685/000110465926098828/tm2613541-7_424b4.htm",
+      "matched_keywords": [
+        "artificial intelligence"
+      ],
+      "already_in_cohort": false,
+      "review_status": "pending"
+    },
+    {
+      "company": "Lyntris Inc.",
+      "cik": "0002132582",
+      "accession": "0001193125-26-356916",
+      "filed_at": "2026-08-19",
+      "form": "424B4",
+      "filing_url": "https://www.sec.gov/Archives/edgar/data/2132582/000119312526356916/d23330d424b4.htm",
+      "matched_keywords": [
+        "artificial intelligence",
+        "generative AI",
+        "machine learning"
+      ],
+      "already_in_cohort": false,
+      "review_status": "pending"
+    },
+    {
+      "company": "Andersen Group Inc.",
+      "cik": "0002065708",
+      "accession": "0001193125-26-359181",
+      "filed_at": "2026-08-20",
+      "form": "424B4",
+      "filing_url": "https://www.sec.gov/Archives/edgar/data/2065708/000119312526359181/d132575d424b4.htm",
+      "matched_keywords": [
+        "artificial intelligence",
+        "generative AI"
+      ],
+      "already_in_cohort": false,
+      "review_status": "pending"
+    },
+    {
+      "company": "JATT III Acquisition Corp",
+      "cik": "0002145659",
+      "accession": "0001213900-26-093949",
+      "filed_at": "2026-08-26",
+      "form": "424B4",
+      "filing_url": "https://www.sec.gov/Archives/edgar/data/2145659/000121390026093949/ea0302980-424b4_jatt3.htm",
+      "matched_keywords": [
+        "machine learning"
+      ],
+      "already_in_cohort": false,
+      "review_status": "pending"
+    },
+    {
+      "company": "Rainier Acquisition Corp",
+      "cik": "0002147219",
+      "accession": "0001104659-26-102498",
+      "filed_at": "2026-08-27",
+      "form": "424B4",
+      "filing_url": "https://www.sec.gov/Archives/edgar/data/2147219/000110465926102498/tmb-20260821x424b4.htm",
+      "matched_keywords": [
+        "artificial intelligence",
+        "machine learning"
+      ],
+      "already_in_cohort": false,
+      "review_status": "pending"
+    },
+    {
+      "company": "Check-Cap Ltd",
+      "cik": "0001610590",
+      "accession": "0001213900-26-094129",
+      "filed_at": "2026-08-27",
+      "form": "424B4",
+      "filing_url": "https://www.sec.gov/Archives/edgar/data/1610590/000121390026094129/ea0303478-424b4_checkcap.htm",
+      "matched_keywords": [
+        "artificial intelligence"
+      ],
+      "already_in_cohort": false,
+      "review_status": "pending"
+    },
+    {
+      "company": "Republic Power Group Ltd",
+      "cik": "0001912884",
+      "accession": "0001213900-26-094237",
+      "filed_at": "2026-08-27",
+      "form": "424B4",
+      "filing_url": "https://www.sec.gov/Archives/edgar/data/1912884/000121390026094237/ea0303554-424b4_republic.htm",
+      "matched_keywords": [
+        "artificial intelligence",
+        "generative AI",
+        "large language model",
+        "machine learning"
+      ],
+      "already_in_cohort": false,
+      "review_status": "pending"
+    }
+  ]
+}

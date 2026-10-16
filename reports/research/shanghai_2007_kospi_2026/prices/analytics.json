@@ -1,0 +1,869 @@
+{
+  "schema_version": 1,
+  "as_of": "2026-10-16T09:00:00+09:00",
+  "cutoff_date": "2026-10-15",
+  "probability_output": false,
+  "research_only": true,
+  "units": "fractions except index closes and correlation coefficients",
+  "primary_definition": {
+    "historical_start": "2006-01-01",
+    "historical_end": "2007-10-15",
+    "current_start": "2025-01-01",
+    "current_end": "2026-10-15"
+  },
+  "primary": {
+    "SSE_COMPOSITE": {
+      "historical": {
+        "status": "ok",
+        "n_observations": 429,
+        "n_return_intervals": 428,
+        "first_date": "2006-01-04",
+        "last_date": "2007-10-15",
+        "first_close": 1180.96,
+        "last_close": 6030.09,
+        "return_fraction": 4.1060916542473915,
+        "annualized_volatility_fraction": 0.28530409096230525,
+        "volatility_annualization_sessions": 252,
+        "max_drawdown_fraction": -0.16587388002546766,
+        "max_drawdown_peak_date": "2007-05-29",
+        "max_drawdown_trough_date": "2007-07-05",
+        "peak_date": "2007-10-15",
+        "peak_close": 6030.09,
+        "latest_drawdown_fraction": 0.0,
+        "gaps_over_7_calendar_days": [
+          {
+            "previous_date": "2006-01-25",
+            "next_date": "2006-02-06",
+            "calendar_days": 12
+          },
+          {
+            "previous_date": "2006-04-28",
+            "next_date": "2006-05-08",
+            "calendar_days": 10
+          },
+          {
+            "previous_date": "2006-09-29",
+            "next_date": "2006-10-09",
+            "calendar_days": 10
+          },
+          {
+            "previous_date": "2007-02-16",
+            "next_date": "2007-02-26",
+            "calendar_days": 10
+          },
+          {
+            "previous_date": "2007-04-30",
+            "next_date": "2007-05-08",
+            "calendar_days": 8
+          },
+          {
+            "previous_date": "2007-09-28",
+            "next_date": "2007-10-08",
+            "calendar_days": 10
+          }
+        ],
+        "gap_policy": "actual observation-to-observation returns; gaps disclosed, never forward-filled"
+      },
+      "current": {
+        "status": "ok",
+        "n_observations": 433,
+        "n_return_intervals": 432,
+        "first_date": "2025-01-02",
+        "last_date": "2026-10-15",
+        "first_close": 2398.94,
+        "last_close": 5554.22,
+        "return_fraction": 1.3152809157377843,
+        "annualized_volatility_fraction": 0.4369478005729533,
+        "volatility_annualization_sessions": 252,
+        "max_drawdown_fraction": -0.39062049141208277,
+        "max_drawdown_peak_date": "2026-06-22",
+        "max_drawdown_trough_date": "2026-10-15",
+        "peak_date": "2026-06-22",
+        "peak_close": 9114.55,
+        "latest_drawdown_fraction": -0.39062049141208277,
+        "gaps_over_7_calendar_days": [
+          {
+            "previous_date": "2025-10-02",
+            "next_date": "2025-10-10",
+            "calendar_days": 8
+          }
+        ],
+        "gap_policy": "actual observation-to-observation returns; gaps disclosed, never forward-filled"
+      },
+      "weekly_returns": {
+        "n_return_pairs": 91,
+        "pearson": 0.0008900712540679355,
+        "spearman": -0.03226628444019748,
+        "interpretation": "descriptive similarity of two selected episodes; not crash probability or causal evidence",
+        "frequency": "weekly",
+        "alignment": "fixed +19 calendar years; no shift optimization",
+        "first_period": "2025-01-06",
+        "last_period": "2026-10-12",
+        "end_partial_period_included": true,
+        "missing_period_policy": "no fill; skip return if previous calendar period is absent"
+      }
+    },
+    "SSE_A": {
+      "historical": {
+        "status": "ok",
+        "n_observations": 429,
+        "n_return_intervals": 428,
+        "first_date": "2006-01-04",
+        "last_date": "2007-10-15",
+        "first_close": 1241.89,
+        "last_close": 6330.48,
+        "return_fraction": 4.097456296451376,
+        "annualized_volatility_fraction": 0.28541720901512063,
+        "volatility_annualization_sessions": 252,
+        "max_drawdown_fraction": -0.16505738830405225,
+        "max_drawdown_peak_date": "2007-05-29",
+        "max_drawdown_trough_date": "2007-07-05",
+        "peak_date": "2007-10-15",
+        "peak_close": 6330.48,
+        "latest_drawdown_fraction": 0.0,
+        "gaps_over_7_calendar_days": [
+          {
+            "previous_date": "2006-01-25",
+            "next_date": "2006-02-06",
+            "calendar_days": 12
+          },
+          {
+            "previous_date": "2006-04-28",
+            "next_date": "2006-05-08",
+            "calendar_days": 10
+          },
+          {
+            "previous_date": "2006-09-29",
+            "next_date": "2006-10-09",
+            "calendar_days": 10
+          },
+          {
+            "previous_date": "2007-02-16",
+            "next_date": "2007-02-26",
+            "calendar_days": 10
+          },
+          {
+            "previous_date": "2007-04-30",
+            "next_date": "2007-05-08",
+            "calendar_days": 8
+          },
+          {
+            "previous_date": "2007-09-28",
+            "next_date": "2007-10-08",
+            "calendar_days": 10
+          }
+        ],
+        "gap_policy": "actual observation-to-observation returns; gaps disclosed, never forward-filled"
+      },
+      "current": {
+        "status": "ok",
+        "n_observations": 433,
+        "n_return_intervals": 432,
+        "first_date": "2025-01-02",
+        "last_date": "2026-10-15",
+        "first_close": 2398.94,
+        "last_close": 5554.22,
+        "return_fraction": 1.3152809157377843,
+        "annualized_volatility_fraction": 0.4369478005729533,
+        "volatility_annualization_sessions": 252,
+        "max_drawdown_fraction": -0.39062049141208277,
+        "max_drawdown_peak_date": "2026-06-22",
+        "max_drawdown_trough_date": "2026-10-15",
+        "peak_date": "2026-06-22",
+        "peak_close": 9114.55,
+        "latest_drawdown_fraction": -0.39062049141208277,
+        "gaps_over_7_calendar_days": [
+          {
+            "previous_date": "2025-10-02",
+            "next_date": "2025-10-10",
+            "calendar_days": 8
+          }
+        ],
+        "gap_policy": "actual observation-to-observation returns; gaps disclosed, never forward-filled"
+      },
+      "weekly_returns": {
+        "n_return_pairs": 91,
+        "pearson": 0.0006388190041356628,
+        "spearman": -0.03529224398789616,
+        "interpretation": "descriptive similarity of two selected episodes; not crash probability or causal evidence",
+        "frequency": "weekly",
+        "alignment": "fixed +19 calendar years; no shift optimization",
+        "first_period": "2025-01-06",
+        "last_period": "2026-10-12",
+        "end_partial_period_included": true,
+        "missing_period_policy": "no fill; skip return if previous calendar period is absent"
+      }
+    }
+  },
+  "age_windows": {
+    "SSE_COMPOSITE": {
+      "252": {
+        "n_return_pairs": 252,
+        "pearson": -0.04849814053595889,
+        "spearman": -0.014475506593989185,
+        "interpretation": "descriptive similarity of two selected episodes; not crash probability or causal evidence",
+        "status": "ok",
+        "alignment": "equal prior trading-session age, paired chronologically",
+        "requested_return_intervals": 252,
+        "historical": {
+          "status": "ok",
+          "n_observations": 253,
+          "n_return_intervals": 252,
+          "first_date": "2006-09-25",
+          "last_date": "2007-10-15",
+          "first_close": 1722.37,
+          "last_close": 6030.09,
+          "return_fraction": 2.5010421686397235,
+          "annualized_volatility_fraction": 0.32588638784967183,
+          "volatility_annualization_sessions": 252,
+          "max_drawdown_fraction": -0.16587388002546766,
+          "max_drawdown_peak_date": "2007-05-29",
+          "max_drawdown_trough_date": "2007-07-05",
+          "peak_date": "2007-10-15",
+          "peak_close": 6030.09,
+          "latest_drawdown_fraction": 0.0,
+          "gaps_over_7_calendar_days": [
+            {
+              "previous_date": "2006-09-29",
+              "next_date": "2006-10-09",
+              "calendar_days": 10
+            },
+            {
+              "previous_date": "2007-02-16",
+              "next_date": "2007-02-26",
+              "calendar_days": 10
+            },
+            {
+              "previous_date": "2007-04-30",
+              "next_date": "2007-05-08",
+              "calendar_days": 8
+            },
+            {
+              "previous_date": "2007-09-28",
+              "next_date": "2007-10-08",
+              "calendar_days": 10
+            }
+          ],
+          "gap_policy": "actual observation-to-observation returns; gaps disclosed, never forward-filled"
+        },
+        "current": {
+          "status": "ok",
+          "n_observations": 253,
+          "n_return_intervals": 252,
+          "first_date": "2025-09-26",
+          "last_date": "2026-10-15",
+          "first_close": 3386.05,
+          "last_close": 5554.22,
+          "return_fraction": 0.640324271643951,
+          "annualized_volatility_fraction": 0.5483021611879658,
+          "volatility_annualization_sessions": 252,
+          "max_drawdown_fraction": -0.39062049141208277,
+          "max_drawdown_peak_date": "2026-06-22",
+          "max_drawdown_trough_date": "2026-10-15",
+          "peak_date": "2026-06-22",
+          "peak_close": 9114.55,
+          "latest_drawdown_fraction": -0.39062049141208277,
+          "gaps_over_7_calendar_days": [
+            {
+              "previous_date": "2025-10-02",
+              "next_date": "2025-10-10",
+              "calendar_days": 8
+            }
+          ],
+          "gap_policy": "actual observation-to-observation returns; gaps disclosed, never forward-filled"
+        }
+      },
+      "504": {
+        "n_return_pairs": 504,
+        "pearson": -0.0405035845688603,
+        "spearman": 0.015633028795637303,
+        "interpretation": "descriptive similarity of two selected episodes; not crash probability or causal evidence",
+        "status": "ok",
+        "alignment": "equal prior trading-session age, paired chronologically",
+        "requested_return_intervals": 504,
+        "historical": {
+          "status": "ok",
+          "n_observations": 505,
+          "n_return_intervals": 504,
+          "first_date": "2005-09-09",
+          "last_date": "2007-10-15",
+          "first_close": 1189.63,
+          "last_close": 6030.09,
+          "return_fraction": 4.068878558879652,
+          "annualized_volatility_fraction": 0.27075520702172756,
+          "volatility_annualization_sessions": 252,
+          "max_drawdown_fraction": -0.16587388002546766,
+          "max_drawdown_peak_date": "2007-05-29",
+          "max_drawdown_trough_date": "2007-07-05",
+          "peak_date": "2007-10-15",
+          "peak_close": 6030.09,
+          "latest_drawdown_fraction": 0.0,
+          "gaps_over_7_calendar_days": [
+            {
+              "previous_date": "2005-09-30",
+              "next_date": "2005-10-10",
+              "calendar_days": 10
+            },
+            {
+              "previous_date": "2006-01-25",
+              "next_date": "2006-02-06",
+              "calendar_days": 12
+            },
+            {
+              "previous_date": "2006-04-28",
+              "next_date": "2006-05-08",
+              "calendar_days": 10
+            },
+            {
+              "previous_date": "2006-09-29",
+              "next_date": "2006-10-09",
+              "calendar_days": 10
+            },
+            {
+              "previous_date": "2007-02-16",
+              "next_date": "2007-02-26",
+              "calendar_days": 10
+            },
+            {
+              "previous_date": "2007-04-30",
+              "next_date": "2007-05-08",
+              "calendar_days": 8
+            },
+            {
+              "previous_date": "2007-09-28",
+              "next_date": "2007-10-08",
+              "calendar_days": 10
+            }
+          ],
+          "gap_policy": "actual observation-to-observation returns; gaps disclosed, never forward-filled"
+        },
+        "current": {
+          "status": "ok",
+          "n_observations": 505,
+          "n_return_intervals": 504,
+          "first_date": "2024-09-11",
+          "last_date": "2026-10-15",
+          "first_close": 2513.37,
+          "last_close": 5554.22,
+          "return_fraction": 1.2098696172867505,
+          "annualized_volatility_fraction": 0.41096766346398567,
+          "volatility_annualization_sessions": 252,
+          "max_drawdown_fraction": -0.39062049141208277,
+          "max_drawdown_peak_date": "2026-06-22",
+          "max_drawdown_trough_date": "2026-10-15",
+          "peak_date": "2026-06-22",
+          "peak_close": 9114.55,
+          "latest_drawdown_fraction": -0.39062049141208277,
+          "gaps_over_7_calendar_days": [
+            {
+              "previous_date": "2025-10-02",
+              "next_date": "2025-10-10",
+              "calendar_days": 8
+            }
+          ],
+          "gap_policy": "actual observation-to-observation returns; gaps disclosed, never forward-filled"
+        }
+      }
+    },
+    "SSE_A": {
+      "252": {
+        "n_return_pairs": 252,
+        "pearson": -0.04883513415782317,
+        "spearman": -0.015973748521817117,
+        "interpretation": "descriptive similarity of two selected episodes; not crash probability or causal evidence",
+        "status": "ok",
+        "alignment": "equal prior trading-session age, paired chronologically",
+        "requested_return_intervals": 252,
+        "historical": {
+          "status": "ok",
+          "n_observations": 253,
+          "n_return_intervals": 252,
+          "first_date": "2006-09-25",
+          "last_date": "2007-10-15",
+          "first_close": 1808.75,
+          "last_close": 6330.48,
+          "return_fraction": 2.499919834139599,
+          "annualized_volatility_fraction": 0.3260499417327189,
+          "volatility_annualization_sessions": 252,
+          "max_drawdown_fraction": -0.16505738830405225,
+          "max_drawdown_peak_date": "2007-05-29",
+          "max_drawdown_trough_date": "2007-07-05",
+          "peak_date": "2007-10-15",
+          "peak_close": 6330.48,
+          "latest_drawdown_fraction": 0.0,
+          "gaps_over_7_calendar_days": [
+            {
+              "previous_date": "2006-09-29",
+              "next_date": "2006-10-09",
+              "calendar_days": 10
+            },
+            {
+              "previous_date": "2007-02-16",
+              "next_date": "2007-02-26",
+              "calendar_days": 10
+            },
+            {
+              "previous_date": "2007-04-30",
+              "next_date": "2007-05-08",
+              "calendar_days": 8
+            },
+            {
+              "previous_date": "2007-09-28",
+              "next_date": "2007-10-08",
+              "calendar_days": 10
+            }
+          ],
+          "gap_policy": "actual observation-to-observation returns; gaps disclosed, never forward-filled"
+        },
+        "current": {
+          "status": "ok",
+          "n_observations": 253,
+          "n_return_intervals": 252,
+          "first_date": "2025-09-26",
+          "last_date": "2026-10-15",
+          "first_close": 3386.05,
+          "last_close": 5554.22,
+          "return_fraction": 0.640324271643951,
+          "annualized_volatility_fraction": 0.5483021611879658,
+          "volatility_annualization_sessions": 252,
+          "max_drawdown_fraction": -0.39062049141208277,
+          "max_drawdown_peak_date": "2026-06-22",
+          "max_drawdown_trough_date": "2026-10-15",
+          "peak_date": "2026-06-22",
+          "peak_close": 9114.55,
+          "latest_drawdown_fraction": -0.39062049141208277,
+          "gaps_over_7_calendar_days": [
+            {
+              "previous_date": "2025-10-02",
+              "next_date": "2025-10-10",
+              "calendar_days": 8
+            }
+          ],
+          "gap_policy": "actual observation-to-observation returns; gaps disclosed, never forward-filled"
+        }
+      },
+      "504": {
+        "n_return_pairs": 504,
+        "pearson": -0.04064619263290801,
+        "spearman": 0.0150080188365329,
+        "interpretation": "descriptive similarity of two selected episodes; not crash probability or causal evidence",
+        "status": "ok",
+        "alignment": "equal prior trading-session age, paired chronologically",
+        "requested_return_intervals": 504,
+        "historical": {
+          "status": "ok",
+          "n_observations": 505,
+          "n_return_intervals": 504,
+          "first_date": "2005-09-09",
+          "last_date": "2007-10-15",
+          "first_close": 1250.16,
+          "last_close": 6330.48,
+          "return_fraction": 4.063735841812248,
+          "annualized_volatility_fraction": 0.2708591237100207,
+          "volatility_annualization_sessions": 252,
+          "max_drawdown_fraction": -0.16505738830405225,
+          "max_drawdown_peak_date": "2007-05-29",
+          "max_drawdown_trough_date": "2007-07-05",
+          "peak_date": "2007-10-15",
+          "peak_close": 6330.48,
+          "latest_drawdown_fraction": 0.0,
+          "gaps_over_7_calendar_days": [
+            {
+              "previous_date": "2005-09-30",
+              "next_date": "2005-10-10",
+              "calendar_days": 10
+            },
+            {
+              "previous_date": "2006-01-25",
+              "next_date": "2006-02-06",
+              "calendar_days": 12
+            },
+            {
+              "previous_date": "2006-04-28",
+              "next_date": "2006-05-08",
+              "calendar_days": 10
+            },
+            {
+              "previous_date": "2006-09-29",
+              "next_date": "2006-10-09",
+              "calendar_days": 10
+            },
+            {
+              "previous_date": "2007-02-16",
+              "next_date": "2007-02-26",
+              "calendar_days": 10
+            },
+            {
+              "previous_date": "2007-04-30",
+              "next_date": "2007-05-08",
+              "calendar_days": 8
+            },
+            {
+              "previous_date": "2007-09-28",
+              "next_date": "2007-10-08",
+              "calendar_days": 10
+            }
+          ],
+          "gap_policy": "actual observation-to-observation returns; gaps disclosed, never forward-filled"
+        },
+        "current": {
+          "status": "ok",
+          "n_observations": 505,
+          "n_return_intervals": 504,
+          "first_date": "2024-09-11",
+          "last_date": "2026-10-15",
+          "first_close": 2513.37,
+          "last_close": 5554.22,
+          "return_fraction": 1.2098696172867505,
+          "annualized_volatility_fraction": 0.41096766346398567,
+          "volatility_annualization_sessions": 252,
+          "max_drawdown_fraction": -0.39062049141208277,
+          "max_drawdown_peak_date": "2026-06-22",
+          "max_drawdown_trough_date": "2026-10-15",
+          "peak_date": "2026-06-22",
+          "peak_close": 9114.55,
+          "latest_drawdown_fraction": -0.39062049141208277,
+          "gaps_over_7_calendar_days": [
+            {
+              "previous_date": "2025-10-02",
+              "next_date": "2025-10-10",
+              "calendar_days": 8
+            }
+          ],
+          "gap_policy": "actual observation-to-observation returns; gaps disclosed, never forward-filled"
+        }
+      }
+    }
+  },
+  "monthly_start_sensitivity": {
+    "SSE_COMPOSITE": {
+      "2005-10-01": {
+        "current_start": "2024-10-01",
+        "n_return_pairs": 23,
+        "pearson": -0.032937975564670055,
+        "spearman": 0.044466403162055336,
+        "interpretation": "descriptive similarity of two selected episodes; not crash probability or causal evidence",
+        "frequency": "monthly",
+        "alignment": "fixed +19 calendar years; no shift optimization",
+        "first_period": "24298",
+        "last_period": "24320",
+        "end_partial_period_included": false,
+        "missing_period_policy": "no fill; skip return if previous calendar period is absent"
+      },
+      "2006-01-01": {
+        "current_start": "2025-01-01",
+        "n_return_pairs": 20,
+        "pearson": -0.06976778798732586,
+        "spearman": 0.02556390977443609,
+        "interpretation": "descriptive similarity of two selected episodes; not crash probability or causal evidence",
+        "frequency": "monthly",
+        "alignment": "fixed +19 calendar years; no shift optimization",
+        "first_period": "24301",
+        "last_period": "24320",
+        "end_partial_period_included": false,
+        "missing_period_policy": "no fill; skip return if previous calendar period is absent"
+      },
+      "2006-04-01": {
+        "current_start": "2025-04-01",
+        "n_return_pairs": 17,
+        "pearson": -0.11231141863408059,
+        "spearman": -0.0857843137254902,
+        "interpretation": "descriptive similarity of two selected episodes; not crash probability or causal evidence",
+        "frequency": "monthly",
+        "alignment": "fixed +19 calendar years; no shift optimization",
+        "first_period": "24304",
+        "last_period": "24320",
+        "end_partial_period_included": false,
+        "missing_period_policy": "no fill; skip return if previous calendar period is absent"
+      }
+    },
+    "SSE_A": {
+      "2005-10-01": {
+        "current_start": "2024-10-01",
+        "n_return_pairs": 23,
+        "pearson": -0.03619575176536706,
+        "spearman": 0.03260869565217391,
+        "interpretation": "descriptive similarity of two selected episodes; not crash probability or causal evidence",
+        "frequency": "monthly",
+        "alignment": "fixed +19 calendar years; no shift optimization",
+        "first_period": "24298",
+        "last_period": "24320",
+        "end_partial_period_included": false,
+        "missing_period_policy": "no fill; skip return if previous calendar period is absent"
+      },
+      "2006-01-01": {
+        "current_start": "2025-01-01",
+        "n_return_pairs": 20,
+        "pearson": -0.07294864861779694,
+        "spearman": 0.02556390977443609,
+        "interpretation": "descriptive similarity of two selected episodes; not crash probability or causal evidence",
+        "frequency": "monthly",
+        "alignment": "fixed +19 calendar years; no shift optimization",
+        "first_period": "24301",
+        "last_period": "24320",
+        "end_partial_period_included": false,
+        "missing_period_policy": "no fill; skip return if previous calendar period is absent"
+      },
+      "2006-04-01": {
+        "current_start": "2025-04-01",
+        "n_return_pairs": 17,
+        "pearson": -0.11548154195758997,
+        "spearman": -0.0857843137254902,
+        "interpretation": "descriptive similarity of two selected episodes; not crash probability or causal evidence",
+        "frequency": "monthly",
+        "alignment": "fixed +19 calendar years; no shift optimization",
+        "first_period": "24304",
+        "last_period": "24320",
+        "end_partial_period_included": false,
+        "missing_period_policy": "no fill; skip return if previous calendar period is absent"
+      }
+    }
+  },
+  "historical_outcomes": {
+    "SSE_COMPOSITE": {
+      "status": "ok",
+      "n_observations": 729,
+      "n_return_intervals": 728,
+      "first_date": "2006-01-04",
+      "last_date": "2008-12-31",
+      "first_close": 1180.96,
+      "last_close": 1820.81,
+      "return_fraction": 0.5418049722259854,
+      "annualized_volatility_fraction": 0.35930272463015955,
+      "volatility_annualization_sessions": 252,
+      "max_drawdown_fraction": -0.7198484584853071,
+      "max_drawdown_peak_date": "2007-10-16",
+      "max_drawdown_trough_date": "2008-11-04",
+      "peak_date": "2007-10-16",
+      "peak_close": 6092.06,
+      "latest_drawdown_fraction": -0.7011175201820075,
+      "gaps_over_7_calendar_days": [
+        {
+          "previous_date": "2006-01-25",
+          "next_date": "2006-02-06",
+          "calendar_days": 12
+        },
+        {
+          "previous_date": "2006-04-28",
+          "next_date": "2006-05-08",
+          "calendar_days": 10
+        },
+        {
+          "previous_date": "2006-09-29",
+          "next_date": "2006-10-09",
+          "calendar_days": 10
+        },
+        {
+          "previous_date": "2007-02-16",
+          "next_date": "2007-02-26",
+          "calendar_days": 10
+        },
+        {
+          "previous_date": "2007-04-30",
+          "next_date": "2007-05-08",
+          "calendar_days": 8
+        },
+        {
+          "previous_date": "2007-09-28",
+          "next_date": "2007-10-08",
+          "calendar_days": 10
+        },
+        {
+          "previous_date": "2008-02-05",
+          "next_date": "2008-02-13",
+          "calendar_days": 8
+        },
+        {
+          "previous_date": "2008-09-26",
+          "next_date": "2008-10-06",
+          "calendar_days": 10
+        }
+      ],
+      "gap_policy": "actual observation-to-observation returns; gaps disclosed, never forward-filled"
+    },
+    "SSE_A": {
+      "status": "ok",
+      "n_observations": 729,
+      "n_return_intervals": 728,
+      "first_date": "2006-01-04",
+      "last_date": "2008-12-31",
+      "first_close": 1241.89,
+      "last_close": 1911.79,
+      "return_fraction": 0.539419755372859,
+      "annualized_volatility_fraction": 0.35938624535556263,
+      "volatility_annualization_sessions": 252,
+      "max_drawdown_fraction": -0.7196486422254744,
+      "max_drawdown_peak_date": "2007-10-16",
+      "max_drawdown_trough_date": "2008-11-04",
+      "peak_date": "2007-10-16",
+      "peak_close": 6395.76,
+      "latest_drawdown_fraction": -0.7010847811675235,
+      "gaps_over_7_calendar_days": [
+        {
+          "previous_date": "2006-01-25",
+          "next_date": "2006-02-06",
+          "calendar_days": 12
+        },
+        {
+          "previous_date": "2006-04-28",
+          "next_date": "2006-05-08",
+          "calendar_days": 10
+        },
+        {
+          "previous_date": "2006-09-29",
+          "next_date": "2006-10-09",
+          "calendar_days": 10
+        },
+        {
+          "previous_date": "2007-02-16",
+          "next_date": "2007-02-26",
+          "calendar_days": 10
+        },
+        {
+          "previous_date": "2007-04-30",
+          "next_date": "2007-05-08",
+          "calendar_days": 8
+        },
+        {
+          "previous_date": "2007-09-28",
+          "next_date": "2007-10-08",
+          "calendar_days": 10
+        },
+        {
+          "previous_date": "2008-02-05",
+          "next_date": "2008-02-13",
+          "calendar_days": 8
+        },
+        {
+          "previous_date": "2008-09-26",
+          "next_date": "2008-10-06",
+          "calendar_days": 10
+        }
+      ],
+      "gap_policy": "actual observation-to-observation returns; gaps disclosed, never forward-filled"
+    }
+  },
+  "usd_global": {
+    "SSE_COMPOSITE": {
+      "status": "ok_usd_only",
+      "first_common_date": "2006-01-04",
+      "last_common_date": "2007-10-15",
+      "n_exact_common_dates": 429,
+      "local_rows": 429,
+      "usd_return_fraction": 4.481149883541413,
+      "world_price_return_fraction": null,
+      "usd_minus_world_log_return": null,
+      "benchmark_verified": false,
+      "world_relative_suppression_reason": "Yahoo MSCI WORLD same-date public snapshots conflict; return variant and final-close status unverified",
+      "common_date_basis": "equity+FX only",
+      "fx_policy": "exact same calendar dates only, no fill; Yahoo FX close time not supplied and may differ from Asian equity close",
+      "return_type": "price return; no dividend/total-return claim",
+      "available_at_warning": "retrospective historical vintage; not a PIT forecast regression"
+    },
+    "SSE_A": {
+      "status": "ok_usd_only",
+      "first_common_date": "2006-01-04",
+      "last_common_date": "2007-10-15",
+      "n_exact_common_dates": 429,
+      "local_rows": 429,
+      "usd_return_fraction": 4.471880231999102,
+      "world_price_return_fraction": null,
+      "usd_minus_world_log_return": null,
+      "benchmark_verified": false,
+      "world_relative_suppression_reason": "Yahoo MSCI WORLD same-date public snapshots conflict; return variant and final-close status unverified",
+      "common_date_basis": "equity+FX only",
+      "fx_policy": "exact same calendar dates only, no fill; Yahoo FX close time not supplied and may differ from Asian equity close",
+      "return_type": "price return; no dividend/total-return claim",
+      "available_at_warning": "retrospective historical vintage; not a PIT forecast regression"
+    },
+    "KOSPI": {
+      "status": "ok_usd_only",
+      "first_common_date": "2025-01-02",
+      "last_common_date": "2026-10-15",
+      "n_exact_common_dates": 431,
+      "local_rows": 433,
+      "usd_return_fraction": 1.547215242436958,
+      "world_price_return_fraction": null,
+      "usd_minus_world_log_return": null,
+      "benchmark_verified": false,
+      "world_relative_suppression_reason": "Yahoo MSCI WORLD same-date public snapshots conflict; return variant and final-close status unverified",
+      "common_date_basis": "equity+FX only",
+      "fx_policy": "exact same calendar dates only, no fill; Yahoo FX close time not supplied and may differ from Asian equity close",
+      "return_type": "price return; no dividend/total-return claim",
+      "available_at_warning": "retrospective historical vintage; not a PIT forecast regression"
+    }
+  },
+  "cautions": [
+    "Two selected episodes do not establish a population crash base rate.",
+    "Returns correlations describe fixed alignments; no p-value or crash probability is inferred.",
+    "Weekly last period is partial at the same fixed calendar cutoff; monthly comparisons exclude October2026.",
+    "Historical2008 outcomes are retrospective and do not extend the Korean observed line."
+  ],
+  "data_summary": {
+    "CNY_PER_USD": {
+      "n_observations": 1635,
+      "first_date": "2005-01-03",
+      "last_date": "2026-10-15",
+      "currency": "CNY/USD",
+      "source_ids": [
+        "yahoo_cny_per_usd_2005_2009",
+        "yahoo_cny_per_usd_2024_2026"
+      ]
+    },
+    "KOSPI": {
+      "n_observations": 556,
+      "first_date": "2024-07-01",
+      "last_date": "2026-10-15",
+      "currency": "KRW",
+      "source_ids": [
+        "investing_kospi_20261015",
+        "yahoo_kospi_2024_2026",
+        "yahoo_kospi_prehistory_2024"
+      ]
+    },
+    "KRW_PER_USD": {
+      "n_observations": 1613,
+      "first_date": "2005-01-03",
+      "last_date": "2026-10-15",
+      "currency": "KRW/USD",
+      "source_ids": [
+        "yahoo_krw_per_usd_2005_2009",
+        "yahoo_krw_per_usd_2024_2026"
+      ]
+    },
+    "MSCI_WORLD": {
+      "n_observations": 1541,
+      "first_date": "2005-01-03",
+      "last_date": "2026-10-15",
+      "currency": "USD",
+      "source_ids": [
+        "yahoo_msci_world_2005_2008",
+        "yahoo_msci_world_2024_2026"
+      ]
+    },
+    "SSE_A": {
+      "n_observations": 971,
+      "first_date": "2005-01-04",
+      "last_date": "2008-12-31",
+      "currency": "CNY",
+      "source_ids": [
+        "sse_yearbook_2006",
+        "sse_yearbook_2007",
+        "sse_yearbook_2008",
+        "sse_yearbook_2009"
+      ]
+    },
+    "SSE_COMPOSITE": {
+      "n_observations": 971,
+      "first_date": "2005-01-04",
+      "last_date": "2008-12-31",
+      "currency": "CNY",
+      "source_ids": [
+        "sse_yearbook_2006",
+        "sse_yearbook_2007",
+        "sse_yearbook_2008",
+        "sse_yearbook_2009"
+      ]
+    }
+  }
+}

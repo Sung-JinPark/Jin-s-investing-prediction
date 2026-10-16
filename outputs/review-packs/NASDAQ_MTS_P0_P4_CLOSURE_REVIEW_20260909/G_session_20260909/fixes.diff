@@ -1,0 +1,519 @@
+########## 6670ea7e
+commit 6670ea7e5275dda82ee3f34c78c47de1e018f0d6
+Author: repository owner (검토팩용 익명화)
+Date:   Wed Sep 9 16:19:57 2026 +0900
+
+    fix(v13-vol): 홀드아웃에서 떨어진 셀을 역할 문구·읽는 법이 계속 가리키던 것 수정
+    
+    라이브 카드는 홀드아웃 실패 6셀의 숫자를 이미 내리고 있었다. 그런데 문장은
+    그대로였다.
+    
+    - 역할 문구가 "등록 질문 vix-25-90d 의 base rate 공급원입니다" 라고 계속 말했다.
+      대응 셀 vix25_h63 은 홀드아웃에서 떨어져 표에 없다. 독자는 남아 있는 21영업일
+      기준율(6%)을 그 질문 값으로 읽게 된다. 이제 대응 셀이 실패 목록에 있으면
+      "공급하지 않습니다 · 이 질문에 대입하지 않습니다" 로 바뀐다.
+    - "읽는 법" 예시가 숨긴 셀을 인용해 화면에 `기준율 —` 이 찍혔다. 이제 실제로
+      실린 셀을 인용하고, 그 셀의 사건·지평에 맞춰 설명도 함께 바뀐다.
+    
+    숫자를 숨기는 것만으로는 표시 정직성이 성립하지 않는다 — 문장도 같은 사실을
+    말해야 한다. 테스트는 소스 문자열이 아니라 node 로 렌더 결과를 실행해 확인한다(5건).
+    
+    계약·모델·데이터 무변경.
+    
+    Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>
+---
+ src/ai_fc/dashboard_parts/dashboard.js            |  21 +++-
+ src/tests/test_timeseries_v13_vol_role_honesty.py | 132 ++++++++++++++++++++++
+ 2 files changed, 150 insertions(+), 3 deletions(-)
+
+diff --git a/src/ai_fc/dashboard_parts/dashboard.js b/src/ai_fc/dashboard_parts/dashboard.js
+index 63acc464..0f6e36ae 100644
+--- a/src/ai_fc/dashboard_parts/dashboard.js
++++ b/src/ai_fc/dashboard_parts/dashboard.js
+@@ -1669,6 +1669,8 @@ function timeseriesV13TabEnabled(v13){
+   return false;
+ }
+ const V13_CELL_LABELS={vix25:'VIX 25 이상 터치',vix30:'VIX 30 이상 터치',rv:'실현변동성 > 16.9%(연율)'};
++const V13_GUIDE_EVENT={vix25:'25를 터치한',vix30:'30을 터치한',rv:'16.9%(연율)를 넘은'};
++const V13_GUIDE_ORDER=['vix25_h63','vix25_h21','vix25_h5','vix30_h63','vix30_h21','vix30_h5','rv_h63','rv_h21','rv_h5'];
+ const v13Pct=p=>(p==null?'—':`${Math.round(Number(p)*100)}%`);
+ function renderTimeseriesV13VolPanel(v13){
+   v13=v13||{};
+@@ -1684,7 +1686,14 @@ function renderTimeseriesV13VolPanel(v13){
+   const caveat=`<p class="ts-lead v13-caveat">설계창(2007~2014) 스킬 · ${holdoutLabel} · <b>참고 의견 — 매매 신호가 아닙니다.</b> 아래 숫자는 예측이 아니라 <abbr title="${esc(plainTerm('base_rate_hint'))}">기준율</abbr>입니다.</p>`;
+   const preview=tier==='t2_hidden_panel'?`<p class="ts-lead">심사용 미리보기(T2 숨김 패널) — 공개 표시가 아닙니다.</p>`:'';
+   const refId=v13.reference_question?.id||'vix-25-90d';
+-  const roleLine=`<p class="v13-role">역할: 등록 질문 <b>${esc(refId)}</b>(AI 예측 · 90달력일)의 <abbr title="${esc(plainTerm('base_rate_hint'))}">base rate(outside view)</abbr> 공급원입니다. 두 값은 정의(≥25 vs >25.00)·지평(63영업일 vs 90달력일)·산출(수치모델 vs LLM)이 달라 <b>합치거나 평균내지 않습니다</b>.</p>`;
++  /* 대응 셀이 홀드아웃에서 떨어지면 그 숫자는 표에서 내려간다 — 그런데도 '공급원입니다'를
++     그대로 두면 독자가 남아 있는 다른 지평의 기준율을 이 질문 값으로 읽는다. 역할 문구는
++     대응 셀의 홀드아웃 결과를 따라간다. */
++  const refCellName=v13.reference_question?.cell||'vix25_h63';
++  const refCellFailed=(v13.holdout_fail_cells||[]).indexOf(refCellName)>=0;
++  const roleLine=refCellFailed
++    ?`<p class="v13-role">역할: 등록 질문 <b>${esc(refId)}</b>(AI 예측 · 90달력일)에 대응하는 셀(63영업일)은 <b>홀드아웃(2015~2018)을 통과하지 못해 base rate를 공급하지 않습니다.</b> 위 숫자는 지평·사건이 다른 기준율이며 이 질문에 대입하지 않습니다.</p>`
++    :`<p class="v13-role">역할: 등록 질문 <b>${esc(refId)}</b>(AI 예측 · 90달력일)의 <abbr title="${esc(plainTerm('base_rate_hint'))}">base rate(outside view)</abbr> 공급원입니다. 두 값은 정의(≥25 vs >25.00)·지평(63영업일 vs 90달력일)·산출(수치모델 vs LLM)이 달라 <b>합치거나 평균내지 않습니다</b>.</p>`;
+   const head=`<div class="admin-card-head"><h2>변동성 이벤트 기준율</h2>${badge}</div>`;
+   if(!live){
+     const reasons=(gate.reasons||[]).slice(0,5);
+@@ -1710,8 +1719,14 @@ function renderTimeseriesV13VolPanel(v13){
+     +`<span class="ts-gate-chip ${holdoutPass?'pass':holdoutFail?'hold':'warn'}" title="홀드아웃(2015~2018)은 사용자 승인 뒤 1회만 채점합니다. 기후 대비 통과여도 라벨 블록순열(건전 귀무) 통과율이 0.10을 넘으면 실패입니다.">홀드아웃 ${holdoutPass?'통과':holdoutFail?'실패':holdoutPartial?`부분 통과 ${passN}/${cellN}`:'미검증'}</span>`
+     +`<span class="ts-gate-chip pass" title="입력: VIX 종가 ${Number(inputs.vix_close||0).toFixed(1)} · 실현변동성(21일, 연율) ${(Number(inputs.rv21_ann||0)*100).toFixed(1)}%">VIX ${Number(inputs.vix_close||0).toFixed(1)} · RV21 ${(Number(inputs.rv21_ann||0)*100).toFixed(1)}%</span>`
+     +divChip+`</section>`;
+-  const ex=cells.vix25_h63?v13Pct(cells.vix25_h63.p):'—';
+-  const guide=`<p class="v13-role">읽는 법: "기준율 ${ex}"는 과거 같은 VIX 수준에서 63영업일 안에 25를 터치한 비율이 기후(무조건 빈도)와 얼마나 다른지 보여주는 <abbr title="${esc(plainTerm('base_rate_hint'))}">outside view</abbr>입니다. [80%] 대역은 <abbr title="${esc(plainTerm('band80_coef_hint'))}">계수 불확실성</abbr>이지 보정 구간이 아닙니다.</p>`;
++  /* 읽는 법은 화면에 실제로 실린 셀을 인용한다 — 홀드아웃에서 떨어져 숨긴 셀을 예로 들면
++     없는 숫자를 설명하는 문장이 된다. */
++  const guideName=cells[refCellName]?refCellName:V13_GUIDE_ORDER.find(k=>cells[k]);
++  const gm=guideName?guideName.match(/^(vix25|vix30|rv)_h(\d+)$/):null;
++  const band80Note=`[80%] 대역은 <abbr title="${esc(plainTerm('band80_coef_hint'))}">계수 불확실성</abbr>이지 보정 구간이 아닙니다.`;
++  const guide=gm
++    ?`<p class="v13-role">읽는 법: "기준율 ${v13Pct(cells[guideName].p)}"는 ${gm[1]==='rv'?'과거 같은 실현변동성 수준에서':'과거 같은 VIX 수준에서'} ${gm[2]}영업일 안에 ${V13_GUIDE_EVENT[gm[1]]} 비율이 기후(무조건 빈도)와 얼마나 다른지 보여주는 <abbr title="${esc(plainTerm('base_rate_hint'))}">outside view</abbr>입니다. ${band80Note}</p>`
++    :`<p class="v13-role">읽는 법: 표시 조건을 만족한 셀이 없어 인용할 기준율이 없습니다. ${band80Note}</p>`;
+   return `<div class="ts-panel"><section class="ts-card v13-vol-card">${head}${caveat}${preview}${gateStrip}${hTabs}${table}${guide}${roleLine}</section></div>`;
+ }
+ function bindTimeseriesV13VolInteractions(root){
+diff --git a/src/tests/test_timeseries_v13_vol_role_honesty.py b/src/tests/test_timeseries_v13_vol_role_honesty.py
+new file mode 100644
+index 00000000..6f7c1bb9
+--- /dev/null
++++ b/src/tests/test_timeseries_v13_vol_role_honesty.py
+@@ -0,0 +1,132 @@
++"""V13-VOL 카드 — 역할 문구와 '읽는 법'이 화면에 없는 셀을 가리키지 않는다.
++
++홀드아웃 부분 통과(2026-09-09)로 `vix25_h63` 이 표에서 내려갔다. 그런데도 카드가
++"등록 질문 vix-25-90d 의 base rate 공급원입니다" 라고 계속 말하면, 독자는 남아 있는
++다른 지평(21영업일)의 기준율을 그 질문 값으로 읽는다. 숫자를 숨기는 것만으로는
++표시 정직성이 성립하지 않는다 — 문장도 같이 따라가야 한다.
++
++소스 문자열이 아니라 렌더 결과를 node 로 실제 실행해 확인한다.
++"""
++from __future__ import annotations
++
++import json
++import subprocess
++from pathlib import Path
++
++import pytest
++
++ROOT = Path(__file__).resolve().parents[2]
++SCRIPT = (ROOT / "src/ai_fc/dashboard_parts/dashboard.js").read_text(encoding="utf-8")
++
++
++def _render(payload: dict) -> str:
++    """패널 렌더러만 잘라내 최소 스텁과 함께 실행한다."""
++    head = SCRIPT.index("const V13_CELL_LABELS=")
++    tail = SCRIPT.index("function bindTimeseriesV13VolInteractions(")
++    program = (
++        "const esc=s=>String(s).replace(/[&<>\"]/g,c=>({'&':'&amp;','<':'&lt;',"
++        "'>':'&gt;','\"':'&quot;'}[c]));\n"
++        "const plainTerm=k=>k;\n"
++        "const hasNumeric=v=>typeof v==='number'&&Number.isFinite(v);\n"
++        "const DATA={questions:[]};\n"
++        + SCRIPT[head:tail]
++        + "\nconsole.log(JSON.stringify({html:renderTimeseriesV13VolPanel("
++        + json.dumps(payload)
++        + ")}));\n"
++    )
++    completed = subprocess.run(
++        ["node", "-e", program], check=True, capture_output=True,
++        text=True, encoding="utf-8",
++    )
++    return json.loads(completed.stdout)["html"]
++
++
++def _payload(**over: object) -> dict:
++    base = {
++        "status": "live",
++        "numbers_visible": True,
++        "as_of": "2026-09-08",
++        "publication": {"display_tier": "t3_live_card", "holdout_status": "partial"},
++        "gate": {"design_gate_pass": True, "freshness_pass": True},
++        "freshness": {"missing_sessions": 0, "max_missing_sessions": 1},
++        "inputs": {"vix_close": 14.5, "rv21_ann": 0.129},
++        "reference_question": {
++            "id": "vix-25-90d", "cell": "vix25_h63", "divergence_threshold_pp": 15,
++        },
++        "holdout_pass_cells": ["vix25_h21", "rv_h5", "rv_h21"],
++        "holdout_fail_cells": [
++            "vix25_h5", "vix25_h63", "vix30_h5", "vix30_h21", "vix30_h63", "rv_h63",
++        ],
++        "cells": {
++            "vix25_h21": {
++                "p": 0.06, "band80": [0.04, 0.09], "clim_base_rate": 0.42,
++                "episode_sample": "thin",
++            },
++            "rv_h5": {"p": 0.11, "band80": [0.09, 0.13], "clim_base_rate": 0.55},
++            "rv_h21": {"p": 0.42, "band80": [0.35, 0.49], "clim_base_rate": 0.67},
++        },
++    }
++    base.update(over)
++    return base
++
++
++@pytest.fixture(scope="module")
++def node_available() -> None:
++    try:
++        subprocess.run(["node", "-v"], check=True, capture_output=True)
++    except (OSError, subprocess.CalledProcessError):  # pragma: no cover
++        pytest.skip("node 미설치")
++
++
++def test_role_line_withdraws_when_the_mapped_cell_failed_holdout(node_available: None) -> None:
++    html = _render(_payload())
++    assert "base rate를 공급하지 않습니다" in html
++    assert "공급원입니다" not in html, "떨어진 셀을 공급원이라 계속 말하면 안 된다"
++    assert "이 질문에 대입하지 않습니다" in html
++    # 대응 셀 숫자는 실제로 표에 없다 — 문장과 표가 같은 사실을 말한다
++    assert "기준율 42%" in html, "통과 셀(rv_h21)은 그대로 표시"
++    assert html.count("<b>기준율 ") == 3, "통과 3셀만 숫자를 싣는다"
++
++
++def test_role_line_stays_when_the_mapped_cell_passed(node_available: None) -> None:
++    payload = _payload(
++        holdout_pass_cells=["vix25_h63"], holdout_fail_cells=[],
++        publication={"display_tier": "t3_live_card", "holdout_status": "pass"},
++    )
++    payload["cells"]["vix25_h63"] = {
++        "p": 0.2, "band80": [0.15, 0.26], "clim_base_rate": 0.42, "reliability": "weak",
++    }
++    html = _render(payload)
++    assert "공급원입니다" in html
++    assert "합치거나 평균내지 않습니다" in html
++    assert "base rate를 공급하지 않습니다" not in html
++
++
++def test_reading_guide_quotes_a_cell_that_is_actually_displayed(node_available: None) -> None:
++    html = _render(_payload())
++    # 대응 셀이 숨겨졌으니 표에 실린 셀을 인용해야 한다 — "기준율 —" 는 나오지 않는다
++    assert '"기준율 —"' not in html
++    assert '"기준율 6%"' in html and "21영업일 안에 25를 터치한" in html
++
++
++def test_reading_guide_describes_the_event_of_the_cell_it_quotes(node_available: None) -> None:
++    """VIX 셀이 전부 떨어지면 인용은 실현변동성 셀로 넘어가고 설명도 함께 바뀐다."""
++    payload = _payload(
++        holdout_pass_cells=["rv_h5", "rv_h21"],
++        holdout_fail_cells=[
++            "vix25_h5", "vix25_h21", "vix25_h63",
++            "vix30_h5", "vix30_h21", "vix30_h63", "rv_h63",
++        ],
++    )
++    payload["cells"].pop("vix25_h21")
++    html = _render(payload)
++    assert "과거 같은 실현변동성 수준에서" in html
++    assert "16.9%(연율)를 넘은" in html
++    assert "25를 터치한" not in html, "인용하지 않은 사건을 설명하면 안 된다"
++
++
++def test_no_displayable_cell_leaves_no_dangling_example(node_available: None) -> None:
++    payload = _payload(cells={}, holdout_pass_cells=[])
++    html = _render(payload)
++    assert "인용할 기준율이 없습니다" in html
++    assert '"기준율 —"' not in html
+########## 2c0c6cb2
+commit 2c0c6cb226385c62f65f6a54b1c921cca559d204
+Author: repository owner (검토팩용 익명화)
+Date:   Wed Sep 9 16:19:58 2026 +0900
+
+    fix(ci): 실패 감시를 데이터 라이터 전부로 확대 — 조용한 정지 차단
+    
+    ops-failure-alert 가 timeseries-refresh·timeseries-v2-refresh 두 개만 지켜봤다.
+    그 바깥에서 두 건이 아무 신호 없이 지나갔다.
+    
+    - timeseries-v5-refresh: 2026-08-25 부터 12일 연속 실패(protected_non_mutation
+      드리프트). V5 연구 리드모델이 2주째 갱신되지 않았다.
+    - timeseries-v13-vol-live: 커밋 허용목록 버그로 사흘간 실패. 라이브 전진 표본
+      축적이 멈춰 있었다.
+    
+    감시 목록을 예약·연쇄 트리거로 도는 데이터 라이터 전부로 넓혔다. 회귀 테스트는
+    "푸시하면서 schedule 또는 workflow_run 으로 도는 워크플로는 감시 목록에 있어야
+    한다"를 강제한다 — 새 데이터 라이터가 감시 밖에 생길 수 없다.
+    
+    V5 실패 자체의 원인은 별건이라 이 PR 에서 고치지 않는다. 이제부터는 이슈로 보인다.
+    
+    Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>
+---
+ .github/workflows/ops-failure-alert.yml      | 25 ++++++++++++++++---
+ src/tests/test_investing_refresh_workflow.py | 36 ++++++++++++++++++++++++++++
+ 2 files changed, 58 insertions(+), 3 deletions(-)
+
+diff --git a/.github/workflows/ops-failure-alert.yml b/.github/workflows/ops-failure-alert.yml
+index f1b47c57..355cdd00 100644
+--- a/.github/workflows/ops-failure-alert.yml
++++ b/.github/workflows/ops-failure-alert.yml
+@@ -1,12 +1,31 @@
+ name: ops-failure-alert
+ 
+-# Deterministic failure surfacing for the two FRED refresh pipelines: when a
+-# run fails, create or update one labeled issue so failures are visible
++# Deterministic failure surfacing for every scheduled data-writer pipeline:
++# when a run fails, create or update one labeled issue so failures are visible
+ # without watching the Actions tab. No LLM, no new secrets.
++#
++# 2026-09-09: 감시 범위를 2개에서 데이터 라이터 전부로 넓혔다. 좁은 감시 탓에
++# timeseries-v5-refresh 는 2026-08-25 부터 12일 연속 실패한 채로, timeseries-v13-vol-live
++# 는 사흘 동안 라이브 전진 표본을 못 쌓은 채로 아무 신호 없이 지나갔다.
+ 
+ on:
+   workflow_run:
+-    workflows: [timeseries-refresh, timeseries-v2-refresh]
++    workflows:
++      - timeseries-refresh
++      - timeseries-v2-refresh
++      - timeseries-v5-refresh
++      - timeseries-v4-data-refresh
++      - timeseries-v8-shadow
++      - timeseries-v13-vol-live
++      - scenario-refresh
++      - ai-regime-refresh
++      - statistics-refresh
++      - source-monitoring
++      - investing-refresh
++      - ipo-edgar-watch
++      - monthly-research-pack
++      - ots-stamp
++      - statistics-alert-email
+     types: [completed]
+ 
+ permissions:
+diff --git a/src/tests/test_investing_refresh_workflow.py b/src/tests/test_investing_refresh_workflow.py
+index b93dcf04..c7ea7b10 100644
+--- a/src/tests/test_investing_refresh_workflow.py
++++ b/src/tests/test_investing_refresh_workflow.py
+@@ -72,6 +72,42 @@ def test_bot_data_commits_trigger_pages_and_verification() -> None:
+     assert 'workflows: ["investing-refresh"]' in ots
+ 
+ 
++def test_every_unattended_data_writer_is_watched_for_failure() -> None:
++    """사람이 안 보는 자리에서 데이터를 쓰는 워크플로는 전부 실패 감시 대상이다.
++
++    감시가 timeseries-refresh·timeseries-v2-refresh 두 개뿐이던 동안
++    timeseries-v5-refresh 는 2026-08-25 부터 12일 연속 실패했고,
++    timeseries-v13-vol-live 는 사흘간 라이브 전진 표본을 못 쌓았다. 둘 다 아무
++    신호도 남기지 않았다. 예약·연쇄 트리거는 지켜보는 사람이 없다는 뜻이므로
++    푸시하는 워크플로라면 감시 목록에 있어야 한다.
++    """
++    import re
++
++    import yaml
++
++    directory = ROOT / ".github" / "workflows"
++    alert = yaml.safe_load((directory / "ops-failure-alert.yml").read_text(encoding="utf-8"))
++    # PyYAML 은 YAML 1.1 규칙으로 `on:` 키를 True 로 읽는다
++    triggers = alert.get(True) or alert.get("on")
++    watched = set(triggers["workflow_run"]["workflows"])
++
++    unwatched: list[str] = []
++    for path in sorted(directory.glob("*.yml")):
++        text = path.read_text(encoding="utf-8")
++        if not re.search(r"\bgit push\b", text):
++            continue
++        document = yaml.safe_load(text)
++        on = document.get(True) or document.get("on") or {}
++        if not isinstance(on, dict):
++            continue
++        if not {"schedule", "workflow_run"} & set(on):
++            continue  # push·dispatch 전용은 방금 행동한 사람이 결과를 본다
++        name = document["name"]
++        if name not in watched and name != "ops-failure-alert":
++            unwatched.append(f"{path.name} ({name})")
++    assert not unwatched, f"실패가 조용히 묻히는 데이터 라이터: {unwatched}"
++
++
+ def test_every_data_commit_replays_on_the_fresh_tip() -> None:
+     """봇 데이터 커밋의 `git push` 는 반드시 rebase 재생을 앞세운다.
+ 
+########## 52d44563
+commit 52d44563eb707a91d0bb23b10b2716fd31b213a4
+Author: repository owner (검토팩용 익명화)
+Date:   Wed Sep 9 16:40:05 2026 +0900
+
+    fix(v13-vol): 모바일이 숫자 없는 지평으로 열려 카드가 대시만 보이던 것 수정
+    
+    375px 화면에서 표는 지평 한 칸만 보여준다. 기본값이 63영업일로 고정돼 있었는데,
+    홀드아웃에서 63 셀 3개가 전부 떨어진 뒤로 휴대폰 사용자는 대시 세 개만 봤다.
+    통과 셀 3개(21영업일 VIX·5·21영업일 실현변동성)는 다른 지평에 멀쩡히 있었다.
+    
+    기본 지평을 "숫자가 있는 가장 긴 지평"으로 바꾼다 — 63 에 숫자가 있으면 설계
+    그대로 63 으로 열고, 없으면 21, 그다음 5. 데스크톱 3열 표는 그대로다.
+    
+    실측: 375x812 에서 기본 탭 63 · 보이는 셀 세 개가 전부 "—" 였다.
+    
+    Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>
+---
+ src/ai_fc/dashboard_parts/dashboard.js            |  7 ++++--
+ src/tests/test_timeseries_v13_vol_role_honesty.py | 26 +++++++++++++++++++++++
+ 2 files changed, 31 insertions(+), 2 deletions(-)
+
+diff --git a/src/ai_fc/dashboard_parts/dashboard.js b/src/ai_fc/dashboard_parts/dashboard.js
+index 0f6e36ae..8dc60493 100644
+--- a/src/ai_fc/dashboard_parts/dashboard.js
++++ b/src/ai_fc/dashboard_parts/dashboard.js
+@@ -1704,8 +1704,11 @@ function renderTimeseriesV13VolPanel(v13){
+   const hs=['5','21','63'],hNote={'5':'(≈1주)','21':'(≈1개월)','63':'(≈90달력일)'};
+   const rowFor=(prefix,label)=>`<tr><th scope="row">${label}</th>${hs.map(h=>{const c=cells[`${prefix}_h${h}`];if(!c)return `<td data-h="${h}">—</td>`;const weak=c.reliability==='weak',thin=c.episode_sample==='thin',band=c.band80||[];
+     return `<td data-h="${h}"${weak||thin?' class="is-weak"':''}><b>기준율 ${v13Pct(c.p)}</b><small>[80%: ${v13Pct(band[0])}–${v13Pct(band[1])}]</small><small>기후 ${v13Pct(c.clim_base_rate)}</small>${weak?`<i title="${esc(plainTerm('v13_weak_hint'))}">▲ 보정 약함</i>`:''}${thin?`<i title="${esc(plainTerm('v13_thin_hint'))}">▲ 국면 표본 얇음</i>`:''}</td>`;}).join('')}</tr>`;
+-  const table=`<table class="v13-vol-table" data-active-h="63"><thead><tr><th scope="col">사건</th>${hs.map(h=>`<th scope="col" data-h="${h}">${h}<abbr title="${esc(plainTerm('business_day_hint'))}">영업일</abbr><small>${hNote[h]}</small></th>`).join('')}</tr></thead><tbody>${rowFor('vix25',V13_CELL_LABELS.vix25)}${rowFor('vix30',V13_CELL_LABELS.vix30)}${rowFor('rv',V13_CELL_LABELS.rv)}</tbody></table>`;
+-  const hTabs=`<nav class="lab-tabs v13-h-tabs" role="tablist" aria-label="지평 선택(모바일)">${hs.map(h=>`<button type="button" role="tab" data-v13-h-tab="${h}" aria-selected="${String(h==='63')}">${h}영업일</button>`).join('')}</nav>`;
++  /* 모바일은 지평 한 칸만 보여준다. 기본 63 을 그대로 두면 홀드아웃에서 63 이 전부 떨어진 지금
++     휴대폰 사용자는 대시 세 개만 보게 된다 — 숫자가 있는 지평으로 열되 순서(63→21→5)는 지킨다. */
++  const defaultH=hs.slice().reverse().find(h=>['vix25','vix30','rv'].some(p=>cells[`${p}_h${h}`]))||'63';
++  const table=`<table class="v13-vol-table" data-active-h="${defaultH}"><thead><tr><th scope="col">사건</th>${hs.map(h=>`<th scope="col" data-h="${h}">${h}<abbr title="${esc(plainTerm('business_day_hint'))}">영업일</abbr><small>${hNote[h]}</small></th>`).join('')}</tr></thead><tbody>${rowFor('vix25',V13_CELL_LABELS.vix25)}${rowFor('vix30',V13_CELL_LABELS.vix30)}${rowFor('rv',V13_CELL_LABELS.rv)}</tbody></table>`;
++  const hTabs=`<nav class="lab-tabs v13-h-tabs" role="tablist" aria-label="지평 선택(모바일)">${hs.map(h=>`<button type="button" role="tab" data-v13-h-tab="${h}" aria-selected="${String(h===defaultH)}">${h}영업일</button>`).join('')}</nav>`;
+   /* 괴리 칩 — 표시만. LLM 확률과 어떤 산술 결합도 하지 않는다. latest_prob 는 퍼센트 정수. */
+   const q=(DATA.questions||[]).find(x=>x.id===refId);
+   const llm=q&&hasNumeric(q.latest_prob)?Number(q.latest_prob):null;
+diff --git a/src/tests/test_timeseries_v13_vol_role_honesty.py b/src/tests/test_timeseries_v13_vol_role_honesty.py
+index 6f7c1bb9..fcacf1d9 100644
+--- a/src/tests/test_timeseries_v13_vol_role_honesty.py
++++ b/src/tests/test_timeseries_v13_vol_role_honesty.py
+@@ -125,6 +125,32 @@ def test_reading_guide_describes_the_event_of_the_cell_it_quotes(node_available:
+     assert "25를 터치한" not in html, "인용하지 않은 사건을 설명하면 안 된다"
+ 
+ 
++def test_mobile_opens_on_a_horizon_that_has_numbers(node_available: None) -> None:
++    """모바일은 지평 한 칸만 보인다 — 기본 지평이 비어 있으면 카드가 대시만 남는다.
++
++    홀드아웃에서 63영업일 3셀이 모두 떨어진 뒤, 375px 화면에서 카드는 기본 탭(63)을 열고
++    대시 세 개만 보여줬다. 통과 셀 3개는 다른 지평에 멀쩡히 있는데도.
++    """
++    html = _render(_payload())
++    assert 'data-active-h="21"' in html, "숫자가 있는 지평으로 열어야 한다"
++    assert 'data-v13-h-tab="21" aria-selected="true"' in html
++    assert 'data-v13-h-tab="63" aria-selected="true"' not in html
++
++
++def test_mobile_default_prefers_the_longest_horizon_that_has_numbers(node_available: None) -> None:
++    """63 에 숫자가 있으면 설계 그대로 63 으로 연다 — 순서는 63→21→5."""
++    payload = _payload(
++        holdout_pass_cells=["vix25_h63"], holdout_fail_cells=[],
++        publication={"display_tier": "t3_live_card", "holdout_status": "pass"},
++    )
++    payload["cells"]["vix25_h63"] = {
++        "p": 0.2, "band80": [0.15, 0.26], "clim_base_rate": 0.42,
++    }
++    html = _render(payload)
++    assert 'data-active-h="63"' in html
++    assert 'data-v13-h-tab="63" aria-selected="true"' in html
++
++
+ def test_no_displayable_cell_leaves_no_dangling_example(node_available: None) -> None:
+     payload = _payload(cells={}, holdout_pass_cells=[])
+     html = _render(payload)
+########## 63eb0b97
+commit 63eb0b971a3f6b863b8c5dcb076aa1837d81007a
+Author: repository owner (검토팩용 익명화)
+Date:   Wed Sep 9 16:59:24 2026 +0900
+
+    fix(tools): 로드맵 상태에 읽은 체크아웃 표시 — 낡은 워크트리를 조용히 보고하던 것
+    
+    이 저장소는 워크트리가 여럿이고, 도구의 ROOT 는 스크립트 파일이 있는 체크아웃으로
+    고정된다. 다른 워크트리에서 실행해도 항상 그 체크아웃의 원장을 읽는다.
+    
+    주 워킹트리가 옛 브랜치에 머물러 있는 동안 "라이브 원점 1" 이 나왔다. 실제로는 2였다.
+    숫자가 틀렸다는 신호가 어디에도 없었다 — 설계도 §9 가 상태를 손으로 적지 말라고 한
+    이유(낡은 상태가 잘못된 다음 행동을 부른다)가 도구 자신에게도 그대로 적용된다.
+    
+    이제 첫 줄에 읽은 체크아웃 경로·브랜치·HEAD 를 찍고, origin/main 보다 뒤처져 있으면
+    몇 커밋 뒤인지와 함께 "아래 숫자는 그만큼 낡았다"를 붙인다. 여전히 읽기 전용이다.
+    
+    테스트 3건 — 출처 표시, 숫자보다 앞선 위치, 쓰기 호출 부재.
+    
+    Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>
+---
+ src/tests/test_roadmap_status.py | 44 ++++++++++++++++++++++++++++++++++++++++
+ tools/roadmap_status.py          | 30 ++++++++++++++++++++++++++-
+ 2 files changed, 73 insertions(+), 1 deletion(-)
+
+diff --git a/src/tests/test_roadmap_status.py b/src/tests/test_roadmap_status.py
+new file mode 100644
+index 00000000..a22941bf
+--- /dev/null
++++ b/src/tests/test_roadmap_status.py
+@@ -0,0 +1,44 @@
++"""로드맵 상태 도구 — 파생 숫자에 출처를 붙인다.
++
++`ROOT` 는 스크립트 파일이 있는 체크아웃이다. 워크트리가 여럿인 이 저장소에서는 다른
++워크트리에서 실행해도 항상 그 체크아웃을 읽는다. 그 체크아웃이 옛 브랜치에 머물러
++있으면 원장이 뒤처진 채로 숫자가 나온다 — 2026-09-09 에 라이브 원점이 실제 2인데
++1 로 보고됐다. 파생 상태를 믿으려면 어느 체크아웃을 읽었는지 보여야 한다.
++"""
++from __future__ import annotations
++
++import io
++import sys
++from contextlib import redirect_stdout
++from pathlib import Path
++
++import pytest
++
++ROOT = Path(__file__).resolve().parents[2]
++sys.path.insert(0, str(ROOT / "tools"))
++roadmap = pytest.importorskip("roadmap_status")
++
++
++def test_provenance_names_the_checkout_that_was_read() -> None:
++    line = roadmap._provenance()
++    assert str(roadmap.ROOT) in line, "읽은 체크아웃의 경로가 드러나야 한다"
++    assert "읽은 체크아웃" in line
++
++
++def test_report_prints_provenance_before_any_number() -> None:
++    buffer = io.StringIO()
++    with redirect_stdout(buffer):
++        roadmap.main()
++    text = buffer.getvalue()
++    assert "읽은 체크아웃" in text
++    head = text.index("읽은 체크아웃")
++    for marker in ("자원 잔량", "라이브 원점"):
++        if marker in text:
++            assert head < text.index(marker), "숫자보다 출처가 먼저 나와야 한다"
++
++
++def test_tool_writes_nothing(tmp_path: Path) -> None:
++    """설계도 §9.4 — 읽기 전용. 상태를 적는 파일을 만들지 않는다."""
++    source = (ROOT / "tools/roadmap_status.py").read_text(encoding="utf-8")
++    for forbidden in ("write_text(", "open(", "mkdir(", "touch("):
++        assert forbidden not in source, f"쓰기 호출 {forbidden} 은 있어선 안 된다"
+diff --git a/tools/roadmap_status.py b/tools/roadmap_status.py
+index c2aa67f5..ce352f65 100644
+--- a/tools/roadmap_status.py
++++ b/tools/roadmap_status.py
+@@ -191,8 +191,36 @@ STAGES: list[tuple[str, str, Callable[[], tuple[bool, list[str]]], str, str]] =
+ ]
+ 
+ 
++def _provenance() -> str:
++    """어느 체크아웃을 읽었는지 밝힌다.
++
++    ROOT 는 이 스크립트 파일이 있는 체크아웃이다. 워크트리가 여럿이면 다른 데서 실행해도
++    항상 여기를 읽는다 — 그 체크아웃이 옛 브랜치에 머물러 있으면 원장이 뒤처진 채로
++    '라이브 원점 1' 같은 숫자가 나온다(2026-09-09 실측: 실제 2, 보고 1). 파생 상태를
++    믿으려면 출처를 봐야 한다.
++    """
++    import subprocess
++
++    def _git(*args: str) -> str:
++        try:
++            out = subprocess.run(["git", "-C", str(ROOT), *args], capture_output=True,
++                                 text=True, encoding="utf-8", timeout=20)
++            return (out.stdout or "").strip() if out.returncode == 0 else ""
++        except (OSError, subprocess.SubprocessError):
++            return ""
++
++    branch = _git("rev-parse", "--abbrev-ref", "HEAD") or "?"
++    head = _git("rev-parse", "--short", "HEAD") or "?"
++    behind = _git("rev-list", "--count", "HEAD..origin/main")
++    lag = ""
++    if behind.isdigit() and int(behind) > 0:
++        lag = f" · origin/main 보다 {behind}커밋 뒤 — 아래 숫자는 그만큼 낡았다"
++    return f"읽은 체크아웃: {ROOT} [{branch} @ {head}]{lag}"
++
++
+ def main() -> int:
+-    print("MTS 로드맵 상태 — 원장·계약에서 파생 (설계도 §9). 읽기 전용.\n")
++    print("MTS 로드맵 상태 — 원장·계약에서 파생 (설계도 §9). 읽기 전용.")
++    print(_provenance() + "\n")
+     contract = _contract()
+     if not contract:
+         print("V13 계약을 읽을 수 없다 — 저장소 루트에서 실행했는지 확인하라.")

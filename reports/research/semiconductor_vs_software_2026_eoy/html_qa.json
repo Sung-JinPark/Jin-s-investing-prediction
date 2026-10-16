@@ -1,0 +1,96 @@
+{
+  "status": "pass",
+  "check_count": 16,
+  "checks": [
+    {
+      "name": "visible_primary_conclusion",
+      "pass": true,
+      "detail": "실적 근거는 반도체 우선.\n연말 가격 우위는 미검증입니다."
+    },
+    {
+      "name": "desktop_document_no_horizontal_overflow",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "interactive_defaults_rendered",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "multiple_slider_reverses_leader",
+      "pass": true,
+      "detail": {
+        "spread": "-1.39%p",
+        "explanation": "현재 입력에서는 소프트웨어의 기대수익이 더 높습니다."
+      }
+    },
+    {
+      "name": "invalid_weights_rejected_visibly",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "reset_restores_default",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "blank_weight_not_silently_zero",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "actual_history_and_overlap_disclosed",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "classifier_baseline_metrics_present",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "no_pending_visible",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "no_javascript_errors",
+      "pass": true,
+      "detail": []
+    },
+    {
+      "name": "self_contained_no_network_requests",
+      "pass": true,
+      "detail": []
+    },
+    {
+      "name": "responsive_390_no_document_overflow",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "responsive_390_slider_available",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "responsive_768_no_document_overflow",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "responsive_768_slider_available",
+      "pass": true,
+      "detail": null
+    }
+  ],
+  "errors": [],
+  "browser": "installed Edge / headless Playwright",
+  "screenshots": [
+    "report_desktop.png",
+    "report_overview.png",
+    "report_mobile.png"
+  ]
+}

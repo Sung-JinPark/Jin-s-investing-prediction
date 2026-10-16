@@ -1,0 +1,365 @@
+{
+  "as_of": "2026-10-16T09:00:00+09:00",
+  "unit": "fraction",
+  "probabilities": null,
+  "current_origin": {
+    "date": "2026-10-15",
+    "close": 5554.22,
+    "close_peak": 9114.55,
+    "additional_20pct_loss_threshold_points": 4443.376,
+    "return_required_to_recover_peak_fraction": 0.6410134996453145,
+    "drawdown_from_old_peak_after_additional_20pct_fraction": -0.5124963931296662
+  },
+  "historical_same_drawdown_diagnostic": {
+    "role": "single-case ex-post diagnostic; conditioning on today's observed drawdown, not an independently validated forecast",
+    "matched_drawdown_threshold_fraction": -0.39062049141208277,
+    "first_crossing_date": "2008-03-18",
+    "first_crossing_close": 3668.9,
+    "first_crossing_actual_drawdown_fraction": -0.3977570805277689,
+    "previous_session_drawdown_fraction": -0.3729460970509154,
+    "outcomes": {
+      "126": {
+        "status": "complete",
+        "end_return_fraction": -0.47421570497969423,
+        "worst_origin_return_fraction": -0.47421570497969423,
+        "max_drawdown_fraction": -0.49289572955139915,
+        "additional_20pct_loss_event": true,
+        "last_date": "2008-09-17"
+      },
+      "252": {
+        "status": "right_censored",
+        "observations_available": 196,
+        "required": 252,
+        "result": null
+      }
+    }
+  },
+  "measured_eps_pe_decomposition": null,
+  "decomposition_missing_reason": "No matched constant-definition index EPS and P/E endpoint time series; aggregate profits and differently defined multiples cannot substitute",
+  "sensitivity": [
+    {
+      "eps_change_fraction": -0.4,
+      "pe_change_fraction": -0.4,
+      "price_return_fraction": -0.64,
+      "role": "illustrative algebra, not estimated scenario, forecast, frequency or probability"
+    },
+    {
+      "eps_change_fraction": -0.4,
+      "pe_change_fraction": -0.2,
+      "price_return_fraction": -0.52,
+      "role": "illustrative algebra, not estimated scenario, forecast, frequency or probability"
+    },
+    {
+      "eps_change_fraction": -0.4,
+      "pe_change_fraction": 0.0,
+      "price_return_fraction": -0.4,
+      "role": "illustrative algebra, not estimated scenario, forecast, frequency or probability"
+    },
+    {
+      "eps_change_fraction": -0.4,
+      "pe_change_fraction": 0.2,
+      "price_return_fraction": -0.28,
+      "role": "illustrative algebra, not estimated scenario, forecast, frequency or probability"
+    },
+    {
+      "eps_change_fraction": -0.4,
+      "pe_change_fraction": 0.4,
+      "price_return_fraction": -0.16000000000000003,
+      "role": "illustrative algebra, not estimated scenario, forecast, frequency or probability"
+    },
+    {
+      "eps_change_fraction": -0.2,
+      "pe_change_fraction": -0.4,
+      "price_return_fraction": -0.52,
+      "role": "illustrative algebra, not estimated scenario, forecast, frequency or probability"
+    },
+    {
+      "eps_change_fraction": -0.2,
+      "pe_change_fraction": -0.2,
+      "price_return_fraction": -0.3599999999999999,
+      "role": "illustrative algebra, not estimated scenario, forecast, frequency or probability"
+    },
+    {
+      "eps_change_fraction": -0.2,
+      "pe_change_fraction": 0.0,
+      "price_return_fraction": -0.19999999999999996,
+      "role": "illustrative algebra, not estimated scenario, forecast, frequency or probability"
+    },
+    {
+      "eps_change_fraction": -0.2,
+      "pe_change_fraction": 0.2,
+      "price_return_fraction": -0.040000000000000036,
+      "role": "illustrative algebra, not estimated scenario, forecast, frequency or probability"
+    },
+    {
+      "eps_change_fraction": -0.2,
+      "pe_change_fraction": 0.4,
+      "price_return_fraction": 0.11999999999999988,
+      "role": "illustrative algebra, not estimated scenario, forecast, frequency or probability"
+    },
+    {
+      "eps_change_fraction": 0.0,
+      "pe_change_fraction": -0.4,
+      "price_return_fraction": -0.4,
+      "role": "illustrative algebra, not estimated scenario, forecast, frequency or probability"
+    },
+    {
+      "eps_change_fraction": 0.0,
+      "pe_change_fraction": -0.2,
+      "price_return_fraction": -0.19999999999999996,
+      "role": "illustrative algebra, not estimated scenario, forecast, frequency or probability"
+    },
+    {
+      "eps_change_fraction": 0.0,
+      "pe_change_fraction": 0.0,
+      "price_return_fraction": 0.0,
+      "role": "illustrative algebra, not estimated scenario, forecast, frequency or probability"
+    },
+    {
+      "eps_change_fraction": 0.0,
+      "pe_change_fraction": 0.2,
+      "price_return_fraction": 0.19999999999999996,
+      "role": "illustrative algebra, not estimated scenario, forecast, frequency or probability"
+    },
+    {
+      "eps_change_fraction": 0.0,
+      "pe_change_fraction": 0.4,
+      "price_return_fraction": 0.3999999999999999,
+      "role": "illustrative algebra, not estimated scenario, forecast, frequency or probability"
+    },
+    {
+      "eps_change_fraction": 0.2,
+      "pe_change_fraction": -0.4,
+      "price_return_fraction": -0.28,
+      "role": "illustrative algebra, not estimated scenario, forecast, frequency or probability"
+    },
+    {
+      "eps_change_fraction": 0.2,
+      "pe_change_fraction": -0.2,
+      "price_return_fraction": -0.040000000000000036,
+      "role": "illustrative algebra, not estimated scenario, forecast, frequency or probability"
+    },
+    {
+      "eps_change_fraction": 0.2,
+      "pe_change_fraction": 0.0,
+      "price_return_fraction": 0.19999999999999996,
+      "role": "illustrative algebra, not estimated scenario, forecast, frequency or probability"
+    },
+    {
+      "eps_change_fraction": 0.2,
+      "pe_change_fraction": 0.2,
+      "price_return_fraction": 0.43999999999999995,
+      "role": "illustrative algebra, not estimated scenario, forecast, frequency or probability"
+    },
+    {
+      "eps_change_fraction": 0.2,
+      "pe_change_fraction": 0.4,
+      "price_return_fraction": 0.6799999999999999,
+      "role": "illustrative algebra, not estimated scenario, forecast, frequency or probability"
+    },
+    {
+      "eps_change_fraction": 0.4,
+      "pe_change_fraction": -0.4,
+      "price_return_fraction": -0.16000000000000003,
+      "role": "illustrative algebra, not estimated scenario, forecast, frequency or probability"
+    },
+    {
+      "eps_change_fraction": 0.4,
+      "pe_change_fraction": -0.2,
+      "price_return_fraction": 0.11999999999999988,
+      "role": "illustrative algebra, not estimated scenario, forecast, frequency or probability"
+    },
+    {
+      "eps_change_fraction": 0.4,
+      "pe_change_fraction": 0.0,
+      "price_return_fraction": 0.3999999999999999,
+      "role": "illustrative algebra, not estimated scenario, forecast, frequency or probability"
+    },
+    {
+      "eps_change_fraction": 0.4,
+      "pe_change_fraction": 0.2,
+      "price_return_fraction": 0.6799999999999999,
+      "role": "illustrative algebra, not estimated scenario, forecast, frequency or probability"
+    },
+    {
+      "eps_change_fraction": 0.4,
+      "pe_change_fraction": 0.4,
+      "price_return_fraction": 0.9599999999999997,
+      "role": "illustrative algebra, not estimated scenario, forecast, frequency or probability"
+    }
+  ],
+  "loss_threshold": [
+    {
+      "eps_change_fraction": -0.2,
+      "pe_change_for_20pct_origin_loss_fraction": 0.0
+    },
+    {
+      "eps_change_fraction": -0.1,
+      "pe_change_for_20pct_origin_loss_fraction": -0.11111111111111105
+    },
+    {
+      "eps_change_fraction": 0.0,
+      "pe_change_for_20pct_origin_loss_fraction": -0.19999999999999996
+    },
+    {
+      "eps_change_fraction": 0.1,
+      "pe_change_for_20pct_origin_loss_fraction": -0.2727272727272727
+    },
+    {
+      "eps_change_fraction": 0.2,
+      "pe_change_for_20pct_origin_loss_fraction": -0.33333333333333326
+    },
+    {
+      "eps_change_fraction": 0.4,
+      "pe_change_for_20pct_origin_loss_fraction": -0.4285714285714285
+    }
+  ],
+  "policy_windows": [
+    {
+      "id": "CN-STAMP-20070530",
+      "symbol": "SSE_COMPOSITE",
+      "date": "2007-05-30",
+      "category": "과열 억제",
+      "event": "증권거래 인지세 인상 시행",
+      "source": "https://www.mofcom.gov.cn/zcfb/zgdwjjmywg/art/2007/art_99829a5529ff4223a7bf6ca48ffc4b24.html",
+      "event_session": "2007-05-30",
+      "anchor_close_date": "2007-05-29",
+      "pre_start_date": "2007-04-24",
+      "pre_20_return_fraction": 0.16513507484148748,
+      "post_20_return_fraction": -0.08340407666116101,
+      "post_end_date": "2007-06-26",
+      "individual_flow_change": null,
+      "flow_missing_reason": "No comparable public daily investor-flow panel acquired; not inferred from prices or deposits",
+      "interpretation": "date-based descriptive window, not an abnormal-return or causal estimate; announcement time unknown",
+      "status": "ok",
+      "pre_usd_minus_world_log_return": null,
+      "pre_relative_common_start": "2007-04-24",
+      "pre_relative_common_end": "2007-05-29",
+      "post_usd_minus_world_log_return": null,
+      "post_relative_common_start": "2007-05-29",
+      "post_relative_common_end": "2007-06-26"
+    },
+    {
+      "id": "KR-RIA-20260120",
+      "symbol": "KOSPI",
+      "date": "2026-01-20",
+      "category": "국내투자 유도 추진안",
+      "event": "RIA 국내투자 세제지원 추진 발표",
+      "source": "https://www.korea.kr/news/policyNewsView.do?newsId=148958323",
+      "event_session": "2026-01-20",
+      "anchor_close_date": "2026-01-19",
+      "pre_start_date": "2025-12-17",
+      "pre_20_return_fraction": 0.2091134771879568,
+      "post_20_return_fraction": 0.1575216222939002,
+      "post_end_date": "2026-02-19",
+      "individual_flow_change": null,
+      "flow_missing_reason": "No comparable public daily investor-flow panel acquired; not inferred from prices or deposits",
+      "interpretation": "date-based descriptive window, not an abnormal-return or causal estimate; announcement time unknown",
+      "status": "ok",
+      "pre_usd_minus_world_log_return": null,
+      "pre_relative_common_start": "2025-12-17",
+      "pre_relative_common_end": "2026-01-19",
+      "post_usd_minus_world_log_return": null,
+      "post_relative_common_start": "2026-01-19",
+      "post_relative_common_end": "2026-02-19"
+    },
+    {
+      "id": "KR-FUND-20260506",
+      "symbol": "KOSPI",
+      "date": "2026-05-06",
+      "category": "산업자금 및 참여 유도",
+      "event": "국민참여성장펀드 설계 발표",
+      "source": "https://www.fsc.go.kr/no010101/86834?curPage=2",
+      "event_session": "2026-05-06",
+      "anchor_close_date": "2026-05-04",
+      "pre_start_date": "2026-04-03",
+      "pre_20_return_fraction": 0.29005076897327653,
+      "post_20_return_fraction": 0.24541191496600123,
+      "post_end_date": "2026-06-04",
+      "individual_flow_change": null,
+      "flow_missing_reason": "No comparable public daily investor-flow panel acquired; not inferred from prices or deposits",
+      "interpretation": "date-based descriptive window, not an abnormal-return or causal estimate; announcement time unknown",
+      "status": "ok",
+      "pre_usd_minus_world_log_return": null,
+      "pre_relative_common_start": "2026-04-03",
+      "pre_relative_common_end": "2026-05-04",
+      "post_usd_minus_world_log_return": null,
+      "post_relative_common_start": "2026-05-04",
+      "post_relative_common_end": "2026-06-04"
+    },
+    {
+      "id": "KR-FUND-20260529",
+      "symbol": "KOSPI",
+      "date": "2026-05-29",
+      "category": "참여 결과 공표",
+      "event": "1차 국민참여성장펀드 판매 결과 발표",
+      "source": "https://www.fsc.go.kr/po010101/87009",
+      "event_session": "2026-05-29",
+      "anchor_close_date": "2026-05-28",
+      "pre_start_date": "2026-04-27",
+      "pre_20_return_fraction": 0.23737760826481513,
+      "post_20_return_fraction": 0.027600732533605843,
+      "post_end_date": "2026-06-26",
+      "individual_flow_change": null,
+      "flow_missing_reason": "No comparable public daily investor-flow panel acquired; not inferred from prices or deposits",
+      "interpretation": "date-based descriptive window, not an abnormal-return or causal estimate; announcement time unknown",
+      "status": "ok",
+      "pre_usd_minus_world_log_return": null,
+      "pre_relative_common_start": "2026-04-27",
+      "pre_relative_common_end": "2026-05-28",
+      "post_usd_minus_world_log_return": null,
+      "post_relative_common_start": "2026-05-28",
+      "post_relative_common_end": "2026-06-26"
+    },
+    {
+      "id": "KR-RATE-20260716",
+      "symbol": "KOSPI",
+      "date": "2026-07-16",
+      "category": "통화 긴축",
+      "event": "한국은행 기준금리 인상",
+      "source": "https://www.bok.or.kr/portal/singl/baseRate/list.do?dataSeCd=01&menuNo=200643",
+      "event_session": "2026-07-16",
+      "anchor_close_date": "2026-07-15",
+      "pre_start_date": "2026-06-17",
+      "pre_20_return_fraction": -0.17822509318339752,
+      "post_20_return_fraction": -0.0646682435502669,
+      "post_end_date": "2026-08-13",
+      "individual_flow_change": null,
+      "flow_missing_reason": "No comparable public daily investor-flow panel acquired; not inferred from prices or deposits",
+      "interpretation": "date-based descriptive window, not an abnormal-return or causal estimate; announcement time unknown",
+      "status": "ok",
+      "pre_usd_minus_world_log_return": null,
+      "pre_relative_common_start": "2026-06-17",
+      "pre_relative_common_end": "2026-07-15",
+      "post_usd_minus_world_log_return": null,
+      "post_relative_common_start": "2026-07-15",
+      "post_relative_common_end": "2026-08-13"
+    },
+    {
+      "id": "KR-RATE-20260827",
+      "symbol": "KOSPI",
+      "date": "2026-08-27",
+      "category": "통화 긴축",
+      "event": "한국은행 기준금리 인상",
+      "source": "https://www.bok.or.kr/portal/singl/baseRate/list.do?dataSeCd=01&menuNo=200643",
+      "event_session": "2026-08-27",
+      "anchor_close_date": "2026-08-26",
+      "pre_start_date": "2026-07-28",
+      "pre_20_return_fraction": 0.13024473492859823,
+      "post_20_return_fraction": 0.04005604997495671,
+      "post_end_date": "2026-09-23",
+      "individual_flow_change": null,
+      "flow_missing_reason": "No comparable public daily investor-flow panel acquired; not inferred from prices or deposits",
+      "interpretation": "date-based descriptive window, not an abnormal-return or causal estimate; announcement time unknown",
+      "status": "ok",
+      "pre_usd_minus_world_log_return": null,
+      "pre_relative_common_start": "2026-07-28",
+      "pre_relative_common_end": "2026-08-26",
+      "post_usd_minus_world_log_return": null,
+      "post_relative_common_start": "2026-08-26",
+      "post_relative_common_end": "2026-09-23"
+    }
+  ],
+  "sector_return_contribution": null,
+  "sector_contribution_missing_reason": "Dated weights are concentration snapshots, not point-in-time daily constituent return contributions"
+}

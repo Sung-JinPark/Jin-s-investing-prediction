@@ -1,0 +1,148 @@
+{
+  "schema_version": 1,
+  "created_at_utc": "2026-10-16T00:31:28.587760+00:00",
+  "role": "Independent methodological review; no official forecast, probability or fitted similarity score",
+  "price_cutoff": "2026-10-15",
+  "inputs": [
+    "../../prices/prices.csv",
+    "../../china/evidence.json",
+    "initial_review_metrics.json",
+    "source_manifest.json"
+  ],
+  "principal_recommendation": {
+    "conclusion_ko": "현재 한국은 관측 고점 이후 큰 첫 하락, 상당한 반등, 첫 저점의 소폭 재이탈까지 진행됐다. 낙폭만 맞추면 2008년3월이지만 반등 순서와 경과시간은 같은 위치가 아니다. 중국2007년10월~2008년1월은 작은 반등 기준에서 사건순서와 시간상 가깝고, 큰 반등 기준에서는2008년4~6월이 별도 후보가 된다. 모든 차원을 안정적으로 만족하는 단일 날짜는 확인되지 않는다.",
+    "must_not_say": [
+      "지금은 정확히2008년3월이다",
+      "10%설정에서 일치하므로15/20%에서도 같은 국면이다",
+      "과거 중국의 이후 수익률이 한국의 예측 수익률이다",
+      "하루 전저점 이탈로 추가 급락이 확정됐다"
+    ],
+    "classification": "bounded multi-dimensional historical analogy"
+  },
+  "definitions_to_keep_separate": [
+    {
+      "name": "depth_match",
+      "definition": "Current close/observed peak minus1. Historical first crossing of today's Korean threshold is March18,2008.",
+      "limitation": "No requirement of a prior rebound, elapsed time or prior-low breach; insufficient for stage equivalence."
+    },
+    {
+      "name": "stage_match",
+      "definition": "Observed peak→confirmed or explicitly retrospective trough→rebound peak→prior-trough breach, with each anchor's confirmation timestamp distinguished.",
+      "limitation": "Depends on turn threshold and can recur multiple times within one historical episode."
+    },
+    {
+      "name": "complete_underwater_correction",
+      "definition": "A close peak until the first later close regains that same level; the lowest close within that full spell is the completed correction trough.",
+      "limitation": "Different from the first trough and first rebound of a zigzag. Current spell remains incomplete at the cutoff."
+    },
+    {
+      "name": "price_vs_running_trough",
+      "definition": "Current close relative to the minimum close observed so far.",
+      "limitation": "At a fresh low it is zero by construction and does not measure the preceding rebound amplitude."
+    }
+  ],
+  "core_stage_comparisons": [
+    {
+      "case": "China May-July2007 mid-rally correction",
+      "facts": "May29 peak4334.92→June4 first low3670.40→June19 rebound4269.52→July5 new low3615.87→July26 prior peak regained.",
+      "interpretation": "A failed first rebound and marginal new low can occur within a bull-market correction. This is a counterexample to deterministic new-low→collapse logic.",
+      "differences_vs_korea": "Initial decline15.33%, rebound16.32%,90.16% of initial loss recovered;27sessions peak→new-low versus Korea39.06% drawdown,26.59% rebound,42.24% recovered,77sessions. Smaller and faster episode.",
+      "vintage": "Completion and later October peak are known only in hindsight; not an independent sample of a new national boom."
+    },
+    {
+      "case": "China Oct2007-Jan2008 early failed rebound",
+      "facts": "Oct16 peak6092.06→Nov28 first low4803.39→Jan14 rebound5497.90→Jan22 new low4559.75.",
+      "interpretation": "Under10% directional-change confirmation, event order and duration resemble current Korea.",
+      "differences_vs_korea": "First decline21.15%, rebound14.46%,53.89% initial-loss recovery;68sessions peak→new-low. Korea's decline is much deeper, rebound larger, and time77sessions. The14.46% rebound fails15/20% confirmation.",
+      "economic_context": "Chinese financial tightening, equity supply and high lagged annual-earnings valuation were present; 2007-08 global credit stress is a separate external confound. Full-year2007 earnings were published after the peak."
+    },
+    {
+      "case": "China March-April2008 deep decline before May rebound",
+      "facts": "March18 first passed Korea's39.06% drawdown threshold; April18 trough3094.67 was49.20% below Octpeak.",
+      "interpretation": "March18 is a useful depth comparison but precedes the later large rebound and its failure. It does not alone match Korea's completed rebound/new-low stage.",
+      "economic_context": "PBC's February2008 report still described tight policy and inflation concerns. Annual profit figures and forward EPS revisions require their own availability records."
+    },
+    {
+      "case": "China April-May-June2008 large rebound then renewed decline",
+      "facts": "April18 low3094.67→May5 rebound3761.01(+21.53%)→June10 first close below April low3072.33. Rebound peak confirmed under15% onJune10 and20% onJune12.",
+      "interpretation": "Passes larger-bounce filters and resembles a sizable failed rebound with new-low breach, but is deeper and much later relative to the peak.",
+      "differences_vs_korea": "Only22.23% of original loss recovered;159sessions from peak to first breach versus Korea42.24% and77sessions. June10 old-trough breach0.72% is close to Korea0.70%, but drawdown49.57% is much deeper.",
+      "economic_context": "An official stamp-tax cut took effectApril24, within this rebound. This shows policy direction can change during a bear market; price sequence alone cannot isolate the tax effect. Lehman's September event must not be used as information available at the May or June anchors."
+    }
+  ],
+  "method_review": {
+    "prefix_only_turn_confirmation": "Independently implemented10/15/20% running-extremum reversals; corresponding Chinese and Korean extrema/confirmation dates agree with prices/phase_analysis.py logic. No future observations are needed to confirm a turn after its stated confirmation date.",
+    "matching_feature_warning": "Current Korea makes a fresh low, so bounce_from_running_trough and loss_recovered_from_running_trough both equal0. These are current-position descriptors, not the preceding rebound shape.",
+    "recommended_additional_descriptors": [
+      "last confirmed rebound close / preceding confirmed trough close minus1",
+      "(rebound high - preceding trough)/(original peak - preceding trough)",
+      "sessions peak→preceding trough",
+      "sessions preceding trough→rebound high",
+      "sessions rebound high→candidate",
+      "candidate close / preceding trough minus1"
+    ],
+    "no_aggregate_score": "Retain per-feature distances and explicit thresholds. Do not silently average dimensions or choose weights to obtain a favorite date.",
+    "sensitivity_reading": "Failure of strict/base intersections is evidence of no close match under those declared rules; it is not proof that every conceivable alignment is unrelated. Loose10% matches need special disclosure because15/20% states differ.",
+    "prior_exposure": "Earlier research already inspected2008, so this is not a blind preregistration; input source and current cutoff can still be frozen and audited.",
+    "candidate_universe_warning": "Exhaustive post-October2007 Chinese candidates condition on a retrospectively observed cycle high. They do not establish that Korea June22 is a permanent final top, nor do they exhaust every pre-peak correction in2005-07. Keep the May-July2007 recovery case as a separate counterexample and state the candidate universe whenever using nearest/exhaustive language."
+  },
+  "falsification_and_updates": [
+    {
+      "condition": "Korean close rapidly regains5593.56 prior-trough level",
+      "effect": "Weakens interpretation of a persistent breakout/downward continuation. One reclaim alone does not restore the earlier trend; the break was only0.70% at cutoff."
+    },
+    {
+      "condition": "Subsequent prices regain the September23 rebound high7080.92 before a materially deeper low",
+      "effect": "Weakens the observed failed-rebound continuation analogy and favors a more complex base/correction path."
+    },
+    {
+      "condition": "Subsequent prices regain the observed June22 peak9114.55",
+      "effect": "Invalidates treating June22 as a durable final top over that observed horizon; the May-July2007 recovery counterexample becomes more relevant."
+    },
+    {
+      "condition": "A lower rebound high is followed by another lower low while same-definition EPS levels are revised down and funding/foreign flow stress broadens",
+      "effect": "Strengthens an ongoing bear-phase mechanism; still does not calibrate a probability from the single China episode."
+    },
+    {
+      "condition": "Actual AI-memory orders, prices, margins and cash flow keep supporting earnings while broad market participation improves",
+      "effect": "Weakens a Chinese-style fundamental deterioration mechanism even if some chart stages remain visually similar."
+    },
+    {
+      "condition": "Historical data series definitions, available_at records or the current source vintage change",
+      "effect": "Recompute within a new version; preserve the frozen prior prices and report rather than rewriting them."
+    }
+  ],
+  "causal_limits": [
+    "A megatrend can remain real while the market discounts slower future growth; trailing earnings and valuations cannot be mechanically assigned causal price contributions.",
+    "2007 SSE lagged annual EPS PER, current Korean forward PER and realized profit aggregates are not interchangeable.",
+    "China's capital controls, state-enterprise index mix, listing supply and lack of the later formal margin-trading mechanism differ from Korea.",
+    "The global credit crisis is an external time-varying confound. Comparing2008 continuation outcomes without matching the external shock overstates recurrence.",
+    "Several dates and windows from2007-08 are highly dependent observations from one historical path. Candidate count is not sample size.",
+    "No hypothetical Korean future line, occurrence probability or target price follows from a stage label."
+  ],
+  "source_context": [
+    {
+      "reference": "../../china/evidence.json",
+      "evidence_ids": [
+        "CN_PE_DEFINITION",
+        "CN_EARNINGS_2007_REPORTED",
+        "CN_MONETARY_TIGHTENING",
+        "CN_EQUITY_SUPPLY",
+        "CN_CONCENTRATION",
+        "CN_MARGIN_STRUCTURE"
+      ],
+      "role": "Retained primary-source-backed economic context with individual vintage caveats."
+    },
+    {
+      "source_id": "SSE-STAMP-CUT-20080423",
+      "local_path": "sse_stamp_duty_20080423.html",
+      "sha256": "3cecdc7f8aa45f079e7570e17054669c6f93dda484aeeb3e71913e3e2af864ca",
+      "published_at": "2008-04-23",
+      "effective_date": "2008-04-24",
+      "original_rate_unit": "per_mille",
+      "new_rate_original": 1,
+      "new_rate_fraction": 0.001,
+      "description": "Official exchange notice instructs each counterparty to pay1per mille fromApril24. Original publication and effective dates distinguished; observed rebound timing does not establish causal effect."
+    }
+  ]
+}

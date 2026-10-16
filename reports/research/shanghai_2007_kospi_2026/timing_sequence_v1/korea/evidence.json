@@ -1,0 +1,1164 @@
+{
+  "schema_version": 1,
+  "research_as_of": "2026-10-16T09:00:00+09:00",
+  "price_cutoff": "2026-10-15",
+  "created_at_utc": "2026-10-16T01:00:58.364808+00:00",
+  "artifact_role": "retrospective timing-sequence research; not official forecast or causal model",
+  "canonical_probability_unit": "fraction",
+  "probabilities_assigned": false,
+  "numeric_contract": "Explicit source units; rates/changes normalized to fractions. Money in source currency units. Null is unavailable, not zero.",
+  "source_manifest": "source_manifest.json",
+  "observations": [
+    {
+      "evidence_id": "TK-E01",
+      "label_ko": "삼성 3분기 잠정영업이익",
+      "original": {
+        "value": 107.4,
+        "unit": "KRW trillion"
+      },
+      "normalized": {
+        "value": 107400000000000.0,
+        "unit": "KRW"
+      },
+      "source_ids": [
+        "TK-SAMSUNG-Q3"
+      ],
+      "observation_period": "2026Q3",
+      "available_at": "2026-10-08T23:59:59+09:00",
+      "source_locator": null,
+      "status": "management_preliminary_not_final",
+      "notes_ko": [
+        "종료된분기의잠정치이며차기분기/FY2027이익예상수정패널이아님."
+      ],
+      "formula": null,
+      "probability": false
+    },
+    {
+      "evidence_id": "TK-E02",
+      "label_ko": "삼성 2분기 보고영업이익",
+      "original": {
+        "value": 89492412,
+        "unit": "KRW million"
+      },
+      "normalized": {
+        "value": 89492412000000.0,
+        "unit": "KRW"
+      },
+      "source_ids": [
+        "TK-SAMSUNG-H1"
+      ],
+      "observation_period": "2026Q2",
+      "available_at": "2026-09-01T23:59:59+09:00",
+      "source_locator": "PDF page45",
+      "status": "publisher_reported",
+      "notes_ko": [
+        "원천은9월1일영문반기보고서. 7월30일실적발표와같은당시빈티지라고소급단정하지않음."
+      ],
+      "formula": null,
+      "probability": false
+    },
+    {
+      "evidence_id": "TK-E03",
+      "label_ko": "삼성 잠정3분기 영업이익 전분기비",
+      "original": {
+        "value": 20.010174717382757,
+        "unit": "percent"
+      },
+      "normalized": {
+        "value": 0.20010174717382756,
+        "unit": "fraction"
+      },
+      "source_ids": [
+        "TK-SAMSUNG-Q3",
+        "TK-SAMSUNG-H1"
+      ],
+      "observation_period": "2026Q3 vs Q2",
+      "available_at": "2026-10-08T23:59:59+09:00",
+      "source_locator": null,
+      "status": "derived",
+      "notes_ko": [],
+      "formula": "107.4/89.492412-1",
+      "probability": false
+    },
+    {
+      "evidence_id": "TK-E04",
+      "label_ko": "하이닉스 2분기 잠정영업이익",
+      "original": {
+        "value": 60.5426,
+        "unit": "KRW trillion"
+      },
+      "normalized": {
+        "value": 60542600000000.0,
+        "unit": "KRW"
+      },
+      "source_ids": [
+        "TK-HYNIX-Q2"
+      ],
+      "observation_period": "2026Q2",
+      "available_at": "2026-07-29T23:59:59+09:00",
+      "source_locator": null,
+      "status": "publisher_preliminary_July29_only",
+      "notes_ko": [
+        "발표당시양호한실적이며3분기현재실적/최신주문으로대체하지않음."
+      ],
+      "formula": null,
+      "probability": false
+    },
+    {
+      "evidence_id": "TK-E05",
+      "label_ko": "9월 반도체 명목수출",
+      "original": {
+        "value": 603.3,
+        "unit": "USD hundred million"
+      },
+      "normalized": {
+        "value": 60330000000.0,
+        "unit": "USD"
+      },
+      "source_ids": [
+        "TK-ICT-SEP"
+      ],
+      "observation_period": "2026-09",
+      "available_at": "2026-10-14T23:59:59+09:00",
+      "source_locator": null,
+      "status": "publisher_reported",
+      "notes_ko": [
+        "전년비262.8%. 종료된9월명목금액이며향후수요·이익수정이아님."
+      ],
+      "formula": null,
+      "probability": false
+    },
+    {
+      "evidence_id": "TK-E06",
+      "label_ko": "범용 메모리 9월 고정가격",
+      "original": {
+        "value": {
+          "DRAM16Gb": 48,
+          "NAND128Gb": 30.6
+        },
+        "unit": "USD per chip, specified density"
+      },
+      "normalized": {
+        "value": {
+          "DRAM16Gb": 48,
+          "NAND128Gb": 30.6
+        },
+        "unit": "USD per chip, specified density"
+      },
+      "source_ids": [
+        "TK-ICT-SEP"
+      ],
+      "observation_period": "2026-09",
+      "available_at": "2026-10-14T23:59:59+09:00",
+      "source_locator": null,
+      "status": "publisher_reported",
+      "notes_ko": [
+        "HBM ASP나주문잔고가아님. DDR5명시는기존10월1일무역발표참조."
+      ],
+      "formula": null,
+      "probability": false
+    },
+    {
+      "evidence_id": "TK-E07",
+      "label_ko": "현재 공통제공자 FY2027 EPS 수정패널",
+      "original": {
+        "value": null,
+        "unit": "unavailable"
+      },
+      "normalized": {
+        "value": null,
+        "unit": "unavailable"
+      },
+      "source_ids": [],
+      "observation_period": "as of2026-10-15",
+      "available_at": null,
+      "source_locator": null,
+      "status": "missing_not_assessable",
+      "notes_ko": [
+        "새검색으로도고정연도·동일표본·원빈티지의지수EPS수정시계열확보못함. 미확보를하향부재로해석하지않음."
+      ],
+      "formula": null,
+      "probability": false
+    },
+    {
+      "evidence_id": "TK-E08",
+      "label_ko": "9월 보고서의 최근 실적전망에 대한 BOK 평가",
+      "original": {
+        "value": null,
+        "unit": "qualitative"
+      },
+      "normalized": {
+        "value": null,
+        "unit": "qualitative"
+      },
+      "source_ids": [
+        "TK-BOK-SEP-REPORT"
+      ],
+      "observation_period": "recent_conditions_in_Sep10_report_no_dated_forecast_panel",
+      "available_at": "2026-09-10T23:59:59+09:00",
+      "source_locator": "PDF page60",
+      "status": "publisher_reported",
+      "notes_ko": [
+        "국내주식시장변동성을논평하는문맥에서기업실적전망상향조정추세가다시부각됐다고평가. 그러나해당문장은표본(국내상장전체/반도체한정),제공자,고정전망연도,EPS/OP구분을명시하지않음.",
+        "관련레버리지수치는8월말기준이나실적전망문장자체의정확한관측일은명시되지않음. 당시모든전망이이미붕괴했다는주장에대한서술적반대증거로만사용. KOSPI전체또는FY2027EPS패널상승이검증됐다는뜻이아니며10월현재수정방향도알수없음."
+      ],
+      "formula": null,
+      "probability": false
+    },
+    {
+      "evidence_id": "TK-E09",
+      "label_ko": "5월 정책금리 동결과 인상 예고",
+      "original": {
+        "value": 2.5,
+        "unit": "percent per annum"
+      },
+      "normalized": {
+        "value": 0.025,
+        "unit": "annual_rate_fraction"
+      },
+      "source_ids": [
+        "TK-BOK-MAY-DECISION",
+        "TK-BOK-MAY-DECISION-PDF1"
+      ],
+      "observation_period": "2026-05-28 decision",
+      "available_at": "2026-05-28T23:59:59+09:00",
+      "source_locator": null,
+      "status": "publisher_reported",
+      "notes_ko": [
+        "동결했으나향후인상시기를결정한다고예고했고2명이2.75%인상을주장. 실제인상과인상예고를구분."
+      ],
+      "formula": null,
+      "probability": false
+    },
+    {
+      "evidence_id": "TK-E10",
+      "label_ko": "7월 실제 기준금리 인상",
+      "original": {
+        "value": 2.75,
+        "unit": "percent per annum"
+      },
+      "normalized": {
+        "value": 0.0275,
+        "unit": "annual_rate_fraction"
+      },
+      "source_ids": [
+        "TK-BOK-JUL-DECISION-PDF1",
+        "TK-BOK-RATE-HISTORY"
+      ],
+      "observation_period": "2026-07-16 decision and rate-change date",
+      "available_at": "2026-07-16T23:59:59+09:00",
+      "source_locator": "DecisionPDF page1; historical actualchange row",
+      "status": "publisher_reported",
+      "notes_ko": [
+        "2.50→2.75%,25bp. 그날의결정과다음결정시까지운용한다는문구에더해공식금리추이실제변경행도7월16일임을대조. 별도미래시행일은없음. 공개정확시각은미인증."
+      ],
+      "formula": null,
+      "probability": false
+    },
+    {
+      "evidence_id": "TK-E11",
+      "label_ko": "8월 실제 기준금리 인상 및 판단시점 최근 결정",
+      "original": {
+        "value": 3.0,
+        "unit": "percent per annum"
+      },
+      "normalized": {
+        "value": 0.03,
+        "unit": "annual_rate_fraction"
+      },
+      "source_ids": [
+        "TK-BOK-AUG-DECISION-PDF1",
+        "TK-BOK-RATE-HISTORY"
+      ],
+      "observation_period": "2026-08-27 decision and rate-change date",
+      "available_at": "2026-08-27T23:59:59+09:00",
+      "source_locator": "DecisionPDF page1; historical actualchange row",
+      "status": "publisher_reported",
+      "notes_ko": [
+        "2.75→3.00%,25bp;두차례총50bp. 10월16일가상차트끝점을새결정으로세지않음. 최근정책결정/시행일은8월27일이며차기결정결과는미사용."
+      ],
+      "formula": null,
+      "probability": false
+    },
+    {
+      "evidence_id": "TK-E12",
+      "label_ko": "CP A1 91일 금리 8월말→10월14일",
+      "original": {
+        "value": [
+          3.25,
+          3.66
+        ],
+        "unit": "percent per annum"
+      },
+      "normalized": {
+        "value": [
+          0.0325,
+          0.0366
+        ],
+        "unit": "annual_rate_fraction"
+      },
+      "source_ids": [
+        "TK-BOK-SEP-MARKET"
+      ],
+      "observation_period": [
+        "2026-08-31",
+        "2026-10-14"
+      ],
+      "available_at": "2026-10-15T12:00:00+09:00",
+      "source_locator": "PDF page2",
+      "status": "publisher_reported",
+      "notes_ko": [
+        "+41bp. 실물정책금리인상·분기말수급등이반영될수있어차입청산원인을단정하지않음."
+      ],
+      "formula": null,
+      "probability": false
+    },
+    {
+      "evidence_id": "TK-E13",
+      "label_ko": "AA-회사채3년-국고채3년 스프레드",
+      "original": {
+        "value": [
+          68,
+          68
+        ],
+        "unit": "basis points"
+      },
+      "normalized": {
+        "value": [
+          0.0068,
+          0.0068
+        ],
+        "unit": "fraction_points"
+      },
+      "source_ids": [
+        "TK-BOK-SEP-MARKET"
+      ],
+      "observation_period": [
+        "2026-08-31",
+        "2026-10-14"
+      ],
+      "available_at": "2026-10-15T12:00:00+09:00",
+      "source_locator": "PDF page2",
+      "status": "derived",
+      "notes_ko": [
+        "단기자금비용은상승했지만이대표신용스프레드는확대되지않았다는반대증거. 모든신용시장안정을입증하지는않음."
+      ],
+      "formula": "Aug(4.52-3.84)*100bp; Oct14(4.56-3.88)*100bp",
+      "probability": false
+    },
+    {
+      "evidence_id": "TK-E14",
+      "label_ko": "급락일 개인 순매수 일평균, 5~6월→7월",
+      "original": {
+        "value": [
+          7.3,
+          3.5
+        ],
+        "unit": "KRW trillion per qualifying day"
+      },
+      "normalized": {
+        "value": [
+          7300000000000.0,
+          3500000000000.0
+        ],
+        "unit": "KRW per qualifying day"
+      },
+      "source_ids": [
+        "TK-BOK-SEP-REPORT"
+      ],
+      "observation_period": [
+        "2026May-Jun days KOSPI declined>=5%",
+        "2026Jul days KOSPI declined>=5%"
+      ],
+      "available_at": "2026-09-10T23:59:59+09:00",
+      "source_locator": "PDF page58, adjacent chart universeKOSPI+KOSDAQ",
+      "status": "publisher_reported",
+      "notes_ko": [
+        "조건부급락일표본. 전체일평균·월누계·같은표본수비교가아님. 양쪽모두순매수양수이며순매도전환을입증하지않음. 기사화된공식분석은9월발표되어7월당일미리알려진신호라고소급사용하지않음."
+      ],
+      "formula": null,
+      "probability": false
+    },
+    {
+      "evidence_id": "TK-E15",
+      "label_ko": "급락일 개인 순매수 일평균 감소율",
+      "original": {
+        "value": -52.054794520547944,
+        "unit": "percent"
+      },
+      "normalized": {
+        "value": -0.5205479452054794,
+        "unit": "fraction"
+      },
+      "source_ids": [
+        "TK-BOK-SEP-REPORT"
+      ],
+      "observation_period": "2026Jul vs May-Jun qualifying-day means",
+      "available_at": "2026-09-10T23:59:59+09:00",
+      "source_locator": "PDF page58",
+      "status": "derived_from_rounded_conditional_means",
+      "notes_ko": [
+        "약-52.05%. 전체개인매수자금절반이탈이라는뜻이아님."
+      ],
+      "formula": "3.5/7.3-1",
+      "probability": false
+    },
+    {
+      "evidence_id": "TK-E16",
+      "label_ko": "상반기 개인 국내주식형 ETF 순매수",
+      "original": {
+        "value": 42.8,
+        "unit": "KRW trillion"
+      },
+      "normalized": {
+        "value": 42800000000000.0,
+        "unit": "KRW"
+      },
+      "source_ids": [
+        "TK-BOK-SEP-REPORT"
+      ],
+      "observation_period": "2026H1",
+      "available_at": "2026-09-10T23:59:59+09:00",
+      "source_locator": "PDF page58 foot73",
+      "status": "publisher_reported",
+      "notes_ko": [
+        "개인이라는거래주체의ETF순매수이지ETF순설정·신규계좌입금·전체시장순유입이아님. 직접주식매수와단순합산하지않음."
+      ],
+      "formula": null,
+      "probability": false
+    },
+    {
+      "evidence_id": "TK-E17",
+      "label_ko": "개인 증권사 주식관련대출 월말잔액",
+      "original": {
+        "value": [
+          52.3,
+          59.6,
+          63.2,
+          56.0
+        ],
+        "unit": "KRW trillion"
+      },
+      "normalized": {
+        "value": [
+          52300000000000.0,
+          59600000000000.0,
+          63200000000000.0,
+          56000000000000.0
+        ],
+        "unit": "KRW"
+      },
+      "source_ids": [
+        "TK-BOK-SEP-REPORT"
+      ],
+      "observation_period": [
+        "2025-12",
+        "2026-03",
+        "2026-06",
+        "2026-07"
+      ],
+      "available_at": "2026-09-10T23:59:59+09:00",
+      "source_locator": "PDF page58 chart",
+      "status": "publisher_reported",
+      "notes_ko": [
+        "신용융자+신용미수+증권담보대출,일반법인대출일부포함. 순수개인신용융자와다름. 6월말은6월22일고점이후여서정확한고점전최대잔액일도알수없음."
+      ],
+      "formula": null,
+      "probability": false
+    },
+    {
+      "evidence_id": "TK-E18",
+      "label_ko": "주식관련대출 7월말의 6월말 대비 변화",
+      "original": {
+        "value": -11.392405063291145,
+        "unit": "percent"
+      },
+      "normalized": {
+        "value": -0.11392405063291144,
+        "unit": "fraction"
+      },
+      "source_ids": [
+        "TK-BOK-SEP-REPORT"
+      ],
+      "observation_period": "2026Julend vs Junend",
+      "available_at": "2026-09-10T23:59:59+09:00",
+      "source_locator": null,
+      "status": "derived_rounded_stock_change",
+      "notes_ko": [
+        "약-11.39%. 재고성잔액의감소이며자발상환·신규차입감소·반대매매를이값만으로분해할수없음."
+      ],
+      "formula": "56.0/63.2-1",
+      "probability": false
+    },
+    {
+      "evidence_id": "TK-E19",
+      "label_ko": "8월말 신용융자 잔액",
+      "original": {
+        "value": 33.3,
+        "unit": "KRW trillion"
+      },
+      "normalized": {
+        "value": 33300000000000.0,
+        "unit": "KRW"
+      },
+      "source_ids": [
+        "TK-BOK-SEP-REPORT"
+      ],
+      "observation_period": "2026-08-31",
+      "available_at": "2026-09-10T23:59:59+09:00",
+      "source_locator": "PDF page60 foot75",
+      "status": "publisher_reported",
+      "notes_ko": [
+        "6월말대비10.9%감소. 앞의주식관련대출합계63.2/56.0과범위가다르므로단일시계열로접합하지않음."
+      ],
+      "formula": null,
+      "probability": false
+    },
+    {
+      "evidence_id": "TK-E20",
+      "label_ko": "7월 주가조정 중 레버리지 청산에 대한 BOK 평가",
+      "original": {
+        "value": null,
+        "unit": "qualitative"
+      },
+      "normalized": {
+        "value": null,
+        "unit": "qualitative"
+      },
+      "source_ids": [
+        "TK-BOK-SEP-REPORT"
+      ],
+      "observation_period": "lateJun-Jul2026 assessment",
+      "available_at": "2026-09-10T23:59:59+09:00",
+      "source_locator": "PDF pages58-60",
+      "status": "official_assessment_not_raw_daily_forced_sales",
+      "notes_ko": [
+        "BOK는누적레버리지빠른청산과장초반대규모반대매매의변동성확대영향을추정. 과거7월청산의공식분석은있으나반대매매개별날짜·금액은이번보존자료에없고10월새청산급증을입증하지않음."
+      ],
+      "formula": null,
+      "probability": false
+    },
+    {
+      "evidence_id": "TK-E21",
+      "label_ko": "증권사 투자자예탁금 월간 잔액 증감",
+      "original": {
+        "value": [
+          -10,
+          -17.5,
+          -4.4,
+          5.0
+        ],
+        "unit": "KRW trillion"
+      },
+      "normalized": {
+        "value": [
+          -10000000000000.0,
+          -17500000000000.0,
+          -4400000000000.0,
+          5000000000000.0
+        ],
+        "unit": "KRW"
+      },
+      "source_ids": [
+        "TK-BOK-SEP-MARKET"
+      ],
+      "observation_period": [
+        "2026-06",
+        "2026-07",
+        "2026-08",
+        "2026-09"
+      ],
+      "available_at": "2026-10-15T12:00:00+09:00",
+      "source_locator": "PDF page7",
+      "status": "publisher_reported",
+      "notes_ko": [
+        "6~8월감소후9월증가. 결제대금·입출금등이반영된예탁금잔액증감이며개인주식순매수/전체시장순유입액과다름."
+      ],
+      "formula": null,
+      "probability": false
+    },
+    {
+      "evidence_id": "TK-E22",
+      "label_ko": "9월말 증권사 투자자예탁금",
+      "original": {
+        "value": 104.7,
+        "unit": "KRW trillion"
+      },
+      "normalized": {
+        "value": 104700000000000.0,
+        "unit": "KRW"
+      },
+      "source_ids": [
+        "TK-BOK-SEP-MARKET"
+      ],
+      "observation_period": "2026-09-30",
+      "available_at": "2026-10-15T12:00:00+09:00",
+      "source_locator": "PDF page7",
+      "status": "publisher_reported",
+      "notes_ko": [],
+      "formula": null,
+      "probability": false
+    },
+    {
+      "evidence_id": "TK-E23",
+      "label_ko": "보존 KOFIA 10월14일 카드의 신용융자·예탁금",
+      "original": {
+        "value": [
+          33.705742,
+          97.428012
+        ],
+        "unit": "KRW trillion"
+      },
+      "normalized": {
+        "value": [
+          33705742000000.0,
+          97428012000000.0
+        ],
+        "unit": "KRW"
+      },
+      "source_ids": [
+        "TK-KOFIA-CARDS"
+      ],
+      "observation_period": "10-14, year2026 inferred",
+      "available_at": null,
+      "source_locator": null,
+      "status": "research_only_undated_year_inferred_widget",
+      "notes_ko": [
+        "카드에연도와공개시각이없어엄격한PIT단계평가에서제외. 전후카드를재수집하지않고기존원문만참조. 이단일카드로10월변화방향이나청산액을확정하지않음."
+      ],
+      "formula": null,
+      "probability": false
+    },
+    {
+      "evidence_id": "TK-E24",
+      "label_ko": "9월 은행 기타 가계대출 증감",
+      "original": {
+        "value": -2.3,
+        "unit": "KRW trillion"
+      },
+      "normalized": {
+        "value": -2300000000000.0,
+        "unit": "KRW"
+      },
+      "source_ids": [
+        "TK-BOK-SEP-MARKET"
+      ],
+      "observation_period": "2026-09",
+      "available_at": "2026-10-15T12:00:00+09:00",
+      "source_locator": "PDF page3",
+      "status": "publisher_reported",
+      "notes_ko": [
+        "주식투자감소,분기말부실채권정리,명절상여금유입등이복합작용했다는BOK설명. 이항목에는일반신용/부동산/예적금/주식담보등이섞여순수주식융자나반대매매로치환불가."
+      ],
+      "formula": null,
+      "probability": false
+    },
+    {
+      "evidence_id": "TK-E25",
+      "label_ko": "가계·비영리단체의 지분증권 및 투자펀드 거래액",
+      "original": {
+        "value": [
+          61.4,
+          101.6
+        ],
+        "unit": "KRW trillion"
+      },
+      "normalized": {
+        "value": [
+          61400000000000.0,
+          101600000000000.0
+        ],
+        "unit": "KRW"
+      },
+      "source_ids": [
+        "TK-BOK-Q2-FOF-PDF1"
+      ],
+      "observation_period": [
+        "2026Q1",
+        "2026Q2"
+      ],
+      "available_at": "2026-10-07T12:00:00+09:00",
+      "source_locator": "PDF page7",
+      "status": "provisional_flow_not_price_valuation",
+      "notes_ko": [
+        "거래표상의순취득으로평가이익과구분되지만가계·소규모개인사업자·비영리단체를포함하고국내KOSPI주식만의흐름이아님. 해외지분/펀드등을분리하지못했으므로전국민KOSPI순유입으로해석하지않음.",
+        "2분기위험자산배분확대의후행확인.10월7일공개자료를6월22일에이미알았던신호로소급하지않음."
+      ],
+      "formula": null,
+      "probability": false
+    },
+    {
+      "evidence_id": "TK-E26",
+      "label_ko": "가계·비영리단체의 금융기관 예치금 거래액",
+      "original": {
+        "value": [
+          29.4,
+          -23.3
+        ],
+        "unit": "KRW trillion"
+      },
+      "normalized": {
+        "value": [
+          29400000000000.0,
+          -23300000000000.0
+        ],
+        "unit": "KRW"
+      },
+      "source_ids": [
+        "TK-BOK-Q2-FOF-PDF1"
+      ],
+      "observation_period": [
+        "2026Q1",
+        "2026Q2"
+      ],
+      "available_at": "2026-10-07T12:00:00+09:00",
+      "source_locator": "PDF page7",
+      "status": "provisional_flow_broad_sector",
+      "notes_ko": [
+        "주식매입과동시에나타난광의자산배분변화이나동일돈의정확한이동을연결할수없음. 증권사예탁금일별잔액과범위/측정이다름."
+      ],
+      "formula": null,
+      "probability": false
+    },
+    {
+      "evidence_id": "TK-E27",
+      "label_ko": "전체 개인 일별·월별 국내주식 순매수 및 거래대금",
+      "original": {
+        "value": null,
+        "unit": "unavailable"
+      },
+      "normalized": {
+        "value": null,
+        "unit": "unavailable"
+      },
+      "source_ids": [],
+      "observation_period": "through2026-10-15",
+      "available_at": null,
+      "source_locator": null,
+      "status": "missing_not_assessable",
+      "notes_ko": [
+        "공식정적원문으로완전한일별/월별패널을추가확보못함. BOK급락일평균을월전체로외삽하거나차트선을눈대중으로수치화하지않음."
+      ],
+      "formula": null,
+      "probability": false
+    },
+    {
+      "evidence_id": "TK-E28",
+      "label_ko": "FSC의 2차 국민참여성장펀드 판매 설명",
+      "original": {
+        "value": null,
+        "unit": "qualitative"
+      },
+      "normalized": {
+        "value": null,
+        "unit": "qualitative"
+      },
+      "source_ids": [
+        "TK-FSC-OCT15"
+      ],
+      "observation_period": "2026-10-15",
+      "available_at": "2026-10-15T23:59:59+09:00",
+      "source_locator": "PDF pages1-2",
+      "status": "agency_position_not_retail_flow_measure",
+      "notes_ko": [
+        "가입제한·우선배정조건이다르므로1차와판매속도단순비교를부인한당국입장. 정책의주가방어보장,개인전체열광지속,판매압박부재의독립입증으로사용하지않음."
+      ],
+      "formula": null,
+      "probability": false
+    },
+    {
+      "evidence_id": "TK-E29",
+      "label_ko": "5월 발표 6개월 후 조건부 금리전망 점 분포",
+      "original": {
+        "value": {
+          "3.25": 2,
+          "3.00": 10,
+          "2.75": 7,
+          "2.50": 2
+        },
+        "unit": "points by forecast interest-rate percent level"
+      },
+      "normalized": {
+        "value": {
+          "0.0325": 2,
+          "0.03": 10,
+          "0.0275": 7,
+          "0.025": 2
+        },
+        "unit": "points by annual_rate_fraction level"
+      },
+      "source_ids": [
+        "TK-BOK-MAY-DECISION-PDF1"
+      ],
+      "observation_period": "2026-05 conditional six-month-ahead policy views",
+      "available_at": "2026-05-28T23:59:59+09:00",
+      "source_locator": "PDF page4 foot2 and method note",
+      "status": "central_bank_conditional_views_not_realized_policy_or_research_probability",
+      "notes_ko": [
+        "당시금리2.50%보다높은점19개,동일2개. 7명이각3개씩제시한21점으로21명의독립전망이아니고19/21을인상확률로변환하지않음. 실제인상은7/8월별도결정."
+      ],
+      "formula": null,
+      "probability": false
+    }
+  ],
+  "timeline": [
+    {
+      "date": "2026-05-28",
+      "event_ko": "기준금리동결·인상예고및2명인상소수의견",
+      "effective_date": "2026-05-28",
+      "sessions_from_observed_peak": -16,
+      "calendar_days_from_observed_peak": -25,
+      "same_day_close_index_points": 8185.29,
+      "close_return_from_peak_fraction": -0.10195347000126165,
+      "source_ids": [
+        "TK-BOK-MAY-DECISION"
+      ],
+      "timing_limit_ko": "종가는장마감값으로당일발표영향을포함할수있음. 전날관측과발표전정보를구분하며가격반응의인과효과로해석하지않음."
+    },
+    {
+      "date": "2026-06-22",
+      "event_ko": "관측종가고점",
+      "effective_date": null,
+      "sessions_from_observed_peak": 0,
+      "calendar_days_from_observed_peak": 0,
+      "same_day_close_index_points": 9114.55,
+      "close_return_from_peak_fraction": 0.0,
+      "source_ids": [
+        "TK-FROZEN-PRICE-SERIES",
+        "TK-BOK-SEP-REPORT"
+      ],
+      "timing_limit_ko": "종가는장마감값으로당일발표영향을포함할수있음. 전날관측과발표전정보를구분하며가격반응의인과효과로해석하지않음."
+    },
+    {
+      "date": "2026-07-15",
+      "event_ko": "실제첫인상전거래일종가",
+      "effective_date": null,
+      "sessions_from_observed_peak": 17,
+      "calendar_days_from_observed_peak": 23,
+      "same_day_close_index_points": 7284.41,
+      "close_return_from_peak_fraction": -0.20079323718669595,
+      "source_ids": [
+        "TK-FROZEN-PRICE-SERIES"
+      ],
+      "timing_limit_ko": "종가는장마감값으로당일발표영향을포함할수있음. 전날관측과발표전정보를구분하며가격반응의인과효과로해석하지않음."
+    },
+    {
+      "date": "2026-07-16",
+      "event_ko": "기준금리2.75%인상발표·변경",
+      "effective_date": "2026-07-16",
+      "sessions_from_observed_peak": 18,
+      "calendar_days_from_observed_peak": 24,
+      "same_day_close_index_points": 6820.6,
+      "close_return_from_peak_fraction": -0.2516800061440224,
+      "source_ids": [
+        "TK-BOK-JUL-DECISION-PDF1"
+      ],
+      "timing_limit_ko": "종가는장마감값으로당일발표영향을포함할수있음. 전날관측과발표전정보를구분하며가격반응의인과효과로해석하지않음."
+    },
+    {
+      "date": "2026-07-29",
+      "event_ko": "하이닉스2분기양호한잠정실적발표",
+      "effective_date": null,
+      "sessions_from_observed_peak": 26,
+      "calendar_days_from_observed_peak": 37,
+      "same_day_close_index_points": 5663.24,
+      "close_return_from_peak_fraction": -0.3786593962400776,
+      "source_ids": [
+        "TK-HYNIX-Q2"
+      ],
+      "timing_limit_ko": "종가는장마감값으로당일발표영향을포함할수있음. 전날관측과발표전정보를구분하며가격반응의인과효과로해석하지않음."
+    },
+    {
+      "date": "2026-07-30",
+      "event_ko": "첫하락의관측저점",
+      "effective_date": null,
+      "sessions_from_observed_peak": 27,
+      "calendar_days_from_observed_peak": 38,
+      "same_day_close_index_points": 5593.56,
+      "close_return_from_peak_fraction": -0.38630431562721135,
+      "source_ids": [
+        "TK-FROZEN-PRICE-SERIES",
+        "TK-BOK-SEP-REPORT"
+      ],
+      "timing_limit_ko": "종가는장마감값으로당일발표영향을포함할수있음. 전날관측과발표전정보를구분하며가격반응의인과효과로해석하지않음."
+    },
+    {
+      "date": "2026-08-27",
+      "event_ko": "기준금리3.00%인상발표·변경",
+      "effective_date": "2026-08-27",
+      "sessions_from_observed_peak": 46,
+      "calendar_days_from_observed_peak": 66,
+      "same_day_close_index_points": 6912.37,
+      "close_return_from_peak_fraction": -0.24161148932201804,
+      "source_ids": [
+        "TK-BOK-AUG-DECISION-PDF1"
+      ],
+      "timing_limit_ko": "종가는장마감값으로당일발표영향을포함할수있음. 전날관측과발표전정보를구분하며가격반응의인과효과로해석하지않음."
+    },
+    {
+      "date": "2026-09-10",
+      "event_ko": "7월개인매수둔화·디레버리징과최근실적전망상향정성평가공개",
+      "effective_date": null,
+      "sessions_from_observed_peak": 56,
+      "calendar_days_from_observed_peak": 80,
+      "same_day_close_index_points": 7033.92,
+      "close_return_from_peak_fraction": -0.228275669122447,
+      "source_ids": [
+        "TK-BOK-SEP-REPORT"
+      ],
+      "timing_limit_ko": "종가는장마감값으로당일발표영향을포함할수있음. 전날관측과발표전정보를구분하며가격반응의인과효과로해석하지않음."
+    },
+    {
+      "date": "2026-09-23",
+      "event_ko": "관측반등종가고점",
+      "effective_date": null,
+      "sessions_from_observed_peak": 65,
+      "calendar_days_from_observed_peak": 93,
+      "same_day_close_index_points": 7080.92,
+      "close_return_from_peak_fraction": -0.2231190788354882,
+      "source_ids": [
+        "TK-FROZEN-PRICE-SERIES"
+      ],
+      "timing_limit_ko": "종가는장마감값으로당일발표영향을포함할수있음. 전날관측과발표전정보를구분하며가격반응의인과효과로해석하지않음."
+    },
+    {
+      "date": "2026-10-08",
+      "event_ko": "삼성3분기잠정영업이익107.4조원발표",
+      "effective_date": null,
+      "sessions_from_observed_peak": 73,
+      "calendar_days_from_observed_peak": 108,
+      "same_day_close_index_points": 6625.93,
+      "close_return_from_peak_fraction": -0.27303816425385774,
+      "source_ids": [
+        "TK-SAMSUNG-Q3"
+      ],
+      "timing_limit_ko": "종가는장마감값으로당일발표영향을포함할수있음. 전날관측과발표전정보를구분하며가격반응의인과효과로해석하지않음."
+    },
+    {
+      "date": "2026-10-14",
+      "event_ko": "9월반도체수출·범용가격공개",
+      "effective_date": null,
+      "sessions_from_observed_peak": 76,
+      "calendar_days_from_observed_peak": 114,
+      "same_day_close_index_points": 6008.81,
+      "close_return_from_peak_fraction": -0.3407452918684959,
+      "source_ids": [
+        "TK-ICT-SEP"
+      ],
+      "timing_limit_ko": "종가는장마감값으로당일발표영향을포함할수있음. 전날관측과발표전정보를구분하며가격반응의인과효과로해석하지않음."
+    },
+    {
+      "date": "2026-10-15",
+      "event_ko": "7월저점재이탈및금융시장9월통계공개",
+      "effective_date": null,
+      "sessions_from_observed_peak": 77,
+      "calendar_days_from_observed_peak": 115,
+      "same_day_close_index_points": 5554.22,
+      "close_return_from_peak_fraction": -0.39062049141208277,
+      "source_ids": [
+        "TK-FROZEN-PRICE-SERIES",
+        "TK-BOK-SEP-MARKET"
+      ],
+      "timing_limit_ko": "종가는장마감값으로당일발표영향을포함할수있음. 전날관측과발표전정보를구분하며가격반응의인과효과로해석하지않음."
+    }
+  ],
+  "signals": [
+    {
+      "signal_id": "KS1",
+      "signal_ko": "좋은 관측실적 속 가격 선행 하락",
+      "assessment_ko": "확인",
+      "evidence_ids": [
+        "TK-E01",
+        "TK-E02",
+        "TK-E03",
+        "TK-E04",
+        "TK-E05"
+      ],
+      "interpretation_ko": "6월고점뒤하락했으나7월하이닉스실적과10월삼성잠정치·9월수출은양호. 종료된분기실적과가격의시차는보이지만미래이익하향이원인이라는증명은아님."
+    },
+    {
+      "signal_id": "KS2",
+      "signal_ko": "현재 공통지수 EPS 전망 하향",
+      "assessment_ko": "미확인",
+      "evidence_ids": [
+        "TK-E07",
+        "TK-E08"
+      ],
+      "interpretation_ko": "고정FY2027원빈티지패널미확보. BOK9월보고서의최근상향평가는당시하향가설의제한적정성반대증거이며10월현재의지속상향을입증하지는않음."
+    },
+    {
+      "signal_id": "KS3",
+      "signal_ko": "실제 금리 긴축",
+      "assessment_ko": "확인",
+      "evidence_ids": [
+        "TK-E09",
+        "TK-E10",
+        "TK-E11",
+        "TK-E29"
+      ],
+      "interpretation_ko": "5월인상예고는고점16거래일전, 실제7/8월50bp인상은고점후. 첫인상전날이미20.08%하락했으므로실제인상만을최초하락선행신호라부를수없음."
+    },
+    {
+      "signal_id": "KS4",
+      "signal_ko": "단기 조달 부담 증가",
+      "assessment_ko": "확인",
+      "evidence_ids": [
+        "TK-E12"
+      ],
+      "interpretation_ko": "CP는8월말대비41bp상승. 정책과분기말수급등이혼재하므로하락의단독원인으로추정하지않음."
+    },
+    {
+      "signal_id": "KS5",
+      "signal_ko": "광범위한 신용스프레드 위기",
+      "assessment_ko": "반대증거",
+      "evidence_ids": [
+        "TK-E13"
+      ],
+      "interpretation_ko": "AA-3년스프레드는68bp로같은비교에서불변. 모든신용시장의안정판정이아니며CP상승과분리."
+    },
+    {
+      "signal_id": "KS6",
+      "signal_ko": "고점 전 개인 위험투자 확대",
+      "assessment_ko": "부분확인",
+      "evidence_ids": [
+        "TK-E16",
+        "TK-E17",
+        "TK-E25",
+        "TK-E26"
+      ],
+      "interpretation_ko": "상반기개인ETF순매수42.8조원및차입확대,2분기가계광의지분·펀드거래확대. 전체국민참여·정부정책인과효과·KOSPI순유입규모는미입증."
+    },
+    {
+      "signal_id": "KS7",
+      "signal_ko": "하락 과정 개인 저가매수 완충 약화",
+      "assessment_ko": "부분확인",
+      "evidence_ids": [
+        "TK-E14",
+        "TK-E15"
+      ],
+      "interpretation_ko": "5~6월대비7월급락일순매수평균52.1%감소. 조건부표본이며여전히순매수양수. 전체월순매도전환이나최초주가하락이전이탈은확인못함."
+    },
+    {
+      "signal_id": "KS8",
+      "signal_ko": "하락 후 레버리지 축소",
+      "assessment_ko": "확인",
+      "evidence_ids": [
+        "TK-E17",
+        "TK-E18",
+        "TK-E19",
+        "TK-E20"
+      ],
+      "interpretation_ko": "6월말→7월말주식관련대출-11.4%,8월말신용융자6월비-10.9%. BOK의과거청산추정은있지만잔액차이를반대매매액으로대체하지않음."
+    },
+    {
+      "signal_id": "KS9",
+      "signal_ko": "현재 10월 강제청산 재가속",
+      "assessment_ko": "미확인",
+      "evidence_ids": [
+        "TK-E20",
+        "TK-E23",
+        "TK-E27"
+      ],
+      "interpretation_ko": "공식일별반대매매/미수/담보처분패널미확보. 7월의BOK분석이나10월14일단일카드로현재재가속을추론하지않음."
+    },
+    {
+      "signal_id": "KS10",
+      "signal_ko": "개인 자금의 일관된 계속 이탈",
+      "assessment_ko": "반대증거",
+      "evidence_ids": [
+        "TK-E21",
+        "TK-E22",
+        "TK-E24"
+      ],
+      "interpretation_ko": "예탁금은6~8월감소했지만9월+5조원. 9월기타가계대출축소는혼합요인. 예탁금방향을주식순매수·시장유입과동일시하지않음."
+    },
+    {
+      "signal_id": "KS11",
+      "signal_ko": "전체 개인 순매수·거래 감소가 주가보다 선행",
+      "assessment_ko": "미확인",
+      "evidence_ids": [
+        "TK-E14",
+        "TK-E27"
+      ],
+      "interpretation_ko": "공식완전패널이없어선행시차/변곡일판정불가. 확인된7월매수완충둔화는6월고점후동행·후행범주의증거."
+    }
+  ],
+  "timing_method_ko": "사건관측기간/자료공개available_at/정책효력일/가격관측일을따로기록. 연구자의회고수집을당시실시간발견과동일시하지않음.",
+  "policy_primary_extracts": [
+    {
+      "decision_date": "2026-05-28",
+      "effective_date": "2026-05-28",
+      "action": "hold_with_hike_guidance",
+      "rate_fraction": 0.025,
+      "source_ids": [
+        "TK-BOK-MAY-DECISION",
+        "TK-BOK-MAY-DECISION-PDF1"
+      ],
+      "url": "https://www.bok.or.kr/fileSrc/portal/1a93fa3b69b54639b7ff8f7d628f11a3/2/25a1e5ffe0ce4a6b9a0a4b67a059b33e.pdf",
+      "locator": "PDFpage3향후정책방향및마지막투표문단;page4조건부금리전망",
+      "short_quote_ko": "기준금리 인상 시기 등을 결정해 나갈 것이다.",
+      "vote_ko": "5명동결찬성,2명2.75%인상의견. 예고와실제변경을구분."
+    },
+    {
+      "decision_date": "2026-07-16",
+      "effective_date": "2026-07-16",
+      "action": "hike",
+      "rate_fraction": 0.0275,
+      "source_ids": [
+        "TK-BOK-JUL-DECISION-PDF1",
+        "TK-BOK-RATE-HISTORY"
+      ],
+      "url": "https://www.bok.or.kr/fileSrc/portal/0d3079577d804311abe63720b3690023/2/b6d7c12670bc472cb7ffbb8813597952.pdf",
+      "locator": "PDFpage1첫결정문",
+      "short_quote_ko": "기준금리를 2.50%에서 2.75%로",
+      "effective_date_basis_ko": "결정일부터다음결정시까지의운용결정과공식추이실제금리변경행일치. 금융중개지원대출7월16일시행문구와기준금리변경일을혼동하지않음."
+    },
+    {
+      "decision_date": "2026-08-27",
+      "effective_date": "2026-08-27",
+      "action": "hike",
+      "rate_fraction": 0.03,
+      "source_ids": [
+        "TK-BOK-AUG-DECISION-PDF1",
+        "TK-BOK-RATE-HISTORY"
+      ],
+      "url": "https://www.bok.or.kr/fileSrc/portal/1f338bcf578445ecb0fe341278607f39/2/df18d6d9015b4691b9d03cfe05b39481.pdf",
+      "locator": "PDFpage1첫결정문",
+      "short_quote_ko": "기준금리를 2.75%에서 3.00%로",
+      "effective_date_basis_ko": "공식금리추이실제금리변경행8월27일과그날발표결정문일치. 별도미래시행일을추정하지않음."
+    }
+  ],
+  "current_policy_rate_verification": {
+    "last_decision_identified": "2026-08-27",
+    "last_actual_change_date": "2026-08-27",
+    "rate": {
+      "value": 0.03,
+      "unit": "annual_rate_fraction"
+    },
+    "date_cutoff": "2026-10-15",
+    "source_ids": [
+      "TK-BOK-AUG-DECISION-PDF1",
+      "TK-BOK-RATE-HISTORY",
+      "TK-BOK-POLICY-YEAR-LIST"
+    ],
+    "official_list_result_ko": "공식2026년통화정책방향목록은8월27일실적자료다음에10월22일과11월26일예정행을표시하며9월정책금리결정행은없음. 실제금리변경이력도8월27일이마지막이고이후3.00표시. 추가변경결정은이번공식문서검색에서발견되지않음.",
+    "claim_scope_ko": "보존한공식변경이력과결정일정에근거해10월15일까지현행기준금리를3.00%로기술할수있음. 현재웹이력/일정의원수집빈티지는미인증이며별도9월금통위의사록공개를새정책금리결정으로간주하지않음. 다음10월22일의금리결과는예측하거나사용하지않음."
+  },
+  "synthesis_ko": "한국은좋은관측실적속가격하락,긴축예고및이후실제인상,7월개인완충약화·레버리지축소까지는관찰됨. 그러나현재공통EPS하향,개인전체순매도선행,10월강제청산재가속은확인못함. 중국경로의완료또는같은하락결말을판정할수없음.",
+  "do_not_substitute_ko": [
+    "개인순매수≠ETF순설정/예탁금유입/전체시장순유입",
+    "잔고감소≠반대매매액",
+    "기업잠정실적≠고정FY2027컨센서스수정",
+    "CP절대금리상승≠신용스프레드위기",
+    "관측시점≠공개시점",
+    "당일종가≠정책발표전가격"
+  ],
+  "limitations_ko": [
+    "기존·신규원문모두회고수집. 공개일/엠바고는판단시각이전이지만원래수집빈티지와개정이력은인증하지못함. KOFIA연도없는카드는연구참고전용. 미래가격·실적을소급사용하거나공식전망입력으로승격하지않음.",
+    "BOK주체별월간차트는정확한숫자표가없어눈대중계량하지않음.",
+    "BOK분석의추정·평가는그자체의공식견해로인용하며일별원자료독립검증과구분.",
+    "여러신호가같은보고서·같은시장경로에서나와독립표본이아님. 확인항목개수를확률/점수로합산하지않음."
+  ],
+  "official_state_mutations": false,
+  "dependencies_changed": false
+}

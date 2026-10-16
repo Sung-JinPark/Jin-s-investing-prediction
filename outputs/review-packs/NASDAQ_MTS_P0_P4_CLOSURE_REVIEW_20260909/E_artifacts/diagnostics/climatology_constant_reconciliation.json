@@ -1,0 +1,128 @@
+{
+ "action_taken": "공시만. 계약·원장·산출물 무수정.",
+ "all_cells_used_frozen_artifact": true,
+ "cells": [
+  {
+   "abs_difference": 0.005152,
+   "cell": "rv_h21",
+   "contract_declared": 0.676,
+   "declared_is_rounding_of_artifact": false,
+   "frozen_artifact": 0.6708479679,
+   "holdout_base_rate": 0.359391,
+   "holdout_bs_baseline": 0.327235,
+   "residual_if_artifact_used": 5.551e-17,
+   "residual_if_contract_used": 0.003236,
+   "which_was_used": "frozen_artifact"
+  },
+  {
+   "abs_difference": 0.000134,
+   "cell": "rv_h5",
+   "contract_declared": 0.5523,
+   "declared_is_rounding_of_artifact": false,
+   "frozen_artifact": 0.5524335173,
+   "holdout_base_rate": 0.284715,
+   "holdout_bs_baseline": 0.275326,
+   "residual_if_artifact_used": 0.0,
+   "residual_if_contract_used": 7.147e-05,
+   "which_was_used": "frozen_artifact"
+  },
+  {
+   "abs_difference": 0.001374,
+   "cell": "rv_h63",
+   "contract_declared": 0.8751,
+   "declared_is_rounding_of_artifact": false,
+   "frozen_artifact": 0.8764736033,
+   "holdout_base_rate": 0.521739,
+   "holdout_bs_baseline": 0.375364,
+   "residual_if_artifact_used": 1.11e-16,
+   "residual_if_contract_used": 0.0009726,
+   "which_was_used": "frozen_artifact"
+  },
+  {
+   "abs_difference": 3.2e-05,
+   "cell": "vix25_h21",
+   "contract_declared": 0.4195,
+   "declared_is_rounding_of_artifact": true,
+   "frozen_artifact": 0.4194681385,
+   "holdout_base_rate": 0.171574,
+   "holdout_bs_baseline": 0.203588,
+   "residual_if_artifact_used": 5.551e-17,
+   "residual_if_contract_used": 1.58e-05,
+   "which_was_used": "frozen_artifact"
+  },
+  {
+   "abs_difference": 1.6e-05,
+   "cell": "vix25_h5",
+   "contract_declared": 0.3076,
+   "declared_is_rounding_of_artifact": true,
+   "frozen_artifact": 0.3076157292,
+   "holdout_base_rate": 0.073926,
+   "holdout_bs_baseline": 0.123072,
+   "residual_if_artifact_used": 2.776e-17,
+   "residual_if_contract_used": 7.351e-06,
+   "which_was_used": "frozen_artifact"
+  },
+  {
+   "abs_difference": 7e-06,
+   "cell": "vix25_h63",
+   "contract_declared": 0.6079,
+   "declared_is_rounding_of_artifact": true,
+   "frozen_artifact": 0.607893388,
+   "holdout_base_rate": 0.374337,
+   "holdout_bs_baseline": 0.288757,
+   "residual_if_artifact_used": 0.0,
+   "residual_if_contract_used": 3.089e-06,
+   "which_was_used": "frozen_artifact"
+  },
+  {
+   "abs_difference": 1.8e-05,
+   "cell": "vix30_h21",
+   "contract_declared": 0.2519,
+   "declared_is_rounding_of_artifact": true,
+   "frozen_artifact": 0.2518815855,
+   "holdout_base_rate": 0.057868,
+   "holdout_bs_baseline": 0.092161,
+   "residual_if_artifact_used": 1.388e-17,
+   "residual_if_contract_used": 7.146e-06,
+   "which_was_used": "frozen_artifact"
+  },
+  {
+   "abs_difference": 2e-06,
+   "cell": "vix30_h5",
+   "contract_declared": 0.1782,
+   "declared_is_rounding_of_artifact": true,
+   "frozen_artifact": 0.1781981085,
+   "holdout_base_rate": 0.024975,
+   "holdout_bs_baseline": 0.047829,
+   "residual_if_artifact_used": 6.939e-18,
+   "residual_if_contract_used": 5.796e-07,
+   "which_was_used": "frozen_artifact"
+  },
+  {
+   "abs_difference": 2.9e-05,
+   "cell": "vix30_h63",
+   "contract_declared": 0.407,
+   "declared_is_rounding_of_artifact": true,
+   "frozen_artifact": 0.4069707842,
+   "holdout_base_rate": 0.149523,
+   "holdout_bs_baseline": 0.193445,
+   "residual_if_artifact_used": 0.0,
+   "residual_if_contract_used": 1.504e-05,
+   "which_was_used": "frozen_artifact"
+  }
+ ],
+ "cells_where_declared_is_not_a_rounding": [
+  "rv_h21",
+  "rv_h5",
+  "rv_h63"
+ ],
+ "conclusion": "홀드아웃 G1 기준선은 9셀 모두 동결 아티팩트 값을 썼다(잔차 1e-16 수준). 계약 선언값은 7셀에서 아티팩트의 소수 4자리 반올림과 일치하나, rv_h21(0.6760 vs 0.6708480)·rv_h63(0.8751 vs 0.8764736) 두 셀에서는 반올림으로 설명되지 않는다.",
+ "content_hash": "9c66e5f7676a903e0879de4acdac6ee6ee016cdfcd21e9b9bdfa22f2b12dd342",
+ "contract_source": "data/contracts/multivariate_timeseries_v13_vol.yaml 40-43행 climatology_base_rates",
+ "holdout_read": false,
+ "impact_on_governance": "있음 — climatology_base_rates 는 V13-D2′ 영수증에서 unchanged(동결 좌표)로 선언된 필드다. 선언값과 실행값이 두 셀에서 어긋난다. 계약을 지금 고치는 것은 결과 후 동결 좌표 수정이므로 하지 않았다.",
+ "impact_on_verdict": "없음 — 실행은 설계창 실제 빈도를 썼고 이는 계약 105행 정의('climatology_base_rates 고정값(설계창)')와 부합한다.",
+ "method": "상수 기준선 Brier 는 BS = r(1-p)^2 + (1-r)p^2 로 닫힌 형태다. 홀드아웃 기저율 r 과 기록된 bs_baseline 으로 실제 쓰인 p 를 역산해 어느 값이 쓰였는지 판정했다.",
+ "purpose": "완결성 비평 S1-3 — 계약 선언 기후 상수 vs 동결 아티팩트 vs 홀드아웃 실행값 대조 (9셀 전수).",
+ "schema": "v13_vol_climatology_constant_reconciliation"
+}

@@ -1,0 +1,47 @@
+{
+  "as_of": "2026-10-12T09:16:14+09:00",
+  "retrieved_at": "2026-10-12T00:48:45Z",
+  "role": "rejected_or_unconfirmed_observations_only_not_return_model_inputs",
+  "unit": "KRW_per_share",
+  "observations": [
+    {
+      "ticker": "010120",
+      "issuer": "LS ELECTRIC",
+      "candidate_value": 195500,
+      "candidate_date": "2026-10-08",
+      "provider": "Hankyung",
+      "url": "https://markets.hankyung.com/stock/010120/consensus",
+      "page_label": "10/8 장마감",
+      "available_at": null,
+      "status": "reference_only_not_certified_exchange_close",
+      "reason": "Secondary public quote; source delivery time and exchange-specific historical close receipt not obtained. Agreement with another publisher does not establish independent feed lineage."
+    },
+    {
+      "ticker": "010120",
+      "issuer": "LS ELECTRIC",
+      "candidate_value": 195500,
+      "candidate_date": "2026-10-08",
+      "provider": "MBN Money",
+      "url": "https://mbnmoney.mbn.co.kr/stock/item/daily?code=010120",
+      "page_label": "Prior inspection 10/8 15:30; final refresh 10/12 09:26 previous_close",
+      "available_at": null,
+      "status": "reference_only_not_certified_exchange_close",
+      "reason": "Final refreshed live quote is after cutoff and excluded. Its previous_close field is a secondary historical reference, not proof of publication vintage or exchange-specific close."
+    },
+    {
+      "ticker": "010120",
+      "issuer": "LS ELECTRIC",
+      "candidate_value": 197200,
+      "candidate_date": "2026-10-08",
+      "provider": "AlphaSquare",
+      "url": "https://alphasquare.co.kr/home/stock-information?code=010120",
+      "page_label": "Historical 10/8 daily close; page says KRX and NXT tradable",
+      "available_at": null,
+      "status": "unresolved_venue_or_method_difference",
+      "reason": "Differs from the 195500 reference. Historical row does not certify the venue/session definition. Final page current quote at 10/12 09:46:38 is after cutoff and excluded; no current valuation fields are ingested."
+    }
+  ],
+  "decision": "Do not substitute these values into Korean return forecasts or current normalized PER. Resolve venue, session, corporate-action adjustment and publication lineage first.",
+  "impact_on_rankings_or_calculations": "none",
+  "manifest_scope": "These rejected cross-check records are outside the 85 evidence-role IDs used by the preserved comparison inputs."
+}

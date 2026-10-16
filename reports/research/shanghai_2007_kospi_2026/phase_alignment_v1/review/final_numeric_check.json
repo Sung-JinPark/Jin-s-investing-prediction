@@ -1,0 +1,47 @@
+{
+  "reviewed_at_utc": "2026-10-16T00:41:21.568503+00:00",
+  "historical_cases": [
+    {
+      "date": "2007-07-05",
+      "end_date": "2008-01-08",
+      "future_closes": 126,
+      "end_return_fraction": 0.4896912776178346,
+      "max_upside_from_origin_fraction": 0.6848116774109689,
+      "path_max_drawdown_fraction": -0.21153271635538717,
+      "status": "matches_independent_calculation"
+    },
+    {
+      "date": "2008-01-22",
+      "end_date": "2008-07-29",
+      "future_closes": 126,
+      "end_return_fraction": -0.37489774658698394,
+      "max_upside_from_origin_fraction": 0.044287515762925445,
+      "path_max_drawdown_fraction": -0.4431367854690246,
+      "status": "matches_independent_calculation"
+    },
+    {
+      "date": "2008-03-18",
+      "end_date": "2008-09-17",
+      "future_closes": 126,
+      "end_return_fraction": -0.47421570497969423,
+      "max_upside_from_origin_fraction": 0.036836654037994965,
+      "path_max_drawdown_fraction": -0.49289572955139915,
+      "status": "matches_independent_calculation"
+    },
+    {
+      "date": "2008-06-10",
+      "end_date": "2008-12-11",
+      "future_closes": 126,
+      "end_return_fraction": -0.338716869607106,
+      "max_upside_from_origin_fraction": 0.0,
+      "path_max_drawdown_fraction": -0.4444932673247991,
+      "status": "matches_independent_calculation"
+    }
+  ],
+  "correlation_levels": 0.7109905932976662,
+  "correlation_log_returns": -0.02845000435089781,
+  "valuation_cases": 5,
+  "risk_levels": 7,
+  "all_independent_numeric_checks": "passed",
+  "phase_support_sha256": "3085f0a74f651ba302dd44b16b212b3e1ffb3b8abb222daec36a3586151b9509"
+}

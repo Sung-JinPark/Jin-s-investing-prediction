@@ -1,0 +1,513 @@
+{
+  "status": "pass_with_research_limitations",
+  "checked_at": "2026-10-12T10:53:54.911960+09:00",
+  "role": "independent_research_integrity_review_not_forecast_accuracy_certification",
+  "checks": [
+    {
+      "name": "SOXX_manifest_hash_matches",
+      "pass_": true,
+      "detail": null
+    },
+    {
+      "name": "SOXX_raw_html_hash_matches",
+      "pass_": true,
+      "detail": null
+    },
+    {
+      "name": "SOXX_4723_unique_ordered_sessions",
+      "pass_": true,
+      "detail": null
+    },
+    {
+      "name": "SOXX_history_ends_at_cutoff_price_day",
+      "pass_": true,
+      "detail": null
+    },
+    {
+      "name": "SOXX_values_positive_finite",
+      "pass_": true,
+      "detail": null
+    },
+    {
+      "name": "SOXX_actual_missing_available_at_explicit",
+      "pass_": true,
+      "detail": null
+    },
+    {
+      "name": "SOXX_retrieved_after_cutoff_not_PIT_certified",
+      "pass_": true,
+      "detail": null
+    },
+    {
+      "name": "IGV_manifest_hash_matches",
+      "pass_": true,
+      "detail": null
+    },
+    {
+      "name": "IGV_raw_html_hash_matches",
+      "pass_": true,
+      "detail": null
+    },
+    {
+      "name": "IGV_4723_unique_ordered_sessions",
+      "pass_": true,
+      "detail": null
+    },
+    {
+      "name": "IGV_history_ends_at_cutoff_price_day",
+      "pass_": true,
+      "detail": null
+    },
+    {
+      "name": "IGV_values_positive_finite",
+      "pass_": true,
+      "detail": null
+    },
+    {
+      "name": "IGV_actual_missing_available_at_explicit",
+      "pass_": true,
+      "detail": null
+    },
+    {
+      "name": "IGV_retrieved_after_cutoff_not_PIT_certified",
+      "pass_": true,
+      "detail": null
+    },
+    {
+      "name": "SPY_manifest_hash_matches",
+      "pass_": true,
+      "detail": null
+    },
+    {
+      "name": "SPY_raw_html_hash_matches",
+      "pass_": true,
+      "detail": null
+    },
+    {
+      "name": "SPY_4723_unique_ordered_sessions",
+      "pass_": true,
+      "detail": null
+    },
+    {
+      "name": "SPY_history_ends_at_cutoff_price_day",
+      "pass_": true,
+      "detail": null
+    },
+    {
+      "name": "SPY_values_positive_finite",
+      "pass_": true,
+      "detail": null
+    },
+    {
+      "name": "SPY_actual_missing_available_at_explicit",
+      "pass_": true,
+      "detail": null
+    },
+    {
+      "name": "SPY_retrieved_after_cutoff_not_PIT_certified",
+      "pass_": true,
+      "detail": null
+    },
+    {
+      "name": "all_three_price_panels_synchronized",
+      "pass_": true,
+      "detail": null
+    },
+    {
+      "name": "h21_target_gross_return_log_ratio",
+      "pass_": true,
+      "detail": 7.077671781985373e-16
+    },
+    {
+      "name": "h21_all_label_endpoints_exact_horizon_mature",
+      "pass_": true,
+      "detail": null
+    },
+    {
+      "name": "h21_all_labels_match_sign",
+      "pass_": true,
+      "detail": null
+    },
+    {
+      "name": "h21_full_daily_oos_count",
+      "pass_": true,
+      "detail": null
+    },
+    {
+      "name": "h21_anchors_do_not_overlap",
+      "pass_": true,
+      "detail": null
+    },
+    {
+      "name": "h21_anchor_count",
+      "pass_": true,
+      "detail": null
+    },
+    {
+      "name": "h21_every_fold_purged",
+      "pass_": true,
+      "detail": null
+    },
+    {
+      "name": "h21_every_fold_train_origin_end_difference",
+      "pass_": true,
+      "detail": null
+    },
+    {
+      "name": "h21_logistic_brier_recomputed",
+      "pass_": true,
+      "detail": 0.28686010791302546
+    },
+    {
+      "name": "h21_logistic_fraction_bounds",
+      "pass_": true,
+      "detail": null
+    },
+    {
+      "name": "h21_random_forest_brier_recomputed",
+      "pass_": true,
+      "detail": 0.2650714179666169
+    },
+    {
+      "name": "h21_random_forest_fraction_bounds",
+      "pass_": true,
+      "detail": null
+    },
+    {
+      "name": "h21_expanding_class_frequency_baseline_brier_recomputed",
+      "pass_": true,
+      "detail": 0.24979351975107753
+    },
+    {
+      "name": "h21_expanding_class_frequency_baseline_fraction_bounds",
+      "pass_": true,
+      "detail": null
+    },
+    {
+      "name": "h21_ridge_mae_recomputed",
+      "pass_": true,
+      "detail": 0.04891352110446585
+    },
+    {
+      "name": "h21_expanding_mean_baseline_mae_recomputed",
+      "pass_": true,
+      "detail": 0.04527850793651947
+    },
+    {
+      "name": "h21_model_failures_are_explicit",
+      "pass_": true,
+      "detail": null
+    },
+    {
+      "name": "h21_current_training_labels_precede_origin",
+      "pass_": true,
+      "detail": null
+    },
+    {
+      "name": "h21_current_forecast_promotion_disabled",
+      "pass_": true,
+      "detail": null
+    },
+    {
+      "name": "h57_target_gross_return_log_ratio",
+      "pass_": true,
+      "detail": 6.661338147750939e-16
+    },
+    {
+      "name": "h57_all_label_endpoints_exact_horizon_mature",
+      "pass_": true,
+      "detail": null
+    },
+    {
+      "name": "h57_all_labels_match_sign",
+      "pass_": true,
+      "detail": null
+    },
+    {
+      "name": "h57_full_daily_oos_count",
+      "pass_": true,
+      "detail": null
+    },
+    {
+      "name": "h57_anchors_do_not_overlap",
+      "pass_": true,
+      "detail": null
+    },
+    {
+      "name": "h57_anchor_count",
+      "pass_": true,
+      "detail": null
+    },
+    {
+      "name": "h57_every_fold_purged",
+      "pass_": true,
+      "detail": null
+    },
+    {
+      "name": "h57_every_fold_train_origin_end_difference",
+      "pass_": true,
+      "detail": null
+    },
+    {
+      "name": "h57_logistic_brier_recomputed",
+      "pass_": true,
+      "detail": 0.31032117276139304
+    },
+    {
+      "name": "h57_logistic_fraction_bounds",
+      "pass_": true,
+      "detail": null
+    },
+    {
+      "name": "h57_random_forest_brier_recomputed",
+      "pass_": true,
+      "detail": 0.27584476948285114
+    },
+    {
+      "name": "h57_random_forest_fraction_bounds",
+      "pass_": true,
+      "detail": null
+    },
+    {
+      "name": "h57_expanding_class_frequency_baseline_brier_recomputed",
+      "pass_": true,
+      "detail": 0.25279270627745115
+    },
+    {
+      "name": "h57_expanding_class_frequency_baseline_fraction_bounds",
+      "pass_": true,
+      "detail": null
+    },
+    {
+      "name": "h57_ridge_mae_recomputed",
+      "pass_": true,
+      "detail": 0.08506918656686914
+    },
+    {
+      "name": "h57_expanding_mean_baseline_mae_recomputed",
+      "pass_": true,
+      "detail": 0.07565857716149701
+    },
+    {
+      "name": "h57_model_failures_are_explicit",
+      "pass_": true,
+      "detail": null
+    },
+    {
+      "name": "h57_current_training_labels_precede_origin",
+      "pass_": true,
+      "detail": null
+    },
+    {
+      "name": "h57_current_forecast_promotion_disabled",
+      "pass_": true,
+      "detail": null
+    },
+    {
+      "name": "last21_SOXX_total_return_independent",
+      "pass_": true,
+      "detail": 0.08181931281201194
+    },
+    {
+      "name": "last21_IGV_total_return_independent",
+      "pass_": true,
+      "detail": 0.11333993642874662
+    },
+    {
+      "name": "last21_SPY_total_return_independent",
+      "pass_": true,
+      "detail": 0.029918781843103925
+    },
+    {
+      "name": "last57_SOXX_total_return_independent",
+      "pass_": true,
+      "detail": 0.012802457987065585
+    },
+    {
+      "name": "last57_IGV_total_return_independent",
+      "pass_": true,
+      "detail": 0.22707469552841197
+    },
+    {
+      "name": "last57_SPY_total_return_independent",
+      "pass_": true,
+      "detail": 0.04306317241361257
+    },
+    {
+      "name": "strict_PIT_forecast_gate_blocked",
+      "pass_": true,
+      "detail": null
+    },
+    {
+      "name": "explicit_probability_fraction",
+      "pass_": true,
+      "detail": null
+    },
+    {
+      "name": "date_source_UTC_proxy_not_delivery_claim",
+      "pass_": true,
+      "detail": null
+    },
+    {
+      "name": "TECH-SOXX-SPLIT_availability_bound_within_cutoff",
+      "pass_": true,
+      "detail": null
+    },
+    {
+      "name": "TECH-NVDA-FY27Q2_availability_bound_within_cutoff",
+      "pass_": true,
+      "detail": null
+    },
+    {
+      "name": "TECH-AVGO-FY26Q3_availability_bound_within_cutoff",
+      "pass_": true,
+      "detail": null
+    },
+    {
+      "name": "TECH-MSFT-FY26Q4_availability_bound_within_cutoff",
+      "pass_": true,
+      "detail": null
+    },
+    {
+      "name": "TECH-MSFT-FY26Q4-CALL_availability_bound_within_cutoff",
+      "pass_": true,
+      "detail": null
+    },
+    {
+      "name": "TECH-CRM-FY27Q2_availability_bound_within_cutoff",
+      "pass_": true,
+      "detail": null
+    },
+    {
+      "name": "TECH-CRWD-FY27Q2_availability_bound_within_cutoff",
+      "pass_": true,
+      "detail": null
+    },
+    {
+      "name": "TECH-TSMC-2026SEP-SALES_availability_bound_within_cutoff",
+      "pass_": true,
+      "detail": null
+    },
+    {
+      "name": "TECH-GS-2026OCT-AI_availability_bound_within_cutoff",
+      "pass_": true,
+      "detail": null
+    },
+    {
+      "name": "TECH-FID-2026AUG-AI_availability_bound_within_cutoff",
+      "pass_": true,
+      "detail": null
+    },
+    {
+      "name": "TECH-JPM-2026SEP-CAPEX_availability_bound_within_cutoff",
+      "pass_": true,
+      "detail": null
+    },
+    {
+      "name": "REL-MU-FY26Q4_availability_bound_within_cutoff",
+      "pass_": true,
+      "detail": null
+    },
+    {
+      "name": "REL-AMD-2026Q2_availability_bound_within_cutoff",
+      "pass_": true,
+      "detail": null
+    },
+    {
+      "name": "REL-INTC-2026Q2_availability_bound_within_cutoff",
+      "pass_": true,
+      "detail": null
+    },
+    {
+      "name": "REL-AMAT-FY26Q3_availability_bound_within_cutoff",
+      "pass_": true,
+      "detail": null
+    },
+    {
+      "name": "REL-LRCX-2026JUN_availability_bound_within_cutoff",
+      "pass_": true,
+      "detail": null
+    },
+    {
+      "name": "REL-TXN-2026Q2_availability_bound_within_cutoff",
+      "pass_": true,
+      "detail": null
+    },
+    {
+      "name": "REL-PANW-FY26Q4_availability_bound_within_cutoff",
+      "pass_": true,
+      "detail": null
+    },
+    {
+      "name": "REL-NOW-2026Q2_availability_bound_within_cutoff",
+      "pass_": true,
+      "detail": null
+    },
+    {
+      "name": "REL-SNOW-FY27Q2_availability_bound_within_cutoff",
+      "pass_": true,
+      "detail": null
+    },
+    {
+      "name": "REL-PLTR-2026Q2_availability_bound_within_cutoff",
+      "pass_": true,
+      "detail": null
+    },
+    {
+      "name": "REL-ORCL-FY27Q1_availability_bound_within_cutoff",
+      "pass_": true,
+      "detail": null
+    },
+    {
+      "name": "REL-ADBE-FY26Q3_availability_bound_within_cutoff",
+      "pass_": true,
+      "detail": null
+    },
+    {
+      "name": "REL-FED-2026SEP_availability_bound_within_cutoff",
+      "pass_": true,
+      "detail": null
+    },
+    {
+      "name": "REL-BLS-2026SEP-JOBS_availability_bound_within_cutoff",
+      "pass_": true,
+      "detail": null
+    },
+    {
+      "name": "integrated_conclusion_separates_observation_assumption_failed_model",
+      "pass_": true,
+      "detail": null
+    }
+  ],
+  "check_count": 95,
+  "errors": [],
+  "reviewed_file_sha256": {
+    "relative_ml.py": "bd451c4956e8d10e7dbf678d9d859b733c43fde403c86384129ba95cce1b7314",
+    "quantitative_ml.json": "dc1af4efa74977fb380519e7dfeca13e60f659e1112f681ab24af454f6a834ee",
+    "relative_evidence.json": "24fc60300659802402e6b8303eefae36fac16aaa1cd38202926f38290e74c89f",
+    "interpretation.md": "ca30d1fd37c60da1af469c12a84361231794c24545a44ddcca9486f5d2ec2e43"
+  },
+  "static_code_review": {
+    "target": "Forward log ratio of gross adjusted returns; not arithmetic return-point difference",
+    "feature_causality": "Only trailing diff/rolling statistics; no future target in features",
+    "purge": "Every training label ends strictly before first test origin; one-session embargo",
+    "scaler": "StandardScaler embedded in estimator pipeline fit on x[train] only; RF unscaled",
+    "fold_update": "Expanding training refits every63sessions; within-fold test features may include information up to own close",
+    "tradeability": "Same-close feature/target is research convention; execution cost and realizable close fill not modeled",
+    "nonoverlap": "Every-horizon anchors avoid shared return intervals, not shared regimes or estimation dependence",
+    "original_vintage": "Historical actual available_at/adjustment vintages absent; strict prospective gate remains blocked",
+    "hyperparameters": "Fixed for this retrospective run, not preregistered before historic outcomes; no tuning on OOS here",
+    "bootstrap": "Moving-block CI accounts partly for overlapping labels; regimes/selection/refit dependence remain limits",
+    "result": "All tested ML models fail to improve over naive baseline; no current output adopted"
+  },
+  "warnings": [
+    "A next-UTC-midnight available_at is an explicit conservative publication-date proxy, not a measured delivery timestamp.",
+    "Current adjusted history retrieved after cutoff can support retrospective computations, not certify historic or current live-vintage accuracy.",
+    "Raw daily OOS counts are not independent sample counts; even nonoverlapping anchors retain regime dependence.",
+    "Block-bootstrap intervals are historical model-comparison uncertainty, not year-end prediction confidence intervals.",
+    "Deterministic momentum-sign baseline probabilities0/1 give a numerically epsilon-bounded sklearn log_loss; Brier and direction metrics are the suitable reported comparisons.",
+    "Conditional Monte Carlo83.19% reflects supplied priors/ranges/dependence; it does not override failed historical validation.",
+    "No executable ML probability is promoted; final conclusion is fundamentals semis / current price software / year-end winner unvalidated."
+  ],
+  "official_changes": 0
+}

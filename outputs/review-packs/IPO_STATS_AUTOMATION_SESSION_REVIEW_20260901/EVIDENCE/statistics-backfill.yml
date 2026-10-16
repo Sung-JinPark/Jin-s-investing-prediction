@@ -1,0 +1,74 @@
+name: statistics-backfill
+
+# 새 시리즈를 추가한 브랜치에서 공식 원장·스냅샷을 백필한다.
+# 로컬에는 FRED_API_KEY가 없고(DECISIONS 12-6 — API 경로만 허용) 키는 CI 시크릿에만
+# 있으므로, 시리즈 추가 PR은 이 워크플로를 자기 브랜치에 dispatch해 데이터를 받는다.
+# statistics-refresh와 달리 main이 아니라 **실행한 브랜치**에 커밋한다.
+# dispatch는 기본 브랜치에 파일이 있어야 등록되므로, 브랜치 단계에서는
+# 이 파일 자체를 바꿔 푸시하는 것이 실행 요청이다.
+# backfill-request: 2026-09-01T1 (스탬프를 바꿔 푸시하면 재실행)
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - ".github/workflows/statistics-backfill.yml"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: investing-data-writer
+  cancel-in-progress: false
+
+jobs:
+  backfill:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install statistics pipeline
+        run: pip install -e "." pytest
+      - name: Fetch authoritative sources and append the official observation ledger
+        env:
+          FRED_API_KEY: ${{ secrets.FRED_API_KEY }}
+        run: python -m ai_fc statistics-refresh
+      - name: Export the cumulative Excel audit view
+        run: python -m ai_fc official-data-workbook
+      - name: Validate statistics database and dashboard contract
+        run: >-
+          pytest -q
+          src/tests/test_authoritative_statistics.py
+          src/tests/test_official_data_workbook.py
+          src/tests/test_statistics_lab.py
+          src/tests/test_dashboard.py
+      - name: Refresh generated repository inventory
+        run: cd src && python -m ai_fc inventory
+      - name: Commit the backfilled snapshot to this branch
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add \
+            data/statistics/dotcom_statistics_latest.json \
+            data/statistics/archive \
+            data/statistics/official_store/raw \
+            data/statistics/official_store/ledgers \
+            data/statistics/workbooks/official_data_latest.xlsx \
+            docs/generated/inventory.generated.md
+          unexpected="$(git diff --cached --name-only | grep -Ev '^(data/statistics/(dotcom_statistics_latest.json|archive/.*|official_store/(raw|ledgers)/.*|workbooks/official_data_latest.xlsx)|docs/generated/inventory.generated.md)$' || true)"
+          if [ -n "$unexpected" ]; then
+            echo "Unexpected or protected path staged by the statistics backfill:"
+            echo "$unexpected"
+            exit 1
+          fi
+          if git diff --cached --quiet; then
+            echo "No statistics changes to commit."
+            exit 0
+          fi
+          git commit -m "data: backfill statistics ledger for new series $(date -u +%F)"
+          git push origin "HEAD:${GITHUB_REF_NAME}"

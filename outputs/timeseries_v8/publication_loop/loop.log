@@ -1,0 +1,121 @@
+2026-09-01T02:11:04Z === V8 publication loop start (48h horizon, ends 2026-09-03T02:11:04Z) ===
+From https://github.com/Sung-JinPark/Jin-s-investing-prediction
+ * branch              main       -> FETCH_HEAD
+2026-09-01T02:11:08Z state: {"as_of": "2026-08-14", "status": "shadow_operational_hold", "sealed_gate_pass": true, "operational_pass": false, "hold_reasons": 5, "shadow_forecasts": 1, "shadow_resolutions": 0, "live": {"model_id": "shadow.nasdaq_pit_hybrid_distribution_v5", "status": "shadow_validation_hold", "visible": false}}
+2026-09-01T02:11:09Z operational HOLD — dispatching timeseries-v2-refresh
+https://github.com/Sung-JinPark/Jin-s-investing-prediction/actions/runs/33461589762
+2026-09-01T02:27:26Z v2-refresh finished: completed/success
+2026-09-01T02:27:26Z dispatching timeseries-v8-shadow
+https://github.com/Sung-JinPark/Jin-s-investing-prediction/actions/runs/33462605287
+2026-09-01T02:29:33Z v8-shadow finished: completed/success
+From https://github.com/Sung-JinPark/Jin-s-investing-prediction
+ * branch              main       -> FETCH_HEAD
+   0be827b5..e32a1483  main       -> origin/main
+2026-09-01T02:29:36Z state: {"as_of": "2026-08-14", "status": "shadow_operational_hold", "sealed_gate_pass": true, "operational_pass": false, "hold_reasons": 2, "shadow_forecasts": 1, "shadow_resolutions": 0, "live": {"model_id": "shadow.nasdaq_pit_hybrid_distribution_v5", "status": "shadow_validation_hold", "visible": false}}
+From https://github.com/Sung-JinPark/Jin-s-investing-prediction
+ * branch              main       -> FETCH_HEAD
+2026-09-01T02:59:39Z state: {"as_of": "2026-08-14", "status": "shadow_operational_hold", "sealed_gate_pass": true, "operational_pass": false, "hold_reasons": 2, "shadow_forecasts": 1, "shadow_resolutions": 0, "live": {"model_id": "shadow.nasdaq_pit_hybrid_distribution_v5", "status": "shadow_validation_hold", "visible": false}}
+From https://github.com/Sung-JinPark/Jin-s-investing-prediction
+ * branch              main       -> FETCH_HEAD
+2026-09-01T03:29:42Z state: {"as_of": "2026-08-14", "status": "shadow_operational_hold", "sealed_gate_pass": true, "operational_pass": false, "hold_reasons": 2, "shadow_forecasts": 1, "shadow_resolutions": 0, "live": {"model_id": "shadow.nasdaq_pit_hybrid_distribution_v5", "status": "shadow_validation_hold", "visible": false}}
+From https://github.com/Sung-JinPark/Jin-s-investing-prediction
+ * branch              main       -> FETCH_HEAD
+2026-09-01T03:59:45Z state: {"as_of": "2026-08-14", "status": "shadow_operational_hold", "sealed_gate_pass": true, "operational_pass": false, "hold_reasons": 2, "shadow_forecasts": 1, "shadow_resolutions": 0, "live": {"model_id": "shadow.nasdaq_pit_hybrid_distribution_v5", "status": "shadow_validation_hold", "visible": false}}
+2026-09-01T03:59:46Z operational HOLD — dispatching timeseries-v2-refresh
+https://github.com/Sung-JinPark/Jin-s-investing-prediction/actions/runs/33468196910
+2026-09-01T04:12:21Z v2-refresh finished: completed/success
+2026-09-01T04:12:21Z dispatching timeseries-v8-shadow
+https://github.com/Sung-JinPark/Jin-s-investing-prediction/actions/runs/33468964456
+2026-09-01T04:39:36Z v8-shadow finished: timeout:in_progress/
+From https://github.com/Sung-JinPark/Jin-s-investing-prediction
+ * branch              main       -> FETCH_HEAD
+   857837c5..43a27e3d  main       -> origin/main
+2026-09-01T04:39:39Z state: {"as_of": "2026-08-14", "status": "shadow_operational_hold", "sealed_gate_pass": true, "operational_pass": false, "hold_reasons": 2, "shadow_forecasts": 1, "shadow_resolutions": 0, "live": {"model_id": "shadow.nasdaq_pit_hybrid_distribution_v5", "status": "shadow_validation_hold", "visible": false}}
+From https://github.com/Sung-JinPark/Jin-s-investing-prediction
+ * branch              main       -> FETCH_HEAD
+2026-09-01T05:09:41Z state: {"as_of": "2026-08-14", "status": "shadow_operational_hold", "sealed_gate_pass": true, "operational_pass": false, "hold_reasons": 2, "shadow_forecasts": 1, "shadow_resolutions": 0, "live": {"model_id": "shadow.nasdaq_pit_hybrid_distribution_v5", "status": "shadow_validation_hold", "visible": false}}
+From https://github.com/Sung-JinPark/Jin-s-investing-prediction
+ * branch              main       -> FETCH_HEAD
+2026-09-01T05:39:43Z state: {"as_of": "2026-08-28", "status": "shadow_live", "sealed_gate_pass": true, "operational_pass": true, "hold_reasons": 0, "shadow_forecasts": 2, "shadow_resolutions": 2, "live": {"model_id": "shadow.nasdaq_pit_hybrid_distribution_v5", "status": "shadow_validation_hold", "visible": false}}
+From https://github.com/Sung-JinPark/Jin-s-investing-prediction
+ * branch              main       -> FETCH_HEAD
+   bc50c647..7c247d4b  main       -> origin/main
+2026-09-01T06:09:45Z state: {"as_of": "2026-08-28", "status": "shadow_live", "sealed_gate_pass": true, "operational_pass": true, "hold_reasons": 0, "shadow_forecasts": 2, "shadow_resolutions": 2, "live": {"model_id": "shadow.mf_dfm_varx_calibrated_v8", "status": "shadow_live", "visible": true}}
+2026-09-01T06:09:45Z SUCCESS: operational gate PASS and live site serves shadow_live — holding 12h
+From https://github.com/Sung-JinPark/Jin-s-investing-prediction
+ * branch              main       -> FETCH_HEAD
+   6fc25f49..8e84b1ac  main       -> origin/main
+2026-09-01T06:39:49Z state: {"as_of": "2026-08-28", "status": "shadow_live", "sealed_gate_pass": true, "operational_pass": true, "hold_reasons": 0, "shadow_forecasts": 2, "shadow_resolutions": 2, "live": {"model_id": "shadow.mf_dfm_varx_calibrated_v8", "status": "shadow_live", "visible": true}}
+From https://github.com/Sung-JinPark/Jin-s-investing-prediction
+ * branch              main       -> FETCH_HEAD
+2026-09-01T07:09:52Z state: {"as_of": "2026-08-28", "status": "shadow_live", "sealed_gate_pass": true, "operational_pass": true, "hold_reasons": 0, "shadow_forecasts": 2, "shadow_resolutions": 2, "live": {"model_id": "shadow.mf_dfm_varx_calibrated_v8", "status": "shadow_live", "visible": true}}
+From https://github.com/Sung-JinPark/Jin-s-investing-prediction
+ * branch              main       -> FETCH_HEAD
+   c6694b3f..3286efba  main       -> origin/main
+2026-09-01T07:39:56Z state: {"as_of": "2026-08-28", "status": "shadow_live", "sealed_gate_pass": true, "operational_pass": true, "hold_reasons": 0, "shadow_forecasts": 2, "shadow_resolutions": 2, "live": {"model_id": "shadow.mf_dfm_varx_calibrated_v8", "status": "shadow_live", "visible": true}}
+From https://github.com/Sung-JinPark/Jin-s-investing-prediction
+ * branch              main       -> FETCH_HEAD
+2026-09-01T08:10:00Z state: {"as_of": "2026-08-28", "status": "shadow_live", "sealed_gate_pass": true, "operational_pass": true, "hold_reasons": 0, "shadow_forecasts": 2, "shadow_resolutions": 2, "live": {"model_id": "shadow.mf_dfm_varx_calibrated_v8", "status": "shadow_live", "visible": true}}
+From https://github.com/Sung-JinPark/Jin-s-investing-prediction
+ * branch              main       -> FETCH_HEAD
+2026-09-01T08:40:03Z state: {"as_of": "2026-08-28", "status": "shadow_live", "sealed_gate_pass": true, "operational_pass": true, "hold_reasons": 0, "shadow_forecasts": 2, "shadow_resolutions": 2, "live": {"model_id": "shadow.mf_dfm_varx_calibrated_v8", "status": "shadow_live", "visible": true}}
+From https://github.com/Sung-JinPark/Jin-s-investing-prediction
+ * branch              main       -> FETCH_HEAD
+2026-09-01T09:10:08Z state: {"as_of": "2026-08-28", "status": "shadow_live", "sealed_gate_pass": true, "operational_pass": true, "hold_reasons": 0, "shadow_forecasts": 2, "shadow_resolutions": 2, "live": {"model_id": "shadow.mf_dfm_varx_calibrated_v8", "status": "shadow_live", "visible": true}}
+From https://github.com/Sung-JinPark/Jin-s-investing-prediction
+ * branch              main       -> FETCH_HEAD
+2026-09-01T09:40:14Z state: {"as_of": "2026-08-28", "status": "shadow_live", "sealed_gate_pass": true, "operational_pass": true, "hold_reasons": 0, "shadow_forecasts": 2, "shadow_resolutions": 2, "live": {"model_id": "shadow.mf_dfm_varx_calibrated_v8", "status": "shadow_live", "visible": true}}
+From https://github.com/Sung-JinPark/Jin-s-investing-prediction
+ * branch              main       -> FETCH_HEAD
+   75455ed3..d0e3df21  main       -> origin/main
+2026-09-01T10:10:19Z state: {"as_of": "2026-08-28", "status": "shadow_live", "sealed_gate_pass": true, "operational_pass": true, "hold_reasons": 0, "shadow_forecasts": 2, "shadow_resolutions": 2, "live": {"model_id": "shadow.mf_dfm_varx_calibrated_v8", "status": "shadow_live", "visible": true}}
+From https://github.com/Sung-JinPark/Jin-s-investing-prediction
+ * branch              main       -> FETCH_HEAD
+2026-09-01T10:40:22Z state: {"as_of": "2026-08-28", "status": "shadow_live", "sealed_gate_pass": true, "operational_pass": true, "hold_reasons": 0, "shadow_forecasts": 2, "shadow_resolutions": 2, "live": {"model_id": "shadow.mf_dfm_varx_calibrated_v8", "status": "shadow_live", "visible": true}}
+From https://github.com/Sung-JinPark/Jin-s-investing-prediction
+ * branch              main       -> FETCH_HEAD
+2026-09-01T11:10:24Z state: {"as_of": "2026-08-28", "status": "shadow_live", "sealed_gate_pass": true, "operational_pass": true, "hold_reasons": 0, "shadow_forecasts": 2, "shadow_resolutions": 2, "live": {"model_id": "shadow.mf_dfm_varx_calibrated_v8", "status": "shadow_live", "visible": true}}
+From https://github.com/Sung-JinPark/Jin-s-investing-prediction
+ * branch              main       -> FETCH_HEAD
+2026-09-01T11:40:27Z state: {"as_of": "2026-08-28", "status": "shadow_live", "sealed_gate_pass": true, "operational_pass": true, "hold_reasons": 0, "shadow_forecasts": 2, "shadow_resolutions": 2, "live": {"model_id": "shadow.mf_dfm_varx_calibrated_v8", "status": "shadow_live", "visible": true}}
+From https://github.com/Sung-JinPark/Jin-s-investing-prediction
+ * branch              main       -> FETCH_HEAD
+2026-09-01T12:10:29Z state: {"as_of": "2026-08-28", "status": "shadow_live", "sealed_gate_pass": true, "operational_pass": true, "hold_reasons": 0, "shadow_forecasts": 2, "shadow_resolutions": 2, "live": {"model_id": "shadow.mf_dfm_varx_calibrated_v8", "status": "shadow_live", "visible": true}}
+From https://github.com/Sung-JinPark/Jin-s-investing-prediction
+ * branch              main       -> FETCH_HEAD
+2026-09-01T12:40:31Z state: {"as_of": "2026-08-28", "status": "shadow_live", "sealed_gate_pass": true, "operational_pass": true, "hold_reasons": 0, "shadow_forecasts": 2, "shadow_resolutions": 2, "live": {"model_id": "shadow.mf_dfm_varx_calibrated_v8", "status": "shadow_live", "visible": true}}
+From https://github.com/Sung-JinPark/Jin-s-investing-prediction
+ * branch              main       -> FETCH_HEAD
+2026-09-01T13:10:33Z state: {"as_of": "2026-08-28", "status": "shadow_live", "sealed_gate_pass": true, "operational_pass": true, "hold_reasons": 0, "shadow_forecasts": 2, "shadow_resolutions": 2, "live": {"model_id": "shadow.mf_dfm_varx_calibrated_v8", "status": "shadow_live", "visible": true}}
+From https://github.com/Sung-JinPark/Jin-s-investing-prediction
+ * branch              main       -> FETCH_HEAD
+2026-09-01T13:40:35Z state: {"as_of": "2026-08-28", "status": "shadow_live", "sealed_gate_pass": true, "operational_pass": true, "hold_reasons": 0, "shadow_forecasts": 2, "shadow_resolutions": 2, "live": {"model_id": "shadow.mf_dfm_varx_calibrated_v8", "status": "shadow_live", "visible": true}}
+From https://github.com/Sung-JinPark/Jin-s-investing-prediction
+ * branch              main       -> FETCH_HEAD
+2026-09-01T14:10:38Z state: {"as_of": "2026-08-28", "status": "shadow_live", "sealed_gate_pass": true, "operational_pass": true, "hold_reasons": 0, "shadow_forecasts": 2, "shadow_resolutions": 2, "live": {"model_id": "shadow.mf_dfm_varx_calibrated_v8", "status": "shadow_live", "visible": true}}
+From https://github.com/Sung-JinPark/Jin-s-investing-prediction
+ * branch              main       -> FETCH_HEAD
+2026-09-01T14:40:40Z state: {"as_of": "2026-08-28", "status": "shadow_live", "sealed_gate_pass": true, "operational_pass": true, "hold_reasons": 0, "shadow_forecasts": 2, "shadow_resolutions": 2, "live": {"model_id": "shadow.mf_dfm_varx_calibrated_v8", "status": "shadow_live", "visible": true}}
+From https://github.com/Sung-JinPark/Jin-s-investing-prediction
+ * branch              main       -> FETCH_HEAD
+2026-09-01T15:10:43Z state: {"as_of": "2026-08-28", "status": "shadow_live", "sealed_gate_pass": true, "operational_pass": true, "hold_reasons": 0, "shadow_forecasts": 2, "shadow_resolutions": 2, "live": {"model_id": "shadow.mf_dfm_varx_calibrated_v8", "status": "shadow_live", "visible": true}}
+From https://github.com/Sung-JinPark/Jin-s-investing-prediction
+ * branch              main       -> FETCH_HEAD
+2026-09-01T15:40:46Z state: {"as_of": "2026-08-28", "status": "shadow_live", "sealed_gate_pass": true, "operational_pass": true, "hold_reasons": 0, "shadow_forecasts": 2, "shadow_resolutions": 2, "live": {"model_id": "shadow.mf_dfm_varx_calibrated_v8", "status": "shadow_live", "visible": true}}
+From https://github.com/Sung-JinPark/Jin-s-investing-prediction
+ * branch              main       -> FETCH_HEAD
+2026-09-01T16:10:48Z state: {"as_of": "2026-08-28", "status": "shadow_live", "sealed_gate_pass": true, "operational_pass": true, "hold_reasons": 0, "shadow_forecasts": 2, "shadow_resolutions": 2, "live": {"model_id": "shadow.mf_dfm_varx_calibrated_v8", "status": "shadow_live", "visible": true}}
+From https://github.com/Sung-JinPark/Jin-s-investing-prediction
+ * branch              main       -> FETCH_HEAD
+2026-09-01T16:40:50Z state: {"as_of": "2026-08-28", "status": "shadow_live", "sealed_gate_pass": true, "operational_pass": true, "hold_reasons": 0, "shadow_forecasts": 2, "shadow_resolutions": 2, "live": {"model_id": "shadow.mf_dfm_varx_calibrated_v8", "status": "shadow_live", "visible": true}}
+From https://github.com/Sung-JinPark/Jin-s-investing-prediction
+ * branch              main       -> FETCH_HEAD
+2026-09-01T17:10:53Z state: {"as_of": "2026-08-28", "status": "shadow_live", "sealed_gate_pass": true, "operational_pass": true, "hold_reasons": 0, "shadow_forecasts": 2, "shadow_resolutions": 2, "live": {"model_id": "shadow.mf_dfm_varx_calibrated_v8", "status": "shadow_live", "visible": true}}
+From https://github.com/Sung-JinPark/Jin-s-investing-prediction
+ * branch              main       -> FETCH_HEAD
+2026-09-01T17:40:55Z state: {"as_of": "2026-08-28", "status": "shadow_live", "sealed_gate_pass": true, "operational_pass": true, "hold_reasons": 0, "shadow_forecasts": 2, "shadow_resolutions": 2, "live": {"model_id": "shadow.mf_dfm_varx_calibrated_v8", "status": "shadow_live", "visible": true}}
+From https://github.com/Sung-JinPark/Jin-s-investing-prediction
+ * branch              main       -> FETCH_HEAD
+2026-09-01T18:10:58Z state: {"as_of": "2026-08-28", "status": "shadow_live", "sealed_gate_pass": true, "operational_pass": true, "hold_reasons": 0, "shadow_forecasts": 2, "shadow_resolutions": 2, "live": {"model_id": "shadow.mf_dfm_varx_calibrated_v8", "status": "shadow_live", "visible": true}}
+2026-09-01T18:10:58Z success held 12h — exiting
+2026-09-01T18:10:58Z === V8 publication loop end ===

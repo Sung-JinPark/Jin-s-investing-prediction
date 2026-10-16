@@ -1,0 +1,244 @@
+{
+  "as_of": "2026-10-12T09:16:14+09:00",
+  "scenario_role": "hypothetical_research_assumptions_not_validated_forecasts",
+  "official_forecast": false,
+  "probability_unit": "fraction",
+  "return_unit": "fraction",
+  "us_price_date": "2026-10-09",
+  "us_horizon": "2026-12-31",
+  "korea_price_date": "2026-10-08",
+  "korea_horizon": "2026-12-30",
+  "korea_horizon_status": "ordinary_market_rule_derived_special_notice_unverified",
+  "weights": {
+    "bull": 0.3,
+    "base": 0.45,
+    "bear": 0.25
+  },
+  "weights_basis": "Analyst illustrative emphasis on strong earnings with a material rate/capex downside; not fitted, calibrated, voted from reports, or transferred from our forecast models.",
+  "states": {
+    "bull": "Strong Q3/2027 earnings outlook; long yields roughly 50bp lower; AI capex maintained; valuation relief.",
+    "base": "Company guidance broadly delivered; long yields broadly stable; AI spending continues; no sector-wide rerating.",
+    "bear": "Long yields roughly 50bp higher and/or growth/capex disappointment; high-multiple equities derate."
+  },
+  "formula": "(1 + assumed change in valuation-relevant earnings power)*(1 + assumed valuation-multiple change)-1 + assumed remaining dividend - prorated published fund expense",
+  "earnings_normalization": "Starting valuation-relevant earnings power is normalized to 1, not measured sector NTM EPS. Changes are explicit analyst assumptions, not extrapolated annual growth or observed NTM estimates.",
+  "dividend_policy": "Future dividends unconfirmed; run-rate proxy or explicit conservative assumption. Past ex-dividend distributions paid after entry are excluded. Sensitivity also uses zero remaining dividend.",
+  "fees_policy": "Published fund expense ratio * 83/365; this is an illustrative forward expense estimate. Historical NAV returns already include fund fees and are not adjusted again.",
+  "assets": [
+    {
+      "id": "SOXX",
+      "name": "AI 반도체",
+      "class": "industry",
+      "priority": true,
+      "fee_annual": 0.0033,
+      "dividend_remaining": 0.00066,
+      "dividend_basis": "Issuer trailing annual yield 0.29% * 83/365, rounded; forward proxy only.",
+      "dividend_proxy_source": {
+        "url": "https://www.ishares.com/us/products/239705/ishares-phlx-semiconductor-etf",
+        "metric": "12m trailing yield",
+        "source_value": 0.29,
+        "source_unit": "percent_per_year",
+        "data_as_of": "2026-08-31",
+        "availability": "dynamic publication time unverified; source header inspected"
+      },
+      "source_ids": [
+        "TECH-SOXX-ETF",
+        "TECH-NVDA-FY27Q2",
+        "TECH-AVGO-FY26Q3",
+        "TECH-TSMC-2026SEP-SALES",
+        "TECH-SOXX-SPLIT"
+      ],
+      "rationale": "Confirmed AI chip demand and strong forward company revenue guides support earnings-power upside; YTD appreciation and high volatility require large derating stress.",
+      "cases": {
+        "bull": {
+          "g": 0.12,
+          "m": 0.1,
+          "g_width": 0.02,
+          "m_width": 0.04
+        },
+        "base": {
+          "g": 0.07,
+          "m": 0,
+          "g_width": 0.02,
+          "m_width": 0.04
+        },
+        "bear": {
+          "g": -0.06,
+          "m": -0.17,
+          "g_width": 0.02,
+          "m_width": 0.04
+        }
+      },
+      "split_ratio": 3
+    },
+    {
+      "id": "GRID",
+      "name": "전력망·전기 장비",
+      "class": "global_industry_proxy",
+      "priority": true,
+      "fee_annual": 0.0056,
+      "dividend_remaining": 0.002,
+      "dividend_basis": "Explicit analyst assumption of 0.20% remaining distribution; issuer current yield not verified; zero-dividend sensitivity required.",
+      "source_ids": [
+        "TECH-GRID-ETF",
+        "TECH-ETN-2026Q2",
+        "TECH-GEV-2026Q2"
+      ],
+      "rationale": "Electrical orders/backlog support durable demand, but multi-year delivery, advance-payment FCF and unknown normalized sector valuation limit precision.",
+      "cases": {
+        "bull": {
+          "g": 0.08,
+          "m": 0.08,
+          "g_width": 0.02,
+          "m_width": 0.04
+        },
+        "base": {
+          "g": 0.05,
+          "m": 0.02,
+          "g_width": 0.015,
+          "m_width": 0.03
+        },
+        "bear": {
+          "g": -0.03,
+          "m": -0.12,
+          "g_width": 0.02,
+          "m_width": 0.04
+        }
+      },
+      "split_ratio": 1
+    },
+    {
+      "id": "XLC",
+      "name": "AI 수익화 플랫폼",
+      "class": "sector_proxy",
+      "priority": true,
+      "fee_annual": 0.0008,
+      "dividend_remaining": 0.002797,
+      "dividend_basis": "Issuer trailing distribution yield 1.23% * 83/365; proxy, not a declared eligible dividend.",
+      "source_ids": [
+        "US-ISSUER-XLC",
+        "US-FACTSET-1007",
+        "TECH-META-2026Q2",
+        "TECH-GOOGL-2026Q2"
+      ],
+      "rationale": "Low comparable issuer FY1 valuation and monetization exposure create an alternative to pure capex suppliers; concentration and investment spending threaten cash conversion.",
+      "cases": {
+        "bull": {
+          "g": 0.08,
+          "m": 0.08,
+          "g_width": 0.02,
+          "m_width": 0.04
+        },
+        "base": {
+          "g": 0.04,
+          "m": 0.04,
+          "g_width": 0.02,
+          "m_width": 0.03
+        },
+        "bear": {
+          "g": -0.05,
+          "m": -0.14,
+          "g_width": 0.03,
+          "m_width": 0.04
+        }
+      },
+      "split_ratio": 1
+    },
+    {
+      "id": "IGV",
+      "name": "선별 소프트웨어",
+      "class": "industry",
+      "priority": false,
+      "fee_annual": 0.0038,
+      "dividend_remaining": 0,
+      "dividend_basis": "Explicit zero remaining dividend assumption, not a claim that the fund never pays distributions.",
+      "source_ids": [
+        "TECH-IGV-ETF",
+        "TECH-CRM-FY27Q2",
+        "TECH-CRWD-FY27Q2"
+      ],
+      "rationale": "AI implementation/security demand can support selected businesses; prior-quarter rebound, SBC and disruption risk make broad software a conditional rates-relief alternative.",
+      "cases": {
+        "bull": {
+          "g": 0.06,
+          "m": 0.14,
+          "g_width": 0.03,
+          "m_width": 0.05
+        },
+        "base": {
+          "g": 0.04,
+          "m": 0.02,
+          "g_width": 0.02,
+          "m_width": 0.04
+        },
+        "bear": {
+          "g": -0.06,
+          "m": -0.19,
+          "g_width": 0.04,
+          "m_width": 0.05
+        }
+      },
+      "split_ratio": 1
+    },
+    {
+      "id": "SPY",
+      "name": "S&P 500 비교 기준",
+      "class": "benchmark",
+      "priority": false,
+      "fee_annual": 0.000945,
+      "dividend_remaining": 0.002228,
+      "dividend_basis": "Issuer trailing distribution yield 0.98% * 83/365; proxy, not a declared eligible dividend.",
+      "source_ids": [
+        "US-ISSUER-SPY",
+        "US-FACTSET-1009",
+        "US-FED-0916"
+      ],
+      "rationale": "Broad positive earnings expectations coexist with rate pressure; benchmark assumptions are distinct from Nasdaq probability/path artifacts.",
+      "cases": {
+        "bull": {
+          "g": 0.06,
+          "m": 0.04,
+          "g_width": 0.02,
+          "m_width": 0.03
+        },
+        "base": {
+          "g": 0.03,
+          "m": 0,
+          "g_width": 0.02,
+          "m_width": 0.03
+        },
+        "bear": {
+          "g": -0.04,
+          "m": -0.12,
+          "g_width": 0.03,
+          "m_width": 0.04
+        }
+      },
+      "split_ratio": 1
+    }
+  ],
+  "sensitivity": {
+    "bull_weights": [
+      0.15,
+      0.25,
+      0.35,
+      0.45
+    ],
+    "bear_weights": [
+      0.15,
+      0.25,
+      0.35,
+      0.45
+    ],
+    "earnings_shock_fraction": 0.02,
+    "multiple_shock_fraction": 0.03,
+    "dividend_zero": true
+  },
+  "limitations": [
+    "Return values are conditional arithmetic, not calibrated expected returns, confidence intervals, target prices or measured winning probabilities.",
+    "ETF source publication vintages are incomplete. These inputs are not promoted to official numerical/forecast contracts.",
+    "Main three expected midpoints are not a robust ordering. Treat them as joint research priorities and use the sensitivity output.",
+    "GRID is a globally invested US-listed ETF; XLC is a broad communication-services proxy, not pure cloud/AI.",
+    "No Korean numerical return forecast is produced without current prices, normalized earnings and corporate-action-adjusted inputs."
+  ]
+}

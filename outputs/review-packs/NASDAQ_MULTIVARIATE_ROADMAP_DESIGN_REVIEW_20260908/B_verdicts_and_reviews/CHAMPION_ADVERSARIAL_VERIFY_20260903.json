@@ -1,0 +1,221 @@
+{
+  "summary": "V10 챔피언 W3 γ=-0.10을 홀드아웃 소모 전 6개 독립 렌즈로 적대적 검증",
+  "agentCount": 7,
+  "logs": [
+    "검증 렌즈 6/6 반환"
+  ],
+  "result": {
+    "verdicts": [
+      {
+        "lens": "시드·블록길이 강건성 (Lens 1)",
+        "verdict": "robust",
+        "key_metrics": "per_origin=417 원점, mean=+0.000277 (시드 무관 — 점추정은 per_origin.mean()이라 부트스트랩 시드에 불변; 원장 헤드라인 정확 재현). 원장 대조 seed=20260902·L=13 → CI90=[+0.000016,+0.000679] 일치. 상대 개선 =+0.635% (E0 장기 CRPS 0.04361 대비), 사전공표 MDE50(0.03~0.08%) 상회. 격자 100조합(시드 1..20 × L∈{5,8,13,21,34}) 중 CI90 하한>0 비율 = 100% (100/100). CI 하한 min/median/max = +0.000016 / +0.000022 / +0.000042.",
+        "refutation_attempt": "격자 밖 대형 블록으로 자기상관 스트레스(L=50/80/120/200) — 여전히 하한>0 (min +0.000027~+0.000043), 0-교차 없음. 개별 원점 우세 비율은 59.2%·중앙 원점 우세 +4.3e-05로 얇지만, 부트스트랩 CI90 하한은 어떤 시드·블록에서도 부호를 유지해 깨지지 않음. 유일한 취약 신호는 하한의 절대 크기(L=13에서 mean의 약 6%)로 zero에 근접하나 넘지 않음.",
+        "conclusion": "시드·블록길이 축에서 챔피언 효과는 강건 — 100개 조합 전부 및 격자 밖 스트레스에서도 CI90 하한이 양수를 유지하고 mean은 원장값을 정확히 재현한다(하한 절대폭이 얇다는 caveat 병기)."
+      },
+      {
+        "lens": "렌즈 2 — 하위기간 안정성 (2007–2010 vs 2011–2014, GFC vs 그 밖)",
+        "verdict": "fragile",
+        "key_metrics": "재계산 원장 대조 OK: 전체 mean=+0.000277, CI90=[+0.000016,+0.000679](seed=20260902,L=13, 417원점, E0장기CRPS=0.043608, rel +0.64%). 2007–2010(n=209): mean=+0.000481(rel+1.10%), CI90=[−0.000031,+0.001220] → 0가로지름(비유의). 2011–2014(n=208): mean=+0.000072(rel+0.166%), CI90=[+0.000026,+0.000122] → 유의하나 극소. GFC 2008-01-01~2009-06-30(n=78): mean=+0.001242(rel+2.85%), CI90=[−0.000119,+0.002899] → 0가로지름. 비-GFC 잔여(n=339): mean=+0.000055(rel+0.127%), CI90=[+0.000020,+0.000091]. GFC 원점 18.7%가 전체 델타 합의 83.8%를 차지; GFC 제거 시 rel 0.64%→0.13%로 5배 붕괴.",
+        "refutation_attempt": "시간을 (a) 균등 두 반기, (b) GFC창 대 잔여로 분리해 이득의 시간 국소성을 깨보려 함. 깨졌음: GFC 포함 2007–2010 절반은 CI가 0을 가로질러 자기 자신만으로 비유의, GFC 창 자체도 비유의인데 그 78개 소수 원점이 전체 이득의 83.8%를 견인. GFC를 빼면 헤드라인이 의미 문턱(MDE50 0.03~0.08% 상대) 바닥 근처인 rel 0.127%로 붕괴. 살아남은 것은 비-GFC 잔여의 유의한 양(+)뿐이나 크기가 5배 축소됨.",
+        "conclusion": "챔피언 효과는 두 하위구간에 고르게 존재하지 않고 2008 위기 소수 원점(전체 18.7%가 이득의 83.8%)에 의해 견인되며, GFC 제거 시 rel 0.64%→0.13%로 붕괴하고 초기 구간 CI는 0을 가로지르므로 이 렌즈에서 취약(fragile)하다."
+      },
+      {
+        "lens": "원점 집중도 (Origin concentration)",
+        "verdict": "fragile",
+        "key_metrics": "N=417 원점, mean=+0.000277(원장 헤드라인 정확 일치). 상위 5%(21원점)=순이득의 104%, 상위 10%(42원점)=111%. 상위 5% 제거 시 mean=−0.0000115(부호 반전). 상하 5% 절사평균=+0.0000521(헤드라인의 ~1/5). 단일 최대 원점=순이득의 9.6%. 양/음/제로=247/116/54, 양 59.2%. 중앙값 per_origin=+0.0000426(양수). h21 mean=+0.000154·중앙값+0.0000051·양53%(무익), h63 mean=+0.000400·중앙값+0.0000799·양60%(이득 집중). 상대%=0.635(E0장기분모 0.0436).",
+        "refutation_attempt": "상위 5% 원점 제거→mean이 −0.0000115로 부호 반전(깨짐). 상하 5% 절사→+0.0000521로 헤드라인의 1/5로 붕괴. 단일 최대 원점이 총 순이득의 9.6% 기여. h21/h63 분리→h21은 중앙값~0·양53%로 사실상 노이즈, 이득은 h63 소수 원점에 집중. 중앙값 부호(양수)만 유일하게 반박 실패.",
+        "conclusion": "이득은 다수 원점의 고른 개선이 아니라 극소수(주로 h63) 원점의 큰 개선에 의존하며, 상위 5% 원점 제거만으로 챔피언 효과의 부호가 뒤집히므로 취약하다."
+      },
+      {
+        "lens": "렌즈 4 — 커버리지-CRPS 정직성",
+        "verdict": "robust",
+        "key_metrics": "원시 scores 재계산이 summary와 완전 일치(보고 조작 없음). CRPS(챔피언 vs E0): h21 0.030841 vs 0.030996(rel +0.498%), h63 0.055820 vs 0.056220(rel +0.711%) — 양 horizon 실제 하락. 쌍대 mean=+0.000277, CI90=[+0.000016,+0.000679](0 배제), rel 0.6355%(seed 20260902, block 13 — 원장 헤드라인·파일 dual_vs_e0와 자릿수 일치). 커버리지 동행: h63 p10-p90 0.8393→0.8225(명목 0.80 초과분 +0.039→+0.023), p25-p75 0.5276→0.5204; h21 p10-p90 0.8297→0.8225, p25-p75 0.5228→0.5132. 폭 전부 축소(h63 w1090 −0.0069, w2575 −0.0037; h21 w1090 −0.0033, w2575 −0.0023). h63_p10_p90_upper 마진 +0.0007→+0.0175(상한 캡 0.84).",
+        "refutation_attempt": "'CRPS 그대로, 커버리지만 이동'(fragile 트리거)로 깨보려 했으나 반증: CRPS가 h21·h63 모두 하락하고 쌍대 CI90 하단(+0.000016)이 0을 배제. 커버리지·CRPS 동시 개선은 분포 폭 축소라는 단일 원인의 결과(과대분산 완화 → 과대커버 감소 + CRPS 하락)로, 독립적 커버리지 조정이 아님. 상한 마진 25배 확대는 E0 시작 마진이 0에 근접(0.0007)해 생긴 상대적 착시일 뿐 절대 커버리지·폭 변화와 비례. 유일 잔여 취약점은 CRPS 개선의 크기(쌍대 CI 하단 상대 0.037%가 MDE50 하단 0.03%를 겨우 상회)이나, 이는 효과크기(렌즈1) 사안이지 커버리지-CRPS 정직성(렌즈4) 사안이 아님.",
+        "conclusion": "γ=−0.10은 CRPS를 실제로 낮추면서 과대커버를 명목 쪽으로 되돌리는 동일한 폭-축소로 두 지표를 동시에 개선했으므로 커버리지-CRPS 정직성 축에서 게이트 통과용 눈속임이 아니라 정합적 개선이다."
+      },
+      {
+        "lens": "렌즈 5 — γ 용량반응·클립 포화",
+        "verdict": "fragile",
+        "key_metrics": "재현: g010 mean=+0.000277, CI90=[+0.000016,+0.000679], seed=20260902, block=13 (원장 일치), rel≈+0.64% (E0장기 CRPS 0.043608 분모). (a) model_crps 완전동일 원점 14.6%(122/834)=가중동일 원점과 일치, 그중 s==1 구조항등 12.9% + 양측 0.5하한포화 1.7%. 0.5하한 접촉: g010 1.7%·g020 4.6%(나머지 ~90%+ 내부구간) → 클립전역포화 가설 반증. 가중 gap(2배 γ): 평균 0.048·최대 0.125, 85.4% 원점 상이. 평균불변=상쇄: calm(72%) +0.000011 vs stress(15%) −0.000010; tilt기울기 −0.0149→−0.0061(평탄화). 엣지 편중: stress 원점=합의 92%; w=0.5 포화된 7개 GFC정점주(2008-10-31~12-19)가 총평균의 58%(0.000161/0.000277) 단독 운반. 내부(비클립) stress dual은 음수: g010 −0.000090, g020 −0.000232.",
+        "refutation_attempt": "\"γ에 매끄럽게 반응하는 용량반응\" 가설을 5경로로 깨보려 함: (1) 클립 포화율 계수, (2) build_state_series로 417원점 state·가중 재구성, (3) calm/s==1/stress 레짐 분해, (4) 내부(비클립)-only stress 이득 검정, (5) 극단 stress 원점 leave-out. 결과: 매끄러운 내부 dose-response는 존재하되 이득이 0~음수이고 γ를 키우면 악화 → robust 반증. 양의 엣지는 (a)극단 클립(w=0.5, 7 GFC주=58%)과 (b)s==1 구조항등(12.9%)이 생성. leave-out: top-10 stress 제거 시 +0.000058 CI90[−0.000006,+0.000126](0 교차), top-20 제거 시 +0.000022 CI90[−0.000033,+0.000071](0 관통). g020 CI90는 이미 [−0.000001,+0.000664]로 0 접촉. → 엣지가 소수 위기주에 붕괴, 반증됨.",
+        "conclusion": "γ=−0.10과 −0.20의 dual 동일성은 '매끄러운 용량반응'이 아니라 극단 vol 원점의 0.5-하한 클립 포화(총엣지 58%를 나르는 7개 GFC정점주에서 두 γ가 모두 0.5로 물림)와 s==1 구조 항등(12.9%)이 만든 임계·구조 인공물이며, 매끄럽게 반응해야 할 내부 구간의 이득은 오히려 0~음수이고 상위 stress 원점 몇 개 제거로 CI90가 0을 관통해 챔피언 효과는 이 렌즈에서 fragile이다."
+      },
+      {
+        "lens": "렌즈 6 — 헤드라인 독립 재현·E0 항등 확인",
+        "verdict": "robust",
+        "key_metrics": "(a) 레시피 독립 재계산: mean=0.000277113, CI90=[0.000016386, 0.000679426], SE=0.000208044 — 원장(+0.000277, [+0.000016,+0.000679]) 및 파일 임베디드 dual_vs_e0와 소수 9자리까지 일치. (b) champ vs E0가 h=1·h=5에서 model_crps·median max|diff|=0(비트 동일), config diff는 w3_blend_gamma(-0.1 vs None) 단 하나. E0 horizons(h21=0.030995676361, h63=0.056219638781)=per-score mean 재산출 및 원장 E0 행 일치; 양 파일 content_hash=원장 hash 일치. E0는 baseline 복사본 아님(E0 h1 샘플 0.002454 vs random_walk 0.001621). (c) origin_count=417, 결측쌍 0, 417 전 원점이 장기 2 horizon 보유. E0 장기분모=0.043607658, 상대 mean=0.6355%.",
+        "refutation_attempt": "임베디드 dual_vs_e0를 신뢰하지 않고 원시 scores에서 dual을 처음부터 재산출, content_hash·결측쌍·baseline 동일성·단기 항등을 각각 공격했으나 재현 실패나 E0 오염 징후 전무(bit-exact, clean one-knob control). 유일한 긴장: 상대 mean 0.6355%가 임베디드 통계 MDE50(1.645·SE=0.785% 상대, 점추정 초과)에 못 미치고 CI 하한 0.0376%가 사전공표 의미대역(0.03~0.08%) 바닥만 겨우 통과 — 그러나 이는 검정력 렌즈 사안이지 본 렌즈(재현·항등)의 결함이 아니어서 강건 판정 유지.",
+        "conclusion": "헤드라인 dual mean·CI90은 원장과 소수 9자리까지 독립 재현되고 E0는 단기 horizon에서 챔피언과 비트 동일한 단일-손잡이 clean identity 대조군으로 확인되어, 재현·항등 무결성 측면에서 챔피언 효과의 근거는 강건하다."
+      }
+    ],
+    "synthesis": {
+      "recommendation": "FREEZE_V10",
+      "robustness_summary": "6렌즈는 3 robust / 3 fragile 로 갈리지만 축의 성격이 결정적이다. Robust 3종(L1 시드·블록, L4 커버리지-CRPS 정직성, L6 재현·E0 항등)은 전부 무결성(integrity) 렌즈 — 헤드라인 +0.000277/CI90[+0.000016,+0.000679]이 소수 9자리까지 정직하게 계산됐고 조작·오염이 없음을 확인할 뿐, 일반화(홀드아웃 재현)를 보장하지 않는다. 반면 fragile 3종(L2 하위기간, L3 원점집중, L5 γ 용량반응)은 정확히 표본외 재현을 좌우하는 강건성 렌즈이며 모두 같은 결론으로 수렴한다: 이득이 소수 위기원점에 집중. 구체적으로 GFC 78원점(전체 18.7%)이 총델타의 83.8%를 견인하고 GFC 제거 시 rel 0.64%→0.13%로 5배 붕괴(L2); 상위 5% 원점 제거만으로 mean이 −0.0000115로 부호 반전(L3); 양의 엣지를 나르는 것은 매끄러운 dose-response가 아니라 2008-10~12 GFC정점 7주의 0.5-하한 클립 포화(총엣지 58%)와 s==1 구조항등(12.9%)이고, 상위 stress 원점 leave-out 시 CI90가 0을 관통(L5). 종합 판정: 효과는 실재하나 소수 위기원점 의존 인공물에 가깝다.",
+      "holdout_prior": "낮음. +0.64% dual 이 홀드아웃(2015-2018)에서 그대로 재현될 사전확률은 약 15~25%, 실제 게이트 요건(+2% AND paired CI 상한 ≤0)을 통과할 확률은 약 2% 미만으로 추정한다. 근거: (1) 홀드아웃 창(2015-2018)에는 GFC급 위기 원점이 없는데 전체 이득의 83.8%가 GFC 78원점에서 나온다 — 엣지 생성 메커니즘(0.5-하한 클립 포화 = 극단 vol 원점에서만 발동)이 홀드아웃에서 구조적으로 발화하지 않는다. (2) 비-GFC 잔여의 in-sample 효과가 rel +0.127%(L2)에 불과해, 위기 없는 홀드아웃의 기대 효과는 ~0.13% 또는 그 이하이며 원점 집중(상위5% 제거 시 부호 반전)을 감안하면 0/음도 배제 못한다. (3) 점추정 +0.64% 자체가 게이트 문턱 +2%의 1/3에 불과해, 완전강도 in-sample 에서도 게이트 미달이다.",
+      "risks": "비가역 홀드아웃 슬롯(3개 중 1개) 소모가 최대 위험이다. 기대값이 게이트 미달(점추정 +0.64% ≪ +2% 요건)이고 엣지가 홀드아웃에 없는 위기원점 인공물임이 3개 강건성 렌즈에서 수렴 확인된 상태에서 슬롯을 태우면, 거의 확실한 FAIL 로 잔여 예산(2/3)만 줄이고 유일 생존 축 W3 을 소진시킨다. 부차 위험: 만약 홀드아웃이 우연히 국소 vol 스파이크를 포함해 클립 포화가 소량 발화하면 통계적 유의(극소 양)를 게이트 통과로 오독할 유혹이 생기나, 이는 커버리지 마진 개선(E0 h63 상한 마진 +0.0007→+0.0175)이라는 얇은 이득을 과대해석하는 것이다.",
+      "rationale": "권고는 FREEZE_V10 이다. 첫째, 챔피언 +0.64% 는 사전등록 stop-loss 기준(+1%)에 미달하며 계약이 이미 STOP-LOSS·SHADOW 로 판정한 상태로, 홀드아웃 소모는 stop-loss 면제라는 별도 결정을 요구한다. 둘째, 실제 홀드아웃 게이트는 +2% 개선 AND paired CI 상한 ≤0 을 요구하는데 점추정이 그 1/3이라 in-sample 에서조차 통과 불가다. 셋째, 무결성 렌즈(robust 3종)는 숫자가 정직함만 증명할 뿐 일반화를 증명하지 않으며, 일반화를 재는 강건성 렌즈 3종이 모두 '이득은 GFC 위기원점 집중 인공물(GFC 제거 시 0.64%→0.13%, 상위5% 제거 시 부호 반전, 클립 포화 7주가 엣지 58% 운반)'로 수렴한다 — 판정 규칙의 FREEZE 조건('fragile/mixed 다수 또는 소수 위기원점 집중')을 정면으로 충족한다. 넷째, 홀드아웃 창(2015-2018)에는 그 위기원점이 부재해 엣지 메커니즘이 발화하지 않으므로, 비가역 슬롯을 거의 확실한 실패에 소모하지 말고 V10 을 동결하고 W3 축은 위기원점 의존이 없는 차세대 아키텍처로만 재개할 것을 권고한다."
+    }
+  },
+  "workflowProgress": [
+    {
+      "type": "workflow_phase",
+      "index": 1,
+      "title": "Verify"
+    },
+    {
+      "type": "workflow_phase",
+      "index": 2,
+      "title": "Synthesize"
+    },
+    {
+      "type": "workflow_agent",
+      "index": 1,
+      "label": "seed-block-robustness",
+      "phaseIndex": 1,
+      "phaseTitle": "Verify",
+      "agentId": "a5e5f20909130a3df",
+      "model": "claude-opus-4-8",
+      "state": "done",
+      "startedAt": 1788414951482,
+      "queuedAt": 1788414951457,
+      "attempt": 1,
+      "lastToolName": "StructuredOutput",
+      "lastToolSummary": "시드·블록길이 강건성 (Lens 1)",
+      "promptPreview": "작업 디렉터리: C:/workspace/ai-investing (Git Bash 경로 /c/workspace/ai-investing).\n파이썬 실행: 반드시 아래 형태로. (venv에 numpy 있음)\n  cd /c/workspace/ai-investing && PYTHONUTF8=1 .venv/Scripts/python.exe - <<'PYEOF'\n  ...코드...\n  PYEOF\n\n검증 대상 = V10 게이트 개발반복의 유일 챔피언 V10_W3_gamma_m010 (상태조건부 블렌드 γ=-0.10).\n원본 스코어 파일:\n  챔피언  : data/timeseries_v10/runs/dev_tsv10-exp-c3cc9617424935a374c5.json\n  E0(=V8항등): data/timeseries_v…",
+      "lastProgressAt": 1788415189349,
+      "tokens": 52359,
+      "toolCalls": 3,
+      "durationMs": 237865,
+      "resultPreview": "{\"lens\":\"시드·블록길이 강건성 (Lens 1)\",\"verdict\":\"robust\",\"key_metrics\":\"per_origin=417 원점, mean=+0.000277 (시드 무관 — 점추정은 per_origin.mean()이라 부트스트랩 시드에 불변; 원장 헤드라인 정확 재현). 원장 대조 seed=20260902·L=13 → CI90=[+0.000016,+0.000679] 일치. 상대 개선 =+0.635% (E0 장기 CRPS 0.04361 대비), 사전공표 MDE50(0.03~0.08%) 상회. 격자 100조합(시드 1..20 × L∈{5,8,13,21,34}) 중 CI90 하한>0 비율 = 100% (100/100). CI 하한 min/median/max = +0.000016 / +0.000…"
+    },
+    {
+      "type": "workflow_agent",
+      "index": 2,
+      "label": "subperiod-stability",
+      "phaseIndex": 1,
+      "phaseTitle": "Verify",
+      "agentId": "ab39f9396a2736821",
+      "model": "claude-opus-4-8",
+      "state": "done",
+      "startedAt": 1788414951482,
+      "queuedAt": 1788414951457,
+      "attempt": 1,
+      "lastToolName": "StructuredOutput",
+      "lastToolSummary": "렌즈 2 — 하위기간 안정성 (2007–2010 vs 2011–2014, GFC vs 그…",
+      "promptPreview": "작업 디렉터리: C:/workspace/ai-investing (Git Bash 경로 /c/workspace/ai-investing).\n파이썬 실행: 반드시 아래 형태로. (venv에 numpy 있음)\n  cd /c/workspace/ai-investing && PYTHONUTF8=1 .venv/Scripts/python.exe - <<'PYEOF'\n  ...코드...\n  PYEOF\n\n검증 대상 = V10 게이트 개발반복의 유일 챔피언 V10_W3_gamma_m010 (상태조건부 블렌드 γ=-0.10).\n원본 스코어 파일:\n  챔피언  : data/timeseries_v10/runs/dev_tsv10-exp-c3cc9617424935a374c5.json\n  E0(=V8항등): data/timeseries_v…",
+      "lastProgressAt": 1788415096060,
+      "tokens": 51867,
+      "toolCalls": 3,
+      "durationMs": 143061,
+      "resultPreview": "{\"lens\":\"렌즈 2 — 하위기간 안정성 (2007–2010 vs 2011–2014, GFC vs 그 밖)\",\"verdict\":\"fragile\",\"key_metrics\":\"재계산 원장 대조 OK: 전체 mean=+0.000277, CI90=[+0.000016,+0.000679](seed=20260902,L=13, 417원점, E0장기CRPS=0.043608, rel +0.64%). 2007–2010(n=209): mean=+0.000481(rel+1.10%), CI90=[−0.000031,+0.001220] → 0가로지름(비유의). 2011–2014(n=208): mean=+0.000072(rel+0.166%), CI90=[+0.000026,+0.000122] → 유의하나 극소. GFC 2008-01-0…"
+    },
+    {
+      "type": "workflow_agent",
+      "index": 3,
+      "label": "concentration",
+      "phaseIndex": 1,
+      "phaseTitle": "Verify",
+      "agentId": "aa0e05f5e9084fd3b",
+      "model": "claude-opus-4-8",
+      "state": "done",
+      "startedAt": 1788414951483,
+      "queuedAt": 1788414951458,
+      "attempt": 1,
+      "lastToolName": "StructuredOutput",
+      "lastToolSummary": "원점 집중도 (Origin concentration)",
+      "promptPreview": "작업 디렉터리: C:/workspace/ai-investing (Git Bash 경로 /c/workspace/ai-investing).\n파이썬 실행: 반드시 아래 형태로. (venv에 numpy 있음)\n  cd /c/workspace/ai-investing && PYTHONUTF8=1 .venv/Scripts/python.exe - <<'PYEOF'\n  ...코드...\n  PYEOF\n\n검증 대상 = V10 게이트 개발반복의 유일 챔피언 V10_W3_gamma_m010 (상태조건부 블렌드 γ=-0.10).\n원본 스코어 파일:\n  챔피언  : data/timeseries_v10/runs/dev_tsv10-exp-c3cc9617424935a374c5.json\n  E0(=V8항등): data/timeseries_v…",
+      "lastProgressAt": 1788415011395,
+      "tokens": 50531,
+      "toolCalls": 2,
+      "durationMs": 58396,
+      "resultPreview": "{\"lens\":\"원점 집중도 (Origin concentration)\",\"verdict\":\"fragile\",\"key_metrics\":\"N=417 원점, mean=+0.000277(원장 헤드라인 정확 일치). 상위 5%(21원점)=순이득의 104%, 상위 10%(42원점)=111%. 상위 5% 제거 시 mean=−0.0000115(부호 반전). 상하 5% 절사평균=+0.0000521(헤드라인의 ~1/5). 단일 최대 원점=순이득의 9.6%. 양/음/제로=247/116/54, 양 59.2%. 중앙값 per_origin=+0.0000426(양수). h21 mean=+0.000154·중앙값+0.0000051·양53%(무익), h63 mean=+0.000400·중앙값+0.0000799·양60%(이득 집중). 상대%=…"
+    },
+    {
+      "type": "workflow_agent",
+      "index": 4,
+      "label": "coverage-vs-crps-honesty",
+      "phaseIndex": 1,
+      "phaseTitle": "Verify",
+      "agentId": "a397643f5eb60614f",
+      "model": "claude-opus-4-8",
+      "state": "done",
+      "startedAt": 1788414951483,
+      "queuedAt": 1788414951458,
+      "attempt": 1,
+      "lastToolName": "StructuredOutput",
+      "lastToolSummary": "렌즈 4 — 커버리지-CRPS 정직성",
+      "promptPreview": "작업 디렉터리: C:/workspace/ai-investing (Git Bash 경로 /c/workspace/ai-investing).\n파이썬 실행: 반드시 아래 형태로. (venv에 numpy 있음)\n  cd /c/workspace/ai-investing && PYTHONUTF8=1 .venv/Scripts/python.exe - <<'PYEOF'\n  ...코드...\n  PYEOF\n\n검증 대상 = V10 게이트 개발반복의 유일 챔피언 V10_W3_gamma_m010 (상태조건부 블렌드 γ=-0.10).\n원본 스코어 파일:\n  챔피언  : data/timeseries_v10/runs/dev_tsv10-exp-c3cc9617424935a374c5.json\n  E0(=V8항등): data/timeseries_v…",
+      "lastProgressAt": 1788415132114,
+      "tokens": 67421,
+      "toolCalls": 5,
+      "durationMs": 179114,
+      "resultPreview": "{\"lens\":\"렌즈 4 — 커버리지-CRPS 정직성\",\"verdict\":\"robust\",\"key_metrics\":\"원시 scores 재계산이 summary와 완전 일치(보고 조작 없음). CRPS(챔피언 vs E0): h21 0.030841 vs 0.030996(rel +0.498%), h63 0.055820 vs 0.056220(rel +0.711%) — 양 horizon 실제 하락. 쌍대 mean=+0.000277, CI90=[+0.000016,+0.000679](0 배제), rel 0.6355%(seed 20260902, block 13 — 원장 헤드라인·파일 dual_vs_e0와 자릿수 일치). 커버리지 동행: h63 p10-p90 0.8393→0.8225(명목 0.80 초과분 +0.039→+0.0…"
+    },
+    {
+      "type": "workflow_agent",
+      "index": 5,
+      "label": "gamma-plateau-clip",
+      "phaseIndex": 1,
+      "phaseTitle": "Verify",
+      "agentId": "a815d36463481516c",
+      "model": "claude-opus-4-8",
+      "state": "done",
+      "startedAt": 1788414951484,
+      "queuedAt": 1788414951458,
+      "attempt": 1,
+      "lastToolName": "StructuredOutput",
+      "lastToolSummary": "렌즈 5 — γ 용량반응·클립 포화",
+      "promptPreview": "작업 디렉터리: C:/workspace/ai-investing (Git Bash 경로 /c/workspace/ai-investing).\n파이썬 실행: 반드시 아래 형태로. (venv에 numpy 있음)\n  cd /c/workspace/ai-investing && PYTHONUTF8=1 .venv/Scripts/python.exe - <<'PYEOF'\n  ...코드...\n  PYEOF\n\n검증 대상 = V10 게이트 개발반복의 유일 챔피언 V10_W3_gamma_m010 (상태조건부 블렌드 γ=-0.10).\n원본 스코어 파일:\n  챔피언  : data/timeseries_v10/runs/dev_tsv10-exp-c3cc9617424935a374c5.json\n  E0(=V8항등): data/timeseries_v…",
+      "lastProgressAt": 1788415384030,
+      "tokens": 96721,
+      "toolCalls": 21,
+      "durationMs": 431030,
+      "resultPreview": "{\"lens\":\"렌즈 5 — γ 용량반응·클립 포화\",\"verdict\":\"fragile\",\"key_metrics\":\"재현: g010 mean=+0.000277, CI90=[+0.000016,+0.000679], seed=20260902, block=13 (원장 일치), rel≈+0.64% (E0장기 CRPS 0.043608 분모). (a) model_crps 완전동일 원점 14.6%(122/834)=가중동일 원점과 일치, 그중 s==1 구조항등 12.9% + 양측 0.5하한포화 1.7%. 0.5하한 접촉: g010 1.7%·g020 4.6%(나머지 ~90%+ 내부구간) → 클립전역포화 가설 반증. 가중 gap(2배 γ): 평균 0.048·최대 0.125, 85.4% 원점 상이. 평균불변=상쇄: calm(72…"
+    },
+    {
+      "type": "workflow_agent",
+      "index": 6,
+      "label": "headline-replication-and-e0-identity",
+      "phaseIndex": 1,
+      "phaseTitle": "Verify",
+      "agentId": "abbbbfcddfe88918f",
+      "model": "claude-opus-4-8",
+      "state": "done",
+      "startedAt": 1788414951484,
+      "queuedAt": 1788414951458,
+      "attempt": 1,
+      "lastToolName": "StructuredOutput",
+      "lastToolSummary": "렌즈 6 — 헤드라인 독립 재현·E0 항등 확인",
+      "promptPreview": "작업 디렉터리: C:/workspace/ai-investing (Git Bash 경로 /c/workspace/ai-investing).\n파이썬 실행: 반드시 아래 형태로. (venv에 numpy 있음)\n  cd /c/workspace/ai-investing && PYTHONUTF8=1 .venv/Scripts/python.exe - <<'PYEOF'\n  ...코드...\n  PYEOF\n\n검증 대상 = V10 게이트 개발반복의 유일 챔피언 V10_W3_gamma_m010 (상태조건부 블렌드 γ=-0.10).\n원본 스코어 파일:\n  챔피언  : data/timeseries_v10/runs/dev_tsv10-exp-c3cc9617424935a374c5.json\n  E0(=V8항등): data/timeseries_v…",
+      "lastProgressAt": 1788415153515,
+      "tokens": 64961,
+      "toolCalls": 9,
+      "durationMs": 200515,
+      "resultPreview": "{\"lens\":\"렌즈 6 — 헤드라인 독립 재현·E0 항등 확인\",\"verdict\":\"robust\",\"key_metrics\":\"(a) 레시피 독립 재계산: mean=0.000277113, CI90=[0.000016386, 0.000679426], SE=0.000208044 — 원장(+0.000277, [+0.000016,+0.000679]) 및 파일 임베디드 dual_vs_e0와 소수 9자리까지 일치. (b) champ vs E0가 h=1·h=5에서 model_crps·median max|diff|=0(비트 동일), config diff는 w3_blend_gamma(-0.1 vs None) 단 하나. E0 horizons(h21=0.030995676361, h63=0.056219638781)=per-scor…"
+    },
+    {
+      "type": "workflow_agent",
+      "index": 7,
+      "label": "final-judge",
+      "phaseIndex": 2,
+      "phaseTitle": "Synthesize",
+      "agentId": "a0cd3fcf6bab9b04a",
+      "model": "claude-opus-4-8",
+      "state": "done",
+      "startedAt": 1788415384044,
+      "queuedAt": 1788415384032,
+      "attempt": 1,
+      "lastToolName": "StructuredOutput",
+      "lastToolSummary": "FREEZE_V10",
+      "promptPreview": "너는 V10 게이트 캠페인의 최종 판정관이다. 아래 6개 독립 적대적 검증 렌즈의 판정을 종합해, 유일 챔피언 V10_W3_gamma_m010(design창 +0.64% dual, CI90 하한 +0.000016)에 대해 홀드아웃 결선 슬롯(3개 중 1개, 비가역) 1개를 소모할지 판정하라.\n\n배경 규칙: 홀드아웃 게이트(코드)는 베이스라인 대비 +2% 개선과 paired CI 상한 ≤0 을 요구한다. stop-loss 기준은 +1% 였고 챔피언은 +0.64% 로 그 아래다. 홀드아웃 소모는 되돌릴 수 없다. 다른 축(W1 상태가중·W2 혼합·W4 재보정·W5 단기)은 전부 0 또는 음으로 폐기됐고 W3 가 유일 생존 축이다.\n\n검증 결과:\n## 시드·블록길이 강건성 (Lens 1) — robust\n수치: …",
+      "lastProgressAt": 1788415456220,
+      "tokens": 57012,
+      "toolCalls": 2,
+      "durationMs": 72176,
+      "resultPreview": "{\"recommendation\":\"FREEZE_V10\",\"robustness_summary\":\"6렌즈는 3 robust / 3 fragile 로 갈리지만 축의 성격이 결정적이다. Robust 3종(L1 시드·블록, L4 커버리지-CRPS 정직성, L6 재현·E0 항등)은 전부 무결성(integrity) 렌즈 — 헤드라인 +0.000277/CI90[+0.000016,+0.000679]이 소수 9자리까지 정직하게 계산됐고 조작·오염이 없음을 확인할 뿐, 일반화(홀드아웃 재현)를 보장하지 않는다. 반면 fragile 3종(L2 하위기간, L3 원점집중, L5 γ 용량반응)은 정확히 표본외 재현을 좌우하는 강건성 렌즈이며 모두 같은 결론으로 수렴한다: 이득이 소수 위기원점에 집중. 구체적으로 GFC 78원점(전체 …"
+    }
+  ],
+  "totalTokens": 440872,
+  "totalToolCalls": 45
+}

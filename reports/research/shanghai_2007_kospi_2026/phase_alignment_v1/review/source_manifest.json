@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "sources": [
+    {
+      "source_id": "SSE-STAMP-CUT-20080423",
+      "url": "https://www.sse.com.cn/aboutus/mediacenter/hotandd/c/c_20150912_3988181.shtml",
+      "resolved_url": "https://www.sse.com.cn/aboutus/mediacenter/hotandd/c/c_20150912_3988181.shtml",
+      "published_at": "2008-04-23",
+      "effective_date": "2008-04-24",
+      "retrieved_at_utc": "2026-10-16T00:29:56.261066+00:00",
+      "local_path": "sse_stamp_duty_20080423.html",
+      "sha256": "3cecdc7f8aa45f079e7570e17054669c6f93dda484aeeb3e71913e3e2af864ca",
+      "bytes": 26122,
+      "role": "official historical notice, descriptive phase context; not evidence of isolated causal impact"
+    }
+  ]
+}

@@ -1,0 +1,165 @@
+{
+  "schema_version": 1,
+  "reviewed_at_utc": "2026-10-16T01:07:26.037326+00:00",
+  "review_scope": "Independent China policy/participation source-and-math review and all parent price chronology rows. Korea and earnings raw-source interpretation belongs to their separate source reviewers.",
+  "report_path": "../report.md",
+  "report_sha256": "b25c4d0e7911cefd0f6e0079f92be7fed8227a69896ad0876181d8a109e5476a",
+  "price_chronology_sha256": "5c2d3cb8298723857434781032461397b51d45fc9f5efd668ac4a19af7c2f509",
+  "verdict": "passed",
+  "blocking_findings": [],
+  "unresolved_findings": [],
+  "resolved_findings": [
+    {
+      "issue": "CSRC effective-stock-account label was narrowed to A-share-only accounts",
+      "resolution": "Current report correctly says 유효 주식 계좌 and retains exact XLS scope."
+    },
+    {
+      "issue": "Rising turnover was described as contradicting a capital-outflow narrative",
+      "resolution": "Current January table says participation activity did not fall monotonically. Retail signed flow remains unconfirmed."
+    }
+  ],
+  "checks": {
+    "all_parent_price_chronology_rows_recomputed": 22,
+    "price_chronology_values": [
+      {
+        "symbol": "SSE_COMPOSITE",
+        "date": "2007-10-16",
+        "return_fraction": 0.0
+      },
+      {
+        "symbol": "SSE_COMPOSITE",
+        "date": "2007-10-31",
+        "return_fraction": -0.022535890979406004
+      },
+      {
+        "symbol": "SSE_COMPOSITE",
+        "date": "2007-11-28",
+        "return_fraction": -0.21153271635538717
+      },
+      {
+        "symbol": "SSE_COMPOSITE",
+        "date": "2007-12-28",
+        "return_fraction": -0.136324986950227
+      },
+      {
+        "symbol": "SSE_COMPOSITE",
+        "date": "2008-01-14",
+        "return_fraction": -0.09753022787037569
+      },
+      {
+        "symbol": "SSE_COMPOSITE",
+        "date": "2008-01-22",
+        "return_fraction": -0.2515257564764628
+      },
+      {
+        "symbol": "SSE_COMPOSITE",
+        "date": "2008-02-22",
+        "return_fraction": -0.2826252531984256
+      },
+      {
+        "symbol": "SSE_COMPOSITE",
+        "date": "2008-03-18",
+        "return_fraction": -0.3977570805277689
+      },
+      {
+        "symbol": "SSE_COMPOSITE",
+        "date": "2008-04-18",
+        "return_fraction": -0.4920158370075147
+      },
+      {
+        "symbol": "SSE_COMPOSITE",
+        "date": "2008-04-30",
+        "return_fraction": -0.3937830553211886
+      },
+      {
+        "symbol": "SSE_COMPOSITE",
+        "date": "2008-05-05",
+        "return_fraction": -0.3826374001569256
+      },
+      {
+        "symbol": "SSE_COMPOSITE",
+        "date": "2008-06-02",
+        "return_fraction": -0.4322051982416457
+      },
+      {
+        "symbol": "KOSPI",
+        "date": "2026-06-22",
+        "return_fraction": 0.0
+      },
+      {
+        "symbol": "KOSPI",
+        "date": "2026-05-28",
+        "return_fraction": -0.10195347000126165
+      },
+      {
+        "symbol": "KOSPI",
+        "date": "2026-07-15",
+        "return_fraction": -0.20079323718669595
+      },
+      {
+        "symbol": "KOSPI",
+        "date": "2026-07-16",
+        "return_fraction": -0.2516800061440224
+      },
+      {
+        "symbol": "KOSPI",
+        "date": "2026-07-30",
+        "return_fraction": -0.38630431562721135
+      },
+      {
+        "symbol": "KOSPI",
+        "date": "2026-08-27",
+        "return_fraction": -0.24161148932201804
+      },
+      {
+        "symbol": "KOSPI",
+        "date": "2026-09-23",
+        "return_fraction": -0.2231190788354882
+      },
+      {
+        "symbol": "KOSPI",
+        "date": "2026-10-08",
+        "return_fraction": -0.27303816425385774
+      },
+      {
+        "symbol": "KOSPI",
+        "date": "2026-10-14",
+        "return_fraction": -0.3407452918684959
+      },
+      {
+        "symbol": "KOSPI",
+        "date": "2026-10-15",
+        "return_fraction": -0.39062049141208277
+      }
+    ],
+    "rate_hikes_2007_total": 6,
+    "rate_hikes_effective_prepeak": 5,
+    "rrr_hikes_2007_total": 10,
+    "rrr_announcements_prepeak": 8,
+    "rrr_effective_prepeak": 7,
+    "oct13_announcement_vs_oct25_effective_separated": true,
+    "monthly_turnover_8_key_values_match_original_xls": true,
+    "monthly_holiday_counts_match_actual_SSE_sessions": true,
+    "january2008_SSE_month_return_fraction": -0.1669029717422209,
+    "effective_accounts_2007year_end": 92805900,
+    "effective_accounts_2008jan_end": 94789900,
+    "gross_new_A_accounts_oct15_approximate": 230000,
+    "gross_new_A_accounts_nov22": 118776,
+    "source_grades_and_new_account_scattered_dates_preserved": true,
+    "turnover_new_effective_holding_active_accounts_not_treated_as_equivalent": true,
+    "prepeak_and_postpeak_turnover_evidence_and_counterexamples_included": true,
+    "no_retrospective_annual_total_used_for_monthly_turning_point": true,
+    "retail_net_sell_turning_date_not_identified": true,
+    "causal_effect_sizes_not_claimed": true,
+    "no_crash_probability_or_official_forecast_produced": true
+  },
+  "data_limitations": [
+    "CSDC original continuous new-account and natural-person monthly buy/sell panels not recovered; dated contemporary reports are not primary CSDC raw tables.",
+    "Published CSRC daily averages have small arithmetic discrepancies from monthly total divided by trading days; source and recomputed values both retained, max0.018333 CNY100million/day.",
+    "Monthly observations cannot order intramonth activity change around Oct16; October report released Nov12.",
+    "Dormant-account segregation Oct8 changes account interpretation. Account growth is not a direct capital-flow measure.",
+    "PBOC retrospective chronology sometimes uses effective dates as decision dates; actual rate announcement dates were independently recovered from official/datestamped contemporary sources.",
+    "Primary gov.cn December20 QA is web-index-readable but direct acquisition failed; retained Dec20 Xinhua and PBC policy report independently support the cited action.",
+    "Downloaded CSRC annual-report PDF is invalid content and excluded; all44 valid raw source file hashes checked by the offline builder."
+  ]
+}

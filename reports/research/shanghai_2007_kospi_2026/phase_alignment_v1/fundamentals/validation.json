@@ -1,0 +1,19 @@
+{
+  "status": "passed",
+  "errors": [],
+  "research_as_of": "2026-10-16T09:00:00+09:00",
+  "observations": 46,
+  "conditions": 7,
+  "sources": 25,
+  "source_hashes_verified": true,
+  "source_refs_resolved": true,
+  "excluded_Oct16_article_unused": true,
+  "probabilities_assigned": false,
+  "ledger_or_official_snapshot_mutations": false,
+  "financial_data_vintage_certification": "retrospective public-source research only; not strict historical PIT authentication",
+  "artifacts": {
+    "evidence.json": "7b3a7bfc8da864079cb0b3af96903ae0895699435a8039934b83faac0c1b512f",
+    "condition_matrix.json": "454e3f4da78a84ca4ef7185df6d22c3799d6267a728562ee29c2d00166029924",
+    "source_manifest.json": "635fd2650770d6e0d9dc366b2189f161da5582845666be1f093d7a4bba280a45"
+  }
+}

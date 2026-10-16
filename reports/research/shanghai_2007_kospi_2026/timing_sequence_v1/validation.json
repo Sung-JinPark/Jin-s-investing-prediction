@@ -1,0 +1,178 @@
+{
+  "status": "passed",
+  "errors": [],
+  "checks": [
+    {
+      "check": "previous_studies_unchanged",
+      "passed": true,
+      "checked_files": 258,
+      "changed": []
+    },
+    {
+      "check": "protected_existing_system_unchanged",
+      "passed": true,
+      "checked_files": 492,
+      "changed": []
+    },
+    {
+      "check": "source_response_and_extraction_hashes",
+      "passed": true,
+      "source_records": 90,
+      "hashes_verified": 113,
+      "mismatches": [],
+      "note": "Includes retained unusable/redirect responses, whose bytes do not establish factual validity."
+    },
+    {
+      "check": "finite_valid_json",
+      "passed": true,
+      "checked_files": 18,
+      "errors": []
+    },
+    {
+      "check": "frozen_price_source",
+      "passed": true
+    },
+    {
+      "check": "independent_pandas_price_and_session_arithmetic",
+      "passed": true,
+      "observations": 22,
+      "failures": []
+    },
+    {
+      "check": "no_invented_holiday_close",
+      "passed": true
+    },
+    {
+      "check": "independent_XLS_cells_and_actual_trading_days",
+      "passed": true,
+      "observations": 18,
+      "failures": [],
+      "original_arithmetic_discrepancies_preserved": [
+        {
+          "period": "2007-04",
+          "published_minus_recomputed": -0.013333333333321207,
+          "unit": "CNY 100 million per trading day"
+        },
+        {
+          "period": "2007-05",
+          "published_minus_recomputed": -0.018333333333430346,
+          "unit": "CNY 100 million per trading day"
+        },
+        {
+          "period": "2007-07",
+          "published_minus_recomputed": -0.009090909090900823,
+          "unit": "CNY 100 million per trading day"
+        },
+        {
+          "period": "2007-11",
+          "published_minus_recomputed": 0.006363636363630576,
+          "unit": "CNY 100 million per trading day"
+        },
+        {
+          "period": "2007-12",
+          "published_minus_recomputed": -0.005999999999858119,
+          "unit": "CNY 100 million per trading day"
+        },
+        {
+          "period": "2008-02",
+          "published_minus_recomputed": -0.009999999999990905,
+          "unit": "CNY 100 million per trading day"
+        },
+        {
+          "period": "2008-04",
+          "published_minus_recomputed": -0.00904761904780571,
+          "unit": "CNY 100 million per trading day"
+        },
+        {
+          "period": "2008-05",
+          "published_minus_recomputed": 0.006499999999959982,
+          "unit": "CNY 100 million per trading day"
+        },
+        {
+          "period": "2008-06",
+          "published_minus_recomputed": -0.011999999999943611,
+          "unit": "CNY 100 million per trading day"
+        }
+      ]
+    },
+    {
+      "check": "unit_arithmetic_in_report",
+      "passed": true,
+      "meanings": [
+        "Conditional crash-day net-buy change is not monthly retail net selling",
+        "Outstanding loan change is not a forced-sale amount",
+        "CICC growth forecast -6.3 percentage points is not EPS level -6.3 percent"
+      ]
+    },
+    {
+      "check": "component_provenance_validations",
+      "passed": true,
+      "results": {
+        "china_earnings": "passed",
+        "china_liquidity": "passed",
+        "korea": "passed"
+      }
+    },
+    {
+      "check": "independent_reviews_and_wording_resolutions",
+      "passed": true,
+      "reviews": {
+        "china_earnings": {
+          "sha256": "4144840165aff2da1017d14419e92a8895f0b0474302f4e8629ace91bf4836b6",
+          "status": "passed_after_recommended_narrowing",
+          "blocking_findings": []
+        },
+        "china_liquidity": {
+          "sha256": "159ba1b1f216eee4d25c1b27c6a22e578ae3d9cb4c7ca1d1c75952e426ac0d7e",
+          "status": "passed",
+          "blocking_findings": []
+        },
+        "korea": {
+          "sha256": "8e43c1e0d54e83918b90f1f976d986836bb0ba49631d714ff31a5c5b5da15225",
+          "status": "passed_subject_to_known_BOK_wording_correction",
+          "blocking_findings": []
+        }
+      },
+      "resolved_wording": {
+        "actual_decline_narrowed_to_later_annual_results": true,
+        "forecast_chart_two_year_growth_series": true,
+        "effective_stock_not_A_only_accounts": true,
+        "turnover_not_flow_direction": true,
+        "crash_day_sample_narrowing": true,
+        "BOK_undated_outlook_qualified": true,
+        "security_collateral_label": true
+      },
+      "note": "Reviews are independent agent cross-checks, not external audit or causal identification."
+    },
+    {
+      "check": "offline_browser_layout",
+      "passed": true,
+      "widths": [
+        1440,
+        768,
+        390
+      ]
+    }
+  ],
+  "validated_at_utc": "2026-10-16T01:08:06.173307+00:00",
+  "research_as_of": "2026-10-16T09:00:00+09:00",
+  "price_cutoff": "2026-10-15",
+  "missing_data_not_inferred": [
+    "Common-provider fixed-year EPS revision levels and first cut date",
+    "Retail daily net-flow turning date in China",
+    "Current Korean forced-sale acceleration"
+  ],
+  "source_issues_retained": [
+    "Some original daily averages do not equal turnover divided by days within rounding",
+    "Original historical collection vintages not fully authenticated",
+    "IMF retrieval failed; BIS old PDF URL redirects to HTML index; neither substituted for article PDF"
+  ],
+  "code_changes": "Research-only source receipt, rendering and validation scripts; no production code changes",
+  "production_suite": "Not run: production files and model behavior unchanged",
+  "official_mutations": false,
+  "probability_outputs": [],
+  "report_sha256": {
+    "report.md": "b25c4d0e7911cefd0f6e0079f92be7fed8227a69896ad0876181d8a109e5476a",
+    "report.html": "5f5fe65881dd9dd2ae718ddbc39a961591581c2c784aa8d45739e8e562e60af5"
+  }
+}

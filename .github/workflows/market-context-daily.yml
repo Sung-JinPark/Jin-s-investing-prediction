@@ -1,0 +1,73 @@
+name: market-context-daily
+
+# Daily 05:20 UTC = 14:20 KST, including weekend disclosures.  Issuance as_of
+# freezes AFTER collection, before simulation. No credentials or LLM calls.
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "20 5 * * *"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: investing-data-writer
+  cancel-in-progress: false
+
+jobs:
+  research:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    env:
+      PYTHONUTF8: "1"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Use the already declared numerical and calendar dependencies
+        run: pip install -e ".[pit,timeseries]" "exchange-calendars>=4.6,<5"
+      - name: Capture public keyless sources in the separate raw-first store
+        run: |
+          python -m ai_fc market-context-collect > "$RUNNER_TEMP/market-context-collect.json"
+          cat "$RUNNER_TEMP/market-context-collect.json"
+          python - <<'PY'
+          import json, os
+          from pathlib import Path
+          report = json.loads((Path(os.environ["RUNNER_TEMP"]) / "market-context-collect.json").read_text(encoding="utf-8"))
+          with open(os.environ["GITHUB_ENV"], "a", encoding="utf-8") as handle:
+              handle.write("MARKET_CONTEXT_AS_OF=" + report["as_of"] + "\n")
+          PY
+      - name: Append only completed, published forward outcomes
+        run: python -m ai_fc market-context-resolve --as-of "$MARKET_CONTEXT_AS_OF"
+      - name: Freeze monthly coefficients only when forward data are sufficient
+        run: python -m ai_fc market-context-fit --train-cutoff "$MARKET_CONTEXT_AS_OF"
+      - name: Issue today's independent preview or explicit HOLD
+        run: python -m ai_fc market-context-build --as-of "$MARKET_CONTEXT_AS_OF"
+      - name: Verify independent artifacts and append-only research chains
+        run: python -m ai_fc market-context-verify
+      - name: Preserve optional full simulated paths
+        uses: actions/upload-artifact@v4
+        with:
+          name: market-context-paths-${{ github.run_id }}
+          path: outputs/market_context/paths/
+          if-no-files-found: ignore
+      - name: Commit only the separate market-context store
+        shell: bash
+        run: |
+          if test -d data/market_context; then
+            git add data/market_context
+          fi
+          unexpected="$(git diff --cached --name-only | grep -Ev '^data/market_context/' || true)"
+          test -z "$unexpected" || { echo "unexpected market-context paths: $unexpected"; exit 1; }
+          if ! git diff --cached --quiet; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git commit -m "data: append daily market-context research and outcomes"
+            git pull --rebase origin main
+            git push
+          fi

@@ -11,6 +11,7 @@
 from __future__ import annotations
 
 import csv
+import hashlib
 import html as html_lib
 import json
 import re
@@ -65,6 +66,10 @@ PAYLOAD_WARN_RATIO = 0.9
 # 전용 예산 24KB(표시 설계서 §3) — 9셀·80% 대역·게이트·caveat 이상으로 자라면 빌드가 실패한다.
 TIMESERIES_V13_VOL_BUDGET_BYTES = 24_000
 TIMESERIES_V13_VOL_FILENAME = "timeseries_v13_vol.json"
+TIMESERIES_DAILY_BUDGET_BYTES = 128 * 1024
+TIMESERIES_DAILY_FILENAME = "timeseries_daily.json"
+MARKET_CONTEXT_BUDGET_BYTES = 192 * 1024
+MARKET_CONTEXT_FILENAME = "market_context.json"
 WANTED_SANS_CSS = (
     "https://cdn.jsdelivr.net/gh/wanteddev/wanted-sans@v1.0.3/"
     "packages/wanted-sans/fonts/webfonts/variable/split/"
@@ -467,6 +472,10 @@ def build_read_model(
     # 로더는 항상 dict(absent/internal/hold/live)를 돌려주고 숫자는 네 게이트·핀·빌드 시점 신선도가 전부 성립할 때만 싣는다.
     from .timeseries_v13_vol_display import load_projection as load_timeseries_v13_vol_projection
     timeseries_v13_vol = _guard_timeseries_v13_vol_budget(load_timeseries_v13_vol_projection(root, now=now))
+    from .timeseries_daily6m.display import load_projection as load_timeseries_daily_projection
+    timeseries_daily = load_timeseries_daily_projection(root, now=now)
+    from .market_context.display import load_projection as load_market_context_projection
+    market_context = load_market_context_projection(root, now=now)
     ai_regime = load_ai_regime(root)
     o_entry_cohort = load_cohort_summary(root)
     band_calibration_path = root / "data/scenarios/band_calibration.csv"
@@ -666,6 +675,8 @@ def build_read_model(
         "statistics_lab": statistics_lab,
         "timeseries": timeseries,
         "timeseries_v13_vol": timeseries_v13_vol,
+        "timeseries_daily": timeseries_daily,
+        "market_context": market_context,
         "multi_year_stress": multi_year_stress,
         "ai_regime": ai_regime,
         "o_entry_cohort": o_entry_cohort,
@@ -951,6 +962,60 @@ def split_statistics_data(read_model: dict) -> tuple[dict, dict | None]:
     return base, payload
 
 
+def split_timeseries_daily_data(read_model: dict) -> tuple[dict, dict | None]:
+    """Pin one bounded daily route artifact without changing forecast history."""
+    projection = read_model.get("timeseries_daily")
+    if not projection or (projection.get("deferred_data") or {}).get("required"):
+        return read_model, None
+    if projection.get("numbers_visible") is not True:
+        return read_model, None
+    payload = {
+        "schema_version": 1,
+        "contract_id": "timeseries_daily_route_v1",
+        "data": {"timeseries_daily": projection},
+    }
+    serialized = json.dumps(payload, ensure_ascii=False, default=str, separators=(",", ":"), allow_nan=False)
+    size = len(serialized.encode("utf-8"))
+    if size > TIMESERIES_DAILY_BUDGET_BYTES:
+        raise ValueError(f"timeseries daily budget exceeded: {size} > {TIMESERIES_DAILY_BUDGET_BYTES}")
+    if size > TIMESERIES_DAILY_BUDGET_BYTES * PAYLOAD_WARN_RATIO:
+        print(f"warning: timeseries_daily.json {size}B is {size / TIMESERIES_DAILY_BUDGET_BYTES:.1%} of its budget")
+    arrays = {"dates", "records", "sample_paths", "history", "realized"}
+    summary = {key: value for key, value in projection.items() if key not in arrays}
+    summary["deferred_data"] = {
+        "required": True, "loaded": False, "url": TIMESERIES_DAILY_FILENAME,
+        "run_id": projection.get("run_id"), "as_of": projection.get("as_of"),
+        "anchor_date": projection.get("anchor_date"), "content_hash": projection.get("content_hash"),
+        "payload_sha256": hashlib.sha256(serialized.encode("utf-8")).hexdigest(),
+        "failure_mode": "explicit_error_without_substitution",
+    }
+    return {**read_model, "timeseries_daily": summary}, payload
+
+
+def split_market_context_data(read_model: dict) -> tuple[dict, dict | None]:
+    """Keep GRAPH02 research arrays in an independently pinned read-only artifact."""
+    projection = read_model.get("market_context")
+    if not projection or (projection.get("deferred_data") or {}).get("required"):
+        return read_model, None
+    if projection.get("status") != "research_preview" or projection.get("numbers_visible") is False or projection.get("gate", {}).get("pass") is not True:
+        return read_model, None
+    payload = {"schema_version": 1, "contract_id": "market_context_route_v1",
+               "data": {"market_context": projection}}
+    serialized = json.dumps(payload, ensure_ascii=False, default=str, separators=(",", ":"), allow_nan=False)
+    size = len(serialized.encode("utf-8"))
+    if size > MARKET_CONTEXT_BUDGET_BYTES:
+        raise ValueError(f"market context budget exceeded: {size} > {MARKET_CONTEXT_BUDGET_BYTES}")
+    arrays = {"records", "representative", "baseline_median", "history", "attribution", "state_summary"}
+    summary = {key: value for key, value in projection.items() if key not in arrays}
+    summary["deferred_data"] = {
+        "required": True, "loaded": False, "url": MARKET_CONTEXT_FILENAME,
+        **{key: projection.get(key) for key in ("forecast_id", "as_of", "anchor_date", "input_hash", "contract_hash", "coefficient_hash")},
+        "payload_sha256": hashlib.sha256(serialized.encode("utf-8")).hexdigest(),
+        "failure_mode": "explicit_error_without_substitution",
+    }
+    return {**read_model, "market_context": summary}, payload
+
+
 def _compact_embed_forecast_history(read_model: dict) -> dict:
     """Keep active latest reasoning inline and link archived rounds to source.
 
@@ -1177,6 +1242,8 @@ def render_html(read_model: dict, mode: str = "embed") -> str:
     if mode == "embed":
         read_model, _ = split_statistics_data(read_model)
         read_model, _ = split_future_paths(read_model)
+        read_model, _ = split_timeseries_daily_data(read_model)
+        read_model, _ = split_market_context_data(read_model)
         read_model = _compact_embed_forecast_history(read_model)
         read_model = _limit_embed_inline_bodies(read_model)
         read_model = _compact_embed_band_calibration(read_model)
@@ -1189,19 +1256,25 @@ def render_html(read_model: dict, mode: str = "embed") -> str:
         data_script = (
             f'<script>window.__FUTURE_PATHS_URL__ = "{FUTURE_PATHS_FILENAME}";'
             f'window.__STATISTICS_URL__ = "{STATISTICS_DATA_FILENAME}";'
+            f'window.__TIMESERIES_DAILY_URL__ = "{TIMESERIES_DAILY_FILENAME}";'
+            f'window.__MARKET_CONTEXT_URL__ = "{MARKET_CONTEXT_FILENAME}";'
             f"window.__DATA__ = {blob};</script>"
         )
     elif mode == "pages":
         data_script = (
             '<script>window.__DATA_URL__ = "data.json";'
             f'window.__FUTURE_PATHS_URL__ = "{FUTURE_PATHS_FILENAME}";'
-            f'window.__STATISTICS_URL__ = "{STATISTICS_DATA_FILENAME}";</script>'
+            f'window.__STATISTICS_URL__ = "{STATISTICS_DATA_FILENAME}";'
+            f'window.__TIMESERIES_DAILY_URL__ = "{TIMESERIES_DAILY_FILENAME}";'
+            f'window.__MARKET_CONTEXT_URL__ = "{MARKET_CONTEXT_FILENAME}";</script>'
         )
     elif mode == "fetch":
         data_script = (
             '<script>window.__DATA_URL__ = "/api/data";'
             'window.__FUTURE_PATHS_URL__ = "/api/future-paths";'
-            'window.__STATISTICS_URL__ = "/api/statistics";</script>'
+            'window.__STATISTICS_URL__ = "/api/statistics";'
+            'window.__TIMESERIES_DAILY_URL__ = "/api/timeseries-daily";'
+            'window.__MARKET_CONTEXT_URL__ = "/api/market-context";</script>'
         )
     else:
         raise ValueError(f"unknown dashboard render mode: {mode}")
@@ -1246,9 +1319,20 @@ def write_dashboard(conn: sqlite3.Connection, root: Path) -> Path:
     model = build_read_model(conn, root)
     base, statistics_data = split_statistics_data(model)
     base, future_paths = split_future_paths(base)
+    base, timeseries_daily = split_timeseries_daily_data(base)
+    base, market_context = split_market_context_data(base)
     out = root / "reports" / "dashboard.html"
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(render_html(base, mode="embed"), encoding="utf-8")
+    if market_context is not None:
+        (out.parent / MARKET_CONTEXT_FILENAME).write_text(
+            json.dumps(market_context, ensure_ascii=False, default=str, separators=(",", ":")), encoding="utf-8",
+        )
+    if timeseries_daily is not None:
+        (out.parent / TIMESERIES_DAILY_FILENAME).write_text(
+            json.dumps(timeseries_daily, ensure_ascii=False, default=str, separators=(",", ":")),
+            encoding="utf-8",
+        )
     if future_paths is not None:
         (out.parent / FUTURE_PATHS_FILENAME).write_text(
             json.dumps(
@@ -1329,6 +1413,8 @@ def write_pages(conn: sqlite3.Connection, out_dir: Path, root: Path) -> Path:
     model = build_read_model(conn, root)
     base, statistics_data = split_statistics_data(model)
     base, future_paths = split_future_paths(base)
+    base, timeseries_daily = split_timeseries_daily_data(base)
+    base, market_context = split_market_context_data(base)
     out_dir.mkdir(parents=True, exist_ok=True)
     index = out_dir / "index.html"
     index.write_text(render_html(model, mode="pages"), encoding="utf-8")
@@ -1345,6 +1431,15 @@ def write_pages(conn: sqlite3.Connection, out_dir: Path, root: Path) -> Path:
             f"{base_size / DATA_JSON_BUDGET_BYTES:.1%} of its budget"
         )
     (out_dir / "data.json").write_text(base_json, encoding="utf-8")
+    if market_context is not None:
+        (out_dir / MARKET_CONTEXT_FILENAME).write_text(
+            json.dumps(market_context, ensure_ascii=False, default=str, separators=(",", ":")), encoding="utf-8",
+        )
+    if timeseries_daily is not None:
+        (out_dir / TIMESERIES_DAILY_FILENAME).write_text(
+            json.dumps(timeseries_daily, ensure_ascii=False, default=str, separators=(",", ":")),
+            encoding="utf-8",
+        )
     if future_paths is not None:
         (out_dir / FUTURE_PATHS_FILENAME).write_text(
             json.dumps(
@@ -1391,6 +1486,8 @@ def serve(root: Path, host: str, port: int) -> None:
                 try:
                     model, _ = split_statistics_data(build_read_model(conn, root))
                     model, _ = split_future_paths(model)
+                    model, _ = split_timeseries_daily_data(model)
+                    model, _ = split_market_context_data(model)
                 finally:
                     conn.close()
                 body = json.dumps(model, ensure_ascii=False, default=str).encode("utf-8")
@@ -1405,6 +1502,22 @@ def serve(root: Path, host: str, port: int) -> None:
                     future_paths, ensure_ascii=False, default=str,
                     separators=(",", ":"),
                 ).encode("utf-8")
+                self._send(body, "application/json; charset=utf-8")
+            elif self.path.startswith("/api/timeseries-daily"):
+                conn = ingest.connect(db_path)
+                try:
+                    _, daily = split_timeseries_daily_data(build_read_model(conn, root))
+                finally:
+                    conn.close()
+                body = json.dumps(daily, ensure_ascii=False, default=str, separators=(",", ":")).encode("utf-8")
+                self._send(body, "application/json; charset=utf-8")
+            elif self.path.startswith("/api/market-context"):
+                conn = ingest.connect(db_path)
+                try:
+                    _, context = split_market_context_data(build_read_model(conn, root))
+                finally:
+                    conn.close()
+                body = json.dumps(context, ensure_ascii=False, default=str, separators=(",", ":")).encode("utf-8")
                 self._send(body, "application/json; charset=utf-8")
             elif self.path.startswith("/api/statistics"):
                 conn = ingest.connect(db_path)

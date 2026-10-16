@@ -1,0 +1,380 @@
+{
+  "reviews": [
+    {
+      "reviewer": "china",
+      "file": "china\\independent_review_parent.json",
+      "record": {
+        "schema_version": 1,
+        "reviewed_at_utc": "2026-10-16T00:20:20.400107+00:00",
+        "reviewer": "independent China research subagent",
+        "scope": "China historical facts, source/vintage treatment, descriptive methodology, conditional-drawdown diagnostic and numerical overclaims. No changes outside china/.",
+        "status": "passed_with_non_blocking_clarifications",
+        "blocking_findings": [],
+        "reviewed_snapshots": [
+          {
+            "path": "report.md",
+            "sha256": "360006922b35a57f6d8db0ac777e365eb5af952e762a016a8e865c3e9fa2f027"
+          },
+          {
+            "path": "report.html",
+            "sha256": "6f748c6a5fdf9b40c2508e854e67e068259e1537b36b06766751df85db945749"
+          },
+          {
+            "path": "build_report.py",
+            "sha256": "93e64edbab2ae38f3e6c83aa629fced0ba780717a96d2326d72a50667e59b2f2"
+          },
+          {
+            "path": "research_math.py",
+            "sha256": "2e3547a327c1909b4520e0196831aceb145d55bdb5b2e03c46fa9777d24144cb"
+          },
+          {
+            "path": "research_contract.json",
+            "sha256": "232153f6cf1e734f226c8577dfcba52051fb67c7a8798ae1cb5728247a867cd7"
+          },
+          {
+            "path": "prices/analytics.py",
+            "sha256": "d746c54eccd7c805c0550b0659d4fc3f342a5d383c0d0d470f06340762252c6f"
+          },
+          {
+            "path": "prices/consolidate.py",
+            "sha256": "e8bf32e5244bedb85e5e8c06604278e87d5afcf71acb7729bd7361e37d2c4bf4"
+          },
+          {
+            "path": "prices/source_manifest.json",
+            "sha256": "5b6a860ce69f57c17db6ec95af244136db89dad368e58912c7861fcf9e92318a"
+          },
+          {
+            "path": "prices/analytics.json",
+            "sha256": "28c13c1dcfd1ccbf4c1f5f20284ba4736be3665f531b2fbf6702918134a3fdc0"
+          },
+          {
+            "path": "build_supporting_analysis.py",
+            "sha256": "a4346dd5137b081e7e2c31d157b91dc7dfcbb62cebeae69d42e8eeb1940b2ae7"
+          },
+          {
+            "path": "supporting_analysis.json",
+            "sha256": "af0b173cf200dab7bc7d079292d194425b87651488b71bdbd704ab2e91b33cd8"
+          }
+        ],
+        "checks": [
+          {
+            "id": "china_source_facts",
+            "status": "passed",
+            "detail": "Verified Composite vs A Share intraday/close highs; annual performance growth47.5% published2008-06-02; yearly PE16.33/33.30/59.24 with prior-year annual earnings denominator; 51.87% full-issued year-end top10 concentration; natural-person86.01% trading share and2854.45 CNY100million net purchase;150.5/1867.4 ten-thousand new natural-person A accounts;1713.51/6701.33 CNY100million capital raised."
+          },
+          {
+            "id": "vintage_integrity",
+            "status": "passed",
+            "detail": "Later yearbooks and 2008 results explicitly treated as hindsight, never as information available at2007 peak. Global earnings-growth ranking and matched EPS/PE decomposition left unverified/null."
+          },
+          {
+            "id": "correlation_interpretation",
+            "status": "passed",
+            "detail": "Report restricts zero-near correlations to fixed alignments; explicitly does not infer all-lag independence, causal evidence or a crash probability from91 weekly pairs/two episodes."
+          },
+          {
+            "id": "policy_window_indexing",
+            "status": "passed",
+            "detail": "For event index t, pre window close[t-21] to close[t-1] comprises20 returns; post close[t-1] to close[t+19] comprises20 returns. No abnormal-return or causal interpretation; announcement time uncertainty disclosed."
+          },
+          {
+            "id": "valuation_math",
+            "status": "passed",
+            "detail": "(1+EPSchange)*(1+PEchange)-1 and implied PE threshold correct under positive comparable endpoint EPS/PE. Hypothetical inputs separated from measured/model outputs."
+          },
+          {
+            "id": "benchmark_conflict",
+            "status": "passed",
+            "detail": "Current analytics suppress world-relative outputs to null unless explicit benchmark_verified; retained real dataset usesfalse. FX translation retains exact-date joins and asynchronous-price caveat."
+          }
+        ],
+        "independent_same_drawdown_recalculation": {
+          "source": "china/daily_indices_2005_2008.csv, direct arithmetic without parent helper",
+          "composite_close_peak_date": "2007-10-16",
+          "composite_close_peak": 6092.06,
+          "korea_threshold_fraction": -0.39062049141208277,
+          "first_crossing_date": "2008-03-18",
+          "crossing_close": 3668.9,
+          "actual_crossing_drawdown_fraction": -0.3977570805277689,
+          "previous_session_drawdown_fraction": -0.3729460970509154,
+          "future126_end_date": "2008-09-17",
+          "future126_return_fraction": -0.47421570497969423,
+          "future252_observations_available": 196,
+          "future252_result": null,
+          "status": "matches_parent_results",
+          "interpretation": "Single retrospective first-crossing example conditioned on current Korean drawdown. No independent frequency estimate or forecast probability."
+        },
+        "clarifications": [
+          {
+            "id": "descriptive_vs_causal_first_hypothesis",
+            "priority": "P2",
+            "location": "report.md hypothesis table first row",
+            "detail": "Current first row says world-factory/AI trends drove actual company profits and labels confirmed. Saved China macro data show strong exports and profits but do not isolate causal attribution. Rest of report correctly acknowledges causal limitations.",
+            "recommended_edit": "Phrase confirmed fact as exports/industrial profits and AI-memory earnings growth being observed; treat causal attribution and all-index benefit as partially supported."
+          },
+          {
+            "id": "first_crossing_overshoot",
+            "priority": "P3",
+            "location": "report.md conditional historical drawdown paragraph",
+            "detail": "Selected Chinese close first crossed the Korean39.06% drawdown threshold; its actual drawdown was39.7757%, not an exact39.06% match. Calculation is correct and already labeled a retrospective diagnostic.",
+            "recommended_edit": "Explicitly call this a first crossing and disclose China actual39.78% drawdown versus Korea39.06% threshold."
+          }
+        ],
+        "additional_note": "Report was reviewed at saved hashes; parent may revise wording after this snapshot. No finding implies price-path similarity is disproven under every possible alignment."
+      }
+    },
+    {
+      "reviewer": "korea",
+      "file": "korea\\independent_review_parent.json",
+      "record": {
+        "reviewed_at_utc": "2026-10-16T00:20:13.109927+00:00",
+        "reviewed_report": "../report.md",
+        "report_sha256_at_review": "360006922b35a57f6d8db0ac777e365eb5af952e762a016a8e865c3e9fa2f027",
+        "review_scope": "Korea facts,profit exclusions and conditional contribution,political causality,point-in-time/vintage; no parentfiles edited",
+        "verdict": "passed",
+        "numeric_checks": {
+          "krx_H1_sample634_OP_growth_254_15_and_ex2_75_61": "pass",
+          "NI_growth333_30_and_ex2_119_68": "pass",
+          "conditional_OP_share63_1_and_increment77_9": "pass; correctly labelled secondarydenominator and notindexreturn contribution",
+          "BOK_ETF42_8_and_loans52_3_63_2_56_0_credit33_3_minus10_9": "pass; separate universes retained",
+          "KOFIA_deposits97_43_credit33_71": "pass; observedmonthday and inferredyear caveat retained",
+          "MSCI74constituents_concentration": "consistent with rootprovided factsheet; distinct from KOSPI explicitlystated",
+          "full_year2026_vsH1_actual": "pass",
+          "asof09_00_vs_current_retrieved_vintage": "pass; clearly disclaims historicaltradablesignal or originalvintagecertification",
+          "fundamentals_figure_Korea_growthbars": "pass; OP/NIgrowth and samplelabels match primaryarchive"
+        },
+        "issues": [
+          {
+            "id": "KR-REVIEW-01",
+            "priority": "P2",
+            "required": true,
+            "section": "가설별 판정 / 정부가 내내 국민의 주식 매수를 독려했다",
+            "issue_ko": "검증 대상에 원요청의 정부주도 가설보다 강한 내내 명제를 추가했다. 특히 독립적인 한국은행의 금리 인상은 정부의 국내주식 투자유도 정책 자체를 논리적으로 반증하지 않는다. 본문 뒤에서 정책의 독립 인과효과 미산출을 잘 설명하므로 표도 같은 판정 기준으로 맞추는 편이 정확하다.",
+            "suggested_change_ko": "표를 정부의 국내투자 유도가 개인 열풍을 유발했다 / 미확인 / 유도정책의 존재는 확인되나 순인과효과는 미산출,긴축·투자자보호 병행으로 단일 정책기조 해석에 제약 으로 교체.또는 일방향 매수독려만 있었다는 단순화는 부적절 이라고 범위를 제한.",
+            "evidence_source_ids": [
+              "KR-RIA-PROPOSAL",
+              "KR-FSC-GROWTH-DESIGN",
+              "KR-BOK-RATE-HISTORY"
+            ],
+            "resolution": "resolved in regenerated report; full prior finding retained for audit"
+          },
+          {
+            "id": "KR-REVIEW-02",
+            "priority": "P3",
+            "required": false,
+            "section": "한국 정부 / 1차 펀드 30258명",
+            "issue_ko": "가입자30258명은5월29일 모집기간중 취소·재판매 변동가능 집계다. 본문은 최종확정 인원처럼 읽힐 수 있다.",
+            "suggested_change_ko": "5월29일 집계에서6000억원이 판매됐고30258명이 가입했다 로 시점을 덧붙이기.",
+            "evidence_source_ids": [
+              "KR-FSC-GROWTH-SOLD"
+            ],
+            "resolution": "resolved in regenerated report; full prior finding retained for audit"
+          },
+          {
+            "id": "KR-REVIEW-03",
+            "priority": "P2",
+            "required": true,
+            "section": "한국 정부 / 최신10월15일 펀드 설명",
+            "issue_ko": "최신10월15일 금융위의2차펀드 판매 설명이 아직 이 검토본에는 없다.5월 첫판매 열기를 기준시각까지 그대로 연장하지 않도록 넣으면 좋다. 단 금융위 입장임을 명시하고,설계변경 때문에 수요붕괴의 독립 증거로 단정하지 않는다.부모가 추가중이라고 알린 항목이다.",
+            "suggested_change_ko": "금융위는10월15일2차판매가 차분하며1차와 설계·가입대상이 달라 단순비교가 어렵다고 설명했고 판매 독촉 지시를 부인했다고 추가.",
+            "source_url": "https://www.fsc.go.kr/no010102/87936",
+            "pdf_url": "https://www.fsc.go.kr/comm/getFile?srvcId=BBSTY1&upperNo=87936&fileTy=ATTACH&fileNo=2",
+            "evidence_source_ids": [
+              "KR-FSC-GROWTH-SECOND-PDF"
+            ],
+            "resolution": "resolved in regenerated report; full prior finding retained for audit"
+          }
+        ],
+        "no_parent_mutations": true,
+        "post_revision_check_pending": false,
+        "post_revision_reviewed_at_utc": "2026-10-16T00:21:45.243846+00:00",
+        "final_report_sha256": "cf266fb28090106d7d43f080674fdb142d220f471f0956efe81e72de8c30aa53",
+        "final_html_sha256": "96af5979e01a542b1c3f3e154a68e6271ce7724ca6d3676e9bb5ea8b80fceae1",
+        "post_revision_checks": {
+          "causal_policy_row_unconfirmed": true,
+          "old_persistent_encouragement_falsification_removed": true,
+          "fund_count_may29_snapshot": true,
+          "latest_fsc_position_attributed": true,
+          "conditional_profit_contribution_preserved": true,
+          "original_vintage_limit_preserved": true,
+          "html_contains_latest_fsc": true
+        }
+      }
+    },
+    {
+      "reviewer": "prices",
+      "file": "prices\\independent_review_parent.json",
+      "record": {
+        "schema_version": 1,
+        "reviewer": "comparison_design agent; independent review of parent report/supporting calculations",
+        "created_at_utc": "2026-10-16T00:21:15.128908+00:00",
+        "verdict": "pass_for_descriptive_research_only",
+        "blocking_findings": [],
+        "files_reviewed": [
+          "report.md",
+          "report.html",
+          "build_report.py",
+          "build_supporting_analysis.py",
+          "research_math.py",
+          "test_price_analytics.py",
+          "test_research_math.py",
+          "supporting_analysis.json",
+          "render_charts.py"
+        ],
+        "reviewed_sha256": {
+          "report.md": "cf266fb28090106d7d43f080674fdb142d220f471f0956efe81e72de8c30aa53",
+          "report.html": "96af5979e01a542b1c3f3e154a68e6271ce7724ca6d3676e9bb5ea8b80fceae1",
+          "build_supporting_analysis.py": "dc615eda94cc671042848d08daca678ff0eda446174dd07b3d35fc7da2430865",
+          "research_math.py": "2e3547a327c1909b4520e0196831aceb145d55bdb5b2e03c46fa9777d24144cb",
+          "supporting_analysis.json": "6ad2400596bc09e1a6bf990f84beea68fc142900c5ee8b96682f6691cee85f50"
+        },
+        "test_verdict": {
+          "command": "python -X utf8 -m unittest discover -p 'test_*.py' -v",
+          "working_directory": "reports/research/shanghai_2007_kospi_2026",
+          "exit_code": 0,
+          "tests_run": 27,
+          "tests_passed": 27,
+          "code_defect_failures": [],
+          "environment_dependency_failures": [],
+          "coverage_limit": "Fixtures validate mathematics and boundary behavior; they are not an out-of-sample economic forecasting validation."
+        },
+        "independent_recomputation": {
+          "method": "Read canonical CSV directly; compute with Python standard library without calling parent research_math/event_window or price helper functions.",
+          "fixed_calendar_weekly_returns": {
+            "n_pairs": 91,
+            "pearson": 0.0008900712540679369,
+            "matches_saved_output": true
+          },
+          "same_drawdown_diagnostic": {
+            "current_threshold_fraction": -0.39062049141208277,
+            "preceding_date": "2008-03-17",
+            "preceding_drawdown_fraction": -0.3729460970509154,
+            "first_crossing_date": "2008-03-18",
+            "first_crossing_close": 3668.9,
+            "actual_crossing_drawdown_fraction": -0.3977570805277689,
+            "threshold_overshoot_note": "First observed crossing is below, rather than exactly equal to, the Korean threshold. Report correctly says similar drawdown.",
+            "horizon_126_future_sessions": 126,
+            "horizon_126_last_date": "2008-09-17",
+            "horizon_126_last_close": 1929.05,
+            "horizon_126_return_fraction": -0.47421570497969423,
+            "horizon_252_observations_available": 196,
+            "horizon_252_required": 252,
+            "horizon_252_status": "right_censored",
+            "horizon_252_result": null,
+            "matches_saved_output": true
+          },
+          "policy_windows": {
+            "cases_checked": 6,
+            "all_match": true,
+            "definition": "Pre: close at event_idx-21 to close at event_idx-1 =20 returns. Post: close at event_idx-1 to event_idx+19 =20 returns, including event session.",
+            "endpoint_dates": {
+              "CN-STAMP-20070530": [
+                "2007-04-24",
+                "2007-05-29",
+                "2007-06-26"
+              ],
+              "KR-RIA-20260120": [
+                "2025-12-17",
+                "2026-01-19",
+                "2026-02-19"
+              ],
+              "KR-FUND-20260506": [
+                "2026-04-03",
+                "2026-05-04",
+                "2026-06-04"
+              ],
+              "KR-FUND-20260529": [
+                "2026-04-27",
+                "2026-05-28",
+                "2026-06-26"
+              ],
+              "KR-RATE-20260716": [
+                "2026-06-17",
+                "2026-07-15",
+                "2026-08-13"
+              ],
+              "KR-RATE-20260827": [
+                "2026-07-28",
+                "2026-08-26",
+                "2026-09-23"
+              ]
+            },
+            "all_world_relative_numbers_null": true
+          },
+          "loss_vs_drawdown": "path_risks includes origin in running peak and correctly distinguishes worst return from origin from subsequent peak-to-trough drawdown.",
+          "valuation_arithmetic": "Multiplicative EPS/P-E identity and inverse20%-loss threshold are correct for positive same-definition EPS/P-E endpoints; hypothetical inputs explicitly labelled."
+        },
+        "predictive_weighting_audit": {
+          "verdict": "pass_as_nonpredictive_diagnostic",
+          "case_count": 1,
+          "selection": "Retrospective Shanghai crossing conditioned on currently observed KOSPI drawdown; historical peak itself known retrospectively.",
+          "probabilities": null,
+          "scenario_weights": null,
+          "expected_return_forecast": null,
+          "report_guards_verified": [
+            "Explicitly calls a single case and an ex-post conditional comparison",
+            "Explicitly denies a Korean6-month return/probability interpretation",
+            "Acknowledges global financial-crisis shock",
+            "252-session right censoring is preserved as null",
+            "Scenario table has observations and falsification conditions, without numerical weights",
+            "Hypothetical EPS/P-E grid is not labelled a forecast, probability, confidence interval or frequency"
+          ],
+          "remaining_limit": "The single negative outcome cannot establish how likely another decline is. Near-zero fixed-window return correlation does not test every possible lead/lag or disprove all structural mechanisms."
+        },
+        "source_grade_verdict": {
+          "overall": "adequate_for_the_qualified_descriptive_claims_in_report",
+          "primary_strong": [
+            "Official SSE yearbook closing prices and index/valuation definitions",
+            "Official Chinese policy/economic releases and Korean policy/BOK/company releases where cited"
+          ],
+          "qualified_secondary": [
+            "Current Korean daily history largely Yahoo; last close crosschecked to dated Investing history/Yonhap and KOFIA",
+            "Korean concentration estimate includes secondary aggregate totals; report marks it conditional",
+            "Yahoo daily FX time-of-day is unspecified; report now states that limitation"
+          ],
+          "not_used_for_unsupported_claims": [
+            "Unverified MSCI WORLD benchmark-relative returns remain null",
+            "No exact measured EPS/P-E decomposition",
+            "No independently reproduced global earnings-growth number-one ranking",
+            "No measured policy-induced individual flow effect or constituent return contribution"
+          ],
+          "vintage_limit": "Retrospectively retrieved histories and later annual reports are used to describe historical outcomes, not represented as contemporaneously available forecasting inputs."
+        },
+        "visual_checks": {
+          "images_viewed": [
+            "charts/fixed_calendar_comparison.png",
+            "charts/observed_paths.png"
+          ],
+          "observed_only_korean_line": true,
+          "historical_aftermath_separately_labelled": true,
+          "no_peak_aligned_future_projection": true,
+          "fixed_calendar_and_close_basis_labelled": true
+        },
+        "resolved_findings": [
+          {
+            "severity": "minor_source_precision",
+            "issue": "Original USD paragraph referred to New York fixing time despite actual Yahoo daily FX source lacking a time-of-day definition.",
+            "resolution": "Parent changed build_report.py, report.md and report.html to state FX close time is unavailable and synchrony with Asian equity closes is unverified.",
+            "resolution_verified": true
+          }
+        ],
+        "nonblocking_limits": [
+          "Only two selected cycles; no population base rate or causal identification",
+          "Partial final weekly period is disclosed, complete-month robustness excludesOctober2026",
+          "Policy-window announcements lack verified intraday timing and events overlap market/global shocks",
+          "Future126/252 Korean outcomes do not yet exist and no speculative line is drawn"
+        ],
+        "write_scope": "This review wrote only prices/independent_review_parent.json; tests may write ordinary Python cache files."
+      }
+    }
+  ],
+  "root_resolution": {
+    "china_causal_wording": "rephrased to observed earnings increases",
+    "china_threshold_precision": "actual first-crossing and previous-session drawdowns displayed",
+    "korea_policy_causality": "government main-cause hypothesis left unverified; central bank tightening is not a refutation of government inducement",
+    "korea_fund_date": "May29 participation date added; Oct15 FSC position added",
+    "fx_quote_time": "unspecified fixing time disclosed"
+  },
+  "final_report_sha256": "cf266fb28090106d7d43f080674fdb142d220f471f0956efe81e72de8c30aa53",
+  "no_blocking_findings_after_resolution": true
+}

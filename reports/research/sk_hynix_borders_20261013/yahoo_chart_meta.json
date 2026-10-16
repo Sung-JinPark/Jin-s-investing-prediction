@@ -1,0 +1,84 @@
+{
+  "meta": {
+    "currency": "KRW",
+    "symbol": "000660.KS",
+    "exchangeName": "KSC",
+    "fullExchangeName": "KSE",
+    "instrumentType": "EQUITY",
+    "firstTradeDate": 946944000,
+    "regularMarketTime": 1791853479,
+    "hasPrePostMarketData": false,
+    "gmtoffset": 32400,
+    "timezone": "KST",
+    "exchangeTimezoneName": "Asia/Seoul",
+    "regularMarketPrice": 1479000.0,
+    "regularMarketChangePercent": -7.85,
+    "fulldayPrice": 1479000.0,
+    "fulldayChange": -126000.0,
+    "fulldayChangePercent": -7.85,
+    "fiftyTwoWeekHigh": 2987000.0,
+    "fiftyTwoWeekLow": 403000.0,
+    "regularMarketDayHigh": 1554000.0,
+    "regularMarketDayLow": 1478000.0,
+    "regularMarketVolume": 1364208,
+    "longName": "SK hynix Inc.",
+    "shortName": "SK hynix",
+    "chartPreviousClose": 256000.0,
+    "priceHint": 2,
+    "currentTradingPeriod": {
+      "pre": {
+        "timezone": "KST",
+        "start": 1791844200,
+        "end": 1791849600,
+        "gmtoffset": 32400
+      },
+      "regular": {
+        "timezone": "KST",
+        "start": 1791849600,
+        "end": 1791871200,
+        "gmtoffset": 32400
+      },
+      "post": {
+        "timezone": "KST",
+        "start": 1791871200,
+        "end": 1791882000,
+        "gmtoffset": 32400
+      }
+    },
+    "dataGranularity": "1d",
+    "range": "",
+    "validRanges": [
+      "1d",
+      "5d",
+      "1mo",
+      "3mo",
+      "6mo",
+      "1y",
+      "2y",
+      "5y",
+      "10y",
+      "ytd",
+      "max"
+    ]
+  },
+  "events": {
+    "dividends": {
+      "1764201600": {
+        "amount": 375.0,
+        "date": 1764201600
+      },
+      "1772064000": {
+        "amount": 1875.0,
+        "date": 1772064000
+      },
+      "1779926400": {
+        "amount": 375.0,
+        "date": 1779926400
+      },
+      "1787875200": {
+        "amount": 375.0,
+        "date": 1787875200
+      }
+    }
+  }
+}

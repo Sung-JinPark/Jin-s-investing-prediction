@@ -1,0 +1,63 @@
+{
+  "reviewed_at_utc": "2026-10-16T01:03:45.819907+00:00",
+  "reviewer": "china_earnings independent historical-source review",
+  "status": "passed_after_recommended_narrowing",
+  "scope": "China earnings, forecast revision chronology, realized/reported/expected distinction, source scopes and PIT. Korean and liquidity sections not independently re-collected.",
+  "snapshot_sha256": {
+    "report.md": "f8b38b7f05598201f59fa7bf9e9b644b03e8d58dd69ca8c3f747dbe711493fee",
+    "price_chronology.csv": "5c2d3cb8298723857434781032461397b51d45fc9f5efd668ac4a19af7c2f509",
+    "price_chronology.json": "ed0222904c139777af568b9cc82be5882d9eb5a8e88d7920b8004f5620efc8ff"
+  },
+  "checks_passed": [
+    "SSE 2007Q1-Q3 5123 CNY100m and +73.8% match archived dated November1 digest attributed to exchange reporting.",
+    "November1 momentum slowdown is not converted to a precise sequential profit decline; internally ambiguous QoQ sentences explicitly excluded.",
+    "SSE 1651 CNY100m investment income denominator23.25% is total pre-tax profit, not net profit5123.",
+    "January21 chart is treated as forecast growth, not EPS levels; exact first revision day and size remain unknown.",
+    "May7 original Shanghai Securities News article author CICC research department archived and crosschecked against reprint;31.6→25.3 is growth percentage-point change, not EPS cut.",
+    "Different SSE, SZSE mainboard, CSI300 and brokerage coverage universes are not spliced as one earnings series.",
+    "June2 2008 annual-results review is not treated as October2007 available information.",
+    "Frozen Korean price October15 and09:00KST cutoff preserved; causal effects and official probabilities absent."
+  ],
+  "findings": [
+    {
+      "id": "CN_TIMING_01",
+      "priority": "P2",
+      "location": "Paragraph after China chronology table",
+      "current_text": "주가가 큰 폭의 발표 실적 악화보다 앞섰다는 것은 확인",
+      "issue": "Current table shows strong results and slowing momentum but no dated actual earnings decline publication. The statement can be read as locating a same-universe actual earnings turning point, which is not measured.",
+      "recommendation": "Either narrow to strong cumulative results coexisting with an earlier observed price decline, or add CSRC May19 2009 retrospective 2008 annual net-profit decline of16.82% and expressly limit the claim to that later-confirmed annual decrease. Exact quarterly earnings peak and lead interval remain unverified.",
+      "status": "resolved_verified",
+      "resolution_verified_at_utc": "2026-10-16T01:04:47.500221+00:00",
+      "resolution": "Added official CSRC2009-05-19 /2008 annual -16.82% row and direct source link; conclusion expressly limited to later-confirmed annual net-profit decline. No same-universe quarterly earnings turning point or first downgrade date inferred."
+    },
+    {
+      "id": "CN_TIMING_02",
+      "priority": "P3",
+      "location": "January21 forecast chart discussion",
+      "issue": "Wording correctly avoids EPS substitution, but the chart contains2007 and2008 growth forecasts; the most visible step down is2007.",
+      "recommendation": "Explicitly mention the two forecast years and avoid implying the large step quantifies a2008 EPS cut. No chart digitization.",
+      "status": "resolved_verified",
+      "resolution_verified_at_utc": "2026-10-16T01:04:47.500221+00:00",
+      "resolution": "Explicitly identifies2007 and2008 net-profit growth forecast lines, rejects EPS-level substitution and reading2007 large step as2008 EPS collapse."
+    }
+  ],
+  "new_official_hindsight_row_available": {
+    "source_url": "https://www.csrc.gov.cn/csrc/c100028/c1002724/content.shtml",
+    "published_at": "2009-05-19",
+    "observation_period": "2008-01-01/2008-12-31",
+    "net_profit_yoy_fraction": -0.1682,
+    "investment_income_yoy_fraction": -0.3359,
+    "operating_cash_inflow_yoy_fraction": 0.4028,
+    "limitation": "Does not establish earliest actual-profit deterioration or first forecast downgrade; unavailable in2007/early2008."
+  },
+  "no_parent_files_modified": true,
+  "final_reviewed_at_utc": "2026-10-16T01:04:47.500221+00:00",
+  "final_snapshot_sha256": {
+    "report.md": "2d40f9f77f7772a8a9beb2efae5b1dc25fd3ff0a09b7d37be29376ba78826272",
+    "report.html": "479213a83ad12d953ed28211b10b1a44ec28fbc1bce707c36233c6526ffb344f",
+    "render_report.py": "f4aabe806b0b699d7bb4eb99daf79711bb22373b9456bd6f53e0419eddb60b84",
+    "price_chronology.csv": "5c2d3cb8298723857434781032461397b51d45fc9f5efd668ac4a19af7c2f509",
+    "price_chronology.json": "ed0222904c139777af568b9cc82be5882d9eb5a8e88d7920b8004f5620efc8ff"
+  },
+  "final_resolution_check_scope": "Requested wording and supporting citation only; no original re-collection or repeated exhaustive validation. Original pre-fix snapshot preserved."
+}

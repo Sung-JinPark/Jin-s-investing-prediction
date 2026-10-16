@@ -1,0 +1,9 @@
+{
+  "run_id": "tsv8-sealed-64345a816b4857171915d5b8",
+  "gate_pass": true,
+  "reasons": [],
+  "sealed_window": [
+    "2019-01-01",
+    "2026-08-14"
+  ]
+}

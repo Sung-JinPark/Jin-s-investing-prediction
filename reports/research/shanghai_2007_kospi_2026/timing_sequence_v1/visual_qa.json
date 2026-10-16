@@ -1,0 +1,35 @@
+{
+  "results": [
+    {
+      "horizontalOverflow": false,
+      "headings": 1,
+      "tables": 3,
+      "contentHeight": 6072,
+      "width": 1440,
+      "errors": [],
+      "remote_requests": [],
+      "passed": true
+    },
+    {
+      "horizontalOverflow": false,
+      "headings": 1,
+      "tables": 3,
+      "contentHeight": 7806,
+      "width": 768,
+      "errors": [],
+      "remote_requests": [],
+      "passed": true
+    },
+    {
+      "horizontalOverflow": false,
+      "headings": 1,
+      "tables": 3,
+      "contentHeight": 11366,
+      "width": 390,
+      "errors": [],
+      "remote_requests": [],
+      "passed": true
+    }
+  ],
+  "passed": true
+}

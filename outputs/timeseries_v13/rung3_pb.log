@@ -1,0 +1,27 @@
+=== V13-VOL rung-3 PB(당일 수준) 기준선 — 본 결과 (양방향, B=2000) ===
+vix25_h5   PB-vs-clim BSS e2l +0.900 l2e +0.794 adopt=True | EWMA−PB e2l -0.00031[-0.00097,+0.00035] l2e -0.00003[-0.00027,+0.00023] ewma_beats_pb=False
+vix25_h21  PB-vs-clim BSS e2l +0.752 l2e +0.687 adopt=True | EWMA−PB e2l -0.00074[-0.00247,+0.00098] l2e -0.00103[-0.00441,+0.00209] ewma_beats_pb=False
+vix25_h63  PB-vs-clim BSS e2l +0.456 l2e +0.601 adopt=True | EWMA−PB e2l +0.00404[-0.00159,+0.00987] l2e -0.00781[-0.01191,-0.00356] ewma_beats_pb=False | iso: raw
+vix30_h5   PB-vs-clim BSS e2l +0.880 l2e +0.721 adopt=True | EWMA−PB e2l +0.00128[+0.00012,+0.00279] l2e -0.00034[-0.00442,+0.00327] ewma_beats_pb=False
+vix30_h21  PB-vs-clim BSS e2l +0.813 l2e +0.530 adopt=True | EWMA−PB e2l +0.00042[+0.00004,+0.00080] l2e -0.00073[-0.00536,+0.00358] ewma_beats_pb=False
+vix30_h63  PB-vs-clim BSS e2l +0.612 l2e +0.493 adopt=True | EWMA−PB e2l -0.00371[-0.00604,-0.00133] l2e -0.00018[-0.00243,+0.00190] ewma_beats_pb=False | iso: raw
+rv_h5      PB-vs-clim BSS e2l +0.825 l2e +0.879 adopt=True | EWMA−PB e2l +0.00047[-0.00146,+0.00249] l2e +0.00008[-0.00009,+0.00024] ewma_beats_pb=False
+rv_h21     PB-vs-clim BSS e2l +0.518 l2e +0.592 adopt=True | EWMA−PB e2l -0.00013[-0.00356,+0.00333] l2e -0.00716[-0.01599,+0.00109] ewma_beats_pb=False
+rv_h63     PB-vs-clim BSS e2l +0.095 l2e +0.437 adopt=True | EWMA−PB e2l -0.00030[-0.00066,+0.00001] l2e -0.00143[-0.00307,+0.00047] ewma_beats_pb=False | iso: raw
+--- 건전 귀무(y-block) — (a) 증분: ewma_beats_pb 셀만 / (b) PB-vs-기후: 그 외 PB 채택 셀만 ---
+  vix25_h5: PB-vs-기후 귀무 통과율 0.017
+  vix25_h21: PB-vs-기후 귀무 통과율 0.008
+  vix25_h63: PB-vs-기후 귀무 통과율 0.017
+  vix30_h5: PB-vs-기후 귀무 통과율 0.017
+  vix30_h21: PB-vs-기후 귀무 통과율 0.000
+  vix30_h63: PB-vs-기후 귀무 통과율 0.017
+  rv_h5: PB-vs-기후 귀무 통과율 0.000
+  rv_h21: PB-vs-기후 귀무 통과율 0.017
+  rv_h63: PB-vs-기후 귀무 통과율 0.033
+
+CHAMPION: {'vix25_h5': 'persistence_pb', 'vix25_h21': 'persistence_pb', 'vix25_h63': 'persistence_pb', 'vix30_h5': 'persistence_pb', 'vix30_h21': 'persistence_pb', 'vix30_h63': 'persistence_pb', 'rv_h5': 'persistence_pb', 'rv_h21': 'persistence_pb', 'rv_h63': 'persistence_pb'}
+HOLD cells: none | finalist_id=V13VOL_champion_aec80c65038b | k_obs(ewma>pb)=0 family_p=1.0000
+h63 derived layer: {'vix25_h63': 'raw', 'vix30_h63': 'raw', 'rv_h63': 'raw'}
+ledger row content_hash=b95b919eab5396262e3e16e5400559be2c48191eeb543a8f393c496f37ddc234
+wrote data\timeseries_v13\vol\ladder_pb_baseline.json (sha256 71c92648af96fa8d37a8e1f5a0a47e1aa470ce245534b1b558fe7d64dc65c973)
+exit=0

@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "as_of": "2026-10-16T09:00:00+09:00",
+  "current_observation_cutoff": "2026-10-15",
+  "research_only": true,
+  "phase_anchor_role": "Retrospective descriptive anchors; an observed highest close is not a certified final cycle peak.",
+  "rise_start": "Minimum actual close before the observed peak within available 2005-01-01 onward SSE and 2024-07-01 onward KOSPI coverage; coverage differs and the minima are retrospective.",
+  "prepeak_underwater_excursions": "Separate descriptive anchor: each running closing high until the first subsequent close at or above that same high; record the minimum close inside the entire underwater spell. Use the largest completed excursion before the observed cycle high, retaining all excursions and10/15/20% eligibility. Added after initial zigzag output to reflect the user's whole correction box; not selected using future126-session outcomes.",
+  "postpeak_anchor": "Highest observed close through each frozen observation window; SSE 2007-10-16 and KOSPI 2026-06-22.",
+  "directional_change_confirmation_thresholds_fraction": [0.10, 0.15, 0.20],
+  "directional_change_rule": "After a peak track the running low. A close at least threshold above that low confirms the trough, retaining its earlier date and the later confirmation date. Then track the running high; a close at least threshold below it confirms the rebound peak. Repeat. At every candidate date use that date's prefix only.",
+  "historical_candidates": "Every actual SSE Composite/SSE A post-peak session through 2008-12-31, not only subsequently losing paths.",
+  "bullish_structural_control": "Separately label Shanghai2007-07-05 as a mid-rally false-break control outside the post-October2007 candidate pool. Its as-of observed peak is May29, and prefix-only turns are evaluated before displaying the126-session outcome and later recovery. Added as an explicit selected structural control after initial results, not an independent random case or weighted scenario. It tests the assumption that Korea's observed June high must remain the final cycle high.",
+  "features": ["peak_drawdown_fraction", "sessions_since_peak", "bounce_from_running_trough_fraction", "loss_recovered_from_running_trough_fraction", "decline_from_latest_confirmed_rebound_fraction", "below_last_confirmed_trough", "new_postpeak_low", "directional_change_state"],
+  "additional_descriptive_rebound_shape": "For the last confirmed trough-to-rebound-peak pair, also report rebound gain, recovery of the original peak-to-trough loss, trough-to-rebound sessions and rebound-to-current sessions. These preserve prior rebound shape when current running-trough bounce is zero. They do not alter the original distance/Pareto/tolerance calculations.",
+  "extended_shape_amendment": "Semantic coverage fix after initial review: preserve original matching as core_original, add extended_shape using peak depth, sessions since peak, decline from latest confirmed rebound, preceding confirmed rebound gain and prior-loss recovery, trough-to-rebound sessions and rebound-to-current sessions plus the same flags. Current running-trough bounce/recovery reset to zero at a new low and cannot describe the preceding rebound. This amendment is not a search over scores or historical outcomes; no aggregate score is introduced.",
+  "extended_shape_tolerances": "Use existing strict/base/loose depth and session tolerances. Apply5/10/20percentage-point margins to rebound gain, rebound loss recovery and rebound decline; apply10/21/42session margins to both rebound durations. Require all features jointly within margins and the same flags/state. No tolerance optimization.",
+  "distance": "Absolute per-feature differences only. Boolean/state mismatches remain separate. No weighted or unweighted aggregate similarity score.",
+  "ranking": "Separate top five candidates per continuous feature with date tie-break; full componentwise Pareto set; all candidates retained.",
+  "tolerance_intersections": {
+    "strict": {"depth_fraction": 0.025, "sessions": 10, "other_fraction_features": 0.05},
+    "base": {"depth_fraction": 0.05, "sessions": 21, "other_fraction_features": 0.10},
+    "loose": {"depth_fraction": 0.10, "sessions": 42, "other_fraction_features": 0.20},
+    "flags": "Require same new-low, prior-trough-break and directional-change state. Tolerances are declared sensitivity choices, not estimated error bands or statistical confidence regions."
+  },
+  "future_outcomes": "After feature matching is frozen, calculate126 actual future-session price return (dividends excluded), worst return from candidate close including the origin's zero return, and path drawdown. Retain all candidate results, right-censor incomplete outcomes; never fit candidate selection to future outcomes.",
+  "probability_or_scenario_weight_output": false,
+  "prior_outcome_knowledge": "The earlier calendar study already inspected Chinese 2008 outcomes. This contract freezes this analysis's code choices before running its candidate-outcome calculations, but is not a truly blind or independent preregistration.",
+  "forward_line_policy": "Current Korean series ends at 2026-10-15. Historical future observations stay separately labelled as historical outcomes, never appended as a Korean forecast."
+}

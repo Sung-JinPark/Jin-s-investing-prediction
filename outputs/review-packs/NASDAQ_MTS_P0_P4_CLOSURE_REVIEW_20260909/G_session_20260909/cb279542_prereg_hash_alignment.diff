@@ -1,0 +1,47 @@
+commit cb2795427e157292f97347aa1e2374621b591b71
+Author: repository owner (검토팩용 익명화)
+Date:   Wed Sep 9 14:45:29 2026 +0900
+
+    chore(v13-vol): rung-4 사전등록 커밋 해시 정합 — 7a868424 → 0ce8569b
+    
+    병렬 세션이 같은 워킹트리에서 브랜치를 전환해 원래 사전등록 커밋(7a868424)이 남의 브랜치 위에 얹혔다.
+    내용 변경 없이 clean 브랜치로 cherry-pick 했고, 계약·결과 json·원장의 prereg_commit 을 실제 커밋
+    0ce8569b 로 맞춘다. 사전등록이 결과보다 먼저라는 사실은 그대로다(0ce8569b 가 e576223c 의 부모).
+    
+    Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>
+
+diff --git a/data/contracts/multivariate_timeseries_v13_vol.yaml b/data/contracts/multivariate_timeseries_v13_vol.yaml
+index e047cd99..e239286c 100644
+--- a/data/contracts/multivariate_timeseries_v13_vol.yaml
++++ b/data/contracts/multivariate_timeseries_v13_vol.yaml
+@@ -281,7 +281,7 @@ rung4_macro_blocks:
+   backtest_windows_opened: 0               # 설계창 재분석만 — 홀드아웃·봉인 미열람
+   result: 27검정 전부 measured_zero — 채택 0건, family P(k>=0|n=27)=1.0000 (2026-09-09). 무료 정보집합 소진
+   stopping: 전 셀 '측정된 영'(MDE 미만) 이면 정상 종료. 채택 셀이 나오면 champion 재판정은 별도 결정
+-  prereg_commit: 7a868424                  # 결과 전 커밋
++  prereg_commit: 0ce8569b                  # 결과 전 커밋 (병렬 세션의 브랜치 전환으로 원커밋 7a868424 를 clean 브랜치에 cherry-pick — 내용 동일)
+ 
+ # [A2] h63 오보정 셀의 파생 확률층 — 게이트 판정은 raw 확률로, 파생층만 보정. V8 무접촉.
+ reliability:
+diff --git a/data/timeseries_v13/ledgers/vol_experiments.jsonl b/data/timeseries_v13/ledgers/vol_experiments.jsonl
+index 604777d1..84df455b 100644
+Binary files a/data/timeseries_v13/ledgers/vol_experiments.jsonl and b/data/timeseries_v13/ledgers/vol_experiments.jsonl differ
+diff --git a/data/timeseries_v13/vol/ladder_rung4_macro.json b/data/timeseries_v13/vol/ladder_rung4_macro.json
+index 8fa9edb5..51757e0b 100644
+--- a/data/timeseries_v13/vol/ladder_rung4_macro.json
++++ b/data/timeseries_v13/vol/ladder_rung4_macro.json
+@@ -1207,12 +1207,12 @@
+    "verdict": "measured_zero"
+   }
+  },
+- "content_hash": "b359f6363a5922480f8ee5369246583024b154a18070a27c9887c91980aede2e",
++ "content_hash": "147730962f819c36c92f12c1edddee8a1be1d7f852c234ca35a7bfa5a1858e88",
+  "family_p_binomial": 0.9999999999999989,
+  "generated_at": "2026-09-09T05:14:54+00:00",
+  "k_obs_adopted": 0,
+  "n_panel": 2014,
+- "prereg_commit": "7a868424",
++ "prereg_commit": "0ce8569b",
+  "schema": "v13_vol_rung4_macro",
+  "split": "2011-01-01",
+  "tests_run": 27,

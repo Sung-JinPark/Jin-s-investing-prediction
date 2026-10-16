@@ -1,0 +1,256 @@
+schema_version: 1
+contract_id: market_context_v1
+model_id: research.nasdaq_market_context_v1
+model_version: 1
+probability_unit: fraction
+status: independent_research_preview
+model:
+  family: decaying_ridge_residual_log_return_over_unchanged_gbm
+  axes: [growth, inflation, policy_rates, energy, ai_demand, semiconductor, risk_financial]
+  half_lives: [5, 21, 63]
+  horizon_sessions: 252
+  path_count: 20000
+  seed: 42
+  lookback_sessions: 252
+  maximum_adjustment_sessions: 63
+  train_horizons: [5, 21, 63]
+  horizon_weights: [0.25, 0.5, 0.25]
+  primary_horizon: 21
+  minimum_training_sessions: 756
+  minimum_events_per_family: 30
+  ridge_candidates: [0.0001, 0.001, 0.01, 0.1, 1.0, 10.0, 100.0]
+  inner_purge_sessions: 63
+  inner_embargo_sessions: 5
+  fit_intercept: false
+  center_features: false
+  bootstrap_count: 200
+  bootstrap_block_sessions: 63
+  coefficient_cadence: monthly
+  unsupported_family_numeric_effect: 0
+  additional_daily_residual_noise: false
+input:
+  minimum_history_sessions: 253
+  maximum_captured_observations_per_series: 3000
+  horizon_sessions: 252
+  market_max_age_sessions: 0
+  active_daily_max_age_sessions: 1
+  active_oil_max_age_sessions: 3
+  active_release_max_age_days: 62
+  exchange: XNAS
+  native_store_read_only: true
+  current_csv_historical_pit_training: false
+  available_and_retrieved_lte_as_of: true
+  no_secret_access: true
+  no_market_price_carry: true
+  non_session_index_observation: reject_row_with_raw_link_and_reason
+  dates_only_vintage_available_time: '23:59:59 America/New_York'
+  expectation_kinds_are_separate_mappings: true
+  missing_is_not_zero: true
+representative:
+  selection: equal_weight_five_empirical_rank_distance_to_median
+  statistics: [terminal_log_return, maximum_drawdown, daily_volatility, negative_session_share, sign_change_share]
+  eligible_percentile_ranges: [[0.4, 0.6], [0.25, 0.75], [0.25, 0.75], [0.1, 0.9], [0.1, 0.9]]
+  ties: lowest_original_path_id
+  relaxation: prohibited
+  daily_points_including_anchor: 253
+  smoothing: prohibited
+sources:
+  - id: fred_nasdaq
+    enabled: true
+    url: https://fred.stlouisfed.org/graph/fredgraph.csv?id=NASDAQCOM
+    format: fred_csv
+    series_id: NASDAQCOM
+    source_class: captured_market
+    family: nasdaq_price
+    axis: risk_financial
+    kind: market_observation
+    storage: raw_receipt_and_observations
+    display: derived_statistics_and_source_link
+    historical_validation: captured_forward_only
+  - id: fred_vix
+    enabled: true
+    url: https://fred.stlouisfed.org/graph/fredgraph.csv?id=VIXCLS
+    format: fred_csv
+    series_id: VIXCLS
+    source_class: captured_market
+    family: vix_innovation
+    axis: risk_financial
+    kind: market_observation
+  - id: fred_dgs2
+    enabled: true
+    url: https://fred.stlouisfed.org/graph/fredgraph.csv?id=DGS2
+    format: fred_csv
+    series_id: DGS2
+    source_class: captured_market
+    family: treasury_2y_innovation
+    axis: policy_rates
+    kind: market_observation
+  - id: fred_dgs10
+    enabled: true
+    url: https://fred.stlouisfed.org/graph/fredgraph.csv?id=DGS10
+    format: fred_csv
+    series_id: DGS10
+    source_class: captured_market
+    family: treasury_10y_innovation
+    axis: policy_rates
+    kind: market_observation
+  - id: fred_oil
+    enabled: true
+    url: https://fred.stlouisfed.org/graph/fredgraph.csv?id=DCOILWTICO
+    format: fred_csv
+    series_id: DCOILWTICO
+    source_class: captured_market
+    family: oil_innovation
+    axis: energy
+    kind: market_observation
+  - id: fred_dollar
+    enabled: true
+    url: https://fred.stlouisfed.org/graph/fredgraph.csv?id=DTWEXBGS
+    format: fred_csv
+    series_id: DTWEXBGS
+    source_class: captured_market
+    family: dollar_innovation
+    axis: risk_financial
+    kind: market_observation
+  - id: fred_cpi
+    enabled: true
+    url: https://fred.stlouisfed.org/graph/fredgraph.csv?id=CPIAUCSL
+    format: fred_csv
+    series_id: CPIAUCSL
+    source_class: captured_market
+    family: cpi_model_innovation
+    axis: inflation
+    kind: market_observation
+  - id: fred_core_cpi
+    enabled: true
+    url: https://fred.stlouisfed.org/graph/fredgraph.csv?id=CPILFESL
+    format: fred_csv
+    series_id: CPILFESL
+    source_class: captured_market
+    family: core_cpi_model_innovation
+    axis: inflation
+    kind: market_observation
+  - id: fred_payrolls
+    enabled: true
+    url: https://fred.stlouisfed.org/graph/fredgraph.csv?id=PAYEMS
+    format: fred_csv
+    series_id: PAYEMS
+    source_class: captured_market
+    family: payroll_model_innovation
+    axis: growth
+    kind: market_observation
+  - id: fred_industrial_production
+    enabled: true
+    url: https://fred.stlouisfed.org/graph/fredgraph.csv?id=INDPRO
+    format: fred_csv
+    series_id: INDPRO
+    source_class: captured_market
+    family: industrial_production_innovation
+    axis: growth
+    kind: market_observation
+  - id: bls_cpi
+    enabled: true
+    url: https://www.bls.gov/feed/cpi.rss
+    format: rss
+    source_class: official
+    family: cpi_release
+    axis: inflation
+    kind: economic_release
+    max_items: 30
+    max_age_days: 90
+  - id: fed_policy
+    enabled: true
+    url: https://www.federalreserve.gov/feeds/press_monetary.xml
+    format: rss
+    source_class: official
+    family: fomc_release
+    axis: policy_rates
+    kind: policy_release
+    max_items: 30
+    max_age_days: 90
+  - id: anthropic_news
+    enabled: true
+    url: https://www.anthropic.com/news
+    format: html_links
+    source_class: official
+    family: anthropic_public_disclosure
+    axis: ai_demand
+    kind: issuer_disclosure
+    max_items: 40
+    max_age_days: 90
+    topic_terms: [revenue, earnings, growth, invest, funding, financing, compute, demand, enterprise, scales, partnership, partnering, agreement, customer]
+  - id: bis_semiconductor
+    enabled: true
+    url: 'https://www.bis.gov/news-updates/search?close_filters=1&content_type=press_release&sort_by=created&sort_order=DESC'
+    format: html_links
+    source_class: official
+    family: china_memory_policy
+    axis: semiconductor
+    kind: semiconductor_policy
+    max_items: 40
+    max_age_days: 90
+    topic_terms: [China, semiconductor, chip, memory, DRAM, HBM, CXMT, YMTC]
+    link_path_fragments: [/news-updates/]
+  - id: skhynix_memory
+    enabled: true
+    url: https://news.skhynix.com/en/feed/
+    format: rss
+    source_class: official
+    family: memory_issuer_disclosure
+    axis: semiconductor
+    kind: issuer_disclosure
+    max_items: 30
+    max_age_days: 90
+    topic_terms: [memory, DRAM, NAND, HBM, China, Wuxi, Dalian, capacity, supply]
+  - id: samsung_memory
+    enabled: true
+    url: https://news.samsung.com/global/category/products/semiconductors/feed
+    format: rss
+    source_class: official
+    family: samsung_memory_disclosure
+    axis: semiconductor
+    kind: issuer_disclosure
+    max_items: 30
+    max_age_days: 90
+    topic_terms: [memory, DRAM, NAND, HBM, China, capacity, supply]
+  - id: cxmt_memory
+    enabled: false
+    url: https://www.cxmt.com/en/news.html
+    format: html_links
+    source_class: official
+    family: cxmt_memory_disclosure
+    axis: semiconductor
+    kind: issuer_disclosure
+    license_status: review_required
+    reason: issuer_terms_require_permission_for_content_use
+news_policy:
+  raw_first: true
+  aggregate_headline_sentiment_numeric_use: false
+  unverified_or_unmapped_numeric_effect: 0
+  primary_sources_only: true
+  republished_incident_additional_shock: 0
+  storage: source_receipts_and_minimum_evidence
+  public_display: title_link_and_derived_facts_only
+  unknown_publication_time: null_reference_only_with_first_capture_availability
+publication:
+  tier: independent_research_preview
+  predictive_validation: not_established
+  official_ledger_write: false
+  automatic_promotion: false
+  schedule_utc: '20 5 * * *'
+  schedule_timezone: Asia/Seoul
+  expected_start_kst: '14:20'
+  as_of: freeze_after_collection_before_calculation
+  pointwise_bands_are_not_simultaneous: true
+  historical_vintages_immutable: true
+evaluation:
+  primary: crps_21
+  minimum_matured_pit_origins: 252
+  minimum_nonoverlapping_21_session_blocks: 12
+  minimum_nonoverlapping_63_session_blocks: 8
+  minimum_relative_crps_improvement: 0.02
+  one_sided_confidence: 0.95
+  secondary_maximum_relative_deterioration: 0.02
+  inherited_sealed_performance: false
+  choose_model_using_representative_error: false
+  comparisons: [baseline, market_only, event_only, combined, fhs]

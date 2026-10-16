@@ -1,0 +1,216 @@
+schema_version: 5
+contract_id: multivariate_timeseries_v5
+model_id: shadow.nasdaq_pit_hybrid_distribution_v5
+model_version: 5
+status: preregistered_research_candidate
+probability_space: research_timeseries_v5_conditional
+probability_unit: fraction
+target:
+  exchange: XNAS
+  series_id: NASDAQCOM
+  transform: direct_cumulative_log_return
+  horizons_sessions: [1, 5, 21, 63]
+  quantile_levels: [0.01, 0.05, 0.10, 0.25, 0.50, 0.75, 0.90, 0.95, 0.99]
+isolation:
+  immutable_versions: [v1, v2, v3, v4]
+  combine_with_official_forecasts: false
+  combine_with_scenario_v5_2: false
+  automatic_champion: false
+  automatic_trading: false
+  protected_roots:
+    - data/timeseries
+    - data/timeseries_v1
+    - data/timeseries_v2
+    - data/timeseries_v3
+    - data/timeseries_v4
+    - data/scenarios
+    - data/forecasts
+    - data/ledgers
+data_contract:
+  raw_before_derived: true
+  receipts_append_only: true
+  observations_append_only: true
+  corrections_require_supersedes: true
+  eligibility: available_at <= origin_cutoff_at
+  current_vintage_as_historical_pit: prohibited
+  missing_required_input: fail_closed
+  silent_imputation: prohibited
+  grades:
+    - native_pit
+    - reconstructed_market_archive
+    - reconstructed_official_archive
+    - captured_forward
+  redistribution:
+    public_repository: repository_raw_allowed
+    unclear_or_licensed: private_object_only
+  terminal_outcomes:
+    - new_facts
+    - revised_facts
+    - unchanged_facts
+    - no_fact_expected
+    - rejected
+    - quarantined
+    - parse_failed
+    - schema_drift
+storage:
+  postgres_env: TSV5_DATABASE_URL
+  object_store_env_prefix: TSV5_S3_
+  raw_key: raw/{source_id}/{sha256_prefix}/{sha256}.gz
+  git_max_manifest_bytes: 2097152
+  quota_hold_fraction: 0.80
+  local_private_root: outputs/timeseries_v5/private_store
+source_blocks:
+  target_options:
+    class: core
+    sources: [fred_alfred, cboe_vix, cboe_vix9d, cboe_vix3m, cboe_vvix, cboe_skew]
+  credit_stress:
+    class: challenger
+    sources: [ofr_fsi, nyfed_cmdi, fed_ebp, chicago_fed_nfci]
+  rates_liquidity:
+    class: core
+    sources: [us_treasury_rates, treasury_dts, nyfed_markets, fed_h41, fed_h8, fed_h10]
+  positioning_breadth:
+    class: mixed
+    sources: [cftc_tff, finra_otc, finra_margin]
+  macro_expectations:
+    class: core
+    sources: [alfred_macro, bls, bea, census, philadelphia_fed_spf, cleveland_inflation_nowcast, nyfed_sce, nyfed_gscpi]
+  corporate:
+    class: core
+    sources: [sec_companyfacts, sec_financial_statement_datasets]
+  commodities:
+    class: optional_challenger
+    sources: [eia_petroleum, eia_electricity]
+  public_research:
+    class: challenger_only
+    sources: [fama_french, economic_policy_uncertainty, gdelt]
+  event_forward:
+    class: forward_overlay
+    sources: [employment_consensus, cpi_consensus, fed_rate_probability]
+    independent_event_minimum: 60
+    synthetic_backfill: prohibited
+features:
+  location:
+    - momentum_5d
+    - momentum_21d
+    - momentum_63d
+    - term_spread_change_5d
+    - dollar_change_5d
+    - nfci_level
+    - ebp_level
+    - cmdi_hy
+    - cftc_position_z
+    - earnings_revision
+  scale:
+    - realized_volatility_21d
+    - realized_volatility_63d
+    - vix_level
+    - vix_term_slope
+    - vvix_change_5d
+    - ofr_volatility
+    - ofr_funding
+  tail:
+    - skew_level
+    - vix_inversion
+    - downside_semivariance_21d
+    - jump_variation_21d
+    - cmdi_hy
+    - ofr_fsi
+  freshness_suffix: _age_since_release
+candidate_bundle:
+  frozen_before_outer_evaluation: true
+  maximum_experiments: 12
+  candidates:
+    - {id: E0, family: fixed_anchor}
+    - {id: E1, family: quantile_elastic_net}
+    - {id: E2, family: student_t_location_scale}
+    - {id: E3, family: quantile_hist_gradient_boosting}
+    - {id: E4, family: dynamic_linear_state_space}
+    - {id: E5, family: ex_ante_soft_regime_mixture}
+    - {id: E6, family: student_t_evt_tail}
+    - {id: E7, family: event_local_projection, minimum_events: 60}
+  ridge_alpha_grid: [0.0001, 0.001, 0.01, 0.1, 1.0, 10.0, 100.0]
+  student_t_df_grid: [4, 6, 10]
+  hgb_max_leaf_nodes: [7, 15]
+  hgb_learning_rate: [0.03, 0.07]
+  direct_horizons_only: true
+  recursive_one_day_to_long_horizon: prohibited
+ensemble:
+  horizon_specific: true
+  nonnegative_convex_weights: true
+  anchor_floor:
+    1: 0.20
+    5: 0.25
+    21: 0.35
+    63: 0.40
+  selection_loss: CRPS
+  selection_history_origins: 52
+  weight_grid_steps: 21
+  fallback_weights: anchor_only
+calibration:
+  quantile_rearrangement: true
+  sequential_conformal: inner_matured_errors_only
+  location_scale_tail_separate: true
+  stress_state_must_be_ex_ante: true
+evaluation:
+  role: research_pseudo_oos
+  start: 2007-01-01
+  end: 2026-12-31
+  primary_origins: weekly_last_completed_session
+  robustness_origins: monthly_non_overlapping
+  outer_refit_frequency_origins: 26
+  purge_sessions: 63
+  embargo_sessions: 5
+  fixed_comparator: fixed_anchor_ensemble_v3
+  bootstrap:
+    method: stationary
+    confidence: 0.90
+    block_length_origins: 13
+    iterations: 2000
+research_gate:
+  pit_leakage_count_max: 0
+  lineage_linkage_min: 1.0
+  long_horizon_mean_crps_improvement_min: 0.02
+  each_long_horizon_improvement_positive: true
+  paired_bootstrap_ci_upper_max: 0.0
+  sign_side_max_underperformance: 0.05
+  extreme_move_q4_p10_p90_coverage_min: 0.65
+  extreme_move_q4_not_worse_than_baseline: true
+  stress_regime_coverage_min: 0.70
+  p10_p90_coverage_range: [0.76, 0.84]
+  p25_p75_coverage_range: [0.45, 0.55]
+  lower_miss_share_range: [0.30, 0.70]
+  positive_finite_width_required: true
+publication:
+  research_gate_required: true
+  operational_gate_required: true
+  customer_route: '#timeseries'
+  visible_status: shadow_research_visible
+  hidden_status: shadow_validation_hold
+  silent_fallback: prohibited
+  label: 연구모델 · 기존 전망과 미결합
+promotion:
+  prospective_sessions_min: 126
+  explicit_user_approval: required
+  automatic_promotion: false
+operations:
+  daily: [collect, materialize, forecast, resolve]
+  weekly: [calibrate, lineage_verify, light_refit]
+  monthly: [nested_backtest, stack, stress, workbook]
+  freshness:
+    daily_market_max_missing_sessions: 1
+    release_series_valid_until_next_release: true
+    wall_clock_48_hour_rule: prohibited
+security:
+  collector_only_secrets: true
+  codex_worker_secret_access: prohibited
+  secret_names:
+    - FRED_API_KEY
+    - BLS_API_KEY
+    - BEA_API_KEY
+    - EIA_API_KEY
+    - TSV5_DATABASE_URL
+    - TSV5_S3_ACCESS_KEY_ID
+    - TSV5_S3_SECRET_ACCESS_KEY
+    - GH_TOKEN
+    - GITHUB_TOKEN
