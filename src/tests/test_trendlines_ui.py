@@ -69,6 +69,49 @@ def run(tmp_path, program, extra=''):
     return json.loads(result.stdout)
 
 
+def test_first_party_chart_navigation_is_exact_and_has_no_loop(tmp_path):
+    result = run(tmp_path, r'''
+const publicOrigin='https://sung-jinpark.github.io',localOrigin='http://127.0.0.1:8878',assets=['sk-hynix','soxx','nasdaq','sp500','bitcoin','dow'];
+const charts=assets.map(asset=>({asset,entry:trendlineAppNavigation(publicOrigin,'trendlines','#future/trendlines/'+asset,asset),inside:trendlineAppNavigation(localOrigin,'trendlines','#future/trendlines/'+asset,asset)}));
+const pages=['#today','#future','#statistics','#timeseries','#records/journal'].map(hash=>({hash,target:trendlineAppNavigation(localOrigin,'overview',hash),public:trendlineAppNavigation(publicOrigin,'overview',hash)}));
+const otherOrigins=['https://example.com','http://localhost:8878','http://127.0.0.1:8879','http://sung-jinpark.github.io'].map(origin=>trendlineAppNavigation(origin,'trendlines','#future/trendlines/bitcoin','bitcoin'));
+process.stdout.write(JSON.stringify({charts,pages,otherOrigins}));''')
+    for row in result['charts']:
+        assert row['entry'] == 'http://127.0.0.1:8878/#future/trendlines/' + row['asset']
+        assert row['inside'] is None
+    for row in result['pages']:
+        assert row['target'] == 'https://sung-jinpark.github.io/Jin-s-investing-prediction/' + row['hash']
+        assert row['public'] is None
+    assert result['otherOrigins'] == [None] * 4
+
+
+def test_public_held_chart_enters_first_party_app_before_cross_origin_fetch(tmp_path):
+    out = run(tmp_path, r'''
+const TREND_PRIVATE_DETAILS=new Map(),assets=['sk-hynix','soxx','nasdaq','sp500','bitcoin','dow'],targets=[];
+globalThis.DATA={trendlines:{assets:assets.map(asset_id=>({asset_id,status:'hold'}))}};const before=JSON.stringify(DATA);
+globalThis.location={origin:'https://sung-jinpark.github.io',replace:url=>targets.push(url)};
+globalThis.fetch=()=>{throw new Error('chart entry must not depend on a cross-origin request')};
+for(const asset of [...assets,'mag7'])renderTrendlinePage({asset});
+process.stdout.write(JSON.stringify({targets,unchanged:before===JSON.stringify(DATA),privateCache:TREND_PRIVATE_DETAILS.size}));''')
+    assert out['targets'] == ['http://127.0.0.1:8878/#future/trendlines/' + asset for asset in
+                              ['sk-hynix', 'soxx', 'nasdaq', 'sp500', 'bitcoin', 'dow', 'sk-hynix']]
+    assert out['unchanged'] and out['privateCache'] == 0
+
+
+@pytest.mark.parametrize('origin,hash_value,redirect', [
+    ('http://127.0.0.1:8878', '#statistics', True),
+    ('http://127.0.0.1:8878', '#future', True),
+    ('http://127.0.0.1:8878', '#future/trendlines/bitcoin', False),
+    ('http://127.0.0.1:8878', '#app', False),
+    ('https://sung-jinpark.github.io', '#statistics', False),
+])
+def test_leaving_chart_returns_to_dashboard_before_local_render(tmp_path, origin, hash_value, redirect):
+    out = run(tmp_path, 'const replaced=[],origin=' + json.dumps(origin) + ',hash=' + json.dumps(hash_value) + r''';
+let stopped=0,cleaned=0;globalThis.location={origin,hash,replace:url=>replaced.push(url)};globalThis.TrendlineUI={cleanup:()=>cleaned++};leaveTrendlineApp({stopImmediatePropagation:()=>stopped++});process.stdout.write(JSON.stringify({replaced,stopped,cleaned}));''')
+    assert out == {'replaced': ['https://sung-jinpark.github.io/Jin-s-investing-prediction/' + hash_value] if redirect else [],
+                   'stopped': int(redirect), 'cleaned': int(redirect)}
+
+
 def test_svg_endpoints_and_tooltip_equations_keep_backend_values(tmp_path):
     detail = fixture()['details']['sk-hynix']
     out = run(tmp_path, 'const d=' + json.dumps(detail) + r''';
@@ -420,14 +463,20 @@ const pieces={},box=()=>({innerHTML:'',textContent:'',clientWidth:390,querySelec
 const button=(key,value)=>({dataset:{[key]:value},attrs:{},setAttribute(key,value){this.attrs[key]=value}}),families=['all',...TREND_REPRESENTATIVE_SLOTS].map(value=>button('trendFamily',value)),scopes=['recent','anchors','all'].map(value=>button('trendScope',value)),axes=['linear','log'].map(value=>button('trendScale',value)),attrs={};
 globalThis.el=()=>({isConnected:true,setAttribute(key,value){attrs[key]=value},querySelector:key=>pieces[key]??null,querySelectorAll:key=>key==='[data-trend-family]'?families:key==='[data-trend-scope]'?scopes:key==='[data-trend-scale]'?axes:[]});globalThis.mount=()=>{};bindTrendChart=()=>{};TREND_LOCAL_ENABLED=false;
 renderTrendlinePage({asset:'bitcoin'});const html=pieces['.trend-content'].innerHTML,chart=pieces['[data-trend-representative-chart]'],initial={lines:(chart.innerHTML.match(/data-trend-line=/g)||[]).length,bars:(chart.innerHTML.match(/data-trend-bar=/g)||[]).length,cards:(pieces['[data-trend-representative-insights]'].innerHTML.match(/data-trend-representative-card=/g)||[]).length};
-families.find(row=>row.dataset.trendFamily==='current_structure').onclick();const current={lines:(chart.innerHTML.match(/data-trend-line=/g)||[]).length,bars:(chart.innerHTML.match(/data-trend-bar=/g)||[]).length};scopes.find(row=>row.dataset.trendScope==='all').onclick();const allBars=(chart.innerHTML.match(/data-trend-bar=/g)||[]).length;axes[1].onclick();const selectedLog=chart.innerHTML.includes(body.analyses.log.representatives[1].line_id),view={...TREND_REPRESENTATIVE_VIEW_OPTIONS.get('bitcoin')};
-renderTrendlinePage({asset:'bitcoin'});stopTrendLocalSession();process.stdout.write(JSON.stringify({html,initial,current,allBars,selectedLog,view,restored:TREND_REPRESENTATIVE_VIEW_OPTIONS.get('bitcoin'),snapshot:attrs['data-trend-representative-snapshot'],noCriticalFetch:!TREND_CRITICAL_DETAILS.size,unchanged:before===JSON.stringify(f)}));})();'''
+families.find(row=>row.dataset.trendFamily==='current_structure').onclick();scopes.find(row=>row.dataset.trendScope==='recent').onclick();const current={lines:(chart.innerHTML.match(/data-trend-line=/g)||[]).length,bars:(chart.innerHTML.match(/data-trend-bar=/g)||[]).length};scopes.find(row=>row.dataset.trendScope==='all').onclick();const allBars=(chart.innerHTML.match(/data-trend-bar=/g)||[]).length;axes[1].onclick();const selectedLog=chart.innerHTML.includes(body.analyses.log.representatives[1].line_id),view={...TREND_REPRESENTATIVE_VIEW_OPTIONS.get('bitcoin')};
+const selectedKey='bitcoin:representative:current_structure:all';TREND_CHART_VIEWS.get(selectedKey).factor=4;renderTrendlinePage({asset:'bitcoin'},null,TREND_LOCAL_SESSION);const restored={...TREND_REPRESENTATIVE_VIEW_OPTIONS.get('bitcoin')},pollZoom=TREND_CHART_VIEWS.get(selectedKey).factor;
+TREND_CHART_VIEWS.set('bitcoin:representative:all:all',{factor:8,offset:42});TREND_CHART_VIEWS.set('sk-hynix:representative:all:all',{factor:2,offset:null});renderTrendlinePage({asset:'bitcoin'});const entered={...TREND_REPRESENTATIVE_VIEW_OPTIONS.get('bitcoin')},entryBars=(pieces['[data-trend-representative-chart]'].innerHTML.match(/data-trend-bar=/g)||[]).length,entryLines=(pieces['[data-trend-representative-chart]'].innerHTML.match(/data-trend-line=/g)||[]).length,entryZoom=TREND_CHART_VIEWS.get('bitcoin:representative:all:all'),otherZoom=TREND_CHART_VIEWS.get('sk-hynix:representative:all:all');stopTrendLocalSession();process.stdout.write(JSON.stringify({html,initial,current,allBars,selectedLog,view,restored,pollZoom,entered,entryBars,entryLines,entryZoom,otherZoom,priorZoomCleared:!TREND_CHART_VIEWS.has(selectedKey),snapshot:attrs['data-trend-representative-snapshot'],noCriticalFetch:!TREND_CRITICAL_DETAILS.size,unchanged:before===JSON.stringify(f)}));})();'''
     out = run(tmp_path, program)
     assert out['html'].count('class="trend-chart"') == 1 and 'data-trend-version="representative"' in out['html']
     assert 'data-trend-current-chart' not in out['html'] and 'data-trend-full-chart' not in out['html']
     assert out['initial'] == {'lines': 3, 'bars': 900, 'cards': 3}
     assert out['current'] == {'lines': 1, 'bars': 126} and out['allBars'] == 900
     assert out['selectedLog'] and out['view'] == out['restored'] == {'family': 'current_structure', 'scope': 'all', 'scale': 'log'}
+    assert out['pollZoom'] == 4
+    assert out['entered'] == {'family': 'all', 'scope': 'all', 'scale': 'linear'}
+    assert out['entryBars'] == 900 and out['entryLines'] == 3
+    assert out['entryZoom'] == {'factor': 1, 'offset': 0} and out['priorZoomCleared']
+    assert out['otherZoom'] == {'factor': 2, 'offset': None}
     assert out['snapshot'] == f['body']['snapshot_id'] and out['noCriticalFetch'] and out['unchanged']
 
 
