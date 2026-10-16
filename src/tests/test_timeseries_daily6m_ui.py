@@ -533,7 +533,7 @@ process.stdout.write(JSON.stringify({rejected,unchanged:DATA.timeseries_daily===
 
 def test_route_change_during_fetch_does_not_render_the_old_daily_screen(tmp_path: Path) -> None:
     source = _source()
-    route = source[source.index("async function route()"):source.index("window.addEventListener('hashchange',route)")]
+    route = source[source.index("function trendlineAppNavigation("):source.index("window.addEventListener('hashchange',route)")]
     program = r"""
 let ROUTE_EPOCH=0,TIMESERIES_DAILY_RESIZE=null,release;
 let DATA={timeseries_daily:{deferred_data:{required:true,loaded:false}}};
