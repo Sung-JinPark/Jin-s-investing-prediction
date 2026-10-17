@@ -1,0 +1,290 @@
+{
+  "schema_version": 1,
+  "asof": "2026-10-16",
+  "generated_at": "2026-10-17T05:46:48+00:00",
+  "probability_space": "reference_only",
+  "rules_version": "2026-08-04.v2",
+  "status": "partial",
+  "summary": {
+    "available": 7,
+    "total": 9,
+    "counts": {
+      "deleveraging_support": 1,
+      "easing_rotation_support": 2,
+      "rates_stay_high_support": 0,
+      "neutral": 4
+    },
+    "text": "방향 일치 신호 개수이며 가중 점수·확률이 아닙니다."
+  },
+  "signals": [
+    {
+      "id": "S1",
+      "name": "HY 스프레드 방향",
+      "state": "deleveraging_support",
+      "status": "available",
+      "metrics": {
+        "four_week_change_bp": 55.0,
+        "drawdown_from_13w_peak_bp": 0.0
+      },
+      "observation_period": "2026-10-16",
+      "available_at": "2026-10-17T05:46:31+00:00",
+      "source_url": "https://api.stlouisfed.org/fred/series/observations?series_id=BAMLH0A0HYM2&file_type=json&observation_start=2025-01-01",
+      "source_fingerprint": "9a6d2239baaa6b8e0d5abfaa41861c85c4ab9586b7cd1c74384200b8c7e64eb3",
+      "revision_vintage": "captured_current"
+    },
+    {
+      "id": "S2",
+      "name": "실질 10Y 금리",
+      "state": "neutral",
+      "status": "available",
+      "metrics": {
+        "weekly_increases_last_4": 2,
+        "drawdown_from_13w_peak_bp": -14.0
+      },
+      "observation_period": "2026-10-16",
+      "available_at": "2026-10-17T05:46:32+00:00",
+      "source_url": "https://api.stlouisfed.org/fred/series/observations?series_id=DFII10&file_type=json&observation_start=2025-01-01",
+      "source_fingerprint": "ed08ea1eb55a1f73b932e3b8b7ca32233aa89260be2d7200ca98f0791fff74f6",
+      "revision_vintage": "captured_current"
+    },
+    {
+      "id": "S3",
+      "name": "달러 지수",
+      "state": "neutral",
+      "status": "available",
+      "metrics": {
+        "four_week_change_pct": 1.75
+      },
+      "observation_period": "2026-10-16",
+      "available_at": "2026-10-17T05:46:32+00:00",
+      "source_url": "https://api.stlouisfed.org/fred/series/observations?series_id=DTWEXBGS&file_type=json&observation_start=2025-01-01",
+      "source_fingerprint": "91efd74e37acc1fcbb8cbbb56b62f5d07aab1e3278a9c616375a5ce3d40d24ee",
+      "revision_vintage": "captured_current"
+    },
+    {
+      "id": "S4",
+      "name": "Fed 순유동성",
+      "state": "easing_rotation_support",
+      "status": "available",
+      "metrics": {
+        "weekly_decreases_last_4": 1,
+        "four_week_change_pct": 0.05
+      },
+      "observation_period": "2026-10-16",
+      "available_at": "2026-10-17T05:46:34+00:00",
+      "source_url": "https://api.stlouisfed.org/fred/series/observations?series_id=WALCL&file_type=json&observation_start=2025-01-01 + https://api.stlouisfed.org/fred/series/observations?series_id=WTREGEN&file_type=json&observation_start=2025-01-01 + https://api.stlouisfed.org/fred/series/observations?series_id=RRPONTSYD&file_type=json&observation_start=2025-01-01",
+      "source_fingerprint": "09868f526a420969d49b5af0f4b0bb015a65015f40f767a9820865480b8a8b41",
+      "revision_vintage": "captured_current"
+    },
+    {
+      "id": "S5",
+      "name": "스테이블코인 총액 증감",
+      "state": "source_unavailable",
+      "status": "원천 미확보",
+      "metrics": {},
+      "reason": "14 consecutive daily schema-compatible fetches and approved license review"
+    },
+    {
+      "id": "S6",
+      "name": "BTC 현물 ETF 순유입",
+      "state": "source_unavailable",
+      "status": "원천 미확보",
+      "metrics": {},
+      "reason": "two independent sources and approved redistribution license review"
+    },
+    {
+      "id": "S7",
+      "name": "NASDAQ 대비 BTC 상대강도",
+      "state": "neutral",
+      "status": "available",
+      "metrics": {
+        "relative_return_60d_pct": 21.45,
+        "relative_return_20d_pct": -2.07
+      },
+      "observation_period": "2026-10-16",
+      "available_at": "2026-10-17T05:46:48+00:00",
+      "source_url": "https://query1.finance.yahoo.com/v8/finance/chart/%5EIXIC?interval=1d&period1=1735689600&period2=1792195200&events=div%2Csplits + https://query1.finance.yahoo.com/v8/finance/chart/BTC-USD?interval=1d&period1=1735689600&period2=1792195200&events=div%2Csplits",
+      "source_fingerprint": "222d48b8e63e0c5eba84555bfef12341cfc33a7ab5f812d0f08c6d51b6ce2a9b",
+      "revision_vintage": "captured_current"
+    },
+    {
+      "id": "S8",
+      "name": "장기금리 방향",
+      "state": "neutral",
+      "status": "available",
+      "metrics": {
+        "four_week_change_bp": 9.0
+      },
+      "observation_period": "2026-10-16",
+      "available_at": "2026-10-17T05:46:42+00:00",
+      "source_url": "https://api.stlouisfed.org/fred/series/observations?series_id=DGS10&file_type=json&observation_start=2025-01-01",
+      "source_fingerprint": "2e109c4d6fc0c52fad379a538794aef78139ba12bc33ff20998376599964e32f",
+      "revision_vintage": "captured_current"
+    },
+    {
+      "id": "S9",
+      "name": "O 배당 이벤트 모니터",
+      "state": "easing_rotation_support",
+      "status": "available",
+      "metrics": {
+        "c4_met": 1,
+        "cuts_last_12_events": 0,
+        "latest_amount": 0.272
+      },
+      "observation_period": "2026-10-16",
+      "available_at": "2026-10-17T05:46:48+00:00",
+      "source_url": "https://query1.finance.yahoo.com/v8/finance/chart/O?interval=1d&period1=1729036800&period2=1792195200&events=div",
+      "source_fingerprint": "c2ce0f58b67451293241ac73094cd6574022ebcadc6823af16de96e7a2861517",
+      "revision_vintage": "captured_current"
+    }
+  ],
+  "realty_income_hypothesis": {
+    "status": "ok",
+    "conditions_met": 1,
+    "conditions_total": 4,
+    "conditions": [
+      {
+        "id": "C1",
+        "signal": "S1",
+        "met": false,
+        "signal_state": "deleveraging_support",
+        "status": "available",
+        "metrics": {
+          "four_week_change_bp": 55.0
+        },
+        "as_of": "2026-10-16"
+      },
+      {
+        "id": "C2",
+        "signal": "S8",
+        "met": false,
+        "signal_state": "neutral",
+        "status": "available",
+        "metrics": {
+          "four_week_change_bp": 9.0
+        },
+        "as_of": "2026-10-16"
+      },
+      {
+        "id": "C3",
+        "signal": "S2",
+        "met": false,
+        "signal_state": "neutral",
+        "status": "available",
+        "metrics": {
+          "weekly_increases_last_4": 2
+        },
+        "as_of": "2026-10-16"
+      },
+      {
+        "id": "C4",
+        "signal": "S9",
+        "met": true,
+        "signal_state": "easing_rotation_support",
+        "status": "available",
+        "metrics": {
+          "c4_met": 1
+        },
+        "as_of": "2026-10-16"
+      }
+    ],
+    "text": "조건 충족 개수이며 O 상승 확률이 아닙니다."
+  },
+  "asset_diagnostics": {
+    "bitcoin": {
+      "halving_anchor": "2024-04-20",
+      "months_since_halving": 30,
+      "price_vs_200dma_pct": 12.6
+    },
+    "realty_income": {
+      "ttm_dividend_yield_pct": 5.79,
+      "dgs10_pct": 5.1,
+      "dividend_yield_spread_pp": 0.69,
+      "dgs10_four_week_change_bp": 9.0,
+      "rate_change_o_return_corr_52w": -0.461,
+      "return_basis": "O adjusted-close weekly return vs DGS10 weekly change"
+    }
+  },
+  "receipts": [
+    {
+      "source": "fred_market_signals",
+      "series_id": "BAMLH0A0HYM2",
+      "response_sha256": "d0e274007ba47e41866cfdcec1015f51b79e9653dfb325c9d9f7145a1bfe5858",
+      "fetched_at": "2026-10-17T05:46:31+00:00",
+      "revision_vintage": "captured_current"
+    },
+    {
+      "source": "fred_market_signals",
+      "series_id": "DFII10",
+      "response_sha256": "ec9b7b1f0ca8e68c9bee5c20b1d29a06aecb7a2ff970dc1f773c4727b429793d",
+      "fetched_at": "2026-10-17T05:46:32+00:00",
+      "revision_vintage": "captured_current"
+    },
+    {
+      "source": "fred_market_signals",
+      "series_id": "DTWEXBGS",
+      "response_sha256": "ff862986d0f5094f48f973b724eefdb7c5d5f0a6d36159f2e6294b994885b1af",
+      "fetched_at": "2026-10-17T05:46:32+00:00",
+      "revision_vintage": "captured_current"
+    },
+    {
+      "source": "fred_market_signals",
+      "series_id": "WALCL",
+      "response_sha256": "b3839354c7fe15dd824ec1a9cb8cd30afccb6c1d81fbbd98e4ff05eae91485a0",
+      "fetched_at": "2026-10-17T05:46:33+00:00",
+      "revision_vintage": "captured_current"
+    },
+    {
+      "source": "fred_market_signals",
+      "series_id": "WTREGEN",
+      "response_sha256": "ffdd345b748c4b0d6900ff528f7af0be4780e287ef1d76de224cacb4127e3d86",
+      "fetched_at": "2026-10-17T05:46:33+00:00",
+      "revision_vintage": "captured_current"
+    },
+    {
+      "source": "fred_market_signals",
+      "series_id": "RRPONTSYD",
+      "response_sha256": "ebdfff9f20780afc1fedd19a1f298907e4ae37c69b3fea07d3df97539a643471",
+      "fetched_at": "2026-10-17T05:46:34+00:00",
+      "revision_vintage": "captured_current"
+    },
+    {
+      "source": "fred_market_signals",
+      "series_id": "DGS10",
+      "response_sha256": "629630aebcc202b5c57e7c79a54cdea18397f65fc7e92b6188364b34d776fb2f",
+      "fetched_at": "2026-10-17T05:46:42+00:00",
+      "revision_vintage": "captured_current"
+    },
+    {
+      "source": "yahoo-chart",
+      "symbol": "^IXIC",
+      "interval": "1d",
+      "response_sha256": "f4d90fcd97ab795d3f64116341ca2f191764a431008cf1beaedc1c0298675472",
+      "fetched_at": "2026-10-17T05:46:47+00:00"
+    },
+    {
+      "source": "yahoo-chart",
+      "symbol": "BTC-USD",
+      "interval": "1d",
+      "response_sha256": "3ff1a249b573ae2c3928e56a958d1348ee08826c133c83a1d21422f5f971a932",
+      "fetched_at": "2026-10-17T05:46:48+00:00"
+    },
+    {
+      "source": "yahoo-chart",
+      "symbol": "O",
+      "interval": "1d",
+      "response_sha256": "ea1336c5073ad75049b565dd07b54b0b924228fb4d3cc9506d6bc44f7abfd804",
+      "fetched_at": "2026-10-17T05:46:48+00:00"
+    },
+    {
+      "source": "yahoo-chart",
+      "symbol": "O",
+      "interval": "dividend_events",
+      "response_sha256": "90b52735710a349de4d16b3c555f3d1151d9995ed736bdb26e3a62ce54f60c6d",
+      "fetched_at": "2026-10-17T05:46:48+00:00"
+    }
+  ],
+  "warning": "이 체크리스트는 사전 등록된 방향 규칙이며 확률이 아닙니다.",
+  "snapshot_id": "scenario-tracker:2026-10-16:r1",
+  "revision": 1
+}
