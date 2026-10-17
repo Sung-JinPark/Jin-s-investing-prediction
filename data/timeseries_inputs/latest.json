@@ -1,21 +1,21 @@
 {
-  "bundle_id": "ts-inputs-2d3a7ce85c5e30a15be16c91",
-  "capture_completed_at": "2026-10-17T00:30:50.775816+00:00",
+  "bundle_id": "ts-inputs-de699dc3688d8d18e4341cdc",
+  "capture_completed_at": "2026-10-17T05:02:18.569250+00:00",
   "changed": true,
-  "checked_at": "2026-10-17T00:31:55.726804+00:00",
-  "content_hash": "7911331af10a683fe5731f288a9fa60e992c7b1a57c8875d2fb93e38704a21f6",
+  "checked_at": "2026-10-17T05:03:13.959315+00:00",
+  "content_hash": "0e95a49c36914ffd519c86a06ff8646e03344be4d21edf499d669b78168c07e2",
   "contract_id": "timeseries_inputs_refresh_v1",
   "eligibility_changed": true,
-  "eligibility_hash": "5ffb88885c1294088180aca85937b0617ddeac0d5d571accf4ea5274dd3d4b1e",
-  "eligibility_status": "hold",
+  "eligibility_hash": "51c30e40b1f216396029d68fc8995a37ed5f4a459a95a415b4b4891bc2a5f66c",
+  "eligibility_status": "ready",
   "eligible_native_latest": {
     "DGS2": {
-      "available_at": "2026-10-16T03:59:59+00:00",
-      "observation_time": "2026-10-14",
+      "available_at": "2026-10-17T03:59:59+00:00",
+      "observation_time": "2026-10-15",
       "series_id": "DGS2",
-      "source_hash": "d32ee6a82c37a276ea6302936ad5e9c8096e3dbec8da48f909838ded9d9ff7c9",
-      "value": 4.82,
-      "vintage_start": "2026-10-16T03:59:59+00:00"
+      "source_hash": "48b785733641ead048ded1bfb079030eb566e82f19c1a38c0030a109febbc90d",
+      "value": 4.77,
+      "vintage_start": "2026-10-17T03:59:59+00:00"
     },
     "DTWEXBGS": {
       "available_at": "2026-10-14T03:59:59+00:00",
@@ -34,12 +34,12 @@
       "vintage_start": "2026-10-16T03:59:59+00:00"
     },
     "T10Y2Y": {
-      "available_at": "2026-10-16T03:59:59+00:00",
-      "observation_time": "2026-10-15",
+      "available_at": "2026-10-17T03:59:59+00:00",
+      "observation_time": "2026-10-16",
       "series_id": "T10Y2Y",
-      "source_hash": "5f36abad0b4d1929e3e1d0089d125507e1dbf5d99d3793bd4891f0d8e0568723",
-      "value": 0.33,
-      "vintage_start": "2026-10-16T03:59:59+00:00"
+      "source_hash": "bdc5f73b7b907f4f8fbff1997624e557b3182ab2e952fe05ac2bb6f386075b79",
+      "value": 0.35,
+      "vintage_start": "2026-10-17T03:59:59+00:00"
     },
     "VIXCLS": {
       "available_at": "2026-10-16T03:59:59+00:00",
@@ -52,15 +52,15 @@
   },
   "expected_session": "2026-10-16",
   "native_watermarks": {
-    "DGS2": "2026-10-17T00:30:48.640699+00:00",
-    "DTWEXBGS": "2026-10-17T00:30:49.540739+00:00",
-    "NASDAQCOM": "2026-10-17T00:30:45.667617+00:00",
-    "T10Y2Y": "2026-10-17T00:30:49.013844+00:00",
-    "VIXCLS": "2026-10-17T00:30:48.298907+00:00"
+    "DGS2": "2026-10-17T05:02:02.897586+00:00",
+    "DTWEXBGS": "2026-10-17T05:02:12.493090+00:00",
+    "NASDAQCOM": "2026-10-17T05:01:51.169217+00:00",
+    "T10Y2Y": "2026-10-17T05:02:09.207060+00:00",
+    "VIXCLS": "2026-10-17T05:01:59.116265+00:00"
   },
   "publication_allowed": true,
   "schema_version": 1,
-  "semantic_changed": false,
+  "semantic_changed": true,
   "source_failures": [],
   "source_status": [
     {
@@ -73,7 +73,7 @@
     },
     {
       "series_id": "DGS2",
-      "status": "stale"
+      "status": "fresh"
     },
     {
       "series_id": "T10Y2Y",
