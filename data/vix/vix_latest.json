@@ -5,7 +5,7 @@
   "source_url": "https://cdn.cboe.com/api/global/us_indices/daily_prices/VIX_History.csv",
   "source_field": "CLOSE",
   "observed_date": "2026-10-16",
-  "generated_at": "2026-10-17T19:39:51+00:00",
+  "generated_at": "2026-10-18T19:35:27+00:00",
   "level": 19.99,
   "band": "calm",
   "band_label": "평시",
@@ -588,5 +588,5 @@
     "distance": 5.01,
     "breached": false
   },
-  "stale_days": 2
+  "stale_days": 3
 }
