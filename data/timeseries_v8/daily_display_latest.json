@@ -1,6 +1,6 @@
 {
   "as_of": "2026-10-16",
-  "content_hash": "1781b633d1ebc327e252e15dac2cce27b91c58cdb1350c619fc32034d9c23654",
+  "content_hash": "e5d7b3afd96d6ac4808ce8d94faadb7d3b4e69f6d32720314e80a242390de03f",
   "daily": {
     "anchor": {
       "provisional": true,
@@ -95,13 +95,13 @@
       "probability_up": 0.72
     }
   },
-  "knowledge_cutoff": "2026-10-17T20:52:03+00:00",
+  "knowledge_cutoff": "2026-10-18T01:32:05+00:00",
   "model_id": "shadow.mf_dfm_varx_calibrated_v8",
   "model_version": 8,
   "operational": {
     "freshness": [
       {
-        "age_hours": 20.867918284444446,
+        "age_hours": 25.53519018111111,
         "group": "NASDAQCOM",
         "limit_hours": 48.0,
         "observation_time": "2026-10-16",
@@ -109,7 +109,7 @@
         "status": "fresh"
       },
       {
-        "age_hours": 20.867918284444446,
+        "age_hours": 25.53519018111111,
         "group": "VIX",
         "limit_hours": 48.0,
         "observation_time": "2026-10-16",
@@ -117,7 +117,7 @@
         "status": "fresh"
       },
       {
-        "age_hours": 20.867918284444446,
+        "age_hours": 25.53519018111111,
         "group": "DGS2",
         "limit_hours": 48.0,
         "observation_time": "2026-10-16",
@@ -125,7 +125,7 @@
         "status": "fresh"
       },
       {
-        "age_hours": 20.867918284444446,
+        "age_hours": 25.53519018111111,
         "group": "DGS10",
         "limit_hours": 48.0,
         "observation_time": "2026-10-16",
@@ -133,7 +133,7 @@
         "status": "fresh"
       },
       {
-        "age_hours": 188.86791828444444,
+        "age_hours": 193.5351901811111,
         "group": "DTWEXBGS_or_DTWEXB",
         "limit_hours": 216.0,
         "observation_time": "2026-10-09",
