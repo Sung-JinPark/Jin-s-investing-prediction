@@ -1,13 +1,13 @@
 {
-  "bundle_id": "ts-inputs-de699dc3688d8d18e4341cdc",
-  "capture_completed_at": "2026-10-17T05:02:18.569250+00:00",
+  "bundle_id": "ts-inputs-cad059679ee44a8b76c4d535",
+  "capture_completed_at": "2026-10-18T01:34:07.148406+00:00",
   "changed": true,
-  "checked_at": "2026-10-17T05:03:13.959315+00:00",
-  "content_hash": "0e95a49c36914ffd519c86a06ff8646e03344be4d21edf499d669b78168c07e2",
+  "checked_at": "2026-10-18T01:35:23.290447+00:00",
+  "content_hash": "5e262f8519083cc057e45bf3ddeb626d0f7c98fc5e6ab5b00e3083fc4df9ec74",
   "contract_id": "timeseries_inputs_refresh_v1",
   "eligibility_changed": true,
-  "eligibility_hash": "51c30e40b1f216396029d68fc8995a37ed5f4a459a95a415b4b4891bc2a5f66c",
-  "eligibility_status": "ready",
+  "eligibility_hash": "6267bb73bc1dbaa8e37794144d25895660bb93db4d7e96b92aef13fd83176406",
+  "eligibility_status": "hold",
   "eligible_native_latest": {
     "DGS2": {
       "available_at": "2026-10-17T03:59:59+00:00",
@@ -52,28 +52,28 @@
   },
   "expected_session": "2026-10-16",
   "native_watermarks": {
-    "DGS2": "2026-10-17T05:02:02.897586+00:00",
-    "DTWEXBGS": "2026-10-17T05:02:12.493090+00:00",
-    "NASDAQCOM": "2026-10-17T05:01:51.169217+00:00",
-    "T10Y2Y": "2026-10-17T05:02:09.207060+00:00",
-    "VIXCLS": "2026-10-17T05:01:59.116265+00:00"
+    "DGS2": "2026-10-18T01:34:03.929709+00:00",
+    "DTWEXBGS": "2026-10-18T01:34:05.591651+00:00",
+    "NASDAQCOM": "2026-10-18T01:34:02.103097+00:00",
+    "T10Y2Y": "2026-10-18T01:34:04.986186+00:00",
+    "VIXCLS": "2026-10-18T01:34:02.937105+00:00"
   },
   "publication_allowed": true,
   "schema_version": 1,
-  "semantic_changed": true,
+  "semantic_changed": false,
   "source_failures": [],
   "source_status": [
     {
       "series_id": "NASDAQCOM",
-      "status": "fresh"
+      "status": "stale"
     },
     {
       "series_id": "VIXCLS",
-      "status": "fresh"
+      "status": "stale"
     },
     {
       "series_id": "DGS2",
-      "status": "fresh"
+      "status": "stale"
     },
     {
       "series_id": "T10Y2Y",
