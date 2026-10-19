@@ -2,7 +2,7 @@
   "anchor_date": "2026-10-14",
   "as_of": "2026-10-15T03:19:02.582313+00:00",
   "combined_with_existing_models": false,
-  "content_hash": "e18425464e68ba302450969f77114b2f3ba4699f8bd630828fe17b4f00d319bc",
+  "content_hash": "f158cdaf7dd5c5b0b01daafdff6008dfb5524a8397ad69244b5e953eff48dbd4",
   "evidence": {
     "origin_age_sessions": 2,
     "predictive_validation": "not_established",
@@ -17,7 +17,7 @@
         "status": "stale"
       },
       {
-        "available_at": "2026-10-17T04:46:36.392932+00:00",
+        "available_at": "2026-10-17T03:59:59+00:00",
         "group": "VIX",
         "limit_hours": 48,
         "observation_time": "2026-10-16",
