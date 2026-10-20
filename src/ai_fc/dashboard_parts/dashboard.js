@@ -781,6 +781,14 @@ function copyCurrentSummary(){
   const d=currentDescriptor(),headline=document.querySelector('main h1')?.textContent.trim()||d?.title||document.title;
   copyText(`${headline}\n${location.href}`).then(()=>showToast('화면 요약을 복사했습니다.')).catch(()=>showToast('요약을 복사하지 못했습니다.','warning'));
 }
+function formatKstTimestamp(raw){
+  if(typeof raw!=='string'||!raw.trim())return '시각 미상';
+  // Explicit offsets identify an instant. Legacy unzoned metadata uses KST,
+  // matching freshnessInfo; never reinterpret it in the browser's local zone.
+  const stamp=Date.parse(/[zZ]|[+-]\d{2}:?\d{2}$/.test(raw)?raw:raw+'+09:00');
+  const local=new Date(stamp+9*3600000);
+  return Number.isFinite(local.getTime())?local.toISOString().slice(0,16).replace('T',' ')+' KST':'시각 미상';
+}
 function freshnessInfo(){
   const raw=DATA?.meta?.generated||'',stamp=Date.parse(/[zZ]|[+-]\d{2}:?\d{2}$/.test(raw)?raw:raw+'+09:00');
   const hours=Number.isFinite(stamp)?Math.max(0,(Date.now()-stamp)/36e5):999;
@@ -800,7 +808,7 @@ function renderUtilityPanel(){
   /* 뺄셈(전체−진행)은 폐기(void)까지 '판정 완료'로 흡수한다 — status로 직접 센다. */
   const by=s=>questions.filter(q=>q.status===s).length,active=by('active'),resolved=by('resolved'),voided=by('void');
   const rounds=Object.values(history).reduce((n,x)=>n+(Array.isArray(x)?x.length:0),0);
-  const generated=(DATA?.meta?.generated||'—').replace('T',' ').slice(0,16)+' KST',note=currentNote(),pinnedQs=myRadarQuestions();
+  const generated=formatKstTimestamp(DATA?.meta?.generated),note=currentNote(),pinnedQs=myRadarQuestions();
   utilityContent.innerHTML=`${reviewQueuePanel()}<section class="utility-section"><div class="utility-label"><b>데이터 상태</b><small>이 사이트가 언제 데이터로 만들어졌는지</small></div>
     <div class="freshness-card ${f.cls}"><div><b>${f.label}</b><small>자기완결 스냅샷</small></div><strong>${esc(generated)}</strong></div>
     <div class="utility-stats"><div><span>질문</span><strong>${questions.length}</strong></div><div><span>진행 중</span><strong>${active}</strong></div><div><span>판정 완료</span><strong>${resolved}</strong></div><div><span>폐기</span><strong>${voided}</strong></div><div><span>기록된 예측 회차</span><strong>${rounds}</strong></div></div></section>
@@ -2652,7 +2660,9 @@ function enhanceChartZoom(root=document){
     if(surface.dataset.chartZoomBound||!surface.querySelector('svg'))return;
     surface.dataset.chartZoomBound='1';surface.classList.add('chart-fit-surface');
     const label=chartZoomTitle(surface,index),tools=el(`<div class="chart-fit-tools"><span>전체 그래프</span><button type="button" aria-label="${esc(label)} 확대해서 보기"><i aria-hidden="true">↗</i> 확대해서 보기</button></div>`),button=$('button',tools);
-    surface.before(tools);button.onclick=()=>openChartZoom(surface,button,label);
+    surface.before(tools);
+    const currentLabel=()=>{const title=chartZoomTitle(surface,index);button.setAttribute('aria-label',`${title} 확대해서 보기`);return title;};
+    button.onfocus=currentLabel;button.onclick=()=>openChartZoom(surface,button,currentLabel());
   });
 }
 function contextTabs(group,current){
@@ -5803,7 +5813,7 @@ function renderHeaderStrip(){
   document.body.classList.toggle('density-compact',UI_STATE.density==='compact');
   document.body.classList.toggle('motion-reduced',UI_STATE.motion==='reduced');
   try{if(sessionStorage.getItem('jin-focus')==='1'){document.body.classList.add('focus-mode');focusExit.hidden=false;}}catch(_){}
-  const generated='갱신 '+DATA.meta.generated.replace('T',' ').slice(0,16)+' KST';
+  const generated='갱신 '+formatKstTimestamp(DATA.meta.generated);
   document.getElementById('asof').textContent=generated;
   document.getElementById('drawer-asof').textContent=generated;
   const ph=document.getElementById('phase');if(ph&&DATA.meta.phase)ph.textContent=DATA.meta.phase;
