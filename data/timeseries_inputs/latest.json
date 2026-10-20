@@ -1,45 +1,45 @@
 {
-  "bundle_id": "ts-inputs-0164c9ce5df7474a274b9fa1",
-  "capture_completed_at": "2026-10-19T21:46:11.604920+00:00",
+  "bundle_id": "ts-inputs-78d589e4a6777687be322d4a",
+  "capture_completed_at": "2026-10-20T05:23:06.736221+00:00",
   "changed": true,
-  "checked_at": "2026-10-19T21:49:55.016712+00:00",
-  "content_hash": "35d0fd8e6bfe864108d950ece4ff714cb50122db952c92acd59483bff732563f",
+  "checked_at": "2026-10-20T05:24:10.773539+00:00",
+  "content_hash": "bc8c31ffef764e1beeb33d857e1d3f67eef348c64a8c4873c4cfd48abe972a06",
   "contract_id": "timeseries_inputs_refresh_v1",
   "eligibility_changed": true,
-  "eligibility_hash": "ae414b2080bcdf5f63521edbaa911980c982a282988939296d6e0459d50e6140",
+  "eligibility_hash": "0179941f5fcbb9962a74a127275c14ebdde211cfc5d0d42051d7ce6ffc187bea",
   "eligibility_status": "hold",
   "eligible_native_latest": {
     "DGS2": {
-      "available_at": "2026-10-17T03:59:59+00:00",
-      "observation_time": "2026-10-15",
+      "available_at": "2026-10-20T03:59:59+00:00",
+      "observation_time": "2026-10-16",
       "series_id": "DGS2",
-      "source_hash": "48b785733641ead048ded1bfb079030eb566e82f19c1a38c0030a109febbc90d",
-      "value": 4.77,
-      "vintage_start": "2026-10-17T03:59:59+00:00"
+      "source_hash": "e6f979c3cb7332179abf2b5ab931dd8095104601dff7f115d89c544ace7f72af",
+      "value": 4.74,
+      "vintage_start": "2026-10-20T03:59:59+00:00"
     },
     "DTWEXBGS": {
-      "available_at": "2026-10-14T03:59:59+00:00",
-      "observation_time": "2026-10-09",
+      "available_at": "2026-10-20T03:59:59+00:00",
+      "observation_time": "2026-10-16",
       "series_id": "DTWEXBGS",
-      "source_hash": "227e1cd4e9696047d8b9e48b58473da0ca8f65fb374a72644b842c52c27a96df",
-      "value": 121.6023,
-      "vintage_start": "2026-10-14T03:59:59+00:00"
+      "source_hash": "b233dd031bc2bf003478d2426984f393f74b1686d2d8181e2598fcd3a172e7fe",
+      "value": 121.4048,
+      "vintage_start": "2026-10-20T03:59:59+00:00"
     },
     "NASDAQCOM": {
-      "available_at": "2026-10-16T03:59:59+00:00",
-      "observation_time": "2026-10-15",
+      "available_at": "2026-10-20T03:59:59+00:00",
+      "observation_time": "2026-10-19",
       "series_id": "NASDAQCOM",
-      "source_hash": "2c917e89a9e09cd4abdbb525d5fa811c48c029d7cd56f05156a3894c821f26ce",
-      "value": 26713.03,
-      "vintage_start": "2026-10-16T03:59:59+00:00"
+      "source_hash": "60d9c7bfdc36bc3be2de0efb8f1984964812fc56378bf036d35c2de03476e27c",
+      "value": 26430.89,
+      "vintage_start": "2026-10-20T03:59:59+00:00"
     },
     "T10Y2Y": {
-      "available_at": "2026-10-17T03:59:59+00:00",
-      "observation_time": "2026-10-16",
+      "available_at": "2026-10-20T03:59:59+00:00",
+      "observation_time": "2026-10-19",
       "series_id": "T10Y2Y",
-      "source_hash": "bdc5f73b7b907f4f8fbff1997624e557b3182ab2e952fe05ac2bb6f386075b79",
-      "value": 0.35,
-      "vintage_start": "2026-10-17T03:59:59+00:00"
+      "source_hash": "09ba381f14d5321ba13ed4d6ad26442bb83e69dd2da304ec9147518bab9a8fd8",
+      "value": 0.38,
+      "vintage_start": "2026-10-20T03:59:59+00:00"
     },
     "VIXCLS": {
       "available_at": "2026-10-17T03:59:59+00:00",
@@ -52,11 +52,11 @@
   },
   "expected_session": "2026-10-19",
   "native_watermarks": {
-    "DGS2": "2026-10-19T21:46:05.776938+00:00",
-    "DTWEXBGS": "2026-10-19T21:46:09.657711+00:00",
-    "NASDAQCOM": "2026-10-19T21:46:01.939589+00:00",
-    "T10Y2Y": "2026-10-19T21:46:07.542425+00:00",
-    "VIXCLS": "2026-10-19T21:46:03.475338+00:00"
+    "DGS2": "2026-10-20T05:23:04.043039+00:00",
+    "DTWEXBGS": "2026-10-20T05:23:05.597973+00:00",
+    "NASDAQCOM": "2026-10-20T05:23:01.687245+00:00",
+    "T10Y2Y": "2026-10-20T05:23:04.865981+00:00",
+    "VIXCLS": "2026-10-20T05:23:03.188197+00:00"
   },
   "publication_allowed": true,
   "schema_version": 1,
@@ -65,7 +65,7 @@
   "source_status": [
     {
       "series_id": "NASDAQCOM",
-      "status": "stale"
+      "status": "fresh"
     },
     {
       "series_id": "VIXCLS",
@@ -77,11 +77,11 @@
     },
     {
       "series_id": "T10Y2Y",
-      "status": "stale"
+      "status": "fresh"
     },
     {
       "series_id": "DTWEXBGS",
-      "status": "stale"
+      "status": "fresh"
     }
   ],
   "status": "ready"
