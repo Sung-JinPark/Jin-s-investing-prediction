@@ -800,7 +800,7 @@ function trendManualPoint(m,detail,x,y,scale,snap='weak',sx=1,sy=1){
 function trendManualRecord(state,a,b,extend=true){
   if(a.session===b.session)throw new Error('서로 다른 두 날짜를 선택해 주세요');if(state.lines.length>=TREND_MANUAL_LIMIT)throw new Error('직접선은 자산별 20개까지 그릴 수 있습니다');
   const [first,second]=a.session<b.session?[a,b]:[b,a],number=Math.max(0,...state.lines.map(l=>l.number))+1,template=TREND_TEMPLATE_STATE.items.find(t=>t.id===TREND_TEMPLATE_STATE.default_id);
-  return {...trendManualUpgrade({id:'manual-'+(globalThis.crypto?.randomUUID?.()||Date.now().toString(36)+'-'+Math.random().toString(36).slice(2)),number,a:{...first},b:{...second},extend}),axis:state.view?.scale||'linear',style:{...(template?.style||TREND_MANUAL_STYLE)}};
+  return {...trendManualUpgrade({id:'manual-'+(globalThis.crypto?.randomUUID?.()||Date.now().toString(36)+'-'+Math.random().toString(36).slice(2)),number,a:{...first},b:{...second},extend}),axis:state.drawingScale||state.view?.scale||'linear',style:{...(template?.style||TREND_MANUAL_STYLE)}};
 }
 function trendManualChoose(state,point){
   if(!point)return false;if(!state.first){state.first={...point};state.hover=null;state.message='';trendManualNotify(state);return false;}
@@ -915,7 +915,7 @@ function bindTrendManual(host,detail,m,asset,scale){
   const change=(fn,unlock=false,all=false)=>{const ids=all?state.lines.map(l=>l.id):trendManualTargets(state);if(!ids.length)return;if(!unlock&&state.lines.some(l=>ids.includes(l.id)&&l.locked))throw new Error('잠긴 선을 먼저 잠금 해제해 주세요');const selected=state.selected;trendManualApply(state,state.lines.map(l=>ids.includes(l.id)?fn(l):l),selected,unlock);state.selection=ids;trendManualNotify(state);};
   const action=async name=>{try{
     if(!state.ready)throw new Error('저장본을 불러온 뒤 편집해 주세요');
-    if(name==='draw'){if(state.mode)cancel();else{if(state.lines.length>=20)throw new Error('직접선은 자산별 20개까지 그릴 수 있습니다');state.mode=true;state.first=null;state.hover=null;state.selected=null;state.selection=[];state.message='';trendManualNotify(state);svg.focus();}}
+    if(name==='draw'){if(state.mode)cancel();else{if(state.lines.length>=20)throw new Error('직접선은 자산별 20개까지 그릴 수 있습니다');state.mode=true;state.drawingScale=scale;state.first=null;state.hover=null;state.selected=null;state.selection=[];state.message='';trendManualNotify(state);svg.focus();}}
     else if(name==='save')await trendManualSave(state,commitForm);
     else if(name==='undo'||name==='redo')trendManualUndo(state,name==='redo');
     else if(name==='delete'||name==='clear')trendManualDelete(state,name==='clear');
@@ -1067,13 +1067,14 @@ function closeTrendZoom(restore=true){
 }
 function trendChartTools(state,modal=false){return `<div class="trend-chart-tools" role="group" aria-label="시간축 확대와 이동">${modal?'':'<button type="button" data-trend-tool="expand">크게 보기 ↗</button>'}<button type="button" data-trend-tool="out" aria-label="시간축 축소">−</button><output data-trend-zoom-factor>${Number(state.factor||1).toFixed(1)}×</output><button type="button" data-trend-tool="in" aria-label="시간축 확대">＋</button><button type="button" data-trend-tool="left" aria-label="이전 구간">←</button><button type="button" data-trend-tool="right" aria-label="다음 구간">→</button><button type="button" data-trend-tool="reset">초기화</button></div>`;}
 function drawTrendInteractiveChart(host,detail,analysis,baseBars,asset,scale,version,state,onState=()=>{},modal=false){
-  const active=globalThis.document?.activeElement,restoreName=host.contains?.(active)&&active?.closest?.('[data-trend-manual-form]')?active.name:null;
+  const active=globalThis.document?.activeElement,restoreName=host.contains?.(active)&&active?.closest?.('[data-trend-manual-form]')?active.name:null,restoreTool=host.contains?.(active)?active?.dataset?.trendTool:null;
   const workspace=trendManualState(detail.asset_id),window=state.dateWindow||workspace.view.window;
   if(window){state.factor=window.factor;if(window.tail)state.offset=null;else{const i=baseBars.findIndex(b=>(b.session||b.session_date)>=window.start);state.offset=i<0?0:i;}}
   const bars=trendZoomViewport(baseBars,state),m=trendPlotModel(detail,analysis,bars,scale,host.clientWidth||1000),maximum=Math.max(1,Math.min(8,baseBars.length/20));
   state.dateWindow={start:bars[0].session||bars[0].session_date,end:bars.at(-1).session||bars.at(-1).session_date,factor:state.factor,tail:state.offset+bars.length>=baseBars.length};workspace.view.window={...state.dateWindow};
   m.manualState=workspace;m.manualDetail=detail;m.manualLines=m.manualState.lines.filter(l=>!l.hidden).map(l=>trendManualGeometry(l,detail,analysis,scale,m)).filter(Boolean);
   host.innerHTML=trendChartTools(state,modal)+trendManualToolbar()+trendSvg(detail,m,asset,version)+'<p data-trend-readout class="trend-readout" aria-live="polite"></p>'+(!analysis.lines.length?`<p class="trend-direction-empty">${analysis.representative?'추세선 자료를 확인하고 있습니다.':'확인된 경계 없음'}</p>`:'');bindTrendChart(host,detail,m,asset,scale);bindTrendManual(host,detail,m,asset,scale);
+  if(restoreTool&&/^[a-z]+$/.test(restoreTool))host.querySelector('[data-trend-tool="'+restoreTool+'"]')?.focus();
   if(restoreName&&/^[a-z_]+$/.test(restoreName))host.querySelector('[data-trend-manual-form] [name="'+restoreName+'"]').focus();
   const repaint=()=>{const action=document.activeElement?.dataset?.trendTool;state.dateWindow=null;workspace.view.window=null;onState();drawTrendInteractiveChart(host,detail,analysis,baseBars,asset,scale,version,state,onState,modal);trendManualPersist(workspace);if(action)host.querySelector(`[data-trend-tool="${action}"]`)?.focus();};
   const zoom=(factor,ratio=.5)=>{const before=trendZoomViewport(baseBars,state),anchor=state.offset+ratio*(before.length-1);state.factor=Math.max(1,Math.min(maximum,factor));const count=Math.min(baseBars.length,Math.max(20,Math.ceil(baseBars.length/state.factor)));state.offset=anchor-ratio*(count-1);repaint();};

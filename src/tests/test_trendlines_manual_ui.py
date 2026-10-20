@@ -411,3 +411,23 @@ process.stdout.write(JSON.stringify({moved,depth,lines:m.manualState.lines}));
     assert out['depth'] == 1 and len(out['lines']) == 2
     assert out['lines'][0] == out['moved']
     assert out['lines'][1]['a']['price'] == 120
+
+
+def test_resize_redraw_preserves_modal_return_focus_on_expand_button(tmp_path):
+    out = run(tmp_path, r'''
+const state=trendManualState('soxx');await state.loading;let focused=0;
+const trigger={dataset:{trendTool:'expand'},focus(){focused++;},closest:()=>null};globalThis.document={activeElement:trigger};
+const host={contains:()=>true,clientWidth:1000,querySelector:s=>s==='[data-trend-tool="expand"]'?trigger:null,querySelectorAll:()=>[],innerHTML:''};
+trendPlotModel=()=>({...m});bindTrendChart=()=>{};bindTrendManual=()=>{};
+drawTrendInteractiveChart(host,detail,analysis,bars,{currency:'USD',label:'SOXX'},'linear','representative',{factor:1,offset:0});
+process.stdout.write(JSON.stringify({focused,containsSvg:host.innerHTML.includes('<svg')}));
+''', FIXTURE)
+    assert out == {'focused': 1, 'containsSvg': True}
+
+
+def test_creation_uses_the_active_chart_axis_with_a_different_saved_view(tmp_path):
+    out = run(tmp_path, r'''
+m.manualState.view.scale='log';buttons[0].onclick();click(1,100);click(5,200);
+process.stdout.write(JSON.stringify({axis:m.manualState.lines[0].axis}));
+''', FIXTURE + POINTER_HOST)
+    assert out['axis'] == 'linear'
