@@ -432,7 +432,7 @@ def test_ui_contract() -> None:
     assert '<span>R${q.n_rounds}</span>' not in html
 
 
-def test_u1a_five_section_information_architecture_contract() -> None:
+def test_six_section_information_architecture_contract() -> None:
     html = dashboard.load_template()
     shell = dashboard.TEMPLATE.read_text(encoding="utf-8")
     script = dashboard.DASHBOARD_SCRIPT.read_text(encoding="utf-8")
@@ -450,13 +450,16 @@ def test_u1a_five_section_information_architecture_contract() -> None:
     rail_order = [
         'href="#today" data-v="today"',
         'href="#future" data-v="future"',
+        'href="#trendlines/sk-hynix" data-v="trendlines"',
         'href="#statistics" data-v="statistics"',
         'href="#timeseries" data-v="timeseries"',
         'href="#records" data-v="records"',
     ]
     assert [shell.index(item) for item in rail_order] == sorted(shell.index(item) for item in rail_order)
-    assert '<span class="rail-num">04</span><span class="rail-label">시계열 예측</span>' in shell
-    assert '<span class="rail-num">05</span><span class="rail-label">기록</span>' in shell
+    assert '<span class="rail-num">05</span><span class="rail-label">시계열 예측</span>' in shell
+    assert '<span class="rail-num">06</span><span class="rail-label">기록</span>' in shell
+    assert shell.count('data-v="trendlines"') == 3
+    assert '<span class="rail-num">03</span><span class="rail-label">상·하방 추세선</span>' in shell
     # 데이터와 신뢰는 기록의 '데이터' 탭으로 합쳐졌다 — 독립 대분류 링크가 남으면 안 된다
     assert 'href="#trust"' not in shell
     assert "데이터와 신뢰" not in html and "기록과 검증" not in html
@@ -1580,7 +1583,7 @@ def test_home_full_schedule_link_points_at_the_calendar_not_the_changelog() -> N
     assert "#records/journal" not in home
 
 
-def test_pages_payload_stays_within_budget_on_the_real_repository() -> None:
+def test_pages_payload_stays_within_budget_on_the_real_repository(tmp_path) -> None:
     """실제 누적 원장으로 Pages 첫 화면 payload 가 예산 안에 있는지 본다.
 
     2026-09-15 배포가 깨진 자리다. embed 예산을 재는 시험은 있었지만 **data.json**
@@ -1588,14 +1591,26 @@ def test_pages_payload_stays_within_budget_on_the_real_repository() -> None:
     main 에서 깨졌다 — 그 사이 main 이 데이터 커밋으로 자라 있었기 때문이다.
     숫자를 박지 않고 성질(예산 이내)만 단언한다: 예측이 쌓이면 값은 매일 달라진다.
     """
-    conn = ingest.connect(dashboard.config.ROOT / "db" / "index.db")
+    # Copy through SQLite's backup API so a WAL is included without touching
+    # the durable index. A fresh CI checkout starts with an empty disposable DB.
+    import sqlite3
+    source = dashboard.config.ROOT / "db" / "index.db"
+    target = tmp_path / "dashboard-budget.sqlite"
+    if source.exists():
+        with sqlite3.connect(source.as_uri() + "?mode=ro", uri=True) as original:
+            with sqlite3.connect(target) as copied:
+                original.backup(copied)
+    conn = ingest.connect(target)
     try:
         model = dashboard.build_read_model(conn, dashboard.config.ROOT)
     finally:
         conn.close()
     base, _ = dashboard.split_statistics_data(model)
+    base, _ = dashboard.split_daily_flow(base)
     base, _ = dashboard.split_future_paths(base)
     base, bodies = dashboard.split_forecast_bodies(base)
+    base, _ = dashboard.split_timeseries_daily_data(base)
+    base, _ = dashboard.split_trendlines_data(base)
     encode = lambda payload: len(json.dumps(  # noqa: E731
         payload, ensure_ascii=False, default=str, separators=(",", ":"),
     ).encode("utf-8"))

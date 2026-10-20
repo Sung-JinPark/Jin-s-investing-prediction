@@ -205,17 +205,19 @@ document.querySelectorAll('#mobile-nav a').forEach(a=>a.addEventListener('click'
 document.querySelectorAll('#mobile-bottom-nav a').forEach(a=>a.addEventListener('click',()=>setDrawer(false,false)));
 
 // device-local workspace memory and utility layers
+function trendRouteAlias(hash){if(/^#future\/trendlines(?:\/|$)/.test(hash))hash=hash.replace('#future/trendlines','#trendlines');return hash==='#trendlines'||hash==='#trendlines/'||hash==='#trendlines/mag7'?'#trendlines/sk-hynix':hash;}
 const UI_KEY='jin-investing-ui-v1',UI_DEFAULTS={version:4,density:'comfortable',motion:'adaptive',pins:[],recent:[],notes:{},compare:[],compareCollapsed:false,compareAutoExpanded:false,lastSeenGeneratedAt:null,questionView:{preset:'all',sort:'priority',layout:'table',domain:'',driver:'',status:''}};
 function loadUIState(){
   try{
     const raw=JSON.parse(localStorage.getItem(UI_KEY)||'null');
     if(!raw||![1,2,3,4].includes(raw.version))return {...UI_DEFAULTS,pins:[],recent:[],notes:{},compare:[],questionView:{...UI_DEFAULTS.questionView}};
     const notes=raw.notes&&typeof raw.notes==='object'?Object.fromEntries(Object.entries(raw.notes)
-      .filter(([k,v])=>/^#(today|future(?:\/|$)|statistics(?:\/|$)|timeseries(?:\/|$)|records(?:\/|$)|trust(?:\/|$)|overview|flow|ask|questions|asof|track|q\/|compare\/)/.test(k)&&typeof v==='string'&&v.trim())
+      .filter(([k,v])=>/^#(today|future(?:\/|$)|trendlines(?:\/|$)|statistics(?:\/|$)|timeseries(?:\/|$)|records(?:\/|$)|trust(?:\/|$)|overview|flow|ask|questions|asof|track|q\/|compare\/)/.test(k)&&typeof v==='string'&&v.trim())
       .slice(0,20).map(([k,v])=>[k,v.slice(0,700)])):{};
+    for(const key of Object.keys(notes)){const canonical=trendRouteAlias(key);if(canonical!==key){notes[canonical]=notes[canonical]&&notes[canonical]!==notes[key]?(notes[canonical]+'\n'+notes[key]):notes[key];}}
     const questionView=raw.questionView&&typeof raw.questionView==='object'?raw.questionView:{};
     return {...UI_DEFAULTS,...raw,version:4,motion:raw.motion==='reduced'?'reduced':'adaptive',
-      pins:Array.isArray(raw.pins)?raw.pins.slice(0,8):[],recent:Array.isArray(raw.recent)?raw.recent.slice(0,6):[],
+      pins:Array.isArray(raw.pins)?raw.pins.slice(0,8).map(x=>({...x,hash:trendRouteAlias(x.hash)})):[],recent:Array.isArray(raw.recent)?raw.recent.slice(0,6).map(x=>({...x,hash:trendRouteAlias(x.hash)})):[],
       compare:Array.isArray(raw.compare)?raw.compare.slice(0,3):[],compareCollapsed:!!raw.compareCollapsed,compareAutoExpanded:!!raw.compareAutoExpanded,
       lastSeenGeneratedAt:typeof raw.lastSeenGeneratedAt==='string'?raw.lastSeenGeneratedAt:null,notes,
       questionView:{
@@ -658,7 +660,8 @@ function stepBriefing(delta){
   briefingIndex=Math.max(0,Math.min(last,briefingIndex+delta));renderBriefingStep();
 }
 function currentDescriptor(){
-  const hash=location.hash||'#today';
+  const hash=trendRouteAlias(location.hash||'#today');
+  if(/^#trendlines\/(sk-hynix|soxx|nasdaq|sp500|bitcoin|dow)$/.test(hash))return {hash,title:'상·하방 추세선 · '+({'sk-hynix':'SK하이닉스',soxx:'SOXX',nasdaq:'나스닥',sp500:'S&P 500',bitcoin:'비트코인',dow:'다우존스'})[hash.split('/')[1]],type:'route'};
   if(hash.startsWith('#records/question/')){
     const id=hash.slice(18),q=DATA?.questions?.find(x=>x.id===id);
     return q?{hash,title:q.title,type:'question'}:null;
@@ -669,6 +672,7 @@ function currentDescriptor(){
 }
 function descriptorExists(item){
   if(!item?.hash)return false;
+  if(/^#trendlines\/(sk-hynix|soxx|nasdaq|sp500|bitcoin|dow)$/.test(trendRouteAlias(item.hash)))return true;
   if(item.hash.startsWith('#records/question/'))return !!DATA?.questions?.some(q=>'#records/question/'+q.id===item.hash);
   if(item.hash.startsWith('#records/compare/'))return item.hash.slice(17).split(',').filter(id=>DATA?.questions?.some(q=>q.id===id)).length>=2;
   return COMMAND_ROUTES.some(r=>r.hash===item.hash);
@@ -713,6 +717,7 @@ function canonicalShareUrl(){
 }
 function shareContext(){
   const hash=location.hash||'#today';
+  if(/^#(?:future\/)?trendlines(?:\/|$)/.test(hash))return {asof:document.querySelector('.trend-title>div>span')?.textContent?.replace(/^일봉 /,'').slice(0,10),label:'추세선 연장 · 개인 편집선은 이 브라우저에 별도 저장됩니다'};
   if(hash.startsWith('#timeseries'))return {asof:(DATA.timeseries||{}).as_of,label:'연구 참고 · 참고 의견이며 매매 신호가 아닙니다'};
   if(hash.startsWith('#statistics'))return {asof:(DATA.statistics_lab||{}).observation_through,label:'공식 원천 기술통계 · 예측이 아닙니다'};
   if(hash.startsWith('#records'))return {asof:(DATA.meta||{}).generated?.slice(0,10),label:'사건확률 기록 · 참고 의견이며 투자자문이 아닙니다'};
@@ -889,15 +894,14 @@ briefingContent.addEventListener('click',e=>{const b=e.target.closest('[data-bri
 const commandLayer=document.getElementById('command-layer'),commandInput=document.getElementById('command-input');
 const commandResults=document.getElementById('command-results'),commandScrim=document.getElementById('command-scrim');
 let commandReturnFocus=null;
-const SECTION_TITLES={today:'오늘',future:'미래 탐색',statistics:'통계 비교',records:'기록',timeseries:'시계열 예측'};
+const SECTION_TITLES={today:'오늘',future:'미래 탐색',trendlines:'상·하방 추세선',statistics:'통계 비교',records:'기록',timeseries:'시계열 예측'};
 const MID_CATEGORIES={
   today:[],
   future:[
     {key:'graph',label:'전망 그래프',hash:'#future',hint:'세 가지 시장 경로 · 단일 시나리오'},
     {key:'history',label:'과거 사이클',hash:'#future/history',hint:'혁신 사이클 참고 비교'},
     {key:'cross-asset',label:'교차자산 비교',hash:'#future/cross-asset',hint:'NASDAQ·리츠·주택주'},
-    {key:'liquidity',label:'유동성',hash:'#future/liquidity',hint:'시장 자금 흐름'},
-    {key:'trendlines',label:'상·하방 추세선',hash:'#future/trendlines',hint:'6개 자산의 빗각선과 가격 경계'}
+    {key:'liquidity',label:'유동성',hash:'#future/liquidity',hint:'시장 자금 흐름'}
   ],
   statistics:[
     {key:'all',label:'전체',hash:'#statistics',hint:'모든 비교 지표',railHidden:true},
@@ -939,9 +943,10 @@ function currentMidCategory(section,rawHash){
 const COMMAND_ROUTES=[
   {hash:'#today',code:'01',title:'오늘',hint:'시장 판단과 핵심 신호'},
   {hash:'#future',code:'02',title:'미래 탐색',hint:'시나리오 경로와 위험 구간'},
-  {hash:'#statistics',code:'03',title:'통계 비교',hint:'닷컴과 현재의 유동성·금리·가치·신용'},
-  {hash:'#timeseries',code:'04',title:'시계열 예측',hint:'다변량 시계열 연구모델'},
-  {hash:'#records',code:'05',title:'기록',hint:'예측·성적·변경·데이터'},
+  {hash:'#trendlines/sk-hynix',code:'03',title:'상·하방 추세선',hint:'6개 자산의 추세선과 내 빗각 편집'},
+  {hash:'#statistics',code:'04',title:'통계 비교',hint:'닷컴과 현재의 유동성·금리·가치·신용'},
+  {hash:'#timeseries',code:'05',title:'시계열 예측',hint:'다변량 시계열 연구모델'},
+  {hash:'#records',code:'06',title:'기록',hint:'예측·성적·변경·데이터'},
   ...Object.entries(MID_CATEGORIES).flatMap(([section,items])=>items.filter(item=>!item.railHidden).map((item,index)=>({item,code:midCategoryCode(index)})).filter(row=>row.item.hash!=='#'+section).map(row=>({hash:row.item.hash,code:row.code,title:`${SECTION_TITLES[section]} · ${row.item.label}`,hint:row.item.hint||''})))
 ];
 function syncMidHash(hash){
@@ -2560,7 +2565,6 @@ async function ensureTrendlineAssets(){
   return TREND_UI_PROMISE;
 }
 function renderTrendlines(initial,loadState){globalThis.TrendlineUI.render(initial,loadState);}
-function appendTrendlinesTab(nav){nav.appendChild(el('<button type="button" role="tab" aria-selected="false" data-lab-tab="trendlines"><span>05</span> 상·하방 추세선<small>빗각선과 가격 경계</small></button>'));}
 const VIEWS={overview:renderOverview,event:renderEventForecast,flow:renderFlow,trendlines:renderTrendlines,statistics:renderStatistics,timeseries:renderTimeseries,questions:renderQuestions,asof:renderDecisionJournal,track:renderTrack,q:renderDetail,compare:renderCompare,adminstats:renderAdminStats};
 const CHART_ZOOM_SELECTOR='.chart-wrap,.statistics-chart,.scenario-v52-chart,.timeseries-chart';
 let CHART_ZOOM_LAYER=null,CHART_ZOOM_TRIGGER=null,CHART_ZOOM_SCALE=1,CHART_ZOOM_WIDTH=0;
@@ -2641,6 +2645,7 @@ function contextTabs(group,current){
 }
 function appendContextTabs(root,group,current){const html=contextTabs(group,current);if(html)root.appendChild(el(html));}
 function legacyRouteRedirect(rawHash){
+  if(/^#(?:future\/)?trendlines(?:\/|$)/.test(rawHash))return trendRouteAlias(rawHash);
   if(!rawHash||rawHash==='#')return '#today';
   if(rawHash==='#future/range')return '#future/lookup';
   if(/^#(?:today|admin-stats(?:\/|$)|future(?:\/|$)|statistics(?:\/|$)|timeseries(?:\/|$)|records(?:\/|$))/.test(rawHash))return rawHash;
@@ -2670,10 +2675,11 @@ function parseCanonicalRoute(rawHash){
   // A malformed asset URL must clear the previous chart through the explicit
   // unknown-asset screen, rather than throw before the router can mount it.
   const rawParts=rawHash.slice(1).split('/');
-  if(rawParts[0]==='future'&&rawParts[1]==='trendlines'){
+  if(rawParts[0]==='trendlines'||rawParts[0]==='future'&&rawParts[1]==='trendlines'){
+    const assetParts=rawParts[0]==='trendlines'?rawParts.slice(1):rawParts.slice(2);
     let asset='invalid-asset';
-    try{if(rawParts.length<=3)asset=decodeURIComponent(rawParts[2]||'sk-hynix');}catch(_){/* Explicit invalid asset; no numeric substitution. */}
-    return {section:'future',view:'trendlines',arg:{asset}};
+    try{if(assetParts.length<=1)asset=decodeURIComponent(assetParts[0]||'sk-hynix');}catch(_){/* Explicit invalid asset; no numeric substitution. */}
+    return {section:'trendlines',view:'trendlines',arg:{asset}};
   }
   const parts=rawHash.slice(1).split('/').map(part=>decodeURIComponent(part));
   if(parts[0]==='today'){
@@ -2684,7 +2690,7 @@ function parseCanonicalRoute(rawHash){
   if(parts[0]==='statistics')return {section:'statistics',view:'statistics',arg:{category:parts[1]||null}};
   if(parts[0]==='timeseries')return {section:'timeseries',view:'timeseries',arg:{tsTab:parts[1]||null}};
   if(parts[0]==='future'){
-    if(parts[1]==='trendlines')return {section:'future',view:'trendlines',arg:{asset:parts[2]||'sk-hynix'}};
+    if(parts[1]==='trendlines')return {section:'trendlines',view:'trendlines',arg:{asset:parts[2]||'sk-hynix'}};
     if(parts[1]==='champion')return {section:'future',view:'flow',arg:{modelView:'champion'}};
     if(parts[1]==='research')return {section:'future',view:'flow',arg:{modelView:'research'}};
     if(parts[1]==='original')return {section:'future',view:'flow',arg:{futureGraph:'original'}};
@@ -2745,7 +2751,7 @@ async function route(){
   if(TIMESERIES_DAILY_RESIZE){TIMESERIES_DAILY_RESIZE.disconnect();TIMESERIES_DAILY_RESIZE=null;}
   globalThis.TrendlineUI?.cleanup();
   const epoch=++ROUTE_EPOCH;
-  const enteredHash=location.hash||'#today',legacyHash=legacyRouteRedirect(enteredHash),rawHash=legacyHash==='#future/trendlines/mag7'?'#future/trendlines/sk-hynix':legacyHash;
+  const enteredHash=location.hash||'#today',legacyHash=legacyRouteRedirect(enteredHash),rawHash=trendRouteAlias(legacyHash);
   if(rawHash!==enteredHash)history.replaceState(null,'',rawHash);
   const parsed=parseCanonicalRoute(rawHash),v=parsed.view,arg=parsed.arg,navView=parsed.section;
   closeQuickPeek();closeChartZoom(false);if(!briefingLayer.hidden)setBriefing(false,false);if(!shareLayer.hidden)setShare(false,false);
@@ -2758,7 +2764,7 @@ async function route(){
   paintRailSubNav(navView,rawHash);
   mobileMore?.classList.toggle('active',false);
   if(v==='trendlines'){
-    try{await ensureTrendlineAssets();}catch(error){if(epoch!==ROUTE_EPOCH)return;mount(el(`<section class="page-heading"><div><p class="eyebrow">미래 탐색 · 05</p><h1>추세선을 불러오지 못했습니다</h1><p>${esc(error.message)}</p><button type="button" data-trend-ui-retry>다시 불러오기</button></div></section>`));app().querySelector('[data-trend-ui-retry]').onclick=()=>route();return;}
+    try{await ensureTrendlineAssets();}catch(error){if(epoch!==ROUTE_EPOCH)return;mount(el(`<section class="page-heading"><div><p class="eyebrow">상·하방 추세선 · 03</p><h1>추세선을 불러오지 못했습니다</h1><p>${esc(error.message)}</p><button type="button" data-trend-ui-retry>다시 불러오기</button></div></section>`));app().querySelector('[data-trend-ui-retry]').onclick=()=>route();return;}
     if(epoch!==ROUTE_EPOCH)return;
     const assetId=arg?.asset||'sk-hynix',summary=DATA?.trendlines?.assets?.find(row=>row.asset_id===assetId);
     if(summary?.deferred_data?.required&&!summary.deferred_data.loaded){
@@ -4079,7 +4085,6 @@ function renderScenarioV52(candidate,initialState={}){
   if(crossAsset){crossAsset.id='lab-cross-asset';crossAsset.setAttribute('role','tabpanel');crossAsset.setAttribute('aria-labelledby','lab-tab-cross-asset');crossAsset.hidden=true;}
   if(liquidity){liquidity.id='lab-liquidity';liquidity.setAttribute('role','tabpanel');liquidity.setAttribute('aria-labelledby','lab-tab-liquidity');liquidity.hidden=true;}
   const labTabs=el(`<nav class="lab-tabs scenario-v52-tabs" role="tablist" aria-label="미래 탐색 화면"><button type="button" id="lab-tab-future" role="tab" data-lab-tab="future" aria-selected="true" aria-controls="lab-future"><span>01</span> 전망 그래프<small>3개월·1개월·2026·2027</small></button><button type="button" id="lab-tab-history" role="tab" data-lab-tab="history" aria-selected="false" aria-controls="lab-history" ${historyPanel?'':'disabled'}><span>02</span> 과거 사이클<small>참고 비교</small></button><button type="button" id="lab-tab-cross-asset" role="tab" data-lab-tab="cross-asset" aria-selected="false" aria-controls="lab-cross-asset" ${crossAsset?'':'disabled'}><span>03</span> 교차자산 비교<small>NASDAQ·리츠·주택주</small></button><button type="button" id="lab-tab-liquidity" role="tab" data-lab-tab="liquidity" aria-selected="false" aria-controls="lab-liquidity" ${liquidity?'':'disabled'}><span>04</span> 유동성<small>시장 자금 흐름</small></button></nav>`);
-  appendTrendlinesTab(labTabs);
   root.appendChild(labTabs);root.appendChild(outlook);if(historyPanel)root.appendChild(historyPanel);if(crossAsset)root.appendChild(crossAsset);if(liquidity)root.appendChild(liquidity);mount(root);
   let rangeKey='quarter';const chartHost=$('#scenario-v52-unified-chart',outlook),readout=$('#scenario-v52-readout',outlook),chartTitle=$('#scenario-v52-chart-title',outlook);
   const paintRange=key=>{rangeKey=V52_RANGE_META[key]?key:'quarter';chartHost.innerHTML=scenarioV52UnifiedChart(candidate,rangeKey);bindScenarioV52Hover(chartHost,candidate,rangeKey);readout.innerHTML=scenarioV52RangeReadout(candidate,rangeKey);chartTitle.textContent=`${scenarioV52RangeLabel(candidate,rangeKey)} · 세 시나리오 한눈에`;outlook.querySelectorAll('[data-v52-range]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.v52Range===rangeKey)));};
@@ -4101,7 +4106,7 @@ function renderScenarioV52(candidate,initialState={}){
   outlook.querySelectorAll('[data-future-graph]').forEach(button=>{button.onclick=()=>paintFutureGraph(button.dataset.futureGraph,true);});
   const copies={future:['미래 탐색','세 가지 시장 경로','참고 의견 · 투자 자문 아님'],history:['과거 비교','과거 혁신 사이클','전망값·사건 확률 아님'],'cross-asset':['교차자산 비교','닷컴 조정 뒤 자산별 회복','실측 · 시작값 100'],liquidity:['시장 자금 흐름','유동성이 늘고 줄어든 구간','참고용 · 인과 아님']};
   const panels={future:outlook,history:historyPanel,'cross-asset':crossAsset,liquidity};
-  const activateLab=key=>{if(key==='trendlines'){location.hash='#future/trendlines/sk-hynix';return;}const active=panels[key]?key:'future';Object.entries(panels).forEach(([name,panel])=>{if(panel)panel.hidden=name!==active;});labTabs.querySelectorAll('[data-lab-tab]').forEach(button=>button.setAttribute('aria-selected',String(button.dataset.labTab===active)));const copy=copies[active];$('#v52-page-eyebrow',root).textContent=copy[0];$('#v52-page-title',root).textContent=copy[1];$('#v52-page-lede',root).textContent=copy[2];};
+  const activateLab=key=>{if(key==='trendlines'){location.hash='#trendlines/sk-hynix';return;}const active=panels[key]?key:'future';Object.entries(panels).forEach(([name,panel])=>{if(panel)panel.hidden=name!==active;});labTabs.querySelectorAll('[data-lab-tab]').forEach(button=>button.setAttribute('aria-selected',String(button.dataset.labTab===active)));const copy=copies[active];$('#v52-page-eyebrow',root).textContent=copy[0];$('#v52-page-title',root).textContent=copy[1];$('#v52-page-lede',root).textContent=copy[2];};
   labTabs.querySelectorAll('[data-lab-tab]:not(:disabled)').forEach(button=>button.onclick=()=>{activateLab(button.dataset.labTab);syncMidHash(button.dataset.labTab==='future'?futureGraphHash():`#future/${button.dataset.labTab}`);});
   if(historyPanel){const analogHost=$('#ovchart',historyPanel);drawOverlay(analogHost,historyPanel._overlay,historyPanel._eras,historyPanel._eraStarts,'ALL');historyPanel.querySelectorAll('[data-analog-focus]').forEach(button=>button.onclick=()=>{analogHost.innerHTML='';drawOverlay(analogHost,historyPanel._overlay,historyPanel._eras,historyPanel._eraStarts,button.dataset.analogFocus);historyPanel.querySelectorAll('[data-analog-focus]').forEach(item=>item.setAttribute('aria-pressed',String(item===button)));});}
   if(crossAsset)bindCrossAsset(crossAsset);
@@ -4232,7 +4237,6 @@ function renderFlow(initialLookup){
     <button type="button" id="lab-tab-cross-asset" role="tab" aria-selected="false" aria-controls="lab-cross-asset" data-lab-tab="cross-asset" ${crossAsset?'':'disabled'}><span>03</span> 교차자산 비교<small>${plainTerm('reference_only')}</small></button>
     <button type="button" id="lab-tab-liquidity" role="tab" aria-selected="false" aria-controls="lab-liquidity" data-lab-tab="liquidity" ${liquidity?'':'disabled'}><span>04</span> 유동성<small>${plainTerm('reference_only')}</small></button>
   </div>`);
-  appendTrendlinesTab(labTabs);
   root.appendChild(labTabs);root.appendChild(p1w);if(overlay)root.appendChild(overlay);if(crossAsset)root.appendChild(crossAsset);if(aiRegime)root.appendChild(aiRegime);if(liquidity)root.appendChild(liquidity);
   mount(root);
   if(lookupOverlayMarkup)document.body.appendChild(el(lookupOverlayMarkup));
@@ -4276,7 +4280,7 @@ function renderFlow(initialLookup){
   if(naturalInput)naturalInput.onkeydown=event=>{if(event.key==='Enter'){event.preventDefault();runNatural();}};
   if(initialLookup)runLookup(initialLookup);
   if(initialState.lookupOverlay||initialLookup)setLookupOverlay(true);
-  const activateLab=space=>{if(space==='trendlines'){location.hash='#future/trendlines/sk-hynix';return;}const available={future:p1w,history:overlay,'cross-asset':crossAsset,'ai-regime':aiRegime,liquidity},active=available[space]?space:'future',copy=FLOW_LAB_COPY[active]||FLOW_LAB_COPY.future;
+  const activateLab=space=>{if(space==='trendlines'){location.hash='#trendlines/sk-hynix';return;}const available={future:p1w,history:overlay,'cross-asset':crossAsset,'ai-regime':aiRegime,liquidity},active=available[space]?space:'future',copy=FLOW_LAB_COPY[active]||FLOW_LAB_COPY.future;
     Object.entries(available).forEach(([key,panel])=>{if(panel)panel.hidden=key!==active;});
     $('#flow-page-eyebrow',root).textContent=copy[0];$('#flow-page-title',root).textContent=copy[1];$('#flow-page-lede',root).textContent=`기준 ${sc.asof} · 참고 의견이며 투자 자문이 아닙니다.`;
     labTabs.querySelectorAll('[data-lab-tab]').forEach(b=>{const on=b.dataset.labTab===active;b.setAttribute('aria-selected',String(on));b.tabIndex=on?0:-1;});};

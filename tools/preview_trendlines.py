@@ -113,7 +113,7 @@ def build_preview(output: Path):
     base, sidecars = dashboard.split_trendlines_data(model)
     output.mkdir(parents=True, exist_ok=True)
     html = dashboard.render_html(base, mode="embed")
-    html = html.replace("</head>", '<script>if(!location.hash)location.hash="#future/trendlines/sk-hynix";</script></head>')
+    html = html.replace("</head>", '<script>if(!location.hash)location.hash="#trendlines/sk-hynix";</script></head>')
     (output / "index.html").write_text(html, encoding="utf-8")
     dashboard._write_trendlines_sidecars(sidecars, output)
     (output / "fixture_manifest.json").write_text(json.dumps({"fixture_only": True, "sidecar_bytes": (output / "trendlines/sk-hynix.json").stat().st_size,
@@ -136,7 +136,7 @@ def build_research_preview(research_root: Path, output: Path):
     base, sidecars = dashboard.split_trendlines_data(model)
     output.mkdir(parents=True, exist_ok=True)
     html = dashboard.render_html(base, mode="embed")
-    html = html.replace("</head>", '<meta name="robots" content="noindex,nofollow"><script>if(!location.hash)location.hash="#future/trendlines/sk-hynix";</script></head>')
+    html = html.replace("</head>", '<meta name="robots" content="noindex,nofollow"><script>if(!location.hash)location.hash="#trendlines/sk-hynix";</script></head>')
     (output / "index.html").write_text(html, encoding="utf-8")
     (output / "data.json").write_text(json.dumps(base, ensure_ascii=False, separators=(',', ':'), allow_nan=False), encoding="utf-8")
     dashboard._write_trendlines_sidecars(sidecars, output)
@@ -169,7 +169,7 @@ def build_local_service_preview(research_root: Path, output: Path):
         raise ValueError("local service shell must not embed private research candles")
     output.mkdir(parents=True, exist_ok=True)
     html = dashboard.render_html(base, mode='embed')
-    html = html.replace('</head>', '<meta name="robots" content="noindex,nofollow"><script>if(!location.hash)location.hash="#future/trendlines/sk-hynix";</script></head>')
+    html = html.replace('</head>', '<meta name="robots" content="noindex,nofollow"><script>if(!location.hash)location.hash="#trendlines/sk-hynix";</script></head>')
     # Replace each bounded file atomically. A stale HTML/script generation pair
     # is rejected by the existing bundle SHA check and can be retried safely.
     for suffix in ('js', 'css'):

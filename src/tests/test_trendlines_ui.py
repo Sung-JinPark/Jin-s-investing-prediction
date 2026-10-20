@@ -464,7 +464,7 @@ const button=(key,value)=>({dataset:{[key]:value},attrs:{},setAttribute(key,valu
 globalThis.el=()=>({isConnected:true,setAttribute(key,value){attrs[key]=value},querySelector:key=>pieces[key]??null,querySelectorAll:key=>key==='[data-trend-family]'?families:key==='[data-trend-scope]'?scopes:key==='[data-trend-scale]'?axes:[]});globalThis.mount=()=>{};bindTrendChart=()=>{};TREND_LOCAL_ENABLED=false;
 renderTrendlinePage({asset:'bitcoin'});const html=pieces['.trend-content'].innerHTML,chart=pieces['[data-trend-representative-chart]'],initial={lines:(chart.innerHTML.match(/data-trend-line=/g)||[]).length,bars:(chart.innerHTML.match(/data-trend-bar=/g)||[]).length,cards:(pieces['[data-trend-representative-insights]'].innerHTML.match(/data-trend-representative-card=/g)||[]).length};
 families.find(row=>row.dataset.trendFamily==='current_structure').onclick();scopes.find(row=>row.dataset.trendScope==='recent').onclick();const current={lines:(chart.innerHTML.match(/data-trend-line=/g)||[]).length,bars:(chart.innerHTML.match(/data-trend-bar=/g)||[]).length};scopes.find(row=>row.dataset.trendScope==='all').onclick();const allBars=(chart.innerHTML.match(/data-trend-bar=/g)||[]).length;axes[1].onclick();const selectedLog=chart.innerHTML.includes(body.analyses.log.representatives[1].line_id),view={...TREND_REPRESENTATIVE_VIEW_OPTIONS.get('bitcoin')};
-const selectedKey='bitcoin:representative:current_structure:all';TREND_CHART_VIEWS.get(selectedKey).factor=4;renderTrendlinePage({asset:'bitcoin'},null,TREND_LOCAL_SESSION);const restored={...TREND_REPRESENTATIVE_VIEW_OPTIONS.get('bitcoin')},pollZoom=TREND_CHART_VIEWS.get(selectedKey).factor;
+const selectedKey='bitcoin:representative:current_structure:all';TREND_CHART_VIEWS.get(selectedKey).factor=4;TREND_CHART_VIEWS.get(selectedKey).dateWindow=null;trendManualState('bitcoin').view.window=null;renderTrendlinePage({asset:'bitcoin'},null,TREND_LOCAL_SESSION);const restored={...TREND_REPRESENTATIVE_VIEW_OPTIONS.get('bitcoin')},pollZoom=TREND_CHART_VIEWS.get(selectedKey).factor;
 TREND_CHART_VIEWS.set('bitcoin:representative:all:all',{factor:8,offset:42});TREND_CHART_VIEWS.set('sk-hynix:representative:all:all',{factor:2,offset:null});renderTrendlinePage({asset:'bitcoin'});const entered={...TREND_REPRESENTATIVE_VIEW_OPTIONS.get('bitcoin')},entryBars=(pieces['[data-trend-representative-chart]'].innerHTML.match(/data-trend-bar=/g)||[]).length,entryLines=(pieces['[data-trend-representative-chart]'].innerHTML.match(/data-trend-line=/g)||[]).length,entryZoom=TREND_CHART_VIEWS.get('bitcoin:representative:all:all'),otherZoom=TREND_CHART_VIEWS.get('sk-hynix:representative:all:all');stopTrendLocalSession();process.stdout.write(JSON.stringify({html,initial,current,allBars,selectedLog,view,restored,pollZoom,entered,entryBars,entryLines,entryZoom,otherZoom,priorZoomCleared:!TREND_CHART_VIEWS.has(selectedKey),snapshot:attrs['data-trend-representative-snapshot'],noCriticalFetch:!TREND_CRITICAL_DETAILS.size,unchanged:before===JSON.stringify(f)}));})();'''
     out = run(tmp_path, program)
     assert out['html'].count('class="trend-chart"') == 1 and 'data-trend-version="representative"' in out['html']
@@ -473,9 +473,9 @@ TREND_CHART_VIEWS.set('bitcoin:representative:all:all',{factor:8,offset:42});TRE
     assert out['current'] == {'lines': 1, 'bars': 126} and out['allBars'] == 900
     assert out['selectedLog'] and out['view'] == out['restored'] == {'family': 'current_structure', 'scope': 'all', 'scale': 'log'}
     assert out['pollZoom'] == 4
-    assert out['entered'] == {'family': 'all', 'scope': 'all', 'scale': 'linear'}
-    assert out['entryBars'] == 900 and out['entryLines'] == 3
-    assert out['entryZoom'] == {'factor': 1, 'offset': 0} and out['priorZoomCleared']
+    assert out['entered'] == {'family': 'current_structure', 'scope': 'all', 'scale': 'log'}
+    assert out['entryBars'] == 225 and out['entryLines'] == 1
+    assert out['entryZoom'] == {'factor': 8, 'offset': 42} and not out['priorZoomCleared']
     assert out['otherZoom'] == {'factor': 2, 'offset': None}
     assert out['snapshot'] == f['body']['snapshot_id'] and out['noCriticalFetch'] and out['unchanged']
 
@@ -632,10 +632,11 @@ def test_independent_route_keeps_future_data_failure_from_blocking_trendlines(tm
     source = MAIN_SOURCE.read_text(encoding='utf-8')
     routes = source[source.index('function parseCanonicalRoute'):source.index('function renderFuturePathsLoadState')]
     out = run(tmp_path, "process.stdout.write(JSON.stringify(parseCanonicalRoute('#future/trendlines/bitcoin')));", extra=routes)
-    assert out == {'section': 'future', 'view': 'trendlines', 'arg': {'asset': 'bitcoin'}}
+    assert out == {'section': 'trendlines', 'view': 'trendlines', 'arg': {'asset': 'bitcoin'}}
     assert "const futurePathsRequested=v==='flow';" in source
     categories = source[source.index('const MID_CATEGORIES='):source.index('function midCategories')]
-    assert categories.index("hash:'#future/liquidity'") < categories.index("hash:'#future/trendlines'")
+    assert "hash:'#future/trendlines'" not in categories
+    assert "{hash:'#trendlines/sk-hynix',code:'03'" in source
 
 
 @pytest.mark.parametrize('raw_hash,asset', [
@@ -649,7 +650,7 @@ def test_malformed_asset_hash_does_not_throw_or_leave_another_asset_selected(tmp
     source = MAIN_SOURCE.read_text(encoding='utf-8')
     routes = source[source.index('function parseCanonicalRoute'):source.index('function renderFuturePathsLoadState')]
     out = run(tmp_path, 'process.stdout.write(JSON.stringify(parseCanonicalRoute(' + json.dumps(raw_hash) + ')));', extra=routes)
-    assert out == {'section': 'future', 'view': 'trendlines', 'arg': {'asset': asset}}
+    assert out == {'section': 'trendlines', 'view': 'trendlines', 'arg': {'asset': asset}}
 
 
 @pytest.mark.parametrize('problem', [None, 'hash', 'snapshot', 'late_summary'])
@@ -1344,15 +1345,15 @@ def test_full_json_rejects_duplicate_decoded_keys_and_malformed_data(tmp_path, r
     assert out == {'rejected': True, 'normal': True}
 
 
-def test_full_cold_deadline_is_independent_and_does_not_change_current_8_second_budget(tmp_path, full_history_fixture):
+def test_full_and_current_reads_have_independent_bounded_30_second_deadlines(tmp_path, full_history_fixture):
     program = local_browser_stub() + 'const f=' + json.dumps(full_history_fixture) + r''';
 const timers=new Map();let next=0;globalThis.setTimeout=(fn,delay)=>{const id=++next;timers.set(id,{fn,delay});return id;};globalThis.clearTimeout=id=>timers.delete(id);
 globalThis.fetch=(_url,options)=>new Promise((_resolve,reject)=>options.signal.addEventListener('abort',()=>reject(new DOMException('Aborted','AbortError')),{once:true}));
-(async()=>{TREND_LOCAL_ENABLED=false;const session=bindTrendLocalConnection(root,{asset:'bitcoin'});await Promise.resolve();TREND_PRIVATE_DETAILS.set('bitcoin',f.current);TREND_LOCAL_ENABLED=true;session.fullMounted=true;session.onFullData=()=>{};const pending=refreshTrendFullSession(session),deadline=[...timers.values()].find(row=>row.delay===20000);const current=trendChartModel(f.current,63);deadline.fn();await pending;const out={deadline:deadline.delay,phase:session.fullPhase,currentBars:current.bars.length,currentStillValid:trendValidateDetail(f.current)===f.current};stopTrendLocalSession();process.stdout.write(JSON.stringify(out));})();'''
-    assert run(tmp_path, program) == {'deadline': 20000, 'phase': 'offline', 'currentBars': 63, 'currentStillValid': True}
+(async()=>{TREND_LOCAL_ENABLED=false;const session=bindTrendLocalConnection(root,{asset:'bitcoin'});await Promise.resolve();TREND_PRIVATE_DETAILS.set('bitcoin',f.current);TREND_LOCAL_ENABLED=true;session.fullMounted=true;session.onFullData=()=>{};const pending=refreshTrendFullSession(session),deadline=[...timers.values()].find(row=>row.delay===30000);const current=trendChartModel(f.current,63);deadline.fn();await pending;const out={deadline:deadline.delay,phase:session.fullPhase,currentBars:current.bars.length,currentStillValid:trendValidateDetail(f.current)===f.current};stopTrendLocalSession();process.stdout.write(JSON.stringify(out));})();'''
+    assert run(tmp_path, program) == {'deadline': 30000, 'phase': 'offline', 'currentBars': 63, 'currentStillValid': True}
     text = SOURCE.read_text(encoding='utf-8')
     current = text[text.index('async function refreshTrendLocalSession'):text.index('function bindTrendLocalConnection')]
-    assert 'setTimeout(()=>controller.abort(),8000)' in current
+    assert 'setTimeout(()=>controller.abort(),30000)' in current
 
 
 def test_short_full_capture_keeps_all_candles_without_inventing_a_trendline(tmp_path, full_history_fixture):
@@ -1466,7 +1467,7 @@ def test_local_hidden_pause_resumes_without_overlap_and_uses_8s_timeout(tmp_path
     program = local_browser_stub() + r''';
 const timers=new Map();let next=0;globalThis.setTimeout=(fn,delay)=>{const id=++next;timers.set(id,{fn,delay});return id};globalThis.clearTimeout=id=>timers.delete(id);
 let calls=0;globalThis.fetch=async(_url,options)=>{calls++;return new Promise((_resolve,reject)=>options.signal.addEventListener('abort',()=>reject(new DOMException('Aborted','AbortError')),{once:true}));};
-(async()=>{TREND_LOCAL_ENABLED=false;const session=bindTrendLocalConnection(root,{asset:'bitcoin'});await Promise.resolve();TREND_LOCAL_ENABLED=true;document.visibilityState='hidden';await refreshTrendLocalSession(session);const hiddenCalls=calls;document.visibilityState='visible';const pending=refreshTrendLocalSession(session);const deadline=[...timers.values()].find(row=>row.delay===8000);deadline.fn();await pending;const phase=session.phase,poll=[...timers.values()].some(row=>row.delay===60000);document.visibilityState='hidden';listeners.visibilitychange();const paused=session.phase,pausedTimers=timers.size;stopTrendLocalSession();process.stdout.write(JSON.stringify({hiddenCalls,calls,phase,poll,paused,pausedTimers}));})();'''
+(async()=>{TREND_LOCAL_ENABLED=false;const session=bindTrendLocalConnection(root,{asset:'bitcoin'});await Promise.resolve();TREND_LOCAL_ENABLED=true;document.visibilityState='hidden';await refreshTrendLocalSession(session);const hiddenCalls=calls;document.visibilityState='visible';const pending=refreshTrendLocalSession(session);const deadline=[...timers.values()].find(row=>row.delay===30000);deadline.fn();await pending;const phase=session.phase,poll=[...timers.values()].some(row=>row.delay===60000);document.visibilityState='hidden';listeners.visibilitychange();const paused=session.phase,pausedTimers=timers.size;stopTrendLocalSession();process.stdout.write(JSON.stringify({hiddenCalls,calls,phase,poll,paused,pausedTimers}));})();'''
     assert run(tmp_path, program) == {'hiddenCalls': 0, 'calls': 1, 'phase': 'offline', 'poll': True, 'paused': 'paused', 'pausedTimers': 0}
 
 
@@ -1586,3 +1587,24 @@ def test_research_provenance_or_past_signal_disguise_is_rejected(tmp_path, probl
         detail['intraday_quote']['status'] = 'final_close'
     out = run(tmp_path, 'const d=' + json.dumps(detail) + ";let rejected=false;try{trendChartModel(d);}catch(error){rejected=true;}process.stdout.write(JSON.stringify({rejected}));")
     assert out['rejected']
+
+@pytest.mark.parametrize('asset', ['sk-hynix', 'soxx', 'nasdaq', 'sp500', 'bitcoin', 'dow'])
+def test_new_top_level_asset_route_is_independent(tmp_path, asset):
+    source = MAIN_SOURCE.read_text(encoding='utf-8')
+    routes = source[source.index('function parseCanonicalRoute'):source.index('function renderFuturePathsLoadState')]
+    result = run(tmp_path, 'process.stdout.write(JSON.stringify(parseCanonicalRoute(' + json.dumps('#trendlines/' + asset) + ')));', routes)
+    assert result == {'section': 'trendlines', 'view': 'trendlines', 'arg': {'asset': asset}}
+
+
+def test_menu_route_migration_preserves_pins_recent_and_both_note_texts(tmp_path):
+    source = MAIN_SOURCE.read_text(encoding='utf-8')
+    state = source[source.index('function trendRouteAlias'):source.index('function saveUIState')]
+    result = run(tmp_path, r'''
+const original=JSON.stringify({version:4,pins:[{hash:'#future/trendlines/soxx',title:'SOXX',type:'route'}],recent:[{hash:'#future/trendlines',title:'old',type:'route'}],notes:{'#future/trendlines/soxx':'old note','#trendlines/soxx':'new note'}});
+globalThis.localStorage={getItem:()=>original};const state=loadUIState();process.stdout.write(JSON.stringify({state,old:trendRouteAlias('#future/trendlines/bitcoin'),mag7:trendRouteAlias('#trendlines/mag7')}));
+''', state)
+    assert result['state']['pins'][0]['hash'] == '#trendlines/soxx'
+    assert result['state']['recent'][0]['hash'] == '#trendlines/sk-hynix'
+    assert result['state']['notes']['#future/trendlines/soxx'] == 'old note'
+    assert result['state']['notes']['#trendlines/soxx'] == 'new note\nold note'
+    assert result['old'] == '#trendlines/bitcoin' and result['mag7'] == '#trendlines/sk-hynix'

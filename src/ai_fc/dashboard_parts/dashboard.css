@@ -1228,8 +1228,8 @@ body:has(.track-page[data-track-mode="operator"]) .view-map{display:none}
   .content-shell{padding-top:48px}
   .market-strip{height:40px;top:48px}
   .market-strip span{font-size:8px}
-  .mobile-bottom-nav{height:calc(46px + env(safe-area-inset-bottom));padding-top:2px;padding-bottom:env(safe-area-inset-bottom)}
-  .mobile-bottom-nav a,.mobile-bottom-nav button{min-height:40px;gap:1px}
+  .mobile-bottom-nav{height:calc(50px + env(safe-area-inset-bottom));padding-top:2px;padding-bottom:env(safe-area-inset-bottom)}
+  .mobile-bottom-nav a,.mobile-bottom-nav button{min-height:44px;gap:1px}
   .mobile-bottom-nav small{display:none}
   html{scroll-padding-top:88px}
 }
