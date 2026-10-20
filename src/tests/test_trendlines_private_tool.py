@@ -221,15 +221,22 @@ def test_three_representative_refresh_runs_after_legacy_models_without_changing_
     monkeypatch.setattr(tool.V, "refresh", lambda root, asset, **_kwargs: calls.append(("representative", root, asset)) or
                         {"status": "ready", "changed": True, "snapshot_id": "representative-fixture"})
     monkeypatch.setattr(tool.B, "refresh", lambda root, asset, **_kwargs: calls.append(("long_boundaries", root, asset)) or {"status":"ready"})
+    def publish(root, asset, envelope):
+        assert envelope == R.export_private_import(root, asset)
+        calls.append(("delivery", root, asset))
+        return {"snapshot_id": "delivery-fixture"}
+    monkeypatch.setattr(tool.D, "publish", publish)
     result = tool.run(request)
-    assert [c[0] for c in calls] == ["full", "critical", "representative", "long_boundaries"]
+    assert [c[0] for c in calls] == ["full", "critical", "representative", "long_boundaries", "delivery"]
     assert all(c[1:] == (request.out.resolve(), "bitcoin") for c in calls)
     assert result["representative"]["status"] == "ready" and result["independent_replay"]["ok"]
+    assert result["delivery_committed"] is True and result["delivery"]["snapshot_id"] == "delivery-fixture"
     assert result["public_prices_published"] is False and source_bytes(tool.PROJECT) == before
 
 
 def test_long_boundaries_failure_preserves_existing_three_and_export(tool,tmp_path,monkeypatch):
     request=options(tool,tmp_path)
+    monkeypatch.setattr(tool.D,'publish',lambda *_a,**_k:pytest.fail('Incomplete cohort was published'))
     for name in ('F','K','V'):
         monkeypatch.setattr(getattr(tool,name),'refresh',lambda *_a,**_k:{'status':'ready'})
     def failed(*_a,**_k):raise C.TrendlinesError('supplement fixture mismatch')
@@ -237,6 +244,7 @@ def test_long_boundaries_failure_preserves_existing_three_and_export(tool,tmp_pa
     result=tool.run(request)
     assert result['long_boundaries']['status']=='unavailable' and result['representative']['status']=='ready'
     assert result['independent_replay']['ok'] and Path(result['browser_import_file']).is_file()
+    assert result['delivery_committed'] is False and result['delivery'] is None
 
 
 def test_representative_failure_preserves_current_and_legacy_models(tool, tmp_path, monkeypatch):
