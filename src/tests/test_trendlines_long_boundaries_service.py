@@ -17,8 +17,8 @@ def server(representative_server,monkeypatch):
     original,store,calls=representative_server
     body=json.loads(store.detail['payload_json']);body.update(contract_id='trendlines_private_long_boundaries_v1')
     supplement={'value':wrap(body,'trendlines_private_long_boundaries_transport_v1'),'error':None,'loads':[]}
-    def load(root,asset_id,*,now):
-        supplement['loads'].append((root,asset_id,now))
+    def load(root,asset_id,*,now,source_snapshot_id):
+        supplement['loads'].append((root,asset_id,now,source_snapshot_id))
         if supplement['error']:raise supplement['error']
         return deepcopy(supplement['value'])
     module=types.ModuleType('ai_fc.trendlines.long_boundaries');module.load_detail=load;module.decode_envelope=store.decode_envelope
@@ -33,7 +33,8 @@ def test_endpoint_is_readonly_and_additive(server):
     before=companion.read_asset_envelope('bitcoin')
     code,headers,raw=request(original,ROUTE)
     assert code==200 and raw==S.encode(supplement['value']) and headers['Cache-Control']=='no-store'
-    assert supplement['loads']==[(companion.root,'bitcoin',NOW)] and not calls and companion._worker is None
+    source_snapshot_id=json.loads(json.loads(before)['payload_json'])['snapshot_id']
+    assert supplement['loads']==[(companion.root,'bitcoin',NOW,source_snapshot_id)] and not calls and companion._worker is None
     assert companion.read_asset_envelope('bitcoin')==before
 
 

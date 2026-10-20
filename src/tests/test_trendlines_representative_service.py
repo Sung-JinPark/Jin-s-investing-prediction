@@ -48,8 +48,8 @@ class RepresentativeStore:
         self.calls = []
         self.error = None
 
-    def load_detail(self, root, asset_id, *, now):
-        self.calls.append(("representative", root, asset_id, now))
+    def load_detail(self, root, asset_id, *, now, source_snapshot_id):
+        self.calls.append(("representative", root, asset_id, now, source_snapshot_id))
         if self.error:
             raise self.error
         return deepcopy(self.detail)
@@ -101,7 +101,8 @@ def test_representative_is_only_a_pinned_read(representative_server):
     assert code == 200 and raw == S.encode(store.detail)
     assert headers["Cache-Control"] == "no-store"
     assert headers["Access-Control-Allow-Origin"] == L.TRUSTED_ORIGIN
-    assert ("representative", companion.root, "bitcoin", NOW) in store.calls
+    source_snapshot_id = json.loads(json.loads(before)["payload_json"])["snapshot_id"]
+    assert ("representative", companion.root, "bitcoin", NOW, source_snapshot_id) in store.calls
     assert not calls and companion._worker is None
     assert companion.read_asset_envelope("bitcoin") == before
 
