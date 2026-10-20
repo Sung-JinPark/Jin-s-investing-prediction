@@ -995,6 +995,7 @@ def verify(root, *, asset_id=None, replay=True, now=None):
 
 
 def refresh(root, asset_id, now=None):
+    R._check_replay_asset(asset_id)
     root = Path(root)
     with S.writer_lock(root):
         audit = verify(root, asset_id=asset_id, replay=True, now=now)

@@ -728,10 +728,16 @@ def verify(root, *, asset_id=None, replay=True, now=None):
         policy = load_policy(root)
         pointer = _latest(root)
         for path in sorted(_path(root, ROOT / "snapshots").glob("*.json")):
-            snapshot, source, full = _read_snapshot(root, path.stem, now)
+            # An unrelated asset's newer capture is not an input to this
+            # asset's PIT replay. Check that evidence against wall-clock time.
+            scoped_asset = R._checked(path)["asset_id"]
+            cutoff = now if R._replay_includes(scoped_asset) else None
+            snapshot, source, full = _read_snapshot(root, path.stem, cutoff)
+            if snapshot["asset_id"] != scoped_asset:
+                raise C.TrendlinesError("critical_snapshot_changed_during_scope_check")
             key = ("critical", str(root.resolve()), snapshot["content_hash"], _sha(path.read_bytes()), snapshot["source_archive_sha256"],
                    snapshot["source_full_content_hash"], tuple(id(f) for f in functions))
-            if replay and (cache is None or not cache._contains(key, functions)):
+            if replay and R._replay_includes(snapshot["asset_id"]) and (cache is None or not cache._contains(key, functions)):
                 computation = _calculate(source, full, policy)
                 if any(snapshot.get(field) != value for field, value in computation.items()):
                     raise C.TrendlinesError("critical_replay_differs_from_verified_candidates")
@@ -751,12 +757,13 @@ def verify(root, *, asset_id=None, replay=True, now=None):
                 raise C.TrendlinesError("critical_latest_snapshot_binding_invalid")
         if cache is not None:
             cache._remember(pending)
-        return {"ok": True, "errors": [], "snapshots": len(snapshots), "replay": replay}
+        return R._scope_report({"ok": True, "errors": [], "snapshots": len(snapshots), "replay": replay})
     except (OSError, ValueError, KeyError, TypeError) as exc:
         return {"ok": False, "errors": [str(exc)], "snapshots": len(snapshots), "replay": replay}
 
 
 def refresh(root, asset_id, now=None):
+    R._check_replay_asset(asset_id)
     root = Path(root)
     with S.writer_lock(root):
         audit = verify(root, replay=True, now=now)

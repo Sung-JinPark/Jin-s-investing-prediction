@@ -401,9 +401,10 @@ def test_validly_signed_v2_still_requires_atomic_ohlc_containment(server):
 def test_start_warms_readonly_status_before_any_collection(tmp_path, monkeypatch):
     events = []
     companion = service(tmp_path, callback=lambda _asset: events.append("refresh") or verified_report())
-    monkeypatch.setattr(companion, "status", lambda: events.append("warmup") or {})
+    original = companion.status
+    monkeypatch.setattr(companion, "status", lambda: events.append("warmup") or original())
     companion.start(scheduler=False); assert companion.wait_idle(); companion.stop()
-    assert events == ["warmup", "refresh"]
+    assert events == ["warmup", "warmup", "refresh"]  # Startup warmup, then fresh ordering.
 
 
 def test_aborted_http_socket_is_closed_without_second_error_write(tmp_path):

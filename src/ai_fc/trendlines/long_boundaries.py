@@ -415,6 +415,7 @@ def _check_pointer(root,pointer,snapshot):
 
 
 def refresh(root,asset_id,now=None):
+    R._check_replay_asset(asset_id)
     root=Path(root)
     with S.writer_lock(root):
         audit=verify(root,asset_id=asset_id,replay=True,now=now)

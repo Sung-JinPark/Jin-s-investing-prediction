@@ -562,7 +562,7 @@ def verify(root: Path, *, asset_id: str | None = None, replay: bool = True, now=
             snapshot, source = _read_snapshot(root, path.stem)
             key = ("full_history", str(root.resolve()), snapshot["content_hash"], _sha(path.read_bytes()),
                    snapshot["source_archive_sha256"], tuple(id(f) for f in functions))
-            if replay and (cache is None or not cache._contains(key, functions)):
+            if replay and R._replay_includes(snapshot["asset_id"]) and (cache is None or not cache._contains(key, functions)):
                 expected = _calculate(source)
                 if any(snapshot.get(field) != value for field, value in expected.items()):
                     raise C.TrendlinesError("full_history_replay_differs_from_source_geometry")
@@ -590,11 +590,12 @@ def verify(root: Path, *, asset_id: str | None = None, replay: bool = True, now=
         errors.append(str(exc))
     if not errors and cache is not None:
         cache._remember(pending)
-    return {"ok": not errors, "errors": errors, "snapshots": count, "replay": replay}
+    return R._scope_report({"ok": not errors, "errors": errors, "snapshots": count, "replay": replay})
 
 
 def refresh(root: Path, asset_id: str, now=None) -> dict[str, Any]:
     """Publish a separate immutable supplement, then move its private pointer."""
+    R._check_replay_asset(asset_id)
     root = Path(root)
     with S.writer_lock(root):
         checked = verify(root, replay=True, now=now)
