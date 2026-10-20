@@ -343,8 +343,9 @@ def _latest(root):
     return value
 
 
-def _context(root,asset_id,now=None,*,reparse=False):
-    envelope=V.load_detail(root,asset_id,now=now)
+def _context(root,asset_id,now=None,*,reparse=False,source_snapshot_id=None):
+    options={} if source_snapshot_id is None else {'source_snapshot_id':source_snapshot_id}
+    envelope=V.load_detail(root,asset_id,now=now,**options)
     if envelope is None: return None
     representative,source,full=V._read_snapshot(root,envelope['snapshot_id'],now,reparse=reparse)
     if envelope!=V._export(representative): raise C.TrendlinesError('long_boundaries_representative_export_mismatch')
@@ -445,13 +446,13 @@ def refresh(root,asset_id,now=None):
                 'validation':snapshot['independent_validation']}
 
 
-def load_detail(root,asset_id,now=None):
+def load_detail(root,asset_id,now=None,*,source_snapshot_id=None):
     root=Path(root);load_policy(root)
     if asset_id not in R.SYMBOLS: raise C.TrendlinesError('long_boundaries_asset_not_registered')
     pointer=_latest(root)['assets'].get(asset_id)
     if pointer is None: return None
     snapshot,*_=_read_snapshot(root,pointer['snapshot_id'],now);_check_pointer(root,pointer,snapshot)
-    context=_context(root,asset_id,now)
+    context=_context(root,asset_id,now,source_snapshot_id=source_snapshot_id)
     if context is None or context[0]['snapshot_id']!=snapshot['source_representative_snapshot_id']:
         raise C.TrendlinesError('long_boundaries_snapshot_is_not_current_source')
     envelope=S.read_json(S.safe_path(root,pointer['detail_path']))

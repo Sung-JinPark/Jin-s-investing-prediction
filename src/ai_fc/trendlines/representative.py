@@ -1043,7 +1043,12 @@ def refresh(root, asset_id, now=None):
                 "source_snapshot_id": source["snapshot_id"], "detail_path": export_path.as_posix(), "validation": snapshot["independent_validation"]}
 
 
-def load_detail(root, asset_id, now=None):
+def load_detail(root, asset_id, now=None, *, source_snapshot_id=None):
+    """Read a verified export, optionally pinned to the delivered OHLC cohort.
+
+    Pending raw captures do not replace an already delivered cohort. The
+    unpinned path remains strict for refresh/promotion callers.
+    """
     root = Path(root)
     if asset_id not in R.SYMBOLS:
         raise C.TrendlinesError("representative_asset_has_no_research_source")
@@ -1052,9 +1057,19 @@ def load_detail(root, asset_id, now=None):
     if pointer is None:
         return None
     snapshot, source, full = _read_snapshot(root, pointer["snapshot_id"], now)
-    current_source, _, current_full, _ = _sources(root, asset_id, now)
-    if current_source != source or current_full != full:
-        raise C.TrendlinesError("representative_snapshot_is_not_current_source")
+    if source_snapshot_id is None:
+        current_source, _, current_full, _ = _sources(root, asset_id, now)
+        if current_source != source or current_full != full:
+            raise C.TrendlinesError("representative_snapshot_is_not_current_source")
+    else:
+        # _read_snapshot above verifies the immutable source, original bytes,
+        # full series and arithmetic. Still require the selected full manifest
+        # to agree; this is not a fallback to an arbitrary historical line.
+        manifest = F.load_manifest(root, asset_id, now=now)
+        if (source["snapshot_id"] != source_snapshot_id or manifest is None
+                or manifest["snapshot_id"] != full["snapshot_id"]
+                or manifest["payload_sha256"] != snapshot["full_manifest_payload_sha256"]):
+            raise C.TrendlinesError("representative_snapshot_is_not_served_cohort")
     sp = ROOT / "snapshots" / (snapshot["snapshot_id"] + ".json")
     ep = ROOT / "exports" / snapshot["snapshot_id"] / "detail.json"
     path = S.safe_path(root, pointer["detail_path"])

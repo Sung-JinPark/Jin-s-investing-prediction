@@ -104,3 +104,14 @@ def test_supplement_poll_is_scoped_and_never_clears_base(tmp_path,fixture,comple
 def test_mag7_is_hidden_without_changing_registered_source_catalog(tmp_path):
     out=run(tmp_path,"process.stdout.write(JSON.stringify({registered:TREND_ASSETS.length,visible:TREND_VISIBLE_ASSETS.map(p=>p[0])}));")
     assert out['registered']==7 and out['visible']==['sk-hynix','soxx','nasdaq','sp500','bitcoin','dow']
+
+
+@pytest.mark.parametrize('completion',['valid','timeout','late_source','route_leave'])
+def test_busy_refresh_waits_for_long_overlay_but_retains_cancellation_guards(tmp_path,fixture,completion):
+    out=run(tmp_path,local_browser_stub()+setup(fixture)+'const completion='+json.dumps(completion)+r''';
+const timers=new Map();let clock=0,next=0;globalThis.setTimeout=(fn,delay)=>{const id=++next;timers.set(id,{fn,delay,at:clock+delay});return id;};globalThis.clearTimeout=id=>timers.delete(id);const advance=ms=>{clock+=ms;for(const [id,row] of [...timers])if(row.at<=clock){timers.delete(id);row.fn();}};
+let finish;globalThis.fetch=(_url,options)=>new Promise((resolve,reject)=>{finish=()=>resolve(response(f.raw_long));options.signal.addEventListener('abort',()=>reject(new DOMException('Aborted','AbortError')),{once:true});});
+(async()=>{const v=await parseTrendRepresentativeTransport(f.raw_v,f.current,f.full);TREND_REPRESENTATIVE_DETAILS.set('bitcoin',v);TREND_PRIVATE_DETAILS.set('bitcoin',f.current);TREND_FULL_DETAILS.set('bitcoin',f.full);TREND_LOCAL_ENABLED=false;const session=bindTrendLocalConnection(root,{asset:'bitcoin'});await Promise.resolve();session.longMounted=true;session.representativeMounted=true;session.onRepresentativeData=()=>{};TREND_LOCAL_ENABLED=true;const pending=refreshTrendLongSession(session),deadline=[...timers.values()].find(row=>row.delay===60000);advance(24100);const waiting={aborted:session.longController.signal.aborted,base:TREND_REPRESENTATIVE_DETAILS.get('bitcoin').snapshot_id};if(completion==='late_source')TREND_FULL_DETAILS.set('bitcoin',{...f.full,snapshot_id:'different'});if(completion==='route_leave')stopTrendLocalSession();if(completion==='timeout')advance(35900);else finish();await pending;const extra=TREND_LONG_DETAILS.has('bitcoin'),base=TREND_REPRESENTATIVE_DETAILS.get('bitcoin').snapshot_id;stopTrendLocalSession();process.stdout.write(JSON.stringify({deadline:deadline.delay,waiting,extra,base}));})();''')
+    assert out['deadline']==60000 and not out['waiting']['aborted']
+    assert out['extra']==(completion=='valid')
+    assert out['waiting']['base']==out['base']==fixture['body']['snapshot_id']

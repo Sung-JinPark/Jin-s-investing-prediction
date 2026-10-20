@@ -277,7 +277,7 @@ class LocalTrendlinesService:
         """Deliver three frozen descriptive overlays pinned to the visible OHLC."""
         from . import representative as V, full_history as F
         _raw, current = self._read_asset_detail(asset_id)
-        envelope = V.load_detail(self.root, asset_id, now=self._now())
+        envelope = V.load_detail(self.root, asset_id, now=self._now(), source_snapshot_id=current["snapshot_id"])
         if envelope is None:
             raise FileNotFoundError("private_representative_missing")
         body = V.decode_envelope(envelope)
@@ -304,7 +304,7 @@ class LocalTrendlinesService:
         """Read only the separately verified supplement; never collect on GET."""
         from . import long_boundaries as B
         _raw, current = self._read_asset_detail(asset_id)
-        envelope = B.load_detail(self.root, asset_id, now=self._now())
+        envelope = B.load_detail(self.root, asset_id, now=self._now(), source_snapshot_id=current["snapshot_id"])
         if envelope is None:
             raise FileNotFoundError("private_long_boundaries_missing")
         body = B.decode_envelope(envelope)
