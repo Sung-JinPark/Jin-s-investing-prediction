@@ -239,14 +239,15 @@ editor.open=true;editorEvents.toggle();
 form.elements.a_price.value='123.456';form.elements.b_session.value='2026-10-04';formEvents.input();
 bindTrendManual(host,detail,m,{currency:'USD',price_unit:'USD_per_share'},'linear');
 const restored={open:editor.open,price:form.elements.a_price.value,date:form.elements.b_session.value};
+const dirty=m.manualState.saveStatus==='dirty'&&status.textContent.includes('입력 변경');
 const saved=structuredClone(m.manualState.lines[0]);
 trendManualApply(m.manualState,[record],record.id);
-process.stdout.write(JSON.stringify({restored,saved,draft:m.manualState.editDraft}));
+process.stdout.write(JSON.stringify({restored,saved,draft:m.manualState.editDraft,dirty}));
 ''', FIXTURE + POINTER_HOST)
     assert result['restored'] == {'open': True, 'price': '123.456', 'date': '2026-10-04'}
     assert result['saved']['a']['price'] == 100
     assert result['saved']['b']['session'] == '2026-10-06'
-    assert result['draft'] is None
+    assert result['draft'] is None and result['dirty']
 
 @pytest.mark.parametrize('creation_axis', ['linear', 'log'])
 @pytest.mark.parametrize('display_axis', ['linear', 'log'])

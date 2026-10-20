@@ -900,7 +900,7 @@ function bindTrendManual(host,detail,m,asset,scale){
   for(const [other] of TREND_MANUAL_VIEWS)if(other.isConnected===false)TREND_MANUAL_VIEWS.delete(other);TREND_MANUAL_VIEWS.set(host,{assetId:state.assetId,paint:refresh});
   if(!TREND_MANUAL_KEY_BOUND&&globalThis.document?.addEventListener){document.addEventListener('keydown',trendManualKeyboard,true);TREND_MANUAL_KEY_BOUND=true;}TREND_MANUAL_ACTIVE_HOST=host;
   host.onfocusin=()=>{TREND_MANUAL_ACTIVE_HOST=host;};editor.addEventListener?.('toggle',()=>{state.editorOpen=editor.open;});
-  const remember=()=>{if(!state.selected)return;const draft={id:state.selected};for(const name of fields){const field=form.elements[name];if(field)draft[name]=['labels','stats'].includes(name)?field.checked:field.value;}state.editDraft=draft;trendManualPersist(state);};form.addEventListener?.('input',remember);form.addEventListener?.('change',remember);
+  const remember=()=>{if(!state.selected)return;const draft={id:state.selected};for(const name of fields){const field=form.elements[name];if(field)draft[name]=['labels','stats'].includes(name)?field.checked:field.value;}state.editDraft=draft;state.message='입력 변경 · 적용 또는 저장해 주세요';trendManualPersist(state);trendManualNotify(state);};form.addEventListener?.('input',remember);form.addEventListener?.('change',remember);
   const commitForm=()=>{
     if(!state.editDraft)return true;const line=state.lines.find(l=>l.id===state.editDraft.id);if(!line)return true;
     try{
