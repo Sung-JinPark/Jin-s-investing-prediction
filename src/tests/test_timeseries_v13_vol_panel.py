@@ -70,7 +70,7 @@ def test_v13_vol_rail_entry_is_tier_gated_and_parseable() -> None:
     registry = SCRIPT.split("const MID_CATEGORIES={")[1].split("\n};")[0]
     entry = re.search(r"\{key:'volatility'[^}]*\}", registry)
     assert entry, "레일 항목 존재"
-    assert "hash:'#timeseries/volatility'" in entry.group(0)
+    assert "hash:'#future/timeseries/volatility'" in entry.group(0)
     assert "available:()=>DATA?.timeseries_v13_vol?.publication?.display_tier==='t3_live_card'" in entry.group(0)
 
 
