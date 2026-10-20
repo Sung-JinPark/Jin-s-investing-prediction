@@ -46,6 +46,19 @@ process.stdout.write(JSON.stringify(trendHoverAt(m,m.x(8),m.y(100),{scale:'linea
     assert result['row']['session'] == '2026-10-09'
 
 
+def test_selected_personal_line_wins_nearby_overlap_within_hit_tolerance(tmp_path):
+    result = run(tmp_path, r'''
+const personal=trendManualGeometry(record,detail,analysis,'linear',m);
+m.manualLines=[personal];m.manualState={selected:record.id};
+m.lines=[{...personal,manual:false,line_id:'automatic',intercept:101,points:personal.points.map(p=>({...p,price:p.price+1}))}];
+const selected=trendHoverAt(m,m.x(4),m.y(176)).line.line_id;
+m.manualState.selected=null;
+const closest=trendHoverAt(m,m.x(4),m.y(176)).line.line_id;
+process.stdout.write(JSON.stringify({selected,closest}));
+''', FIXTURE)
+    assert result == {'selected': 'manual-test', 'closest': 'automatic'}
+
+
 def test_date_anchors_rebase_but_never_snap_to_missing_sessions(tmp_path):
     result = run(tmp_path, r'''
 const original=trendManualGeometry(record,detail,analysis,'linear',m);
@@ -162,6 +175,8 @@ def test_mouse_touch_cancel_and_drag_commit_use_final_pointer_position(tmp_path)
     result = run(tmp_path, r'''
 buttons[0].onclick();click(1,100);click(5,200);
 const created=structuredClone(m.manualState.lines[0]);
+click(5,200.1);
+const stationaryPreserved=JSON.stringify(created)===JSON.stringify(m.manualState.lines[0]);
 events.pointerdown(event(5,200));events.pointermove(event(6,210));events.pointerup(event(0,210,{clientX:0}));
 const cancelled=JSON.stringify(created)===JSON.stringify(m.manualState.lines[0]);
 events.pointerdown(event(5,200));events.pointerup(event(6,220));
@@ -169,9 +184,10 @@ const edited=structuredClone(m.manualState.lines[0]);
 buttons[0].onclick();events.pointerdown(event(2,150,{pointerType:'touch'}));events.pointercancel({});
 const noTouchCommit=m.manualState.lines.length===1;
 click(2,150,{pointerType:'touch'});click(4,170,{pointerType:'touch'});
-process.stdout.write(JSON.stringify({created,cancelled,edited,noTouchCommit,count:m.manualState.lines.length}));
+process.stdout.write(JSON.stringify({created,stationaryPreserved,cancelled,edited,noTouchCommit,count:m.manualState.lines.length}));
 ''', FIXTURE + POINTER_HOST)
     assert result['created']['a'] == {'session': '2026-10-02', 'price': 100}
+    assert result['stationaryPreserved']
     assert result['cancelled']
     assert result['edited']['b']['session'] == '2026-10-07'
     assert result['edited']['b']['price'] == pytest.approx(220)

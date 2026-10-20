@@ -790,7 +790,7 @@ function bindTrendManual(host,detail,m,asset,scale){
     const p=point(event),tolerance=event.pointerType==='touch'?12:6;
     if(p.x<m.L||p.x>m.W-m.R||p.y<m.T||p.y>m.H-m.B)return;
     const chosen=m.manualLines.find(l=>l.line_id===state.selected),handle=chosen?[chosen.first_anchor,chosen.second_anchor].findIndex(a=>Math.hypot((m.x(a.index)-p.x)*p.sx,(m.y(a.price)-p.y)*p.sy)<=tolerance+2):-1;
-    if(state.mode||handle>=0){consume(event);if(gesture)return;gesture={id:event.pointerId,anchor:p.anchor,handle,line:state.lines.find(l=>l.id===state.selected)};if(event.isTrusted)svg.setPointerCapture?.(event.pointerId);return;}
+    if(state.mode||handle>=0){consume(event);if(gesture)return;gesture={id:event.pointerId,anchor:p.anchor,start:p,handle,line:state.lines.find(l=>l.id===state.selected)};if(event.isTrusted)svg.setPointerCapture?.(event.pointerId);return;}
     const hit=trendLineHit({...m,lines:m.manualLines},p.x,p.y,tolerance,p.sx,p.sy);
     if(hit){consume(event);state.selected=hit.line_id;state.message='';trendManualNotify(state);}
     else if(state.selected){state.selected=null;trendManualNotify(state);}
@@ -802,7 +802,8 @@ function bindTrendManual(host,detail,m,asset,scale){
   });
   svg.addEventListener('pointerup',event=>{
     if(!gesture||gesture.id!==event.pointerId)return;
-    consume(event);const current=gesture;current.anchor=point(event).anchor;gesture=null;if(svg.hasPointerCapture?.(event.pointerId))svg.releasePointerCapture(event.pointerId);
+    consume(event);const current=gesture,p=point(event);current.anchor=p.anchor;gesture=null;if(svg.hasPointerCapture?.(event.pointerId))svg.releasePointerCapture(event.pointerId);
+    if(current.handle>=0&&Math.hypot((p.x-current.start.x)*p.sx,(p.y-current.start.y)*p.sy)<3){refresh();return;}
     if(!current.anchor){refresh();return;}
     if(current.handle<0){trendManualChoose(state,current.anchor);return;}
     try{const anchors=[current.handle===0?current.anchor:current.line.a,current.handle===1?current.anchor:current.line.b].sort((a,b)=>a.session.localeCompare(b.session));const changed={...current.line,a:anchors[0],b:anchors[1]};trendManualApply(state,state.lines.map(l=>l.id===changed.id?changed:l),changed.id);}
@@ -831,7 +832,7 @@ function trendVisibleSegment(m,a,b){
 }
 function trendLineHit(m,x,y,tolerance=6,sx=1,sy=1){
   const hits=[];for(const line of m.lines){let distance=Infinity;for(let i=1;i<line.points.length;i++){const a=line.points[i-1],b=line.points[i],visible=trendVisibleSegment(m,{x:m.x(a.index),y:m.y(a.price)},{x:m.x(b.index),y:m.y(b.price)});if(visible)distance=Math.min(distance,trendSegmentDistance(x,y,visible[0],visible[1],sx,sy));}if(distance<=tolerance)hits.push({line,distance});}
-  return hits.sort((a,b)=>a.distance-b.distance||a.line.line_id.localeCompare(b.line.line_id))[0]?.line||null;
+  return hits.sort((a,b)=>Number(b.line.manual&&b.line.line_id===m.manualState?.selected)-Number(a.line.manual&&a.line.line_id===m.manualState?.selected)||a.distance-b.distance||a.line.line_id.localeCompare(b.line.line_id))[0]?.line||null;
 }
 function trendHoverAt(m,x,y,options={}){
   if(!Number.isFinite(x)||!Number.isFinite(y)||x<m.L||x>m.W-m.R||y<m.T||y>m.H-m.B)return null;
