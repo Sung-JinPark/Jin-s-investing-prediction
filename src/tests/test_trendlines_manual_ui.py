@@ -431,3 +431,19 @@ m.manualState.view.scale='log';buttons[0].onclick();click(1,100);click(5,200);
 process.stdout.write(JSON.stringify({axis:m.manualState.lines[0].axis}));
 ''', FIXTURE + POINTER_HOST)
     assert out['axis'] == 'linear'
+
+
+def test_passive_history_growth_keeps_both_saved_dates_and_waits_for_full_series(tmp_path):
+    out = run(tmp_path, r'''
+const state=trendManualState('soxx');await state.loading;
+const history=Array.from({length:100},(_,i)=>({...bars[0],session:new Date(Date.UTC(2025,0,1+i)).toISOString().slice(0,10),session_index:i}));
+const wanted={start:history[20].session,end:history[44].session,factor:4,tail:false};state.view.window=structuredClone(wanted);
+const host={contains:()=>false,clientWidth:1000,querySelector:()=>null,querySelectorAll:()=>[],innerHTML:''};globalThis.document={activeElement:null};trendPlotModel=(_detail,_analysis,visible)=>({...m,bars:visible});bindTrendChart=()=>{};bindTrendManual=()=>{};
+const view={factor:4,offset:null};drawTrendInteractiveChart(host,detail,analysis,history.slice(50),{currency:'USD',label:'SOXX'},'linear','representative',view);const pending=structuredClone(state.view.window);
+drawTrendInteractiveChart(host,detail,analysis,history,{currency:'USD',label:'SOXX'},'linear','representative',view);const loaded=structuredClone(state.view.window),count=trendZoomViewport(history,view).length;
+const longer=[...history,...Array.from({length:10},(_,i)=>({...history.at(-1),session:new Date(Date.UTC(2025,0,101+i)).toISOString().slice(0,10),session_index:100+i}))];
+drawTrendInteractiveChart(host,detail,analysis,longer,{currency:'USD',label:'SOXX'},'linear','representative',view);
+process.stdout.write(JSON.stringify({wanted,pending,loaded,current:state.view.window,count,nextCount:trendZoomViewport(longer,view).length}));
+''', FIXTURE)
+    assert out['pending'] == out['loaded'] == out['current'] == out['wanted']
+    assert out['count'] == out['nextCount'] == 25
