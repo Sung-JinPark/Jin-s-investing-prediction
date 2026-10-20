@@ -47,6 +47,8 @@ const TREND_REPRESENTATIVE_POLICY_SHA256='3346c8ba94bf38fc6bcac021b416f9c714c9e1
 const TREND_CRITICAL_POLICY_SHA256='3bbc9d9d15af58886b9a35de7d9796887538a8a424b1c24a716affd597d1f672';
 let TREND_ZOOM=null,TREND_CHART_INSTANCE=0;
 const TREND_CHART_VIEWS=new Map();
+const TREND_MANUAL_STATES=new Map(),TREND_MANUAL_VIEWS=new Map();
+const TREND_MANUAL_LIMIT=20,TREND_MANUAL_STORAGE_PREFIX='jins-trendlines-drawings-v1:';
 let TREND_LOCAL_ENABLED=readTrendLocalPreference(),TREND_LOCAL_SESSION=null,TREND_LOCAL_EPOCH=0;
 function readTrendLocalPreference(){return ['https://sung-jinpark.github.io','http://127.0.0.1:8878'].includes(globalThis.location?.origin);}
 function trendLocalVisible(){return typeof document==='undefined'||document.visibilityState!=='hidden';}
@@ -636,6 +638,195 @@ function trendFullViewport(detail,analysis,scope='anchors'){
   if(analysis.critical){if(!anchors.length)return detail.bars.slice(-252);const position=detail.bars.findIndex(bar=>bar.session_index===Math.min(...anchors));return detail.bars.slice(Math.max(0,position-10));}
   return anchors.length?detail.bars.filter(bar=>bar.session_index>=Math.min(...anchors)):detail.bars;
 }
+// Personal drawing coordinates never enter the source, automatic models or ledgers.
+function trendManualDate(value){
+  return typeof value==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(value)&&Number.isFinite(Date.parse(value+'T00:00:00Z'))&&new Date(value+'T00:00:00Z').toISOString().slice(0,10)===value;
+}
+function trendManualValidate(value,assetId){
+  const keys=(v,expected)=>v&&typeof v==='object'&&!Array.isArray(v)&&Object.keys(v).sort().join(',')===expected.split(',').sort().join(',');
+  const anchor=p=>keys(p,'session,price')&&trendManualDate(p.session)&&Number.isFinite(p.price)&&p.price>0&&p.price<=1e15;
+  if(!TREND_VISIBLE_ASSETS.some(a=>a[0]===assetId)||!keys(value,'schema_version,asset_id,lines')||value.schema_version!==1||value.asset_id!==assetId||!Array.isArray(value.lines)||value.lines.length>TREND_MANUAL_LIMIT)throw new Error('직접 그린 선의 저장 형식을 확인할 수 없습니다');
+  const ids=new Set(),numbers=new Set();
+  for(const line of value.lines){
+    if(!keys(line,'id,number,a,b,extend')||!/^manual-[a-z0-9-]{1,80}$/.test(line.id)||ids.has(line.id)||!Number.isSafeInteger(line.number)||line.number<1||numbers.has(line.number)||typeof line.extend!=='boolean'||!anchor(line.a)||!anchor(line.b)||line.a.session>=line.b.session)throw new Error('직접 그린 선의 기준점을 확인할 수 없습니다');
+    ids.add(line.id);numbers.add(line.number);
+  }
+  return value.lines.map(line=>({...line,a:{...line.a},b:{...line.b}}));
+}
+function trendManualState(assetId){
+  if(TREND_MANUAL_STATES.has(assetId))return TREND_MANUAL_STATES.get(assetId);
+  const state={assetId,lines:[],undo:[],mode:false,first:null,hover:null,selected:null,snap:true,message:'',editorOpen:false,editDraft:null};
+  try{const raw=globalThis.localStorage?.getItem(TREND_MANUAL_STORAGE_PREFIX+assetId);if(raw){if(raw.length>65536)throw new Error('저장된 직접선이 크기 제한을 넘었습니다');state.lines=trendManualValidate(JSON.parse(raw),assetId);}}
+  catch(_){state.message='저장된 직접선 확인 불가 · 새 선은 다시 그릴 수 있습니다';}
+  TREND_MANUAL_STATES.set(assetId,state);return state;
+}
+function trendManualPersist(state){
+  try{
+    if(!globalThis.localStorage)throw new Error('storage unavailable');
+    globalThis.localStorage.setItem(TREND_MANUAL_STORAGE_PREFIX+state.assetId,JSON.stringify({schema_version:1,asset_id:state.assetId,lines:state.lines}));
+  }catch(_){state.message='브라우저 저장 불가 · 이 화면에서만 유지됩니다';}
+}
+function trendManualNotify(state){
+  for(const [host,view] of TREND_MANUAL_VIEWS){if(host.isConnected===false){TREND_MANUAL_VIEWS.delete(host);continue;}if(view.assetId===state.assetId)view.paint();}
+}
+function trendManualApply(state,lines,selected=null){
+  const checked=trendManualValidate({schema_version:1,asset_id:state.assetId,lines},state.assetId);
+  if(JSON.stringify(checked)!==JSON.stringify(state.lines)){state.undo.push(state.lines);if(state.undo.length>30)state.undo.shift();}
+  state.lines=checked;state.selected=selected;state.mode=false;state.first=null;state.hover=null;state.message='';state.editDraft=null;
+  trendManualPersist(state);trendManualNotify(state);
+}
+function trendManualUndo(state){
+  if(!state.undo.length)return;
+  state.lines=state.undo.pop();state.selected=null;state.mode=false;state.first=null;state.hover=null;state.message='';state.editDraft=null;
+  trendManualPersist(state);trendManualNotify(state);
+}
+function trendManualSessions(detail,analysis){
+  const missing=new Set((detail.gaps||[]).filter(g=>g.reason!=='unfinished_session_not_a_final_candle').map(g=>g.session));
+  const map=new Map(detail.bars.map(b=>[b.session_index,{index:b.session_index,session:b.session||b.session_date,bar:b}]));
+  for(const p of analysis.projection_sessions||[])if(!map.has(p.index)&&!missing.has(p.session))map.set(p.index,{index:p.index,session:p.session});
+  const q=detail.intraday_quote;if(q&&!map.has(q.session_index)&&!missing.has(q.date))map.set(q.session_index,{index:q.session_index,session:q.date});
+  return [...map.values()].filter(p=>trendManualDate(p.session)).sort((a,b)=>a.index-b.index);
+}
+function trendManualGeometry(record,detail,analysis,scale,m){
+  const sessions=trendManualSessions(detail,analysis),a=sessions.find(p=>p.session===record.a.session),b=sessions.find(p=>p.session===record.b.session);
+  if(!a||!b||a.index>=b.index)return null;
+  const transform=p=>scale==='log'?Math.log(p):p,intercept=transform(record.a.price),slope=(transform(record.b.price)-intercept)/(b.index-a.index);
+  const line={manual:true,line_id:record.id,number:record.number,axis:scale,role:'manual_reference',kind:'manual',intercept,slope,coordinate_origin_index:a.index,
+    display_start_index:a.index,first_anchor:{index:a.index,session:a.session,price:record.a.price},second_anchor:{index:b.index,session:b.session,price:record.b.price},extend:record.extend};
+  if(!Number.isFinite(intercept)||!Number.isFinite(slope))return null;
+  const last=record.extend?m.end:Math.min(b.index,m.end);
+  line.points=sessions.filter(p=>p.index>=Math.max(a.index,m.first)&&p.index<=last).map(p=>({index:p.index,session:p.session,price:trendLinePrice(line,p.index,scale),future:p.index>(m.sourceLast??m.last)})).filter(p=>Number.isFinite(p.price)&&p.price>0);
+  return line;
+}
+function trendManualPriceAt(m,y,scale){
+  const bottom=m.ticks[0],top=m.ticks.at(-1),t=(m.H-m.B-y)/(m.H-m.T-m.B);
+  return scale==='log'?Math.exp(Math.log(bottom)+(Math.log(top)-Math.log(bottom))*t):bottom+(top-bottom)*t;
+}
+function trendManualPoint(m,detail,x,y,scale,snap=true,sx=1,sy=1){
+  if(!Number.isFinite(x)||!Number.isFinite(y)||x<m.L||x>m.W-m.R||y<m.T||y>m.H-m.B)return null;
+  const index=Math.round(m.first+(x-m.L)/(m.W-m.L-m.R)*(m.end-m.first));
+  const p=trendManualSessions(detail,m.analysis).find(p=>p.index===index);if(!p)return null;
+  let price=trendManualPriceAt(m,y,scale);
+  if(snap&&p.bar){const choices=[p.bar.low,p.bar.high,p.bar.close,p.bar.open].map(price=>({price,distance:Math.hypot((m.x(index)-x)*sx,(m.y(price)-y)*sy)})).sort((a,b)=>a.distance-b.distance);if(choices[0].distance<=12)price=choices[0].price;}
+  return Number.isFinite(price)&&price>0&&price<=1e15?{session:p.session,price}:null;
+}
+function trendManualRecord(state,a,b,extend=true){
+  if(a.session===b.session)throw new Error('서로 다른 두 날짜를 선택해 주세요');
+  if(state.lines.length>=TREND_MANUAL_LIMIT)throw new Error('직접선은 자산별 20개까지 그릴 수 있습니다');
+  const [first,second]=a.session<b.session?[a,b]:[b,a],number=Math.max(0,...state.lines.map(l=>l.number))+1;
+  return {id:'manual-'+(globalThis.crypto?.randomUUID?.()||Date.now().toString(36)+'-'+Math.random().toString(36).slice(2)),number,a:{...first},b:{...second},extend};
+}
+function trendManualChoose(state,point){
+  if(!point)return false;
+  if(!state.first){state.first={...point};state.hover=null;state.message='';trendManualNotify(state);return false;}
+  try{const line=trendManualRecord(state,state.first,point);trendManualApply(state,[...state.lines,line],line.id);return true;}
+  catch(error){state.message=error.message;trendManualNotify(state);return false;}
+}
+function trendManualSvg(m,state,preview=null){
+  const lines=preview?m.manualLines.map(l=>l.line_id===preview.line_id?preview:l):m.manualLines,path=points=>points.map(p=>m.x(p.index).toFixed(3)+','+m.y(p.price).toFixed(3)).join(' ');
+  let html=lines.map(line=>{
+    const selected=state.selected===line.line_id,actual=line.points.filter(p=>!p.future),future=line.points.filter(p=>p.future),anchors=selected?[line.first_anchor,line.second_anchor]:[];
+    return '<g data-trend-manual-line="'+esc(line.line_id)+'"><polyline data-trend-manual-path points="'+path(actual)+'" fill="none" stroke="#7056a3" stroke-width="'+(selected?'1.8':'1.1')+'" vector-effect="non-scaling-stroke"/>'+
+      (future.length?'<polyline data-trend-manual-projection points="'+path([actual.at(-1),...future].filter(Boolean))+'" fill="none" stroke="#7056a3" stroke-width="'+(selected?'1.8':'1')+'" stroke-dasharray="3 5" vector-effect="non-scaling-stroke"/>':'')+
+      anchors.map((a,i)=>({a,i})).filter(({a})=>a.index>=m.first&&a.index<=m.end).map(({a,i})=>'<circle data-trend-manual-handle="'+i+'" cx="'+m.x(a.index)+'" cy="'+m.y(a.price)+'" r="4" fill="#fff" stroke="#7056a3" stroke-width="1.4" vector-effect="non-scaling-stroke"><title>내 빗각선 '+line.number+' · '+a.session+' · '+a.price+'</title></circle>').join('')+'</g>';
+  }).join('');
+  const sessions=trendManualSessions(m.manualDetail,m.analysis),point=p=>{const row=sessions.find(s=>s.session===p?.session);return row?{index:row.index,price:p.price}:null;},first=point(state.first),hover=point(state.hover);
+  if(state.mode&&first){html+='<circle cx="'+m.x(first.index)+'" cy="'+m.y(first.price)+'" r="4" fill="#7056a3"/>';if(hover&&hover.index!==first.index)html+='<line x1="'+m.x(first.index)+'" y1="'+m.y(first.price)+'" x2="'+m.x(hover.index)+'" y2="'+m.y(hover.price)+'" stroke="#7056a3" stroke-width="1.1" stroke-dasharray="4 4" vector-effect="non-scaling-stroke"/>';}
+  if(state.mode&&hover)html+='<circle cx="'+m.x(hover.index)+'" cy="'+m.y(hover.price)+'" r="3" fill="#fff" stroke="#7056a3"/>';
+  return html;
+}
+function trendManualToolbar(){
+  return '<div class="trend-manual-panel"><div class="trend-manual-tools" role="group" aria-label="직접 그리는 추세선">'+
+    '<button type="button" data-trend-manual-action="draw" aria-pressed="false">빗각 그리기</button><button type="button" data-trend-manual-action="snap" aria-pressed="true">자석</button>'+
+    '<select data-trend-manual-select aria-label="내 빗각선 선택"></select><button type="button" data-trend-manual-action="delete">선 삭제</button><button type="button" data-trend-manual-action="undo">되돌리기</button><button type="button" data-trend-manual-action="clear">모두 지우기</button></div>'+
+    '<p class="trend-manual-status" data-trend-manual-status role="status"></p><details class="trend-manual-editor" data-trend-manual-editor hidden><summary>기준점 조정</summary>'+
+    '<form data-trend-manual-form><label>첫 점 날짜<input type="date" name="a_session" required></label><label>가격<input type="number" step="any" min="0.00000001" name="a_price" required></label>'+
+    '<label>둘째 점 날짜<input type="date" name="b_session" required></label><label>가격<input type="number" step="any" min="0.00000001" name="b_price" required></label>'+
+    '<label class="trend-manual-extend"><input type="checkbox" name="extend">오른쪽 연장</label><button type="submit">적용</button></form></details></div>';
+}
+function bindTrendManual(host,detail,m,asset,scale){
+  const svg=host.querySelector('svg'),layer=host.querySelector('[data-trend-manual-layer]');
+  if(!svg?.ownerDocument?.createElementNS||!layer)return;
+  const state=m.manualState,select=host.querySelector('[data-trend-manual-select]'),status=host.querySelector('[data-trend-manual-status]'),editor=host.querySelector('[data-trend-manual-editor]'),form=host.querySelector('[data-trend-manual-form]');
+  let gesture=null,cursor={session:m.bars.at(-1).session||m.bars.at(-1).session_date,price:m.bars.at(-1).close};
+  const refresh=()=>{
+    m.manualLines=state.lines.map(l=>trendManualGeometry(l,detail,m.analysis,scale,m)).filter(Boolean);layer.innerHTML=trendManualSvg(m,state);
+    svg.classList.toggle('trend-manual-drawing',state.mode);
+    select.innerHTML='<option value="">내 빗각선 '+state.lines.length+'개</option>'+state.lines.map(l=>'<option value="'+esc(l.id)+'">내 빗각선 '+l.number+'</option>').join('');select.value=state.selected||'';select.disabled=!state.lines.length;
+    host.querySelectorAll('[data-trend-manual-action]').forEach(button=>{const action=button.dataset.trendManualAction;if(action==='draw'||action==='snap')button.setAttribute('aria-pressed',String(action==='draw'?state.mode:state.snap));button.disabled=action==='delete'&&!state.selected||action==='undo'&&!state.undo.length||action==='clear'&&!state.lines.length;});
+    const chosen=state.lines.find(l=>l.id===state.selected),geometry=m.manualLines.find(l=>l.line_id===state.selected);
+    editor.hidden=!chosen;editor.open=!!state.editorOpen;
+    if(chosen&&!form.contains(document.activeElement)){const draft=state.editDraft?.id===chosen.id?state.editDraft:null;for(const name of ['a','b']){form.elements[name+'_session'].value=draft?draft[name+'_session']:chosen[name].session;form.elements[name+'_price'].value=draft?draft[name+'_price']:String(chosen[name].price);}form.elements.extend.checked=draft?draft.extend:chosen.extend;}
+    const missing=state.lines.length-m.manualLines.length,price=geometry?trendLinePrice(geometry,m.sourceLast??m.last,scale):null;
+    status.textContent=state.message||(state.mode?(state.first?'둘째 점 선택 · 방향키·Enter · Esc 취소':'첫 점 선택 · 방향키·Enter · Esc 취소'):chosen?'내 빗각선 '+chosen.number+(Number.isFinite(price)&&price>0?' · 최근 확정일 선 가격 '+trendPrice(price,asset):'')+(missing?' · 일부 기준점 자료 확인 중':''):'두 점을 찍어 그리기 · 이 브라우저에 저장'+(missing?' · '+missing+'개 선의 기준점 자료 확인 중':''));
+  };
+  for(const [other] of TREND_MANUAL_VIEWS)if(other.isConnected===false)TREND_MANUAL_VIEWS.delete(other);
+  TREND_MANUAL_VIEWS.set(host,{assetId:state.assetId,paint:refresh});
+  editor.addEventListener?.('toggle',()=>{state.editorOpen=editor.open;});
+  const remember=()=>{if(state.selected)state.editDraft={id:state.selected,...Object.fromEntries(['a_session','a_price','b_session','b_price'].map(name=>[name,form.elements[name].value])),extend:form.elements.extend.checked};};
+  form.addEventListener?.('input',remember);form.addEventListener?.('change',remember);
+  host._trendManual={busy:()=>state.mode||!!gesture,select:id=>{state.selected=id;state.message='';trendManualNotify(state);}};
+  const point=event=>{const bounds=svg.getBoundingClientRect(),sx=bounds.width/m.W,sy=bounds.height/m.H;let x=(event.clientX-bounds.left)/sx,y=(event.clientY-bounds.top)/sy;if(svg.getScreenCTM&&globalThis.DOMPoint){const matrix=svg.getScreenCTM();if(matrix){const p=new DOMPoint(event.clientX,event.clientY).matrixTransform(matrix.inverse());x=p.x;y=p.y;}}return {x,y,sx,sy,anchor:trendManualPoint(m,detail,x,y,scale,state.snap,sx,sy)};};
+  const consume=event=>{event.preventDefault();event.stopPropagation();};
+  const cancel=()=>{gesture=null;state.mode=false;state.first=null;state.hover=null;state.message='';trendManualNotify(state);};
+  host.querySelectorAll('[data-trend-manual-action]').forEach(button=>button.onclick=()=>{
+    const action=button.dataset.trendManualAction;
+    if(action==='draw'){if(state.mode)cancel();else{if(state.lines.length>=TREND_MANUAL_LIMIT){state.message='직접선은 자산별 20개까지 그릴 수 있습니다';refresh();return;}state.mode=true;state.first=null;state.hover=null;state.selected=null;state.message='';trendManualNotify(state);svg.focus();}}
+    else if(action==='snap'){state.snap=!state.snap;trendManualNotify(state);}
+    else if(action==='delete')trendManualApply(state,state.lines.filter(l=>l.id!==state.selected));
+    else if(action==='clear')trendManualApply(state,[]);
+    else if(action==='undo')trendManualUndo(state);
+  });
+  select.onchange=()=>{state.selected=select.value||null;state.mode=false;state.first=null;state.hover=null;state.message='';trendManualNotify(state);};
+  form.onsubmit=event=>{
+    event.preventDefault();const line=state.lines.find(l=>l.id===state.selected);if(!line)return;
+    try{
+      const anchors=['a','b'].map(k=>({session:form.elements[k+'_session'].value,price:Number(form.elements[k+'_price'].value)})).sort((a,b)=>a.session.localeCompare(b.session));
+      const changed={...line,a:anchors[0],b:anchors[1],extend:form.elements.extend.checked};
+      trendManualValidate({schema_version:1,asset_id:state.assetId,lines:[changed]},state.assetId);
+      if(!trendManualGeometry(changed,detail,m.analysis,scale,m))throw new Error('확인된 거래일 또는 제공된 연장 날짜를 선택해 주세요');
+      trendManualApply(state,state.lines.map(l=>l.id===line.id?changed:l),line.id);
+    }catch(error){state.message=error.message;refresh();}
+  };
+  svg.addEventListener('pointerdown',event=>{
+    if(event.button!==0&&event.pointerType!=='touch')return;
+    const p=point(event),tolerance=event.pointerType==='touch'?12:6;
+    if(p.x<m.L||p.x>m.W-m.R||p.y<m.T||p.y>m.H-m.B)return;
+    const chosen=m.manualLines.find(l=>l.line_id===state.selected),handle=chosen?[chosen.first_anchor,chosen.second_anchor].findIndex(a=>Math.hypot((m.x(a.index)-p.x)*p.sx,(m.y(a.price)-p.y)*p.sy)<=tolerance+2):-1;
+    if(state.mode||handle>=0){consume(event);if(gesture)return;gesture={id:event.pointerId,anchor:p.anchor,start:p,handle,line:state.lines.find(l=>l.id===state.selected)};if(event.isTrusted)svg.setPointerCapture?.(event.pointerId);return;}
+    const hit=trendLineHit({...m,lines:m.manualLines},p.x,p.y,tolerance,p.sx,p.sy);
+    if(hit){consume(event);state.selected=hit.line_id;state.message='';trendManualNotify(state);}
+    else if(state.selected){state.selected=null;trendManualNotify(state);}
+  });
+  svg.addEventListener('pointermove',event=>{
+    const p=point(event);
+    if(gesture&&gesture.id===event.pointerId){consume(event);gesture.anchor=p.anchor;if(gesture.handle>=0&&p.anchor){const record={...gesture.line,[gesture.handle===0?'a':'b']:p.anchor};if(record.a.session>record.b.session)[record.a,record.b]=[record.b,record.a];const preview=record.a.session!==record.b.session?trendManualGeometry(record,detail,m.analysis,scale,m):null;layer.innerHTML=trendManualSvg(m,state,preview);}else if(state.mode){state.hover=p.anchor;layer.innerHTML=trendManualSvg(m,state);}return;}
+    if(state.mode){state.hover=p.anchor;layer.innerHTML=trendManualSvg(m,state);}
+  });
+  svg.addEventListener('pointerup',event=>{
+    if(!gesture||gesture.id!==event.pointerId)return;
+    consume(event);const current=gesture,p=point(event);current.anchor=p.anchor;gesture=null;if(svg.hasPointerCapture?.(event.pointerId))svg.releasePointerCapture(event.pointerId);
+    if(current.handle>=0&&Math.hypot((p.x-current.start.x)*p.sx,(p.y-current.start.y)*p.sy)<3){refresh();return;}
+    if(!current.anchor){refresh();return;}
+    if(current.handle<0){trendManualChoose(state,current.anchor);return;}
+    try{const anchors=[current.handle===0?current.anchor:current.line.a,current.handle===1?current.anchor:current.line.b].sort((a,b)=>a.session.localeCompare(b.session));const changed={...current.line,a:anchors[0],b:anchors[1]};trendManualApply(state,state.lines.map(l=>l.id===changed.id?changed:l),changed.id);}
+    catch(error){state.message=error.message;refresh();}
+  });
+  svg.addEventListener('pointercancel',()=>{gesture=null;state.hover=null;refresh();});
+  svg.addEventListener('pointerleave',()=>{if(!gesture){state.hover=null;layer.innerHTML=trendManualSvg(m,state);}});
+  svg.addEventListener('keydown',event=>{
+    if(event.key==='Escape'&&(state.mode||gesture)){consume(event);cancel();return;}
+    if(!state.mode){if(['Delete','Backspace'].includes(event.key)&&state.selected){consume(event);trendManualApply(state,state.lines.filter(l=>l.id!==state.selected));}return;}
+    if(!['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Home','End','Enter'].includes(event.key))return;
+    consume(event);const sessions=trendManualSessions(detail,m.analysis).filter(p=>p.index>=m.first&&p.index<=m.end);let i=Math.max(0,sessions.findIndex(p=>p.session===cursor.session));
+    if(event.key==='Enter'){trendManualChoose(state,cursor);return;}
+    if(event.key==='ArrowLeft')i=Math.max(0,i-1);if(event.key==='ArrowRight')i=Math.min(sessions.length-1,i+1);if(event.key==='Home')i=0;if(event.key==='End')i=sessions.length-1;
+    if(event.key==='ArrowUp'||event.key==='ArrowDown'){const price=trendManualPriceAt(m,m.y(cursor.price)+(event.key==='ArrowUp'?-5:5),scale);if(Number.isFinite(price)&&price>0&&price<=1e15)cursor.price=price;}
+    else cursor={session:sessions[i].session,price:sessions[i].bar?.close||cursor.price};
+    state.hover={...cursor};layer.innerHTML=trendManualSvg(m,state);
+  });
+  refresh();
+}
 function trendSegmentDistance(x,y,a,b,sx=1,sy=1){const dx=(b.x-a.x)*sx,dy=(b.y-a.y)*sy,px=(x-a.x)*sx,py=(y-a.y)*sy,t=Math.max(0,Math.min(1,(px*dx+py*dy)/(dx*dx+dy*dy||1)));return Math.hypot(px-t*dx,py-t*dy);}
 function trendVisibleSegment(m,a,b){
   const dx=b.x-a.x,dy=b.y-a.y,p=[-dx,dx,-dy,dy],q=[a.x-m.L,m.W-m.R-a.x,a.y-m.T,m.H-m.B-a.y];let from=0,to=1;
@@ -644,13 +835,14 @@ function trendVisibleSegment(m,a,b){
 }
 function trendLineHit(m,x,y,tolerance=6,sx=1,sy=1){
   const hits=[];for(const line of m.lines){let distance=Infinity;for(let i=1;i<line.points.length;i++){const a=line.points[i-1],b=line.points[i],visible=trendVisibleSegment(m,{x:m.x(a.index),y:m.y(a.price)},{x:m.x(b.index),y:m.y(b.price)});if(visible)distance=Math.min(distance,trendSegmentDistance(x,y,visible[0],visible[1],sx,sy));}if(distance<=tolerance)hits.push({line,distance});}
-  return hits.sort((a,b)=>a.distance-b.distance||a.line.line_id.localeCompare(b.line.line_id))[0]?.line||null;
+  return hits.sort((a,b)=>Number(!!b.line.manual&&b.line.line_id===m.manualState?.selected)-Number(!!a.line.manual&&a.line.line_id===m.manualState?.selected)||a.distance-b.distance||a.line.line_id.localeCompare(b.line.line_id))[0]?.line||null;
 }
 function trendHoverAt(m,x,y,options={}){
   if(!Number.isFinite(x)||!Number.isFinite(y)||x<m.L||x>m.W-m.R||y<m.T||y>m.H-m.B)return null;
-  if(m.quote&&Math.hypot(m.x(m.quote.session_index)-x,m.y(m.quote.price)-y)<=12)return {kind:'quote',row:m.quote,index:m.quote.session_index};
+  const selectedManual=m.manualLines?.find(line=>line.line_id===m.manualState?.selected),selectedManualHit=selectedManual&&trendLineHit({...m,lines:[selectedManual]},x,y,options.touch?12:6,options.sx||1,options.sy||1);
+  if(m.quote&&!selectedManualHit&&Math.hypot(m.x(m.quote.session_index)-x,m.y(m.quote.price)-y)<=12)return {kind:'quote',row:m.quote,index:m.quote.session_index};
   const index=Math.max(m.first,Math.min(m.end,Math.round(m.first+(x-m.L)/(m.W-m.L-m.R)*(m.end-m.first)))),gap=m.gaps.find(row=>row.session_index===index);
-  if(m.critical){const line=trendLineHit(m,x,y,options.touch?12:6,options.sx||1,options.sy||1);if(line){const price=trendLinePrice(line,index,m.analysis.axis||options.scale||line.axis),bar=m.bars.find(row=>row.session_index===index),session=bar?.session||gap?.session||m.analysis.projection_sessions?.find(row=>row.index===index)?.session||null;if(price>0&&index>=trendLineStart(line))return {kind:'line',row:{session,session_index:index,price,close:bar?.close??null},index,line,future:index>(m.sourceLast??m.last)};}}
+  if(m.critical||m.manualLines?.length){const line=trendLineHit({...m,lines:[...(m.manualLines||[]),...m.lines]},x,y,options.touch?12:6,options.sx||1,options.sy||1);if(line){const price=trendLinePrice(line,index,m.analysis.axis||options.scale||line.axis),bar=m.bars.find(row=>row.session_index===index),session=bar?.session||gap?.session||m.analysis.projection_sessions?.find(row=>row.index===index)?.session||null;if(price>0&&index>=trendLineStart(line))return {kind:'line',row:{session,session_index:index,price,close:bar?.close??null},index,line,future:index>(m.sourceLast??m.last)};}}
   if(gap)return {kind:'gap',row:gap,index};
   if(index>m.last){const session=m.analysis.projection_sessions?.find(row=>row.index===index)?.session||null;return {kind:'future',row:{session_index:index,session},index};}
   const bar=m.bars.find(row=>row.session_index===index);
@@ -659,14 +851,14 @@ function trendHoverAt(m,x,y,options={}){
 function trendHoverText(hit,asset){
   if(!hit)return '';
   const {kind,row}=hit,date=row.session||row.session_date||row.date||'';
-  if(kind==='line'){const role=hit.line.role==='support'?'지지':'저항',zone=hit.line.kind==='horizontal_zone'?` · 가격대 ${trendPrice(hit.line.zone_low,asset)}–${trendPrice(hit.line.zone_high,asset)}`:'',name=hit.line.slot?trendRepresentativeName(hit.line)+' · ':'';return `${date} · ${name}${hit.future?'추세선 연장값':hit.line.slot?'선 가격':role+'선 가격'} ${trendPrice(row.price,asset)}${zone}${row.close===null?' · 실제 종가 없음':` · 실제 종가 ${trendPrice(row.close,asset)} · 차이 ${trendPrice(row.price-row.close,asset)}`}`;}
+  if(kind==='line'){const role=hit.line.role==='support'?'지지':'저항',zone=hit.line.kind==='horizontal_zone'?` · 가격대 ${trendPrice(hit.line.zone_low,asset)}–${trendPrice(hit.line.zone_high,asset)}`:'',name=hit.line.manual?'내 빗각선 '+hit.line.number+' · ':hit.line.slot?trendRepresentativeName(hit.line)+' · ':'';return `${date} · ${name}${hit.future?'추세선 연장값':hit.line.manual||hit.line.slot?'선 가격':role+'선 가격'} ${trendPrice(row.price,asset)}${zone}${row.close===null?' · 실제 종가 없음':` · 실제 종가 ${trendPrice(row.close,asset)} · 차이 ${trendPrice(row.price-row.close,asset)}`}`;}
   if(kind==='gap')return `${date} · 일봉 미표시 · 시세 없음`;
   if(kind==='future')return `${date||'선 연장 구간'} · 선 연장 · 미래 시세 없음`;
   if(kind==='quote')return `${date} ${row.time||''} · 장중 ${trendPrice(row.price,asset)} · 종가 아님`;
   return `${date} · 종가 ${trendPrice(row.close,asset)} · 시가 ${trendPrice(row.open,asset)} · 고가 ${trendPrice(row.high,asset)} · 저가 ${trendPrice(row.low,asset)}`;
 }
 function trendSvg(detail,model,asset,version='current'){
-  const m=model,clip=`trend-clip-${detail.asset_id}-${version}`,futureX=m.x(m.last),showFuture=m.lines.some(line=>line.points.some(point=>point.future)),showFutureLabel=(m.W-m.R-futureX)*(m.cssWidth||m.W)/m.W>=50,bodyWidth=Math.max(1,Math.min(8,(m.W-m.L-m.R)/(m.end-m.first+1)*.55));
+  const m=model,clip=`trend-clip-${detail.asset_id}-${version}`,futureX=m.x(m.last),showFuture=[...m.lines,...(m.manualLines||[])].some(line=>line.points.some(point=>point.future)),showFutureLabel=(m.W-m.R-futureX)*(m.cssWidth||m.W)/m.W>=50,bodyWidth=Math.max(1,Math.min(8,(m.W-m.L-m.R)/(m.end-m.first+1)*.55));
   const grid=m.ticks.map(price=>`<g><line x1="${m.L}" y1="${m.y(price)}" x2="${m.W-m.R}" y2="${m.y(price)}" stroke="#e1ded5"/><text x="${m.L-7}" y="${m.y(price)+4}" text-anchor="end">${esc(Number(price).toLocaleString('ko-KR',{maximumFractionDigits:0}))}</text></g>`).join('');
   const tickBars=[m.bars[0]],tickGap=m.W<600?75:110;
   for(const bar of m.bars.slice(1,-1))if(m.x(bar.session_index)-m.x(tickBars.at(-1).session_index)>=tickGap)tickBars.push(bar);
@@ -679,20 +871,21 @@ function trendSvg(detail,model,asset,version='current'){
   const paths=m.lines.map(line=>{const role=line.role||line.side,color=line.slot?TREND_REPRESENTATIVE_COLORS[line.slot]:role==='support'?'#247d78':'#bd5a20',actual=line.points.filter(point=>!point.future),future=line.points.filter(point=>point.future),path=points=>points.map(point=>`${m.x(point.index).toFixed(3)},${m.y(point.price).toFixed(3)}`).join(' ');const anchors=(m.critical?line.independent_contacts:[line.first_anchor,line.second_anchor]).filter(anchor=>anchor&&anchor.index>=m.first&&anchor.index<=m.end).map(anchor=>`<circle data-trend-marker="${esc(anchor.bar_id||anchor.index)}:${esc(anchor.side||line.role||line.side||'reference')}" cx="${m.x(anchor.index)}" cy="${m.y(anchor.price)}" r="2" fill="${color}" stroke="#fff" stroke-width=".7" vector-effect="non-scaling-stroke"><title>${esc(anchor.session)} · ${esc(trendPrice(anchor.price,asset))}</title></circle>`).join('');const zone=line.kind==='horizontal_zone'&&line.points.length>=2&&line.first_anchor.index<=m.end?`<rect x="${m.x(Math.max(m.first,line.first_anchor.index))}" y="${m.y(line.zone_high)}" width="${m.x(m.end)-m.x(Math.max(m.first,line.first_anchor.index))}" height="${Math.max(1,m.y(line.zone_low)-m.y(line.zone_high))}" fill="${color}" opacity=".07"/>`:'';return `<g data-trend-line="${esc(line.line_id)}" data-trend-role="${esc(role)}" data-trend-kind="${esc(line.kind||'diagonal')}"${line.slot?` data-trend-slot="${esc(line.slot)}" data-trend-aliases="${esc((line.alias_slots||[line.slot]).join(','))}"`:''}${line.classification==='reference_structure'?' opacity=".5"':''}>${zone}<polyline data-trend-line-path points="${path(actual)}" fill="none" stroke="${color}" stroke-width="1.1" vector-effect="non-scaling-stroke"/>${future.length?`<polyline data-trend-projection="${esc(line.line_id)}" points="${path([actual.at(-1),...future].filter(Boolean))}" fill="none" stroke="${color}" stroke-width="1" stroke-dasharray="3 5" vector-effect="non-scaling-stroke"/>`:''}${anchors}</g>`;}).join('');
   const quote=m.quote?`<g data-trend-quote-point="${esc(m.quote.date)}"><circle cx="${m.x(m.quote.session_index)}" cy="${m.y(m.quote.price)}" r="6" fill="#fff8e8" stroke="#a77919" stroke-width="2.5"/><text x="${m.x(m.quote.session_index)-9}" y="${m.y(m.quote.price)-10}" text-anchor="end">장중</text><title>${esc(m.quote.date)} ${esc(m.quote.time||'')} · ${esc(trendPrice(m.quote.price,asset))} · 별도 장중 관측, 일봉 종가 아님</title></g>`:'';
   const tipId=`trend-tooltip-${detail.asset_id}-${version}`;
-  return `<svg viewBox="0 0 ${m.W} ${m.H}" role="img" tabindex="0" aria-describedby="${tipId}" aria-label="${esc(asset.label)} 일봉과 상방·하방 빗각선. 좌우 방향키로 날짜, 상하 방향키로 선을 선택합니다"><defs><clipPath id="${clip}"><rect x="${m.L}" y="${m.T}" width="${m.W-m.L-m.R}" height="${m.H-m.T-m.B}"/></clipPath></defs>${grid}${showFuture?`<rect x="${futureX}" y="${m.T}" width="${m.W-m.R-futureX}" height="${m.H-m.T-m.B}" fill="#eeece6" opacity=".8"/>${showFutureLabel?`<text x="${futureX+5}" y="${m.T+12}">선 연장</text>`:''}`:''}<g clip-path="url(#${clip})">${gaps}${candles}${paths}${quote}<line data-trend-cross x1="${futureX}" x2="${futureX}" y1="${m.T}" y2="${m.H-m.B}" stroke="#777" stroke-dasharray="2 4" visibility="hidden"/><line data-trend-cross-price x1="${m.L}" x2="${m.W-m.R}" y1="${m.T}" y2="${m.T}" stroke="#247d78" stroke-dasharray="3 4" visibility="hidden"/><circle data-trend-hover-point cx="${futureX}" cy="${m.T}" r="4" fill="#247d78" stroke="#fff" visibility="hidden"/></g>${ticks}<rect data-trend-overlay x="${m.L}" y="${m.T}" width="${m.W-m.L-m.R}" height="${m.H-m.T-m.B}" fill="transparent"/></svg><div id="${tipId}" class="trend-tooltip" data-trend-tooltip role="tooltip" hidden><span data-trend-tooltip-date></span><div><span data-trend-tooltip-kind></span><strong data-trend-tooltip-price></strong></div><p data-trend-tooltip-ohlc></p><small data-trend-tooltip-current></small></div>`;
+  return `<svg viewBox="0 0 ${m.W} ${m.H}" role="img" tabindex="0" aria-describedby="${tipId}" aria-label="${esc(asset.label)} 일봉과 상방·하방 빗각선. 좌우 방향키로 날짜, 상하 방향키로 선을 선택합니다"><defs><clipPath id="${clip}"><rect x="${m.L}" y="${m.T}" width="${m.W-m.L-m.R}" height="${m.H-m.T-m.B}"/></clipPath></defs>${grid}${showFuture?`<rect x="${futureX}" y="${m.T}" width="${m.W-m.R-futureX}" height="${m.H-m.T-m.B}" fill="#eeece6" opacity=".8"/>${showFutureLabel?`<text x="${futureX+5}" y="${m.T+12}">선 연장</text>`:''}`:''}<g clip-path="url(#${clip})">${gaps}${candles}${paths}<g data-trend-manual-layer>${m.manualState?trendManualSvg(m,m.manualState):''}</g>${quote}<line data-trend-cross x1="${futureX}" x2="${futureX}" y1="${m.T}" y2="${m.H-m.B}" stroke="#777" stroke-dasharray="2 4" visibility="hidden"/><line data-trend-cross-price x1="${m.L}" x2="${m.W-m.R}" y1="${m.T}" y2="${m.T}" stroke="#247d78" stroke-dasharray="3 4" visibility="hidden"/><circle data-trend-hover-point cx="${futureX}" cy="${m.T}" r="4" fill="#247d78" stroke="#fff" visibility="hidden"/></g>${ticks}<rect data-trend-overlay x="${m.L}" y="${m.T}" width="${m.W-m.L-m.R}" height="${m.H-m.T-m.B}" fill="transparent"/></svg><div id="${tipId}" class="trend-tooltip" data-trend-tooltip role="tooltip" hidden><span data-trend-tooltip-date></span><div><span data-trend-tooltip-kind></span><strong data-trend-tooltip-price></strong></div><p data-trend-tooltip-ohlc></p><small data-trend-tooltip-current></small></div>`;
 }
 function bindTrendChart(host,detail,m,asset,scale){
   const svg=host.querySelector('svg'),cross=host.querySelector('[data-trend-cross]'),horizontal=host.querySelector('[data-trend-cross-price]'),marker=host.querySelector('[data-trend-hover-point]'),readout=host.querySelector('[data-trend-readout]'),tip=host.querySelector('[data-trend-tooltip]');
+  const linePool=()=>[...m.lines,...(m.manualLines||[])];
   const entries=[...m.bars.map(row=>({kind:'bar',row})),...m.gaps.map(row=>({kind:'gap',row})),...(m.quote?[{kind:'quote',row:m.quote}]:[]),...(m.critical?m.analysis.projection_sessions.filter(row=>row.index>m.last&&row.index<=m.end).map(row=>({kind:'future',row:{...row,session_index:row.index}})):[])].sort((a,b)=>a.row.session_index-b.row.session_index||Number(a.kind==='quote')-Number(b.kind==='quote'));
   let selected=entries.findIndex(entry=>entry.kind==='bar'&&entry.row===m.bars.at(-1)),selectedLine=-1;
-  const emphasize=line=>host.querySelectorAll?.('[data-trend-line]').forEach(group=>{const active=group.dataset.trendLine===line?.line_id;group.querySelector('[data-trend-line-path]')?.setAttribute('stroke-width',active?'1.8':'1.1');group.querySelector('[data-trend-projection]')?.setAttribute('stroke-width',active?'1.8':'1');});
+  const emphasize=line=>host.querySelectorAll?.('[data-trend-line],[data-trend-manual-line]').forEach(group=>{const manual=group.dataset.trendManualLine,id=manual||group.dataset.trendLine,active=id===line?.line_id||manual&&m.manualState?.selected===id;group.querySelector(manual?'[data-trend-manual-path]':'[data-trend-line-path]')?.setAttribute('stroke-width',active?'1.8':'1.1');group.querySelector(manual?'[data-trend-manual-projection]':'[data-trend-projection]')?.setAttribute('stroke-width',active?'1.8':'1');});
   const hide=()=>{tip.hidden=true;emphasize(null);for(const node of [cross,horizontal,marker])node.setAttribute('visibility','hidden');};
   const paint=(hit,show=true)=>{if(!hit){hide();return;}const {kind,row,index}=hit,entry=entries.findIndex(entry=>kind==='line'?entry.kind!=='quote'&&entry.row.session_index===index:entry.kind===kind&&entry.row===row);if(entry>=0)selected=entry;readout.textContent=trendHoverText(hit,asset);if(!show)return;
     const price=kind==='bar'?row.close:kind==='quote'||kind==='line'?row.price:null,reference=trendReference(detail);emphasize(kind==='line'?hit.line:null);cross.setAttribute('x1',m.x(index));cross.setAttribute('x2',m.x(index));cross.setAttribute('visibility','visible');
     for(const node of [horizontal,marker])node.setAttribute('visibility',price===null?'hidden':'visible');
     if(price!==null){horizontal.setAttribute('y1',m.y(price));horizontal.setAttribute('y2',m.y(price));marker.setAttribute('cx',m.x(index));marker.setAttribute('cy',m.y(price));}
     tip.dataset.trendKind=kind;host.querySelector('[data-trend-tooltip-date]').textContent=row.session||row.session_date||row.date||(kind==='future'?'선 연장 구간':'일봉 미확인');
-    host.querySelector('[data-trend-tooltip-kind]').textContent=kind==='line'?hit.line.slot?`${trendRepresentativeName(hit.line)} · ${hit.future?'추세선 연장값':'선 가격'}`:hit.future?'추세선 연장값':`${hit.line.role==='support'?'지지':'저항'}선 가격`:kind==='bar'?'종가':kind==='quote'?'장중 관측':kind==='future'?'선 연장':'일봉';
+    host.querySelector('[data-trend-tooltip-kind]').textContent=kind==='line'?hit.line.manual?'내 빗각선 '+hit.line.number+' · '+(hit.future?'추세선 연장값':'선 가격'):hit.line.slot?`${trendRepresentativeName(hit.line)} · ${hit.future?'추세선 연장값':'선 가격'}`:hit.future?'추세선 연장값':`${hit.line.role==='support'?'지지':'저항'}선 가격`:kind==='bar'?'종가':kind==='quote'?'장중 관측':kind==='future'?'선 연장':'일봉';
     host.querySelector('[data-trend-tooltip-price]').textContent=price===null?'시세 없음':trendPrice(price,asset);
     host.querySelector('[data-trend-tooltip-ohlc]').textContent=kind==='line'?[hit.line.kind==='horizontal_zone'?`가격대 ${trendPrice(hit.line.zone_low,asset)}–${trendPrice(hit.line.zone_high,asset)}`:null,row.close===null?'실제 종가 없음':`실제 종가 ${trendPrice(row.close,asset)} · 차이 ${trendPrice(row.price-row.close,asset)}`].filter(Boolean).join(' · '):kind==='bar'?`시가 ${trendPrice(row.open,asset)} · 고가 ${trendPrice(row.high,asset)} · 저가 ${trendPrice(row.low,asset)}`:kind==='quote'?'별도 장중 관측 · 종가 아님':kind==='future'?'미래 가격이 아닌 추세선 연장 구간':'확인되지 않은 일봉';
     host.querySelector('[data-trend-tooltip-current]').textContent=`최근 관측 ${trendPrice(reference.price,asset)} · ${reference.date}${reference.time?' '+reference.time:''}`;
@@ -700,12 +893,12 @@ function bindTrendChart(host,detail,m,asset,scale){
     const hostBounds=host.getBoundingClientRect?.(),offsetLeft=hostBounds?bounds.left-hostBounds.left:0,offsetTop=hostBounds?bounds.top-hostBounds.top:0;
     tip.style.left=`${offsetLeft+Math.max(4,Math.min(bounds.width-w-4,px+w+16>bounds.width?px-w-14:px+14))}px`;tip.style.top=`${offsetTop+Math.max(4,Math.min(bounds.height-h-4,py-h/2))}px`;
   };
-  const paintEntry=index=>{selected=Math.max(0,Math.min(entries.length-1,index));const entry=entries[selected],ordinal=entry.row.session_index,line=m.lines[selectedLine];if(line&&ordinal>=trendLineStart(line)){const price=trendLinePrice(line,ordinal,scale);if(price>0){paint({kind:'line',index:ordinal,line,row:{session:entry.row.session||entry.row.session_date||entry.row.date,price,close:entry.kind==='bar'?entry.row.close:null},future:ordinal>(m.sourceLast??m.last)});return;}}paint({...entry,index:ordinal});};
-  const pointer=event=>{const bounds=svg.getBoundingClientRect(),sx=bounds.width/m.W,sy=bounds.height/m.H;let x=(event.clientX-bounds.left)/sx,y=(event.clientY-bounds.top)/sy;if(svg.getScreenCTM&&globalThis.DOMPoint){const matrix=svg.getScreenCTM();if(matrix){const point=new DOMPoint(event.clientX,event.clientY).matrixTransform(matrix.inverse());x=point.x;y=point.y;}}const hit=trendHoverAt(m,x,y,{touch:event.pointerType==='touch',sx,sy,scale});selectedLine=hit?.kind==='line'?m.lines.findIndex(line=>line.line_id===hit.line.line_id):-1;paint(hit);};
+  const paintEntry=index=>{selected=Math.max(0,Math.min(entries.length-1,index));const entry=entries[selected],ordinal=entry.row.session_index,line=linePool()[selectedLine];if(line&&ordinal>=trendLineStart(line)){const price=trendLinePrice(line,ordinal,scale);if(price>0){paint({kind:'line',index:ordinal,line,row:{session:entry.row.session||entry.row.session_date||entry.row.date,price,close:entry.kind==='bar'?entry.row.close:null},future:ordinal>(m.sourceLast??m.last)});return;}}paint({...entry,index:ordinal});};
+  const pointer=event=>{if(host._trendManual?.busy())return;const bounds=svg.getBoundingClientRect(),sx=bounds.width/m.W,sy=bounds.height/m.H;let x=(event.clientX-bounds.left)/sx,y=(event.clientY-bounds.top)/sy;if(svg.getScreenCTM&&globalThis.DOMPoint){const matrix=svg.getScreenCTM();if(matrix){const point=new DOMPoint(event.clientX,event.clientY).matrixTransform(matrix.inverse());x=point.x;y=point.y;}}const hit=trendHoverAt(m,x,y,{touch:event.pointerType==='touch',sx,sy,scale});selectedLine=hit?.kind==='line'?linePool().findIndex(line=>line.line_id===hit.line.line_id):-1;paint(hit);};
   svg.addEventListener('pointermove',pointer);svg.addEventListener('pointerdown',pointer);
   svg.addEventListener('pointerleave',event=>{if(event.pointerType!=='touch')hide();});svg.addEventListener('blur',hide);
-  svg.addEventListener('focus',()=>paintEntry(selected));
-  svg.addEventListener('keydown',event=>{if(event.key==='Escape'){event.preventDefault();hide();return;}let index=selected;if(event.key==='ArrowLeft')index--;else if(event.key==='ArrowRight')index++;else if(event.key==='ArrowUp'||event.key==='ArrowDown'){if(!m.critical||!m.lines.length)return;selectedLine=(selectedLine+1+(event.key==='ArrowUp'?1:-1)+m.lines.length+1)%(m.lines.length+1)-1;}else if(event.key==='Home')index=0;else if(event.key==='End')index=entries.length-1;else return;event.preventDefault();paintEntry(index);});
+  svg.addEventListener('focus',()=>{if(!host._trendManual?.busy())paintEntry(selected);});
+  svg.addEventListener('keydown',event=>{if(host._trendManual?.busy())return;if(event.key==='Escape'){event.preventDefault();hide();return;}let index=selected;if(event.key==='ArrowLeft')index--;else if(event.key==='ArrowRight')index++;else if(event.key==='ArrowUp'||event.key==='ArrowDown'){if(!m.critical&&!m.manualLines?.length||!linePool().length)return;selectedLine=(selectedLine+1+(event.key==='ArrowUp'?1:-1)+linePool().length+1)%(linePool().length+1)-1;host._trendManual?.select(linePool()[selectedLine]?.manual?linePool()[selectedLine].line_id:null);}else if(event.key==='Home')index=0;else if(event.key==='End')index=entries.length-1;else return;event.preventDefault();paintEntry(index);});
   paint({...entries[selected],index:entries[selected].row.session_index},false);
 }
 function trendZoomViewport(bars,state){
@@ -717,8 +910,11 @@ function closeTrendZoom(restore=true){
 }
 function trendChartTools(state,modal=false){return `<div class="trend-chart-tools" role="group" aria-label="시간축 확대와 이동">${modal?'':'<button type="button" data-trend-tool="expand">크게 보기 ↗</button>'}<button type="button" data-trend-tool="out" aria-label="시간축 축소">−</button><output data-trend-zoom-factor>${Number(state.factor||1).toFixed(1)}×</output><button type="button" data-trend-tool="in" aria-label="시간축 확대">＋</button><button type="button" data-trend-tool="left" aria-label="이전 구간">←</button><button type="button" data-trend-tool="right" aria-label="다음 구간">→</button><button type="button" data-trend-tool="reset">초기화</button></div>`;}
 function drawTrendInteractiveChart(host,detail,analysis,baseBars,asset,scale,version,state,onState=()=>{},modal=false){
+  const active=globalThis.document?.activeElement,restoreName=host.contains?.(active)&&active?.closest?.('[data-trend-manual-form]')?active.name:null;
   const bars=trendZoomViewport(baseBars,state),m=trendPlotModel(detail,analysis,bars,scale,host.clientWidth||1000),maximum=Math.max(1,Math.min(8,baseBars.length/20));
-  host.innerHTML=trendChartTools(state,modal)+trendSvg(detail,m,asset,version)+'<p data-trend-readout class="trend-readout" aria-live="polite"></p>'+(!analysis.lines.length?`<p class="trend-direction-empty">${analysis.representative?'추세선 자료를 확인하고 있습니다.':'확인된 경계 없음'}</p>`:'');bindTrendChart(host,detail,m,asset,scale);
+  m.manualState=trendManualState(detail.asset_id);m.manualDetail=detail;m.manualLines=m.manualState.lines.map(l=>trendManualGeometry(l,detail,analysis,scale,m)).filter(Boolean);
+  host.innerHTML=trendChartTools(state,modal)+trendManualToolbar()+trendSvg(detail,m,asset,version)+'<p data-trend-readout class="trend-readout" aria-live="polite"></p>'+(!analysis.lines.length?`<p class="trend-direction-empty">${analysis.representative?'추세선 자료를 확인하고 있습니다.':'확인된 경계 없음'}</p>`:'');bindTrendChart(host,detail,m,asset,scale);bindTrendManual(host,detail,m,asset,scale);
+  if(['a_session','a_price','b_session','b_price','extend'].includes(restoreName))host.querySelector('[data-trend-manual-form] [name="'+restoreName+'"]').focus();
   const repaint=()=>{const action=document.activeElement?.dataset?.trendTool;onState();drawTrendInteractiveChart(host,detail,analysis,baseBars,asset,scale,version,state,onState,modal);if(action)host.querySelector(`[data-trend-tool="${action}"]`)?.focus();};
   const zoom=(factor,ratio=.5)=>{const before=trendZoomViewport(baseBars,state),anchor=state.offset+ratio*(before.length-1);state.factor=Math.max(1,Math.min(maximum,factor));const count=Math.min(baseBars.length,Math.max(20,Math.ceil(baseBars.length/state.factor)));state.offset=anchor-ratio*(count-1);repaint();};
   host.querySelectorAll?.('[data-trend-tool]').forEach(button=>{const action=button.dataset.trendTool;button.disabled=action==='in'&&state.factor>=maximum||action==='out'&&state.factor<=1||action==='left'&&state.offset<=0||action==='right'&&state.offset>=baseBars.length-bars.length;button.onclick=()=>{if(action==='expand'){openTrendZoom(host,button,detail,analysis,baseBars,asset,scale,version,state);return;}if(action==='in'||action==='out'){zoom(state.factor*(action==='in'?1.5:1/1.5));return;}if(action==='reset'){state.factor=1;state.offset=null;}else state.offset+=Math.round(bars.length*.4)*(action==='left'?-1:1);repaint();};});
