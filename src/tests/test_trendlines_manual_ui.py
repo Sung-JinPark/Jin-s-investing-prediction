@@ -59,6 +59,18 @@ process.stdout.write(JSON.stringify({selected,closest}));
     assert result == {'selected': 'manual-test', 'closest': 'automatic'}
 
 
+def test_selected_personal_hover_remains_accessible_near_intraday_marker(tmp_path):
+    result = run(tmp_path, r'''
+const personal=trendManualGeometry(record,detail,analysis,'linear',m);
+m.manualLines=[personal];m.manualState={selected:record.id};m.quote={session_index:4,price:176};
+const selected=trendHoverAt(m,m.x(4),m.y(175)).kind;
+m.manualState.selected=null;
+const ordinary=trendHoverAt(m,m.x(4),m.y(175)).kind;
+process.stdout.write(JSON.stringify({selected,ordinary}));
+''', FIXTURE)
+    assert result == {'selected': 'line', 'ordinary': 'quote'}
+
+
 def test_date_anchors_rebase_but_never_snap_to_missing_sessions(tmp_path):
     result = run(tmp_path, r'''
 const original=trendManualGeometry(record,detail,analysis,'linear',m);
