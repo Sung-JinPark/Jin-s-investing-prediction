@@ -22,7 +22,7 @@ from typing import Any, Callable
 from urllib.parse import parse_qsl, unquote, urlsplit
 from zoneinfo import ZoneInfo
 
-from . import contracts as C, research as R, storage as S
+from . import contracts as C, research as R, storage as S, delivery as D
 
 HOST = "127.0.0.1"
 PORT = 8878
@@ -34,6 +34,7 @@ STATUS_BUDGET = 16 * 1024
 STATIC_ROUTES = {"/": "index.html", "/index.html": "index.html", "/data.json": "data.json",
                  "/assets/trendlines.js": "assets/trendlines.js", "/assets/trendlines.css": "assets/trendlines.css",
                  **{f"/trendlines/{asset_id}.json": f"trendlines/{asset_id}.json" for asset_id in ASSET_IDS}}
+_UNSELECTED = object()
 
 
 class LocalServiceError(ValueError):
@@ -223,8 +224,9 @@ class LocalTrendlinesService:
     def read_full_manifest(self, asset_id: str) -> bytes:
         """Read a supplemental series pinned to the visible current capture."""
         from . import full_history as F
-        _raw, current = self._read_asset_detail(asset_id)
-        envelope = F.load_manifest(self.root, asset_id, now=self._now())
+        selected = D.load_selected(self.root, asset_id, now=self._now())
+        _raw, current = self._read_asset_detail(asset_id, selected=selected)
+        envelope = D.read_envelope(self.root,selected,'full',now=self._now()) if selected else F.load_manifest(self.root, asset_id, now=self._now())
         if envelope is None:
             raise FileNotFoundError("private_full_history_missing")
         body = F.decode_envelope(envelope, expected_contract="trendlines_private_full_manifest_v1")
@@ -244,12 +246,13 @@ class LocalTrendlinesService:
     def read_critical_detail(self, asset_id: str) -> bytes:
         """Serve a verified selection without collecting or calculating on GET."""
         from . import critical as K, full_history as F
-        _raw, current = self._read_asset_detail(asset_id)
-        envelope = K.load_detail(self.root, asset_id, now=self._now())
+        selected = D.load_selected(self.root, asset_id, now=self._now())
+        _raw, current = self._read_asset_detail(asset_id, selected=selected)
+        envelope = D.read_envelope(self.root,selected,'critical',now=self._now()) if selected else K.load_detail(self.root, asset_id, now=self._now())
         if envelope is None:
             raise FileNotFoundError("private_critical_missing")
         body = K.decode_envelope(envelope)
-        full_envelope = F.load_manifest(self.root, asset_id, now=self._now())
+        full_envelope = D.read_envelope(self.root,selected,'full',now=self._now()) if selected else F.load_manifest(self.root, asset_id, now=self._now())
         if full_envelope is None:
             raise FileNotFoundError("private_critical_full_source_missing")
         full = F.decode_envelope(full_envelope, expected_contract="trendlines_private_full_manifest_v1")
@@ -264,24 +267,30 @@ class LocalTrendlinesService:
             raise LocalServiceError("private_critical_capture_mismatch")
         return S.encode(envelope)
 
-    def _read_asset_detail(self, asset_id: str) -> tuple[bytes, dict[str, Any]]:
+    def _read_asset_detail(self, asset_id: str, *, selected=_UNSELECTED) -> tuple[bytes, dict[str, Any]]:
         if asset_id not in ASSET_IDS:
             raise LocalServiceError("private_asset_not_registered")
-        path = self._path(asset_id + ".trendlines.json")
-        with path.open("rb") as handle:
-            raw = handle.read(R.MAX_PRIVATE_ENVELOPE_BYTES + 1)
+        if selected is _UNSELECTED:
+            selected = D.load_selected(self.root, asset_id, now=self._now())
+        if selected is not None:
+            raw = S.encode(selected['ohlc'])
+        else:
+            path = self._path(asset_id + ".trendlines.json")
+            with path.open("rb") as handle:
+                raw = handle.read(R.MAX_PRIVATE_ENVELOPE_BYTES + 1)
         detail = validate_envelope(raw, asset_id, now=self._now())
         return raw, detail
 
     def read_representative_detail(self, asset_id: str) -> bytes:
         """Deliver three frozen descriptive overlays pinned to the visible OHLC."""
         from . import representative as V, full_history as F
-        _raw, current = self._read_asset_detail(asset_id)
-        envelope = V.load_detail(self.root, asset_id, now=self._now(), source_snapshot_id=current["snapshot_id"])
+        selected = D.load_selected(self.root, asset_id, now=self._now())
+        _raw, current = self._read_asset_detail(asset_id, selected=selected)
+        envelope = D.read_envelope(self.root,selected,'representative',now=self._now()) if selected else V.load_detail(self.root, asset_id, now=self._now(), source_snapshot_id=current["snapshot_id"])
         if envelope is None:
             raise FileNotFoundError("private_representative_missing")
         body = V.decode_envelope(envelope)
-        full_envelope = F.load_manifest(self.root, asset_id, now=self._now())
+        full_envelope = D.read_envelope(self.root,selected,'full',now=self._now()) if selected else F.load_manifest(self.root, asset_id, now=self._now())
         if full_envelope is None:
             raise FileNotFoundError("private_representative_full_source_missing")
         full = F.decode_envelope(full_envelope, expected_contract="trendlines_private_full_manifest_v1")
@@ -303,8 +312,9 @@ class LocalTrendlinesService:
     def read_long_boundaries_detail(self, asset_id: str) -> bytes:
         """Read only the separately verified supplement; never collect on GET."""
         from . import long_boundaries as B
-        _raw, current = self._read_asset_detail(asset_id)
-        envelope = B.load_detail(self.root, asset_id, now=self._now(), source_snapshot_id=current["snapshot_id"])
+        selected = D.load_selected(self.root, asset_id, now=self._now())
+        _raw, current = self._read_asset_detail(asset_id, selected=selected)
+        envelope = D.read_envelope(self.root,selected,'long_boundaries',now=self._now()) if selected else B.load_detail(self.root, asset_id, now=self._now(), source_snapshot_id=current["snapshot_id"])
         if envelope is None:
             raise FileNotFoundError("private_long_boundaries_missing")
         body = B.decode_envelope(envelope)

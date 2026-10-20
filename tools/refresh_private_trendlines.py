@@ -18,7 +18,7 @@ from urllib.request import Request, urlopen
 
 PROJECT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(PROJECT / "src"))
-from ai_fc.trendlines import contracts as C, research as R, storage as S, full_history as F, critical as K, representative as V, long_boundaries as B
+from ai_fc.trendlines import contracts as C, research as R, storage as S, full_history as F, critical as K, representative as V, long_boundaries as B, delivery as D
 
 
 def private_root(output: Path) -> Path:
@@ -35,6 +35,7 @@ def private_root(output: Path) -> Path:
                     K.ROOT, K.ROOT / "snapshots", K.ROOT / "exports", K.ROOT / "latest.json",
                     V.ROOT, V.ROOT / "snapshots", V.ROOT / "exports", V.ROOT / "latest.json",
                     B.ROOT, B.ROOT / "snapshots", B.ROOT / "exports", B.ROOT / "latest.json",
+                    D.ROOT, D.ROOT / "snapshots", D.ROOT / "selected",
                     Path("outputs/trendlines/.writer.lock")]
     if any(not (output / path).resolve().is_relative_to(output) for path in destinations):
         raise C.TrendlinesError("private chart output contains a redirected data path")
@@ -73,6 +74,7 @@ def run(options) -> dict:
 
 def _run(options) -> dict:
     root = private_root(options.out)
+    D.freeze_previous(root, options.asset)
     if options.fetch:
         if options.raw or options.receipt:
             raise C.TrendlinesError("choose public HTML acquisition or an existing raw/receipt pair")
@@ -117,11 +119,13 @@ def _run(options) -> dict:
     if not audit["ok"]:
         raise C.TrendlinesError("private original-to-chart replay failed: " + "; ".join(audit["errors"]))
     destination = root / (options.asset + ".trendlines.json")
+    ready = all(item.get('status') != 'unavailable' for item in (full, critical, representative, long_boundaries))
+    delivery = D.publish(root, options.asset, exported) if ready else None
     S.atomic_json(destination, exported)
     return {**result, "publication_scope": "private_only", "public_prices_published": False,
             "independent_replay": audit, "browser_import_file": str(destination),
             "import_file_bytes": destination.stat().st_size, "full_history": full, "critical": critical,
-            "representative": representative, "long_boundaries": long_boundaries}
+            "representative": representative, "long_boundaries": long_boundaries, "delivery": delivery}
 
 
 def main() -> None:
