@@ -102,7 +102,7 @@ def read_envelope(root, selected, kind, *, now=None):
 
 
 def publish(root, asset_id, ohlc):
-    """Validate all endpoints before replacing the single asset selection pointer."""
+    """Validate endpoints after the caller's source/replay gates, then select."""
     root = Path(root)
     R._check_replay_asset(asset_id)
     from .local_service import validate_envelope

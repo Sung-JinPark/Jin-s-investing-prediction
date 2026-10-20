@@ -74,7 +74,6 @@ def run(options) -> dict:
 
 def _run(options) -> dict:
     root = private_root(options.out)
-    D.freeze_previous(root, options.asset)
     if options.fetch:
         if options.raw or options.receipt:
             raise C.TrendlinesError("choose public HTML acquisition or an existing raw/receipt pair")
@@ -85,6 +84,10 @@ def _run(options) -> dict:
         raw = options.raw.read_bytes()
         receipt = json.loads(options.receipt.read_text(encoding="utf-8"))
     acquired = receipt.get("retrieved_at", receipt.get("fetched_at"))
+    before_selection = R.verify(root, replay=True)
+    if not before_selection['ok']:
+        raise C.TrendlinesError('private_source_integrity_failed_before_selection: '+ '; '.join(before_selection['errors']))
+    D.freeze_previous(root, options.asset)
     result = R.capture_html(root, options.asset, raw, receipt, as_of=acquired,
                             allow_rejected_rows=options.allow_rejected_rows)
     audit = R.verify(root, replay=True)

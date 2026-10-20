@@ -2,7 +2,9 @@
 from datetime import timedelta
 import json
 from pathlib import Path
+import runpy
 import shutil
+from types import SimpleNamespace
 
 import pytest
 
@@ -167,3 +169,16 @@ def test_incomplete_delivery_is_never_reported_as_a_successful_worker_refresh(st
     assert service._assets['bitcoin']['error']=='refresh_failed'
     assert service._assets['bitcoin']['last_success'] is None
     assert D.selection_path(root,'bitcoin').read_bytes()==before
+
+
+def test_source_integrity_failure_prevents_even_initial_selection_publication(store,monkeypatch):
+    root,_stamp=store
+    archive=R._checked(S.safe_path(root,R._latest(root)['assets']['bitcoin']['snapshot_path']))
+    receipt_path=S.safe_path(root,archive['receipt_path']);receipt=S.read_json(receipt_path)
+    raw_path=S.safe_path(root,receipt['raw_path']);raw_path.write_bytes(raw_path.read_bytes()+b' ')
+    module=runpy.run_path(str(REPOSITORY/'tools/refresh_private_trendlines.py'))
+    monkeypatch.setitem(module['run'].__globals__,'private_root',lambda _out:root)
+    with pytest.raises(ValueError,match='integrity_failed_before_selection'):
+        module['run'](SimpleNamespace(asset='bitcoin',out=root,fetch=False,raw=raw_path,
+            receipt=receipt_path,allow_rejected_rows=True))
+    assert not D.selection_path(root,'bitcoin').exists()
