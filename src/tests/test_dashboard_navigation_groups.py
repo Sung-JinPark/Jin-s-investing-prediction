@@ -56,3 +56,23 @@ def test_statistics_studies_are_independent_and_case_box_is_removed():
     assert "forwardMarkup" not in source
     assert 'data-analog-focus="ALL" aria-pressed="true">전체' in source
     assert "root.classList.contains('timeseries-page')" in source
+
+
+def test_note_alias_migration_is_once_only_and_does_not_resurrect_deleted_notes(tmp_path):
+    node = shutil.which("node")
+    if not node:
+        pytest.skip("Node.js unavailable")
+    source = dashboard.DASHBOARD_SCRIPT.read_text(encoding="utf-8")
+    loader = source[source.index("function trendRouteAlias"):source.index("function saveUIState")]
+    state = {"version": 4, "notes": {"#future/history": "Original note", "#statistics/history": "New note"}}
+    program = tmp_path / "memory.js"
+    program.write_text("let raw=" + json.dumps(json.dumps(state)) + ";const localStorage={getItem:()=>raw};\n"
+                       + loader + "\nconst first=loadUIState();raw=JSON.stringify(first);const second=loadUIState();"
+                       "const repeated=JSON.parse(JSON.stringify(second));delete second.notes['#statistics/history'];raw=JSON.stringify(second);const deleted=loadUIState();"
+                       "process.stdout.write(JSON.stringify({first,second:repeated,deleted}));", encoding="utf-8")
+    row = json.loads(subprocess.run([node, str(program)], capture_output=True, text=True, check=True).stdout)
+    assert row["first"]["notes"]["#statistics/history"] == "New note\nOriginal note"
+    assert row["second"]["notes"]["#future/history"] == "Original note"
+    assert "#statistics/history" not in row["deleted"]["notes"]
+    assert row["first"]["notes"] == row["second"]["notes"]
+    assert row["first"]["navigationAliasesVersion"] == 1

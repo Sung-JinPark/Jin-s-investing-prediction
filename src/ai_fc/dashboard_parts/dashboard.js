@@ -220,9 +220,15 @@ function loadUIState(){
     const notes=raw.notes&&typeof raw.notes==='object'?Object.fromEntries(Object.entries(raw.notes)
       .filter(([k,v])=>/^#(today|future(?:\/|$)|trendlines(?:\/|$)|statistics(?:\/|$)|timeseries(?:\/|$)|records(?:\/|$)|trust(?:\/|$)|overview|flow|ask|questions|asof|track|q\/|compare\/)/.test(k)&&typeof v==='string'&&v.trim())
       .slice(0,20).map(([k,v])=>[k,v.slice(0,700)])):{};
-    for(const key of Object.keys(notes)){const canonical=trendRouteAlias(key);if(canonical!==key){notes[canonical]=notes[canonical]&&notes[canonical]!==notes[key]?(notes[canonical]+'\n'+notes[key]):notes[key];}}
+    if(raw.navigationAliasesVersion!==1)for(const key of Object.keys(notes)){
+      const canonical=trendRouteAlias(key);
+      if(canonical!==key){const existing=notes[canonical],value=notes[key];
+        const included=existing&&(existing===value||existing.startsWith(value+'\n')||existing.endsWith('\n'+value)||existing.includes('\n'+value+'\n'));
+        if(!included)notes[canonical]=existing?existing+'\n'+value:value;
+      }
+    }
     const questionView=raw.questionView&&typeof raw.questionView==='object'?raw.questionView:{};
-    return {...UI_DEFAULTS,...raw,version:4,motion:raw.motion==='reduced'?'reduced':'adaptive',
+    return {...UI_DEFAULTS,...raw,version:4,navigationAliasesVersion:1,motion:raw.motion==='reduced'?'reduced':'adaptive',
       pins:Array.isArray(raw.pins)?raw.pins.slice(0,8).map(x=>({...x,hash:trendRouteAlias(x.hash)})):[],recent:Array.isArray(raw.recent)?raw.recent.slice(0,6).map(x=>({...x,hash:trendRouteAlias(x.hash)})):[],
       compare:Array.isArray(raw.compare)?raw.compare.slice(0,3):[],compareCollapsed:!!raw.compareCollapsed,compareAutoExpanded:!!raw.compareAutoExpanded,
       lastSeenGeneratedAt:typeof raw.lastSeenGeneratedAt==='string'?raw.lastSeenGeneratedAt:null,notes,
