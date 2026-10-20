@@ -832,7 +832,7 @@ function trendVisibleSegment(m,a,b){
 }
 function trendLineHit(m,x,y,tolerance=6,sx=1,sy=1){
   const hits=[];for(const line of m.lines){let distance=Infinity;for(let i=1;i<line.points.length;i++){const a=line.points[i-1],b=line.points[i],visible=trendVisibleSegment(m,{x:m.x(a.index),y:m.y(a.price)},{x:m.x(b.index),y:m.y(b.price)});if(visible)distance=Math.min(distance,trendSegmentDistance(x,y,visible[0],visible[1],sx,sy));}if(distance<=tolerance)hits.push({line,distance});}
-  return hits.sort((a,b)=>Number(b.line.manual&&b.line.line_id===m.manualState?.selected)-Number(a.line.manual&&a.line.line_id===m.manualState?.selected)||a.distance-b.distance||a.line.line_id.localeCompare(b.line.line_id))[0]?.line||null;
+  return hits.sort((a,b)=>Number(!!b.line.manual&&b.line.line_id===m.manualState?.selected)-Number(!!a.line.manual&&a.line.line_id===m.manualState?.selected)||a.distance-b.distance||a.line.line_id.localeCompare(b.line.line_id))[0]?.line||null;
 }
 function trendHoverAt(m,x,y,options={}){
   if(!Number.isFinite(x)||!Number.isFinite(y)||x<m.L||x>m.W-m.R||y<m.T||y>m.H-m.B)return null;

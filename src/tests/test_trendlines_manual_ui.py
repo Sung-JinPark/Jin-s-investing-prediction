@@ -50,7 +50,7 @@ def test_selected_personal_line_wins_nearby_overlap_within_hit_tolerance(tmp_pat
     result = run(tmp_path, r'''
 const personal=trendManualGeometry(record,detail,analysis,'linear',m);
 m.manualLines=[personal];m.manualState={selected:record.id};
-m.lines=[{...personal,manual:false,line_id:'automatic',intercept:101,points:personal.points.map(p=>({...p,price:p.price+1}))}];
+m.lines=[{...personal,line_id:'automatic',intercept:101,points:personal.points.map(p=>({...p,price:p.price+1}))}];delete m.lines[0].manual;
 const selected=trendHoverAt(m,m.x(4),m.y(176)).line.line_id;
 m.manualState.selected=null;
 const closest=trendHoverAt(m,m.x(4),m.y(176)).line.line_id;
