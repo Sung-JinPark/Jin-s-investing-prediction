@@ -18,7 +18,7 @@ from urllib.request import Request, urlopen
 
 PROJECT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(PROJECT / "src"))
-from ai_fc.trendlines import contracts as C, research as R, storage as S, full_history as F, critical as K, representative as V, long_boundaries as B
+from ai_fc.trendlines import contracts as C, research as R, storage as S, full_history as F, critical as K, representative as V, long_boundaries as B, delivery as D
 
 
 def private_root(output: Path) -> Path:
@@ -35,6 +35,7 @@ def private_root(output: Path) -> Path:
                     K.ROOT, K.ROOT / "snapshots", K.ROOT / "exports", K.ROOT / "latest.json",
                     V.ROOT, V.ROOT / "snapshots", V.ROOT / "exports", V.ROOT / "latest.json",
                     B.ROOT, B.ROOT / "snapshots", B.ROOT / "exports", B.ROOT / "latest.json",
+                    D.ROOT, D.ROOT / "snapshots", D.ROOT / "selected",
                     Path("outputs/trendlines/.writer.lock")]
     if any(not (output / path).resolve().is_relative_to(output) for path in destinations):
         raise C.TrendlinesError("private chart output contains a redirected data path")
@@ -83,6 +84,10 @@ def _run(options) -> dict:
         raw = options.raw.read_bytes()
         receipt = json.loads(options.receipt.read_text(encoding="utf-8"))
     acquired = receipt.get("retrieved_at", receipt.get("fetched_at"))
+    before_selection = R.verify(root, replay=True)
+    if not before_selection['ok']:
+        raise C.TrendlinesError('private_source_integrity_failed_before_selection: '+ '; '.join(before_selection['errors']))
+    D.freeze_previous(root, options.asset)
     result = R.capture_html(root, options.asset, raw, receipt, as_of=acquired,
                             allow_rejected_rows=options.allow_rejected_rows)
     audit = R.verify(root, replay=True)
@@ -117,11 +122,14 @@ def _run(options) -> dict:
     if not audit["ok"]:
         raise C.TrendlinesError("private original-to-chart replay failed: " + "; ".join(audit["errors"]))
     destination = root / (options.asset + ".trendlines.json")
+    ready = all(item.get('status') != 'unavailable' for item in (full, critical, representative, long_boundaries))
     S.atomic_json(destination, exported)
+    delivery = D.publish(root, options.asset, exported) if ready else None
     return {**result, "publication_scope": "private_only", "public_prices_published": False,
             "independent_replay": audit, "browser_import_file": str(destination),
             "import_file_bytes": destination.stat().st_size, "full_history": full, "critical": critical,
-            "representative": representative, "long_boundaries": long_boundaries}
+            "representative": representative, "long_boundaries": long_boundaries, "delivery": delivery,
+            "delivery_committed": ready}
 
 
 def main() -> None:
