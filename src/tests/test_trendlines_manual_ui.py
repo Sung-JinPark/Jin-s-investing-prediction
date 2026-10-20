@@ -172,7 +172,7 @@ process.stdout.write(JSON.stringify({second:svg.includes('data-trend-manual-hand
 
 POINTER_HOST = r'''
 const events={},buttons=['draw','snap','delete','undo','clear'].map(action=>({dataset:{trendManualAction:action},setAttribute(){}}));
-const layer={innerHTML:''},select={innerHTML:'',value:''},status={},editor={},form={contains:()=>false,elements:Object.fromEntries(['a_session','a_price','b_session','b_price','extend'].map(k=>[k,{}]))};
+const formEvents={},editorEvents={},layer={innerHTML:''},select={innerHTML:'',value:''},status={},editor={addEventListener:(k,v)=>editorEvents[k]=v},form={addEventListener:(k,v)=>formEvents[k]=v,contains:()=>false,elements:Object.fromEntries(['a_session','a_price','b_session','b_price','extend'].map(k=>[k,{}]))};
 globalThis.document={activeElement:null};
 const svg={ownerDocument:{createElementNS(){}},classList:{toggle(){}},focus(){},addEventListener:(k,v)=>events[k]=v,getBoundingClientRect:()=>({left:0,top:0,width:1000,height:500})};
 const host={isConnected:true,querySelector:s=>s==='svg'?svg:({'[data-trend-manual-layer]':layer,'[data-trend-manual-select]':select,'[data-trend-manual-status]':status,'[data-trend-manual-editor]':editor,'[data-trend-manual-form]':form})[s],querySelectorAll:()=>buttons};
@@ -220,3 +220,20 @@ process.stdout.write(JSON.stringify({line,count:m.manualState.lines.length,mode:
     assert result['count'] == 1
     assert result['mode'] is False
     assert result['first'] is None
+
+
+def test_unsubmitted_editor_input_survives_refresh_without_mutating_saved_line(tmp_path):
+    result = run(tmp_path, r'''
+trendManualApply(m.manualState,[record],record.id);
+editor.open=true;editorEvents.toggle();
+form.elements.a_price.value='123.456';form.elements.b_session.value='2026-10-04';formEvents.input();
+bindTrendManual(host,detail,m,{currency:'USD',price_unit:'USD_per_share'},'linear');
+const restored={open:editor.open,price:form.elements.a_price.value,date:form.elements.b_session.value};
+const saved=JSON.parse(memory.get(TREND_MANUAL_STORAGE_PREFIX+'soxx')).lines[0];
+trendManualApply(m.manualState,[record],record.id);
+process.stdout.write(JSON.stringify({restored,saved,draft:m.manualState.editDraft}));
+''', FIXTURE + POINTER_HOST)
+    assert result['restored'] == {'open': True, 'price': '123.456', 'date': '2026-10-04'}
+    assert result['saved']['a']['price'] == 100
+    assert result['saved']['b']['session'] == '2026-10-06'
+    assert result['draft'] is None
