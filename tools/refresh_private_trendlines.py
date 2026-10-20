@@ -64,6 +64,14 @@ def public_page(asset_id: str) -> tuple[bytes, dict]:
 
 
 def run(options) -> dict:
+    # Keep the whole-store source/lineage guards while replaying only this
+    # asset's arithmetic. A slow unrelated model must not starve the last asset.
+    cache = R._ACTIVE_REPLAY_CACHE.get() or R.VerifiedReplayCache()
+    with R.use_verified_replay_cache(cache), R.use_asset_replay_scope(options.asset):
+        return _run(options)
+
+
+def _run(options) -> dict:
     root = private_root(options.out)
     if options.fetch:
         if options.raw or options.receipt:

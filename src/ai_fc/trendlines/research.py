@@ -36,13 +36,50 @@ PRIVATE_BAR_COLUMNS = ("session", "session_index", "open", "high", "low", "close
 PRIVATE_BAR_ID_PREFIX = "research-bar-"
 REJECTABLE_OHLC_ERRORS = {"OHLC must be finite positive numbers; close fallback forbidden", "OHLC containment violation"}
 _ACTIVE_REPLAY_CACHE: ContextVar[VerifiedReplayCache | None] = ContextVar("private_verified_replay_cache", default=None)
+_ACTIVE_REPLAY_ASSET: ContextVar[str | None] = ContextVar("private_replay_asset", default=None)
+
+
+@contextmanager
+def use_asset_replay_scope(asset_id: str):
+    """Private refresh isolation: all evidence checks, this asset's arithmetic.
+
+    The default audit outside this context still replays the entire store.
+    Metadata-only checks never populate numerical replay proofs.
+    """
+    if asset_id not in SYMBOLS:
+        raise C.TrendlinesError("private_replay_asset_not_registered")
+    _check_replay_asset(asset_id)
+    token = _ACTIVE_REPLAY_ASSET.set(asset_id)
+    try:
+        yield
+    finally:
+        _ACTIVE_REPLAY_ASSET.reset(token)
+
+
+def _check_replay_asset(asset_id):
+    scope = _ACTIVE_REPLAY_ASSET.get()
+    if scope is not None and scope != asset_id:
+        raise C.TrendlinesError("private_refresh_replay_asset_mismatch")
+
+
+def _replay_includes(asset_id):
+    return _ACTIVE_REPLAY_ASSET.get() in (None, asset_id)
+
+
+def _scope_report(report):
+    scope = _ACTIVE_REPLAY_ASSET.get()
+    if scope is not None:
+        return {**report, "replay_scope": {"kind": "asset", "asset_id": scope,
+                "store_integrity": "all_originals_receipts_contracts_and_revision_links"}}
+    return report
 
 
 class VerifiedReplayCache:
     """Bounded, process-local proofs populated only by a successful full audit.
 
     There is no persisted proof, caller-supplied verified flag, or preloaded
-    entry API. Each hit still requires fresh raw and receipt hashes, canonical
+    entry API. Scoped metadata proofs use a distinct namespace and can never
+    satisfy a numerical replay. Each hit still requires fresh raw and receipt hashes, canonical
     archives, current identity checks, revision chains and latest bindings.
     """
 
@@ -98,7 +135,7 @@ def use_verified_replay_cache(cache: VerifiedReplayCache):
 def _replay_functions():
     from .research_html import parse_yahoo_history
 
-    return (verify, _prepare, E.verify_research_asset_snapshot, parse_yahoo_history,
+    return (verify, _prepare, _replay_includes, E.verify_research_asset_snapshot, parse_yahoo_history,
             C.validate_bar, C.validate_config, C.validate_research_source, C.session_schedule,
             C.latest_completed_session, C._finite_number, C.canonical_hash)
 
@@ -284,6 +321,7 @@ def _latest(root: Path) -> dict[str, Any] | None:
 def capture_html(root: Path, asset_id: str, raw: bytes, receipt: dict[str, Any], *,
                  as_of: str | datetime | None = None, allow_rejected_rows: bool = False) -> dict[str, Any]:
     """Preserve original bytes first, then replay exact finalized research OHLC."""
+    _check_replay_asset(asset_id)
     root = Path(root)
     row_policy = _row_policy(allow_rejected_rows)
     cutoff = S.aware_time(as_of).isoformat()
@@ -408,17 +446,22 @@ def verify(root: Path, *, replay: bool = True) -> dict[str, Any]:
             key = (str(root.resolve()), archive["content_hash"], hashlib.sha256(path.read_bytes()).hexdigest(),
                    archive["receipt_sha256"], receipt_file_hashes[archive["receipt_id"]], actual_raw_sha, C.ENGINE_VERSION,
                    tuple(id(function) for function in functions)) if cache is not None else None
-            if cache is None or not cache._contains(key, functions):
+            numeric_replay = replay and _replay_includes(archive["asset_id"])
+            metadata_key = (("research_metadata", *key) if cache is not None and not numeric_replay
+                            and _ACTIVE_REPLAY_ASSET.get() is not None else None)
+            full_hit = cache is not None and cache._contains(key, functions)
+            metadata_hit = metadata_key is not None and cache._contains(metadata_key, functions)
+            if not full_hit and not metadata_hit:
                 bars, meta, gaps = _prepare(raw, receipt, asset, archive["capture_asof"], config=archive["config"],
                                             allow_rejected_rows=archive["row_validation_policy"]["allow_rejected_rows"])
                 if bars != archive["bars"] or meta != archive["metadata"] or gaps != archive["gaps"]:
                     raise C.TrendlinesError("research_snapshot_differs_from_original_html")
                 checked = E.verify_research_asset_snapshot(archive["engine_snapshot"], bars, asset,
-                                                          config=archive["config"], source_policy=archive["source_policy"], replay=replay)
+                                                          config=archive["config"], source_policy=archive["source_policy"], replay=numeric_replay)
                 if checked["ok"] is not True:
                     raise C.TrendlinesError("research_numeric_replay_failed: " + "; ".join(checked["errors"]))
-                if cache is not None:
-                    pending[key] = functions
+                if cache is not None and (numeric_replay or metadata_key is not None):
+                    pending[key if numeric_replay else metadata_key] = functions
                     while len(pending) > cache.max_entries:
                         pending.popitem(last=False)
             snapshots[sid] = archive
@@ -450,11 +493,12 @@ def verify(root: Path, *, replay: bool = True) -> dict[str, Any]:
         errors.append(str(exc))
     if not errors and cache is not None:
         cache._remember(pending)
-    return {"ok": not errors, "errors": errors, "snapshots": len(snapshots), "replay": replay}
+    return _scope_report({"ok": not errors, "errors": errors, "snapshots": len(snapshots), "replay": replay})
 
 
 def load_asset_detail(root: Path, asset_id: str, *, now: str | datetime | None = None) -> dict[str, Any] | None:
     """Fail closed on any corrupted research evidence; disclose qualification."""
+    _check_replay_asset(asset_id)
     if asset_id not in C.ASSET_IDS:
         raise C.TrendlinesError("unregistered trendlines research asset")
     audit = verify(root, replay=True)
@@ -647,6 +691,7 @@ def export_private_import(root: Path, asset_id: str, now: str | datetime | None 
     preserves Python's explicit floating point representation and avoids
     claiming that JSON.stringify is the Python canonical encoding.
     """
+    _check_replay_asset(asset_id)
     detail = load_asset_detail(root, asset_id, now=now)
     if detail is None:
         raise C.TrendlinesError("private_research_import_requires_verified_evidence")

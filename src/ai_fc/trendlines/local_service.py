@@ -378,7 +378,7 @@ class LocalTrendlinesService:
                     if not self._pending:
                         return
                     self._pending = False
-                for asset_id in self.assets:
+                for asset_id in self._refresh_order():
                     if self._stop.is_set():
                         return
                     prior = None
@@ -394,6 +394,12 @@ class LocalTrendlinesService:
                                 or report.get("public_prices_published") is not False
                                 or report.get("independent_replay", {}).get("ok") is not True):
                             raise LocalServiceError("refresh_report_not_verified_private")
+                        scope = report["independent_replay"].get("replay_scope")
+                        if scope is not None and (not isinstance(scope, dict) or scope.get("kind") != "asset"
+                                or scope.get("asset_id") != asset_id
+                                or report["independent_replay"].get("replay") is not True
+                                or scope.get("store_integrity") != "all_originals_receipts_contracts_and_revision_links"):
+                            raise LocalServiceError("refresh_report_replay_scope_mismatch")
                         self.read_asset_envelope(asset_id)
                         with self._lock:
                             self._assets[asset_id].update({"last_success": self._now().isoformat(), "error": None,
@@ -432,6 +438,15 @@ class LocalTrendlinesService:
                 if self._pending and self._running and not self._stop.is_set():
                     self._worker = threading.Thread(target=self._work_loop, name="trendlines-local-worker", daemon=True)
                     self._worker.start()
+
+    def _refresh_order(self):
+        """Recover stale assets first, oldest successful refresh first; stable ties."""
+        rows = {row["asset_id"]: row for row in self.status()["assets"]}
+        def rank(asset_id):
+            row = rows[asset_id]
+            success = C.aware_time(row["last_success"]).timestamp() if row["last_success"] else float("-inf")
+            return (not row["stale"], success)
+        return tuple(sorted(self.assets, key=rank))
 
     def stop(self, *, timeout: float = 5):
         deadline = monotonic() + min(5, max(0, timeout))
