@@ -404,6 +404,8 @@ class LocalTrendlinesService:
                                 or report.get("public_prices_published") is not False
                                 or report.get("independent_replay", {}).get("ok") is not True):
                             raise LocalServiceError("refresh_report_not_verified_private")
+                        if 'delivery_committed' in report and report['delivery_committed'] is not True:
+                            raise LocalServiceError('refresh_did_not_commit_complete_chart')
                         scope = report["independent_replay"].get("replay_scope")
                         if scope is not None and (not isinstance(scope, dict) or scope.get("kind") != "asset"
                                 or scope.get("asset_id") != asset_id

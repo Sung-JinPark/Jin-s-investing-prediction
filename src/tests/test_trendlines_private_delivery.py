@@ -153,3 +153,17 @@ def test_explicit_read_cutoff_and_asset_identity_are_preserved(store):
     with pytest.raises(ValueError):D.load_selected(root,'mag7')
     with pytest.raises(ValueError):D.load_selected(root,'bitcoin',now=C.aware_time(stamp)-timedelta(seconds=1))
     assert D.load_selected(root,'dow') is None
+
+
+@pytest.mark.parametrize('committed',[False,None,'yes'])
+def test_incomplete_delivery_is_never_reported_as_a_successful_worker_refresh(store,committed):
+    root,stamp=store;D.freeze_previous(root,'bitcoin')
+    before=D.selection_path(root,'bitcoin').read_bytes()
+    report={'publication_scope':'private_only','public_prices_published':False,
+            'independent_replay':{'ok':True},'delivery_committed':committed}
+    service=LocalTrendlinesService(root,refresh_asset=lambda _:report,startup_refresh=False,
+        assets=('bitcoin',),clock=lambda:C.aware_time(stamp)+timedelta(days=2))
+    service._pending=True;service._work_loop()
+    assert service._assets['bitcoin']['error']=='refresh_failed'
+    assert service._assets['bitcoin']['last_success'] is None
+    assert D.selection_path(root,'bitcoin').read_bytes()==before

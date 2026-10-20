@@ -120,12 +120,13 @@ def _run(options) -> dict:
         raise C.TrendlinesError("private original-to-chart replay failed: " + "; ".join(audit["errors"]))
     destination = root / (options.asset + ".trendlines.json")
     ready = all(item.get('status') != 'unavailable' for item in (full, critical, representative, long_boundaries))
-    delivery = D.publish(root, options.asset, exported) if ready else None
     S.atomic_json(destination, exported)
+    delivery = D.publish(root, options.asset, exported) if ready else None
     return {**result, "publication_scope": "private_only", "public_prices_published": False,
             "independent_replay": audit, "browser_import_file": str(destination),
             "import_file_bytes": destination.stat().st_size, "full_history": full, "critical": critical,
-            "representative": representative, "long_boundaries": long_boundaries, "delivery": delivery}
+            "representative": representative, "long_boundaries": long_boundaries, "delivery": delivery,
+            "delivery_committed": ready}
 
 
 def main() -> None:
