@@ -363,7 +363,7 @@ def test_ui_contract() -> None:
     html = dashboard.load_template()
     assert "<h1" in html, "대형 H1 없음"
     # U1a의 4개 핵심 목적지. 보조 화면은 문맥 탭/빠른 이동에서 제공한다.
-    for v in ("today", "future", "timeseries", "records"):
+    for v in ("today", "future", "statistics", "records"):
         assert f'href="#{v}"' in html, f"nav 실제 링크 누락: {v}"
     assert 'aria-current' in html, "aria-current 처리 없음"
     assert "prefers-reduced-motion" in html
@@ -432,7 +432,7 @@ def test_ui_contract() -> None:
     assert '<span>R${q.n_rounds}</span>' not in html
 
 
-def test_six_section_information_architecture_contract() -> None:
+def test_five_section_information_architecture_contract() -> None:
     html = dashboard.load_template()
     shell = dashboard.TEMPLATE.read_text(encoding="utf-8")
     script = dashboard.DASHBOARD_SCRIPT.read_text(encoding="utf-8")
@@ -441,8 +441,7 @@ def test_six_section_information_architecture_contract() -> None:
     for route, label in (
         ("today", "오늘"),
         ("future", "미래 탐색"),
-        ("statistics", "통계 비교"),
-        ("timeseries", "시계열 예측"),
+        ("statistics", "통계"),
         ("records", "기록"),
     ):
         assert html.count(f'href="#{route}"') >= 3
@@ -452,12 +451,11 @@ def test_six_section_information_architecture_contract() -> None:
         'href="#future" data-v="future"',
         'href="#trendlines/sk-hynix" data-v="trendlines"',
         'href="#statistics" data-v="statistics"',
-        'href="#timeseries" data-v="timeseries"',
         'href="#records" data-v="records"',
     ]
     assert [shell.index(item) for item in rail_order] == sorted(shell.index(item) for item in rail_order)
-    assert '<span class="rail-num">05</span><span class="rail-label">시계열 예측</span>' in shell
-    assert '<span class="rail-num">06</span><span class="rail-label">기록</span>' in shell
+    assert 'data-v="timeseries"' not in shell
+    assert '<span class="rail-num">05</span><span class="rail-label">기록</span>' in shell
     assert shell.count('data-v="trendlines"') == 3
     assert '<span class="rail-num">03</span><span class="rail-label">상·하방 추세선</span>' in shell
     # 데이터와 신뢰는 기록의 '데이터' 탭으로 합쳐졌다 — 독립 대분류 링크가 남으면 안 된다
@@ -497,7 +495,7 @@ def test_six_section_information_architecture_contract() -> None:
     assert "numbers_visible===true" in script
     assert "기존 미래전망으로 자동 전환하지 않습니다" in script
     assert ".timeseries-horizons{display:grid;grid-template-columns:repeat(4" in css
-    assert "grid-template-columns:repeat(6" in css
+    assert "grid-template-columns:repeat(5,1fr)" in css
 
 
 def test_u1a_route_and_home_render_evidence() -> None:
@@ -577,8 +575,8 @@ def test_u1c_split_surfaces_event_summary_and_glossary_contract() -> None:
         "path_realism", "hazard", "regime", "coverage", "blocked", "vintage", "PIT", "reconstructed",
     ):
         assert f"{term}:" in script or f"'{term}':" in script
-    assert "plainTerm('scenario_conditional')" in script
-    assert "plainTerm('reference_only')" in script
+    assert "predictionSectionNav('graph')" in script
+    assert "renderStatisticsStudy(initialState" in script
 
 
 def test_workspace_utility_contract() -> None:
@@ -697,9 +695,9 @@ def test_workspace_utility_contract() -> None:
     assert "overlay.addEventListener('pointermove'" in html
     assert "event.key==='ArrowLeft'" in html
     assert "peek-title" not in html and "peek-metric" not in html
-    assert 'role="tablist" aria-label="시장 지도 분석 공간"' in html
+    assert 'class="section-tabs" aria-label="미래 탐색 분류"' in html
     assert "REFERENCE ONLY · 확률 아님" not in html
-    assert "유사 구간 이후 흐름" in html
+    assert "analog-case-list" not in html
     assert "forward n&lt;20" not in html and "median emphasis disabled" not in html
     assert "DB-CONDITIONED PATH · MONTHLY RISK WINDOW" in html
     assert "상승·회복 사이의 조정을 역사 DB로 복원했습니다" in html
@@ -713,9 +711,9 @@ def test_workspace_utility_contract() -> None:
     assert "overlay_start ${esc(dotcomAnchor.overlay_start)}" not in html
     assert "model_anchor ${esc(dotcomAnchor.model_anchor)}" not in html
     assert "DATA.era_analog" in html
-    assert "drawOverlay(analogHost,overlay._overlay" in html
+    assert "drawOverlay(host,panel._overlay,panel._eras" in html
     assert "data-flow-focus=\"ANALOG\"" in html
-    assert "DATA.cross_asset" in html and "data-lab-tab=\"cross-asset\"" in html
+    assert "DATA.cross_asset" in html and "hash:'#statistics/cross-asset'" in html
     assert "교차자산 비교" in html
     assert "NASDAQ·리츠·주택주" in html
     assert "닷컴 조정 뒤 5년 · NASDAQ · Bitcoin" not in html
@@ -743,7 +741,7 @@ def test_workspace_utility_contract() -> None:
     assert "resolveEndpointLabels" in html
     assert "aria-live','polite" in html and "function bindCrossAsset(panel)" in html
     assert "model.history.period" in html and "label.endsWith('-06')" in html
-    assert 'data-lab-tab="ai-regime"' not in html and 'data-lab-tab="liquidity"' in html
+    assert 'data-lab-tab="ai-regime"' not in html and "hash:'#statistics/market-liquidity'" in html
     assert "aiRegime.id='lab-ai-regime'" in html and 'href="#future/ai-regime">상태 상세' in html
     assert "Scenario Tracker" in html and "가중 합산 없음" in html
     assert "이 체크리스트는 사전 등록된 방향 규칙이며 확률이 아닙니다" in html
@@ -798,8 +796,8 @@ def test_future_default_uses_three_scenarios_without_legacy_fallback() -> None:
     assert "renderScenarioV52(candidate52,initialState);" in html
     # champion·조회 경로도 future_paths.json을 받는다(계약 fetch_failure의 champion_route 배너가 도달
     # 가능해야 한다) — 연구 후보 렌더 여부만 modelView/lookup으로 분기한다(검수 2차).
-    assert "const futurePathsRequested=v==='flow';" in html
-    assert "const researchPathsRequested=futurePathsRequested&&arg?.futureGraph!=='original'&&arg?.modelView!=='champion'" in html
+    assert "const futurePathsRequested=v==='flow'||statisticsStudyRequested;" in html
+    assert "const researchPathsRequested=v==='flow'&&arg?.futureGraph!=='original'&&arg?.modelView!=='champion'" in html
     assert "const candidate52Requested=initialState.modelView!=='champion'" in html
     # 소유자 승인 B안 (DECISIONS.md 2026-09-02): eligible 외에 stale_last_valid
     # (게이트 닫힘 + 봉인 산출물 온전)도 같은 V5.2 차트를 명시 공시와 함께 렌더.
@@ -817,7 +815,7 @@ def test_future_default_uses_three_scenarios_without_legacy_fallback() -> None:
     assert "let sc=officialScenario,shadowActive=false" in html
     assert "shadowActive?shadowScenario:officialScenario" in html
     assert "let sc=scenarioV5FlowModel(officialScenario,v5)" not in html
-    assert "root.appendChild(labTabs)" in html and "mount(root);" in html
+    assert "root.append(predictionSectionNav('graph'),outlook);mount(root);" in html
     assert "return renderScenarioV52(candidate52)" not in html
 
 
@@ -839,7 +837,7 @@ def test_future_graph_subcategory_restores_original_single_scenario_chart() -> N
         assert required in html, required
     assert "if(parts[1]==='original')return {section:'future',view:'flow',arg:{futureGraph:'original'}}" in html
     assert "const futureGraphHash=()=>graphKey==='original'?'#future/original':'#future'" in html
-    assert "button.dataset.labTab==='future'?futureGraphHash():" in html
+    assert "if(sync)syncMidHash(futureGraphHash());" in html
     assert "paintFutureGraph(initialState.futureGraph==='original'?'original':'unified',false)" in html
     assert "단일 시나리오 · 챔피언 GBM · 참고 의견" in html
     # 2026-09-16: 긴 설명 문단·오차율 박스·도착점 박스는 소유자 지시로 제거됐다 —
@@ -1047,7 +1045,7 @@ def test_mid_category_registry_drives_rail_hierarchy() -> None:
     assert "const SECTION_TITLES={today:'오늘',future:'미래 탐색'" in html
     assert "function midCategories(section,forRail)" in html
     # 통계의 "전체"는 본문 필터 줄에만 남기고 레일에서는 뺀다
-    assert "railHidden:true" in html
+    assert "statisticsSectionNav('dotcom')" in html
     assert "midCategories(navView,true)" in html
     assert "function currentMidCategory(section,rawHash)" in html
 
@@ -1064,9 +1062,9 @@ def test_mid_category_registry_drives_rail_hierarchy() -> None:
     assert "function syncMidHash(hash)" in html
     assert "paintRailSubNav(document.body.dataset.view||'today',hash);" in html
     for wired in (
-        "if(sync)syncMidHash(active==='all'?'#statistics':'#statistics/'+active);",
+        "if(sync)syncMidHash(active==='all'?'#statistics':'#statistics/dotcom/'+active);",
         "if(sync)syncMidHash(futureGraphHash());",
-        "if(sync)syncMidHash(next==='summary'?'#timeseries':'#timeseries/'+next);",
+        "if(sync)syncMidHash(next==='summary'?'#future/timeseries':'#future/timeseries/'+next);",
     ):
         assert wired in html, wired
 
@@ -1086,26 +1084,11 @@ def _mid_category_keys(html: str, section: str) -> list[tuple[str, bool]]:
     ]
 
 
-def test_statistics_rail_numbers_run_from_01_to_06() -> None:
-    """통계 비교 중분류가 01 IPO·상장에서 06 신용까지 이어져야 한다.
-
-    레일에서 빠지는 '전체'(railHidden)가 01을 먹어 02~07로 밀려 있었다.
-    """
-    html = dashboard.load_template()
-    rows = _mid_category_keys(html, "statistics")
-
-    assert [key for key, _ in rows] == [
-        "all", "ipo", "liquidity", "rates", "economy", "valuation", "credit",
-    ]
-    rail = [key for key, hidden in rows if not hidden]
-    numbers = [f"{index:02d}" for index in range(1, len(rail) + 1)]
-
-    assert list(zip(rail, numbers)) == [
-        ("ipo", "01"), ("liquidity", "02"), ("rates", "03"),
-        ("economy", "04"), ("valuation", "05"), ("credit", "06"),
-    ]
-    assert numbers[0] == "01" and numbers[-1] == "06"
-    assert "07" not in numbers, "07이 남으면 걸러질 항목이 아직 번호를 먹고 있다"
+def test_statistics_rail_has_five_research_categories_in_requested_order() -> None:
+    rows = _mid_category_keys(dashboard.load_template(), "statistics")
+    assert rows == [(key, False) for key in (
+        "dotcom", "history", "market-liquidity", "cross-asset", "fear-greed")]
+    assert [f"{i:02d}" for i, _ in enumerate(rows, 1)] == ["01", "02", "03", "04", "05"]
 
 
 def test_mid_category_numbers_are_derived_after_filtering_not_hardcoded() -> None:
@@ -1122,7 +1105,7 @@ def test_mid_category_numbers_are_derived_after_filtering_not_hardcoded() -> Non
     assert not re.search(r"code:'\d\d'", registry), "중분류 번호는 리터럴로 두지 않는다"
     # 번호는 표시용일 뿐 — 필터 키와 라우트는 그대로다
     for key in ("ipo", "liquidity", "rates", "economy", "valuation", "credit"):
-        assert f"hash:'#statistics/{key}'" in html
+        assert "hash:'#statistics/dotcom/'+key" in html
 
 
 def test_original_daily_chart_selects_member_and_preserves_labelled_baseline() -> None:
@@ -1159,16 +1142,16 @@ def test_three_tier_information_architecture_midlevel_navigation() -> None:
     # 서브패스를 허용하는 대분류: future / statistics / timeseries / records
     assert "statistics(?:\\/|$)|timeseries(?:\\/|$)|records(?:\\/|$))/" in script
     # 대분류는 5개 — 데이터와 신뢰는 기록의 데이터 탭으로 합쳐졌다
-    for kept in ("#today", "#future", "#statistics", "#timeseries", "#records"):
+    for kept in ("#today", "#future", "#statistics", "#records"):
         assert f'href="{kept}"' in html, kept
 
     # 02 미래 탐색: 중분류 4개 유지 + 전망 그래프의 소분류 2개
-    for lab in ("future", "history", "cross-asset", "liquidity"):
-        assert f'data-lab-tab="{lab}"' in html, lab
+    assert _mid_category_keys(html,"future") == [("graph",False),("timeseries",False)]
+    assert "predictionSectionNav('graph')" in html
     assert 'data-future-graph="original"' in html
 
     # 03 통계 비교: 카테고리 중분류 딥링크
-    assert "if(parts[0]==='statistics')return {section:'statistics',view:'statistics',arg:{category:parts[1]||null}}" in html
+    assert "category:parts[1]==='dotcom'?parts[2]||null:parts[1]||null" in html
     assert "const requestedCategory=typeof initialState==='string'?initialState:initialState?.category" in html
     assert "applyStatCategory(requestedCategory||'all',false)" in html
     # 카테고리 딥링크는 필터 목록 리터럴에 id가 있어야 라우팅된다 — 예전 단언은 `or True`로
@@ -1194,7 +1177,7 @@ def test_three_tier_information_architecture_midlevel_navigation() -> None:
     # 04 시계열 예측도 중분류를 갖는다. 게이트 통과 전에는 탭을 노출하되 비활성으로 둔다.
     assert "const TS_TABS=[['summary','전망 요약','01']" in html
     assert "const enabled=visible?TS_TABS.map(([key])=>key):['summary']" in html
-    assert "if(parts[0]==='timeseries')return {section:'timeseries',view:'timeseries',arg:{tsTab:parts[1]||null}}" in html
+    assert "if(parts[0]==='timeseries')return {section:'future',view:'timeseries',arg:{tsTab:parts[1]||null}}" in html
     assert "numbers_visible===true" in html
 
 
@@ -1251,9 +1234,9 @@ def test_v5_2_future_view_uses_one_log_scale_and_restores_research_panels() -> N
         "분석 방법과 세부 통계",
         "모두 보정되지 않은 모의 경로 비율입니다",
         "닷컴 조정 뒤 5년 · NASDAQ · Realty Income · D.R. Horton",
-        "유동성이 늘고 줄어든 구간",
-        "bindCrossAsset(crossAsset)",
-        "bindLiquidity(liquidity)",
+        "시장 자금 흐름",
+        "bindCrossAsset(panel,initialState.scenario)",
+        "bindLiquidity(panel)",
     ):
         assert required in html
     assert "scenarioCustomerViewNav" not in html
@@ -2042,16 +2025,17 @@ def test_home_cards_link_to_their_detail_pages() -> None:
     css = dashboard.DASHBOARD_STYLES.read_text(encoding="utf-8")
     overview = script[script.index("function renderOverview()"):script.index("function eventForecastValue(")]
     assert "'#future/original','몬테카를로 예측 상세 보기'" in overview
-    assert "'#timeseries','시계열 예측 상세 보기'" in overview
+    assert "'#future/timeseries','시계열 예측 상세 보기'" in overview
     assert "'#statistics','닷컴 대비 과열도 상세 보기'" in overview
     assert '<a class="card-link" href="${esc(href)}" aria-label="${esc(aria)}"></a>' in overview
     mood = script[script.index("function withCardLink("):script.index("function renderMarketMood()") + 600]
     assert "withCardLink(renderVixCard(mood.vix),vixDetailHref(),'VIX 상세 보기')" in mood
     assert "'#statistics/fear-greed','공포·탐욕 상세 보기'" in mood
-    assert "?'#timeseries/volatility':'#timeseries'" in mood
+    assert "?'#future/timeseries/volatility':'#future/timeseries'" in mood
     # #statistics/fear-greed 는 전체를 보이고 공포·탐욕 절로 내린다.
     stats = script[script.index("function renderStatistics("):script.index("function timeseriesFeatureLabel(")]
-    assert "requestedCategory==='fear-greed'" in stats and "lab.scrollIntoView" in stats
+    assert "renderStatisticsStudy(initialState);return;" in stats
+    assert "if(page==='fear-greed')" in script
     assert 'class="fng-lab" id="fear-greed"' in script
     assert ".has-card-link{position:relative" in css and ".card-link{position:absolute;inset:0" in css
     assert ".has-card-link:hover" in css and ".has-card-link:focus-within" in css

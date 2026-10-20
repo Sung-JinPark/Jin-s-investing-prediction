@@ -633,7 +633,7 @@ def test_independent_route_keeps_future_data_failure_from_blocking_trendlines(tm
     routes = source[source.index('function parseCanonicalRoute'):source.index('function renderFuturePathsLoadState')]
     out = run(tmp_path, "process.stdout.write(JSON.stringify(parseCanonicalRoute('#future/trendlines/bitcoin')));", extra=routes)
     assert out == {'section': 'trendlines', 'view': 'trendlines', 'arg': {'asset': 'bitcoin'}}
-    assert "const futurePathsRequested=v==='flow';" in source
+    assert "const futurePathsRequested=v==='flow'||statisticsStudyRequested;" in source
     categories = source[source.index('const MID_CATEGORIES='):source.index('function midCategories')]
     assert "hash:'#future/trendlines'" not in categories
     assert "{hash:'#trendlines/sk-hynix',code:'03'" in source
