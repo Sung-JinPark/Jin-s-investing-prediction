@@ -12,7 +12,7 @@ from . import contracts as C, research as R, storage as S
 
 ROOT = Path('data/trendlines_research_delivery')
 PREFIX = 'private-delivery-'
-MAX_BYTES = 384 * 1024
+MAX_BYTES = R.MAX_PRIVATE_ENVELOPE_BYTES + 16 * 1024
 KINDS = ('full', 'critical', 'representative', 'long_boundaries')
 
 

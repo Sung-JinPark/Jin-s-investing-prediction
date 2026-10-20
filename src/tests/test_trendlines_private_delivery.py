@@ -1,5 +1,6 @@
 """Pinned private charts survive partial calculation and interrupted publication."""
 from datetime import timedelta
+import hashlib
 import json
 from pathlib import Path
 import runpy
@@ -105,6 +106,22 @@ def test_idempotent_selection_never_rewrites_source_or_model_history(store):
     assert first==second==again['snapshot_id']
     assert all((root/p).read_bytes()==raw for p,raw in before.items())
     assert len(list((root/D.ROOT/'snapshots').glob('*.json')))==1
+
+
+def test_selection_preserves_existing_private_transport_budget_without_clipping(store):
+    root,stamp=store
+    current=R.decode_private_import(S.read_json(root/'bitcoin.trendlines.json'))
+    room=R.MAX_PRIVATE_PAYLOAD_BYTES-len(S.encode(current))-128
+    current['transport_note']='"'*(room//2)
+    payload=json.dumps(current,ensure_ascii=False,sort_keys=True,separators=(',',':'),allow_nan=False)
+    envelope={'schema_version':1,'contract_id':'trendlines_private_import_v1','publication_scope':'private_only',
+        'asset_id':'bitcoin','snapshot_id':current['snapshot_id'],'payload_json':payload,
+        'payload_sha256':hashlib.sha256(payload.encode()).hexdigest()}
+    assert 384*1024<len(S.encode(envelope))<=R.MAX_PRIVATE_ENVELOPE_BYTES
+    D.publish(root,'bitcoin',envelope)
+    chosen=D.load_selected(root,'bitcoin')
+    assert chosen['ohlc']==envelope
+    assert reader(root,stamp).read_asset_envelope('bitcoin')==S.encode(envelope)
 
 
 @pytest.mark.parametrize('target',['pointer','bundle','source','receipt','full_export','representative_export','policy'])
