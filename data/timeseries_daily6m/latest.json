@@ -2,7 +2,7 @@
   "anchor_date": "2026-10-14",
   "as_of": "2026-10-15T03:19:02.582313+00:00",
   "combined_with_existing_models": false,
-  "content_hash": "218c4f1d6eaaf4148ec8aae7cdc8d7e38d096a092abb25393f0d9a82897ca5ba",
+  "content_hash": "984c12c5217a35fecfa680f142a5c68327ae966d4890e31631211de41d27330d",
   "evidence": {
     "origin_age_sessions": 3,
     "predictive_validation": "not_established",
@@ -17,12 +17,12 @@
         "status": "stale"
       },
       {
-        "available_at": "2026-10-17T03:59:59+00:00",
+        "available_at": "2026-10-20T01:54:30.929047+00:00",
         "group": "VIX",
         "limit_hours": 48,
-        "observation_time": "2026-10-16",
+        "observation_time": "2026-10-19",
         "series_id": "VIXCLS",
-        "status": "stale"
+        "status": "fresh"
       },
       {
         "available_at": "2026-10-19T23:14:39.577316+00:00",
@@ -56,7 +56,6 @@
     "pass": false,
     "reasons": [
       "required source NASDAQCOM stale",
-      "required source VIX stale",
       "required source curve stale",
       "required source dollar stale"
     ]
