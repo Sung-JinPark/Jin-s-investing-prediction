@@ -617,7 +617,7 @@ live_forward_verdict_report:
 # 라이선스: Fed Board·BLS·CFTC 연방 산출물 공공영역(출처 표기). 메일 0 · UA 연락처 없음.
 rung7_public_blocks:
   registered: "2026-10-21"
-  prereg_commit: null                       # 사전등록 커밋 뒤 해시를 기입하는 후속 커밋(결과 전)에서 채운다. null 이면 러너가 거부한다.
+  prereg_commit: 94a89b57                   # 사전등록 커밋(결과 전). 후속 커밋에서 기입
   design_doc: docs/design/v13_rung7_prereg_261021.md
   diagnostics: data/timeseries_v13/prereg/rung7_candidate_diagnostics.json   # 라벨 미접촉 · 규칙 R1~R4 의 근거
   experiment_label: V13VOL_rung7_public
@@ -693,7 +693,7 @@ rung7_public_blocks:
 # 조건: 각 클래스의 차순위 후보가 R1~R3 를 통과하면 집행. 진단 결과 E2(|rho|<=0.036·cov 0.937)·P3(0.335·0.983)·D2(0.759·0.854) 전부 통과 → 등록.
 rung8_public_blocks:
   registered: "2026-10-21"
-  prereg_commit: null                       # rung7 과 같은 후속 커밋에서 채운다(결과 전).
+  prereg_commit: 94a89b57                   # rung7 과 같은 사전등록 커밋(결과 전)
   design_doc: docs/design/v13_rung7_prereg_261021.md
   diagnostics: data/timeseries_v13/prereg/rung7_candidate_diagnostics.json
   experiment_label: V13VOL_rung8_public_secondary
