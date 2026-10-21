@@ -1,8 +1,8 @@
 # Ledger accumulation audit
 
-- Generated: `2026-10-21T05:38:06+00:00`
+- Generated: `2026-10-21T06:12:17+00:00`
 - Latest completed NYSE day: `2026-10-20`
-- Result: accumulating 48 · frozen 2 · stalled 10 · inactive 12 · violation 0 · planned 3
+- Result: accumulating 49 · frozen 2 · stalled 9 · inactive 12 · violation 0 · planned 3
 
 | Ledger | Cadence | Files / rows | Latest | Status | Finding |
 |---|---:|---:|---:|---:|---|
@@ -21,7 +21,7 @@
 | `cross_asset_latest` | trading_daily | 1 | 2026-10-20 | **accumulating** | — |
 | `cross_asset_path_tracking` | trading_daily | 1 / 3 | — | **frozen** | — |
 | `timeseries_daily6m_research_forecasts` | weekly | 1 | 2026-10-21 | **accumulating** | — |
-| `timeseries_daily6m_research_resolutions` | trading_daily | 1 | 2026-10-20 | **accumulating** | — |
+| `timeseries_daily6m_research_resolutions` | trading_daily | 1 | 2026-10-21 | **accumulating** | — |
 | `timeseries_daily6m_research_runs` | weekly | 3 | 2026-10-21 | **accumulating** | — |
 | `cross_asset_path_tracking_v2` | trading_daily | 1 / 138 | 2026-10-20 | **accumulating** | — |
 | `scenario_band_calibration` | trading_daily | 1 / 1081 | 2026-10-20 | **accumulating** | — |
@@ -65,10 +65,10 @@
 | `timeseries_v13_vol_experiments` | event | 1 | 2026-09-10 | **accumulating** | — |
 | `timeseries_v13_holdout_scorings` | event | 1 | — | **accumulating** | — |
 | `timeseries_v13_approvals` | event | 1 | 2026-09-09 | **accumulating** | — |
-| `timeseries_v13_vol_live` | trading_daily | 1 | 2026-10-20 | **accumulating** | — |
+| `timeseries_v13_vol_live` | trading_daily | 1 | 2026-10-21 | **accumulating** | — |
 | `timeseries_v13_exog_vxn_observations` | event | 1 | 2014-12-31 | **accumulating** | — |
 | `timeseries_v13_exog_raw_receipts` | event | 1 | 2026-09-10 | **accumulating** | — |
-| `timeseries_v13_vol_live_resolutions` | trading_daily | 1 | 2026-10-19 | **stalled** | — |
+| `timeseries_v13_vol_live_resolutions` | trading_daily | 1 | 2026-10-20 | **accumulating** | — |
 | `timeseries_v13_vol_ladder_results` | event | 6 | — | **accumulating** | — |
 | `timeseries_v13_vol_coefficients` | event | 1 | — | **frozen** | — |
 | `trendlines_raw_artifacts` | event | 0 | — | **inactive** | — |
