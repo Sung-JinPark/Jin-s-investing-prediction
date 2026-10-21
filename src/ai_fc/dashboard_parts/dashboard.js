@@ -1,7 +1,8 @@
 "use strict";
+let FORECAST_SUMMARY_CHECKED_AT=0,FORECAST_SUMMARY_PROMISE=null,FORECAST_SUMMARY_ERROR=null;
 async function loadData(){
   if(window.__DATA__) return window.__DATA__;
-  if(window.__DATA_URL__){ const r = await fetch(window.__DATA_URL__,{cache:'no-store'}); if(!r.ok) throw new Error('데이터 파일을 불러오지 못했습니다 (HTTP '+r.status+')'); return await r.json(); }
+  if(window.__DATA_URL__){ const r = await fetch(window.__DATA_URL__,{cache:'no-store'}); if(!r.ok) throw new Error('데이터 파일을 불러오지 못했습니다 (HTTP '+r.status+')'); const data=await r.json();FORECAST_SUMMARY_CHECKED_AT=Date.now();return data; }
   return null;
 }
 let FUTURE_PATHS_PROMISE=null,FUTURE_PATHS_ERROR=null;
@@ -11,6 +12,50 @@ let STATISTICS_PROMISE=null,STATISTICS_ERROR=null;
    forecast_id 로 키를 잡는다: 인덱스로 묶으면 회차가 끼어들 때 본문이 조용히 어긋난다. */
 let FORECAST_BODIES={},FORECAST_BODIES_PROMISE=null,FORECAST_BODIES_ERROR=null;
 let TIMESERIES_DAILY_PROMISE=null,TIMESERIES_DAILY_ERROR=null;
+function forecastSummaryCheckDue(){
+  const age=Date.now()-FORECAST_SUMMARY_CHECKED_AT;
+  return !!(DATA&&!window.__DATA__&&window.__DATA_URL__&&(age<0||age>=60000));
+}
+function syncForecastChrome(){
+  const generated='갱신 '+formatKstTimestamp(DATA.meta.generated);
+  for(const id of ['asof','drawer-asof']){const node=document.getElementById(id);if(node)node.textContent=generated;}
+  const phase=document.getElementById('phase');if(phase&&DATA.meta.phase)phase.textContent=DATA.meta.phase;
+  updateFreshnessBadges();renderHeaderStrip();
+}
+async function refreshForecastSummary(epoch){
+  if(!FORECAST_SUMMARY_PROMISE&&!forecastSummaryCheckDue())return false;
+  const dataset=DATA;
+  const pending=FORECAST_SUMMARY_PROMISE||(FORECAST_SUMMARY_PROMISE=(async()=>{
+    const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),8000);
+    try{
+      const response=await fetch(window.__DATA_URL__,{cache:'no-store',signal:controller.signal});
+      if(!response.ok)throw new Error(`자료 확인 HTTP ${response.status}`);
+      const next=await response.json();
+      if(typeof next?.meta?.generated!=='string'||!Number.isFinite(Date.parse(next.meta.generated))||[next.scenario,next.scenario_v5_2,next.timeseries].some(value=>!value||typeof value!=='object'||Array.isArray(value)))throw new Error('자료 요약 형식이 올바르지 않습니다');
+      return next;
+    }finally{clearTimeout(timer);}
+  })());
+  try{
+    const next=await pending;
+    if(epoch!==ROUTE_EPOCH||DATA!==dataset)return false;
+    if(Date.parse(next.meta.generated)<Date.parse(dataset.meta.generated))throw new Error('이전 배포 자료가 반환됐습니다');
+    FORECAST_SUMMARY_CHECKED_AT=Date.now();FORECAST_SUMMARY_ERROR=null;
+    if(next.meta.generated===dataset.meta.generated)return false;
+    DATA=next;
+    FUTURE_PATHS_PROMISE=null;FUTURE_PATHS_ERROR=null;DAILY_FLOW_PROMISE=null;DAILY_FLOW_ERROR=null;
+    TIMESERIES_DAILY_PROMISE=null;TIMESERIES_DAILY_ERROR=null;STATISTICS_PROMISE=null;STATISTICS_ERROR=null;
+    FORECAST_BODIES={};FORECAST_BODIES_PROMISE=null;FORECAST_BODIES_ERROR=null;
+    syncForecastChrome();return true;
+  }catch(error){
+    if(epoch===ROUTE_EPOCH&&DATA===dataset)FORECAST_SUMMARY_ERROR=String(error?.message||error);
+    return false;
+  }finally{if(FORECAST_SUMMARY_PROMISE===pending)FORECAST_SUMMARY_PROMISE=null;}
+}
+function forecastRefreshNotice(root){
+  if(!FORECAST_SUMMARY_ERROR||document.body.dataset.view!=='future')return;
+  const note=el(`<aside class="forecast-refresh-note" role="status"><p>최신 자료를 확인하지 못해 이전 조회본을 표시합니다. 조회본 기준: ${esc(formatKstTimestamp(DATA.meta.generated))}</p><button type="button" data-forecast-summary-retry>다시 확인</button></aside>`);
+  note.querySelector('[data-forecast-summary-retry]').onclick=()=>{FORECAST_SUMMARY_CHECKED_AT=0;route();};root.prepend(note);
+}
 async function ensureTrendlines(assetId){return globalThis.TrendlineUI.ensure(assetId);}
 function semanticReferenceMatches(left={},right={}){
   return ['candidate_id','model_version','rules_version'].every(key=>left?.[key]&&left[key]===right?.[key]);
@@ -23,7 +68,7 @@ async function ensureFuturePaths(){
   const summary=DATA?.scenario_v5_2||{},deferred=summary.deferred_paths||{};
   if(!deferred.required||deferred.loaded)return true;
   if(FUTURE_PATHS_PROMISE)return FUTURE_PATHS_PROMISE;
-  FUTURE_PATHS_PROMISE=(async()=>{
+  const request=(async()=>{
     const url=window.__FUTURE_PATHS_URL__||deferred.url;
     if(!url)throw new Error('future paths URL missing');
     if(!globalThis.crypto?.subtle||!/^[a-f0-9]{64}$/.test(String(deferred.payload_sha256||'')))throw new Error('future paths integrity reference missing');
@@ -42,14 +87,15 @@ async function ensureFuturePaths(){
     DATA.scenario_v5_2.deferred_paths={...deferred,loaded:true,loaded_at:new Date().toISOString()};
     FUTURE_PATHS_ERROR=null;
     return true;
-  })().catch(error=>{FUTURE_PATHS_ERROR=String(error?.message||error);FUTURE_PATHS_PROMISE=null;throw error;});
-  return FUTURE_PATHS_PROMISE;
+  })().catch(error=>{if(DATA===dataset)FUTURE_PATHS_ERROR=String(error?.message||error);if(FUTURE_PATHS_PROMISE===request)FUTURE_PATHS_PROMISE=null;throw error;});
+  FUTURE_PATHS_PROMISE=request;return request;
 }
 async function ensureDailyFlow(){
+  const dataset=DATA;
   const summary=DATA?.daily_flow||{},deferred=summary.deferred_paths||{};
   if(!deferred.required||deferred.loaded)return true;
   if(DAILY_FLOW_PROMISE)return DAILY_FLOW_PROMISE;
-  DAILY_FLOW_PROMISE=(async()=>{
+  const request=(async()=>{
     const url=window.__DAILY_FLOW_URL__||deferred.url;
     if(!url)throw new Error('daily flow URL missing');
     const response=await fetch(url,{cache:'no-store'});
@@ -57,53 +103,58 @@ async function ensureDailyFlow(){
     const payload=await response.json(),daily=payload?.data?.daily_flow;
     if(payload?.contract_id!=='daily_flow_route_v1'||!daily)throw new Error('daily flow contract invalid');
     if(!dailyFlowSemanticReferenceMatches(summary.semantic_reference,payload.semantic_reference)||!dailyFlowSemanticReferenceMatches(summary.semantic_reference,daily.semantic_reference))throw new Error('daily flow semantic reference mismatch');
+    if(DATA!==dataset)throw new Error('daily flow summary changed during loading');
     DATA.daily_flow={...daily,deferred_paths:{...deferred,loaded:true,loaded_at:new Date().toISOString()}};
     DAILY_FLOW_ERROR=null;return true;
-  })().catch(error=>{DAILY_FLOW_ERROR=String(error?.message||error);DAILY_FLOW_PROMISE=null;throw error;});
-  return DAILY_FLOW_PROMISE;
+  })().catch(error=>{if(DATA===dataset)DAILY_FLOW_ERROR=String(error?.message||error);if(DAILY_FLOW_PROMISE===request)DAILY_FLOW_PROMISE=null;throw error;});
+  DAILY_FLOW_PROMISE=request;return request;
 }
 async function ensureStatistics(){
+  const dataset=DATA;
   const summary=DATA?.statistics_lab||{},deferred=summary.deferred_data||{};
   if(!deferred.required||deferred.loaded)return true;
   if(STATISTICS_PROMISE)return STATISTICS_PROMISE;
-  STATISTICS_PROMISE=(async()=>{
+  const request=(async()=>{
     const url=window.__STATISTICS_URL__||deferred.url;
     if(!url)throw new Error('statistics URL missing');
     const response=await fetch(url,{cache:'no-store'});
     if(!response.ok)throw new Error(`statistics HTTP ${response.status}`);
     const payload=await response.json();
     if(payload?.contract_id!=='statistics_route_v1'||payload.data?.statistics_lab?.status!=='ok')throw new Error('statistics route contract invalid');
+    if(DATA!==dataset)throw new Error('statistics summary changed during loading');
     DATA.statistics_lab=payload.data.statistics_lab;
     DATA.statistics_lab.deferred_data={...deferred,loaded:true,loaded_at:new Date().toISOString()};
     STATISTICS_ERROR=null;
     return true;
-  })().catch(error=>{STATISTICS_ERROR=String(error?.message||error);STATISTICS_PROMISE=null;throw error;});
-  return STATISTICS_PROMISE;
+  })().catch(error=>{if(DATA===dataset)STATISTICS_ERROR=String(error?.message||error);if(STATISTICS_PROMISE===request)STATISTICS_PROMISE=null;throw error;});
+  STATISTICS_PROMISE=request;return request;
 }
 async function ensureForecastBodies(){
+  const dataset=DATA;
   const deferred=DATA?.forecast_bodies||{};
   if(!deferred.required||deferred.loaded)return true;
   if(FORECAST_BODIES_PROMISE)return FORECAST_BODIES_PROMISE;
-  FORECAST_BODIES_PROMISE=(async()=>{
+  const request=(async()=>{
     const url=window.__FORECAST_BODIES_URL__||deferred.url;
     if(!url)throw new Error('forecast bodies URL missing');
     const response=await fetch(url,{cache:'no-store'});
     if(!response.ok)throw new Error(`forecast bodies HTTP ${response.status}`);
     const payload=await response.json();
     if(payload?.contract_id!=='forecast_bodies_v1'||!payload.bodies)throw new Error('forecast bodies contract invalid');
+    if(DATA!==dataset)throw new Error('forecast bodies summary changed during loading');
     FORECAST_BODIES=payload.bodies;
     DATA.forecast_bodies={...deferred,loaded:true,loaded_at:new Date().toISOString()};
     FORECAST_BODIES_ERROR=null;
     return true;
-  })().catch(error=>{FORECAST_BODIES_ERROR=String(error?.message||error);FORECAST_BODIES_PROMISE=null;throw error;});
-  return FORECAST_BODIES_PROMISE;
+  })().catch(error=>{if(DATA===dataset)FORECAST_BODIES_ERROR=String(error?.message||error);if(FORECAST_BODIES_PROMISE===request)FORECAST_BODIES_PROMISE=null;throw error;});
+  FORECAST_BODIES_PROMISE=request;return request;
 }
 async function ensureTimeseriesDaily(){
   const dataset=DATA;
   const summary=DATA?.timeseries_daily||{},deferred=summary.deferred_data||{};
   if(!deferred.required||deferred.loaded)return true;
   if(TIMESERIES_DAILY_PROMISE)return TIMESERIES_DAILY_PROMISE;
-  TIMESERIES_DAILY_PROMISE=(async()=>{
+  const request=(async()=>{
     const url=window.__TIMESERIES_DAILY_URL__||deferred.url;
     if(!url)throw new Error('일별 전망 데이터 주소가 없습니다');
     if(!globalThis.crypto?.subtle)throw new Error('이 환경에서는 전망 파일 무결성을 확인할 수 없습니다. HTTPS 또는 로컬 서버로 열어 주세요');
@@ -124,8 +175,8 @@ async function ensureTimeseriesDaily(){
     DATA.timeseries_daily={...projection,deferred_data:{...deferred,loaded:true}};
     TIMESERIES_DAILY_ERROR=null;
     return true;
-  })().catch(error=>{TIMESERIES_DAILY_ERROR=String(error?.message||error);TIMESERIES_DAILY_PROMISE=null;throw error;});
-  return TIMESERIES_DAILY_PROMISE;
+  })().catch(error=>{if(DATA===dataset)TIMESERIES_DAILY_ERROR=String(error?.message||error);if(TIMESERIES_DAILY_PROMISE===request)TIMESERIES_DAILY_PROMISE=null;throw error;});
+  TIMESERIES_DAILY_PROMISE=request;return request;
 }
 let DATA=null;
 const $=(s,r=document)=>r.querySelector(s);
@@ -1004,6 +1055,10 @@ const COMMAND_ROUTES=[
 function syncMidHash(hash){
   history.replaceState(null,'',hash);
   paintRailSubNav(document.body.dataset.view||'today',hash);
+  if(document.body.dataset.view==='future'&&hash.startsWith('#future')&&forecastSummaryCheckDue()){
+    const focused=document.activeElement?.dataset?.tsTab;
+    route().then(()=>{if(location.hash===hash&&focused)[...document.querySelectorAll('[data-ts-tab]')].find(node=>node.dataset.tsTab===focused)?.focus();});
+  }
 }
 function paintRailSubNav(navView,rawHash){
   const items=midCategories(navView,true),current=currentMidCategory(navView,rawHash);
@@ -2241,7 +2296,7 @@ function renderTimeseriesDaily(ts=DATA.timeseries_daily||{},loadState=null){
   mount(root);
   const nav=root.querySelector('.timeseries-tabs'),go=button=>{const key=button.dataset.tsTab;if(key!=='daily')location.hash=key==='summary'?'#future/timeseries':'#future/timeseries/'+key;};
   nav.querySelectorAll('[data-ts-tab]:not(:disabled)').forEach(button=>{button.onclick=()=>go(button);});bindTablistKeys(nav,'[data-ts-tab]',go);
-  root.querySelector('[data-daily-retry]')?.addEventListener('click',()=>{TIMESERIES_DAILY_ERROR=null;route();});
+  root.querySelector('[data-daily-retry]')?.addEventListener('click',()=>{TIMESERIES_DAILY_ERROR=null;FORECAST_SUMMARY_CHECKED_AT=0;route();});
   root.querySelector('[data-daily-refresh]')?.addEventListener('click',()=>location.reload());
   if(!visible||validityError)return;
   const host=root.querySelector('[data-daily-chart-host]'),sampleButton=root.querySelector('[data-daily-samples]');let months=6,showSamples=false,drawnWidth=0;
@@ -2716,7 +2771,7 @@ function renderFuturePathsLoadState(summary,error=null){
   const checkpoints=summary?.path_checkpoints||[],failed=!!error;
   const root=el(`<div class="future-paths-load-state" data-future-paths-state="${failed?'failed':'loading'}"><div class="page-heading"><div><p class="eyebrow">미래 탐색</p><h1>${failed?'전망 데이터를 불러오지 못했습니다':'세 가지 시나리오를 준비하고 있습니다'}</h1><p class="page-lede">${failed?'잠시 뒤 다시 시도해 주세요. 이전 방식의 그래프로 자동 전환하지 않습니다.':'상승·균형·스트레스 경로와 각 경로의 독립 DB를 불러오고 있습니다.'}</p>${failed?`<p class="future-paths-reason">사유: ${esc(String(error?.message||error))}</p>`:''}</div></div><section class="future-paths-checkpoints" aria-label="시나리오 체크포인트 요약">${checkpoints.map(row=>`<article><span>${esc(row.label)} · ${esc(row.date)}</span><div>${Object.entries(row.return_from_anchor||{}).map(([key,value])=>`<strong>${esc(key)} ${Number(value)>=0?'+':''}${(Number(value)*100).toFixed(1)}%</strong>`).join('')}</div><small>조건부 p50 요약</small></article>`).join('')||'<p>표시할 체크포인트가 없습니다.</p>'}</section>${failed?'<div class="future-paths-actions"><button type="button" data-future-retry>다시 불러오기</button><button type="button" data-future-refresh>페이지 새로고침</button></div>':''}</div>`);
   mount(root);
-  root.querySelector('[data-future-retry]')?.addEventListener('click',()=>{FUTURE_PATHS_ERROR=null;route();});
+  root.querySelector('[data-future-retry]')?.addEventListener('click',()=>{FUTURE_PATHS_ERROR=null;FORECAST_SUMMARY_CHECKED_AT=0;route();});
   root.querySelector('[data-future-refresh]')?.addEventListener('click',()=>location.reload());
 }
 /* 질문 상태는 레지스트리 status가 1차 축, 원장 행 유무가 2차 축이다 — 표·카드·⌘K가 같은 규칙을 쓴다.
@@ -2771,6 +2826,7 @@ async function route(){
     if(on)a.setAttribute('aria-current','page');else a.removeAttribute('aria-current');});
   paintRailSubNav(navView,rawHash);
   mobileMore?.classList.toggle('active',false);
+  if(navView==='future'){await refreshForecastSummary(epoch);if(epoch!==ROUTE_EPOCH)return;}
   if(v==='trendlines'){
     try{await ensureTrendlineAssets();}catch(error){if(epoch!==ROUTE_EPOCH)return;mount(el(`<section class="page-heading"><div><p class="eyebrow">상·하방 추세선 · 03</p><h1>추세선을 불러오지 못했습니다</h1><p>${esc(error.message)}</p><button type="button" data-trend-ui-retry>다시 불러오기</button></div></section>`));app().querySelector('[data-trend-ui-retry]').onclick=()=>route();return;}
     if(epoch!==ROUTE_EPOCH)return;
@@ -2799,7 +2855,7 @@ async function route(){
     const summary=DATA.scenario_v5_2||{};
     if(researchPathsRequested)renderFuturePathsLoadState(summary);
     if(statisticsStudyRequested)renderStatisticsStudy(arg,{loading:true});
-    try{await ensureFuturePaths();DATA.future_paths_error=null;}
+    try{await ensureFuturePaths();if(epoch!==ROUTE_EPOCH)return;DATA.future_paths_error=null;}
     catch(error){
       if(epoch!==ROUTE_EPOCH)return;
       if(statisticsStudyRequested){renderStatisticsStudy(arg,{error});return;}
@@ -2810,7 +2866,7 @@ async function route(){
   }
   if(v==='flow'&&DATA?.daily_flow?.deferred_paths?.required&&!DATA.daily_flow.deferred_paths.loaded){
     try{await ensureDailyFlow();}
-    catch(error){DATA.daily_flow={...DATA.daily_flow,status:'unavailable',reason:`일간 대표 경로 데이터를 불러오지 못했습니다: ${String(error?.message||error)}`};}
+    catch(error){if(epoch!==ROUTE_EPOCH)return;DATA.daily_flow={...DATA.daily_flow,status:'unavailable',reason:`일간 대표 경로 데이터를 불러오지 못했습니다: ${String(error?.message||error)}`};}
     if(epoch!==ROUTE_EPOCH)return;
   }
   if(v==='statistics'&&arg?.page==='dotcom'&&DATA?.statistics_lab?.deferred_data?.required&&!DATA.statistics_lab.deferred_data.loaded){
@@ -2824,6 +2880,7 @@ async function route(){
     if(epoch!==ROUTE_EPOCH)return;
   }
   (VIEWS[v]||renderOverview)(arg);
+  if(navView==='future'&&app().firstElementChild)forecastRefreshNotice(app().firstElementChild);
   requestAnimationFrame(()=>enhanceChartZoom(app()));
   renderCompareTray();
   recordRecent();
@@ -2832,6 +2889,11 @@ async function route(){
   window.scrollTo(0,0);
 }
 window.addEventListener('hashchange',route);
+document.addEventListener('click',event=>{
+  if(event.defaultPrevented||event.button!==0||event.ctrlKey||event.metaKey||event.altKey||event.shiftKey)return;
+  const link=event.target.closest('a[href^="#future"]');
+  if(link&&link.getAttribute('href')===location.hash&&forecastSummaryCheckDue()){event.preventDefault();route();}
+});
 /* role=tablist를 선언했으면 화살표 키가 동작해야 한다 — 클릭만 묶여 있던 위젯 3종 공용. */
 function bindTablistKeys(nav,selector,activate){
   if(!nav)return;
