@@ -33,7 +33,7 @@ def test_method_box_is_last_child_of_summary_panel_only() -> None:
     assert visible.index("${timeseriesSpecCard(ts)}") < visible.index("${panel('path'")
 
 
-def test_every_timeseries_chart_has_hover_and_readout() -> None:
+def test_every_timeseries_chart_has_hover_and_screen_reader_readout() -> None:
     html = _html()
     assert "function bindTsHover(host,spec)" in html
     assert "matchMedia('(pointer: fine)')" in html
@@ -41,6 +41,7 @@ def test_every_timeseries_chart_has_hover_and_readout() -> None:
         assert f'data-ts-chart="{key}"' in html, key
     assert html.count("${tsReadout()}") >= 4, "SVG 도표마다 role=status 리드아웃"
     assert "data-ts-overlay" in html and 'role="status" aria-live="polite"' in html
+    assert 'class="ts-readout sr-only"' in html, "상시 숫자 요약은 숨기고 화면낭독기 안내 유지"
     for key in ("cards", "ladder", "fresh", "kpis"):
         assert f'data-ts-chart="{key}"' in html, key
     v8 = html[html.index("function renderTimeseriesV8"):html.index("function renderTimeseries(")]
@@ -55,14 +56,14 @@ def test_every_timeseries_chart_has_hover_and_readout() -> None:
     assert "const hide=()=>{if(tip)tip.style.display='none';if(pinned)return;" in html
 
 
-def test_v8_enables_four_tabs_and_keeps_disclosure_on_every_tab() -> None:
+def test_v8_enables_four_tabs_without_repeated_explanatory_copy() -> None:
     html = _html()
     v8 = html[html.index("function renderTimeseriesV8"):html.index("function renderTimeseries(")]
     assert "const enabled=['summary','path','drivers','backtest']" in v8
-    foot = html[html.index("function tsFootnote(ts)"):html.index("function bindTimeseriesV8Interactions")]
-    assert "매매 신호가 아닙니다" in foot, "방법 박스가 첫 탭으로 들어가도 4탭 공통 공시 유지"
-    assert "기여도(가중치×변화) 아님" in v8, "기여 요인 탭 정직성 리드"
-    assert "선형 보간(참고용)" in html, "보간 정직성 캡션 유지"
+    for removed in ("기여도(가중치×변화) 아님", "운영 신선도 OK", "봉인창(2019+)", "원점 경과", "tsDailyCta", "tsFootnote"):
+        assert removed not in v8, removed
+    band = html[html.index("function timeseriesV8BandSvg"):html.index("const V13_CELL_LABELS=")]
+    assert 'class="timeseries-band-caption"' not in band
     # 가격 레벨+확률 결합 문장·새 확률 파생 금지 — 시계열 구역 전체를 패턴으로 검사
     ts_region = html[html.index("const tsLevel="):html.index("const GC_API=")]
     assert re.search(r"(아래|밑|이하|미만|초과)[^<`'\"]{0,8}(가능성|확률)", ts_region) is None, "임계 확률 문장 금지"
@@ -78,9 +79,13 @@ def test_beginner_language_layer_leads_every_tab() -> None:
     html = _html()
     v8 = html[html.index("function renderTimeseriesV8"):html.index("function renderTimeseries(")]
     # 요약: 3줄 요약 박스(BLUF)가 카드보다 앞
-    assert 'class="ts-brief"' in v8
-    assert v8.index('ts-brief') < v8.index('timeseries-horizons')
-    assert "범위 전망(한 값 예측 아님)" in v8
+    assert 'const tsBrief=timeseriesBrief(ts)' in v8
+    assert v8.index('${tsBrief}') < v8.index('timeseries-horizons')
+    brief = html[html.index("function timeseriesBrief("):html.index("function renderTimeseriesV8(")]
+    for label in ("3개월 뒤 예상", "예상 범위", "현재 대비", "계산상 80% 범위", "과거 예측 성적", "성적표 보기"):
+        assert label in brief
+    for removed in ("범위 전망(한 값 예측 아님)", "실전 확정 성적", "2008년급", "시점 검증"):
+        assert removed not in brief
     # 도수 표현이 1차 라벨
     assert "10번 중 8번 범위" in html
     assert "100번 중 ${Math.round(row.up*100)}번" in html  # 카드는 2줄로 줄고, 도수 표현은 툴팁 1차 행으로
@@ -110,7 +115,8 @@ def test_beginner_language_layer_leads_every_tab() -> None:
         assert question in pillars, question
     assert "위 성적은 전부 과거 구간 재실행입니다" in pillars
     # 점수는 빌더가 싣는 값을 그대로 그린다 — 화면에서 재계산하지 않는다
-    assert "sealed_metrics||{}).score100" in card and "게이트·모델·확률 무변경" in card
+    assert "sealed_metrics||{}).score100" in card
+    assert "표시 전용 점수 — 게이트·모델·확률 무변경" not in card
     # 성적표는 호버 의무 표면이 아니다 (배선 계약과 충돌 금지)
     assert 'data-ts-chart="scorecard"' not in html
 
@@ -131,17 +137,16 @@ def test_compacted_bundle_parses_with_node() -> None:
 
 
 def test_timeseries_pure_helpers_behave() -> None:
-    """tsHorizonRows 폴백·tsSealedRows 필터·tsFootnote 중복 방지·spec card 분기를 node로 실행 검증."""
+    """기존 수치 폴백과 봉인창 필터는 문구 정리 뒤에도 그대로 유지한다."""
     node = shutil.which("node")
     if not node:
         pytest.skip("node not available")
     html = _html()
     script = html[html.index("const tsLevel="):html.index("function tsHoverLayer")]
-    footnote = html[html.index("function tsFootnote(ts)"):html.index("function bindTimeseriesV8Interactions")]
     sealed = html[html.index("function tsSealedRows(ts)"):html.index("function tsSkillModel")]
     probe = """
 const esc=s=>String(s==null?'':s);
-""" + script + sealed + footnote + """
+""" + script + sealed + """
 const ts={anchor:{value:100},horizons:{'1':{median_index:101,point_return:0.01,probability_up:0.6,band_index:{p10:98,p25:99,p75:102,p90:104}},'5':{}, '21':{median_index:0},'63':{median_index:110,point_return:0.1,probability_up:0.7,band_index:{p10:90,p25:100,p75:115,p90:120},log_return:{p10:-0.1,p25:0,p50:0.0953,p75:0.14,p90:0.18}}},
   sealed_metrics:{sealed_window:{origin_count:385,horizons:{'21':{crps_improvement_vs_best:0.02,coverage_p10_p90:0.79},'63':{crps_improvement_vs_best:null,coverage_p10_p90:0.8},'5':{crps_improvement_vs_best:'x'}}}},footnote:'*기준 · 매매 신호가 아닙니다'};
 const rows=tsHorizonRows(ts);
@@ -150,8 +155,6 @@ const out={
   fallback_r10:Number(rows[0].r10.toFixed(3)),
   log_r10:Number(rows[1].r10.toFixed(4)),
   sealed:tsSealedRows(ts).map(r=>r.h),
-  footnote_once:(tsFootnote(ts).match(/매매 신호/g)||[]).length,
-  footnote_added:tsFootnote({}).includes('매매 신호가 아닙니다'),
 };
 process.stdout.write(JSON.stringify(out));
 """
@@ -166,7 +169,60 @@ process.stdout.write(JSON.stringify(out));
     assert out["fallback_r10"] == -0.02, "log_return 없으면 band_index/anchor 폴백"
     assert abs(out["log_r10"] - (-0.0952)) < 0.001, "log_return 있으면 expm1"
     assert out["sealed"] == ["21"], "CRPS 개선율이 숫자인 기간만"
-    assert out["footnote_once"] == 1 and out["footnote_added"] is True
+
+
+@pytest.mark.parametrize(
+    ("change", "score", "expected_change", "expected_score"),
+    [
+        (0.0433, {"total": 70, "grade": "B", "label": "보통"}, "약 4.33% 상승 예상", "70점 / 100점"),
+        (-0.0433, {"total": 0, "grade": "F", "label": "부족"}, "약 4.33% 하락 예상", "0점 / 100점"),
+        (0, None, "비슷한 수준", "성적 집계 전"),
+        (0.01, {"total": None, "label": "보통"}, "약 1.00% 상승 예상", "성적 집계 전"),
+    ],
+)
+def test_three_line_brief_uses_existing_forecast_and_score(
+    tmp_path: Path, change: float, score: dict | None, expected_change: str, expected_score: str,
+) -> None:
+    """문구만 바꾸고 지수·구간·기존 점수를 그대로 표시한다. 0점도 유효하다."""
+    import json
+
+    node = shutil.which("node")
+    if not node:
+        pytest.skip("node not available")
+    html = _html()
+    helpers = html[html.index("const tsLevel="):html.index("function tsHoverLayer")]
+    brief_function = html[html.index("function timeseriesBrief("):html.index("function renderTimeseriesV8(")]
+    payload = {
+        "anchor": {"value": 100},
+        "horizons": {"63": {
+            "median_index": 100 * (1 + change), "point_return": change,
+            "band_index": {"p10": 92.3, "p25": 97, "p75": 107, "p90": 112},
+        }},
+        "sealed_metrics": {"score100": score, "sealed_window": {"origin_count": 385}, "forward": {"resolved_rows": 19}},
+    }
+    probe = (
+        "const esc=s=>String(s==null?'':s);\n"
+        "const hasNumeric=v=>typeof v==='number'&&Number.isFinite(v);\n"
+        + helpers + brief_function + "\nconst ts=" + json.dumps(payload) + ";\n"
+        "const before=JSON.stringify(ts),brief=timeseriesBrief(ts);\n"
+        "process.stdout.write(JSON.stringify({brief,unchanged:before===JSON.stringify(ts)}));\n"
+    )
+    path = tmp_path / "brief_probe.js"
+    path.write_text(probe, encoding="utf-8")
+    completed = subprocess.run([node, str(path)], capture_output=True, text=True, encoding="utf-8")
+    assert completed.returncode == 0, completed.stderr[:2000]
+    out = json.loads(completed.stdout)
+    brief = out["brief"]
+    text = re.sub(r"<[^>]+>", "", brief)
+    assert out["unchanged"]
+    assert expected_change in text and expected_score in text
+    assert f"지수 {round(100 * (1 + change)):,}" in text
+    assert "-7.7%" in text and "+12.0%" in text and "계산상 80% 범위" in text
+    assert 'href="#future/timeseries/backtest"' in brief
+    if score and score["total"] is not None:
+        assert score["label"] in brief
+    for removed in ("385", "19건", "검증 보류", "2008년급", "봉인창"):
+        assert removed not in brief
 
 
 def test_phase2_separates_sealed_window_from_development_inclusive_backtest() -> None:
@@ -265,4 +321,5 @@ def test_payload_budget_declarations_match_code() -> None:
     assert budgets["embed_html_max_bytes"] == dashboard.DASHBOARD_RAW_BUDGET_BYTES
     assert budgets["future_paths_json_max_bytes"] == dashboard.FUTURE_PATHS_BUDGET_BYTES
     assert budgets["data_json_max_bytes"] == dashboard.DATA_JSON_BUDGET_BYTES
+    assert budgets["band_calibration_json_max_bytes"] == dashboard.BAND_CALIBRATION_BUDGET_BYTES
     assert budgets["timeseries_v13_vol_max_bytes"] == dashboard.TIMESERIES_V13_VOL_BUDGET_BYTES

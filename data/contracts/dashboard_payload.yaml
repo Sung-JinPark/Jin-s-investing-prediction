@@ -14,11 +14,25 @@ budgets:
   # 근거 원문 사이드카 — 2026-09-15 Pages 빌드가 905,556 B 로 data.json 예산을 넘겨
   # 깨진 뒤 분리했다. 본문은 예측 수에 비례해 단조 증가하므로 첫 화면 예산에 두지 않는다.
   forecast_bodies_json_max_bytes: 900000
+  # 보정 원장 원시 행은 요약·게이트와 분리해 손실 없이 보관한다.
+  band_calibration_json_max_bytes: 900000
   # V13-VOL 변동성 base rate 인라인 키(timeseries_v13_vol) 전용 예산 — 표시 설계서 §3 (2026-09-08).
   timeseries_v13_vol_max_bytes: 24000
   timeseries_daily_json_max_bytes: 131072
   trendlines_summary_max_bytes: 16384
   trendlines_asset_json_max_bytes: 262144
+
+band_calibration:
+  filename: band_calibration.json
+  load_policy: archive_only_not_required_for_rendering
+  base_payload_content: aggregate_counters_gates_source_and_archive_reference
+  archived_field: rows
+  lossless: true
+  applies_to: [pages, embed_archive]
+  immutable_source: data/scenarios/band_calibration.csv
+  api_policy: retain_full_rows
+  archive_integrity: [row_count, payload_sha256]
+  build_failure: explicit_error_without_partial_publication
 
 forecast_bodies:
   filename: forecast_bodies.json

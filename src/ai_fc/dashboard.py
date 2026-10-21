@@ -72,6 +72,10 @@ STATISTICS_DATA_FILENAME = "statistics.json"
 # 쪼개기는 내용을 옮기는 게 아니라 지우는 것이다(ADR-002).
 FORECAST_BODIES_BUDGET_BYTES = 900_000
 FORECAST_BODIES_FILENAME = "forecast_bodies.json"
+# Raw calibration rows are an audit archive, not first-paint chart inputs.
+# Preserve them losslessly in a separately bounded file as the ledger grows.
+BAND_CALIBRATION_BUDGET_BYTES = 900_000
+BAND_CALIBRATION_FILENAME = "band_calibration.json"
 # 첫 화면을 막는 payload는 예산 없이 자라면 안 된다 — 실측 633KB에서 시작한다.
 DATA_JSON_BUDGET_BYTES = 900_000
 # 가드에 닿기 전에 보이도록 소프트 경고 임계(예산의 90%)를 둔다.
@@ -1671,29 +1675,71 @@ def _compact_embed_forecast_history(read_model: dict) -> dict:
     return compacted
 
 
-def _compact_embed_band_calibration(read_model: dict) -> dict:
-    """Archive raw band-calibration rows out of the standalone snapshot.
+def split_band_calibration_rows(
+    read_model: dict, *, reason: str = "data_json_size_budget",
+) -> tuple[dict, dict | None]:
+    """Keep calibration gates inline and preserve every raw row in an archive.
 
-    The dashboard UI renders only the aggregate promotion-gate counters
-    (status/observations/gate_pass), never the per-day rows, so the embed
-    keeps every rendered figure while the row-level ledger stays published
-    unchanged in the Pages ``data.json`` payload, the ``/api/data`` route and
-    the immutable source CSV referenced by ``source_path``.  This mirrors the
-    resolved-forecast-body archival: transport changes, information does not.
+    No browser renderer consumes these rows. The archive retains all columns,
+    row order and original values, including the summary and source metadata.
+    The read model, API response and immutable CSV are never modified.
     """
     band = read_model.get("band_calibration")
     if not isinstance(band, dict) or "rows" not in band:
-        return read_model
+        return read_model, None
+    if not isinstance(band["rows"], list):
+        raise ValueError("band calibration rows must be a list")
+    payload = {
+        "schema_version": 1,
+        "contract_id": "band_calibration_archive_v1",
+        "data": {"band_calibration": band},
+    }
+    raw = json.dumps(
+        payload, ensure_ascii=False, default=str, separators=(",", ":"),
+        allow_nan=False,
+    ).encode("utf-8")
+    if len(raw) > BAND_CALIBRATION_BUDGET_BYTES:
+        raise ValueError(
+            f"band calibration archive budget exceeded: {len(raw)} > "
+            f"{BAND_CALIBRATION_BUDGET_BYTES}"
+        )
+    if len(raw) > BAND_CALIBRATION_BUDGET_BYTES * PAYLOAD_WARN_RATIO:
+        print(
+            f"warning: {BAND_CALIBRATION_FILENAME} {len(raw)}B is "
+            f"{len(raw) / BAND_CALIBRATION_BUDGET_BYTES:.1%} of its budget"
+        )
     compacted = dict(read_model)
     archived = {key: value for key, value in band.items() if key != "rows"}
     archived["rows_archived"] = {
         "archived": True,
-        "row_count": len(band.get("rows") or []),
-        "reason": "embed_size_budget",
+        "row_count": len(band["rows"]),
+        "reason": reason,
         "source_path": band.get("source_path"),
-        "full_payload": "data.json",
+        "full_payload": BAND_CALIBRATION_FILENAME,
+        "url": BAND_CALIBRATION_FILENAME,
+        "contract_id": payload["contract_id"],
+        "payload_sha256": hashlib.sha256(raw).hexdigest(),
+        "payload_bytes": len(raw),
     }
     compacted["band_calibration"] = archived
+    return compacted, payload
+
+
+def _write_band_calibration_sidecar(payload: dict | None, output: Path) -> None:
+    target = output / BAND_CALIBRATION_FILENAME
+    if payload is None:
+        # This is a replaceable public output, never a source ledger.
+        target.unlink(missing_ok=True)
+        return
+    target.write_bytes(json.dumps(
+        payload, ensure_ascii=False, default=str, separators=(",", ":"),
+        allow_nan=False,
+    ).encode("utf-8"))
+
+
+def _compact_embed_band_calibration(read_model: dict) -> dict:
+    """Link unrendered rows to the lossless archive written beside the embed."""
+    compacted, _ = split_band_calibration_rows(read_model, reason="embed_size_budget")
     return compacted
 
 
@@ -2081,10 +2127,12 @@ def write_dashboard(conn: sqlite3.Connection, root: Path) -> Path:
     base, future_paths = split_future_paths(base)
     base, timeseries_daily = split_timeseries_daily_data(base)
     base, trendlines_assets = split_trendlines_data(base)
+    base, band_calibration = split_band_calibration_rows(base, reason="embed_size_budget")
     out = root / "reports" / "dashboard.html"
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(render_html(base, mode="embed"), encoding="utf-8")
     _write_trendlines_sidecars(trendlines_assets, out.parent)
+    _write_band_calibration_sidecar(band_calibration, out.parent)
     if daily_flow is not None:
         (out.parent / DAILY_FLOW_FILENAME).write_text(
             json.dumps(daily_flow, ensure_ascii=False, default=str, separators=(",", ":")),
@@ -2180,6 +2228,7 @@ def write_pages(conn: sqlite3.Connection, out_dir: Path, root: Path) -> Path:
     base, forecast_bodies = split_forecast_bodies(base)
     base, timeseries_daily = split_timeseries_daily_data(base)
     base, trendlines_assets = split_trendlines_data(base)
+    base, band_calibration = split_band_calibration_rows(base)
     out_dir.mkdir(parents=True, exist_ok=True)
     index = out_dir / "index.html"
     index.write_text(render_html(model, mode="pages"), encoding="utf-8")
@@ -2196,6 +2245,7 @@ def write_pages(conn: sqlite3.Connection, out_dir: Path, root: Path) -> Path:
             f"{base_size / DATA_JSON_BUDGET_BYTES:.1%} of its budget"
         )
     (out_dir / "data.json").write_text(base_json, encoding="utf-8")
+    _write_band_calibration_sidecar(band_calibration, out_dir)
     _write_trendlines_sidecars(trendlines_assets, out_dir)
     if daily_flow is not None:
         (out_dir / DAILY_FLOW_FILENAME).write_text(

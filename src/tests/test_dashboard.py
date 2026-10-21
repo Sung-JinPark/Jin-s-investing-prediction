@@ -177,12 +177,16 @@ def test_embed_compaction_archives_band_calibration_rows_without_mutating_pages_
     assert "rows" not in archived
     assert archived["observations"] == 2
     assert archived["gate_pass"] is False
-    assert archived["rows_archived"] == {
+    metadata = archived["rows_archived"]
+    assert {key: metadata[key] for key in (
+        "archived", "row_count", "reason", "source_path", "full_payload", "url",
+    )} == {
         "archived": True,
         "row_count": 2,
         "reason": "embed_size_budget",
         "source_path": "data/scenarios/band_calibration.csv",
-        "full_payload": "data.json",
+        "full_payload": "band_calibration.json",
+        "url": "band_calibration.json",
     }
     # Pages/data.json 경로가 쓰는 원본 모델은 무수정.
     assert len(model["band_calibration"]["rows"]) == 2
@@ -397,7 +401,7 @@ def test_ui_contract() -> None:
     assert "--display:'Wanted Sans Variable','Wanted Sans'" in html
     assert "--sans:'Wanted Sans Variable','Wanted Sans'" in html
     assert "font-variant-numeric:tabular-nums" in html
-    assert "font-size:clamp(31px,2.55vw,36px)" in html
+    assert "#app .page-header h1{" in html and "font-size:32px" in html
     assert "letter-spacing:-.055em" in html
     assert 'class="command-layer"' in html and 'role="dialog"' in html
     assert 'aria-modal="true"' in html and "setCommand" in html
@@ -413,7 +417,7 @@ def test_ui_contract() -> None:
     assert "function drawCrossAssetHistory" in html
     assert "function drawCrossAsset(host" not in html
     assert "조건 4개" in html
-    assert "모두 2001-03~2006-03 실측" in html
+    assert "모두 2001-03~2006-03 실측" not in html
     assert "config.valueMode==='return_from_100'?signedDelta(value-100,0,'%')" in html
     assert "rates_stay_high_support" in html
     # 핵심 확률 대형 타이포 (72px+ clamp)
@@ -1024,11 +1028,12 @@ def test_single_scenario_chart_draws_only_the_upside_path() -> None:
 
 
 def test_mid_navigation_strips_are_compact() -> None:
-    """중분류 탭이 통계 필터와 같은 조밀한 한 줄이어야 한다."""
+    """주메뉴 탭은 같은 간격과 선택 상태를 쓰고 하위 차트 조절기는 유지한다."""
     css = dashboard.DASHBOARD_STYLES.read_text(encoding="utf-8")
-    assert ".lab-tabs{margin:16px 0 12px;display:flex;flex-wrap:wrap" in css
-    assert ".lab-tabs button{min-width:112px;min-height:44px" in css
-    assert ".lab-tabs button>small{display:none}" in css, "부제는 한 줄에 들어가지 않는다"
+    assert "#app .page-tabs{display:flex;flex-wrap:wrap;gap:6px" in css
+    assert "#app .page-tabs>:is(a,button){" in css and "min-height:44px" in css
+    assert "[aria-current=\"page\"],[aria-selected=\"true\"]" in css
+    assert "box-shadow:inset 0 -2px var(--orange)" in css
     assert "grid-template-columns:repeat(3,minmax(0,1fr));gap:1px;border:1px solid var(--line-strong)" not in css
     # 기준 요약 스트립도 축소
     assert ".scenario-v52-overview>div{padding:9px 13px" in css
@@ -1412,10 +1417,11 @@ def test_decision_journal_share_and_contrast_contract() -> None:
 def test_round2_cross_asset_explanations_and_method_event_contract() -> None:
     html = dashboard.load_template()
     for required in (
-        "realtyContext.condition_summary", "모두 2001-03~2006-03 실측",
+        "realtyContext.condition_summary",
         "gate 경계(n=156)", "DATA.method_changes", "public_repository_url",
     ):
         assert required in html
+    assert "모두 2001-03~2006-03 실측" not in html
     changes = (dashboard.config.ROOT / "data/method_changes.jsonl").read_text(encoding="utf-8")
     assert "교차자산 경로 추적 원장 v2 전환" in changes
 
@@ -1594,6 +1600,7 @@ def test_pages_payload_stays_within_budget_on_the_real_repository(tmp_path) -> N
     base, bodies = dashboard.split_forecast_bodies(base)
     base, _ = dashboard.split_timeseries_daily_data(base)
     base, _ = dashboard.split_trendlines_data(base)
+    base, _ = dashboard.split_band_calibration_rows(base)
     encode = lambda payload: len(json.dumps(  # noqa: E731
         payload, ensure_ascii=False, default=str, separators=(",", ":"),
     ).encode("utf-8"))
@@ -1927,18 +1934,20 @@ def test_mobile_market_strip_uses_three_non_overlapping_cells() -> None:
     assert ".market-strip strong{min-width:0;display:block;overflow:hidden" in css
 
 
-def test_all_page_primary_headings_are_scaled_to_seventy_percent() -> None:
+def test_all_page_primary_headings_use_shared_page_chrome() -> None:
     css = dashboard.DASHBOARD_STYLES.read_text(encoding="utf-8")
     for required in (
-        ".page-heading h1{max-width:900px;color:#11110f;font-size:clamp(29px,3.5vw,48px)",
-        ".overview-copy h1{font-size:clamp(31px,2.55vw,36px)}",
-        ".detail-hero h1{font-size:clamp(21px,2.52vw,38px)",
-        ".today-hero h1{max-width:870px;margin:0;font-size:clamp(18px,2.1vw,31px)",
-        ".today-hero h1{font-size:21px}",
-        ".page-heading h1{font-size:clamp(24px,7vw,29px)",
-        ".page-heading h1{font-size:22px}",
+        "#app .page-header{display:block",
+        "padding:22px 24px", "background-image:none",
+        "#app .page-header::before,#app .page-header::after{display:none;content:none",
+        "#app .page-header h1{", "font-size:32px", "font-weight:700;line-height:1.18",
+        "#app .page-header{min-height:88px;padding:18px 16px}",
+        "#app .page-header h1{font-size:26px}",
     ):
         assert required in css
+    script = dashboard.DASHBOARD_SCRIPT.read_text(encoding="utf-8")
+    mount = script[script.index("function mount("):script.index("function bindDynamicMotion(")]
+    assert "normalizePageChrome(root);" in mount
 
 
 def test_v8_card_returns_use_two_decimal_precision() -> None:
@@ -1953,18 +1962,13 @@ def test_v8_card_returns_use_two_decimal_precision() -> None:
     assert "*100).toFixed(1)}% · p10–p90" not in v8, "히어로 수익률도 2자리"
 
 
-def test_v8_card_gate_widget_band_chart_and_hold_reasons_are_wired() -> None:
-    """UI/UX 설계 260902 PR-U1/U2/U3 — 마크업 계약."""
+def test_v8_chart_and_hold_reasons_remain_without_header_status_widgets() -> None:
     html = dashboard.load_template()
     v8 = html[html.index("function timeseriesV8BandSvg"):html.index("const VIEWS")]
     assert "const enabled=['summary','path','drivers','backtest']" in v8, "v8 4탭 활성 (재설계 260903: 입력 신선도·봉인 지표로 채움)"
-    # 히어로 칩은 out-of-sample 봉인창(2019+) 판정을 말한다 — 개발기간이 섞인 전체창
-    # 원점을 'PASS'로 단정하면 과대 신뢰가 된다(사이트 검수 260904).
-    assert "봉인창(2019+) ${gateWinPass?'통과':'보류'}" in v8, "게이트 칩은 봉인창 판정 분기"
-    assert "gateWin.gate_pass===true" in v8, "칩 상태는 봉인창 gate_pass에 연동"
-    assert "운영 신선도 OK" in v8, "신선도 칩"
+    for removed in ("봉인창(2019+)", "운영 신선도 OK", "원점 경과", "${gateStrip}", "선형 보간(참고용)"):
+        assert removed not in v8, removed
     assert "봉인 평가 PASS" not in v8, "PASS 단정 문자열 제거"
-    assert "선형 보간(참고용)" in v8, "보간 정직성 캡션"
     assert "ts-node-dot" in v8, "실측 노드 마커"
     assert "timeseries-hold-reasons" in v8, "HOLD 사유 노출"
     assert "p10_p90_hint" in html and "crps_hint" in html, "UI_TERMS 확장"
