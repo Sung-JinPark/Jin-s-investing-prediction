@@ -272,7 +272,7 @@ def test_status_freshness_uses_now_not_frozen_payload_quality(tmp_path):
     assert row["status"] == "stale" and row["reason"] == "latest_completed_session_missing"
     assert row["source_asof"] == ASOF
     status = companion.status()
-    assert len(S.encode(status)) < L.STATUS_BUDGET and len(status["assets"]) == 7
+    assert len(S.encode(status)) < L.STATUS_BUDGET and len(status["assets"]) == len(C.ASSET_IDS)
     assert status["assets"][-1]["asset_id"] == "mag7" and status["assets"][-1]["status"] == "hold"
 
 

@@ -39,8 +39,12 @@ ignored. If task registration is unavailable, the installer uses the current
 user's Startup folder instead. The existing Python environment runs the
 companion in the background.
 
-The six exact Yahoo instruments are `000660.KS`, `SOXX`, `^IXIC`, `^GSPC`,
-`BTC-USD`, and `^DJI`. The requested Solactive Magnificent Seven index remains
+The ten exact Yahoo instruments are `000660.KS`, `SOXX`, `^IXIC`, `^GSPC`,
+`BTC-USD`, `^DJI`, `^KS11` (KOSPI), `005930.KS` (Samsung Electronics), `NVDA`
+and `MU`. The four later instruments use calendars the companion already
+replays (XKRX, XNAS). An upgraded companion copies the new registry entries into
+its private root; captured definitions must stay byte-identical, otherwise the
+refresh stops instead of redefining them. The requested Solactive Magnificent Seven index remains
 HOLD without its exact source. Collection attempts do not imply that every
 source succeeded: errors retain the last verified personal chart and are shown
 with its original acquisition date and current missing-session status.
@@ -84,7 +88,7 @@ For foreground operation, or to start from existing files without an immediate
 acquisition:
 
 ```powershell
-python tools/run_private_trendlines.py --port 8878 --assets sk-hynix soxx nasdaq sp500 bitcoin dow
+python tools/run_private_trendlines.py --port 8878 --assets sk-hynix soxx nasdaq sp500 bitcoin dow kospi samsung nvidia micron
 python tools/run_private_trendlines.py --port 8878 --no-startup-refresh
 ```
 

@@ -760,7 +760,7 @@ function stepBriefing(delta){
 }
 function currentDescriptor(){
   const hash=trendRouteAlias(location.hash||'#today');
-  if(/^#trendlines\/(sk-hynix|soxx|nasdaq|sp500|bitcoin|dow)$/.test(hash))return {hash,title:'상·하방 추세선 · '+({'sk-hynix':'SK하이닉스',soxx:'SOXX',nasdaq:'나스닥',sp500:'S&P 500',bitcoin:'비트코인',dow:'다우존스'})[hash.split('/')[1]],type:'route'};
+  if(/^#trendlines\/(sk-hynix|soxx|nasdaq|sp500|bitcoin|dow|kospi|samsung|nvidia|micron)$/.test(hash))return {hash,title:'상·하방 추세선 · '+({'sk-hynix':'SK하이닉스',soxx:'SOXX',nasdaq:'나스닥',sp500:'S&P 500',bitcoin:'비트코인',dow:'다우존스',kospi:'코스피',samsung:'삼성전자',nvidia:'엔비디아',micron:'마이크론'})[hash.split('/')[1]],type:'route'};
   if(hash.startsWith('#records/question/')){
     const id=hash.slice(18),q=DATA?.questions?.find(x=>x.id===id);
     return q?{hash,title:q.title,type:'question'}:null;
@@ -771,7 +771,7 @@ function currentDescriptor(){
 }
 function descriptorExists(item){
   if(!item?.hash)return false;
-  if(/^#trendlines\/(sk-hynix|soxx|nasdaq|sp500|bitcoin|dow)$/.test(trendRouteAlias(item.hash)))return true;
+  if(/^#trendlines\/(sk-hynix|soxx|nasdaq|sp500|bitcoin|dow|kospi|samsung|nvidia|micron)$/.test(trendRouteAlias(item.hash)))return true;
   if(item.hash.startsWith('#records/question/'))return !!DATA?.questions?.some(q=>'#records/question/'+q.id===item.hash);
   if(item.hash.startsWith('#records/compare/'))return item.hash.slice(17).split(',').filter(id=>DATA?.questions?.some(q=>q.id===id)).length>=2;
   return COMMAND_ROUTES.some(r=>r.hash===item.hash);
@@ -1046,7 +1046,7 @@ function currentMidCategory(section,rawHash){
 const COMMAND_ROUTES=[
   {hash:'#today',code:'01',title:'오늘',hint:'시장 판단과 핵심 신호'},
   {hash:'#future',code:'02',title:'미래 탐색',hint:'시나리오 경로와 위험 구간'},
-  {hash:'#trendlines/sk-hynix',code:'03',title:'상·하방 추세선',hint:'6개 자산의 추세선과 내 빗각 편집'},
+  {hash:'#trendlines/sk-hynix',code:'03',title:'상·하방 추세선',hint:'10개 자산의 추세선과 내 빗각 편집'},
   {hash:'#statistics',code:'04',title:'통계',hint:'닷컴·과거 사이클·유동성·교차자산·시장 심리'},
   {hash:'#records',code:'05',title:'기록',hint:'예측·성적·변경·데이터'},
   ...['ipo','liquidity','rates','economy','valuation','credit'].map((key,index)=>({hash:'#statistics/dotcom/'+key,code:midCategoryCode(index),title:'닷컴과 지금 · '+({ipo:'IPO·상장',liquidity:'유동성',rates:'금리',economy:'경기·물가',valuation:'기업가치',credit:'신용'})[key],hint:'부문별 비교'})),
