@@ -321,4 +321,5 @@ def test_payload_budget_declarations_match_code() -> None:
     assert budgets["embed_html_max_bytes"] == dashboard.DASHBOARD_RAW_BUDGET_BYTES
     assert budgets["future_paths_json_max_bytes"] == dashboard.FUTURE_PATHS_BUDGET_BYTES
     assert budgets["data_json_max_bytes"] == dashboard.DATA_JSON_BUDGET_BYTES
+    assert budgets["band_calibration_json_max_bytes"] == dashboard.BAND_CALIBRATION_BUDGET_BYTES
     assert budgets["timeseries_v13_vol_max_bytes"] == dashboard.TIMESERIES_V13_VOL_BUDGET_BYTES

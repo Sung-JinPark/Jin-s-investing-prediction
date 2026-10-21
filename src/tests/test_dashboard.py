@@ -177,12 +177,16 @@ def test_embed_compaction_archives_band_calibration_rows_without_mutating_pages_
     assert "rows" not in archived
     assert archived["observations"] == 2
     assert archived["gate_pass"] is False
-    assert archived["rows_archived"] == {
+    metadata = archived["rows_archived"]
+    assert {key: metadata[key] for key in (
+        "archived", "row_count", "reason", "source_path", "full_payload", "url",
+    )} == {
         "archived": True,
         "row_count": 2,
         "reason": "embed_size_budget",
         "source_path": "data/scenarios/band_calibration.csv",
-        "full_payload": "data.json",
+        "full_payload": "band_calibration.json",
+        "url": "band_calibration.json",
     }
     # Pages/data.json 경로가 쓰는 원본 모델은 무수정.
     assert len(model["band_calibration"]["rows"]) == 2
@@ -1596,6 +1600,7 @@ def test_pages_payload_stays_within_budget_on_the_real_repository(tmp_path) -> N
     base, bodies = dashboard.split_forecast_bodies(base)
     base, _ = dashboard.split_timeseries_daily_data(base)
     base, _ = dashboard.split_trendlines_data(base)
+    base, _ = dashboard.split_band_calibration_rows(base)
     encode = lambda payload: len(json.dumps(  # noqa: E731
         payload, ensure_ascii=False, default=str, separators=(",", ":"),
     ).encode("utf-8"))
