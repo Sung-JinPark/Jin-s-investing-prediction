@@ -550,6 +550,30 @@ def test_confirmed_same_origin_input_correction_is_not_a_noop(tmp_path, monkeypa
         root, now=datetime(2026, 10, 7, 20, 33, tzinfo=timezone.utc), fetcher=None,
     )
     assert "already recorded" in third["skipped"] and len(calls) == 2
+    # A -> B -> A is a new transition: an older superseded state cannot be reused.
+    if change == "macro_factor":
+        monkeypatch.setattr(pipeline, "_sealed_bundle", original)
+    else:
+        value = 27599.89 if change == "anchor" else 27477.31
+        reversal = _observation("NASDAQCOM", day, value, available_at="2026-10-07T20:34:00+00:00")
+        reversal.update(revision_seq=3, supersedes=revision["observation_id"],
+                        observation_id="market-observation-" + canonical_hash({"reversal": change})[:24])
+        _append_archive(root, [reversal])
+    reverted = daily.daily_forecast_timeseries_v8(
+        root, now=datetime(2026, 10, 7, 20, 35, tzinfo=timezone.utc), fetcher=None,
+    )
+    assert reverted["supersedes"] == second["display_id"]
+    assert reverted["display_id"] not in {first["display_id"], second["display_id"]}
+    rows = daily.read_daily_rows(root)
+    assert len(rows) == 3 and len(calls) == 3
+    assert rows[-1]["input_state_hash"] == rows[0]["input_state_hash"]
+    assert daily.latest_effective(rows)["display_id"] == reverted["display_id"]
+    assert daily.verify_daily_display(root)["ok"]
+    repeated = daily.daily_forecast_timeseries_v8(
+        root, now=datetime(2026, 10, 7, 20, 36, tzinfo=timezone.utc), fetcher=None,
+    )
+    assert repeated["display_id"] == reverted["display_id"] and "skipped" in repeated
+    assert len(calls) == 3 and len(daily.read_daily_rows(root)) == 3
 
 
 @pytest.mark.parametrize("field", ["endogenous", "exogenous"])
