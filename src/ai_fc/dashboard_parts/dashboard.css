@@ -2057,3 +2057,7 @@ body[data-view="future"] .page-heading .page-lede{margin:6px 0 0;font-size:12px}
   #app .page-header h1{font-size:26px}
   #app .page-tabs>:is(a,button){flex:0 1 auto;padding:10px 12px;font-size:12px}
 }
+
+.forecast-refresh-note{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:12px 14px;margin-bottom:14px;border:1px solid var(--line);font-size:12px}
+.forecast-refresh-note p{flex:1 1 220px;margin:0}
+.forecast-refresh-note button{min-height:44px;padding:8px 14px}
