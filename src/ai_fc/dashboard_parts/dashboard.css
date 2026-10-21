@@ -1751,6 +1751,8 @@ abbr[title]{text-decoration:underline dotted 1px;text-underline-offset:2px;curso
 .v13-lf-table th,.v13-lf-table td{padding:5px 6px;text-align:right;border-bottom:1px solid #efeee8}
 .v13-lf-table thead th{color:#8a877e;font-weight:700;text-align:right}
 .v13-lf-table tbody th{text-align:left;font-weight:600}
+.v13-lf-events small,.v13-lf-table td.edge-pos small,.v13-lf-table td.edge-neg small{display:block;font-size:9.5px;color:#8a877e;font-weight:500}
+.v13-lf-table tr.is-degenerate td.edge-pos{color:#6d3f16}
 .v13-lf-progress{display:flex;align-items:center;gap:6px;justify-content:flex-end}
 .v13-lf-progress span{position:relative;width:54px;height:4px;background:#efeee8}
 .v13-lf-progress i{position:absolute;inset:0 auto 0 0;background:#247d78}

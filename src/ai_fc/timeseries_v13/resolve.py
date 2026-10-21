@@ -166,23 +166,67 @@ def resolve_live_timeseries_v13_vol(root: Path, *, now: datetime | None = None) 
                 appended += 1
                 resolved_keys.add(key)
 
+    all_rows = _read_rows(root / RESOLUTION_LEDGER_RELATIVE)
     matured: dict[str, int] = {}
-    for row in _read_rows(root / RESOLUTION_LEDGER_RELATIVE):
+    for row in distinct_resolutions(all_rows, pinned_sha=str(pin.get("sha256") or "") or None):
         cell = str(row.get("cell"))
         matured[cell] = matured.get(cell, 0) + 1
     return {
         "resolved": appended, "pending": pending,
+        # 원점은 distinct 로 센다 — 같은 원점의 재동결 중복행은 60 게이트 산정에서 하나다.
         "matured_by_cell": {name: matured.get(name, 0) for name in C.CELL_ORDER},
         "minimum_matured_origins_per_cell": minimum,
         "cells_at_minimum": sorted(k for k, v in matured.items() if v >= minimum),
-        "total_resolutions": sum(matured.values()),
+        "total_resolutions": len(all_rows),
+        "total_distinct_resolutions": sum(matured.values()),
     }
 
 
+def pinned_coefficients_sha(root: Path) -> str | None:
+    """계약에 핀된 동결 계수 sha256 — 같은 원점이 두 계수로 채점됐을 때 어느 행이 정본인지 정한다."""
+    try:
+        frozen = C.load_contract_v13(root).get("frozen_coefficients") or {}
+    except Exception:  # noqa: BLE001 — 계약을 못 읽으면 핀 없음으로 취급(최근 행 우선)
+        return None
+    sha = frozen.get("sha256")
+    return str(sha) if sha else None
+
+
+def distinct_resolutions(rows: list[dict[str, Any]], *, pinned_sha: str | None = None) -> list[dict[str, Any]]:
+    """(cell, origin) 당 한 행만 남긴다 — **원점은 한 번만 센다**.
+
+    2026-09-04 원점이 구 계수(51815bde…)와 재동결 계수(1a857850…)로 두 번 발행돼 해상 원장에
+    6셀 × 2행이 있다(run_id 가 계수 sha 를 품어 멱등 키가 다르다). 행 수로 세면 60원점 게이트를
+    원점 하나 먼저 넘고 첫 원점의 Brier 가 2배 가중된다. 원장은 무수정이고 **읽기만** 바꾼다.
+    우선순위: 계약에 핀된 계수 sha 의 행 → 그 다음 `knowledge_cutoff` 가 가장 늦은 행.
+    """
+    best: dict[tuple[str, str], dict[str, Any]] = {}
+    for row in rows:
+        key = (str(row.get("cell")), str(row.get("origin")))
+        current = best.get(key)
+        if current is None:
+            best[key] = row
+            continue
+        row_pinned = pinned_sha is not None and row.get("coefficients_sha256") == pinned_sha
+        cur_pinned = pinned_sha is not None and current.get("coefficients_sha256") == pinned_sha
+        if row_pinned and not cur_pinned:
+            best[key] = row
+        elif row_pinned == cur_pinned and str(row.get("knowledge_cutoff") or "") > str(current.get("knowledge_cutoff") or ""):
+            best[key] = row
+    return list(best.values())
+
+
+def distinct_origin_count(live_rows: list[dict[str, Any]]) -> int:
+    """라이브 원장의 **고유 원점(as_of) 수** — 재동결로 같은 원점이 두 행이어도 하나로 센다."""
+    return len({str(row.get("as_of")) for row in live_rows if row.get("as_of")})
+
+
 def matured_counts(root: Path) -> dict[str, int]:
-    """셀별 성숙 원점 수 — 표시 계층의 '표본 부족' 카운터용(확률 없음)."""
+    """셀별 성숙 원점 수(distinct origin) — 표시 계층의 '표본 부족' 카운터용(확률 없음)."""
     counts: dict[str, int] = {name: 0 for name in C.CELL_ORDER}
-    for row in _read_rows(root / RESOLUTION_LEDGER_RELATIVE):
+    rows = distinct_resolutions(_read_rows(root / RESOLUTION_LEDGER_RELATIVE),
+                                pinned_sha=pinned_coefficients_sha(root))
+    for row in rows:
         cell = str(row.get("cell"))
         if cell in counts:
             counts[cell] += 1

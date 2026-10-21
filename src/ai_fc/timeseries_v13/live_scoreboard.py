@@ -22,7 +22,8 @@ from pathlib import Path
 from typing import Any, Optional
 
 from . import contracts as C
-from .resolve import RESOLUTION_LEDGER_RELATIVE
+from .resolve import (RESOLUTION_LEDGER_RELATIVE, distinct_origin_count, distinct_resolutions,
+                      pinned_coefficients_sha)
 
 LIVE_LEDGER_RELATIVE = Path("data/timeseries_v13/ledgers/vol_live.jsonl")
 TRAIL_POINTS = 40           # 셀당 스파크라인 상한 — 페이로드 예산을 지킨다
@@ -40,7 +41,9 @@ def _read_jsonl(path: Path) -> list[dict[str, Any]]:
 
 def projection(root: Path, *, minimum: Optional[int] = None) -> dict[str, Any]:
     """셀별 누적 현황. 원장이 비어 있어도 **진행만** 담아 돌려준다."""
-    resolutions = _read_jsonl(root / RESOLUTION_LEDGER_RELATIVE)
+    # 원점은 distinct 로 센다 — 2026-09-04 재동결 중복행(6셀 × 2)을 행 수로 세면 60 을 먼저 넘는다.
+    resolutions = distinct_resolutions(_read_jsonl(root / RESOLUTION_LEDGER_RELATIVE),
+                                       pinned_sha=pinned_coefficients_sha(root))
     origins = _read_jsonl(root / LIVE_LEDGER_RELATIVE)
     if minimum is None:
         try:
@@ -67,11 +70,18 @@ def projection(root: Path, *, minimum: Optional[int] = None) -> dict[str, Any]:
         if rows:
             model = sum(float(r["brier_model"]) for r in rows) / n
             clim = sum(float(r["brier_climatology"]) for r in rows) / n
+            events = int(sum(1 for r in rows if float(r.get("label", 0.0)) == 1.0))
             entry.update({
                 "brier_model": round(model, 5),
                 "brier_climatology": round(clim, 5),
                 # BSS 는 기후 대비 개선율. 기후 손실이 0 이면 정의되지 않는다.
                 "bss": None if clim == 0 else round(1.0 - model / clim, 4),
+                # 사건 수를 숫자 옆에 둔다 — 사건이 0 이면 BSS 는 '고정 기후가 평온기에 자명하게 지는'
+                # 이득이지 실력이 아니다(홀드아웃 vix30 계열이 그 모양으로 무너졌다).
+                "events": events,
+                "expected_events_model": round(sum(float(r["probability"]) for r in rows), 2),
+                "expected_events_climatology": round(sum(float(r["climatology_base_rate"]) for r in rows), 2),
+                "skill_degenerate": events == 0,
                 "last_resolved": rows[-1].get("resolved_session"),
                 "trail": [round(float(r["brier_model"]), 4) for r in rows[-TRAIL_POINTS:]],
             })
@@ -85,7 +95,8 @@ def projection(root: Path, *, minimum: Optional[int] = None) -> dict[str, Any]:
         "verdict": None,
         "verdict_blocked_reason": f"셀당 성숙 원점 {minimum} 미만 — 계약이 판정을 막는다",
         "minimum": minimum,
-        "origins_recorded": len(origins),
+        "origins_recorded": distinct_origin_count(origins),
         "matured_total": total,
+        "events_total": int(sum(c.get("events", 0) for c in cells)),
         "cells": cells,
     }

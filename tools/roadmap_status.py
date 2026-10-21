@@ -154,16 +154,25 @@ def _forward_sample_ok() -> tuple[bool, list[str]]:
     gate = (_contract().get("live_forward_gate") or {})
     minimum = int(gate.get("minimum_matured_origins_per_cell") or 60)
     rows = _rows(RESOLUTIONS)
-    counts: dict[str, int] = {}
+    # 원점은 distinct 로 센다 — 재동결 중복행(같은 cell·origin, 다른 계수 sha)은 하나다.
+    pinned = str(((_contract().get("frozen_coefficients") or {}).get("sha256")) or "") or None
+    best: dict[tuple[str, str], dict] = {}
     for row in rows:
-        counts[str(row.get("cell"))] = counts.get(str(row.get("cell")), 0) + 1
+        key = (str(row.get("cell")), str(row.get("origin")))
+        cur = best.get(key)
+        if cur is None or (pinned and row.get("coefficients_sha256") == pinned
+                           and cur.get("coefficients_sha256") != pinned):
+            best[key] = row
+    counts: dict[str, int] = {}
+    for (cell, _origin) in best:
+        counts[cell] = counts.get(cell, 0) + 1
     cells = ((_contract().get("gates") or {}).get("champion") or {}).get("cells") or {}
     if not cells:
         return False, ["champion 셀 미확정"]
     worst = min((counts.get(name, 0) for name in cells), default=0)
     if worst >= minimum:
         return True, []
-    return False, [f"성숙 원점 최소 {worst}/{minimum} (해상 원장 {len(rows)}행)"]
+    return False, [f"성숙 원점 최소 {worst}/{minimum} (해상 원장 {len(rows)}행 · distinct 원점 {len(best)}건)"]
 
 
 def _sealed_ok() -> tuple[bool, list[str]]:

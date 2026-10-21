@@ -788,6 +788,22 @@ def cmd_timeseries_v13_vol_resolve() -> None:
     typer.echo(json.dumps(result, ensure_ascii=False, indent=2))
 
 
+@app.command("timeseries-v13-vol-live-verdict")
+def cmd_timeseries_v13_vol_live_verdict(
+    draws: int = typer.Option(120, "--draws", help="y-block 귀무 추출 수 (holdout 과 동일 기본 120)"),
+    as_json: bool = typer.Option(False, "--json", help="표 대신 JSON 전체를 출력"),
+) -> None:
+    """V13-VOL 라이브 전진 판정 **산술만** 인쇄한다 (읽기 전용 — 원장·포인터·계약 무수정, 강등 적용 없음).
+
+    셀당 성숙 원점 60 미만이면 '표본 부족'만, 60 이상이면 계약 live_forward_gate 의 쌍대 손실차 CI90·
+    y-block 귀무·degeneracy_guard·T7 집계를 그대로 계산한다. 결과 전에 만든 판정 코드다.
+    """
+    from .timeseries_v13.live_verdict import live_verdict, main_json, render_table
+
+    result = _timeseries_exit(live_verdict, config.ROOT, draws=draws)
+    typer.echo(main_json(result) if as_json else render_table(result))
+
+
 @app.command("timeseries-v13-vol-holdout")
 def cmd_timeseries_v13_vol_holdout(
     approval_receipt: str = typer.Option("", "--approval-receipt",

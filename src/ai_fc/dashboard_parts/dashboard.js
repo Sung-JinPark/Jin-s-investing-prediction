@@ -2032,19 +2032,25 @@ function renderV13LiveForward(lf,failCells){
   const rows=cells.map(c=>{const pct=Math.round((c.progress||0)*100);
     const hasScore=hasNumeric(c.brier_model);
     const bss=hasNumeric(c.bss)?`${c.bss>=0?'+':''}${(c.bss*100).toFixed(0)}%`:'—';
-    return `<tr><th scope="row">${esc(c.cell)}</th>
+    const hasEvents=hasNumeric(c.events);
+    const degenerate=hasEvents&&c.events===0;
+    const expected=hasNumeric(c.expected_events_model)&&hasNumeric(c.expected_events_climatology)?`<small>기대 ${c.expected_events_model.toFixed(1)} · 기후 ${c.expected_events_climatology.toFixed(1)}</small>`:'';
+    return `<tr${degenerate?' class="is-degenerate"':''}><th scope="row">${esc(c.cell)}</th>
       <td class="v13-lf-progress"><span><i style="width:${pct}%"></i></span><b>${num(c.matured)}/${num(c.minimum)}</b></td>
+      <td class="v13-lf-events">${hasEvents?`<b>${num(c.events)}</b>${expected}`:'—'}</td>
       <td>${hasScore?c.brier_model.toFixed(4):'—'}</td>
       <td>${hasScore?c.brier_climatology.toFixed(4):'—'}</td>
-      <td class="${hasNumeric(c.bss)&&c.bss>0?'edge-pos':hasNumeric(c.bss)&&c.bss<0?'edge-neg':''}">${bss}</td></tr>`;}).join('');
+      <td class="${hasNumeric(c.bss)&&c.bss>0?'edge-pos':hasNumeric(c.bss)&&c.bss<0?'edge-neg':''}">${bss}${degenerate?'<small>사건 0</small>':''}</td></tr>`;}).join('');
   const total=num(lf.matured_total),origins=num(lf.origins_recorded);
   const empty=lf.status==='empty';
+  const eventsTotal=hasNumeric(lf.events_total)?lf.events_total:null;
+  const degenerateLead=eventsTotal===0?` 지금까지 <b>사건 0건</b> — 개선율은 평온기에 고정 기후(2007~2014 빈도)가 자명하게 지는 몫이지 실력의 증거가 아닙니다.`:'';
   return `<section class="v13-live-forward" aria-labelledby="v13-lf-head">
     <div class="today-section-head"><h3 id="v13-lf-head">라이브 전진 누적</h3><span class="v13-lf-chip">판정 없음 · 누적 중</span></div>
     <p class="ts-lead v13-lf-lead">${empty
       ?`원점 <b>${origins}개</b>가 쌓였고 성숙한 것은 아직 없습니다 — 가장 짧은 지평이 5거래일이라 첫 성숙이 도착하는 중입니다.`
-      :`성숙 <b>${total}건</b> · 원점 ${origins}개 · 셀당 ${num(lf.minimum)} 전에는 판정 없음(누적 현황)`}</p>
-    <div class="v13-lf-table-wrap" role="region" tabindex="0" aria-label="라이브 전진 누적 표"><table class="v13-lf-table"><thead><tr><th scope="col">셀</th><th scope="col">성숙</th><th scope="col">Brier</th><th scope="col">기후</th><th scope="col">개선</th></tr></thead><tbody>${rows}</tbody></table></div>
+      :`성숙 <b>${total}건</b> · 원점 ${origins}개 · 셀당 ${num(lf.minimum)} 전에는 판정 없음(누적 현황).${degenerateLead}`}</p>
+    <div class="v13-lf-table-wrap" role="region" tabindex="0" aria-label="라이브 전진 누적 표"><table class="v13-lf-table"><thead><tr><th scope="col">셀</th><th scope="col">성숙</th><th scope="col">사건</th><th scope="col">Brier</th><th scope="col">기후</th><th scope="col">개선</th></tr></thead><tbody>${rows}</tbody></table></div>
   </section>`;
 }
 function renderTimeseriesV13VolPanel(v13){
