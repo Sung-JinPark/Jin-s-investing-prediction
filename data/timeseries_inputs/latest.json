@@ -1,12 +1,12 @@
 {
-  "bundle_id": "ts-inputs-157b904f3ed6c8b0c695acd6",
-  "capture_completed_at": "2026-10-21T06:04:03.716362+00:00",
+  "bundle_id": "ts-inputs-42aa764b308a0f109b6534d3",
+  "capture_completed_at": "2026-10-21T17:14:18.887382+00:00",
   "changed": true,
-  "checked_at": "2026-10-21T06:05:00.629234+00:00",
-  "content_hash": "8ae0d5f4d1a3c0f36b534e34e0424e19c09a5867104ee3178323ffd9a7c85b98",
+  "checked_at": "2026-10-21T17:15:37.135820+00:00",
+  "content_hash": "34803614abf8e3f8897a22ba6da68e3b463a8a43380ae7c2ffd367f46d2fe1e9",
   "contract_id": "timeseries_inputs_refresh_v1",
   "eligibility_changed": true,
-  "eligibility_hash": "54abe95fcc97ada3705264efe180779e17a86d8b30163f2702af9d5a462f84ff",
+  "eligibility_hash": "6a14f528668a28ac081321696fc1d3a963a4f2523b920d78b2f194c63741b6fe",
   "eligibility_status": "ready",
   "eligible_native_latest": {
     "DGS2": {
@@ -42,12 +42,12 @@
       "vintage_start": "2026-10-21T03:59:59+00:00"
     },
     "VIXCLS": {
-      "available_at": "2026-10-20T03:59:59+00:00",
-      "observation_time": "2026-10-19",
+      "available_at": "2026-10-21T03:59:59+00:00",
+      "observation_time": "2026-10-20",
       "series_id": "VIXCLS",
-      "source_hash": "1f729d880c16433d5f84fed999898eecb27fdd9f20f1bde5f8cf87a5b6e9e466",
-      "value": 18.44,
-      "vintage_start": "2026-10-20T03:59:59+00:00"
+      "source_hash": "653bd63429ff0af690db04bd1f9e02caa4b9a4c3806cb8348ee3da4fc6fcc8f8",
+      "value": 17.31,
+      "vintage_start": "2026-10-21T03:59:59+00:00"
     }
   },
   "expected_session": "2026-10-20",
@@ -58,10 +58,60 @@
     "T10Y2Y": "2026-10-21T06:03:55.055255+00:00",
     "VIXCLS": "2026-10-21T06:03:43.371886+00:00"
   },
-  "publication_allowed": true,
+  "publication_allowed": false,
   "schema_version": 1,
   "semantic_changed": false,
-  "source_failures": [],
+  "source_failures": [
+    {
+      "http_status": null,
+      "reason": "JSONDecodeError",
+      "series_id": "NASDAQCOM",
+      "source_id": "alfred",
+      "stage": "native"
+    },
+    {
+      "http_status": null,
+      "reason": "JSONDecodeError",
+      "series_id": "VIXCLS",
+      "source_id": "alfred",
+      "stage": "native"
+    },
+    {
+      "http_status": null,
+      "reason": "JSONDecodeError",
+      "series_id": "DGS2",
+      "source_id": "alfred",
+      "stage": "native"
+    },
+    {
+      "http_status": null,
+      "reason": "JSONDecodeError",
+      "series_id": "T10Y2Y",
+      "source_id": "alfred",
+      "stage": "native"
+    },
+    {
+      "http_status": null,
+      "reason": "JSONDecodeError",
+      "series_id": "DTWEXBGS",
+      "source_id": "alfred",
+      "stage": "native"
+    },
+    {
+      "http_status": null,
+      "reason": "JSONDecodeError",
+      "series_id": "NASDAQCOM",
+      "source_id": "fred_api_nasdaqcom_archive",
+      "stage": "market_fred_nasdaq"
+    },
+    {
+      "http_status": null,
+      "reason": "JSONDecodeError",
+      "series_id": "DTWEXBGS",
+      "source_id": "fred_api_h10_broad_goods_services_archive",
+      "stage": "market_fred_dollar"
+    }
+  ],
   "source_status": [
     {
       "series_id": "NASDAQCOM",
@@ -84,5 +134,5 @@
       "status": "fresh"
     }
   ],
-  "status": "ready"
+  "status": "hold"
 }
