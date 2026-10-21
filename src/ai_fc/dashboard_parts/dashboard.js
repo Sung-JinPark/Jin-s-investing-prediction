@@ -1454,15 +1454,14 @@ function timeseriesPathSvg(ts){
     <g class="ts-legend"><circle cx="${ML+10}" cy="${MT+12}" r="4" class="ts-history-dot"/><text x="${ML+20}" y="${MT+16}">실제</text><line x1="${ML+78}" x2="${ML+102}" y1="${MT+12}" y2="${MT+12}" class="ts-median-line"/><text x="${ML+110}" y="${MT+16}">중앙 경로</text><rect x="${ML+202}" y="${MT+5}" width="20" height="12" class="ts-band-inner"/><text x="${ML+230}" y="${MT+16}">중심 50%</text><rect x="${ML+320}" y="${MT+5}" width="20" height="12" class="ts-band-outer"/><text x="${ML+348}" y="${MT+16}">넓은 80%</text></g>
   </svg></div>`;
 }
-const TS_TABS=[['summary','전망 요약','01'],['path','경로 분포','02'],['drivers','기여 요인','03'],['backtest','검증 성적','04']];
-/* 5번째 탭 = V13-VOL 변동성 기준율(가격 카드와 별개 표면). T0/T2 에서는 disabled('검증 대기'), T3 또는 ?review=v13vol 에서만 활성. */
-const TS_V13_TAB=['volatility','변동성 기준율','05'];
-const TS_DAILY_TAB=['daily','6개월 일별 전망','06'];
+const TS_TABS=[['summary','전망 요약'],['path','경로 분포'],['drivers','기여 요인'],['backtest','검증 성적']];
+/* V13-VOL 변동성 기준율 탭(가격 카드와 별개 표면). T0/T2 에서는 disabled('검증 대기'), T3 또는 ?review=v13vol 에서만 활성. */
+const TS_V13_TAB=['volatility','변동성 기준율'];
+const TS_DAILY_TAB=['daily','6개월 일별 전망'];
 function timeseriesTabsMarkup(active,enabled){
-  return `<nav class="lab-tabs timeseries-tabs" role="tablist" aria-label="시계열 예측 화면">${[TS_TABS[0],TS_DAILY_TAB,...TS_TABS.slice(1),TS_V13_TAB].map(([key,label],index)=>{
-    const code=String(index+1).padStart(2,'0');
+  return `<nav class="lab-tabs timeseries-tabs" role="tablist" aria-label="시계열 예측 화면">${[TS_TABS[0],TS_DAILY_TAB,...TS_TABS.slice(1),TS_V13_TAB].map(([key,label])=>{
     const on=key==='daily'||enabled.includes(key);
-    return `<button type="button" id="lab-tab-ts-${key}" role="tab" data-ts-tab="${key}" aria-selected="${String(key===active)}" aria-controls="lab-ts-${key}"${on?'':' disabled'}><span>${code}</span> ${label}<small>${on?'':'검증 대기'}</small></button>`;
+    return `<button type="button" id="lab-tab-ts-${key}" role="tab" data-ts-tab="${key}" aria-selected="${String(key===active)}" aria-controls="lab-ts-${key}"${on?'':' disabled'}>${label}<small>${on?'':'검증 대기'}</small></button>`;
   }).join('')}</nav>`;
 }
 /* ── 시계열 재설계 (docs/design/timeseries_view_redesign_260903.md): 공유 헬퍼·호버 바인더·도표 빌더 ──
