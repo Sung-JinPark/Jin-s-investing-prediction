@@ -462,7 +462,29 @@ def _compact_horizons(forecast: dict[str, Any]) -> dict[str, Any]:
     return out
 
 
-def _input_provenance(inputs: dict[str, Any], origin: str) -> dict[str, Any]:
+def model_input_fingerprint(bundle: Any, anchor: dict[str, Any]) -> str:
+    """Bind retry identity to the actual frozen inference arguments and price anchor.
+
+    Hash transformed PIT inputs, not receipt acquisition clocks. Confirmed
+    same-origin corrections and updated macro factors must trigger a revision.
+    """
+    if not np.isfinite(float(anchor["value"])) or float(anchor["value"]) <= 0:
+        raise TimeSeriesV8DailyError("invalid price anchor for daily fingerprint")
+    matrices = {}
+    for key in ("endogenous", "exogenous"):
+        values = np.asarray(getattr(bundle, key), dtype=float)
+        names = tuple(getattr(bundle, key + "_names"))
+        if (values.ndim != 2 or values.shape != (len(bundle.dates), len(names))
+                or not np.isfinite(values).all()):
+            raise TimeSeriesV8DailyError(f"invalid {key} inputs for daily fingerprint")
+        matrices[key] = {"names": names, "values": values.tolist()}
+    return canonical_hash({"schema_version": 1, "dates": tuple(bundle.dates),
+                           "matrices": matrices, "anchor": anchor})
+
+
+def _input_provenance(
+    inputs: dict[str, Any], origin: str, *, model_input_sha256: str | None = None,
+) -> dict[str, Any]:
     fills = sorted(
         (row for row in inputs["fills"] if row["observation_time"] <= origin),
         key=lambda row: (row["series_id"], row["observation_time"]),
@@ -482,6 +504,8 @@ def _input_provenance(inputs: dict[str, Any], origin: str) -> dict[str, Any]:
             for row in carried
         ],
     }
+    if model_input_sha256 is not None:
+        state["model_input_sha256"] = model_input_sha256
     return {
         "provisional_inputs": fills,
         "carried_forward": carried,
@@ -509,7 +533,9 @@ def daily_forecast_timeseries_v8(
     with market_overlay(_overlay_rows(inputs)):
         bundle = _sealed_bundle(root, contract)
     origin = bundle.dates[-1]
-    provenance = _input_provenance(inputs, origin)
+    anchor = _anchor_level(root, origin, inputs)
+    model_input_sha256 = model_input_fingerprint(bundle, anchor)
+    provenance = _input_provenance(inputs, origin, model_input_sha256=model_input_sha256)
     rows = read_daily_rows(root)
     newest = latest_effective(rows)
     summary = {
@@ -534,7 +560,6 @@ def daily_forecast_timeseries_v8(
     forecast = run_summary["shadow_forecast"]
     if forecast["origin"] != origin:
         raise TimeSeriesV8DailyError("inference origin drifted from the bundle origin")
-    anchor = _anchor_level(root, origin, inputs)
     payload = {
         "schema_version": 1,
         "display_id": "tsv8-daily-" + canonical_hash({
@@ -551,6 +576,8 @@ def daily_forecast_timeseries_v8(
         "expected_session": inputs["expected_session"],
         "input_state": provenance["input_state"],
         "input_state_hash": provenance["input_state_hash"],
+        "input_fingerprint_version": 2,
+        "model_input_sha256": model_input_sha256,
         "provisional_inputs": provenance["provisional_inputs"],
         "carried_forward": provenance["carried_forward"],
         "supersedes": None if previous is None else previous["display_id"],
@@ -755,6 +782,20 @@ def verify_daily_display(root: Path) -> dict[str, Any]:
         if row.get("kind") != "daily_display" or row.get("scoring_excluded") is not True \
                 or row.get("display_only") is not True:
             errors.append(f"daily[{index}]: row is not marked display-only/scoring-excluded")
+        version = row.get("input_fingerprint_version")
+        if version == 2:
+            digest = row.get("model_input_sha256")
+            if not isinstance(digest, str) or len(digest) != 64 or any(c not in "0123456789abcdef" for c in digest):
+                errors.append(f"daily[{index}]: invalid model input fingerprint")
+            else:
+                expected = _input_provenance(
+                    {"fills": row.get("provisional_inputs", []), "carried": row.get("carried_forward", [])},
+                    row["origin"], model_input_sha256=digest,
+                )["input_state_hash"]
+                if row.get("input_state_hash") != expected:
+                    errors.append(f"daily[{index}]: model input fingerprint binding mismatch")
+        elif version not in (None, 1):
+            errors.append(f"daily[{index}]: unsupported input fingerprint version")
         target = row.get("supersedes")
         if target is not None:
             prior = seen.get(target)

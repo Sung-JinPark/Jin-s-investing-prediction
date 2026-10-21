@@ -337,7 +337,9 @@ def test_daily_rows_append_supersede_and_never_touch_weekly_ledgers(
     assert pipeline.shadow_resolve_timeseries_v8(root, bundle=SimpleNamespace(dates=()))["resolved"] == 0
     assert display._forward_resolutions(root) == []
     # 확정 행 뒤에 잠정 상태가 다시 와도 대체하지 않는다.
-    third = daily.daily_forecast_timeseries_v8(root, now=later, fetcher=None)
+    third = daily.daily_forecast_timeseries_v8(
+        root, now=datetime(2026, 10, 7, 20, 33, tzinfo=timezone.utc), fetcher=None,
+    )
     assert "skipped" in third
 
 
@@ -505,3 +507,56 @@ def test_daily_workflow_triggers_lock_and_registration() -> None:
     assert "timeseries-v8-daily" in (alert.get(True) or alert.get("on"))["workflow_run"]["workflows"]
     for name in ("pages.yml", "verify.yml"):
         assert '"timeseries-v8-daily"' in (directory / name).read_text(encoding="utf-8")
+
+
+@pytest.mark.parametrize("change", ["anchor", "historical_market", "macro_factor"])
+def test_confirmed_same_origin_input_correction_is_not_a_noop(tmp_path, monkeypatch, change):
+    root = _root(tmp_path)
+    confirmed_at = "2026-10-07T20:00:00+00:00"
+    _append_archive(root, [
+        _observation("NASDAQCOM", "2026-10-06", 27599.89, available_at=confirmed_at),
+        _observation("VIX", "2026-10-06", 15.01, available_at=confirmed_at),
+        _observation("DGS2", "2026-10-06", 4.79, available_at=confirmed_at),
+        _observation("DGS10", "2026-10-06", 5.27, available_at=confirmed_at),
+    ])
+    calls = _wire_heavy_parts(monkeypatch, sealed={"run_id": "tsv8-sealed-test"})
+    now = datetime(2026, 10, 7, 20, 30, tzinfo=timezone.utc)
+    first = daily.daily_forecast_timeseries_v8(root, now=now, fetcher=None)
+    assert first["input_state"] == "confirmed"
+    before = (root / daily.DAILY_LEDGER_RELATIVE).read_bytes()
+    if change == "macro_factor":
+        original = pipeline._sealed_bundle
+        def changed_bundle(root, contract):
+            result = original(root, contract)
+            result.exogenous[-1, 0] = .125
+            return result
+        monkeypatch.setattr(pipeline, "_sealed_bundle", changed_bundle)
+    else:
+        day, value = ("2026-10-06", 27600.89) if change == "anchor" else ("2026-10-05", 27479.31)
+        prior = _observation("NASDAQCOM", day, 27599.89 if change == "anchor" else 27477.31,
+                             available_at=confirmed_at)
+        revision = _observation("NASDAQCOM", day, value, available_at="2026-10-07T20:31:00+00:00")
+        revision.update(revision_seq=2, supersedes=prior["observation_id"])
+        _append_archive(root, [revision])
+    later = datetime(2026, 10, 7, 20, 32, tzinfo=timezone.utc)
+    second = daily.daily_forecast_timeseries_v8(root, now=later, fetcher=None)
+    assert second["input_state"] == "confirmed" and second["supersedes"] == first["display_id"]
+    rows = daily.read_daily_rows(root)
+    assert calls == ["2026-10-06"] * 2
+    assert rows[0]["model_input_sha256"] != rows[1]["model_input_sha256"]
+    assert (root / daily.DAILY_LEDGER_RELATIVE).read_bytes().startswith(before)
+    assert daily.verify_daily_display(root)["ok"]
+    third = daily.daily_forecast_timeseries_v8(
+        root, now=datetime(2026, 10, 7, 20, 33, tzinfo=timezone.utc), fetcher=None,
+    )
+    assert "already recorded" in third["skipped"] and len(calls) == 2
+
+
+@pytest.mark.parametrize("field", ["endogenous", "exogenous"])
+def test_daily_fingerprint_rejects_nonfinite_inference_inputs(field):
+    bundle = SimpleNamespace(dates=("2026-10-20",), endogenous=np.ones((1, 1)),
+                             exogenous=np.ones((1, 1)), endogenous_names=("returns",),
+                             exogenous_names=("factor",))
+    getattr(bundle, field)[0, 0] = np.nan
+    with pytest.raises(daily.TimeSeriesV8DailyError, match="invalid"):
+        daily.model_input_fingerprint(bundle, {"value": 26424.82})
