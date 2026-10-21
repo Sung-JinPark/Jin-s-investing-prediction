@@ -1,12 +1,12 @@
 {
-  "bundle_id": "ts-inputs-42aa764b308a0f109b6534d3",
-  "capture_completed_at": "2026-10-21T17:14:18.887382+00:00",
+  "bundle_id": "ts-inputs-224117903e193b77099c520a",
+  "capture_completed_at": "2026-10-21T20:39:59.839792+00:00",
   "changed": true,
-  "checked_at": "2026-10-21T17:15:37.135820+00:00",
-  "content_hash": "34803614abf8e3f8897a22ba6da68e3b463a8a43380ae7c2ffd367f46d2fe1e9",
+  "checked_at": "2026-10-21T20:41:10.095373+00:00",
+  "content_hash": "4c16da564c92fc7ddefbc9fb41762bc534cd73feb85e071739d48ac56150413c",
   "contract_id": "timeseries_inputs_refresh_v1",
   "eligibility_changed": true,
-  "eligibility_hash": "6a14f528668a28ac081321696fc1d3a963a4f2523b920d78b2f194c63741b6fe",
+  "eligibility_hash": "fa1ca4ba8e3791e38ce9b2c641da2e4dc69776a4c1e8917fda43deaae64362dc",
   "eligibility_status": "ready",
   "eligible_native_latest": {
     "DGS2": {
@@ -50,7 +50,7 @@
       "vintage_start": "2026-10-21T03:59:59+00:00"
     }
   },
-  "expected_session": "2026-10-20",
+  "expected_session": "2026-10-21",
   "native_watermarks": {
     "DGS2": "2026-10-21T06:03:48.967906+00:00",
     "DTWEXBGS": "2026-10-21T06:03:58.462759+00:00",
@@ -60,7 +60,7 @@
   },
   "publication_allowed": false,
   "schema_version": 1,
-  "semantic_changed": false,
+  "semantic_changed": true,
   "source_failures": [
     {
       "http_status": null,
