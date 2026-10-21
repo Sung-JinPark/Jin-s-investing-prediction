@@ -2779,6 +2779,12 @@ function questionStatusLabel(q){
   return {cls:'status-active',text:'진행 중',title:'예측 진행 중'};
 }
 const questionStatusBadge=q=>{const s=questionStatusLabel(q);return `<span class="status ${s.cls}" title="${esc(s.title)}">${s.text}</span>`;};
+function privateDashboardDestination(origin,section,hash){
+  // The fixed loopback service only serves personal trendline data. This must
+  // also work on a cold deep link, before its lazy feature bundle is loaded.
+  if(origin==='http://127.0.0.1:8878'&&section!=='trendlines'&&hash!=='#app')return 'https://sung-jinpark.github.io/Jin-s-investing-prediction/'+hash;
+  return null;
+}
 let ROUTE_EPOCH=0;
 async function route(){
   if(TIMESERIES_DAILY_RESIZE){TIMESERIES_DAILY_RESIZE.disconnect();TIMESERIES_DAILY_RESIZE=null;}
@@ -2787,6 +2793,8 @@ async function route(){
   const enteredHash=location.hash||'#today',legacyHash=legacyRouteRedirect(enteredHash),rawHash=legacyHash;
   if(rawHash!==enteredHash)history.replaceState(null,'',rawHash);
   const parsed=parseCanonicalRoute(rawHash),v=parsed.view,arg=parsed.arg,navView=parsed.section;
+  const publicDestination=privateDashboardDestination(location.origin,navView,rawHash);
+  if(publicDestination){location.replace(publicDestination);return;}
   closeQuickPeek();closeChartZoom(false);if(!briefingLayer.hidden)setBriefing(false,false);if(!shareLayer.hidden)setShare(false,false);
   document.querySelector('.future-lookup-layer')?.remove();document.body.classList.remove('future-lookup-open');
   document.body.dataset.view=navView;

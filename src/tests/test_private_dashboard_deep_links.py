@@ -1,52 +1,45 @@
-"""Cold links must work before the chart's lazy navigation bridge is loaded."""
+"""Cold links work before the personal chart's navigation bridge is loaded."""
 import json
-from pathlib import Path
-import re
-import runpy
 import shutil
 import subprocess
 
 import pytest
 
-from ai_fc.trendlines import contracts as C
+from ai_fc import dashboard
 
 
-def test_local_shell_forwards_public_deep_links_without_loading_chart_bundle(tmp_path):
+def test_local_dashboard_deep_links_preserve_destinations_and_origin_boundary(tmp_path):
     node = shutil.which("node")
     if not node:
         pytest.skip("Node.js unavailable")
-    project = Path(__file__).resolve().parents[2]
-    for relative in (C.CONTRACT_RELATIVE, C.ASSET_REGISTRY_RELATIVE, C.SOURCE_POLICY_RELATIVE):
-        target = tmp_path / relative
-        target.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copyfile(project / relative, target)
-    preview = runpy.run_path(str(project / "tools/preview_trendlines.py"))
-    path = preview["build_local_service_preview"](tmp_path, tmp_path / "site")
-    html = path.read_text(encoding="utf-8")
-    navigation = re.search(r'<script>(if\(!location.hash\).*?)</script>', html).group(1)
-    public = ["#future", "#future/original", "#future/timeseries/daily",
-              "#statistics", "#statistics/dotcom/credit", "#statistics/history",
-              "#statistics/market-liquidity", "#statistics/cross-asset",
-              "#statistics/fear-greed", "#timeseries/path", "#today", "#records/journal"]
-    local = ["", "#app", "#trendlines/sk-hynix", "#trendlines/soxx",
-             "#future/trendlines/bitcoin"]
+    source = dashboard.DASHBOARD_SCRIPT.read_text(encoding="utf-8")
+    helper = source[source.index("function privateDashboardDestination("):source.index("let ROUTE_EPOCH=")]
+    public = [("future", "#future"), ("future", "#future/original"),
+              ("future", "#future/timeseries/daily"), ("statistics", "#statistics"),
+              ("statistics", "#statistics/dotcom/credit"), ("statistics", "#statistics/history"),
+              ("statistics", "#statistics/market-liquidity"), ("statistics", "#statistics/cross-asset"),
+              ("statistics", "#statistics/fear-greed"), ("records", "#records/journal")]
+    local = [("trendlines", "#trendlines/sk-hynix"), ("trendlines", "#trendlines/soxx"),
+             ("trendlines", "#future/trendlines/bitcoin"), ("overview", "#app")]
+    origins = ["http://127.0.0.1:8878", "https://sung-jinpark.github.io",
+               "http://localhost:8878", "http://127.0.0.1:8879", "https://example.com"]
     program = tmp_path / "navigation.js"
-    program.write_text("const vm=require('node:vm');\nconst script=" + json.dumps(navigation)
-                       + ";const hashes=" + json.dumps(public + local) + ";\n" + """
-const rows=hashes.map(hash=>{
-  let target=null;
-  const location={hash,replace:url=>{target=url;}};
-  vm.runInNewContext(script,{location});
-  return {hash:location.hash,target};
-});
-process.stdout.write(JSON.stringify(rows));
-""", encoding="utf-8")
+    program.write_text(helper + "\nconst cases=" + json.dumps(public + local)
+                       + ";const origins=" + json.dumps(origins)
+                       + ";process.stdout.write(JSON.stringify(origins.map(origin=>cases.map(([section,hash])=>privateDashboardDestination(origin,section,hash)))));", encoding="utf-8")
     result = subprocess.run([node, str(program)], capture_output=True, text=True,
                             encoding="utf-8", check=True)
     rows = json.loads(result.stdout)
-    for original, row in zip(public, rows):
-        assert row == {"hash": original, "target": "https://sung-jinpark.github.io/Jin-s-investing-prediction/" + original}
-    assert rows[len(public):] == [{"hash": value or "#trendlines/sk-hynix", "target": None} for value in local]
-    model = json.loads((tmp_path / "site/data.json").read_text(encoding="utf-8"))
-    assert not model.get("scenario")
-    assert not model["trendlines"].get("details")
+    assert rows[0] == ["https://sung-jinpark.github.io/Jin-s-investing-prediction/" + value for _, value in public] + [None] * len(local)
+    assert all(row == [None] * (len(public) + len(local)) for row in rows[1:])
+
+
+def test_local_deep_link_forwarding_precedes_data_loading_and_keeps_chart_cleanup():
+    source = dashboard.DASHBOARD_SCRIPT.read_text(encoding="utf-8")
+    route = source[source.index("async function route(){"):]
+    forward = route.index("privateDashboardDestination(location.origin,navView,rawHash)")
+    assert route.index("globalThis.TrendlineUI?.cleanup()") < forward
+    assert route.index("legacyRouteRedirect(enteredHash)") < forward
+    assert forward < route.index("await ensureTrendlineAssets()")
+    assert forward < route.index("await ensureFuturePaths()")
+    assert "if(publicDestination){location.replace(publicDestination);return;}" in route

@@ -533,6 +533,7 @@ process.stdout.write(JSON.stringify({rejected,unchanged:DATA.timeseries_daily===
 
 def test_route_change_during_fetch_does_not_render_the_old_daily_screen(tmp_path: Path) -> None:
     source = _source()
+    navigation = source[source.index("function privateDashboardDestination("):source.index("let ROUTE_EPOCH=")]
     route = source[source.index("async function route()"):source.index("window.addEventListener('hashchange',route)")]
     program = r"""
 let ROUTE_EPOCH=0,TIMESERIES_DAILY_RESIZE=null,release;
@@ -546,7 +547,7 @@ const legacyRouteRedirect=hash=>hash,parseCanonicalRoute=hash=>({view:'timeserie
 const renderTimeseriesDaily=(_data,state)=>loading.push(state.loading?'loading':'failed');
 const ensureTimeseriesDaily=()=>new Promise(resolve=>{release=resolve;});
 const VIEWS={timeseries:arg=>rendered.push(arg.tsTab||'summary')},renderOverview=noop,requestAnimationFrame=noop,app=noop;
-""" + route + r"""
+""" + navigation + route + r"""
 (async()=>{const pending=route();location.hash='#timeseries';await route();release(true);await pending;
 process.stdout.write(JSON.stringify({onlyNewScreen:JSON.stringify(rendered)==='["summary"]',onlyInitialLoading:JSON.stringify(loading)==='["loading"]',epoch:ROUTE_EPOCH}));})().catch(e=>{console.error(e);process.exit(1);});
 """
