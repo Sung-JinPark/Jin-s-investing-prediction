@@ -1343,6 +1343,7 @@ def split_future_paths(read_model: dict) -> tuple[dict, dict | None]:
                 "required": True,
                 "loaded": False,
                 "url": FUTURE_PATHS_FILENAME,
+                "model_content_sha256": candidate.get("model_content_sha256"),
                 "failure_mode": "summary_with_explicit_banner",
             },
         }
@@ -1362,9 +1363,12 @@ def split_future_paths(read_model: dict) -> tuple[dict, dict | None]:
         "semantic_reference": candidate.get("semantic_reference"),
         "data": deferred,
     }
-    payload_size = len(json.dumps(
+    payload_bytes = json.dumps(
         payload, ensure_ascii=False, default=str, separators=(",", ":")
-    ).encode("utf-8"))
+    ).encode("utf-8")
+    payload_size = len(payload_bytes)
+    if candidate_has_paths:
+        base["scenario_v5_2"]["deferred_paths"]["payload_sha256"] = hashlib.sha256(payload_bytes).hexdigest()
     if payload_size > FUTURE_PATHS_BUDGET_BYTES:
         raise ValueError(
             f"future paths budget exceeded: {payload_size} > {FUTURE_PATHS_BUDGET_BYTES}"

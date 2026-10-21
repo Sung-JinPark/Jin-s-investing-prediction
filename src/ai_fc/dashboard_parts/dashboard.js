@@ -19,17 +19,25 @@ function dailyFlowSemanticReferenceMatches(left={},right={}){
   return ['contract_id','artifact_id','source_snapshot_id','source_snapshot_sha256','input_sha256','version','model_content_sha256'].every(key=>typeof left?.[key]==='string'&&left[key].length>0&&left[key]===right?.[key]);
 }
 async function ensureFuturePaths(){
+  const dataset=DATA;
   const summary=DATA?.scenario_v5_2||{},deferred=summary.deferred_paths||{};
   if(!deferred.required||deferred.loaded)return true;
   if(FUTURE_PATHS_PROMISE)return FUTURE_PATHS_PROMISE;
   FUTURE_PATHS_PROMISE=(async()=>{
     const url=window.__FUTURE_PATHS_URL__||deferred.url;
     if(!url)throw new Error('future paths URL missing');
+    if(!globalThis.crypto?.subtle||!/^[a-f0-9]{64}$/.test(String(deferred.payload_sha256||'')))throw new Error('future paths integrity reference missing');
     const response=await fetch(url,{cache:'no-store'});
     if(!response.ok)throw new Error(`future paths HTTP ${response.status}`);
-    const payload=await response.json();
+    const raw=await response.text(),digest=await globalThis.crypto.subtle.digest('SHA-256',new TextEncoder().encode(raw));
+    const hash=[...new Uint8Array(digest)].map(value=>value.toString(16).padStart(2,'0')).join('');
+    if(hash!==deferred.payload_sha256)throw new Error('future paths payload mismatch');
+    const payload=JSON.parse(raw);
     if(payload?.contract_id!=='future_paths_v1'||!payload.data?.scenario_v5_2)throw new Error('future paths contract invalid');
     if(!semanticReferenceMatches(summary.semantic_reference,payload.semantic_reference))throw new Error('future paths semantic reference mismatch');
+    const candidate=payload.data.scenario_v5_2;
+    if(!deferred.model_content_sha256||candidate.model_content_sha256!==deferred.model_content_sha256||!summary.as_of||candidate.as_of!==summary.as_of)throw new Error('future paths snapshot mismatch');
+    if(DATA!==dataset||DATA.scenario_v5_2!==summary)throw new Error('future paths summary changed during loading');
     Object.assign(DATA,payload.data);
     DATA.scenario_v5_2.deferred_paths={...deferred,loaded:true,loaded_at:new Date().toISOString()};
     FUTURE_PATHS_ERROR=null;
@@ -2708,9 +2716,10 @@ function parseCanonicalRoute(rawHash){
 }
 function renderFuturePathsLoadState(summary,error=null){
   const checkpoints=summary?.path_checkpoints||[],failed=!!error;
-  const root=el(`<div class="future-paths-load-state" data-future-paths-state="${failed?'failed':'loading'}"><div class="page-heading"><div><p class="eyebrow">미래 탐색</p><h1>${failed?'전망 데이터를 불러오지 못했습니다':'세 가지 시나리오를 준비하고 있습니다'}</h1><p class="page-lede">${failed?'잠시 뒤 다시 시도해 주세요. 이전 방식의 그래프로 자동 전환하지 않습니다.':'상승·균형·스트레스 경로와 각 경로의 독립 DB를 불러오고 있습니다.'}</p>${failed?`<p class="future-paths-reason">사유: ${esc(String(error?.message||error))}</p>`:''}</div></div><section class="future-paths-checkpoints" aria-label="시나리오 체크포인트 요약">${checkpoints.map(row=>`<article><span>${esc(row.label)} · ${esc(row.date)}</span><div>${Object.entries(row.return_from_anchor||{}).map(([key,value])=>`<strong>${esc(key)} ${Number(value)>=0?'+':''}${(Number(value)*100).toFixed(1)}%</strong>`).join('')}</div><small>조건부 p50 요약</small></article>`).join('')||'<p>표시할 체크포인트가 없습니다.</p>'}</section>${failed?'<div class="future-paths-actions"><button type="button" data-future-retry>다시 불러오기</button></div>':''}</div>`);
+  const root=el(`<div class="future-paths-load-state" data-future-paths-state="${failed?'failed':'loading'}"><div class="page-heading"><div><p class="eyebrow">미래 탐색</p><h1>${failed?'전망 데이터를 불러오지 못했습니다':'세 가지 시나리오를 준비하고 있습니다'}</h1><p class="page-lede">${failed?'잠시 뒤 다시 시도해 주세요. 이전 방식의 그래프로 자동 전환하지 않습니다.':'상승·균형·스트레스 경로와 각 경로의 독립 DB를 불러오고 있습니다.'}</p>${failed?`<p class="future-paths-reason">사유: ${esc(String(error?.message||error))}</p>`:''}</div></div><section class="future-paths-checkpoints" aria-label="시나리오 체크포인트 요약">${checkpoints.map(row=>`<article><span>${esc(row.label)} · ${esc(row.date)}</span><div>${Object.entries(row.return_from_anchor||{}).map(([key,value])=>`<strong>${esc(key)} ${Number(value)>=0?'+':''}${(Number(value)*100).toFixed(1)}%</strong>`).join('')}</div><small>조건부 p50 요약</small></article>`).join('')||'<p>표시할 체크포인트가 없습니다.</p>'}</section>${failed?'<div class="future-paths-actions"><button type="button" data-future-retry>다시 불러오기</button><button type="button" data-future-refresh>페이지 새로고침</button></div>':''}</div>`);
   mount(root);
   root.querySelector('[data-future-retry]')?.addEventListener('click',()=>{FUTURE_PATHS_ERROR=null;route();});
+  root.querySelector('[data-future-refresh]')?.addEventListener('click',()=>location.reload());
 }
 /* 질문 상태는 레지스트리 status가 1차 축, 원장 행 유무가 2차 축이다 — 표·카드·⌘K가 같은 규칙을 쓴다.
    status를 두고 x.resolved로만 배지를 그리면 폐기 질문이 '진행 중'으로, 무예측 만료가 '완료' 필터에 '진행 중'

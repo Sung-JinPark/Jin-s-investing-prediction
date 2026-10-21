@@ -12,9 +12,15 @@ on:
     # Tue-Sat safety run against committed PIT inputs; V2 keeps its separate daily archive/DFM cadence.
     - cron: "10 3 * * 2-6"
   workflow_dispatch:
+    inputs:
+      resolve_only:
+        description: "Score newly published outcomes without issuing a weekly forecast"
+        type: boolean
+        default: false
 
 permissions:
   contents: write
+  actions: write
 
 concurrency:
   group: investing-data-writer-v8
@@ -29,6 +35,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
+          ref: main
           fetch-depth: 0
       - uses: actions/setup-python@v5
         with:
@@ -37,6 +44,7 @@ jobs:
       - name: Install the pinned numerical runtime
         run: pip install -e ".[pit,timeseries]" pytest
       - name: Append the weekly shadow forecast (idempotent per ISO week)
+        if: ${{ inputs.resolve_only != true }}
         run: python -m ai_fc timeseries-v8-forecast
       - name: Resolve matured shadow horizons
         run: python -m ai_fc timeseries-v8-resolve
@@ -47,8 +55,10 @@ jobs:
           python -m ai_fc timeseries-v8-verify
           pytest src/tests/test_multivariate_timeseries_v8.py -q
       - name: Commit only registered V8 shadow outputs
+        id: commit
         shell: bash
         run: |
+          echo "committed=false" >> "$GITHUB_OUTPUT"
           python -m ai_fc inventory
           git add data/timeseries_v8 docs/generated/inventory.generated.md
           unexpected="$(git diff --cached --name-only | grep -Ev '^(data/timeseries_v8/.*|docs/generated/inventory.generated.md)$' || true)"
@@ -59,4 +69,10 @@ jobs:
             git commit -m "data: append V8 shadow forecast/resolution"
             git pull --rebase origin main
             git push
+            echo "committed=true" >> "$GITHUB_OUTPUT"
           fi
+      - name: Deploy verified explicit scoring updates
+        if: ${{ github.event_name == 'workflow_dispatch' && steps.commit.outcome == 'success' && steps.commit.outputs.committed == 'true' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run pages.yml --repo "$GITHUB_REPOSITORY" --ref main

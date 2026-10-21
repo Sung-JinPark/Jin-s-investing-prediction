@@ -74,7 +74,7 @@ def test_keyless_source_capture_is_independent_of_model_runtime_and_long_locks()
     assert doc["jobs"]["publish"]["permissions"] == {"contents": "write", "actions": "write"}
     assert doc["jobs"]["publish"]["concurrency"]["group"] == "daily6m-sources-publisher"
     commands = "\n".join(step.get("run", "") for job in doc["jobs"].values() for step in job["steps"])
-    for forbidden in ("secrets.", "timeseries-v8", "timeseries-v2", "timeseries-refresh", "pytest", "investing-data-writer"):
+    for forbidden in ("secrets.", "python -m ai_fc timeseries-v8", "python -m ai_fc timeseries-v2", "timeseries-refresh", "pytest", "investing-data-writer"):
         assert forbidden not in commands
     for name in ("pages.yml", "verify.yml", "timeseries-v8-daily.yml", "timeseries-daily6m.yml"):
         listeners = (_workflow(name).get("on") or _workflow(name).get(True))["workflow_run"]["workflows"]

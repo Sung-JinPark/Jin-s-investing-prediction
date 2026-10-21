@@ -145,7 +145,7 @@ def test_only_semantic_changes_fan_out_and_failures_publish_hold_without_models(
     pages = next(step for step in steps if "gh workflow run pages.yml" in step.get("run", ""))
     assert "changed == 'true'" in models["if"] and "publication_allowed == 'true'" in models["if"]
     assert pages["if"] == "${{ always() && steps.decision.outputs.changed == 'true' }}"
-    assert models["run"].count("gh workflow run") == 2
+    assert models["run"].count("gh workflow run") == 3
     assert "timeseries-daily6m.yml" in models["run"] and "timeseries-v8-shadow" not in models["run"]
     assert steps.index(decision) < steps.index(models) < steps.index(pages)
     for step in (models, pages):

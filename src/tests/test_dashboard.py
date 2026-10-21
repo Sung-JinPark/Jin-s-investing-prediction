@@ -1699,6 +1699,8 @@ def test_future_paths_are_split_with_semantic_identity_and_fixed_budgets(tmp_pat
         "required": True,
         "loaded": False,
         "url": "future_paths.json",
+        "model_content_sha256": future["data"]["scenario_v5_2"]["model_content_sha256"],
+        "payload_sha256": __import__("hashlib").sha256(json.dumps(future, ensure_ascii=False, default=str, separators=(",", ":")).encode("utf-8")).hexdigest(),
         "failure_mode": "summary_with_explicit_banner",
     }
     assert base["scenario_v5_2"]["path_checkpoints"]
