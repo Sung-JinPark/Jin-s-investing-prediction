@@ -35,33 +35,26 @@ def test_v13_vol_panel_is_wired_hidden_by_default() -> None:
     assert "bindTimeseriesTabs(root,enabled,'summary');" in SCRIPT, "V8 HOLD 경로에도 탭 바인더"
 
 
-def test_v13_vol_panel_satisfies_x1_six_items() -> None:
+def test_v13_vol_panel_keeps_cell_contract_without_repeated_status_copy() -> None:
     src = _panel_source()
     # ① 명칭 — 제목·셀 라벨은 '기준율', 예측이라는 이름을 쓰지 않는다
     assert "<h2>변동성 이벤트 기준율</h2>" in src
     assert "<b>기준율 ${v13Pct(c.p)}</b>" in src
-    assert "아래 숫자는 예측이 아니라" in src
-    # ② 출처 배지 상시 — live/hold/absent 어느 분기에서도 head 에 포함
-    assert "v13-source-badge" in src and "수치모델 · " in src and "당일 수준 지속(PB)" in src
-    assert src.count("${head}") == 2, "hold 분기와 live 분기 모두 배지가 있는 head 를 쓴다"
+    # 보조 배지·상태 줄·설명 문단을 제거해도 hold/live 제목과 실제 셀은 남는다.
+    for removed in ("아래 숫자는 예측이 아니라", "v13-source-badge", "v13-caveat", "${caveat}", "v13-role", "v13-reading", "timeseries-gate-strip", "설계창(2007~2014) 스킬", "참고 의견 — 매매 신호가 아닙니다"):
+        assert removed not in src, removed
+    assert src.count("${head}") == 2
     # ③ 지평 단위 — 영업일 + 달력일 병기
     assert "영업일</abbr>" in src and "'63':'(≈90달력일)'" in src
-    # ④ caveat lead 상시 — 홀드아웃 미검증 굵게(가드 플래그) + 참고 의견
-    assert "<b>홀드아웃 미검증</b>" in src and "참고 의견 — 매매 신호가 아닙니다" in src
-    assert src.count("${caveat}") == 2
-    # ⑤ 역할 관계 + 괴리는 표시만
-    assert "base rate(outside view)" in src and "합치거나 평균내지 않습니다" in src
-    assert "표시만(자동 조정 없음)" in src and "divergence_threshold_pp" in src
-    # ⑥ 결합·평균·컨센서스 산식 0 — LLM 확률은 차이 표시에만 쓰인다
+    # LLM과 수치모델의 확률을 결합하거나 평균내는 산식은 추가하지 않는다.
     assert "컨센서스" not in src and "평균(" not in src
     assert "(llm+" not in src and "+llm)" not in src and "*llm" not in src
-    assert "model63-llm" in src, "괴리 = 차이 표시만"
     # h63 보정 약함 + 국면 표본 얇음 텍스트 마커 + 80% 대역 + 기후 병기
     assert "▲ 보정 약함" in src and "[80%: " in src and "기후 ${v13Pct(c.clim_base_rate)}" in src
     assert "▲ 국면 표본 얇음" in src and "c.episode_sample==='thin'" in src
     assert "  v13_thin_hint:'" in SCRIPT and "국면" in SCRIPT
-    # hold 분기: 사유 목록 + 마지막 값 재사용 금지 문구, 숫자 없음
-    assert "timeseries-hold-reasons" in src and "마지막 값을 재사용하지 않습니다" in src
+    # hold 분기: 실제 사유 목록과 기존 숫자 표시 조건을 유지한다.
+    assert "timeseries-hold-reasons" in src and "v13.numbers_visible===true" in src
     for term in ("persistence_hint", "base_rate_hint", "business_day_hint", "band80_coef_hint", "v13_weak_hint"):
         assert f"  {term}:'" in SCRIPT, term
 
@@ -74,15 +67,66 @@ def test_v13_vol_rail_entry_is_tier_gated_and_parseable() -> None:
     assert "available:()=>DATA?.timeseries_v13_vol?.publication?.display_tier==='t3_live_card'" in entry.group(0)
 
 
-def test_v13_vol_css_keeps_badge_and_caveat_visible_at_every_width() -> None:
-    assert ".v13-source-badge{" in STYLE and ".v13-caveat{" in STYLE
+def test_v13_vol_css_keeps_mobile_horizons_and_cleans_unused_copy_styles() -> None:
+    for removed in (".v13-source-badge{", ".v13-caveat{", ".v13-role{", ".v13-reading{"):
+        assert removed not in STYLE
     assert ".v13-h-tabs{display:none}" in STYLE
     mobile = STYLE.split("@media (max-width:620px){", 1)[1].split("}\n}", 1)[0]
     assert ".v13-h-tabs{display:flex" in mobile
     assert 'data-active-h="63"' in mobile
-    for cls in (".v13-source-badge", ".v13-caveat"):
-        assert f"{cls}{{display:none" not in STYLE and f"{cls}{{visibility:hidden" not in STYLE
     assert ".v13-vol-table td.is-weak i{" in STYLE, "색만이 아니라 텍스트 마커"
+
+
+def test_live_forward_table_scrolls_inside_mobile_card_without_hiding_cells() -> None:
+    import pytest
+
+    playwright = pytest.importorskip("playwright.sync_api")
+    renderer = re.search(r"function renderV13LiveForward\([\s\S]+?\n}\n", SCRIPT)
+    assert renderer
+    with playwright.sync_playwright() as runtime:
+        try:
+            browser = runtime.chromium.launch(headless=True, channel="chrome")
+        except playwright.Error as error:
+            pytest.skip(f"installed Chrome not available: {error}")
+        try:
+            page = browser.new_page(viewport={"width": 390, "height": 844})
+            page.set_content(
+                "<style>" + STYLE + '</style><main style="max-width:390px;padding:16px">'
+                '<article class="ts-card v13-vol-card" id="card"></article></main>'
+            )
+            page.add_script_tag(content=(
+                "const hasNumeric=x=>typeof x==='number'&&Number.isFinite(x),esc=String,num=String;"
+                + renderer.group(0)
+            ))
+            for status in ("accumulating", "empty"):
+                result = page.evaluate(r"""status => {
+                  const empty=status==='empty',lf={status,minimum:60,matured_total:empty?0:60,origins_recorded:29,cells:[
+                    {cell:'vix25_h21',matured:empty?0:60,minimum:60,progress:empty?0:1,brier_model:empty?null:.21,brier_climatology:empty?null:.25,bss:empty?null:.16},
+                    {cell:'rv_h5',matured:0,minimum:60,progress:0,brier_model:null,brier_climatology:null,bss:null}
+                  ]},before=JSON.stringify(lf);
+                  document.getElementById('card').innerHTML=renderV13LiveForward(lf,[]);
+                  const wrap=document.querySelector('.v13-lf-table-wrap'),table=wrap.querySelector('table');
+                  wrap.scrollLeft=wrap.scrollWidth;
+                  return {
+                    overflow:Math.max(document.documentElement.scrollWidth,document.body.scrollWidth)-innerWidth,
+                    scrolls:wrap.scrollWidth>wrap.clientWidth&&wrap.scrollLeft>0,
+                    lastColumnReachable:table.rows[1].cells[4].getBoundingClientRect().right<=wrap.getBoundingClientRect().right+1,
+                    focusable:wrap.tabIndex===0,unchanged:before===JSON.stringify(lf),
+                    rows:[...table.tBodies[0].rows].map(row=>[...row.cells].map(cell=>cell.innerText.trim()))
+                  };
+                }""", status)
+                assert result["overflow"] == 0
+                assert all(result[key] for key in (
+                    "scrolls", "lastColumnReachable", "focusable", "unchanged",
+                ))
+                expected = ["0/60", "—", "—", "—"] if status == "empty" else [
+                    "60/60", "0.2100", "0.2500", "+16%",
+                ]
+                assert result["rows"] == [
+                    ["vix25_h21", *expected], ["rv_h5", "0/60", "—", "—", "—"],
+                ]
+        finally:
+            browser.close()
 
 
 def test_v13_vol_panel_has_no_trailing_line_comments() -> None:
