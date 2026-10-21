@@ -75,9 +75,7 @@ def _evaluate_cell(rows: list[dict[str, Any]], *, minimum: int, min_events: int,
         out["note"] = f"성숙 원점 {n}/{minimum} — 계약이 판정을 막는다(표본 부족)"
         return out
 
-    # ── 60 도달: 계약 규칙을 그대로 실행한다 (적용은 하지 않는다) ──
-    guard = S.degeneracy_report(y, min_events=min_events, min_episodes=min_episodes)
-    out["degeneracy"] = guard
+    # ── 60 도달: 계약 규칙(demotion_rule · negative_control)만으로 status 를 정한다 (적용은 하지 않는다) ──
     d = ((base - y) ** 2) - ((p - y) ** 2)          # 양수 = 모형이 기후보다 낫다
     ci = S.block_boot_ci(d)                          # ℓ13 · B2000 · seed 20260907 · CI90 (계약 좌표)
     out["paired_loss_vs_climatology"] = ci
@@ -93,21 +91,32 @@ def _evaluate_cell(rows: list[dict[str, Any]], *, minimum: int, min_events: int,
     null_invalid = bool(null_rate > 0.10)
     out["null_invalid"] = null_invalid
     out["null_degenerate"] = bool(events == 0 or events == n)
-    if guard["verdict"] == "untestable_by_construction":
-        out["status"] = "untestable_by_construction"
-        out["note"] = "클래스별 사건 수 미달 — 판정 보류·축적 계속 (홀드아웃 가드 승계; 라이브 적용은 V13-D12 대기)"
-    elif null_invalid:
+    if null_invalid:
         out["status"] = "verdict_void_negative_control"
-        out["note"] = "건전 귀무 통과율 > 0.10 — 계약 346행에 따라 판정 무효(강등도 확인도 아님)"
+        out["note"] = "건전 귀무 통과율 > 0.10 — 계약 346행에 따라 판정 무효(강등도 확인도 아님·축적 계속)"
     elif would_hold:
         out["status"] = "demotion_candidate"
         out["note"] = "기후 대비 쌍대 손실차 CI90 하한 ≤ 0 — demotion_rule 해당. 적용은 사용자 승인 뒤 별도 단계"
     else:
         out["status"] = "gate_passed_descriptive"
         out["note"] = "기후 대비 CI90 하한 > 0 ∧ 귀무 ≤ 0.10 — 강등 사유 없음(승격 아님·판정 적용 없음)"
-    if guard["verdict"] == "episode_thin":
-        out["episode_thin"] = True
+    # 가드는 status 를 정하지 않는다 — 반창(≈1000원점) 임계를 n=60 에 옮길 수 없고, 판정 보류형은 강등·종결을 느슨하게 한다.
+    # 라벨(플래그)로만 병기한다: pass·BSS·배선·표시 승격을 '주장할 수 없음'의 근거.
+    guard = S.degeneracy_report(y, min_events=min_events, min_episodes=min_episodes)
+    out["degeneracy"] = guard
+    out["events_below_holdout_guard"] = bool(min(events, n - events) < min_events)
+    out["episode_thin"] = bool(guard["min_episodes"] < min_episodes)
     return out
+
+
+def resolution_disclosure(n: int, h: int, block: int = C.BLOCK_LENGTH) -> dict[str, Any]:
+    """해상도 공시 — ℓ=13 정지블록에서 n=60 은 재표집당 ≈4.6 블록, y-block 순열 공간은 (ceil(n/ℓ))! = 120."""
+    import math
+    blocks = math.ceil(n / block) if n else 0
+    return {"effective_blocks": round(n / block, 2) if n else 0.0,
+            "label_overlap_ratio": round(h / block, 2),
+            "permutation_space": math.factorial(blocks) if blocks else 0,
+            "low_resolution": bool(n and (n / block < 8 or h > block))}
 
 
 def live_verdict(root: Path, *, draws: int = NULL_DRAWS, now: datetime | None = None) -> dict[str, Any]:
@@ -124,8 +133,13 @@ def live_verdict(root: Path, *, draws: int = NULL_DRAWS, now: datetime | None = 
 
     by_cell = _cell_rows(root)
     live_rows = _read_rows(root / C.LIVE_LEDGER_RELATIVE)
-    cells = {name: _evaluate_cell(by_cell.get(name, []), minimum=minimum, min_events=min_events,
-                                  min_episodes=min_episodes, draws=draws) for name in C.CELL_ORDER}
+    horizons = {spec["name"]: int(spec["h"]) for spec in C.cell_specs()}
+    cells = {}
+    for name in C.CELL_ORDER:
+        cell = _evaluate_cell(by_cell.get(name, []), minimum=minimum, min_events=min_events,
+                              min_episodes=min_episodes, draws=draws)
+        cell["resolution"] = resolution_disclosure(cell["matured"], horizons[name])
+        cells[name] = cell
 
     evaluable = [c for c in pass_cells if cells.get(c, {}).get("matured", 0) >= minimum]
     hold_candidates = [c for c in evaluable if cells[c].get("status") == "demotion_candidate"]
@@ -155,18 +169,21 @@ def live_verdict(root: Path, *, draws: int = NULL_DRAWS, now: datetime | None = 
 
 
 def render_table(result: dict[str, Any]) -> str:
-    lines = ["{:11s} {:>7s} {:>5s} {:>9s} {:>9s} {:>7s} {:>6s}  상태".format(
-        "셀", "성숙", "사건", "Brier", "기후", "BSS", "귀무")]
+    lines = ["{:11s} {:>7s} {:>5s} {:>9s} {:>9s} {:>7s} {:>6s} {:>6s}  상태 (플래그)".format(
+        "셀", "성숙", "사건", "Brier", "기후", "BSS", "귀무", "블록")]
     for name, c in result["cells"].items():
         bss = c.get("bss")
         null = c.get("negative_control_pass_rate")
-        lines.append("{:11s} {:>3d}/{:<3d} {:>5d} {:>9s} {:>9s} {:>7s} {:>6s}  {}".format(
+        flags = [k for k in ("events_below_holdout_guard", "episode_thin", "null_degenerate") if c.get(k)]
+        res = c.get("resolution") or {}
+        lines.append("{:11s} {:>3d}/{:<3d} {:>5d} {:>9s} {:>9s} {:>7s} {:>6s} {:>6s}  {}{}".format(
             name, c["matured"], c["minimum"], c["events"],
             "{:.4f}".format(c["brier_model"]) if "brier_model" in c else "—",
             "{:.4f}".format(c["brier_climatology"]) if "brier_climatology" in c else "—",
             "{:+.3f}".format(bss) if isinstance(bss, (int, float)) else "—",
             "{:.2f}".format(null) if isinstance(null, (int, float)) else "—",
-            c["status"]))
+            "{:.1f}".format(res["effective_blocks"]) if res else "—",
+            c["status"], " [" + ",".join(flags) + "]" if flags else ""))
     t7 = result["T7"]
     lines.append("T7: 범위 {} · 60도달 {} · 강등후보 {} · would_trigger={}".format(
         t7["scope_cells"], t7["cells_at_minimum"], t7["demotion_candidates"], t7["would_trigger"]))

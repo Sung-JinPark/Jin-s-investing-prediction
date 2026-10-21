@@ -586,3 +586,171 @@ decisions_pending:
     대응하는 등록 질문이 없으며, 유일한 대응 질문 vix-25-90d 의 셀(vix25_h63)은 홀드아웃 실패다. 지금 질문을
     신설하면 통과한 셀에 맞춰 질문을 짜는 것이 되어 사전등록 정신에 어긋난다. 재개 조건: live_forward_gate 의
     셀당 성숙 원점 60 도달 → 독립 표본으로 재판단. 현재 0/60.
+
+# ── 라이브 전진 판정 산술의 읽기 전용 보고 verb — 등록 2026-10-21 ──────────────────
+# live_forward_gate(2026-09-08)·live_forward_termination(2026-09-10) 바이트는 건드리지 않는다. 규칙을 바꾸지 않고
+# 그 규칙의 **산술을 인쇄하는** verb 를 결과(60 도달) 전에 등록해 둔다 — 60 에 닿은 뒤 판정 코드를 만들면 결과 후 제작이다.
+live_forward_verdict_report:
+  registered: "2026-10-21"
+  registered_before_any_cell_reached_minimum: true   # 등록 시 성숙 원점 h5 25 · h21 11 · h63 0 (전부 60 미만)
+  verb: timeseries-v13-vol-live-verdict — 읽기 전용. 원장·포인터·계약 쓰기 0, 강등·종결 적용 0. 60 미만 셀은 '표본 부족'만.
+  output: print_only
+  ledger_write: false
+  applies_demotion: false
+  arithmetic: live_forward_gate 그대로 — 셀별 쌍대 손실차(기후 − 모형) stationary block ℓ13·B2000·seed 20260907 CI90 · y-block(ℓ13) 귀무 통과율 · T7 집계
+  dedupe_rule: |
+    원점은 (cell, origin) 당 한 행만 센다. 같은 원점이 두 계수 sha 로 채점돼 있으면 frozen_coefficients.sha256 행을 쓰고,
+    없으면 knowledge_cutoff 가 가장 늦은 행을 쓴다. 2026-09-04 원점(재동결 전후 2행, p 동일·band80 만 상이)이 이 경우다.
+    원장은 무수정이며 읽기 규칙만이다. 적용 범위: matured_counts · resolve 요약 · live_scoreboard · roadmap_status · 이 verb.
+  degenerate_null_handling: 사건 0(또는 전부 사건)이면 y-block 순열이 항등 → 통과율 1.0 → 계약 346행에 따라 '판정 무효'(강등도 확인도 아님). 표시만 한다.
+  not_a_rule_change: 완화 0·강화 0. 라이브 창 퇴화 규정(사건 수·국면 임계) 신설은 여기 없다 — V14 사전등록 사안.
+  degeneracy_flags_only: |
+    실행 시점 degeneracy_guard(사건 수 20·국면 5 — 반창 1000원점 기준 임계)는 n=60 에 옮길 수 없으므로 **status 를 정하지 않는다**.
+    verb 는 events_below_holdout_guard·episode_thin 플래그로 병기만 하고, demotion_rule·T7 산술은 그대로 계산·인쇄한다.
+    (판정 보류형 규칙은 사전등록된 강등·종결을 느슨하게 하는 방향이라 V13 에 두지 않는다.)
+  resolution_disclosure: "셀별 effective_blocks = n/ℓ · label_overlap_ratio = h/ℓ · permutation_space = (ceil(n/ℓ))! 을 함께 인쇄한다 — n=60 에서 CI 가 준이산이고 순열 공간이 120 이라는 해상도 한계의 공시."
+  re_verdict_cadence: "셀이 60 에 닿은 뒤에는 성숙 원점이 +20 늘 때마다 verb 를 다시 돌린다(인쇄 전용). 판정 적용(강등·종결)은 매번 사용자 승인 사항이며 자동화 밖이다."
+
+# ── P7 rung-7: 공공영역 외부 정보집합 블록 — 사전등록 2026-10-21 ───────────────────
+# 사전등록 문서: docs/design/v13_rung7_prereg_261021.md (규칙 §1 은 라벨 미접촉 진단 §3 전에 고정).
+# 승인: approvals.jsonl V13-D11(사용자 지시 원문 — 연방 공공영역 적재·잔여 예산 내 집행). 집행 자체는 P4 선례(계약 예산 내 승인 0).
+# 라이선스: Fed Board·BLS·CFTC 연방 산출물 공공영역(출처 표기). 메일 0 · UA 연락처 없음.
+rung7_public_blocks:
+  registered: "2026-10-21"
+  prereg_commit: null                       # 사전등록 커밋 뒤 해시를 기입하는 후속 커밋(결과 전)에서 채운다. null 이면 러너가 거부한다.
+  design_doc: docs/design/v13_rung7_prereg_261021.md
+  diagnostics: data/timeseries_v13/prereg/rung7_candidate_diagnostics.json   # 라벨 미접촉 · 규칙 R1~R4 의 근거
+  experiment_label: V13VOL_rung7_public
+  rung_name: public_blocks_vs_pb
+  results_path: data/timeseries_v13/vol/ladder_rung7_public.json
+  data_sources:
+    scheduled_events: data/timeseries_v13/exog/scheduled_events_2007_2014.jsonl
+    cftc_tff: data/timeseries_v13/exog/cftc_tff_positions.jsonl
+    sealed_archive_written: false
+    panel_lookback_start: "2005-01-01"      # D1 선행창 — 적합·평가는 설계창 행만
+  window_role: design
+  window: ["2007-01-01", "2014-12-31"]
+  split: "2011-01-01"
+  backtest_windows_opened: 0
+  evaluation_index: 7                       # 예산 6/8 → 7/8
+  holdout_slot_consumed: 0
+  selection_rules_applied:
+    R1_auto_reject_abs_corr_gt: 0.85        # champion 피처(VIX_t·RV21_t) 대비
+    R2_min_coverage_per_half: 0.80
+    R3_block_degenerate_mode_share_ge: 0.90 # 셀 단위 — family 분모 제외(페일클로즈)
+    class_per_block: true                   # 달력·포지셔닝·국면기억 각 1블록 (조사 권고)
+    result: "E1 |rho|<=0.041 · P1 |rho|<=0.187(min cov 0.883) · D1 max|rho| 0.844(vix30_h63, 경계 — 규칙상 통과) → 전부 등록. R3: E1 의 h63 3셀(최빈값 점유율 late 0.93) 제외"
+  blocks:
+    - id: E1_fomc_in_window
+      class: calendar
+      definition: "세션 i+1..i+h 중 정례 FOMC 결정일(회의 마지막 날) 수 — 비예정 회의·전화회의 제외"
+      lag_sessions: 0
+      pit_grade: prepublished_schedule
+      theory: "예정 발표일 주변 실현변동성 집중. VIX_t(30일 전향 내재변동성)는 창 내 이벤트 분산을 이미 가격화하므로 vix h21/h63 은 측정된 영 예상, 타이밍 정보가 사는 h5 와 후향 RV 셀이 가설 활성."
+      measured_abs_corr_max: 0.041
+    - id: P1_vix_lev_net_oi
+      class: positioning
+      definition: "VIX 선물(CFE, CFTC 코드 1170E1) 레버리지펀드 (long − short) / 미결제약정 — available_at 이하 최신 보고, 21달력일 초과 stale 은 NaN"
+      lag_sessions: null
+      pit_grade: reconstructed_release_lag_conservative   # available_at = 보고 기준일+7달력일; 2013-10-01~10-29 보고분 2013-11-08 고정
+      theory: "레버리지펀드의 VIX 선물 순숏 쏠림이 변동성 급등(숏커버) 취약성을 만든다는 가설. 2008-12~2009-05 미보고(early cov 0.883)·early OI 중앙값 56K(late 359K)로 전반창 잡음 큼 — 공시."
+      measured_abs_corr_max: 0.187
+    - id: D1_log_sessions_since_event
+      class: regime_memory
+      definition: "log(1 + 마지막 사건 종가 이후 세션 수); vix 셀 = VIX_close >= K(셀의 K), rv 셀 = RV21 > theta. 당일 사건이면 0. 선행창 2005-01-01 부터 계산"
+      lag_sessions: 0
+      pit_grade: derived_from_sealed
+      theory: "사건 클러스터링의 국면 기억(hazard). 수준(PB)이 같아도 최근 사건 뒤면 재발 확률이 높다는 가설. VIX 수준과 음의 상관이 크다(max|rho| 0.844, 경계)."
+      measured_abs_corr_max: 0.844
+  excluded_cells:
+    - {cell: vix25_h63, block: E1_fomc_in_window, reason: "R3 block_degenerate — 63세션 창에 FOMC 가 거의 항상 2회(late 최빈값 점유율 0.93)"}
+    - {cell: vix30_h63, block: E1_fomc_in_window, reason: "R3 block_degenerate — 동일"}
+    - {cell: rv_h63, block: E1_fomc_in_window, reason: "R3 block_degenerate — 동일"}
+  hypothesis_active_cells:                  # 진단 병기 전용 — 대표값은 전수 family
+    E1_fomc_in_window: [vix25_h5, vix30_h5, rv_h5, rv_h21]
+  cells: "9셀 전수(R3 제외 셀만 분모에서 뺀다). 홀드아웃 결과로 셀을 고르지 않는다."
+  candidate_form: "logit[PB 피처 + beta·x] — 파라미터 1개 추가. 상호작용·비선형 없음."
+  gate: "셀별 쌍대 Brier(PB − 후보) 양방향 CI90 하한 > 0 ∧ 증분 y-block(ℓ=13) 귀무 <= 0.10"
+  family:
+    representative: "binomial P(k >= k_obs | n = 검정 수(24 예상), p = 0.05)"
+    diagnostic_only: "클래스별 k·가설 활성 셀 부분집합 family·종속조정은 병기 진단이며 판정 다리가 아니다."
+  degeneracy_guard: "계약 degeneracy_guard 를 실행 시점에 적용. 라벨 퇴화 셀은 untestable 로 기록하고 채점 제외."
+  stopping: |
+    ① 설계창 밖 데이터가 필요하면 즉시 중단 (2015 CFTC 행은 적재만 됐고 읽지 않는다 — 러너가 2014-12-31 로 절단).
+    ② 블록 정의를 바꿔야 결과가 나오면 중단하고 부정 결과로 기록.
+    ③ 채택 셀이 나와도 홀드아웃은 이 rung 만으로 소모하지 않는다 — 별도 사용자 승인 사항.
+  live_deployment: "채택돼도 라이브 포인터 배치는 별도 결정. 라이브 원천(차년도 FOMC 일정·주간 CFTC)은 미등록이고 data/calendar/events.csv 는 probability_linkage: forbidden 아래라 쓰지 않는다."
+  negative_result_protocol: |
+    채택 0 이면 "공공영역의 세 정보 클래스(전향 달력·포지셔닝·국면 기억)도 설계창에서는 당일 수준에 흡수된다"로 기록한다.
+    그 경우 V13 설계창의 무료·공공 정보집합은 사실상 소진이며 남는 갈래는 표적 형태 변경(V14 조건부 전이)·라이브 전진 축적이다.
+  prohibitions:
+    - 결과 후 블록 추가·정의·임계 변경 금지
+    - 홀드아웃(2015-2018)·봉인(2019+) 창 열람 금지
+    - 표적(K·theta·h) 추가·변경 금지
+    - p-순열 귀무 사용 금지
+
+# ── P7 rung-8: 차순위 후보 — rung-7 결과와 무관하게 사전 고정된 조건으로 등록 (사전등록 문서 §1.5) ──
+# 조건: 각 클래스의 차순위 후보가 R1~R3 를 통과하면 집행. 진단 결과 E2(|rho|<=0.036·cov 0.937)·P3(0.335·0.983)·D2(0.759·0.854) 전부 통과 → 등록.
+rung8_public_blocks:
+  registered: "2026-10-21"
+  prereg_commit: null                       # rung7 과 같은 후속 커밋에서 채운다(결과 전).
+  design_doc: docs/design/v13_rung7_prereg_261021.md
+  diagnostics: data/timeseries_v13/prereg/rung7_candidate_diagnostics.json
+  experiment_label: V13VOL_rung8_public_secondary
+  rung_name: public_blocks_secondary_vs_pb
+  results_path: data/timeseries_v13/vol/ladder_rung8_public.json
+  data_sources:
+    scheduled_events: data/timeseries_v13/exog/scheduled_events_2007_2014.jsonl
+    cftc_tff: data/timeseries_v13/exog/cftc_tff_positions.jsonl
+    sealed_archive_written: false
+    panel_lookback_start: "2005-01-01"
+  window_role: design
+  window: ["2007-01-01", "2014-12-31"]
+  split: "2011-01-01"
+  backtest_windows_opened: 0
+  evaluation_index: 8                       # 예산 7/8 → 8/8 (소진). 이후 V13 설계창 개발은 종료 — 재개는 사용자 결정
+  holdout_slot_consumed: 0
+  execution_rule_fixed_before_rung7_results: "rung-7 의 채택 여부는 이 rung 의 집행 결정에 들어가지 않는다 (사전등록 문서 §1.5)."
+  blocks:
+    - id: E2_macro_release_in_window
+      class: calendar
+      definition: "세션 i+1..i+h 중 고용보고서(Employment Situation)+CPI 발표일 수. 비세션 발표일(성금요일 고용보고서 3건)은 다음 세션으로 이월. 2013 셧다운으로 밀린 4건은 origin 시점에 공표돼 있던 원래 예정일(연초 일정 빈티지, BLS updated_release_schedule 대조)로 계산 — 미래 정보 0, 실제 발표일 병기"
+      lag_sessions: 0
+      pit_grade: actual_release_date_with_year_start_vintage_for_shutdown_shifted
+      theory: "거시 발표일의 실현변동성 집중(Andersen–Bollerslev 계열). h21/h63 에서는 거의 상수(월 2회)라 측정된 영 예상 — 분산 잔여는 달력 불규칙."
+      measured_abs_corr_max: 0.036
+    - id: P3_nq_lev_net_oi
+      class: positioning
+      definition: "NASDAQ-100 e-mini(CME, CFTC 코드 209742) 레버리지펀드 (long − short) / 미결제약정 — P1 과 동일 PIT 규칙"
+      lag_sessions: null
+      pit_grade: reconstructed_release_lag_conservative
+      theory: "나스닥 선물의 레버리지 포지션 쏠림이 급락·변동성 사건에 선행한다는 가설. 표적 기초자산(NASDAQCOM)과 직접 연결. 커버리지 완전(early 209/late 209)."
+      measured_abs_corr_max: 0.335
+    - id: D2_log_sessions_since_any_vix25
+      class: regime_memory
+      definition: "log(1 + 마지막 VIX_close >= 25 이후 세션 수) — 전 셀 공통 기준(셀 K 무관)"
+      lag_sessions: 0
+      pit_grade: derived_from_sealed
+      theory: "D1 의 셀 비의존 변형. vix25 3셀에서는 D1 과 정의상 동일(진단 |rho|=1.0)이므로 그 3셀은 rung-7 의 반복 — 분모에서 제외."
+      measured_abs_corr_max: 0.759
+  excluded_cells:
+    - {cell: vix25_h5, block: D2_log_sessions_since_any_vix25, reason: "duplicate_of_rung7 — D1 과 정의상 동일(K=25)"}
+    - {cell: vix25_h21, block: D2_log_sessions_since_any_vix25, reason: "duplicate_of_rung7"}
+    - {cell: vix25_h63, block: D2_log_sessions_since_any_vix25, reason: "duplicate_of_rung7"}
+  hypothesis_active_cells:
+    E2_macro_release_in_window: [vix25_h5, vix30_h5, rv_h5]
+  cells: "9셀 전수(사전 제외 셀만 분모에서 뺀다)."
+  candidate_form: "logit[PB 피처 + beta·x] — 파라미터 1개 추가. 상호작용·비선형 없음."
+  gate: "셀별 쌍대 Brier(PB − 후보) 양방향 CI90 하한 > 0 ∧ 증분 y-block(ℓ=13) 귀무 <= 0.10"
+  family:
+    representative: "binomial P(k >= k_obs | n = 검정 수(24 예상), p = 0.05)"
+    diagnostic_only: "클래스별 k·가설 활성 셀 부분집합 family 는 병기 진단."
+  degeneracy_guard: "계약 degeneracy_guard 를 실행 시점에 적용."
+  stopping: "rung7_public_blocks.stopping 과 동일."
+  live_deployment: "rung7_public_blocks.live_deployment 와 동일."
+  negative_result_protocol: "채택 0 이면 차순위 형태도 당일 수준에 흡수된다고 기록. 예산 8/8 소진 — V13 설계창 개발 종료, 이후는 V14(사용자 결정)·라이브 전진."
+  prohibitions:
+    - 결과 후 블록 추가·정의·임계 변경 금지
+    - 홀드아웃(2015-2018)·봉인(2019+) 창 열람 금지
+    - 표적(K·theta·h) 추가·변경 금지
+    - p-순열 귀무 사용 금지

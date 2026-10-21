@@ -129,10 +129,12 @@ def test_live_verdict_runs_the_contract_arithmetic_once_a_cell_reaches_minimum(t
     result = live_verdict(root, draws=6)
     cell = result["cells"]["rv_h5"]
     assert cell["matured"] == minimum and cell["events"] == 0
-    assert cell["status"] in {"untestable_by_construction", "verdict_void_negative_control"}
-    assert cell["null_degenerate"] is True
+    # 가드는 status 를 정하지 않는다 — 계약 산술(귀무)만. 사건 0 → 귀무 항등 → 판정 무효.
+    assert cell["status"] == "verdict_void_negative_control"
+    assert cell["null_degenerate"] is True and cell["events_below_holdout_guard"] is True
     assert cell["negative_control_pass_rate"] == pytest.approx(1.0)
     assert "paired_loss_vs_climatology" in cell and cell["paired_loss_vs_climatology"]["n"] == minimum
+    assert cell["resolution"]["permutation_space"] == 120 and cell["resolution"]["low_resolution"] is True
     # 사건이 섞인 60원점 — 산술이 돌고 상태가 네 가지 중 하나로 떨어진다
     mixed = [_row("vix25_h21", f"2026-{1 + d // 28:02d}-{1 + d % 28:02d}", PINNED,
                   p=0.8 if d % 4 == 0 else 0.1, label=1.0 if d % 4 == 0 else 0.0, base=0.42)
@@ -140,9 +142,21 @@ def test_live_verdict_runs_the_contract_arithmetic_once_a_cell_reaches_minimum(t
     _write_jsonl(root / R.RESOLUTION_LEDGER_RELATIVE, rows + mixed)
     result = live_verdict(root, draws=6)
     cell = result["cells"]["vix25_h21"]
-    assert cell["status"] in {"gate_passed_descriptive", "demotion_candidate",
-                              "verdict_void_negative_control", "untestable_by_construction"}
+    assert cell["status"] in {"gate_passed_descriptive", "demotion_candidate", "verdict_void_negative_control"}
     assert isinstance(cell["demotion_rule_would_hold"], bool)
+    assert isinstance(cell["episode_thin"], bool)
+
+
+def test_verdict_verb_is_registered_in_the_contract_without_touching_the_gate_bytes() -> None:
+    contract = C.load_contract_v13(ROOT)
+    report = contract["live_forward_verdict_report"]
+    assert report["registered"] == "2026-10-21" and report["ledger_write"] is False
+    assert report["applies_demotion"] is False and "timeseries-v13-vol-live-verdict" in report["verb"]
+    assert "(cell, origin)" in report["dedupe_rule"] and "frozen_coefficients" in report["dedupe_rule"]
+    assert "+20" in report["re_verdict_cadence"]
+    gate = contract["live_forward_gate"]
+    assert gate["registered"] == "2026-09-08" and "timeseries-v13-vol-resolve" in gate["verb"]
+    assert "강등 판정은 하지 않는다" in gate["verb"]
 
 
 def test_live_verdict_verb_is_registered_but_never_in_the_live_workflow() -> None:
