@@ -718,13 +718,20 @@ def cmd_timeseries_v8_verify() -> None:
 def cmd_timeseries_daily6m_forecast(
     as_of: str | None = typer.Option(None, "--as-of", help="시간대가 있는 발행 시각"),
     supersedes: str | None = typer.Option(None, "--supersedes", help="정정할 기존 연구 forecast ID"),
+    refresh_latest: bool = typer.Option(False, "--refresh-latest", help="최신 완료 세션은 이력을 보존한 새 revision으로 반영"),
 ) -> None:
     """주간 6개월 공동 일별 경로를 별도 연구 원장에 추가한다 (기존 모델 불변)."""
     from .timeseries_daily6m.pipeline import forecast_timeseries_daily6m
 
-    result = _timeseries_exit(forecast_timeseries_daily6m, config.ROOT, as_of=as_of, supersedes=supersedes)
+    if refresh_latest:
+        if supersedes is not None:
+            raise typer.BadParameter("--refresh-latest와 --supersedes는 함께 사용할 수 없습니다")
+        from .timeseries_daily6m.refresh import refresh_timeseries_daily6m
+        result = _timeseries_exit(refresh_timeseries_daily6m, config.ROOT, as_of=as_of)
+    else:
+        result = _timeseries_exit(forecast_timeseries_daily6m, config.ROOT, as_of=as_of, supersedes=supersedes)
     typer.echo(json.dumps({key: result.get(key) for key in (
-        "status", "run_id", "forecast_id", "as_of", "anchor_date", "forecast_end_date", "skipped", "gate",
+        "status", "run_id", "forecast_id", "as_of", "anchor_date", "forecast_end_date", "skipped", "supersedes", "refresh_policy", "gate",
     )}, ensure_ascii=False, indent=2))
 
 

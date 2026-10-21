@@ -3,7 +3,8 @@ name: timeseries-daily6m
 # Run after the existing source collector completes. The later fallback also
 # clears native ALFRED's conservative New York availability cutoff and allows
 # delayed source checkpoints to reach main before the research run.
-# Forecasts deduplicate by ISO week; outcomes resolve each completed day.
+# New completed origins append explicit revisions within the same ISO week.
+# An hourly retry also recovers a missed dispatch after sources were appended.
 on:
   workflow_dispatch:
   workflow_run:
@@ -11,6 +12,7 @@ on:
     types: [completed]
   schedule:
     - cron: "20 9 * * 2-6"
+    - cron: "37 * * * *"
 
 permissions:
   contents: write
@@ -40,8 +42,8 @@ jobs:
           cache: pip
       - name: Use the already declared numerical dependencies
         run: pip install -e ".[pit,timeseries]" "exchange-calendars>=4.6,<5" pytest
-      - name: Append this week's separate daily research forecast
-        run: python -m ai_fc timeseries-daily6m-forecast
+      - name: Refresh the latest completed origin without rewriting prior forecasts
+        run: python -m ai_fc timeseries-daily6m-forecast --refresh-latest
       - name: Score only completed and published daily outcomes
         run: python -m ai_fc timeseries-daily6m-resolve
       - name: Recheck preview gates and publish current HOLD or ready pointer
@@ -49,7 +51,7 @@ jobs:
       - name: Verify the separate research chain and targeted contracts
         run: |
           python -m ai_fc timeseries-daily6m-verify
-          pytest src/tests/test_timeseries_daily6m_model.py src/tests/test_timeseries_daily6m_pipeline.py -q
+          pytest src/tests/test_timeseries_daily6m_model.py src/tests/test_timeseries_daily6m_pipeline.py src/tests/test_timeseries_daily6m_refresh.py -q
       - name: Preserve full simulated paths as research artifacts
         uses: actions/upload-artifact@v4
         with:
