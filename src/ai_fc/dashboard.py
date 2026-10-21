@@ -88,7 +88,7 @@ TIMESERIES_DAILY_BUDGET_BYTES = 128 * 1024
 TIMESERIES_DAILY_FILENAME = "timeseries_daily.json"
 TRENDLINES_SUMMARY_BUDGET_BYTES = 16 * 1024
 TRENDLINES_ASSET_BUDGET_BYTES = 256 * 1024
-TRENDLINES_ASSET_IDS = ("sk-hynix", "soxx", "nasdaq", "sp500", "bitcoin", "dow", "mag7")
+TRENDLINES_ASSET_IDS = ("sk-hynix", "soxx", "nasdaq", "sp500", "bitcoin", "dow", "kospi", "samsung", "nvidia", "micron", "mag7")
 WANTED_SANS_CSS = (
     "https://cdn.jsdelivr.net/gh/wanteddev/wanted-sans@v1.0.3/"
     "packages/wanted-sans/fonts/webfonts/variable/split/"
@@ -1564,7 +1564,7 @@ def split_trendlines_data(read_model: dict) -> tuple[dict, dict[str, dict]]:
             sidecars[asset_id] = payload
         assets.append(asset)
     if seen != set(TRENDLINES_ASSET_IDS):
-        raise ValueError("trendlines summary must contain all seven assets")
+        raise ValueError("trendlines summary must contain every registered asset")
     summary["assets"] = assets
     raw_summary = json.dumps(summary, ensure_ascii=False, default=str, separators=(",", ":"), allow_nan=False).encode("utf-8")
     if len(raw_summary) > TRENDLINES_SUMMARY_BUDGET_BYTES:
@@ -1589,7 +1589,7 @@ def _trendlines_output_path(output: Path, relative: str) -> Path:
 
 
 def _write_trendlines_sidecars(sidecars: dict[str, dict], output: Path) -> None:
-    # These seven files are replaceable public outputs. Source receipts, engine
+    # These per-asset files are replaceable public outputs. Source receipts, engine
     # archives and ledgers are never deleted when current permission is closed.
     for asset_id in TRENDLINES_ASSET_IDS:
         if asset_id not in sidecars:

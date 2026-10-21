@@ -54,7 +54,7 @@ def test_hold_does_not_create_numeric_files():
     data['details'] = {}
     base, assets = dashboard.split_trendlines_data({'trendlines': data})
     assert assets == {}
-    assert len(base['trendlines']['assets']) == 7
+    assert len(base['trendlines']['assets']) == len(dashboard.TRENDLINES_ASSET_IDS)
     assert all('deferred_data' not in row for row in base['trendlines']['assets'])
 
 

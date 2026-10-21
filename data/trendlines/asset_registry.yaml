@@ -96,6 +96,66 @@ assets:
     enabled: false
     source_id: null
     hold_reason: missing_approved_ohlc
+  kospi:
+    asset_id: kospi
+    name: 코스피
+    symbol: KOSPI
+    identity: KRX_KOSPI_PRICE_INDEX
+    currency: KRW
+    unit: index_points
+    price_basis: published_price_index
+    calendar_id: XKRX
+    timezone: Asia/Seoul
+    kind: index
+    source_day_cutoff: exchange_close
+    enabled: false
+    source_id: null
+    hold_reason: missing_approved_ohlc
+  samsung:
+    asset_id: samsung
+    name: 삼성전자
+    symbol: '005930'
+    identity: KRX:005930
+    currency: KRW
+    unit: KRW_per_share
+    price_basis: split_adjusted_price
+    calendar_id: XKRX
+    timezone: Asia/Seoul
+    kind: equity
+    source_day_cutoff: exchange_close
+    enabled: false
+    source_id: null
+    hold_reason: missing_approved_ohlc
+  nvidia:
+    asset_id: nvidia
+    name: 엔비디아
+    symbol: NVDA
+    identity: NASDAQ:NVDA
+    currency: USD
+    unit: USD_per_share
+    price_basis: split_adjusted_price
+    calendar_id: XNAS
+    timezone: America/New_York
+    kind: equity
+    source_day_cutoff: exchange_close
+    enabled: false
+    source_id: null
+    hold_reason: missing_approved_ohlc
+  micron:
+    asset_id: micron
+    name: 마이크론
+    symbol: MU
+    identity: NASDAQ:MU
+    currency: USD
+    unit: USD_per_share
+    price_basis: split_adjusted_price
+    calendar_id: XNAS
+    timezone: America/New_York
+    kind: equity
+    source_day_cutoff: exchange_close
+    enabled: false
+    source_id: null
+    hold_reason: missing_approved_ohlc
   mag7:
     asset_id: mag7
     name: Solactive Magnificent Seven 동일가중 PR

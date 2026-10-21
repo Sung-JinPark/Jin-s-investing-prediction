@@ -363,7 +363,7 @@ if(fault==='extra')backup.assets[0].lines[0].approved=true;if(fault==='count')ba
 if(fault==='style')backup.assets[0].lines[0].style.color='url(javascript:test)';if(fault==='date')backup.assets[0].lines[0].a.session='2026-02-30';if(fault==='duplicate')backup.assets[0]=backup.assets[1];if(fault==='templates')backup.templates.items=[{id:'template-a',name:'x',style:{...TREND_MANUAL_STYLE},a:record.a}];
 let rejected=false;try{trendManualBackupCheck(backup);}catch(_){rejected=true;}process.stdout.write(JSON.stringify({valid:valid.assets.length,rejected,unchanged:state.lines.length===1}));
 '''.replace('FAULT', repr(fault)), FIXTURE)
-    assert out == {'valid': 6, 'rejected': True, 'unchanged': True}
+    assert out == {'valid': 10, 'rejected': True, 'unchanged': True}
 
 
 def test_author_stroke_and_strong_magnet_are_not_hover_dependent(tmp_path):

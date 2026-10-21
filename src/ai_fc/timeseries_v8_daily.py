@@ -560,12 +560,19 @@ def daily_forecast_timeseries_v8(
     forecast = run_summary["shadow_forecast"]
     if forecast["origin"] != origin:
         raise TimeSeriesV8DailyError("inference origin drifted from the bundle origin")
+    identity = {
+        "model": contract["model_id"], "config": config.as_manifest(),
+        "origin": origin, "input_state_hash": provenance["input_state_hash"],
+    }
+    display_id = "tsv8-daily-" + canonical_hash(identity)[:24]
+    if any(row["display_id"] == display_id for row in rows):
+        # Returning to an older superseded state is a new transition, not a
+        # duplicate append. Preserve normal IDs and link the returning state.
+        identity["supersedes"] = None if previous is None else previous["display_id"]
+        display_id = "tsv8-daily-" + canonical_hash(identity)[:24]
     payload = {
         "schema_version": 1,
-        "display_id": "tsv8-daily-" + canonical_hash({
-            "model": contract["model_id"], "config": config.as_manifest(),
-            "origin": origin, "input_state_hash": provenance["input_state_hash"],
-        })[:24],
+        "display_id": display_id,
         "kind": "daily_display",
         "display_only": True,
         "scoring_excluded": True,

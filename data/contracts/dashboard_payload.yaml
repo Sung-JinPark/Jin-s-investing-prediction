@@ -88,7 +88,7 @@ trendlines:
   default_asset: sk-hynix
   default_window: 63
   default_scale: linear
-  assets: [sk-hynix, soxx, nasdaq, sp500, bitcoin, dow, mag7]
+  assets: [sk-hynix, soxx, nasdaq, sp500, bitcoin, dow, kospi, samsung, nvidia, micron, mag7]
   snapshot_pins: [asset_id, snapshot_id, as_of, content_hash, payload_sha256]
   combine_with_future_or_official: false
   client_line_fitting: prohibited

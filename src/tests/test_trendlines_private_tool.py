@@ -272,3 +272,24 @@ def test_original_corruption_during_representative_work_blocks_delivery(tool, tm
     with pytest.raises(C.TrendlinesError, match="original-to-chart replay failed"):
         tool.run(request)
     assert not (request.out / "bitcoin.trendlines.json").exists()
+
+
+def test_private_registry_gains_instruments_but_never_redefines_captured_ones(tool, tmp_path):
+    import yaml
+    output = tool.PROJECT / "outputs/private"
+    target = output / C.ASSET_REGISTRY_RELATIVE
+    registry = yaml.safe_load((REPOSITORY / C.ASSET_REGISTRY_RELATIVE).read_text(encoding="utf-8"))
+    earlier = {key: value for key, value in registry.items() if key != "assets"}
+    earlier["assets"] = {key: value for key, value in registry["assets"].items() if key not in {"kospi", "samsung", "nvidia", "micron"}}
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_text(yaml.safe_dump(earlier, allow_unicode=True, sort_keys=False), encoding="utf-8")
+    tool.private_root(output)
+    assert tuple(C.load_asset_registry(output)) == C.ASSET_IDS
+    assert target.read_bytes() == (REPOSITORY / C.ASSET_REGISTRY_RELATIVE).read_bytes()
+    redefined = yaml.safe_load(target.read_text(encoding="utf-8"))
+    redefined["assets"]["sk-hynix"]["currency"] = "USD"
+    target.write_text(yaml.safe_dump(redefined, allow_unicode=True, sort_keys=False), encoding="utf-8")
+    before = target.read_bytes()
+    with pytest.raises(C.TrendlinesError, match="existing definitions are immutable"):
+        tool.private_root(output)
+    assert target.read_bytes() == before

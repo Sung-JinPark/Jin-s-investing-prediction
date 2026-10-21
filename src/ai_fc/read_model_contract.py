@@ -307,14 +307,14 @@ def validate(model: dict[str, Any]) -> list[str]:
             )
     trendlines = model.get("trendlines")
     if isinstance(trendlines, dict):
-        expected = {"sk-hynix", "soxx", "nasdaq", "sp500", "bitcoin", "dow", "mag7"}
+        expected = {"sk-hynix", "soxx", "nasdaq", "sp500", "bitcoin", "dow", "kospi", "samsung", "nvidia", "micron", "mag7"}
         assets = trendlines.get("assets", [])
         if trendlines.get("contract_id") != "trendlines_display_v1" or trendlines.get("schema_version") != 1:
             errors.append("trendlines display contract invalid")
         if trendlines.get("status") not in {"hold", "partial", "ready"}:
             errors.append("trendlines display state invalid")
-        if not isinstance(assets, list) or len(assets) != 7 or {row.get("asset_id") for row in assets if isinstance(row, dict)} != expected:
-            errors.append("trendlines must preserve all seven asset identities")
+        if not isinstance(assets, list) or len(assets) != len(expected) or {row.get("asset_id") for row in assets if isinstance(row, dict)} != expected:
+            errors.append("trendlines must preserve every registered asset identity")
         else:
             for row in assets:
                 if row.get("status") not in {"hold", "ready", "stale", "unverified_display"}:
