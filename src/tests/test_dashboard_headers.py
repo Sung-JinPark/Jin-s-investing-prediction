@@ -48,9 +48,12 @@ def _layouts() -> dict[str, str]:
             '<div class="timeseries-page"><header class="timeseries-hero"><div>'
             '<h1 id="timeseries-title">NASDAQ 시계열 예측</h1>'
             '<p id="header-metadata">2026-10-20 종가 기준 <span class="ts-provisional">잠정</span></p>'
-            '</div><div class="timeseries-next"><span>약 3개월 뒤 예상</span>'
-            '<strong class="ts-next-pct up">+4.33%</strong><em class="ts-next-level">지수 27,569</em>'
-            '</div></header>' + _nav("lab-tabs timeseries-tabs", buttons=True) + content + '</div>'
+            '</div></header>' + _nav("lab-tabs timeseries-tabs", buttons=True)
+            + '<div id="lab-ts-summary" class="ts-panel"><section id="kept-brief" class="ts-brief" aria-label="세 줄 요약">'
+            '<div><i>3개월 뒤 예상</i><p>지수 <b>27,569</b> · 지금보다 약 4.33% 상승 예상</p></div>'
+            '<div><i>예상 범위</i><p><b>24,384~29,587</b> · 현재 대비 -7.7%~+12.0% · 계산상 80% 범위</p></div>'
+            '<div><i>과거 예측 성적</i><p><b>70점 / 100점 · 보통</b> · <a href="#future/timeseries/backtest">성적표 보기</a></p></div>'
+            '</section>' + content + '</div></div>'
         ),
         "trendlines": (
             '<div class="trend-page"><header class="trend-heading"><p class="eyebrow">추세선 · 03</p>'
@@ -114,9 +117,9 @@ def test_six_menu_headers_share_layout_without_losing_nodes_or_actions(chrome, w
               document.body.dataset.view=menu;
               const root=el(markup),metadata=root.querySelector('#header-metadata'),title=root.querySelector('h1');
               const status=root.querySelector('#kept-status');
-              const metric=root.querySelector('.timeseries-next'),count=root.querySelector('#kept-record-count');
+              const brief=root.querySelector('#kept-brief'),count=root.querySelector('#kept-record-count');
               const action=root.querySelector('#kept-action');let clicks=0;if(action)action.addEventListener('click',()=>clicks++);
-              const before={title:title.textContent,metadata:metadata.textContent,metric:metric?.textContent,count:count?.textContent};
+              const before={title:title.textContent,metadata:metadata.textContent,brief:brief?.textContent,count:count?.textContent};
               mount(root);normalizePageChrome(root);
               const head=root.querySelector(':scope > .page-header'),tabs=[...root.querySelectorAll(':scope > .page-tabs')];
               const children=[...root.children],style=getComputedStyle(head),titleStyle=getComputedStyle(title),after=getComputedStyle(head,'::after');
@@ -136,7 +139,10 @@ def test_six_menu_headers_share_layout_without_losing_nodes_or_actions(chrome, w
                 metadataPreserved:document.getElementById('header-metadata')===metadata&&metadata.textContent===before.metadata,
                 livePreserved:root.querySelector('#kept-status')===status&&status.getAttribute('role')==='status'&&status.getAttribute('aria-live')==='polite',
                 titlePreserved:root.querySelector('h1')===title&&title.textContent===before.title,
-                metricPreserved:!metric||(root.querySelector('.timeseries-next')===metric&&metric.textContent===before.metric&&!head.contains(metric)&&!!summary&&summary.contains(metric)),
+                briefPreserved:!brief||(root.querySelector('#kept-brief')===brief&&brief.textContent===before.brief&&!head.contains(brief)),
+                briefRows:brief?[...brief.children].filter(node=>node.tagName==='DIV').length:0,
+                briefAfterTabs:!brief||(tabs.at(-1).nextElementSibling===brief.closest('#lab-ts-summary')&&pos(tabs.at(-1)).bottom<=pos(brief).top+1),
+                noHeaderMetric:!root.querySelector('.timeseries-next,.ts-next-pct,.ts-next-level')&&!head.querySelector('.page-header-summary'),
                 countPreserved:!count||(root.querySelector('#kept-record-count')===count&&count.textContent===before.count&&!head.contains(count)&&!!summary&&summary.contains(count)),
                 actionPreserved:!action||(root.querySelector('#kept-action')===action&&clicks===1&&!head.contains(action)&&!!tools&&tools.contains(action)),
                 actionStyle:action?{color:getComputedStyle(action).color,background:getComputedStyle(action).backgroundColor,minHeight:getComputedStyle(action).minHeight}:null,
@@ -156,7 +162,9 @@ def test_six_menu_headers_share_layout_without_losing_nodes_or_actions(chrome, w
             assert row["decorationHidden"] and not row["overflow"], menu
             assert row["tabsInOrder"] and row["head"]["bottom"] <= row["content"]["top"] + 1, menu
             assert row["metadataPreserved"] and row["titlePreserved"] and row["livePreserved"], menu
-            assert row["metricPreserved"] and row["countPreserved"] and row["actionPreserved"] and row["codes"], menu
+            assert row["briefPreserved"] and row["countPreserved"] and row["actionPreserved"] and row["codes"], menu
+            if menu == "timeseries":
+                assert row["briefRows"] == 3 and row["briefAfterTabs"] and row["noHeaderMetric"], menu
             if row["actionStyle"]:
                 assert row["actionStyle"] == {"color": "rgb(17, 17, 15)", "background": "rgb(255, 255, 255)", "minHeight": "44px"}, menu
             assert row["head"]["left"] - row["outer"]["left"] == (32 if width == 1280 else 12), menu

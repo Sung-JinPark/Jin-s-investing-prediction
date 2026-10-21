@@ -89,7 +89,7 @@ def test_beginner_language_layer_leads_every_tab() -> None:
     # 도수 표현이 1차 라벨
     assert "10번 중 8번 범위" in html
     assert "100번 중 ${Math.round(row.up*100)}번" in html  # 카드는 2줄로 줄고, 도수 표현은 툴팁 1차 행으로
-    assert "ts-next-pct" in html and "상승':'하락'} 예측" in html  # 히어로 우측 %-방향 강조
+    assert "timeseries-next" not in v8, "헤더의 큰 중복 예상값 박스 제거"
     # 달력 환산 헬퍼와 적용
     assert "TS_H_CAL={'1':'다음 거래일','5':'약 1주 뒤','21':'약 1개월 뒤','63':'약 3개월 뒤'}" in html
     assert html.count("tsCal(") >= 5
@@ -98,9 +98,11 @@ def test_beginner_language_layer_leads_every_tab() -> None:
     # 사다리표: 분위수 용어는 2층(small) — 2026-09-18 5열로 간결화, %가 1차 값·지수는 아래
     assert "나쁜 경우<small>하위 10%" in html and "좋은 경우<small>상위 10%" in html
     assert "<strong class=\"${ret>=0?'up':'down'}\">${tsPct(ret)}</strong><small>${tsLevel(level)}</small>" in html
-    # 카드·히어로도 +%가 크게, 지수는 그 아래(스왑)
+    # 기간별 카드는 유지하고, 상단 중복 박스는 세 줄 요약으로 정리한다.
     assert 'class="ts-card-pct' in html and 'class="ts-card-level">지수' in html
-    assert '<strong class="ts-next-pct' in html and 'class="ts-next-level">지수' in html
+    assert "ts-next-pct" not in html and "ts-next-level" not in html
+    legacy = html[html.index("function renderTimeseries("):html.index("const GC_API=")]
+    assert "timeseries-next" not in legacy
     # 경로 분포 그래프 위 "얼마나 오르나" 표시는 딱 1개
     assert html.count('class="ts-goal-box"') == 1
     # 검증: 성적표 3문항이 상세 지표보다 앞, 등급은 기존 판정의 재표현
