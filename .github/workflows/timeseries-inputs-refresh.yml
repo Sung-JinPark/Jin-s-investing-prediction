@@ -182,8 +182,9 @@ jobs:
           dispatch_failed=false
           gh workflow run timeseries-v8-daily.yml --repo "$GITHUB_REPOSITORY" --ref main || dispatch_failed=true
           gh workflow run timeseries-daily6m.yml --repo "$GITHUB_REPOSITORY" --ref main || dispatch_failed=true
+          gh workflow run timeseries-v2-refresh.yml --repo "$GITHUB_REPOSITORY" --ref main || dispatch_failed=true
           if [ "$dispatch_failed" = "true" ]; then
-            echo "A daily forecast dispatch failed; both dispatches were attempted."
+            echo "An input consumer dispatch failed; every dispatch was attempted."
             exit 1
           fi
       - name: Deploy a meaningful source or HOLD-state change

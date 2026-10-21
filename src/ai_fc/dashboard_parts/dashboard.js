@@ -19,17 +19,25 @@ function dailyFlowSemanticReferenceMatches(left={},right={}){
   return ['contract_id','artifact_id','source_snapshot_id','source_snapshot_sha256','input_sha256','version','model_content_sha256'].every(key=>typeof left?.[key]==='string'&&left[key].length>0&&left[key]===right?.[key]);
 }
 async function ensureFuturePaths(){
+  const dataset=DATA;
   const summary=DATA?.scenario_v5_2||{},deferred=summary.deferred_paths||{};
   if(!deferred.required||deferred.loaded)return true;
   if(FUTURE_PATHS_PROMISE)return FUTURE_PATHS_PROMISE;
   FUTURE_PATHS_PROMISE=(async()=>{
     const url=window.__FUTURE_PATHS_URL__||deferred.url;
     if(!url)throw new Error('future paths URL missing');
+    if(!globalThis.crypto?.subtle||!/^[a-f0-9]{64}$/.test(String(deferred.payload_sha256||'')))throw new Error('future paths integrity reference missing');
     const response=await fetch(url,{cache:'no-store'});
     if(!response.ok)throw new Error(`future paths HTTP ${response.status}`);
-    const payload=await response.json();
+    const raw=await response.text(),digest=await globalThis.crypto.subtle.digest('SHA-256',new TextEncoder().encode(raw));
+    const hash=[...new Uint8Array(digest)].map(value=>value.toString(16).padStart(2,'0')).join('');
+    if(hash!==deferred.payload_sha256)throw new Error('future paths payload mismatch');
+    const payload=JSON.parse(raw);
     if(payload?.contract_id!=='future_paths_v1'||!payload.data?.scenario_v5_2)throw new Error('future paths contract invalid');
     if(!semanticReferenceMatches(summary.semantic_reference,payload.semantic_reference))throw new Error('future paths semantic reference mismatch');
+    const candidate=payload.data.scenario_v5_2;
+    if(!deferred.model_content_sha256||candidate.model_content_sha256!==deferred.model_content_sha256||!summary.as_of||candidate.as_of!==summary.as_of)throw new Error('future paths snapshot mismatch');
+    if(DATA!==dataset||DATA.scenario_v5_2!==summary)throw new Error('future paths summary changed during loading');
     Object.assign(DATA,payload.data);
     DATA.scenario_v5_2.deferred_paths={...deferred,loaded:true,loaded_at:new Date().toISOString()};
     FUTURE_PATHS_ERROR=null;

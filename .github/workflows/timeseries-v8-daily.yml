@@ -20,12 +20,13 @@ on:
   schedule:
     - cron: "40 23 * * *"
     - cron: "40 9 * * *"
+    - cron: "37 0-10 * * 2-6"
 
 permissions:
   contents: write
 
 concurrency:
-  group: timeseries-v8-daily
+  group: ${{ github.event_name == 'workflow_run' && (github.event.workflow_run.conclusion != 'success' || github.event.workflow_run.head_branch != 'main') && format('v8-skipped-{0}', github.run_id) || 'timeseries-v8-daily' }}
   cancel-in-progress: false
 
 jobs:

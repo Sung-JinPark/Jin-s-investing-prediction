@@ -14,6 +14,7 @@ import base64
 import csv
 import hashlib
 import html as html_lib
+import io
 import json
 import re
 import sqlite3
@@ -1339,6 +1340,7 @@ def split_future_paths(read_model: dict) -> tuple[dict, dict | None]:
                 "required": True,
                 "loaded": False,
                 "url": FUTURE_PATHS_FILENAME,
+                "model_content_sha256": candidate.get("model_content_sha256"),
                 "failure_mode": "summary_with_explicit_banner",
             },
         }
@@ -1358,9 +1360,12 @@ def split_future_paths(read_model: dict) -> tuple[dict, dict | None]:
         "semantic_reference": candidate.get("semantic_reference"),
         "data": deferred,
     }
-    payload_size = len(json.dumps(
+    payload_bytes = json.dumps(
         payload, ensure_ascii=False, default=str, separators=(",", ":")
-    ).encode("utf-8"))
+    ).encode("utf-8")
+    payload_size = len(payload_bytes)
+    if candidate_has_paths:
+        base["scenario_v5_2"]["deferred_paths"]["payload_sha256"] = hashlib.sha256(payload_bytes).hexdigest()
     if payload_size > FUTURE_PATHS_BUDGET_BYTES:
         raise ValueError(
             f"future paths budget exceeded: {payload_size} > {FUTURE_PATHS_BUDGET_BYTES}"
@@ -1671,14 +1676,37 @@ def _compact_embed_forecast_history(read_model: dict) -> dict:
     return compacted
 
 
+def split_band_calibration_archive(read_model: dict, root: Path) -> tuple[dict, bytes | None]:
+    """Publish every raw calibration row as the original CSV, outside first paint.
+
+    UI aggregates stay inline; the complete read-only API retains its rows.
+    Bind the sidecar bytes and fail if the source changed after model loading.
+    """
+    band = read_model.get("band_calibration")
+    if not isinstance(band, dict) or not band.get("rows"):
+        return read_model, None
+    raw = (root / "data/scenarios/band_calibration.csv").read_bytes()
+    if list(csv.DictReader(io.StringIO(raw.decode("utf-8")))) != band["rows"]:
+        raise ValueError("band calibration archive changed during publication")
+    base = dict(read_model)
+    base["band_calibration"] = {key: value for key, value in band.items() if key != "rows"}
+    base["band_calibration"]["rows_archived"] = {
+        "archived": True, "row_count": len(band["rows"]),
+        "reason": "first_paint_size_budget", "source_path": band.get("source_path"),
+        "url": "band_calibration.csv", "sha256": hashlib.sha256(raw).hexdigest(),
+        "full_payload": "/api/data",
+    }
+    return base, raw
+
+
 def _compact_embed_band_calibration(read_model: dict) -> dict:
     """Archive raw band-calibration rows out of the standalone snapshot.
 
     The dashboard UI renders only the aggregate promotion-gate counters
     (status/observations/gate_pass), never the per-day rows, so the embed
     keeps every rendered figure while the row-level ledger stays published
-    unchanged in the Pages ``data.json`` payload, the ``/api/data`` route and
-    the immutable source CSV referenced by ``source_path``.  This mirrors the
+    unchanged in the Pages ``band_calibration.csv`` sidecar, the ``/api/data``
+    route and the immutable source CSV referenced by ``source_path``.  This mirrors the
     resolved-forecast-body archival: transport changes, information does not.
     """
     band = read_model.get("band_calibration")
@@ -1691,7 +1719,7 @@ def _compact_embed_band_calibration(read_model: dict) -> dict:
         "row_count": len(band.get("rows") or []),
         "reason": "embed_size_budget",
         "source_path": band.get("source_path"),
-        "full_payload": "data.json",
+        "full_payload": "/api/data",
     }
     compacted["band_calibration"] = archived
     return compacted
@@ -2180,6 +2208,7 @@ def write_pages(conn: sqlite3.Connection, out_dir: Path, root: Path) -> Path:
     base, forecast_bodies = split_forecast_bodies(base)
     base, timeseries_daily = split_timeseries_daily_data(base)
     base, trendlines_assets = split_trendlines_data(base)
+    base, band_archive = split_band_calibration_archive(base, root)
     out_dir.mkdir(parents=True, exist_ok=True)
     index = out_dir / "index.html"
     index.write_text(render_html(model, mode="pages"), encoding="utf-8")
@@ -2197,6 +2226,8 @@ def write_pages(conn: sqlite3.Connection, out_dir: Path, root: Path) -> Path:
         )
     (out_dir / "data.json").write_text(base_json, encoding="utf-8")
     _write_trendlines_sidecars(trendlines_assets, out_dir)
+    if band_archive is not None:
+        (out_dir / "band_calibration.csv").write_bytes(band_archive)
     if daily_flow is not None:
         (out_dir / DAILY_FLOW_FILENAME).write_text(
             json.dumps(daily_flow, ensure_ascii=False, default=str, separators=(",", ":")),

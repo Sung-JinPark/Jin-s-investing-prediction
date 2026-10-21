@@ -146,7 +146,15 @@ jobs:
         if: ${{ steps.decision.outputs.changed == 'true' }}
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh workflow run timeseries-daily6m.yml --repo "$GITHUB_REPOSITORY" --ref main
+        run: |
+          dispatch_failed=false
+          for workflow in timeseries-daily6m.yml timeseries-v8-daily.yml timeseries-v2-refresh.yml; do
+            gh workflow run "$workflow" --repo "$GITHUB_REPOSITORY" --ref main || dispatch_failed=true
+          done
+          if [ "$dispatch_failed" = "true" ]; then
+            echo "A verified-source consumer dispatch failed; every consumer was attempted."
+            exit 1
+          fi
       - uses: actions/upload-artifact@v4
         if: ${{ always() }}
         with:

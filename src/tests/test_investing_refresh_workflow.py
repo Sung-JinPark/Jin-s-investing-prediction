@@ -58,7 +58,7 @@ def test_scenario_and_full_refresh_share_writer_lock() -> None:
     ).read_text(encoding="utf-8")
 
     assert "group: investing-data-writer" in full
-    assert "group: investing-data-writer" in scenario
+    assert "|| 'investing-data-writer'" in scenario
     assert "group: investing-data-writer" in ai_regime
     assert "group: investing-data-writer" in source_monitoring
     assert "continue-on-error: true" in scenario

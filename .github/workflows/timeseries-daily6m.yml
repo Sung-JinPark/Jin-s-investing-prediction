@@ -18,7 +18,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: investing-data-writer-daily6m
+  group: ${{ github.event_name == 'workflow_run' && (github.event.workflow_run.conclusion != 'success' || github.event.workflow_run.head_branch != 'main') && format('daily6m-skipped-{0}', github.run_id) || 'investing-data-writer-daily6m' }}
   cancel-in-progress: false
 
 jobs:

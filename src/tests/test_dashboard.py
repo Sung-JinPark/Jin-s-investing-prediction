@@ -182,7 +182,7 @@ def test_embed_compaction_archives_band_calibration_rows_without_mutating_pages_
         "row_count": 2,
         "reason": "embed_size_budget",
         "source_path": "data/scenarios/band_calibration.csv",
-        "full_payload": "data.json",
+        "full_payload": "/api/data",
     }
     # Pages/data.json 경로가 쓰는 원본 모델은 무수정.
     assert len(model["band_calibration"]["rows"]) == 2
@@ -1593,7 +1593,9 @@ def test_pages_payload_stays_within_budget_on_the_real_repository(tmp_path) -> N
     base, _ = dashboard.split_future_paths(base)
     base, bodies = dashboard.split_forecast_bodies(base)
     base, _ = dashboard.split_timeseries_daily_data(base)
+    base, archive = dashboard.split_band_calibration_archive(base, dashboard.config.ROOT)
     base, _ = dashboard.split_trendlines_data(base)
+    assert archive == (dashboard.config.ROOT / "data/scenarios/band_calibration.csv").read_bytes()
     encode = lambda payload: len(json.dumps(  # noqa: E731
         payload, ensure_ascii=False, default=str, separators=(",", ":"),
     ).encode("utf-8"))
@@ -1692,6 +1694,8 @@ def test_future_paths_are_split_with_semantic_identity_and_fixed_budgets(tmp_pat
         "required": True,
         "loaded": False,
         "url": "future_paths.json",
+        "model_content_sha256": future["data"]["scenario_v5_2"]["model_content_sha256"],
+        "payload_sha256": __import__("hashlib").sha256(json.dumps(future, ensure_ascii=False, default=str, separators=(",", ":")).encode("utf-8")).hexdigest(),
         "failure_mode": "summary_with_explicit_banner",
     }
     assert base["scenario_v5_2"]["path_checkpoints"]

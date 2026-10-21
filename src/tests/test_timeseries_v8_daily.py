@@ -490,7 +490,8 @@ def test_daily_workflow_triggers_lock_and_registration() -> None:
     document = yaml.safe_load(text)
     on = document.get(True) or document.get("on")
     assert on["workflow_run"]["workflows"] == ["market-mood-refresh", "timeseries-v2-refresh"]
-    assert "workflow_dispatch" in on and len(on["schedule"]) == 2
+    assert "workflow_dispatch" in on and len(on["schedule"]) == 3
+    assert {"cron": "37 0-10 * * 2-6"} in on["schedule"]
     assert document["name"] == "timeseries-v8-daily"
     commit = document["jobs"]["commit"]
     assert commit["concurrency"] == {"group": "investing-data-writer", "cancel-in-progress": False}
