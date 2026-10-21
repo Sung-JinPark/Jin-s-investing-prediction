@@ -291,6 +291,12 @@ def test_the_lab_declares_its_provenance_and_status() -> None:
     assert lab["source"] == "cnn_graphdata"
     assert lab["license_status"] == "review_required"
     assert lab["method"] == "real_browser_session"
+    source = (ROOT / "src/ai_fc/dashboard_parts/dashboard.js").read_text(encoding="utf-8")
+    renderer = source.split("function renderFearGreedLab(){", 1)[1].split("\n}", 1)[0]
+    assert "상관을 주장하지 않습니다" not in renderer
+    assert "회귀도 상관계수도 계산하지 않고" not in renderer
+    assert "fngOverlayChart(lab.dates" in renderer and 'class="fng-comp-grid"' in renderer
+    assert "아래 선은 원자료(점수 추이 아님)" in renderer
 
 
 def test_the_lab_line_continues_daily_past_the_seed() -> None:

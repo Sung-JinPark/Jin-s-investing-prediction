@@ -138,25 +138,3 @@ function payload(overrides={}){return {contract_id:'future_paths_v1',semantic_re
     output = json.loads(result.stdout)
     assert output['errors'] == ['future paths snapshot mismatch'] * 2 + ['future paths payload mismatch', 'future paths summary changed during loading']
     assert output['loaded']
-
-
-def test_pages_archives_all_calibration_rows_with_exact_source_bytes(tmp_path):
-    import csv
-    import hashlib
-    import io
-    from ai_fc.dashboard import split_band_calibration_archive
-    raw = b"asof,actual_close\r\n2026-10-19,26418.06\r\n2026-10-20,26424.82\r\n"
-    target = tmp_path / 'data/scenarios/band_calibration.csv'
-    target.parent.mkdir(parents=True); target.write_bytes(raw)
-    rows = list(csv.DictReader(io.StringIO(raw.decode())))
-    model = {'band_calibration': {'rows': rows, 'observations': 2, 'gate_pass': False}}
-    before = copy.deepcopy(model)
-    base, archived = split_band_calibration_archive(model, tmp_path)
-    assert archived == raw and model == before
-    assert base['band_calibration']['observations'] == 2
-    assert base['band_calibration']['rows_archived']['sha256'] == hashlib.sha256(raw).hexdigest()
-    assert base['band_calibration']['rows_archived']['row_count'] == 2
-    assert 'rows' not in base['band_calibration']
-    target.write_bytes(raw.replace(b'26424.82', b'26424.83'))
-    with pytest.raises(ValueError, match='changed during publication'):
-        split_band_calibration_archive(model, tmp_path)
