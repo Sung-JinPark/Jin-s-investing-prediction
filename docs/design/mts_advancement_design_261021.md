@@ -225,6 +225,7 @@ S9  PR → CI 초록일 때만 머지
 | rung-7/8 | 영수증 sha(gz 압축 전)·정례 8회/년 assert·셧다운 4건 대조·블록 spot-check·러너 재실행 거부·원장 행 = `evaluations_spent` |
 | ML | 신선도 7일 이내/초과·채점 멱등·성숙 전 거부·pre_registration 표시·Brier 단위 |
 | 전역 | `pytest -q`(src/, ~26분) · 대시보드 빌드 예산 · `sync --check` · `audit-ledgers --check` · `inventory --check` · EOL: Windows Git Bash 의 `grep -c $'\r'` 는 LF 파일에도 오탐하므로 **`git ls-files --eol`(w/lf) 로 확인** · V5.2 보호 루트 무접촉 |
+| 임베드 예산 | origin/main 이 1536 KiB 상한의 99.5% 라 이 PR 의 +10.5 KB 로 2.2 KB 초과 → ADR-002 '렌더 필드 투영'을 전송 전용으로 확장(receipts.requests·trust 감사 열·미렌더 method 행·V13 trail) → 1,559,564 B(여유 13.3 KB). **상한 여유는 일 단위 성장으로 곧 재소진 — 상향(ADR) 여부는 사용자 결정** |
 
 ---
 
