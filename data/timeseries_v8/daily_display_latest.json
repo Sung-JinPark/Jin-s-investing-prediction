@@ -1,11 +1,11 @@
 {
   "as_of": "2026-10-20",
-  "content_hash": "850889af2c3260ec2c8b4928cd4861eef038ab8ddd350ec03f1fa9f288b0ff3f",
+  "content_hash": "8f929f7ed51283a454be9e57e2c9881241fafda73c2408f23841e2e44e29f4cf",
   "daily": {
     "anchor": {
-      "provisional": true,
+      "provisional": false,
       "series_id": "NASDAQCOM",
-      "source": "nasdaq_quote_api_comp",
+      "source": "fred_api_nasdaqcom_archive",
       "value": 26424.82
     },
     "cadence": "daily",
@@ -21,28 +21,12 @@
         "series_id": "DTWEXBGS"
       }
     ],
-    "display_id": "tsv8-daily-f56107787fdb139f8fc180e0",
+    "display_id": "tsv8-daily-0d2a33464ed648d6c855e54f",
     "display_only": true,
-    "input_state": "provisional",
-    "provisional_inputs": [
-      {
-        "observation_time": "2026-10-20",
-        "series_id": "NASDAQCOM",
-        "source": "nasdaq_quote_api_comp",
-        "value": 26424.82
-      },
-      {
-        "observation_time": "2026-10-20",
-        "series_id": "VIX",
-        "source": "cboe_delayed_quote",
-        "value": 17.31
-      }
-    ],
-    "provisional_series": [
-      "NASDAQCOM",
-      "VIX"
-    ],
-    "row_knowledge_cutoff": "2026-10-20T22:46:18+00:00",
+    "input_state": "confirmed",
+    "provisional_inputs": [],
+    "provisional_series": [],
+    "row_knowledge_cutoff": "2026-10-21T05:51:40+00:00",
     "scoring_excluded": true
   },
   "display_state": "research_reference",
@@ -55,12 +39,12 @@
   },
   "horizons": {
     "1": {
-      "p10": -0.012821514916356351,
-      "p25": -0.004356542599156687,
-      "p50": 0.0018540225486374166,
-      "p75": 0.00805016185164418,
-      "p90": 0.013981586910467162,
-      "probability_up": 0.58
+      "p10": -0.01302737218010064,
+      "p25": -0.004585521455626445,
+      "p50": 0.0016562156180715893,
+      "p75": 0.007809986510543812,
+      "p90": 0.013756121993444788,
+      "probability_up": 0.57
     },
     "21": {
       "p10": -0.05291810440646216,
@@ -71,12 +55,12 @@
       "probability_up": 0.655
     },
     "5": {
-      "p10": -0.028086894429172237,
-      "p25": -0.010969537694226516,
-      "p50": 0.0052454334440065874,
-      "p75": 0.019558063556510043,
-      "p90": 0.03147492090747362,
-      "probability_up": 0.585
+      "p10": -0.029130254582641603,
+      "p25": -0.01211764475525045,
+      "p50": 0.004154630870256707,
+      "p75": 0.0184491091432413,
+      "p90": 0.030396833328968215,
+      "probability_up": 0.57
     },
     "63": {
       "p10": -0.08036774844612073,
@@ -87,29 +71,29 @@
       "probability_up": 0.715
     }
   },
-  "knowledge_cutoff": "2026-10-21T02:01:10+00:00",
+  "knowledge_cutoff": "2026-10-21T06:33:46+00:00",
   "model_id": "shadow.mf_dfm_varx_calibrated_v8",
   "model_version": 8,
   "operational": {
     "freshness": [
       {
-        "age_hours": 2.0198147958333332,
+        "age_hours": 6.563280106666666,
         "group": "NASDAQCOM",
         "limit_hours": 48.0,
         "observation_time": "2026-10-20",
-        "provisional": true,
+        "provisional": false,
         "status": "fresh"
       },
       {
-        "age_hours": 2.0198147958333332,
+        "age_hours": 6.563280106666666,
         "group": "VIX",
         "limit_hours": 48.0,
         "observation_time": "2026-10-20",
-        "provisional": true,
+        "provisional": false,
         "status": "fresh"
       },
       {
-        "age_hours": 2.0198147958333332,
+        "age_hours": 6.563280106666666,
         "group": "DGS2",
         "limit_hours": 48.0,
         "observation_time": "2026-10-20",
@@ -117,7 +101,7 @@
         "status": "fresh"
       },
       {
-        "age_hours": 2.0198147958333332,
+        "age_hours": 6.563280106666666,
         "group": "DGS10",
         "limit_hours": 48.0,
         "observation_time": "2026-10-20",
@@ -125,7 +109,7 @@
         "status": "fresh"
       },
       {
-        "age_hours": 98.01981479583334,
+        "age_hours": 102.56328010666665,
         "group": "DTWEXBGS_or_DTWEXB",
         "limit_hours": 216.0,
         "observation_time": "2026-10-16",
