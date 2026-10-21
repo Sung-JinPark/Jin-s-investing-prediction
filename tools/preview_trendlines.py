@@ -169,7 +169,13 @@ def build_local_service_preview(research_root: Path, output: Path):
         raise ValueError("local service shell must not embed private research candles")
     output.mkdir(parents=True, exist_ok=True)
     html = dashboard.render_html(base, mode='embed')
-    html = html.replace('</head>', '<meta name="robots" content="noindex,nofollow"><script>if(!location.hash)location.hash="#trendlines/sk-hynix";</script></head>')
+    # The navigation bridge in the lazy trendline bundle handles in-app exits.
+    # A cold non-chart deep link has not loaded that bundle yet: send it to
+    # the public dashboard before booting this candle-only local shell.
+    navigation = ('if(!location.hash)location.hash="#trendlines/sk-hynix";'
+                  'else if(location.hash!=="#app"&&!/^#(?:future\\/)?trendlines(?:\\/|$)/.test(location.hash))'
+                  'location.replace("https://sung-jinpark.github.io/Jin-s-investing-prediction/"+location.hash);')
+    html = html.replace('</head>', '<meta name="robots" content="noindex,nofollow"><script>'+navigation+'</script></head>')
     # Replace each bounded file atomically. A stale HTML/script generation pair
     # is rejected by the existing bundle SHA check and can be retried safely.
     for suffix in ('js', 'css'):
