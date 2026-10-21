@@ -19,8 +19,8 @@ def _panel_source() -> str:
 
 
 def test_v13_vol_panel_is_wired_hidden_by_default() -> None:
-    assert "const TS_TABS=[['summary','전망 요약','01']" in SCRIPT, "기존 4탭 리터럴 보존"
-    assert "const TS_V13_TAB=['volatility','변동성 기준율','05']" in SCRIPT
+    assert "const TS_TABS=[['summary','전망 요약']" in SCRIPT, "기존 탭 키와 라벨 보존"
+    assert "const TS_V13_TAB=['volatility','변동성 기준율']" in SCRIPT
     assert "[...TS_TABS,TS_V13_TAB].map(" in SCRIPT, "탭 마크업이 5탭을 그린다(비활성=검증 대기)"
     assert "function timeseriesV13TabEnabled(" in SCRIPT
     assert "get('review')==='v13vol'" in SCRIPT, "T2 는 ?review=v13vol 로만 열람"

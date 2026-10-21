@@ -15,11 +15,13 @@ ROOT = Path(__file__).resolve().parents[2]
 
 def _nav(class_name: str, *, buttons: bool = False) -> str:
     if buttons:
-        return (
-            f'<nav class="{class_name}" role="tablist" aria-label="페이지 선택">'
-            '<button type="button" aria-selected="true"><span>01</span> 전망 요약</button>'
-            '<button type="button" aria-selected="false"><span>02</span> 경로 분포</button></nav>'
-        )
+        tabs = (("summary", "전망 요약"), ("daily", "6개월 일별 전망"), ("path", "경로 분포"),
+                ("drivers", "기여 요인"), ("backtest", "검증 성적"), ("volatility", "변동성 기준율"))
+        return f'<nav class="{class_name}" role="tablist" aria-label="시계열 예측 화면">' + "".join(
+            f'<button type="button" id="lab-tab-ts-{key}" role="tab" data-ts-tab="{key}" '
+            f'aria-selected="{str(key == "summary").lower()}" aria-controls="lab-ts-{key}">{label}<small></small></button>'
+            for key, label in tabs
+        ) + '</nav>'
     return (
         f'<nav class="{class_name}" aria-label="페이지 선택">'
         '<a href="#one" aria-current="page"><span>01</span> 첫 화면</a>'
@@ -146,7 +148,7 @@ def test_six_menu_headers_share_layout_without_losing_nodes_or_actions(chrome, w
                 countPreserved:!count||(root.querySelector('#kept-record-count')===count&&count.textContent===before.count&&!head.contains(count)&&!!summary&&summary.contains(count)),
                 actionPreserved:!action||(root.querySelector('#kept-action')===action&&clicks===1&&!head.contains(action)&&!!tools&&tools.contains(action)),
                 actionStyle:action?{color:getComputedStyle(action).color,background:getComputedStyle(action).backgroundColor,minHeight:getComputedStyle(action).minHeight}:null,
-                codes:tabs.flatMap(nav=>[...nav.querySelectorAll('.page-tab-code')]).every(node=>/^\\d{2}$/.test(node.textContent.trim())),
+                codes:tabs.every(nav=>nav.matches('.timeseries-tabs')?!nav.querySelector('button>span,.page-tab-code'):[...nav.querySelectorAll('.page-tab-code')].every(node=>/^\\d{2}$/.test(node.textContent.trim()))),
                 overflow:document.documentElement.scrollWidth>width+1};
             }""", {"menu": menu, "markup": markup, "width": width})
         expected_padding = "22px 24px" if width == 1280 else "18px 16px"

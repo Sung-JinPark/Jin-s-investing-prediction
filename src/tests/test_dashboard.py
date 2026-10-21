@@ -1180,7 +1180,7 @@ def test_three_tier_information_architecture_midlevel_navigation() -> None:
     assert "data-trust-tab" not in html and "trustTabs" not in html
 
     # 04 시계열 예측도 중분류를 갖는다. 게이트 통과 전에는 탭을 노출하되 비활성으로 둔다.
-    assert "const TS_TABS=[['summary','전망 요약','01']" in html
+    assert "const TS_TABS=[['summary','전망 요약']" in html
     assert "const enabled=visible?TS_TABS.map(([key])=>key):['summary']" in html
     assert "if(parts[0]==='timeseries')return {section:'future',view:'timeseries',arg:{tsTab:parts[1]||null}}" in html
     assert "numbers_visible===true" in html
