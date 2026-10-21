@@ -75,7 +75,7 @@ split:
 development_protocol:
   track_open: true             # V13-D1 사용자 승인(2026-09-07)
   maximum_development_evaluations: 8
-  evaluations_spent: 6         # rung-1 ewma_logit · rung-2 har_logistic · rung-3 persistence_pb · rung-4 macro_blocks · rung-5 shape_blocks · rung-6 vxn_pit — 원장 6행 대사
+  evaluations_spent: 8         # rung-1 ewma_logit · rung-2 har_logistic · rung-3 persistence_pb · rung-4 macro_blocks · rung-5 shape_blocks · rung-6 vxn_pit · rung-7 public_blocks · rung-8 public_secondary — 원장 8행 대사. 예산 소진(2026-10-21): V13 설계창 개발 종료, 재개는 사용자 결정
   experiment_ledger: data/timeseries_v13/ledgers/vol_experiments.jsonl
   ledger_append_only: true
   preregistered_before_results: true
@@ -623,6 +623,7 @@ rung7_public_blocks:
   experiment_label: V13VOL_rung7_public
   rung_name: public_blocks_vs_pb
   results_path: data/timeseries_v13/vol/ladder_rung7_public.json
+  result: "[2026-10-21 집행] 24검정 전부 measured_zero — 채택 0, family P(k>=0|n=24)=1.0000. 클래스별 calendar 0/6 · positioning 0/9 · regime_memory 0/9. |효과| 중앙값 0.0017 < MDE 중앙값 0.0035. 전향 달력·VIX 포지셔닝·국면기억(셀 기준) 모두 설계창에서 당일 수준에 흡수된다. 판정서 docs/review/V13_VOL_RUNG7_PUBLIC_VERDICT_20261021.md"
   data_sources:
     scheduled_events: data/timeseries_v13/exog/scheduled_events_2007_2014.jsonl
     cftc_tff: data/timeseries_v13/exog/cftc_tff_positions.jsonl
@@ -699,6 +700,7 @@ rung8_public_blocks:
   experiment_label: V13VOL_rung8_public_secondary
   rung_name: public_blocks_secondary_vs_pb
   results_path: data/timeseries_v13/vol/ladder_rung8_public.json
+  result: "[2026-10-21 집행] 23검정(rv_h63|D2 는 early 비사건 수 미달 untestable) · 채택 3 — rv_h21|D2(귀무 0.042) · vix25_h63|P3(0.025) · vix30_h63|D2(0.025) — 전부 adopted_episode_thin(국면 4·3·1), family P(k>=3|n=23)=0.1052 > 0.05. 발견 아님(rung-6 유형: family 비유의·퇴화 셀). 홀드아웃 소모 근거 아님. 예산 8/8 소진. 판정서 docs/review/V13_VOL_RUNG8_PUBLIC_VERDICT_20261021.md"
   data_sources:
     scheduled_events: data/timeseries_v13/exog/scheduled_events_2007_2014.jsonl
     cftc_tff: data/timeseries_v13/exog/cftc_tff_positions.jsonl
