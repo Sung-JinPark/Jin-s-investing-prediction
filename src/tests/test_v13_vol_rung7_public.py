@@ -32,8 +32,8 @@ def test_window_count_uses_the_label_window_only() -> None:
     marks = np.zeros(10); marks[3] = 1.0; marks[7] = 1.0
     out = diag.window_count(marks, 3)
     assert out[2] == 1.0 and out[3] == 0.0, "i=3 의 창은 4..6 — 당일(3) 이벤트는 제외"
-    assert out[4] == 1.0 and out[6] == 1.0 and out[7] == 0.0
-    assert np.isnan(out[7:]).all(), "창이 패널을 넘는 원점은 NaN(라벨과 동일)"
+    assert out[4] == 1.0 and out[6] == 1.0
+    assert np.isnan(out[7:]).all(), "창이 패널을 넘는 원점(i >= n-h)은 NaN(라벨과 동일)"
 
 
 def test_sessions_since_counts_from_the_last_event_inclusive_of_today() -> None:
