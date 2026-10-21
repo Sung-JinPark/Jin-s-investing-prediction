@@ -58,6 +58,7 @@ def test_capture_replay_holiday_bridge_and_noop(root):
     treasury = next(r for r in rows if r["series_id"] == "DGS2")
     assert treasury["validation"]["closed_sessions"] == ["2026-10-12"]
     assert treasury["native_overlap_count"] == 7
+
     before = {str(path.relative_to(root)): path.read_bytes() for path in (root / S.STORE).rglob("*") if path.is_file()}
     second, result = capture(root, "repeat", now=NOW + timedelta(minutes=1))
     assert result["changed"] is False
@@ -66,6 +67,27 @@ def test_capture_replay_holiday_bridge_and_noop(root):
     assert before == {str(path.relative_to(root)): path.read_bytes() for path in (root / S.STORE).rglob("*") if path.is_file()}
     assert native == (root / "data/timeseries/facts/observations.parquet").read_bytes()
     assert not (root / "data/timeseries_v2").exists()
+
+
+def test_pending_vix_then_arrival_is_a_verified_change_then_noop(root):
+    raw = payloads()
+    raw["cboe"] = b"DATE,OPEN,HIGH,LOW,CLOSE\n10/13/2026,15,16,14,15.27\n"
+    pending, report = capture(root, "pending-vix", raw=raw)
+    assert report["source_pending"] == [{"kind": "cboe", "reason": "official CBOE latest completed close is not published"}]
+    first = S.apply_daily6m_sources(root, bundle_dir=pending, now=NOW)
+    assert first["changed"] and first["appended"] == 3
+    prefix = (root / S.OBSERVATIONS).read_bytes()
+    arrived_at = NOW + timedelta(minutes=5)
+    arrived, _ = capture(root, "arrived-vix", now=arrived_at)
+    applied = S.apply_daily6m_sources(root, bundle_dir=arrived, now=arrived_at)
+    assert applied["changed"] and applied["appended"] == 1 and not applied["source_pending"]
+    assert (root / S.OBSERVATIONS).read_bytes().startswith(prefix)
+    rows = S.load_verified_source_observations(root, as_of=arrived_at)
+    vix = next(row for row in rows if row["series_id"] == "VIX")
+    assert vix["value"] == 16.87 and vix["available_at"] == arrived_at.isoformat()
+    assert vix["receipt_verified"]
+    assert not any(row["series_id"] == "VIX" for row in S.load_verified_source_observations(root, as_of=NOW))
+    assert S.apply_daily6m_sources(root, bundle_dir=arrived, now=arrived_at)["changed"] is False
 
 
 def test_correction_supersedes_and_older_bundle_cannot_revert(root):

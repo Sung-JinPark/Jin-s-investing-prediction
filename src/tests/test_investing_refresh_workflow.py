@@ -160,7 +160,8 @@ def test_daily6m_waits_for_main_source_refresh_and_has_a_late_fallback() -> None
     assert triggers["workflow_run"] == {
         "workflows": ["timeseries-v2-refresh"], "types": ["completed"]
     }
-    assert triggers["schedule"] == [{"cron": "20 9 * * 2-6"}]
+    assert triggers["schedule"] == [{"cron": "20 9 * * 2-6"}, {"cron": "37 * * * *"}]
+    assert "timeseries-daily6m-forecast --refresh-latest" in text
     guard = document["jobs"]["research"]["if"]
     assert "conclusion == 'success'" in guard
     assert "head_branch == 'main'" in guard
