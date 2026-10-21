@@ -32,9 +32,33 @@ def weekly_closes(symbol: str, start: date, end: date) -> list[float]:
     return closes
 
 
+VIX_ROLLING_WEEKS = 13      # vix-25-90d (rolling-90d) ≈ 13주 — q_vix 지평 상한이기도 하다
+MAX_HORIZON_WEEKS = 60
+MIN_HORIZON_WEEKS = 4
+
+
+def _monday(d: date) -> date:
+    return d - timedelta(days=d.weekday())
+
+
+def _week_step(asof: date, end: date) -> int:
+    """`end` 가 속한 주의 주간 스텝 인덱스 (Yahoo 1wk 봉 = 월요일 anchor).
+
+    컨텍스트 마지막 봉 = asof 가 속한 주, 스텝 0 = 그 다음 주. 따라서
+    idx = (monday(end) − monday(asof)) / 7 − 1. end 가 asof 와 같은 주면 −1 이
+    나오므로 호출자가 0 으로 클램프한다 (주봉 해상도의 한계 — ±1주 근사).
+    """
+    return (_monday(end) - _monday(asof)).days // 7 - 1
+
+
 def _window_steps(asof: date, window: tuple[str, str] | None,
                   horizon: int) -> tuple[int, int] | None:
-    """판정 윈도우(ISO 날짜쌍) → 주간 스텝 인덱스 폐구간. 전체 지평이면 None."""
+    """판정 윈도우(ISO 날짜쌍) → 주간 스텝 인덱스 폐구간. 전체 지평이면 None.
+
+    (일수//7, ceil(일수/7)) 근사 — 끝이 주말이면 최대 1~2주 과산입하는 기존 규약이며
+    test_mc_barrier::test_window_steps 가 고정한다. 명시 window 질문(F2·VIX 창)은 이대로,
+    기한(deadline)에서 유도하는 경계는 주봉 인덱스 _week_step 을 쓴다 (C3).
+    """
     if window is None:
         return None
     ws = date.fromisoformat(window[0])
@@ -42,6 +66,54 @@ def _window_steps(asof: date, window: tuple[str, str] | None,
     s0 = max(0, (ws - asof).days // 7)
     s1 = min(horizon - 1, -(-(we - asof).days // 7))  # ceil
     return (s0, s1)
+
+
+def _terminal_step(asof: date, qm: QuestionMap, horizon: int) -> int:
+    """종점 질문의 평가 스텝 — 기한이 속한 주 (없으면 지평 끝)."""
+    if qm.deadline is None:
+        return horizon - 1
+    return max(0, min(horizon - 1, _week_step(asof, date.fromisoformat(qm.deadline))))
+
+
+def _path_window(asof: date, qm: QuestionMap) -> tuple[str, str] | None:
+    """경로 질문의 검사 구간 — 명시 window > (asof, deadline) > None(지평 전체)."""
+    if qm.window is not None:
+        return qm.window
+    if qm.deadline is not None:
+        return (asof.isoformat(), qm.deadline)
+    return None
+
+
+def _path_steps(asof: date, qm: QuestionMap, horizon: int) -> tuple[int, int] | None:
+    """경로 질문의 주간 스텝 범위 — 명시 window 는 기존 _window_steps, 기한만 있으면
+    (0, 기한 주 인덱스) — 지평이 기한 너머로 확장돼도(C3) 기한 뒤 주를 세지 않는다."""
+    if qm.window is not None:
+        return _window_steps(asof, qm.window, horizon)
+    if qm.deadline is not None:
+        end = _week_step(asof, date.fromisoformat(qm.deadline))
+        return (0, min(horizon - 1, max(0, end)))
+    return None
+
+
+def _series_horizons(asof: date, default: int) -> dict[str, int]:
+    """시리즈별 주간 지평 — 매핑 질문의 가장 먼 기한(window 끝·deadline)이 지평 안에
+    들어오도록 잡는다 (C3). 기한 없는(rolling) 질문은 기본값(연말, VIX는 13주)을 쓴다.
+    """
+    out: dict[str, int] = {}
+    for key in ("q_ixic", "q_soxx", "q_vix"):
+        base = min(default, VIX_ROLLING_WEEKS) if key == "q_vix" else default
+        needed = [base]
+        for qm in QUESTION_MAPS:
+            if qm.series_key != key:
+                continue
+            end = qm.end_date
+            if end is None:
+                needed.append(VIX_ROLLING_WEEKS if key == "q_vix" else default)
+            else:
+                needed.append(_week_step(asof, date.fromisoformat(end)) + 1)
+        cap = VIX_ROLLING_WEEKS if key == "q_vix" else MAX_HORIZON_WEEKS
+        out[key] = max(MIN_HORIZON_WEEKS, min(cap, max(needed)))
+    return out
 
 
 def _window_steps_daily(asof: date, window: tuple[str, str] | None,
@@ -73,21 +145,36 @@ def _model_probs(qm: QuestionMap, fcs: dict[str, chronos_fc.QuantileForecast],
 
     if qm.mode in ("above_terminal", "below_terminal"):
         above = qm.mode == "above_terminal"
+        step = _terminal_step(asof, qm, combined.horizon)
+        if step != combined.horizon - 1:
+            detail["terminal_step"] = step  # 기한이 지평 끝보다 이른 종점 질문 (C3)
         models = {name: (p if above else 1.0 - p)
                   for name, fc in fcs.items()
-                  for p in [fc.prob_above(qm.threshold)]}
+                  for p in [fc.prob_above(qm.threshold, step)]}
         if gbm is not None:
-            p_gbm = float((gbm[:, -1] >= qm.threshold).mean())
+            p_gbm = float((gbm[:, step] >= qm.threshold).mean())
             models["gbm"] = p_gbm if above else 1.0 - p_gbm
+        # C5 병기: Chronos-2 꼬리 분위수(q01~q99) 보간 — 기존 prob 무변경, 표시·기록만
+        c2 = fcs.get("c2")
+        tail = c2.prob_above_tail(qm.threshold, step) if c2 is not None else None
+        if tail is not None:
+            detail["prob_tail_c2"] = round(tail if above else 1.0 - tail, 4)
         return models, detail
 
     # 경로 질문 — 배리어 터치 확률. WS3(T-11 상환): 공식 참조값은 보정값
     # (t5 = 브라운 브리지, gbm = 일간 스텝), 주간 raw는 detail에 병기.
     direction = "above" if qm.mode == "above_path" else "below"
-    step_range = _window_steps(asof, qm.window, combined.horizon)
-    p_term = combined.prob_above(qm.threshold)
+    window = _path_window(asof, qm)
+    step_range = _path_steps(asof, qm, combined.horizon)
+    bound_step = step_range[1] if step_range is not None else -1
+    p_term = combined.prob_above(qm.threshold, bound_step)
     detail["quantile_terminal_bound"] = round(
         p_term if direction == "above" else 1.0 - p_term, 4)
+    c2 = fcs.get("c2")
+    tail = c2.prob_above_tail(qm.threshold, bound_step) if c2 is not None else None
+    if tail is not None:  # 경로 질문에서는 하한 참고치의 꼬리판 — prob_tail_c2 가 아니다
+        detail["terminal_bound_tail_c2"] = round(
+            tail if direction == "above" else 1.0 - tail, 4)
     if step_range is not None:
         detail["window_steps"] = list(step_range)
     models: dict[str, float] = {}
@@ -99,7 +186,7 @@ def _model_probs(qm: QuestionMap, fcs: dict[str, chronos_fc.QuantileForecast],
     gbm_daily = paths.get("gbm_daily")
     horizon_days = paths.get("horizon_days")
     if gbm_daily is not None:
-        daily_range = _window_steps_daily(asof, qm.window, horizon_days)
+        daily_range = _window_steps_daily(asof, window, horizon_days)
         models["gbm"] = mc.barrier_prob(gbm_daily, qm.threshold, direction, daily_range)
         if gbm is not None:
             raw["gbm"] = mc.barrier_prob(gbm, qm.threshold, direction, step_range)
@@ -136,6 +223,9 @@ def _question_probs(series_models: dict[str, dict[str, chronos_fc.QuantileForeca
             "label": qm.label, "threshold": qm.threshold, "mode": qm.mode,
             "horizon_weeks": combined.horizon, "models": models, "ensemble": ens,
             "detail": detail,
+            # C5 병기 필드 — 종점 질문에서 Chronos-2 꼬리 분위수 보간값, 없으면 None.
+            # ensemble·models 에는 넣지 않는다 (교체는 4주 병기 뒤 별도 결정).
+            "prob_tail_c2": detail.get("prob_tail_c2"),
         }
     return out
 
@@ -151,7 +241,8 @@ def run_all() -> tuple[dict, str]:
         "q_soxx": weekly_closes("SOXX", start, today),
         "q_vix": weekly_closes("^VIX", start, today),
     }
-    horizons = {"q_ixic": horizon, "q_soxx": horizon, "q_vix": min(horizon, 13)}
+    # C3: 연말 고정 지평(기본)을 매핑 질문의 가장 먼 기한까지 확장 (연말 너머 기한 질문 표현)
+    horizons = _series_horizons(today, horizon)
     symbols = {"q_ixic": "^IXIC", "q_soxx": "SOXX", "q_vix": "^VIX"}
 
     # 공변량: 같은 Yahoo 주간 그리드의 ^TNX(10y 금리)·^VIX — 정렬 문제 원천 제거.
@@ -215,6 +306,10 @@ def run_all() -> tuple[dict, str]:
             "median_pct": fc.terminal_pct("q50"),
             "gbm": {"mu_w": float(rets.mean()), "sigma_w": float(rets.std(ddof=1))},
         }
+        c2 = series_models[k].get("c2")
+        if c2 is not None and c2.tail_quantiles:  # C5 병기 — Chronos-2 단독 꼬리 종점
+            series_bands[k]["terminal_tail_c2"] = {
+                q: c2.tail_quantiles[q][-1] for q in ("q01", "q05", "q95", "q99")}
 
     results = {
         "asof": today.isoformat(), "horizon_weeks": horizon,
@@ -238,9 +333,12 @@ def run_and_record(root: Path, conn: sqlite3.Connection) -> tuple[dict, str]:
     for qid, qp in results["question_probs"].items():
         kind = "path_touch" if qp["mode"].endswith("_path") else "terminal"
         for model, prob in qp["models"].items():
-            forecasts.append({"question_id": qid, "model": model, "kind": kind,
-                              "prob": round(prob, 4), "threshold": qp["threshold"],
-                              "horizon_weeks": qp["horizon_weeks"], "detail": qp["detail"]})
+            row = {"question_id": qid, "model": model, "kind": kind,
+                   "prob": round(prob, 4), "threshold": qp["threshold"],
+                   "horizon_weeks": qp["horizon_weeks"], "detail": qp["detail"]}
+            if model == "c2" and qp.get("prob_tail_c2") is not None:
+                row["prob_tail_c2"] = qp["prob_tail_c2"]  # C5 병기 — prob 은 그대로
+            forecasts.append(row)
         forecasts.append({"question_id": qid, "model": "ensemble", "kind": kind,
                           "prob": round(qp["ensemble"], 4), "threshold": qp["threshold"],
                           "horizon_weeks": qp["horizon_weeks"], "detail": qp["detail"]})
@@ -279,8 +377,10 @@ def _mapping_rows(x: dict) -> str:
         else:
             note = ""
         lc = " ⚠불일치" if d.get("low_confidence") else ""
+        tail = (f" · c2꼬리(q01~q99 보간, 병기) {qp['prob_tail_c2']:.0%}"
+                if qp.get("prob_tail_c2") is not None else "")
         rows.append(f"| {qp['label']} | {qp['threshold']:,.2f} | "
-                    f"**{qp['ensemble']:.0%}**{lc} | {models}{note} |")
+                    f"**{qp['ensemble']:.0%}**{lc} | {models}{note}{tail} |")
     return "\n".join(rows)
 
 
@@ -343,7 +443,8 @@ def render_md(x: dict) -> str:
     return f"""# Base Rates — 오픈웨이트 ML 자동 산출 (추론 전용, 재생성 가능)
 
 > `python -m ai_fc ml` — Chronos(시계열)·FinBERT(감성), 전부 로컬 CPU 추론.
-> 생성: {x["asof"]} · 예측 지평 {x["horizon_weeks"]}주(연말) · **학습 없음 — ML 게이트 준수**.
+> 생성: {x["asof"]} · 예측 지평 ^IXIC {qi.horizon}주 · SOXX {qs.horizon}주 · ^VIX {qv.horizon}주
+> (매핑 질문의 가장 먼 기한까지 — 연말 기본 {x["horizon_weeks"]}주) · **학습 없음 — ML 게이트 준수**.
 > 모델 결합은 고정 중앙값 (가중 학습 아님 — **모델 2개 구간에서는 평균과 동일**하며
 > 중앙값의 이상치 방어는 3개 이상부터 유효, AUDIT-260715 D-8). zero-shot 분포는
 > 이벤트 캘린더를 모르는 무조건부 추정 — 참조선일 뿐.

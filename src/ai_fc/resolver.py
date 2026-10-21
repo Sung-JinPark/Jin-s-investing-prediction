@@ -477,15 +477,29 @@ def _ml_ref_before(conn: sqlite3.Connection, question_id: str,
                    forecast_ts_iso: str) -> Optional[tuple[float, str]]:
     """예측 시점 **이전** 최신 ML 앙상블 확률. 이후 값 사용 금지 (룩어헤드 차단).
 
-    부재 시 None — 소급 조회로 채우지 않는다 (NULL 정직성).
+    신선도 상한: forecast_ts − run_ts ≤ config.ML_REF_MAX_AGE_DAYS (주 1회 cadence와
+    정합 — `queries.latest_ml_refs`·`base_rates._latest_fresh_run`과 같은 상수).
+    상한 밖의 오래된 run 과는 짝짓지 않는다 — 수개월 전 참조값을 '당시 ML 의견'으로
+    기록하면 벤치마크 비교가 거짓이 된다.
+
+    부재·초과 시 None — 소급 조회로 채우지 않는다 (NULL 정직성).
     """
+    from datetime import datetime  # 함수 국소 — 모듈 import 블록 무수정
+    from . import config
+
     if not forecast_ts_iso:
         return None
+    try:
+        forecast_ts = datetime.fromisoformat(forecast_ts_iso)
+    except ValueError:
+        return None  # 해석 불가 시각 — 신선도를 잴 수 없으면 짝짓지 않는다
+    oldest = (forecast_ts - timedelta(days=config.ML_REF_MAX_AGE_DAYS)
+              ).isoformat(timespec="seconds")
     row = conn.execute(
         """SELECT prob, run_ts FROM ml_forecasts
-           WHERE question_id=? AND model='ensemble' AND run_ts <= ?
+           WHERE question_id=? AND model='ensemble' AND run_ts <= ? AND run_ts >= ?
            ORDER BY run_ts DESC LIMIT 1""",
-        (question_id, forecast_ts_iso)).fetchone()
+        (question_id, forecast_ts_iso, oldest)).fetchone()
     return (float(row["prob"]), str(row["run_ts"])) if row else None
 
 

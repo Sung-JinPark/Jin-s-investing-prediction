@@ -2430,6 +2430,25 @@ def cmd_notify(test: bool = typer.Option(False, "--test")) -> None:
     typer.echo("발송 성공" if ok else "발송 실패 (토큰/챗ID 확인)")
 
 
+@app.command("ml-reference-resolve")
+def cmd_ml_reference_resolve(
+    dry_run: bool = typer.Option(False, "--dry-run", help="원장 append 없이 후보 행만 인쇄"),
+) -> None:
+    """ML 참조 채점 원장 append — ML_M4_REFERENCE_SCORING (라이브 전진만 · 기록·표시만 · 게이트 무관)."""
+    from .ml.reference_scoring import render_resolve, resolve_reference
+
+    result = resolve_reference(config.ROOT, dry_run=dry_run)
+    typer.echo(render_resolve(result))
+
+
+@app.command("ml-reference-status")
+def cmd_ml_reference_status() -> None:
+    """ML 참조 채점 요약 — pre_registration 행 제외 n·평균 Brier·커버리지 (판정 없음)."""
+    from .ml.reference_scoring import render_status, summarize
+
+    typer.echo(render_status(summarize(config.ROOT)))
+
+
 def main() -> None:
     if sys.platform == "win32":
         sys.stdout.reconfigure(encoding="utf-8")  # 한국어 콘솔 출력

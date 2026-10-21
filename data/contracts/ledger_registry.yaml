@@ -429,6 +429,16 @@ ledgers:
     schema_ref: jsonl
     timestamp_field: fetched_at
   # rung-7/8 공공영역 외부 정보집합(2026-10-21) — 연방 공공영역(Fed Board·BLS·CFTC). 설계창 1회 적재, 라이브 갱신 없음(event).
+  # ML 참조 채점 원장(ML_M4_REFERENCE_SCORING, 2026-10-21) — 보호 루트(data/ml_history) 밖. 기록·표시만, C5 분모 기여 0.
+  - id: ml_reference_scores
+    path: data/ml_reference/ledgers/reference_scores.jsonl
+    kind: jsonl
+    cadence: weekly
+    criticality: medium
+    schema_ref: jsonl
+    timestamp_field: knowledge_cutoff
+    allow_empty_accumulating: true
+    expected_state: planned
   - id: timeseries_v13_exog_scheduled_events
     path: data/timeseries_v13/exog/scheduled_events_2007_2014.jsonl
     kind: immutable_files

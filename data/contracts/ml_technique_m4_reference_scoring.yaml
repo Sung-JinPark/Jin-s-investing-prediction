@@ -1,0 +1,79 @@
+# data/contracts/ml_technique_m4_reference_scoring.yaml — 결과 전 커밋 (ml_dl 블루프린트 §6 형식)
+#
+# M4(사전학습 참조 모델)의 산출을 라이브 전진으로만 채점해 기록하는 참조 원장 계약.
+# 이 원장은 어떤 게이트도 움직이지 않는다 — C5 분모 기여 0, 멤버 가중·강등·승격 없음.
+# 오픈웨이트 레이어는 추론 전용이며(CLAUDE.md 하드 게이트) 채점 결과로 가중치·결합 규칙을
+# 바꾸지 않는다. 결합은 고정 중앙값 그대로다.
+schema_version: 1
+technique_id: ML_M4_REFERENCE_SCORING
+layer: L3
+gate_required: none            # none | resolved_100 | resolved_200 | forbidden
+jurisdiction: ml_dl_blueprint  # docs/design/ml_dl_strategy_blueprint_v1_260909.md §4.4·§6
+c5_denominator_contribution: 0 # 게이트 문항 수(DISTINCT)에 0 — 참조 원장은 캘리브레이션 표본이 아니다
+registered: '2026-10-21'
+status: live_reference         # 기록·표시만
+
+hypothesis: >
+  오픈웨이트 참조 확률(Chronos-Bolt·Chronos-2·T5·GBM·고정 중앙값 앙상블)과 시리즈
+  분위수 밴드가 실현치 대비 어느 정도의 Brier·pinball·커버리지를 내는지는 지금까지
+  한 번도 측정되지 않았다. 측정 없이는 divergence 표시(15%p+)가 미스를 예고하는지
+  알 수 없다 (§4.4-1). 이 계약은 측정을 시작할 뿐 어떤 판정도 하지 않는다.
+
+primary_metric: [brier, pinball, coverage_p10_p90, crps_5q]
+metric_definitions:
+  brier: (prob − outcome)^2 · prob 는 [0,1] 분수(AGENTS.md 확률 계약), outcome ∈ {0,1}
+  pinball: 레벨 τ ∈ {0.10,0.25,0.50,0.75,0.90} 각각 max(τ(y−q), (τ−1)(y−q)) 와 그 평균 — 실현 종가 y 의 단위
+  coverage_p10_p90: 1[q10 ≤ y ≤ q90] (명목 80%)
+  crps_5q: 2 × mean(pinball over 5 levels) — 5분위 근사(CRPS = 2∫ρ_τ dτ 의 균등 가중 수치적분), 비교 전용
+  scale: last_value(run 시점 종가) — pinball·crps 를 last_value 로 나눈 *_rel 병기
+
+baseline: gbm                  # 같은 run 에 기록됨 — question_probs 의 model=gbm 행, series_bands.gbm(mu_w·sigma_w)
+baseline_definition: >
+  질문 확률: 같은 run 의 model='gbm' 행(일간 스텝 배리어·종점 MC). 시리즈 밴드: 같은 run 의
+  series_bands[k].gbm {mu_w, sigma_w} 로 q_τ = last_value·exp(mu_w·h + sigma_w·√h·z_τ)
+  를 계산해 같은 지표로 채점한다 (baseline_gbm 필드). 결정론 수식 — 적합·학습 없음.
+
+decision_rule: 기록·표시만 — 멤버 가중·강등·승격 없음
+minimum_sample: 30             # 판정 아님 — ml-reference-status 가 요약 통계를 '표본 부족' 으로 표시하는 하한
+
+scope:
+  primary: "run_ts ≥ registered(2026-10-21) 인 ml run 만 primary"
+  pre_registration: "이전 run(2026-07-15·07-19·07-20 등)은 pre_registration: true 로 표시하고 요약 통계에서 제외"
+  runs: data/ml_history/*.jsonl 의 kind=ml 행 (append-only 원천 — 읽기만)
+  question_probs:
+    outcome_source: calibration/ledger.csv 해소 행(question_id 일치)만 — 읽기 전용. 레지스트리는 상태 확인용
+    rolling_match_days: 3        # rolling 질문은 forecast_date 가 run 일자 ±3일인 원장 행만 같은 창으로 본다
+    models: [bolt, c2, t5, gbm, ensemble, quantile]
+  series_bands:
+    realized_source: ai_fc.timeseries_v2.market_archive.read_market_observations (봉인 V2 아카이브, read-only)
+    symbol_map:
+      "^IXIC": NASDAQCOM       # Yahoo ^IXIC 와 FRED NASDAQCOM 은 같은 지수(Nasdaq Composite 종가)
+      "^VIX": VIX              # CBOE VIX 종가 (아카이브 series_id VIX)
+      SOXX: null               # 승인된 공식 원천 없음 → status unresolvable_no_licensed_source, 채점 안 함
+    maturity: >
+      달력이 아니라 아카이브 거래일 인덱스로 판정한다 (V13 resolve.py 방식). 종점 세션 =
+      run 주(월요일 anchor)의 금요일 + 7·horizon_weeks 일 이하의 마지막 아카이브 세션이며,
+      아카이브 마지막 세션이 그 목표일 이상일 때만 성숙으로 본다.
+    knowledge_cutoff: 채점 실행 시각(UTC) — available_at ≤ cutoff 인 관측만 읽는다
+
+ledger_path: data/ml_reference/ledgers/reference_scores.jsonl
+ledger_rules:
+  append_only: true
+  append_helper: ai_fc.timeseries_v8.artifact.append_unique (key=resolution_id, newline="\n")
+  content_hash: ai_fc.timeseries_v8.contracts.canonical_hash (content_hash 제외 본문)
+  resolution_id:
+    question_prob: "{run_ts}|{question_id}|{model}"
+    series_band: "{run_ts}|{series}|{horizon_weeks}"
+  forbidden_row_keys: [forecasts, sentiment, market, question_probs]   # ml_history 소비자와 충돌 금지
+
+prohibitions:
+  - 홀드아웃·봉인 창 채점 금지 (V8 holdout_scorings 와 무관 — 이 원장은 라이브 전진 run 만 받는다)
+  - 설계창 채점 금지 (과거 run 재실행·백테스트 금지 — CLAUDE.md 5원칙 ⑤)
+  - 결과 관측 후 격자 변경 금지 (분위수 레벨·지표 정의·rolling_match_days·minimum_sample)
+  - 가중 변경 금지 (결합은 고정 중앙값 — 채점 결과로 멤버 가중·제외·승격 없음)
+  - 공식 확률 대체 금지 (원장·forecasts/ 무수정 — 표시 계층 별도 열만)
+  - 요약 통계에 pre_registration 행 포함 금지
+
+negative_control: 없음 — 판정이 없으므로 대조군도 없다. 표본 30 도달 뒤 쌍대 비교를 원하면 새 계약(결과 전 커밋)으로 등록한다.
+multiplicity: 해당 없음 (판정 없음)
+stopping: 없음 — 계속 축적. 계약 변경은 새 technique_id 로.

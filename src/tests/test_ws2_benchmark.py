@@ -58,14 +58,16 @@ def test_benchmark_roundtrip_null_honesty(tmp_path: Path) -> None:
 def test_ml_ref_lookahead_blocked(tmp_path: Path) -> None:
     """예측 시점 이후 ML 값은 절대 사용 금지 — 이전 최신만."""
     conn = ingest.connect(tmp_path / "db" / "index.db")
-    for ts, prob in [("2099-06-01T00:00:00", 0.30), ("2099-06-12T00:00:00", 0.90)]:
+    # 2026-10-21: _ml_ref_before 에 신선도 상한(ML_REF_MAX_AGE_DAYS=7)이 생겨 06-01 run 은 06-10 예측과 짝지어지지 않는다 —
+    # 룩어헤드 검증 의도는 유지한 채 이전 run 을 상한 안(06-05)으로 둔다.
+    for ts, prob in [("2099-06-05T00:00:00", 0.30), ("2099-06-12T00:00:00", 0.90)]:
         conn.execute(
             "INSERT INTO ml_forecasts (run_ts, question_id, model, kind, prob)"
             " VALUES (?,?,?,?,?)", (ts, "fixture-eps-beat", "ensemble", "terminal", prob))
     conn.commit()
 
     ref = _ml_ref_before(conn, "fixture-eps-beat", "2099-06-10T09:00:00")
-    assert ref is not None and ref[0] == 0.30 and ref[1].startswith("2099-06-01")
+    assert ref is not None and ref[0] == 0.30 and ref[1].startswith("2099-06-05")
 
     # 예측 시점 이전 기록이 전무하면 None (소급 조회 금지)
     assert _ml_ref_before(conn, "fixture-eps-beat", "2099-05-01T00:00:00") is None
