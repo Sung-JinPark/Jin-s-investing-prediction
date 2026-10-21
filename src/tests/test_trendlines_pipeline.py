@@ -84,9 +84,9 @@ def _canonical_bytes(root):
 def test_seven_holds_initialize_and_clock_only_rerun_is_byte_stable(store):
     first = P.refresh(store, as_of=ISSUED)
     assert first["changed"] is True and first["publication_allowed"] is True
-    assert first["status"] == "hold" and len(first["assets"]) == 7
+    assert first["status"] == "hold" and len(first["assets"]) == len(C.ASSET_IDS)
     assert {row["status"] for row in first["assets"]} == {"hold"}
-    assert len(S.read_chain(store, "snapshots")) == 7
+    assert len(S.read_chain(store, "snapshots")) == len(C.ASSET_IDS)
     assert S.read_chain(store, "bars") == []
     before = _canonical_bytes(store)
     second = P.refresh(store, as_of="2026-09-14T01:00:00+00:00")
@@ -94,8 +94,34 @@ def test_seven_holds_initialize_and_clock_only_rerun_is_byte_stable(store):
     assert _canonical_bytes(store) == before
     assert P.verify(store, replay=True)["ok"] is True
     projection = D.load_projection(store, now=ISSUED)
-    assert len(projection["details"]) == 7
+    assert len(projection["details"]) == len(C.ASSET_IDS)
     assert all(not detail["bars"] for detail in projection["details"].values())
+
+
+def _registry_subset(root: Path, asset_ids: tuple[str, ...]):
+    path = root / C.ASSET_REGISTRY_RELATIVE
+    registry = yaml.safe_load((REPOSITORY / C.ASSET_REGISTRY_RELATIVE).read_text(encoding="utf-8"))
+    registry["assets"] = {asset_id: registry["assets"][asset_id] for asset_id in asset_ids}
+    path.write_text(yaml.safe_dump(registry, allow_unicode=True, sort_keys=False), encoding="utf-8")
+
+
+def test_new_instrument_awaits_first_hold_but_published_one_never_leaves(store, monkeypatch):
+    earlier = tuple(asset_id for asset_id in C.ASSET_IDS if asset_id not in {"kospi", "samsung", "nvidia", "micron"})
+    with monkeypatch.context() as patch:
+        patch.setattr(C, "ASSET_IDS", earlier)
+        _registry_subset(store, earlier)
+        assert len(P.refresh(store, as_of=ISSUED)["assets"]) == len(earlier)
+    # The wider registry verifies before its first publication, then publishes every instrument.
+    shutil.copyfile(REPOSITORY / C.ASSET_REGISTRY_RELATIVE, store / C.ASSET_REGISTRY_RELATIVE)
+    assert P.verify(store, replay=True)["ok"] is True
+    grown = P.refresh(store, as_of="2026-09-14T01:00:00+00:00")
+    assert grown["changed"] is True and len(grown["assets"]) == len(C.ASSET_IDS)
+    assert P.verify(store, replay=True)["ok"] is True
+    with monkeypatch.context() as patch:
+        patch.setattr(C, "ASSET_IDS", earlier)
+        _registry_subset(store, earlier)
+        shrunk = P.verify(store, replay=True)
+    assert shrunk["ok"] is False and "publication must contain exactly the registered assets" in shrunk["errors"]
 
 
 def test_empty_capture_is_portable_and_does_not_fabricate_prices(store):
@@ -401,7 +427,7 @@ def test_crash_recovers_intact_append_history_without_overwriting_orphan_archive
     for path, body in preserved.items():
         assert (store / path).read_bytes() == body
     assert len(S.read_chain(store, "bars")) == 90
-    assert len(S.read_chain(store, "snapshots")) == 7
+    assert len(S.read_chain(store, "snapshots")) == len(C.ASSET_IDS)
     assert P.verify(store, replay=True)["ok"] is True
 
 

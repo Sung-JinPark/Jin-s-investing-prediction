@@ -9,12 +9,15 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import os
 import shutil
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
 from urllib.parse import quote
 from urllib.request import Request, urlopen
+
+import yaml
 
 PROJECT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(PROJECT / "src"))
@@ -44,7 +47,25 @@ def private_root(output: Path) -> Path:
         target.parent.mkdir(parents=True, exist_ok=True)
         if not target.is_file():
             shutil.copyfile(PROJECT / relative, target)
+        elif relative == C.ASSET_REGISTRY_RELATIVE:
+            extend_private_registry(PROJECT / relative, target)
     return output
+
+
+def extend_private_registry(source: Path, target: Path) -> None:
+    """Admit newly registered instruments; captured instruments keep their definitions."""
+    if source.read_bytes() == target.read_bytes():
+        return
+    current, incoming = (yaml.safe_load(path.read_text(encoding="utf-8")) for path in (target, source))
+    old, new = (value.get("assets") if isinstance(value, dict) else None for value in (current, incoming))
+    header = lambda value: {key: item for key, item in value.items() if key != "assets"}
+    if (not isinstance(old, dict) or not isinstance(new, dict) or header(current) != header(incoming)
+            or any(new.get(asset_id) != asset for asset_id, asset in old.items())):
+        raise C.TrendlinesError("private asset registry may only gain instruments; existing definitions are immutable")
+    temporary = target.with_name(target.name + ".tmp")
+    shutil.copyfile(source, temporary)
+    os.replace(temporary, target)
+    C.load_asset_registry(target.parents[2])
 
 
 def public_page(asset_id: str) -> tuple[bytes, dict]:

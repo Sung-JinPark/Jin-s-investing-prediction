@@ -103,7 +103,7 @@ def test_supplement_poll_is_scoped_and_never_clears_base(tmp_path,fixture,comple
 
 def test_mag7_is_hidden_without_changing_registered_source_catalog(tmp_path):
     out=run(tmp_path,"process.stdout.write(JSON.stringify({registered:TREND_ASSETS.length,visible:TREND_VISIBLE_ASSETS.map(p=>p[0])}));")
-    assert out['registered']==7 and out['visible']==['sk-hynix','soxx','nasdaq','sp500','bitcoin','dow']
+    assert out['registered']==11 and out['visible']==['kospi','samsung','sk-hynix','nasdaq','sp500','dow','soxx','nvidia','micron','bitcoin']
 
 
 @pytest.mark.parametrize('completion',['valid','timeout','late_source','route_leave'])

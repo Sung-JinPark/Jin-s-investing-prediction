@@ -17,7 +17,7 @@ import yaml
 CONTRACT_RELATIVE = Path("data/contracts/trendlines_v1.yaml")
 ASSET_REGISTRY_RELATIVE = Path("data/trendlines/asset_registry.yaml")
 SOURCE_POLICY_RELATIVE = Path("data/trendlines/source_policy.yaml")
-ASSET_IDS = ("sk-hynix", "soxx", "nasdaq", "sp500", "bitcoin", "dow", "mag7")
+ASSET_IDS = ("sk-hynix", "soxx", "nasdaq", "sp500", "bitcoin", "dow", "kospi", "samsung", "nvidia", "micron", "mag7")
 ENGINE_VERSION = "trendlines-v1.0"
 SHA256 = re.compile(r"[0-9a-f]{64}\Z")
 RESEARCH_SOURCE_ID = "yahoo_public_history_html"
@@ -30,6 +30,10 @@ RESEARCH_IDENTITIES = {
     "sp500": ("^GSPC", "SP500_PRICE_INDEX", "USD", "index_points", "XNYS", "America/New_York", "index", "exchange_close"),
     "bitcoin": ("BTC-USD", "BTC_USD_SPOT_SOURCE_MUST_BE_DECLARED", "USD", "USD_per_BTC", "24/7", "UTC", "crypto", "UTC_00_00_next_day"),
     "dow": ("^DJI", "DOW_JONES_INDUSTRIAL_AVERAGE_PRICE_INDEX", "USD", "index_points", "XNYS", "America/New_York", "index", "exchange_close"),
+    "kospi": ("^KS11", "KRX_KOSPI_PRICE_INDEX", "KRW", "index_points", "XKRX", "Asia/Seoul", "index", "exchange_close"),
+    "samsung": ("005930.KS", "KRX:005930", "KRW", "KRW_per_share", "XKRX", "Asia/Seoul", "equity", "exchange_close"),
+    "nvidia": ("NVDA", "NASDAQ:NVDA", "USD", "USD_per_share", "XNAS", "America/New_York", "equity", "exchange_close"),
+    "micron": ("MU", "NASDAQ:MU", "USD", "USD_per_share", "XNAS", "America/New_York", "equity", "exchange_close"),
 }
 
 
@@ -72,7 +76,7 @@ def load_asset_registry(root: Path) -> dict[str, dict[str, Any]]:
     value = _yaml(root, ASSET_REGISTRY_RELATIVE)
     assets = value.get("assets")
     if not isinstance(assets, dict) or tuple(assets) != ASSET_IDS:
-        raise TrendlinesError("registry must declare the seven exact instruments in canonical order")
+        raise TrendlinesError("registry must declare the exact instruments in canonical order")
     for asset_id, asset in assets.items():
         if not isinstance(asset, dict) or asset.get("asset_id") != asset_id:
             raise TrendlinesError("asset registry identity mismatch")

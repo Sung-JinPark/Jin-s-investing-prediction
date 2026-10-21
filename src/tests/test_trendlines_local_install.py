@@ -111,7 +111,7 @@ def test_local_shell_does_not_embed_private_candles_and_pins_current_bundle(tmp_
     html_path = preview['build_local_service_preview'](tmp_path, tmp_path / 'site')
     assert html_path.is_file()
     data = json.loads((tmp_path / 'site/data.json').read_text('utf-8'))
-    assert len(data['trendlines']['assets']) == 7
+    assert len(data['trendlines']['assets']) == len(dashboard.TRENDLINES_ASSET_IDS)
     assert all(row['status'] == 'hold' for row in data['trendlines']['assets'])
     assert not data['trendlines'].get('details')
     assert not list((tmp_path / 'site').glob('trendlines/*.json'))

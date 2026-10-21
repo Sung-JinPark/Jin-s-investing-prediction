@@ -28,7 +28,8 @@ CONTEXT = "user_authorized_public_html_research"
 RIGHTS = "uncertified_research_source"
 SOURCE = "yahoo_public_history_html"
 SYMBOLS = {"sk-hynix": "000660.KS", "soxx": "SOXX", "nasdaq": "^IXIC",
-           "sp500": "^GSPC", "bitcoin": "BTC-USD", "dow": "^DJI"}
+           "sp500": "^GSPC", "bitcoin": "BTC-USD", "dow": "^DJI",
+           "kospi": "^KS11", "samsung": "005930.KS", "nvidia": "NVDA", "micron": "MU"}
 MAX_RAW_BYTES = 20 * 1024 * 1024
 MAX_PRIVATE_PAYLOAD_BYTES = 256 * 1024
 MAX_PRIVATE_ENVELOPE_BYTES = 512 * 1024

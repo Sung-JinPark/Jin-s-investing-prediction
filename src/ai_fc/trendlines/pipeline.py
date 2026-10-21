@@ -280,8 +280,12 @@ def verify(root: Path, replay: bool = True) -> dict[str, Any]:
         pointer = latest(root)
         if pointer is not None:
             _, registry, _ = _policies(root)
-            if {row["asset_id"] for row in pointer["assets"]} != set(registry):
-                raise S.TrendlinesStorageError("publication must contain exactly seven registered assets")
+            # A newly registered instrument may await its first publication;
+            # an instrument with snapshot history may never leave the pointer.
+            published = {row["asset_id"] for row in pointer["assets"]}
+            snapshotted = {record.get("asset_id") for record in known_snapshots.values()}
+            if not published <= set(registry) or (set(registry) - published) & snapshotted:
+                raise S.TrendlinesStorageError("publication must contain exactly the registered assets")
             for name, expected in pointer["ledger_heads"].items():
                 if name not in chains or (expected is not None and expected not in {row["chain_hash"] for row in chains[name]}):
                     raise S.TrendlinesStorageError("published ledger history was truncated or replaced")
