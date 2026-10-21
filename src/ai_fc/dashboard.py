@@ -921,6 +921,10 @@ def build_read_model(
         market_mood["freshness"] = {"status": "unavailable"}
     from .timeseries_daily6m.display import load_projection as load_timeseries_daily_projection
     timeseries_daily = load_timeseries_daily_projection(root, now=now)
+    # 일별 전망 전진 성적(표시 전용) — 해소 원장 요약. 발행본 projection 의 identity(content_hash·
+    # projection_hash)를 건드리지 않도록 별도 키로 싣는다. 해소 행이 없으면 숫자 대신 None(화면 '—').
+    from .timeseries_daily6m.display import load_forward_record as load_timeseries_daily_record
+    timeseries_daily_record = load_timeseries_daily_record(root)
     from .trendlines.display import load_projection as load_trendlines_projection
     trendlines = load_trendlines_projection(root)
     ai_regime = load_ai_regime(root)
@@ -1128,6 +1132,7 @@ def build_read_model(
         "timeseries_v13_vol": timeseries_v13_vol,
         "market_mood": market_mood,
         "timeseries_daily": timeseries_daily,
+        "timeseries_daily_record": timeseries_daily_record,
         "trendlines": trendlines,
         "multi_year_stress": multi_year_stress,
         "ai_regime": ai_regime,
