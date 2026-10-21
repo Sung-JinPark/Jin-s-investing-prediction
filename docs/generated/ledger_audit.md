@@ -1,8 +1,8 @@
 # Ledger accumulation audit
 
-- Generated: `2026-10-21T06:27:28+00:00`
+- Generated: `2026-10-21T12:28:16+00:00`
 - Latest completed NYSE day: `2026-10-20`
-- Result: accumulating 49 · frozen 2 · stalled 9 · inactive 12 · violation 0 · planned 3
+- Result: accumulating 50 · frozen 2 · stalled 8 · inactive 12 · violation 0 · planned 3
 
 | Ledger | Cadence | Files / rows | Latest | Status | Finding |
 |---|---:|---:|---:|---:|---|
@@ -34,18 +34,18 @@
 | `realty_o_entry_cohort_archive` | monthly | 3 | 2026-09-30 | **accumulating** | — |
 | `ai_capital_archives` | monthly | 6 | 2026-08-04 | **stalled** | — |
 | `dualdb_model_runs` | weekly | 0 | — | **inactive** | — |
-| `source_monitoring` | trading_daily | 74 | 2026-10-20 | **stalled** | missing trading days: 2026-08-25, 2026-08-27, 2026-08-28 |
-| `source_monitoring_status` | trading_daily | 1 | 2026-10-20 | **accumulating** | — |
+| `source_monitoring` | trading_daily | 75 | 2026-10-21 | **stalled** | missing trading days: 2026-08-25, 2026-08-27, 2026-08-28 |
+| `source_monitoring_status` | trading_daily | 1 | 2026-10-21 | **accumulating** | — |
 | `ipo_reference_batch_receipts` | weekly | 4 | 2026-08-19 | **stalled** | — |
-| `ipo_reference_batch_status` | weekly | 1 | 2026-10-20 | **accumulating** | — |
+| `ipo_reference_batch_status` | weekly | 1 | 2026-10-21 | **accumulating** | — |
 | `ipo_edgar_candidates` | weekly | 1 | 2026-09-28 | **stalled** | — |
 | `ipo_ai_classification_decisions` | biweekly | 1 | 2026-09-28 | **stalled** | — |
-| `statistics_alert_notify_state` | event | 1 | 2026-10-20 | **accumulating** | — |
+| `statistics_alert_notify_state` | event | 1 | 2026-10-21 | **accumulating** | — |
 | `timeseries_raw_receipts` | trading_daily | 1 | — | **accumulating** | — |
 | `timeseries_observation_facts` | trading_daily | 1 | — | **accumulating** | — |
 | `timeseries_event_facts` | event | 0 | — | **inactive** | — |
 | `timeseries_event_raw_receipts` | event | 0 | — | **inactive** | — |
-| `timeseries_shadow_forecasts` | trading_daily | 1 | 2026-10-17 | **stalled** | — |
+| `timeseries_shadow_forecasts` | trading_daily | 1 | 2026-10-21 | **accumulating** | — |
 | `timeseries_shadow_resolutions` | trading_daily | 0 | — | **inactive** | — |
 | `timeseries_shadow_corrections` | event | 0 | — | **inactive** | — |
 | `timeseries_model_runs` | weekly | 11 | — | **accumulating** | — |
@@ -74,7 +74,7 @@
 | `trendlines_raw_artifacts` | event | 0 | — | **inactive** | — |
 | `trendlines_raw_receipts` | event | 0 | — | **inactive** | — |
 | `trendlines_bar_revisions` | event | 0 | — | **inactive** | — |
-| `trendlines_snapshot_archive` | event | 14 | — | **accumulating** | — |
+| `trendlines_snapshot_archive` | event | 18 | — | **accumulating** | — |
 | `trendlines_snapshot_revisions` | event | 1 | — | **accumulating** | — |
 | `trendlines_events` | event | 0 | — | **inactive** | — |
 | `trendlines_latest` | manual | 1 | — | **accumulating** | — |
