@@ -198,7 +198,7 @@ def _concurrency_group(name: str, event: str, *, branch: str = "main", conclusio
 def test_eligible_events_keep_canonical_deploy_and_main_verify_groups(event: str) -> None:
     assert _concurrency_group("pages.yml", event) == "pages"
     assert _concurrency_group("verify.yml", event) == "verify-refs/heads/main"
-    assert _workflow("pages.yml")["concurrency"]["cancel-in-progress"] is True
+    assert _workflow("pages.yml")["concurrency"]["cancel-in-progress"] is False
 
 
 @pytest.mark.parametrize("branch,conclusion", [
