@@ -80,3 +80,26 @@ let release;globalThis.fetch=async()=>({ok:true,json:()=>new Promise(resolve=>re
     result = subprocess.run([node, str(path)], capture_output=True, text=True, encoding='utf-8')
     assert result.returncode == 0, result.stderr
     assert result.stdout.strip() == 'passed'
+
+
+def test_internal_tab_refresh_does_not_reenter_personal_drawing_routes(tmp_path):
+    node = shutil.which('node')
+    if not node:
+        pytest.skip('node unavailable')
+    source = (ROOT / 'src/ai_fc/dashboard_parts/dashboard.js').read_text(encoding='utf-8')
+    helper = re.search(r'function syncMidHash\([\s\S]+?\n}', source).group(0)
+    program = helper + r"""
+let calls=0,focused=false;const location={hash:''};
+const history={replaceState:(a,b,hash)=>location.hash=hash};
+const document={body:{dataset:{view:'trendlines'}},activeElement:{dataset:{tsTab:'path'}},querySelectorAll:()=>[{dataset:{tsTab:'path'},focus:()=>focused=true}]};
+function paintRailSubNav(){}function forecastSummaryCheckDue(){return true;}async function route(){calls++;}
+(async()=>{
+ syncMidHash('#future/trendlines/sk-hynix');await Promise.resolve();if(calls)throw Error('editor route refreshed');
+ document.body.dataset.view='future';syncMidHash('#future/timeseries/path');await Promise.resolve();
+ if(calls!==1||!focused)throw Error('forecast tab did not preserve focus');console.log('passed');
+})().catch(error=>{console.error(error);process.exitCode=1;});
+"""
+    path = tmp_path / 'scope.js'; path.write_text(program, encoding='utf-8')
+    result = subprocess.run([node, str(path)], capture_output=True, text=True, encoding='utf-8')
+    assert result.returncode == 0, result.stderr
+    assert result.stdout.strip() == 'passed'

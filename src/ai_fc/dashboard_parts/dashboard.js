@@ -1055,7 +1055,7 @@ const COMMAND_ROUTES=[
 function syncMidHash(hash){
   history.replaceState(null,'',hash);
   paintRailSubNav(document.body.dataset.view||'today',hash);
-  if(hash.startsWith('#future')&&forecastSummaryCheckDue()){
+  if(document.body.dataset.view==='future'&&hash.startsWith('#future')&&forecastSummaryCheckDue()){
     const focused=document.activeElement?.dataset?.tsTab;
     route().then(()=>{if(location.hash===hash&&focused)[...document.querySelectorAll('[data-ts-tab]')].find(node=>node.dataset.tsTab===focused)?.focus();});
   }
