@@ -26,7 +26,6 @@ from .resolve import (RESOLUTION_LEDGER_RELATIVE, distinct_origin_count, distinc
                       pinned_coefficients_sha)
 
 LIVE_LEDGER_RELATIVE = Path("data/timeseries_v13/ledgers/vol_live.jsonl")
-TRAIL_POINTS = 40           # 셀당 스파크라인 상한 — 페이로드 예산을 지킨다
 
 
 def _read_jsonl(path: Path) -> list[dict[str, Any]]:
@@ -83,7 +82,7 @@ def projection(root: Path, *, minimum: Optional[int] = None) -> dict[str, Any]:
                 "expected_events_climatology": round(sum(float(r["climatology_base_rate"]) for r in rows), 2),
                 "skill_degenerate": events == 0,
                 "last_resolved": rows[-1].get("resolved_session"),
-                "trail": [round(float(r["brier_model"]), 4) for r in rows[-TRAIL_POINTS:]],
+                # trail(스파크라인) 은 화면이 읽지 않는 필드였다(2026-10-21 실측) — 임베드 예산만 먹어 제거.
             })
         cells.append(entry)
 

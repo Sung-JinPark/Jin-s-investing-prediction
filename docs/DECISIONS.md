@@ -2236,3 +2236,9 @@ Chronos-2 꼬리 분위수는 `prob_tail_c2` 병기 필드(교체는 4주 병기
 **사용자 결정 묶음(마감순)**: V13-D12 원점 백필(계약 pit `late_capture` 등급) · U9 ML 실행 환경 · V13-D13 제한-추가형 라벨(12-10) · V14-D0 · ML-A6. 원문 템플릿은 설계 §7.
 
 **하지 않은 것.** 홀드아웃·봉인 열람 0 · 동결 계수·게이트 산술·60·T7 무변경 · 의존성 설치 0 · 메일 0 · 구매 0 · `forecasts/`·`calibration/ledger.csv`·V8·V2·`data/ml_history/` 무수정.
+
+**추가(같은 날) — 임베드 예산(ADR-002, 1536 KiB) 소진 대응.** origin/main 이 이미 상한의 99.5%(여유 8.4 KB)였고 이 변경(+10.5 KB: 표시 항목·method_changes 2행·레지스트리)으로 2.2 KB 초과했다.
+ADR-002 의 '렌더 필드 투영' 패턴을 전송 전용으로 확장했다 — 화면(dashboard.js)이 한 번도 읽지 않는 것만 임베드에서 뺀다: `receipts.requests/lineage/receipt_id`(6.4 KB),
+`trust.ledgers` 의 criticality·immutable_changes·schema_errors·duplicate_rows·reversed_timestamps(1 KB), `trust.sources.fallback_used`, `method_changes` 의 kind≠method 행(저널이 kind==='method' 만 렌더),
+V13 라이브 표의 `trail`(스파크라인 미사용). 생략 사실은 `embed_field_projection` 에 공시되고 Pages `data.json`·`/api/data` 는 전부 보존한다. 결과 1,559,564 B(여유 13.3 KB).
+**구조적 경보**: 상한 여유가 일 단위 데이터 성장(예측 이력·방법론 변경·달력)으로 곧 다시 소진된다 — 상한 상향(ADR) 또는 추가 분리는 사용자 결정 사항으로 남긴다.

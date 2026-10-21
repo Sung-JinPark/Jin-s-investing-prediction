@@ -2104,12 +2104,7 @@ function renderV13LiveForward(lf,failCells){
     const hasEvents=hasNumeric(c.events);
     const degenerate=hasEvents&&c.events===0;
     const expected=hasNumeric(c.expected_events_model)&&hasNumeric(c.expected_events_climatology)?`<small>기대 ${c.expected_events_model.toFixed(1)} · 기후 ${c.expected_events_climatology.toFixed(1)}</small>`:'';
-    return `<tr${degenerate?' class="is-degenerate"':''}><th scope="row">${esc(c.cell)}</th>
-      <td class="v13-lf-progress"><span><i style="width:${pct}%"></i></span><b>${num(c.matured)}/${num(c.minimum)}</b></td>
-      <td class="v13-lf-events">${hasEvents?`<b>${num(c.events)}</b>${expected}`:'—'}</td>
-      <td>${hasScore?c.brier_model.toFixed(4):'—'}</td>
-      <td>${hasScore?c.brier_climatology.toFixed(4):'—'}</td>
-      <td class="${hasNumeric(c.bss)&&c.bss>0?'edge-pos':hasNumeric(c.bss)&&c.bss<0?'edge-neg':''}">${bss}${degenerate?'<small>사건 0</small>':''}</td></tr>`;}).join('');
+    return `<tr${degenerate?' class="is-degenerate"':''}><th scope="row">${esc(c.cell)}</th><td class="v13-lf-progress"><span><i style="width:${pct}%"></i></span><b>${num(c.matured)}/${num(c.minimum)}</b></td><td class="v13-lf-events">${hasEvents?`<b>${num(c.events)}</b>${expected}`:'—'}</td><td>${hasScore?c.brier_model.toFixed(4):'—'}</td><td>${hasScore?c.brier_climatology.toFixed(4):'—'}</td><td class="${hasNumeric(c.bss)&&c.bss>0?'edge-pos':hasNumeric(c.bss)&&c.bss<0?'edge-neg':''}">${bss}${degenerate?'<small>사건 0</small>':''}</td></tr>`;}).join('');
   const total=num(lf.matured_total),origins=num(lf.origins_recorded);
   const empty=lf.status==='empty';
   const eventsTotal=hasNumeric(lf.events_total)?lf.events_total:null;
