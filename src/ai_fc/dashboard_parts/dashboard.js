@@ -1415,7 +1415,7 @@ function renderStatisticsStudy(initialState={},loadState={}){
   const root=el('<div class="statistics-page statistics-study"></div>');
   root.append(statisticsSectionNav(page),el(`<div class="page-heading"><div><h1>${esc(item?.label||'통계')}</h1></div></div>`));
   if(loadState.loading||loadState.error){
-    root.appendChild(el(`<section class="statistics-blocked"><strong>${loadState.error?'통계 자료를 불러오지 못했습니다':'통계 자료를 불러오는 중입니다'}</strong>${loadState.error?`<p>${esc(String(loadState.error.message||loadState.error))}</p><button type="button" data-stat-retry>다시 시도</button>`:''}</section>`));mount(root);root.querySelector('[data-stat-retry]')?.addEventListener('click',()=>route());return;
+    root.appendChild(el(`<section class="statistics-blocked"><strong>${loadState.error?'통계 자료를 불러오지 못했습니다':'통계 자료를 불러오는 중입니다'}</strong>${loadState.error?`<p>${esc(String(loadState.error.message||loadState.error))}</p><button type="button" data-stat-retry>다시 시도</button>`:''}</section>`));mount(root);root.querySelector('[data-stat-retry]')?.addEventListener('click',()=>{FORECAST_SUMMARY_CHECKED_AT=0;route();});return;
   }
   if(page==='fear-greed'){
     root.appendChild(el(`<div class="statistics-sentiment">${renderFearGreedCard(DATA.market_mood?.fear_greed)}</div>`));
