@@ -1,6 +1,6 @@
 # Ledger accumulation audit
 
-- Generated: `2026-10-22T06:16:24+00:00`
+- Generated: `2026-10-22T10:42:10+00:00`
 - Latest completed NYSE day: `2026-10-21`
 - Result: accumulating 54 · frozen 2 · stalled 8 · inactive 12 · violation 0 · planned 4
 
@@ -21,7 +21,7 @@
 | `cross_asset_latest` | trading_daily | 1 | 2026-10-21 | **accumulating** | — |
 | `cross_asset_path_tracking` | trading_daily | 1 / 3 | — | **frozen** | — |
 | `timeseries_daily6m_research_forecasts` | weekly | 1 | 2026-10-22 | **accumulating** | — |
-| `timeseries_daily6m_research_resolutions` | trading_daily | 1 | 2026-10-21 | **accumulating** | — |
+| `timeseries_daily6m_research_resolutions` | trading_daily | 1 | 2026-10-22 | **accumulating** | — |
 | `timeseries_daily6m_research_runs` | weekly | 4 | 2026-10-22 | **accumulating** | — |
 | `cross_asset_path_tracking_v2` | trading_daily | 1 / 141 | 2026-10-21 | **accumulating** | — |
 | `scenario_band_calibration` | trading_daily | 1 / 1128 | 2026-10-21 | **accumulating** | — |
@@ -45,7 +45,7 @@
 | `timeseries_observation_facts` | trading_daily | 1 | — | **accumulating** | — |
 | `timeseries_event_facts` | event | 0 | — | **inactive** | — |
 | `timeseries_event_raw_receipts` | event | 0 | — | **inactive** | — |
-| `timeseries_shadow_forecasts` | trading_daily | 1 | 2026-10-21 | **accumulating** | — |
+| `timeseries_shadow_forecasts` | trading_daily | 1 | 2026-10-22 | **accumulating** | — |
 | `timeseries_shadow_resolutions` | trading_daily | 0 | — | **inactive** | — |
 | `timeseries_shadow_corrections` | event | 0 | — | **inactive** | — |
 | `timeseries_model_runs` | weekly | 11 | — | **accumulating** | — |
