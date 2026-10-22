@@ -80,17 +80,23 @@ class VerifiedReplayCache:
 
     There is no persisted proof, caller-supplied verified flag, or preloaded
     entry API. Scoped metadata proofs use a distinct namespace and can never
-    satisfy a numerical replay. Each hit still requires fresh raw and receipt hashes, canonical
-    archives, current identity checks, revision chains and latest bindings.
+    satisfy a numerical replay. Each hit still requires fresh raw and receipt hashes,
+    current identity checks, revision chains and latest bindings.
+
+    A separate evidence memo holds the bindings decoded from archive bytes whose
+    canonical form a successful audit checked. It is keyed by the SHA256 of the
+    exact bytes read and hashed in each later audit, so changed bytes are decoded
+    and checked again; it never stands in for hashing a file.
     """
 
-    __slots__ = ("__limit", "__entries", "__lock")
+    __slots__ = ("__limit", "__entries", "__evidence", "__lock")
 
     def __init__(self, *, max_entries: int = 16384):
         if type(max_entries) is not int or not 1 <= max_entries <= 65536:
             raise C.TrendlinesError("private_replay_cache_capacity_invalid")
         self.__limit = max_entries
         self.__entries = OrderedDict()
+        self.__evidence = OrderedDict()
         self.__lock = threading.Lock()
 
     @property
@@ -102,23 +108,43 @@ class VerifiedReplayCache:
         with self.__lock:
             return len(self.__entries)
 
+    @property
+    def evidence_count(self) -> int:
+        with self.__lock:
+            return len(self.__evidence)
+
+    @staticmethod
+    def _same(prior, functions) -> bool:
+        return len(prior) == len(functions) and all(a is b for a, b in zip(prior, functions))
+
     def _contains(self, key, functions) -> bool:
         with self.__lock:
             prior = self.__entries.get(key)
-            if prior is None or len(prior) != len(functions) or any(a is not b for a, b in zip(prior, functions)):
+            if prior is None or not self._same(prior, functions):
                 return False
             self.__entries.move_to_end(key)
             return True
 
-    def _remember(self, keys) -> None:
+    def _recall(self, key, functions):
+        with self.__lock:
+            prior = self.__evidence.get(key)
+            if prior is None or not self._same(prior[0], functions):
+                return None
+            self.__evidence.move_to_end(key)
+            return deepcopy(prior[1])
+
+    def _remember(self, keys, evidence=None) -> None:
         # Retain function objects as well as their IDs, so object-ID reuse cannot
         # revive a proof for a different validator after a monkeypatch or reload.
         with self.__lock:
-            for key, functions in keys.items():
-                self.__entries[key] = functions
-                self.__entries.move_to_end(key)
-                while len(self.__entries) > self.__limit:
-                    self.__entries.popitem(last=False)
+            for store, items in ((self.__entries, keys.items()),
+                                 (self.__evidence, ((key, (functions, deepcopy(value)))
+                                                    for key, (functions, value) in (evidence or {}).items()))):
+                for key, item in items:
+                    store[key] = item
+                    store.move_to_end(key)
+                    while len(store) > self.__limit:
+                        store.popitem(last=False)
 
 
 @contextmanager
@@ -136,9 +162,49 @@ def use_verified_replay_cache(cache: VerifiedReplayCache):
 def _replay_functions():
     from .research_html import parse_yahoo_history
 
-    return (verify, _prepare, _replay_includes, E.verify_research_asset_snapshot, parse_yahoo_history,
+    return (verify, _prepare, _replay_includes, _checked_bytes, _archive_identity, _archive_bindings,
+            asset_definition, research_source_policy, _row_policy, E.verify_research_asset_snapshot, parse_yahoo_history,
             C.validate_bar, C.validate_config, C.validate_research_source, C.session_schedule,
             C.latest_completed_session, C._finite_number, C.canonical_hash)
+
+
+def _source_replayed(root: Path, archive: dict[str, Any], archive_sha256: str) -> bool:
+    """Whether this worker's successful audit already reparsed exactly this archive.
+
+    The caller must have just hashed the archive, receipt and raw files to the
+    digests used here. Outside an opted-in worker there is never a proof.
+    """
+    cache = _ACTIVE_REPLAY_CACHE.get()
+    if cache is None:
+        return False
+    functions = _replay_functions()
+    key = (str(Path(root).resolve()), archive["content_hash"], archive_sha256, archive["receipt_sha256"],
+           archive["receipt_sha256"], archive["raw_sha256"], C.ENGINE_VERSION, tuple(id(f) for f in functions))
+    return cache._contains(key, functions) or cache._contains(("research_metadata", *key), functions)
+
+
+def _evidence_recall(root: Path, key, functions) -> dict[str, Any] | None:
+    """Bindings from a successful audit, only while every file they name hashes the same.
+
+    Each recalled file is read and hashed again now, and each instrument is
+    compared with today's registry. Any difference returns None, so the caller
+    repeats its complete check and reports that check's own error.
+    """
+    cache = _ACTIVE_REPLAY_CACHE.get()
+    bound = cache._recall(key, functions) if cache is not None else None
+    if bound is None:
+        return None
+    try:
+        if any(hashlib.sha256(S.safe_path(Path(root), relative).read_bytes()).hexdigest() != digest
+               for relative, digest in bound["files"].items()):
+            return None
+        if any(C.canonical_hash(asset_definition(root, asset_id)) != digest for asset_id, digest in bound["assets"].items()):
+            return None
+        if "contract" in bound and C.canonical_hash(C.load_contract(Path(root))) != bound["contract"]:
+            return None
+    except (OSError, ValueError):
+        return None
+    return bound
 
 
 def asset_definition(root: Path, asset_id: str) -> dict[str, Any]:
@@ -169,6 +235,19 @@ def _hash(value: dict[str, Any]) -> dict[str, Any]:
 
 def _checked(path: Path) -> dict[str, Any]:
     value = S.read_json(path)
+    if value != _hash(value):
+        raise C.TrendlinesError("research_artifact_content_hash_mismatch")
+    return value
+
+
+def _checked_bytes(data: bytes, name: str) -> dict[str, Any]:
+    """_checked() of bytes already read once, so a hash and its decode agree."""
+    try:
+        value = json.loads(data.decode("utf-8"))
+    except ValueError as exc:
+        raise S.TrendlinesStorageError("invalid JSON artifact: " + name) from exc
+    if not isinstance(value, dict):
+        raise S.TrendlinesStorageError("JSON artifact must be an object: " + name)
     if value != _hash(value):
         raise C.TrendlinesError("research_artifact_content_hash_mismatch")
     return value
@@ -389,12 +468,37 @@ def capture_html(root: Path, asset_id: str, raw: bytes, receipt: dict[str, Any],
             raise
 
 
+def _archive_identity(archive: dict[str, Any], asset: dict[str, Any], name: str) -> None:
+    identity = {key: item for key, item in archive.items() if key not in {"snapshot_id", "content_hash"}}
+    if (archive["snapshot_id"] != "research-snapshot-" + C.canonical_hash(identity) or name != archive["snapshot_id"] + ".json"
+            or archive.get("contract_id") != "trendlines_research_snapshot_v1" or archive.get("schema_version") != 1
+            or archive.get("asset") != asset or archive.get("source_context") != CONTEXT
+            or archive.get("rights_status") != RIGHTS or archive.get("verified_source") is not False
+            or archive.get("official_forecast_write") is not False
+            or archive.get("publication_scope", "private_only") != "private_only"
+            or archive.get("source_policy") != research_source_policy(asset)
+            or archive.get("row_validation_policy") != _row_policy(
+                archive.get("row_validation_policy", {}).get("allow_rejected_rows"))):
+        raise C.TrendlinesError("research_snapshot_identity_or_contract_invalid")
+    if archive["engine_snapshot"].get("knowledge_cutoff") != archive["capture_asof"]:
+        raise C.TrendlinesError("research_snapshot_cutoff_binding_invalid")
+
+
+def _archive_bindings(archive: dict[str, Any]) -> dict[str, Any]:
+    """The fields later cross-checks read, plus the identity they were checked against."""
+    return {**{key: archive[key] for key in ("snapshot_id", "asset_id", "receipt_id", "receipt_path", "receipt_sha256",
+                                             "raw_sha256", "capture_asof", "content_hash")},
+            "supersedes_snapshot_id": archive.get("supersedes_snapshot_id"),
+            "asset_sha256": C.canonical_hash(archive["asset"])}
+
+
 def verify(root: Path, *, replay: bool = True) -> dict[str, Any]:
     """Reparse immutable HTML and replay every research archive, never official DBs."""
     root = Path(root)
+    resolved = str(root.resolve())
     errors, snapshots = [], {}
     cache = _ACTIVE_REPLAY_CACHE.get() if replay is True else None
-    pending = OrderedDict()
+    pending, decoded = OrderedDict(), OrderedDict()
     functions = _replay_functions() if cache is not None else ()
     try:
         pointer = _latest(root)
@@ -403,7 +507,8 @@ def verify(root: Path, *, replay: bool = True) -> dict[str, Any]:
                 raise C.TrendlinesError("research_original_raw_sha_mismatch")
         receipts, receipt_file_hashes = {}, {}
         for path in sorted((root / ROOT / "receipts").glob("*.json")):
-            receipt = _checked(path)
+            data = path.read_bytes()
+            receipt = _checked_bytes(data, path.name)
             asset = asset_definition(root, receipt["asset_id"])
             raw_path = ROOT / "raw" / (receipt["raw_sha256"] + ".bin")
             if receipt.get("raw_path") != raw_path.as_posix():
@@ -416,43 +521,48 @@ def verify(root: Path, *, replay: bool = True) -> dict[str, Any]:
                 raise C.TrendlinesError("research_receipt_binding_invalid")
             receipts[receipt["receipt_id"]] = receipt
             if cache is not None:
-                receipt_file_hashes[receipt["receipt_id"]] = hashlib.sha256(path.read_bytes()).hexdigest()
+                receipt_file_hashes[receipt["receipt_id"]] = hashlib.sha256(data).hexdigest()
         for path in sorted((root / ROOT / "snapshots").glob("*.json")):
-            archive = _checked(path)
-            sid = archive["snapshot_id"]
-            identity = {key: item for key, item in archive.items() if key not in {"snapshot_id", "content_hash"}}
-            asset = asset_definition(root, archive["asset_id"])
-            if (sid != "research-snapshot-" + C.canonical_hash(identity) or path.name != sid + ".json"
-                    or archive.get("contract_id") != "trendlines_research_snapshot_v1" or archive.get("schema_version") != 1
-                    or archive.get("asset") != asset or archive.get("source_context") != CONTEXT
-                    or archive.get("rights_status") != RIGHTS or archive.get("verified_source") is not False
-                    or archive.get("official_forecast_write") is not False
-                    or archive.get("publication_scope", "private_only") != "private_only"
-                    or archive.get("source_policy") != research_source_policy(asset)
-                    or archive.get("row_validation_policy") != _row_policy(
-                        archive.get("row_validation_policy", {}).get("allow_rejected_rows"))):
-                raise C.TrendlinesError("research_snapshot_identity_or_contract_invalid")
-            receipt = receipts[archive["receipt_id"]]
+            data = path.read_bytes()
+            file_sha = hashlib.sha256(data).hexdigest()
+            evidence_key = ("research_archive", resolved, file_sha, CONTEXT, RIGHTS,
+                            tuple(id(function) for function in functions)) if cache is not None else None
+            bindings = cache._recall(evidence_key, functions) if cache is not None else None
+            archive = None
+            if bindings is None:
+                archive = _checked_bytes(data, path.name)
+                asset = asset_definition(root, archive["asset_id"])
+                _archive_identity(archive, asset, path.name)
+                bindings = _archive_bindings(archive)
+                if cache is not None:
+                    decoded[evidence_key] = (functions, bindings)
+            else:
+                # Identical bytes passed the canonical checks above in a successful
+                # audit; the registry and file name are still today's.
+                asset = asset_definition(root, bindings["asset_id"])
+                if C.canonical_hash(asset) != bindings["asset_sha256"] or path.name != bindings["snapshot_id"] + ".json":
+                    raise C.TrendlinesError("research_snapshot_identity_or_contract_invalid")
+            sid = bindings["snapshot_id"]
+            receipt = receipts[bindings["receipt_id"]]
             expected_receipt_path = ROOT / "receipts" / (receipt["receipt_id"] + ".json")
-            if (archive["receipt_path"] != expected_receipt_path.as_posix()
-                    or archive["receipt_sha256"] != hashlib.sha256(S.encode(receipt)).hexdigest()
-                    or archive["raw_sha256"] != receipt["raw_sha256"] or receipt["asset_id"] != archive["asset_id"]):
+            if (bindings["receipt_path"] != expected_receipt_path.as_posix()
+                    or bindings["receipt_sha256"] != hashlib.sha256(S.encode(receipt)).hexdigest()
+                    or bindings["raw_sha256"] != receipt["raw_sha256"] or receipt["asset_id"] != bindings["asset_id"]):
                 raise C.TrendlinesError("research_snapshot_receipt_binding_invalid")
-            raw = S.safe_path(root, receipt["raw_path"]).read_bytes()
-            actual_raw_sha = hashlib.sha256(raw).hexdigest()
-            if actual_raw_sha != receipt["raw_sha256"]:
-                raise C.TrendlinesError("research_original_raw_sha_mismatch")
-            if archive["engine_snapshot"].get("knowledge_cutoff") != archive["capture_asof"]:
-                raise C.TrendlinesError("research_snapshot_cutoff_binding_invalid")
-            key = (str(root.resolve()), archive["content_hash"], hashlib.sha256(path.read_bytes()).hexdigest(),
-                   archive["receipt_sha256"], receipt_file_hashes[archive["receipt_id"]], actual_raw_sha, C.ENGINE_VERSION,
+            # The receipt loop above hashed this original during this audit.
+            key = (resolved, bindings["content_hash"], file_sha,
+                   bindings["receipt_sha256"], receipt_file_hashes[bindings["receipt_id"]], receipt["raw_sha256"], C.ENGINE_VERSION,
                    tuple(id(function) for function in functions)) if cache is not None else None
-            numeric_replay = replay and _replay_includes(archive["asset_id"])
+            numeric_replay = replay and _replay_includes(bindings["asset_id"])
             metadata_key = (("research_metadata", *key) if cache is not None and not numeric_replay
                             and _ACTIVE_REPLAY_ASSET.get() is not None else None)
             full_hit = cache is not None and cache._contains(key, functions)
             metadata_hit = metadata_key is not None and cache._contains(metadata_key, functions)
             if not full_hit and not metadata_hit:
+                raw = S.safe_path(root, receipt["raw_path"]).read_bytes()
+                if hashlib.sha256(raw).hexdigest() != receipt["raw_sha256"]:
+                    raise C.TrendlinesError("research_original_raw_sha_mismatch")
+                archive = archive or _checked_bytes(data, path.name)
                 bars, meta, gaps = _prepare(raw, receipt, asset, archive["capture_asof"], config=archive["config"],
                                             allow_rejected_rows=archive["row_validation_policy"]["allow_rejected_rows"])
                 if bars != archive["bars"] or meta != archive["metadata"] or gaps != archive["gaps"]:
@@ -465,7 +575,7 @@ def verify(root: Path, *, replay: bool = True) -> dict[str, Any]:
                     pending[key if numeric_replay else metadata_key] = functions
                     while len(pending) > cache.max_entries:
                         pending.popitem(last=False)
-            snapshots[sid] = archive
+            snapshots[sid] = bindings
         for sid, archive in snapshots.items():
             prior = archive.get("supersedes_snapshot_id")
             if prior is not None and (prior not in snapshots or snapshots[prior]["asset_id"] != archive["asset_id"]
@@ -493,7 +603,7 @@ def verify(root: Path, *, replay: bool = True) -> dict[str, Any]:
     except (OSError, ValueError, KeyError, TypeError) as exc:
         errors.append(str(exc))
     if not errors and cache is not None:
-        cache._remember(pending)
+        cache._remember(pending, decoded)
     return _scope_report({"ok": not errors, "errors": errors, "snapshots": len(snapshots), "replay": replay})
 
 
