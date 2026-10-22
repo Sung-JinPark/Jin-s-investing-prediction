@@ -1365,15 +1365,16 @@ function renderFearGreedLab(){
   if(!lab||lab.status!=='live')return null;
   const comps=Object.entries(lab.components||{}).map(([k,c])=>fngComponentRow(k,c)).join('');
   const nqEnd=(lab.nasdaq||[]).filter(hasNumeric).at(-1);
+  const componentDate=lab.components_observed_through||lab.seeded_at||'기준일 미확인';
   return el(`<section class="fng-lab" id="fear-greed" aria-labelledby="fng-lab-head">
     <div class="page-heading"><div><p class="eyebrow">MARKET SENTIMENT · FEAR &amp; GREED</p><h2 id="fng-lab-head">공포·탐욕 지수와 NASDAQ</h2></div></div>
-    <div class="fng-lab-legend"><span class="is-fng">공포·탐욕 (좌 0~100)</span><span class="is-nq">NASDAQ 종합 (우${hasNumeric(nqEnd)?` · 현재 ${Math.round(nqEnd).toLocaleString()}`:''})</span></div>
+    <div class="fng-lab-legend"><span class="is-fng">공포·탐욕 (좌 0~100)</span><span class="is-nq">NASDAQ 종합 (우${hasNumeric(nqEnd)?` · ${esc(lab.observed_through||'')} ${Math.round(nqEnd).toLocaleString()}`:''})</span></div>
     <div class="fng-lab-legend fng-lab-zones">${[['extreme_fear','극단적 공포'],['fear','공포'],['neutral','중립'],['greed','탐욕'],['extreme_greed','극단적 탐욕']].map(([k,label])=>`<span style="--chip:${MOOD_BAND_COLOR[k]}">${label}</span>`).join('')}</div>
     ${fngOverlayChart(lab.dates||[],lab.fng||[],lab.nasdaq||[])}
-    <h3 class="fng-lab-sub">구성요소 7종</h3>
-    <p class="fng-lab-lead">점수는 현재값만 공표 · 아래 선은 원자료(점수 추이 아님)</p>
+    <h3 class="fng-lab-sub">구성요소 7종 · ${esc(componentDate)} 보관 자료</h3>
+    <p class="fng-lab-lead">구성요소 자동갱신 미지원 · 아래 선은 원자료(점수 추이 아님)</p>
     <div class="fng-comp-grid">${comps}</div>
-    <p class="fng-lab-foot">지수·NASDAQ ${esc(lab.observed_through||lab.seeded_at||'')}까지 · 구성요소 원자료 ${esc(lab.seeded_at||'')}까지(CNN)${lab.tail_from?` · ${esc(lab.tail_from)}부터 지수는 일일 수집값`:''} · 재배포 약관 미확인 · 표시 전용</p>
+    <p class="fng-lab-foot">지수·NASDAQ ${esc(lab.observed_through||lab.seeded_at||'')}까지 · 구성요소 원자료 ${esc(componentDate)}까지(CNN)${lab.tail_from?` · ${esc(lab.tail_from)}부터 지수는 일일 수집값`:''} · 재배포 약관 미확인 · 표시 전용</p>
   </section>`);
 }
 
@@ -3114,6 +3115,8 @@ function fngSector(from,to){const{rOut,rIn}=FNG_ARC;
 
 function renderFearGreedCard(fng){
   if(!fng||fng.status!=='live')return `<article class="mood-card mood-empty"><h3>공포 · 탐욕</h3><p>아직 수집되지 않았습니다.</p></article>`;
+  let provider=fng.source_label||fng.source_id||'공개 원천';
+  try{provider=new URL(fng.source_url).hostname.replace(/^www\./,'');}catch{}
   const v=Number(fng.value),raw=hasNumeric(fng.value_raw)?Number(fng.value_raw):v;
   const bands=fng.bands||[];
   const sectors=bands.map(b=>{const on=b.slug===fng.band,to=b.hi>=100?100:b.hi+1;
@@ -3136,7 +3139,7 @@ function renderFearGreedCard(fng){
     ${moodSpark(fng.trail,{lo:0,hi:100,w:264,h:52,stroke:MOOD_BAND_COLOR[fng.band]||'#8a877e',
       marks:[{v:75,c:'#247d78'},{v:55,c:'#8a877e'},{v:45,c:'#8a877e'},{v:25,c:'#c9002d'}]})}
     <dl class="mood-meta"><div><dt>전일</dt><dd>${hasNumeric(fng.previous_close)?fng.previous_close:'—'}</dd></div><div><dt>1주 전</dt><dd>${hasNumeric(fng.week_ago)?fng.week_ago:'—'}</dd></div><div><dt>1개월</dt><dd>${hasNumeric(fng.month_ago)?fng.month_ago:'—'}</dd></div></dl>
-    <p class="mood-note">${gate.gate_met?'':`일일 수집 <b>${num(gate.streak_days)}/${num(gate.gate_days)}일</b> · `}<span>${esc(fng.observed_date)} · CNN · 표시 전용</span></p>
+    <p class="mood-note">${gate.gate_met?'':`일일 수집 <b>${num(gate.streak_days)}/${num(gate.gate_days)}일</b> · `}<span>${esc(fng.observed_date)} · ${esc(provider)} · 표시 전용</span></p>
   </article>`;
 }
 

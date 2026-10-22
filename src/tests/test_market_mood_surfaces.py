@@ -291,6 +291,12 @@ def test_the_lab_declares_its_provenance_and_status() -> None:
     assert lab["source"] == "cnn_graphdata"
     assert lab["license_status"] == "review_required"
     assert lab["method"] == "real_browser_session"
+    original_path = ROOT / fg.COMPONENTS_RELATIVE
+    before = original_path.read_bytes()
+    captured = json.loads(before)
+    assert lab["components_observed_through"] == captured["dates"][-1]
+    assert lab["components_refresh_policy"] == "frozen_browser_capture"
+    assert original_path.read_bytes() == before
     source = (ROOT / "src/ai_fc/dashboard_parts/dashboard.js").read_text(encoding="utf-8")
     renderer = source.split("function renderFearGreedLab(){", 1)[1].split("\n}", 1)[0]
     assert "상관을 주장하지 않습니다" not in renderer
