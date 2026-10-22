@@ -1457,6 +1457,8 @@ function renderStatistics(initialState){
   }
   const overheat=statisticsOverheatPanel(DATA.dotcom_overheat);
   if(overheat)root.appendChild(overheat);
+  const waiting=stats.source_refresh?.waiting_series||[];
+  if(waiting.length)root.appendChild(el(`<p class="statistics-scope-note" role="status">원천 갱신 대기 ${waiting.length}개 · 각 지표의 실제 관측일을 확인해 주세요.</p>`));
   const alignment=stats.cycle_alignment||{},charts=stats.charts||[];
   const categories=[['all','전체'],['ipo','IPO·상장'],['liquidity','유동성'],['rates','금리'],['economy','경기·물가'],['valuation','기업가치'],['credit','신용']];
   root.appendChild(el(`<nav class="statistics-filters" aria-label="통계 그래프 분류">${categories.map(([key,label])=>`<button type="button" data-stat-filter="${key}" aria-pressed="${key==='all'}">${label}</button>`).join('')}</nav>`));
