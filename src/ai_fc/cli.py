@@ -1658,6 +1658,15 @@ def cmd_signals(
         raise typer.Exit(code=1)
 
 
+@app.command("fear-greed-components-refresh")
+def cmd_fear_greed_components_refresh() -> None:
+    """무료 공개 API의 구성요소 7종을 수집·검증한다(표시 전용)."""
+    from .fear_greed_components import refresh
+
+    pointer = refresh(config.ROOT)
+    typer.echo(f"구성요소 7종 · {pointer['source_as_of']} · {pointer['snapshot_id']}")
+
+
 @app.command("wait-for-close")
 def cmd_wait_for_close(
     deadline_utc: str = typer.Option("23:30", "--deadline-utc", help="이 시각(UTC)까지만 기다린다"),
