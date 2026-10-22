@@ -218,9 +218,9 @@ refresh at the bound (LRU: 550 s) and about the same as LRU at twice the bound.
 No eviction order makes an overflowing store warm.
 
 Hashing binds long before the bound. One SHA-256 read of the 1.0 GB copy takes
-about 2.5 s; a warm pass through all five audits takes about 25 s, and a warm
-refresh about 70 s. The store grows about 5.5 MB a capture, about 5 GB a month
-at this rate, and every pass reads all of it.
+about 2.5 s; a warm pass through all five audits took 13–31 s and a warm
+refresh 69–98 s, depending on other load on the machine. The store grows about
+5.5 MB a capture, about 5 GB a month at this rate, and every pass reads all of it.
 
 ## Browser compatibility
 
