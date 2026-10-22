@@ -2242,3 +2242,7 @@ ADR-002 의 '렌더 필드 투영' 패턴을 전송 전용으로 확장했다 �
 `trust.ledgers` 의 criticality·immutable_changes·schema_errors·duplicate_rows·reversed_timestamps(1 KB), `trust.sources.fallback_used`, `method_changes` 의 kind≠method 행(저널이 kind==='method' 만 렌더),
 V13 라이브 표의 `trail`(스파크라인 미사용). 생략 사실은 `embed_field_projection` 에 공시되고 Pages `data.json`·`/api/data` 는 전부 보존한다. 결과 1,559,564 B(여유 13.3 KB).
 **구조적 경보**: 상한 여유가 일 단위 데이터 성장(예측 이력·방법론 변경·달력)으로 곧 다시 소진된다 — 상한 상향(ADR) 또는 추가 분리는 사용자 결정 사항으로 남긴다.
+
+### 2026-10-22 — 통계 무료 원발표처 대체 경로 (사용자 승인)
+
+FRED API 장애 때 닷컴 통계의 M2SL·FEDFUNDS·GS10·BOGZ1LM153064475Q·BOGZ1LM893064105Q만 연준 원발표처에서 자동 취득할 수 있다. 매번 전체 중첩값·단위·정의·기간 완전성을 검수한 경우에 한한다. 원본 ZIP·영수증·별도 source ID·실제 취득 시각을 보존하며 과거 FRED 원장과 ALFRED PIT를 대체하지 않는다. 나머지는 원래 관측일과 미갱신 상태를 유지하고 API를 다음 배치에서 다시 확인한다. Nasdaq·Coinbase·NFCI·신용 스프레드의 미검증 대체는 활성화하지 않는다. 근거와 한계: [원천 검수](STATISTICS_NATIVE_FALLBACK_20261022.md), 계약 statistics_native_fallback_v1.yaml. 12-6의 FRED 공식 API 전용 원칙은 유지한다.

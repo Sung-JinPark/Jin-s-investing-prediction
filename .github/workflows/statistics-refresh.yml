@@ -92,3 +92,12 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: gh workflow run pages.yml --repo "$GITHUB_REPOSITORY" --ref main
+      - name: Report unavailable sources after publishing verified partial updates
+        run: |
+          python - <<'PY'
+          import json
+          data = json.load(open('data/statistics/dotcom_statistics_latest.json', encoding='utf-8'))
+          waiting = data.get('source_refresh', {}).get('waiting_series', [])
+          if waiting:
+              raise SystemExit('Retained dated verified observations; source unavailable: ' + ', '.join(waiting))
+          PY

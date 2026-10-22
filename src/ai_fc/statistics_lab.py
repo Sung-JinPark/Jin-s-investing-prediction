@@ -2908,6 +2908,12 @@ def build_statistics_lab(
             "raw_path": receipts[series_id].get("raw_path"),
             "vintage": receipts[series_id].get("vintage", "current_release_reconstructed"),
         })
+        # Source identity belongs to the actual acquired artifact. Never label a
+        # Board ZIP or a retained old observation as a fresh FRED response.
+        for key in ("source_url", "request_url", "provider", "authority_class",
+                    "policy_source_id", "refresh_status", "refresh_reason", "equivalence_audit"):
+            if key in receipts[series_id]:
+                source_meta[-1][key] = receipts[series_id][key]
     sec_spec = SUPPLEMENTAL_SOURCES["SEC_IPO_QUARTERLY"]
     sec_receipt = receipts["SEC_IPO_QUARTERLY"]
     source_meta.append({
@@ -2968,6 +2974,8 @@ def build_statistics_lab(
     if ipo_source_meta is not None:
         source_meta.append(ipo_source_meta)
     observation_through = max(row["latest_observation"] for row in source_meta)
+    waiting = [row["series_id"] for row in source_meta
+               if row.get("refresh_status") == "verified_cache_waiting_source"]
     payload = {
         "schema_version": 1, "dataset_id": "dotcom_statistics_lab_v1", "status": "ok",
         "probability_space": "reference_only", "model_use": False,
@@ -2975,6 +2983,12 @@ def build_statistics_lab(
         "knowledge_cutoff": generated_at,
         "observation_through": observation_through,
         "as_of": observation_through,
+        "source_refresh": {
+            "state": "partial" if waiting else "current",
+            "waiting_series": waiting,
+            "native_series": [row["series_id"] for row in source_meta
+                              if row.get("refresh_status") == "verified_native_fallback"],
+        },
         "cycle_alignment": {
             "dotcom_start": DOTCOM_START.isoformat(), "dotcom_end": DOTCOM_END.isoformat(),
             "current_start": CURRENT_START.isoformat(), "current_axis_end": CURRENT_AXIS_END.isoformat(),
@@ -3108,6 +3122,15 @@ def validate_statistics_lab(payload: dict[str, Any], *, projected: bool = False)
             raise StatisticsLabError(f"source {row.get('series_id')} numeric role invalid")
         if row.get("numeric_input_allowed") is not True:
             raise StatisticsLabError(f"source {row.get('series_id')} is not approved for numbers")
+        if row.get("series_id") in FRED_SERIES and row.get("policy_source_id") != "fred_market_signals":
+            from .statistics_native import SERIES as NATIVE_SERIES
+            sid = row["series_id"]
+            audit = row.get("equivalence_audit") or {}
+            if (sid not in NATIVE_SERIES or row.get("policy_source_id") != "federal_reserve_board"
+                    or row.get("source_url") != NATIVE_SERIES[sid][0]
+                    or audit.get("policy") != "frb-exact-overlap-v1"
+                    or audit.get("observations", 0) < 24 or audit.get("differences") != 0):
+                raise StatisticsLabError(f"unverified native replacement: {sid}")
         if row.get("authority_class") not in {
             "authoritative_public_distributor", "official_regulator",
             "official_statistical_agency", "academic_curated_dataset",
@@ -3127,6 +3150,12 @@ def validate_statistics_lab(payload: dict[str, Any], *, projected: bool = False)
             raise StatisticsLabError(f"source {row.get('series_id')} timestamp invalid") from exc
         if latest_observation > knowledge_cutoff.date() or available_at > knowledge_cutoff:
             raise StatisticsLabError(f"source {row.get('series_id')} future-data leakage")
+    if "source_refresh" in payload:
+        waiting = [row["series_id"] for row in sources if row.get("refresh_status") == "verified_cache_waiting_source"]
+        native = [row["series_id"] for row in sources if row.get("refresh_status") == "verified_native_fallback"]
+        expected_refresh = {"state": "partial" if waiting else "current", "waiting_series": waiting, "native_series": native}
+        if payload["source_refresh"] != expected_refresh:
+            raise StatisticsLabError("source refresh summary does not match individual sources")
     for chart in charts:
         if not set(chart.get("source_ids") or []).issubset(known_sources):
             raise StatisticsLabError(f"chart {chart.get('id')} has unknown source")
@@ -3264,7 +3293,7 @@ def _semantic_snapshot(value: Any) -> Any:
         return {
             key: _semantic_snapshot(item)
             for key, item in value.items()
-            if key not in {"generated_at", "available_at"}
+            if key not in {"generated_at", "available_at", "knowledge_cutoff"}
         }
     if isinstance(value, list):
         return [_semantic_snapshot(item) for item in value]
@@ -3275,6 +3304,7 @@ def _persist_authoritative_inputs(
     root: Path, *, source_rows: dict[str, list[dict[str, Any]]],
     raw_payloads: dict[str, bytes], receipts: dict[str, dict[str, Any]],
     fetched_at: str, source_uris: dict[str, str] | None = None,
+    source_metadata: dict[str, dict[str, Any]] | None = None,
 ) -> list[Any]:
     """Persist raw bytes first and prepare only new/revised ledger observations."""
     from .authoritative_statistics import (
@@ -3305,6 +3335,11 @@ def _persist_authoritative_inputs(
             ),
             "text/csv",
         )
+        override = (source_metadata or {}).get(series_id, {})
+        if override.get("policy_source_id"):
+            source_policy[series_id] = (
+                override["policy_source_id"], override["request_url"], override.get("media_type", "text/csv"),
+            )
     source_policy["SEC_IPO_QUARTERLY"] = (
         "sec_edgar", SEC_IPO_ENDPOINT, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
     )
@@ -3323,6 +3358,11 @@ def _persist_authoritative_inputs(
         policy_source_id, default_source_uri, media_type = source_policy[series_id]
         source_uri = (source_uris or {}).get(series_id, default_source_uri)
         declared_series = [series_id]
+        if series_id in FRED_SERIES and (source_metadata or {}).get(series_id, {}).get("policy_source_id") == "federal_reserve_board":
+            # One ZIP may carry several mapped series; declare the union so the
+            # receipt index remains complete for a shared response hash/time.
+            declared_series = [sid for sid, item in (source_metadata or {}).items()
+                               if sid in raw_payloads and item.get("request_url") == source_uri]
         if series_id == Z1_PRIMARY_SERIES:
             declared_series = list(Z1_SERIES)
         if series_id == CENSUS_C30_PRIMARY_SERIES:
@@ -3336,6 +3376,19 @@ def _persist_authoritative_inputs(
                     "corporate_proceeds_mn", "spac_proceeds_mn", "fund_proceeds_mn",
                 )
             ]
+        # Native substitutes and the existing Z.1 collector can acquire the
+        # exact same ZIP. The ledger's receipt key is source/hash/time, so every
+        # such receipt must declare the full union of extracted series.
+        for other, other_raw in raw_payloads.items():
+            if source_policy[other][0] != policy_source_id or other_raw != raw:
+                continue
+            if other == Z1_PRIMARY_SERIES:
+                declared_series.extend(Z1_SERIES)
+            elif other == CENSUS_C30_PRIMARY_SERIES:
+                declared_series.extend(CENSUS_C30_SERIES)
+            elif other in FRED_SERIES:
+                declared_series.append(other)
+        declared_series = list(dict.fromkeys(declared_series))
         receipt = persist_raw_artifact(
             store_root, policy, source_id=policy_source_id, payload=raw,
             source_uri=source_uri, fetched_at=fetched_at, http_status=200,
@@ -3451,10 +3504,12 @@ def _persist_authoritative_inputs(
         latest_by_key[key] = candidate
 
     for series_id, spec in FRED_SERIES.items():
+        if series_id not in receipt_models:
+            continue  # verified retained source; no new receipt or observation
         receipt = receipt_models[series_id]
         for row in source_rows[series_id]:
             add_candidate(
-                policy_source_id="fred_market_signals", series_id=series_id,
+                policy_source_id=source_policy[series_id][0], series_id=series_id,
                 observed=str(row["date"]), value=row["value"], unit=spec["unit"],
                 raw_sha256=receipt.raw_sha256,
             )
@@ -3491,7 +3546,7 @@ def _persist_authoritative_inputs(
     return candidates
 
 
-def _load_authoritative_current_rows(root: Path) -> dict[str, list[dict[str, Any]]]:
+def _load_authoritative_current_rows(root: Path, *, source_preferences: dict[str, str] | None = None) -> dict[str, list[dict[str, Any]]]:
     """Rebuild the current read model exclusively from the append-only ledger."""
     from .authoritative_statistics import read_normalized_observations
 
@@ -3511,7 +3566,7 @@ def _load_authoritative_current_rows(root: Path) -> dict[str, list[dict[str, Any
         rows[c30_series_id] = []
     sec_by_date: dict[str, dict[str, Any]] = {}
     for row in latest.values():
-        if row.source_id == "fred_market_signals" and row.series_id in FRED_SERIES:
+        if row.series_id in FRED_SERIES and row.source_id == (source_preferences or {}).get(row.series_id, "fred_market_signals"):
             rows[row.series_id].append({
                 "date": row.observation_date,
                 "value": float(row.value),
@@ -3565,11 +3620,23 @@ def refresh_statistics_lab(
     receipts: dict[str, dict[str, Any]] = {}
     raw_payloads: dict[str, bytes] = {}
     source_uris: dict[str, str] = {}
-    for series_id in FRED_SERIES:
-        rows, raw = fred_fetcher(series_id)
-        source_rows[series_id] = rows
-        receipts[series_id] = {"raw_sha256": hashlib.sha256(raw).hexdigest()}
-        raw_payloads[series_id] = raw
+    source_metadata: dict[str, dict[str, Any]] = {}
+    if fred_fetcher is _fetch_fred and (root / LATEST_RELATIVE).is_file():
+        from .statistics_native import collect_current
+        source_rows, raw_payloads, source_metadata = collect_current(
+            root, FRED_SERIES, fetcher=fred_fetcher,
+            request=lambda url: _request(url, timeout=60), cutoff=generated_time.date(),
+        )
+        for series_id, metadata in source_metadata.items():
+            receipts[series_id] = dict(metadata)
+            if series_id in raw_payloads:
+                receipts[series_id]["raw_sha256"] = hashlib.sha256(raw_payloads[series_id]).hexdigest()
+    else:
+        for series_id in FRED_SERIES:
+            rows, raw = fred_fetcher(series_id)
+            source_rows[series_id] = rows
+            receipts[series_id] = {"raw_sha256": hashlib.sha256(raw).hexdigest()}
+            raw_payloads[series_id] = raw
     for series_id in SUPPLEMENTAL_SOURCES:
         fetched = supplemental_fetcher(series_id)
         if len(fetched) == 3:
@@ -3596,9 +3663,14 @@ def refresh_statistics_lab(
         source_rows[c30_series_id] = _parse_census_c30(c30_raw, c30_series_id)
         receipts[c30_series_id] = {"raw_sha256": c30_digest}
     raw_payloads[CENSUS_C30_PRIMARY_SERIES] = c30_raw
+    # The first historical acquisition cannot become available before the
+    # download completes. Injected clocks remain deterministic in tests.
+    generated_time = now or datetime.now(timezone.utc)
+    generated_at = generated_time.isoformat(timespec="seconds")
     pending_observations = _persist_authoritative_inputs(
         root, source_rows=source_rows, raw_payloads=raw_payloads,
         receipts=receipts, fetched_at=generated_at, source_uris=source_uris,
+        source_metadata=source_metadata,
     )
     from .authoritative_statistics import (
         append_normalized_observations,
@@ -3614,7 +3686,10 @@ def refresh_statistics_lab(
         ),
         pending_observations,
     )
-    canonical_rows = _load_authoritative_current_rows(root)
+    canonical_rows = _load_authoritative_current_rows(root, source_preferences={
+        sid: item.get("policy_source_id", "fred_market_signals")
+        for sid, item in source_metadata.items()
+    })
     from .ipo_monthly_counts import load_ipo_monthly_tables
 
     payload = build_statistics_lab(
@@ -3722,6 +3797,7 @@ def statistics_dashboard_projection(root: Path) -> dict[str, Any]:
         "native_frequency", "latest_observation", "authority_class",
         "usage_role", "numeric_input_allowed",
         "policy_source_id",
+        "refresh_status", "refresh_reason", "equivalence_audit",
     }
     projected["sources"] = [
         {key: value for key, value in source.items() if key in public_source_keys}

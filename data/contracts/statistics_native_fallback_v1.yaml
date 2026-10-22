@@ -1,0 +1,37 @@
+schema_version: 1
+contract_id: statistics-native-fallback-v1
+scope: current_display_statistics_only
+model_use: false
+official_forecast_input: false
+alfred_vintage_substitute: false
+activation: official_fred_api_availability_failure_only
+source_policy_id: federal_reserve_board
+license_url: https://www.federalreserve.gov/disclaimer.htm
+license: public_domain_unless_otherwise_indicated_cite_board
+raw_before_observations: required
+availability: actual_acquisition_no_backdating
+overlap_gate:
+  minimum_observations: 24
+  require_all_previous_dates: true
+  tolerance_absolute: 1.0e-8
+  tolerance_relative: 1.0e-12
+  tolerance_rule: max_absolute_relative
+  mismatch: reject_candidate_preserve_dated_verified_previous_source
+series:
+  M2SL: {native: M2.M, frequency: monthly, adjustment: SA, unit: billions_usd}
+  FEDFUNDS: {native: RIFSPFF_N.M, frequency: monthly, unit: percent}
+  GS10: {native: RIFLGFCY10_N.M, frequency: monthly, unit: percent}
+  BOGZ1LM153064475Q: {native: LM153064475.Q, frequency: quarterly, unit: millions_usd}
+  BOGZ1LM893064105Q: {native: LM893064105.Q, frequency: quarterly, unit: millions_usd}
+endpoints:
+  h6: https://www.federalreserve.gov/releases/h6/data/FRB_h6_xml.zip
+  h15: https://www.federalreserve.gov/releases/h15/data/FRB_h15_xml.zip
+  z1: https://www.federalreserve.gov/releases/z1/z1_csv_files.zip
+date_labels: native_month_or_quarter_end_to_same_period_start_no_value_aggregation
+unavailable_series: retain_original_approved_observation_dates_and_availability_explicit_partial_state
+unsupported:
+  NASDAQCOM: no_verified_free_automatic_public_substitute
+  NASDAQSOX: no_verified_free_automatic_public_substitute
+  SP500: no_verified_free_automatic_public_substitute
+  CBBTCUSD: coinbase_direct_api_not_equivalent_daily_fix_and_public_redistribution_restricted
+  NFCI: overlapping_published_vintage_differs_held_for_separate_review
