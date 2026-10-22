@@ -45,10 +45,24 @@ def aware_time(value: str | datetime | None = None) -> datetime:
 
 
 def safe_path(parent: Path, relative: str) -> Path:
+    return _within(parent, relative, None)
+
+
+def root_resolver(parent: Path):
+    """safe_path() for many files under one root, resolving the root once.
+
+    Each file is still resolved. It must lie inside the root as resolved here;
+    a root that resolves elsewhere later can only make files fail this check.
+    """
+    base = Path(parent).resolve()
+    return lambda relative: _within(Path(parent), relative, base)
+
+
+def _within(parent: Path, relative: str, base: Path | None) -> Path:
     if not isinstance(relative, str) or not relative or Path(relative).is_absolute():
         raise TrendlinesStorageError("artifact path must be relative")
     target = (parent / relative).resolve()
-    if parent.resolve() not in target.parents:
+    if (parent.resolve() if base is None else base) not in target.parents:
         raise TrendlinesStorageError("artifact path escapes its root")
     return target
 

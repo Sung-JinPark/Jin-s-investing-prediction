@@ -388,8 +388,7 @@ def verify(root,*,asset_id=None,replay=True,now=None):
     decoded={}
     try:
         load_policy(root);snapshots={}
-        for path in sorted(S.safe_path(root,(ROOT/'snapshots').as_posix()).glob('*.json')):
-            data,digest=R._audit_read(path)
+        for path,data,digest in R._audit_reads(sorted(S.safe_path(root,(ROOT/'snapshots').as_posix()).glob('*.json'))):
             evidence_key=('long_boundaries_evidence',resolved,path.name,digest,tuple(id(f) for f in evidence_functions))
             recalled=cache._recall(evidence_key,evidence_functions) if cache is not None else None
             # Another asset's snapshot is skipped whatever its dependencies hold; identify it before rereading them.
