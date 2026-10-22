@@ -1,4 +1,6 @@
 """TradingView-style workspace: tools stay two-anchor records, previews never draw."""
+from pathlib import Path
+
 import pytest
 
 from test_trendlines_manual_ui import FIXTURE, POINTER_HOST, run
@@ -154,3 +156,83 @@ process.stdout.write(JSON.stringify({missing:hooks.filter(hook=>!frame.includes(
     assert out['missing'] == []
     assert out['tools'] == [] and out['ranges'] and out['menu'] and out['help']
     assert 'data-trend-tool="expand"' in out['preview'] and not out['legacyToolbar']
+
+
+@pytest.fixture(scope='module')
+def workspace_browser():
+    playwright = pytest.importorskip('playwright.sync_api')
+    with playwright.sync_playwright() as runtime:
+        try:
+            browser = runtime.chromium.launch(channel='chrome', headless=True)
+        except playwright.Error as error:
+            pytest.skip(f'installed Chrome not available: {error}')
+        yield browser
+        browser.close()
+
+
+@pytest.mark.parametrize('ending', ['up', 'cancel', 'lostcapture', 'blur', 'dispose'])
+def test_workspace_mouse_pan_suppresses_selection_and_always_releases(workspace_browser, ending):
+    """Run the real pan handlers and CSS; isolate chart data, rendering and storage."""
+    parts = Path(__file__).parents[1] / 'ai_fc/dashboard_parts'
+    source = (parts / 'trendlines.js').read_text(encoding='utf-8')
+    drawing = source[source.index('function drawTrendWorkspace('):source.index('function trendWorkspaceSnapshot(')]
+    css = (parts / 'trendlines.css').read_text(encoding='utf-8')
+    program = r'''
+const manual={ready:true,mode:false,lines:[],selection:[],saveStatus:'saved'},state={factor:2,offset:100,heldCount:100,yRange:null};
+const baseBars=Array.from({length:200},(_,i)=>({session:'2026-'+String(i).padStart(3,'0'),close:100+i})),bars=baseBars.slice(100);
+const detail={asset_id:'soxx',bars:baseBars},analysis={lines:[]},asset={label:'SOXX'},ws={context:{family:null},family:null,panelOpen:false};
+const before=JSON.stringify({baseBars,analysis,manual}),TREND_ZOOM={ws},TREND_RANGE_PRESETS=[];
+const trendManualState=()=>manual,trendManualGeometry=()=>null;
+const trendPlotModel=()=>({W:1000,H:500,L:50,R:60,T:20,B:40,range:[50,150]});
+const trendWorkspaceFrame=()=>'<header class="trend-ws-top"><p>SOXX chart toolbar</p><input id="editable" value="line name"></header><div class="trend-ws-main"><nav class="trend-ws-tools"></nav><div class="trend-ws-stage" data-trend-ws-stage></div></div><footer class="trend-ws-bottom">Chart dates and price labels</footer>';
+const trendWorkspaceLegend=()=>'',trendWorkspaceSelectionBar=()=>'';
+const trendSvg=()=>'<svg data-trend-plot viewBox="0 0 1000 500" tabindex="0"><text x="100" y="100">SOXX selectable price labels and chart history</text><text x="100" y="130">2026-10-22  100  200  300</text></svg>';
+const bindTrendWorkspaceChart=()=>{},bindTrendManual=()=>{},drawTrendInteractiveChart=()=>{};
+''' + drawing + r'''
+const host=document.querySelector('[data-trend-zoom-chart]');
+drawTrendWorkspace(host,detail,analysis,baseBars,bars,asset,'linear','workspace',state,ws,10);
+host.addEventListener('pointerdown',event=>{window.lastPointer=event.pointerId;});
+window.inspect=()=>({offset:state.offset,cursor:getComputedStyle(host.querySelector('svg')).cursor,selection:getSelection().toString(),
+  active:host.hasAttribute('data-trend-gesture'),captured:host.hasPointerCapture(window.lastPointer||1),
+  unchanged:before===JSON.stringify({baseBars,analysis,manual})});
+'''
+    page = workspace_browser.new_page(viewport={'width': 1280, 'height': 900})
+    try:
+        page.set_content('<style>' + css + '</style><div class="trend-ws" style="width:1100px;height:700px"><div class="trend-ws-host" data-trend-zoom-chart></div></div><p>Outside chart text</p><script>' + program + '</script>')
+        svg = page.locator('svg[data-trend-plot]')
+        box = svg.bounding_box()
+        assert box and box['width'] > 500 and box['height'] > 200
+        x, y = box['x'] + box['width'] * .2, box['y'] + box['height'] * .2
+        page.mouse.move(x, y)
+        assert page.evaluate('inspect().cursor') == 'grab'
+        page.mouse.down()
+        page.mouse.move(x + 90, y, steps=6)
+        dragging = page.evaluate('inspect()')
+        assert dragging['offset'] < 100 and dragging['cursor'] == 'grabbing'
+        assert dragging['active'] and dragging['captured'] and dragging['selection'] == ''
+        if ending == 'up':
+            page.mouse.up()
+        elif ending == 'cancel':
+            page.evaluate("document.querySelector('[data-trend-zoom-chart]').dispatchEvent(new PointerEvent('pointercancel',{bubbles:true,pointerId:lastPointer}))")
+        elif ending == 'lostcapture':
+            page.evaluate("document.querySelector('[data-trend-zoom-chart]').releasePointerCapture(lastPointer)")
+            # Chrome processes the pending capture change with the next pointer event.
+            page.mouse.move(x + 90, y)
+        elif ending == 'blur':
+            page.evaluate("window.dispatchEvent(new Event('blur'))")
+        else:
+            page.evaluate("document.querySelector('[data-trend-zoom-chart]')._trendWsDisposeNavigation()")
+        page.wait_for_function('!inspect().active')
+        released = page.evaluate('inspect()')
+        assert released['cursor'] == 'grab' and not released['captured']
+        page.mouse.move(x + 130, y, steps=2)
+        assert page.evaluate('inspect().offset') == released['offset'], 'released gestures must not keep panning'
+        page.mouse.up()
+        assert page.evaluate('inspect().unchanged'), 'panning must not edit source bars, automatic lines or drawings'
+        page.locator('#editable').fill('editable line name')
+        page.locator('#editable').press('Control+a')
+        assert page.locator('#editable').evaluate('node=>node.selectionStart===0&&node.selectionEnd===node.value.length')
+        svg.evaluate("node=>node.classList.add('trend-manual-drawing')")
+        assert svg.evaluate('node=>getComputedStyle(node).cursor') == 'crosshair'
+    finally:
+        page.close()

@@ -1166,7 +1166,7 @@ function closeTrendZoom(restore=true){
   if(globalThis.document?.fullscreenElement&&zoom.layer.contains?.(document.fullscreenElement))document.exitFullscreen?.()?.catch?.(()=>{});
   zoom.layer.remove();document.body.classList.remove('trend-zoom-open');for(const [node,value] of zoom.inert)if(node.isConnected)node.inert=value;
   window.removeEventListener('keydown',zoom.key);window.removeEventListener('resize',zoom.resize);document.removeEventListener?.('fullscreenchange',zoom.resize);
-  if(zoom.host)TREND_MANUAL_VIEWS.delete(zoom.host);
+  if(zoom.host){zoom.host._trendWsDisposeNavigation?.();TREND_MANUAL_VIEWS.delete(zoom.host);}
   if(restore){const trigger=zoom.trigger?.isConnected?zoom.trigger:document.querySelector(zoom.triggerSelector);trigger?.focus();if(!zoom.ws?.pendingAsset)zoom.ws?.context?.onClose?.(zoom.ws);}
 }
 // Page charts are previews: a press or the button opens the drawing workspace.
@@ -1314,9 +1314,13 @@ function drawTrendWorkspace(host,detail,analysis,baseBars,bars,asset,scale,versi
     if(event.shiftKey||Math.abs(event.deltaX)>Math.abs(event.deltaY)){const delta=event.shiftKey?event.deltaY||event.deltaX:event.deltaX;nav.pan(Math.round(delta/Math.max(1,plot.W-plot.L-plot.R)*nav.bars.length)||Math.sign(delta));return;}
     nav.zoom(nav.state.factor*Math.exp(-event.deltaY*.002),Math.max(0,Math.min(1,(p.x-plot.L)/Math.max(1,plot.W-plot.L-plot.R))));},{passive:false});
   const pointers=new Map();let gesture=null;
-  host.addEventListener('pointerdown',event=>{if(event.button!==0&&event.pointerType!=='touch'||!event.target.closest?.('svg[data-trend-plot]'))return;const p=local(event);if(!p)return;const {nav}=p,plot=nav.m;pointers.set(event.pointerId,{x:event.clientX,y:event.clientY});if(event.isTrusted)host.setPointerCapture?.(event.pointerId);
-    if(pointers.size===2){const values=[...pointers.values()];gesture={kind:'pinch',distance:Math.hypot(values[0].x-values[1].x,values[0].y-values[1].y),factor:nav.state.factor};return;}
-    gesture={kind:p.x>plot.W-plot.R?'price':p.y>plot.H-plot.B?'time':'plot',id:event.pointerId,x:event.clientX,y:event.clientY,offset:nav.state.offset,factor:nav.state.factor,range:(nav.state.yRange||plot.range).slice(),plotWidth:Math.max(1,(plot.W-plot.L-plot.R)/plot.W*p.bounds.width),plotHeight:Math.max(1,(plot.H-plot.T-plot.B)/plot.H*p.bounds.height),count:nav.bars.length,moved:false};});
+  const clearGesture=()=>{gesture=null;delete host.dataset.trendGesture;};
+  host.addEventListener('pointerdown',event=>{if(event.button!==0&&event.pointerType!=='touch'||!event.target.closest?.('svg[data-trend-plot]'))return;const p=local(event);if(!p)return;const {nav}=p,plot=nav.m;
+    // Suppress native text selection before the SVG is repainted during panning.
+    event.preventDefault();event.target.closest('svg[data-trend-plot]')?.focus?.({preventScroll:true});
+    pointers.set(event.pointerId,{x:event.clientX,y:event.clientY});if(event.isTrusted)host.setPointerCapture?.(event.pointerId);
+    if(pointers.size===2){const values=[...pointers.values()];gesture={kind:'pinch',distance:Math.hypot(values[0].x-values[1].x,values[0].y-values[1].y),factor:nav.state.factor};host.dataset.trendGesture='plot';return;}
+    gesture={kind:p.x>plot.W-plot.R?'price':p.y>plot.H-plot.B?'time':'plot',id:event.pointerId,x:event.clientX,y:event.clientY,offset:nav.state.offset,factor:nav.state.factor,range:(nav.state.yRange||plot.range).slice(),plotWidth:Math.max(1,(plot.W-plot.L-plot.R)/plot.W*p.bounds.width),plotHeight:Math.max(1,(plot.H-plot.T-plot.B)/plot.H*p.bounds.height),count:nav.bars.length,moved:false};host.dataset.trendGesture=gesture.kind;});
   host.addEventListener('pointermove',event=>{if(!pointers.has(event.pointerId))return;pointers.set(event.pointerId,{x:event.clientX,y:event.clientY});const nav=host._trendNavigation;if(!gesture||!nav?.zoom)return;
     if(gesture.kind==='pinch'){if(pointers.size===2){const values=[...pointers.values()];event.preventDefault();nav.zoom(gesture.factor*Math.hypot(values[0].x-values[1].x,values[0].y-values[1].y)/Math.max(1,gesture.distance));}return;}
     if(gesture.id!==event.pointerId)return;const dx=event.clientX-gesture.x,dy=event.clientY-gesture.y;if(!gesture.moved&&Math.hypot(dx,dy)<5)return;gesture.moved=true;event.preventDefault();
@@ -1324,7 +1328,10 @@ function drawTrendWorkspace(host,detail,analysis,baseBars,bars,asset,scale,versi
     if(gesture.kind==='price'){const half=(high-low)/2*Math.exp(dy*.006),mid=(low+high)/2;nav.setRange([mid-half,mid+half]);return;}
     if(gesture.kind==='time'){nav.zoom(gesture.factor*Math.exp(-dx*.006),1);return;}
     const shift=dy/gesture.plotHeight*(high-low);nav.panTo(gesture.offset-dx/gesture.plotWidth*gesture.count,nav.state.yRange||Math.abs(dy)>12?[low+shift,high+shift]:null);});
-  const release=event=>{pointers.delete(event.pointerId);if(gesture?.kind==='pinch'&&pointers.size<2||gesture?.id===event.pointerId)gesture=null;};host.addEventListener('pointerup',release);host.addEventListener('pointercancel',release);
+  const release=event=>{if(!pointers.delete(event.pointerId))return;if(gesture?.kind==='pinch'&&pointers.size<2||gesture?.id===event.pointerId)clearGesture();if(host.hasPointerCapture?.(event.pointerId))host.releasePointerCapture(event.pointerId);};
+  host.addEventListener('pointerup',release);host.addEventListener('pointercancel',release);host.addEventListener('lostpointercapture',release);
+  const cancel=()=>{for(const id of [...pointers.keys()])release({pointerId:id});clearGesture();};
+  window.addEventListener('blur',cancel);host._trendWsDisposeNavigation=()=>{cancel();window.removeEventListener('blur',cancel);};
   host.addEventListener('dblclick',event=>{const p=local(event);if(p&&p.x>p.nav.m.W-p.nav.m.R)p.nav.setRange(null);});
   host.addEventListener('click',event=>{const w=host._trendWorkspace;if(!w)return;if(w.assetMenu&&!event.target.closest?.('.trend-ws-symbol')){w.assetMenu=false;w.render();}const target=event.target.closest?.('[data-trend-ws-action],[data-trend-ws-family],[data-trend-ws-asset]');if(!target)return;
     if(target.dataset.trendWsAsset){w.switchAsset(target.dataset.trendWsAsset);return;}if(target.dataset.trendWsFamily){w.setFamily(target.dataset.trendWsFamily);return;}w.command(target.dataset.trendWsAction);});
