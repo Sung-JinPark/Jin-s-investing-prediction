@@ -36,5 +36,3 @@ unsupported:
   SP500: no_verified_free_automatic_public_substitute
   CBBTCUSD: coinbase_direct_api_not_equivalent_daily_fix_and_public_redistribution_restricted
   NFCI: overlapping_published_vintage_differs_held_for_separate_review
-
-incomplete_fred_coverage: quarantine_rendered_response_retain_approved_source_and_report_partial
