@@ -2196,3 +2196,49 @@ EPS만 예상 대비 상회·하회를 색으로 표시하고, 경제지표는 �
 **운영.** `timeseries-v8-daily` 워크플로(market-mood-refresh·timeseries-v2-refresh 완료 직후 +
 예비 예약 09:40·23:40 UTC). 계산 잡은 잠금 없이, 커밋 잡만 `investing-data-writer`. pages·verify·
 ops-failure-alert 에 등록. 계약 `daily_display_policy` 는 frozen_coordinates 밖. 지위: 참고 의견.
+
+## 2026-10-21 — MTS 고도화 v2.1: 라이브 전진 무결성 · rung-7/8 공공영역 정보집합(측정된 영) · ML 참조층 채점 가능화 · V14 초안 (사용자 지시 + 자율 집행분)
+
+**지시 원문**(approvals.jsonl `V13-D11`): "지금 다변량 시계열 예측이 잘 진행되어가고 있는지 검증 결과 토대로 더 고도화하거나 … 머신러닝 고도화를 진행할 방향을
+전면적으로 검토하고 예측률을 높이기 위한 설계를 진행해서 수정 보완사항들을 정밀하게 짜서 시행해봐. 모든 외부 db 오픈소스를 더 기반으로layer를 쌓아도되니까 진행해."
+설계 정본 `docs/design/mts_advancement_design_261021.md`(v2.1 — 4렌즈 적대 검토 + 심판 반영), 사전등록 `docs/design/v13_rung7_prereg_261021.md`.
+
+**판정 요지.** "모델을 하나 더"로 예측률을 올릴 근거는 없다(81검정 채택 1·퇴화, |효과| 중앙값 0.003 < MDE 0.005). 그래서 ① 유일한 무오염 증거인 라이브 전진
+표본의 무결성을 고치고 ② 81검정이 시험한 적 없는 세 정보 클래스(전향 달력·선물 포지셔닝·국면기억)를 연방 공공영역 데이터로 사전등록해 시험했으며 ③ 오픈웨이트
+참조층을 채점 가능하게 만들고 ④ 기준선의 자명성을 깨는 V14 조건부 전이 트랙을 초안했다.
+
+**결정 1 — 라이브 전진 표본은 원점을 한 번만 센다(6a940fa1, 계약 키 `live_forward_verdict_report.dedupe_rule`).** 2026-09-04 원점이 재동결 전후 두 계수 sha 로
+채점돼 해상 원장에 6셀×2행이 있었고 행 수로 세면 60 게이트를 원점 하나 먼저 넘었다. (cell, origin) distinct·핀된 sha 우선·없으면 knowledge_cutoff 최신 행. 원장 무수정.
+실측 성숙 원점 h5 25 · h21 11 · h63 0(행 수 기준 26/12 는 과다).
+
+**결정 2 — 판정 산술 verb 를 결과(60 도달) 전에 만들고 등록했다(`timeseries-v13-vol-live-verdict`).** 읽기 전용·쓰기 0·강등 적용 0. status 는 계약 산술
+(demotion_rule·negative_control)만으로 정하고, 반창(≈1000원점) 가드 임계 20/5 는 n=60 에 옮길 수 없으므로(기후 기저율에서도 5/9 셀 사건<20, h21/h63 은 국면 5 불가)
+**판정을 보류하지 않고 플래그로 병기**한다. 해상도(ℓ=13 에서 n=60 ≈4.6 블록·순열 공간 120)를 셀별 인쇄. 재판정 주기 +20 원점(인쇄 전용) 등록. 라이브 창 '판정 보류형'
+퇴화 규정은 강등·종결을 느슨하게 하는 방향이라(P0 결정 1·T7 금지 조항) V13 에 두지 않는다 — 제한-추가형 라벨 등록 여부는 사용자 결정(V13-D13, 마감 2026-12-10).
+
+**결정 3 — rung-7/8 사전등록·집행(94a89b57 → 8a02a0cc → 집행).** 적재: Fed Board FOMC 역사 일정(정례 64·비예정 18 제외), BLS 발표일 색인(고용·CPI 각 96,
+curl 403 이라 내장 브라우저 DOM 추출·영수증에 방법 명기, 2013 셧다운 4건 원래 예정일 병기), CFTC TFF VIX 선물·NQ mini(`available_at = 보고일+7달력일` 보수,
+2013-10 백로그 11-08 고정). 규칙(클래스당 1블록·primary·대체 순서·R1 |ρ|>0.85·R2 커버리지<0.80·R3 최빈값≥0.90·비세션 이월)은 라벨 미접촉 진단 전에 고정.
+rung-8 집행 조건은 rung-7 결과 전에 고정·충족. **결과: rung-7 {E1,P1,D1} 24검정 채택 0, family 1.0 — 측정된 영. rung-8 {E2,P3,D2} 23검정 채택 3(전부
+episode_thin, 국면 4·3·1), family 0.105 — 발견 아님.** 예산 8/8 소진 — V13 설계창 개발 종료, 재개는 사용자 결정. 캠페인 누계 128검정·비퇴화 채택 0.
+판정서 `docs/review/V13_VOL_RUNG7_PUBLIC_VERDICT_20261021.md`·`…RUNG8…`. 양의 지식: 설계창에서 전향 달력·포지셔닝·국면기억도 당일 수준에 흡수된다.
+
+**결정 4 — ML 참조층(추론 전용).** `resolver._ml_ref_before` 에 신선도 상한(`ML_REF_MAX_AGE_DAYS`=7) — 2026-10-31 해소 예정 질문이 42일 묵은 run 과 짝지어
+append-only 원장에 들어가는 것을 결과 전에 막는다. 참조 채점 원장은 **보호 루트 밖** `data/ml_reference/`(data/ml_history 는 V5.2 PROTECTED_PATHS) + 사전등록 계약
+`ml_technique_m4_reference_scoring.yaml`(layer L3·gate none·ml_dl 관할·C5 분모 기여 0·run_ts ≥ 등록일만 primary). 매핑은 표현 가능 활성 질문만 확장.
+Chronos-2 꼬리 분위수는 `prob_tail_c2` 병기 필드(교체는 4주 병기 뒤 별도 결정). 재가동 실행 환경은 사용자 결정(U9). TSFM 과거 창 채점은 미규정 → 라이브 전진만(ML-A6 대기).
+
+**결정 5 — V14 조건부 전이 트랙 초안**(`multivariate_timeseries_v14_conditional.draft.yaml`, track_open false·armed false, 검정 0회). 개시는 V14-D0.
+
+**정정.** KNOWN_LIMITS A.36(V8 섀도 정체)은 API 레인으로 해소됐고 현 포인터는 `shadow_live`·DTWEXBGS fresh — 설계 v2 초안이 문서를 베껴 틀렸던 것을 v2.1 에서 고쳤다.
+설계 v2 의 성공 확률 숫자(25%/15%)는 근거가 없어 삭제했다.
+
+**사용자 결정 묶음(마감순)**: V13-D12 원점 백필(계약 pit `late_capture` 등급) · U9 ML 실행 환경 · V13-D13 제한-추가형 라벨(12-10) · V14-D0 · ML-A6. 원문 템플릿은 설계 §7.
+
+**하지 않은 것.** 홀드아웃·봉인 열람 0 · 동결 계수·게이트 산술·60·T7 무변경 · 의존성 설치 0 · 메일 0 · 구매 0 · `forecasts/`·`calibration/ledger.csv`·V8·V2·`data/ml_history/` 무수정.
+
+**추가(같은 날) — 임베드 예산(ADR-002, 1536 KiB) 소진 대응.** origin/main 이 이미 상한의 99.5%(여유 8.4 KB)였고 이 변경(+10.5 KB: 표시 항목·method_changes 2행·레지스트리)으로 2.2 KB 초과했다.
+ADR-002 의 '렌더 필드 투영' 패턴을 전송 전용으로 확장했다 — 화면(dashboard.js)이 한 번도 읽지 않는 것만 임베드에서 뺀다: `receipts.requests/lineage/receipt_id`(6.4 KB),
+`trust.ledgers` 의 criticality·immutable_changes·schema_errors·duplicate_rows·reversed_timestamps(1 KB), `trust.sources.fallback_used`, `method_changes` 의 kind≠method 행(저널이 kind==='method' 만 렌더),
+V13 라이브 표의 `trail`(스파크라인 미사용). 생략 사실은 `embed_field_projection` 에 공시되고 Pages `data.json`·`/api/data` 는 전부 보존한다. 결과 1,559,564 B(여유 13.3 KB).
+**구조적 경보**: 상한 여유가 일 단위 데이터 성장(예측 이력·방법론 변경·달력)으로 곧 다시 소진된다 — 상한 상향(ADR) 또는 추가 분리는 사용자 결정 사항으로 남긴다.

@@ -921,6 +921,10 @@ def build_read_model(
         market_mood["freshness"] = {"status": "unavailable"}
     from .timeseries_daily6m.display import load_projection as load_timeseries_daily_projection
     timeseries_daily = load_timeseries_daily_projection(root, now=now)
+    # 일별 전망 전진 성적(표시 전용) — 해소 원장 요약. 발행본 projection 의 identity(content_hash·
+    # projection_hash)를 건드리지 않도록 별도 키로 싣는다. 해소 행이 없으면 숫자 대신 None(화면 '—').
+    from .timeseries_daily6m.display import load_forward_record as load_timeseries_daily_record
+    timeseries_daily_record = load_timeseries_daily_record(root)
     from .trendlines.display import load_projection as load_trendlines_projection
     trendlines = load_trendlines_projection(root)
     ai_regime = load_ai_regime(root)
@@ -1128,6 +1132,7 @@ def build_read_model(
         "timeseries_v13_vol": timeseries_v13_vol,
         "market_mood": market_mood,
         "timeseries_daily": timeseries_daily,
+        "timeseries_daily_record": timeseries_daily_record,
         "trendlines": trendlines,
         "multi_year_stress": multi_year_stress,
         "ai_regime": ai_regime,
@@ -1765,41 +1770,88 @@ EMBED_RENDERED_FIELDS = {
         "event_id", "source_id", "source_url", "title", "date",
         "status", "kind", "time_et", "ticker",
     ),
+    # dashboard.js records page: receipt.commit/dataset/limitation/model/source (+label·method).
+    # `requests`(cross_asset 수집 영수증 목록, ~6 KB)·`lineage`·`receipt_id` 는 화면이 읽지 않는다.
+    "receipts": ("label", "model", "dataset", "source", "method", "limitation", "commit"),
+}
+# Nested list sections under a dict parent — same rule, same disclosure (2026-10-21, 임베드 예산 소진 대응).
+# dashboard.js trust page reads ledgers: id·path·kind·cadence·status·file_count·row_count·latest_date·
+# missing_trading_days·growth_last_30d; sources: source_id·name·status·state_label·asof·license_status·
+# vintage_capability·freshness_sla_hours·provider·contract·quarantine_count.
+EMBED_RENDERED_NESTED_FIELDS = {
+    "trust": {
+        "ledgers": ("id", "path", "kind", "cadence", "status", "file_count", "row_count",
+                    "latest_date", "missing_trading_days", "growth_last_30d"),
+        "sources": ("source_id", "name", "provider", "status", "state_label", "asof",
+                    "freshness_sla_hours", "vintage_capability", "license_status", "contract",
+                    "quarantine_count"),
+    },
+}
+# Rows the embed never renders: dashboard.js decisionJournal() filters method_changes on kind === "method".
+EMBED_ROW_FILTERS = {
+    "method_changes": lambda row: row.get("kind") == "method",
 }
 
 
 def _project_embed_rows(read_model: dict) -> dict:
-    """Carry only rendered columns for append-only list sections in the embed.
+    """Carry only rendered columns (and rendered rows) for append-only list sections in the embed.
 
     Mirrors the resolved-forecast-body and band-calibration archival: transport
-    changes, information does not.  The dropped column names are disclosed in
-    ``embed_field_projection`` so a reader of the standalone snapshot can see
-    what was omitted and where the complete payload lives.  The input model is
-    never mutated.
+    changes, information does not.  The dropped column names (and dropped row
+    counts) are disclosed in ``embed_field_projection`` so a reader of the
+    standalone snapshot can see what was omitted and where the complete payload
+    lives.  The input model is never mutated.
     """
     projected = dict(read_model)
     sections: dict[str, dict] = {}
+
+    def _project(rows: list, allowed: tuple, keep_row=None) -> tuple[list, dict | None]:
+        kept_rows = [row for row in rows if keep_row is None or not isinstance(row, dict) or keep_row(row)]
+        dropped = sorted({
+            field
+            for row in kept_rows if isinstance(row, dict)
+            for field in row if field not in allowed
+        })
+        dropped_rows = len(rows) - len(kept_rows)
+        if not dropped and not dropped_rows:
+            return rows, None
+        out = [
+            {field: value for field, value in row.items() if field in allowed}
+            if isinstance(row, dict) else row
+            for row in kept_rows
+        ]
+        info = {"row_count": len(kept_rows), "kept_fields": list(allowed), "dropped_fields": dropped}
+        if dropped_rows:
+            info["dropped_rows"] = dropped_rows
+        return out, info
+
     for key, allowed in EMBED_RENDERED_FIELDS.items():
         rows = read_model.get(key)
         if not isinstance(rows, list) or not rows:
             continue
-        dropped = sorted({
-            field
-            for row in rows if isinstance(row, dict)
-            for field in row if field not in allowed
-        })
-        if not dropped:
+        out, info = _project(rows, allowed, EMBED_ROW_FILTERS.get(key))
+        if info is None:
             continue
-        projected[key] = [
-            {field: value for field, value in row.items() if field in allowed}
-            if isinstance(row, dict) else row
-            for row in rows
-        ]
-        sections[key] = {
-            "row_count": len(rows),
-            "kept_fields": list(allowed),
-            "dropped_fields": dropped,
-        }
+        projected[key] = out
+        sections[key] = info
+    for parent, children in EMBED_RENDERED_NESTED_FIELDS.items():
+        parent_value = read_model.get(parent)
+        if not isinstance(parent_value, dict):
+            continue
+        new_parent = None
+        for child, allowed in children.items():
+            rows = parent_value.get(child)
+            if not isinstance(rows, list) or not rows:
+                continue
+            out, info = _project(rows, allowed)
+            if info is None:
+                continue
+            if new_parent is None:
+                new_parent = dict(parent_value)
+            new_parent[child] = out
+            sections[f"{parent}.{child}"] = info
+        if new_parent is not None:
+            projected[parent] = new_parent
     if sections:
         projected["embed_field_projection"] = {
             "projected": True,

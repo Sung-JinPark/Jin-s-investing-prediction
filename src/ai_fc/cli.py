@@ -788,6 +788,22 @@ def cmd_timeseries_v13_vol_resolve() -> None:
     typer.echo(json.dumps(result, ensure_ascii=False, indent=2))
 
 
+@app.command("timeseries-v13-vol-live-verdict")
+def cmd_timeseries_v13_vol_live_verdict(
+    draws: int = typer.Option(120, "--draws", help="y-block 귀무 추출 수 (holdout 과 동일 기본 120)"),
+    as_json: bool = typer.Option(False, "--json", help="표 대신 JSON 전체를 출력"),
+) -> None:
+    """V13-VOL 라이브 전진 판정 **산술만** 인쇄한다 (읽기 전용 — 원장·포인터·계약 무수정, 강등 적용 없음).
+
+    셀당 성숙 원점 60 미만이면 '표본 부족'만, 60 이상이면 계약 live_forward_gate 의 쌍대 손실차 CI90·
+    y-block 귀무·degeneracy_guard·T7 집계를 그대로 계산한다. 결과 전에 만든 판정 코드다.
+    """
+    from .timeseries_v13.live_verdict import live_verdict, main_json, render_table
+
+    result = _timeseries_exit(live_verdict, config.ROOT, draws=draws)
+    typer.echo(main_json(result) if as_json else render_table(result))
+
+
 @app.command("timeseries-v13-vol-holdout")
 def cmd_timeseries_v13_vol_holdout(
     approval_receipt: str = typer.Option("", "--approval-receipt",
@@ -2412,6 +2428,25 @@ def cmd_notify(test: bool = typer.Option(False, "--test")) -> None:
     from .notify import send_message
     ok = send_message("ai-fc 알림 테스트 ✅" if test else "ai-fc")
     typer.echo("발송 성공" if ok else "발송 실패 (토큰/챗ID 확인)")
+
+
+@app.command("ml-reference-resolve")
+def cmd_ml_reference_resolve(
+    dry_run: bool = typer.Option(False, "--dry-run", help="원장 append 없이 후보 행만 인쇄"),
+) -> None:
+    """ML 참조 채점 원장 append — ML_M4_REFERENCE_SCORING (라이브 전진만 · 기록·표시만 · 게이트 무관)."""
+    from .ml.reference_scoring import render_resolve, resolve_reference
+
+    result = resolve_reference(config.ROOT, dry_run=dry_run)
+    typer.echo(render_resolve(result))
+
+
+@app.command("ml-reference-status")
+def cmd_ml_reference_status() -> None:
+    """ML 참조 채점 요약 — pre_registration 행 제외 n·평균 Brier·커버리지 (판정 없음)."""
+    from .ml.reference_scoring import render_status, summarize
+
+    typer.echo(render_status(summarize(config.ROOT)))
 
 
 def main() -> None:

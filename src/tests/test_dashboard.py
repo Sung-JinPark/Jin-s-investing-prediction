@@ -193,6 +193,43 @@ def test_embed_compaction_archives_band_calibration_rows_without_mutating_pages_
     assert len(model["band_calibration"]["rows"]) == 2
 
 
+def test_embed_projects_nested_trust_lists_receipts_and_unrendered_method_rows() -> None:
+    """2026-10-21 임베드 예산 소진 대응 — 화면이 읽지 않는 열·행만 전송에서 뺀다(정보 무변경, data.json 은 전부 보존)."""
+    model = {
+        "trust": {
+            "status": "ok",
+            "ledgers": [{"id": "l1", "path": "data/x.jsonl", "kind": "jsonl", "cadence": "daily", "status": "ok",
+                         "file_count": 1, "row_count": 3, "latest_date": "2026-10-20", "missing_trading_days": 0,
+                         "growth_last_30d": 3, "criticality": "high", "immutable_changes": 0, "schema_errors": 0,
+                         "duplicate_rows": 0, "reversed_timestamps": 0}],
+            "sources": [{"source_id": "s", "name": "n", "status": "ok", "asof": "2026-10-20", "fallback_used": False,
+                         "quarantine_count": 0}],
+        },
+        "receipts": [{"receipt_id": "r", "label": "L", "model": "m", "dataset": "d", "source": "s", "method": "x",
+                      "limitation": "lim", "commit": "abc", "lineage": {"a": 1}, "requests": [{"url": "u"}]}],
+        "method_changes": [
+            {"kind": "method", "date": "2026-10-21", "title": "t", "reason": "r", "snapshot_id": "s", "report": ""},
+            {"kind": "correction", "date": "2026-10-21", "title": "c", "reason": "r", "snapshot_id": "s", "report": ""},
+        ],
+    }
+    projected = dashboard._project_embed_rows(model)
+    assert set(projected["trust"]["ledgers"][0]) == {
+        "id", "path", "kind", "cadence", "status", "file_count", "row_count", "latest_date",
+        "missing_trading_days", "growth_last_30d"}
+    assert "fallback_used" not in projected["trust"]["sources"][0]
+    assert projected["trust"]["status"] == "ok"
+    assert set(projected["receipts"][0]) == {"label", "model", "dataset", "source", "method", "limitation", "commit"}
+    assert [row["kind"] for row in projected["method_changes"]] == ["method"]
+    sections = projected["embed_field_projection"]["sections"]
+    assert sections["trust.ledgers"]["dropped_fields"] == [
+        "criticality", "duplicate_rows", "immutable_changes", "reversed_timestamps", "schema_errors"]
+    assert sections["receipts"]["dropped_fields"] == ["lineage", "receipt_id", "requests"]
+    assert sections["method_changes"]["dropped_rows"] == 1 and sections["method_changes"]["row_count"] == 1
+    # 원본 모델은 무수정 — Pages data.json 경로가 쓴다.
+    assert model["receipts"][0]["requests"] and model["trust"]["ledgers"][0]["criticality"] == "high"
+    assert len(model["method_changes"]) == 2
+
+
 def test_embed_projects_append_only_sections_to_rendered_fields() -> None:
     model = {
         "method_changes": [{

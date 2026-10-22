@@ -1851,6 +1851,13 @@ function tsScorePillarText(key,p,ts,rows){
     :'배포 후 결과가 확정된 예측이 아직 0건입니다 — 위 성적은 전부 과거 구간 재실행입니다.';
   return '';
 }
+function tsShadowProgressLabel(progress){
+  /* 섀도 진행률(표시 전용) — 빌더(timeseries_v8_display.shadow_progress)가 NYSE 휴장 달력으로 센 값만 그린다.
+     계약 promotion.minimum_shadow_sessions 는 표본 요건이지 자동 승격이 아니다. 값이 없으면 라벨도 없다. */
+  if(!progress||progress.sessions_elapsed==null||progress.required_sessions==null)return '';
+  const done=Number(progress.sessions_elapsed),need=Number(progress.required_sessions),mature=Number(progress.maturity_sessions||63);
+  return `<p class="ts-pillar-meta"><span>섀도 세션 ${done}/${need}</span><span>${need}번째 세션 ${esc(progress.required_session_date||'—')}</span><span>첫 ${mature}거래일 성숙 ${esc(progress.first_h63_maturity_date||'—')}${progress.first_h63_matured?' 도달':''}</span></p>`;
+}
 function timeseriesScore100Card(ts,rows){
   const sc=(ts.sealed_metrics||{}).score100;
   if(!sc||sc.total==null)return `<section class="ts-scorecard ts-score100" aria-label="100점 환산 검증 성적"><p class="admin-empty">봉인창 성적이 없어 점수를 매기지 않습니다 — 개발기간이 섞인 전체창으로 대신하지 않습니다.</p></section>`;
@@ -1859,12 +1866,18 @@ function timeseriesScore100Card(ts,rows){
   const strongest=weakest.length?weakest[weakest.length-1]:null,low=weakest.slice(0,2);
   const josa=w=>{const c=String(w).charCodeAt(String(w).length-1)-0xAC00;return c>=0&&c<11172&&c%28?'이':'가';};
   const summary=strongest?`<b>${esc(strongest.name)}</b>${josa(strongest.name)} 가장 좋고, <b>${low.map(x=>esc(x.name)).join('·')}</b>에서 점수가 깎였습니다.`:'';
+  /* 상한·진행률(2026-10-21, 표시 전용): 빌더가 같은 반올림 규칙으로 계산한 score100_bounds 와
+     NYSE 달력으로 센 shadow_progress 를 그대로 그린다 — 화면은 재계산하지 않는다. */
+  const bounds=(ts.sealed_metrics||{}).score100_bounds||null,progress=(ts.sealed_metrics||{}).shadow_progress||null;
+  const boundsLabel=bounds&&bounds.floor_total!=null?`<p class="ts-score-bounds"><span>봉인 4축 ${Number(bounds.fixed_points).toFixed(1)}점 고정</span><span>실전 축 0~${Number(bounds.variable_weight)}점 가변</span><span>총점 ${Number(bounds.floor_total)}~${Number(bounds.ceiling_total)}점 · 등급 ${bounds.grade_locked?`${esc(bounds.floor_grade)} 고정`:`${esc(bounds.floor_grade)}~${esc(bounds.ceiling_grade)}`}</span></p>`:'';
+  const progressLabel=tsShadowProgressLabel(progress);
+  const boundsNote=bounds&&bounds.floor_total!=null?`<p><b>총점 상한</b> — 봉인 4축(정확도·확실성·약속 지킴·위기 대응) ${Number(bounds.fixed_points).toFixed(1)}점은 단 1회 봉인 평가의 값이라 바뀌지 않고, 실전 축 ${Number(bounds.variable_weight)}점만 배포 후 확정 결과가 쌓이면서 0~${Number(bounds.variable_weight)}점 사이를 오르내립니다(가상 10건 수축은 표본이 늘수록 풀립니다). 그래서 지금 산식의 총점은 <b>${Number(bounds.floor_total)}~${Number(bounds.ceiling_total)}점</b> 사이에서만 움직이고 등급은 ${bounds.grade_locked?`<b>${esc(bounds.floor_grade)}</b>로 고정됩니다`:`${esc(bounds.floor_grade)}~${esc(bounds.ceiling_grade)} 사이입니다`}.${progress?` 실전 축 옆 '섀도 세션'은 첫 섀도 원점(${esc(progress.first_origin||'')}) 다음 미국 거래일부터 NYSE 휴장 달력으로 센 수이고, 계약의 ${Number(progress.required_sessions)}세션은 표본 요건일 뿐 자동 승격·판정이 아닙니다.`:''}</p>`:'';
   const scale=`<div class="ts-score-scale" aria-hidden="true">${TS_SCORE_BANDS.map(([a,b,label])=>`<span class="is-${tsScoreTone(a)}${total>=a&&(total<b||b===100)?' is-on':''}" style="flex:${b-a}">${label}<small>${a}</small></span>`).join('')}<i style="left:${total}%"></i></div>`;
   const pillars=TS_SCORE_PILLARS.map(([key,name,question])=>{const p=(sc.pillars||{})[key];if(!p)return '';const s=Math.max(0,Math.min(100,Number(p.score)));
-    return `<li class="ts-pillar is-${tsScoreTone(s)}" data-ts-pillar="${key}"><div class="ts-pillar-head"><b>${esc(name)}</b><span>${esc(question)}</span><strong>${Number(p.points).toFixed(1)}<small>/${p.weight}점</small></strong></div><div class="ts-pillar-bar" role="img" aria-label="${esc(name)} ${s.toFixed(0)}점(100점 기준)"><i style="width:${s.toFixed(1)}%"></i></div><p>${tsScorePillarText(key,p,ts,rows)}</p></li>`;}).join('');
+    return `<li class="ts-pillar is-${tsScoreTone(s)}" data-ts-pillar="${key}"><div class="ts-pillar-head"><b>${esc(name)}</b><span>${esc(question)}</span><strong>${Number(p.points).toFixed(1)}<small>/${p.weight}점</small></strong></div><div class="ts-pillar-bar" role="img" aria-label="${esc(name)} ${s.toFixed(0)}점(100점 기준)"><i style="width:${s.toFixed(1)}%"></i></div><p>${tsScorePillarText(key,p,ts,rows)}</p>${key==='live'?progressLabel:''}</li>`;}).join('');
   return `<section class="ts-scorecard ts-score100" aria-label="100점 환산 검증 성적">`
     +`<div class="ts-score-top"><div class="ts-score-dial is-${tone}" style="--score:${total}" role="img" aria-label="검증 성적 100점 만점에 ${total}점, ${esc(sc.grade)}등급 ${esc(sc.label)}"><strong>${total}</strong><span>/ 100점</span></div>`
-    +`<div class="ts-score-head"><p class="ts-score-eyebrow">검증 성적 · 100점 환산 · 주간 원점</p><h2><span class="ts-score-grade is-${tone}">${esc(sc.grade)}</span> ${esc(sc.label)} — ${total}점</h2><p>${summary}</p>${scale}</div></div>`
+    +`<div class="ts-score-head"><p class="ts-score-eyebrow">검증 성적 · 100점 환산 · 주간 원점</p><h2><span class="ts-score-grade is-${tone}">${esc(sc.grade)}</span> ${esc(sc.label)} — ${total}점</h2><p>${summary}</p>${boundsLabel}${scale}</div></div>`
     +`<ol class="ts-pillars">${pillars}</ol>`
     +`<details class="ts-score-method"><summary>점수 기준</summary>`
     +`<p><b>정확도 30점</b> — 기상예보 검증의 CRPS 기술점수(1 − 모델 오차/기준선 오차)를 그대로 씁니다. 기준선과 같으면 50점, 오차 10% 감소면 만점, 10% 증가면 0점. M4 예측대회가 단순 기준(Naive2) 오차를 1로 놓고 상대 오차를 매기는 것과 같은 발상입니다.</p>`
@@ -1872,6 +1885,7 @@ function timeseriesScore100Card(ts,rows){
     +`<p><b>약속 지킴 30점</b> — 80%·50% 범위의 실제 적중률이 공칭과 얼마나 같은지(신뢰도 진단). 설계 허용대역(80%: ±4%p, 50%: ±5%p) 끝이면 75점, 그 4배 벗어나면 0점.</p>`
     +`<p><b>위기 대응 15점</b> — 2008 금융위기·2020 팬데믹·2022 긴축의 80% 범위 적중률. 발행 하한 70%면 75점, 넓게 담은(보수적) 쪽은 벌점 절반. 검증 표본이 없으면 0점.</p>`
     +`<p><b>실전 성적 15점</b> — 배포 후 확정 결과의 기준선 대비 승률과 범위 적중률. 표본이 작을 때 운으로 점수가 튀지 않게 가상 10건(승률 50%·적중 80%)을 섞어 중립 쪽으로 당깁니다.</p>`
+    +boundsNote
     +`<p><b>등급</b> 80+ A 우수 · 60~79 B 보통 · 40~59 C 미흡 · 40 미만 D 부진 — 다요인 점수를 고정 가중으로 합산해 구간 라벨을 다는 방식(예: TipRanks Smart Score 1~10)을 100점 척도로 옮겼습니다. 방향(오름·내림) 맞히기는 점수에 넣지 않습니다 — 매매 신호로 읽히기 때문입니다.</p>`
     +`</details></section>`;
 }
@@ -1891,10 +1905,10 @@ function timeseriesHitPictograph(rows){
     +`<p class="ts-help">8번째 칸 테두리 = 약속선 · 7.6~8.4번이면 허용대역</p>`;
 }
 function timeseriesLiveTiles(ts){
-  const forward=(ts.sealed_metrics||{}).forward||{},rows=forward.rows||[];
-  if(!rows.length)return `<p class="ts-help">배포 후 결과가 확정된 예측이 아직 없습니다.</p>`;
+  const forward=(ts.sealed_metrics||{}).forward||{},rows=forward.rows||[],progress=tsShadowProgressLabel((ts.sealed_metrics||{}).shadow_progress);
+  if(!rows.length)return `<p class="ts-help">배포 후 결과가 확정된 예측이 아직 없습니다.</p>${progress}`;
   const wins=rows.filter(r=>r.model_crps<r.baseline_crps).length;
-  return `<div class="ts-live-head"><strong class="is-good">${wins}<small>승</small></strong><strong class="is-bad">${rows.length-wins}<small>패</small></strong><span>기준선(${esc(tsBaselineLabel(forward.baseline||'historical_simulation'))}) 대비 · 확정 ${rows.length}건 · 주간 원점 ${Number(forward.unique_forecasts||0)}개</span></div>`
+  return `<div class="ts-live-head"><strong class="is-good">${wins}<small>승</small></strong><strong class="is-bad">${rows.length-wins}<small>패</small></strong><span>기준선(${esc(tsBaselineLabel(forward.baseline||'historical_simulation'))}) 대비 · 확정 ${rows.length}건 · 주간 원점 ${Number(forward.unique_forecasts||0)}개</span></div>${progress}`
     +`<ul class="ts-live-tiles">${rows.map(r=>{const win=r.model_crps<r.baseline_crps,gap=(r.baseline_crps-r.model_crps)/r.baseline_crps;
       return `<li class="${win?'is-win':'is-loss'}" title="${esc(r.origin)} 예측 · ${esc(tsCal(r.horizon))} · 모델 오차 ${(r.model_crps*100).toFixed(2)}%p vs 기준선 ${(r.baseline_crps*100).toFixed(2)}%p"><b>${win?'승':'패'}</b><span>${esc(String(r.origin).slice(5))}</span><small>${esc(tsCal(r.horizon))}</small><em>${gap>=0?'오차 −':'오차 +'}${Math.abs(gap*100).toFixed(0)}%</em>${r.covered_p10_p90?'<i>범위 적중</i>':'<i class="is-miss">범위 밖</i>'}</li>`;}).join('')}</ul>`
     +`<p class="ts-help">독립 표본은 원점 ${Number(forward.unique_forecasts||0)}개 — 아직 판단 단계 아님</p>`;
@@ -2093,19 +2107,20 @@ function renderV13LiveForward(lf,failCells){
   const rows=cells.map(c=>{const pct=Math.round((c.progress||0)*100);
     const hasScore=hasNumeric(c.brier_model);
     const bss=hasNumeric(c.bss)?`${c.bss>=0?'+':''}${(c.bss*100).toFixed(0)}%`:'—';
-    return `<tr><th scope="row">${esc(c.cell)}</th>
-      <td class="v13-lf-progress"><span><i style="width:${pct}%"></i></span><b>${num(c.matured)}/${num(c.minimum)}</b></td>
-      <td>${hasScore?c.brier_model.toFixed(4):'—'}</td>
-      <td>${hasScore?c.brier_climatology.toFixed(4):'—'}</td>
-      <td class="${hasNumeric(c.bss)&&c.bss>0?'edge-pos':hasNumeric(c.bss)&&c.bss<0?'edge-neg':''}">${bss}</td></tr>`;}).join('');
+    const hasEvents=hasNumeric(c.events);
+    const degenerate=hasEvents&&c.events===0;
+    const expected=hasNumeric(c.expected_events_model)&&hasNumeric(c.expected_events_climatology)?`<small>기대 ${c.expected_events_model.toFixed(1)} · 기후 ${c.expected_events_climatology.toFixed(1)}</small>`:'';
+    return `<tr${degenerate?' class="is-degenerate"':''}><th scope="row">${esc(c.cell)}</th><td class="v13-lf-progress"><span><i style="width:${pct}%"></i></span><b>${num(c.matured)}/${num(c.minimum)}</b></td><td class="v13-lf-events">${hasEvents?`<b>${num(c.events)}</b>${expected}`:'—'}</td><td>${hasScore?c.brier_model.toFixed(4):'—'}</td><td>${hasScore?c.brier_climatology.toFixed(4):'—'}</td><td class="${hasNumeric(c.bss)&&c.bss>0?'edge-pos':hasNumeric(c.bss)&&c.bss<0?'edge-neg':''}">${bss}${degenerate?'<small>사건 0</small>':''}</td></tr>`;}).join('');
   const total=num(lf.matured_total),origins=num(lf.origins_recorded);
   const empty=lf.status==='empty';
+  const eventsTotal=hasNumeric(lf.events_total)?lf.events_total:null;
+  const degenerateLead=eventsTotal===0?` 지금까지 <b>사건 0건</b> — 개선율은 평온기에 고정 기후(2007~2014 빈도)가 자명하게 지는 몫이지 실력의 증거가 아닙니다.`:'';
   return `<section class="v13-live-forward" aria-labelledby="v13-lf-head">
     <div class="today-section-head"><h3 id="v13-lf-head">라이브 전진 누적</h3><span class="v13-lf-chip">판정 없음 · 누적 중</span></div>
     <p class="ts-lead v13-lf-lead">${empty
       ?`원점 <b>${origins}개</b>가 쌓였고 성숙한 것은 아직 없습니다 — 가장 짧은 지평이 5거래일이라 첫 성숙이 도착하는 중입니다.`
-      :`성숙 <b>${total}건</b> · 원점 ${origins}개 · 셀당 ${num(lf.minimum)} 전에는 판정 없음(누적 현황)`}</p>
-    <div class="v13-lf-table-wrap" role="region" tabindex="0" aria-label="라이브 전진 누적 표"><table class="v13-lf-table"><thead><tr><th scope="col">셀</th><th scope="col">성숙</th><th scope="col">Brier</th><th scope="col">기후</th><th scope="col">개선</th></tr></thead><tbody>${rows}</tbody></table></div>
+      :`성숙 <b>${total}건</b> · 원점 ${origins}개 · 셀당 ${num(lf.minimum)} 전에는 판정 없음(누적 현황).${degenerateLead}`}</p>
+    <div class="v13-lf-table-wrap" role="region" tabindex="0" aria-label="라이브 전진 누적 표"><table class="v13-lf-table"><thead><tr><th scope="col">셀</th><th scope="col">성숙</th><th scope="col">사건</th><th scope="col">Brier</th><th scope="col">기후</th><th scope="col">개선</th></tr></thead><tbody>${rows}</tbody></table></div>
   </section>`;
 }
 function renderTimeseriesV13VolPanel(v13){
@@ -2173,6 +2188,21 @@ function tsDailyMetadataMarkup(ts){
   const anchor=anchorDate?`${esc(anchorDate)} 미국 거래일 종가 기준`:unpublished?'아직 발행된 일별 전망이 없습니다':'일별 전망 기준일 확인 대기';
   const time=ts.as_of?`<br><span title="${esc(ts.as_of||'')}">${ts.run_id?'발행':unpublished?'검사 시각':'기준 시각'} ${esc(tsDailyIssuedAt(ts.as_of))}</span>`:'';
   return anchor+time;
+}
+function tsDailyRecordMarkup(rec){
+  /* 전진 성적(표시 전용) — 빌더(timeseries_daily6m.display.forward_record)가 해소 원장을 센 값만 그린다.
+     해소 행이 없으면 '—'. predictive_validation 은 not_established 그대로(검증 전). */
+  const n=Number(rec?.resolved_rows||0),has=n>0&&rec.mean_brier!=null;
+  const brier=has?Number(rec.mean_brier).toFixed(3):'—',noInfo=Number(rec?.no_information_brier||0.25).toFixed(2);
+  const cover=has&&rec.covered_p10_p90_rows!=null?`${Number(rec.covered_p10_p90_rows)}/${n}`:'—';
+  const issued=has?`${Number(rec.forecasts||0)} / ${Number(rec.resolved_dates||0)}`:'—';
+  const span=has&&rec.first_date?` · ${esc(rec.first_date)}~${esc(rec.last_date||rec.first_date)}`:'';
+  const validation=String(rec?.predictive_validation||'not_established');
+  return `<section class="admin-kpis ts-kpis ts-daily-record" aria-label="6개월 일별 전망 전진 성적">`
+    +`<article><small>누적 Brier</small><strong>${brier}</strong><span>무정보 ${noInfo} · 전 거래일 대비 상승 확률 · 해소 ${n}행${span}</span></article>`
+    +`<article><small>80% 범위 적중</small><strong>${cover}</strong><span>p10~p90 안에 든 해소 행</span></article>`
+    +`<article><small>발행 / 해소일</small><strong>${issued}</strong><span>같은 발행의 일별 행은 비독립</span></article>`
+    +`<article><small>검증</small><strong>검증 전</strong><span title="predictive_validation=${esc(validation)}">predictive_validation=${esc(validation)}</span></article></section>`;
 }
 function tsHoldCopy(ts){
   if(ts.model_id!=='shadow.mf_dfm_varx_calibrated_v8')return {
@@ -2298,7 +2328,7 @@ function renderTimeseriesDaily(ts=DATA.timeseries_daily||{},loadState=null){
   const controls='<div class="ts-daily-controls"><div role="group" aria-label="같은 발행본에서 전망 기간 선택"><button type="button" data-daily-months="1" aria-pressed="false">1개월</button><button type="button" data-daily-months="3" aria-pressed="false">3개월</button><button type="button" data-daily-months="6" aria-pressed="true">6개월</button></div><button type="button" data-daily-samples aria-pressed="false">다른 경로 4개 보기</button></div>';
   const chart=`<section class="timeseries-path-panel ts-daily-main">${controls}<div data-daily-chart-host></div><p class="ts-daily-sample-note" data-daily-sample-note hidden>가는 점선 네 개는 같은 발행본의 다른 실제 모의 경로입니다. 굵은 대표선과 중복하지 않으며, 표시한 다섯 표본만으로 확률을 계산하지 않습니다.</p><div class="ts-daily-legend"><span><i class="is-history"></i>기준일 전 실제 종가</span><span><i class="is-primary"></i>대표 시나리오</span><span><i class="is-median"></i>날짜별 중앙값</span><span><i class="is-band"></i>중심 50% / 넓은 80% 범위</span>${(ts.realized?.index||[]).length?'<span><i class="is-realized"></i>이후 실제 종가</span>':''}</div></section>`;
   const emptyPanels=[...TS_TABS,TS_V13_TAB].map(([key])=>`<div id="lab-ts-${key}" role="tabpanel" aria-labelledby="lab-tab-ts-${key}" hidden></div>`).join('');
-  const root=el(`<div class="timeseries-page ts-daily-page"><header class="timeseries-hero"><div><h1>6개월 일별 전망</h1><p>${tsDailyMetadataMarkup(ts)}</p></div></header>${timeseriesTabsMarkup('daily',enabled)}<div id="lab-ts-daily" role="tabpanel" aria-labelledby="lab-tab-ts-daily"><div class="ts-panel">${visible&&!validityError?chart:pending}</div></div>${emptyPanels}</div>`);
+  const root=el(`<div class="timeseries-page ts-daily-page"><header class="timeseries-hero"><div><h1>6개월 일별 전망</h1><p>${tsDailyMetadataMarkup(ts)}</p></div></header>${timeseriesTabsMarkup('daily',enabled)}<div id="lab-ts-daily" role="tabpanel" aria-labelledby="lab-tab-ts-daily"><div class="ts-panel">${visible&&!validityError?chart:pending}${tsDailyRecordMarkup(DATA.timeseries_daily_record||{})}</div></div>${emptyPanels}</div>`);
   mount(root);
   const nav=root.querySelector('.timeseries-tabs'),go=button=>{const key=button.dataset.tsTab;if(key!=='daily')location.hash=key==='summary'?'#future/timeseries':'#future/timeseries/'+key;};
   nav.querySelectorAll('[data-ts-tab]:not(:disabled)').forEach(button=>{button.onclick=()=>go(button);});bindTablistKeys(nav,'[data-ts-tab]',go);

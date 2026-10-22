@@ -1,0 +1,400 @@
+{
+ "schema_version": 1,
+ "source": "U.S. Bureau of Labor Statistics - Archived News Releases index page",
+ "release": "Consumer Price Index",
+ "page_url": "https://www.bls.gov/bls/news-release/cpi.htm",
+ "capture_method": "in-app browser DOM query of anchor hrefs; curl was refused with HTTP 403 by bot protection. Dates are the actual release dates embedded in the archive filenames (MMDDYYYY).",
+ "captured_at": "2026-10-21T10:55:00+00:00",
+ "license": "BLS content is in the public domain (https://www.bls.gov/bls/linksite.htm); attribution requested",
+ "years": [
+  2007,
+  2014
+ ],
+ "count": 96,
+ "release_dates": [
+  {
+   "release_date": "2007-01-18",
+   "href": "/news.release/archives/cpi_01182007.pdf"
+  },
+  {
+   "release_date": "2007-02-21",
+   "href": "/news.release/archives/cpi_02212007.pdf"
+  },
+  {
+   "release_date": "2007-03-16",
+   "href": "/news.release/archives/cpi_03162007.pdf"
+  },
+  {
+   "release_date": "2007-04-17",
+   "href": "/news.release/archives/cpi_04172007.pdf"
+  },
+  {
+   "release_date": "2007-05-15",
+   "href": "/news.release/archives/cpi_05152007.pdf"
+  },
+  {
+   "release_date": "2007-06-15",
+   "href": "/news.release/archives/cpi_06152007.pdf"
+  },
+  {
+   "release_date": "2007-07-18",
+   "href": "/news.release/archives/cpi_07182007.pdf"
+  },
+  {
+   "release_date": "2007-08-15",
+   "href": "/news.release/archives/cpi_08152007.pdf"
+  },
+  {
+   "release_date": "2007-09-19",
+   "href": "/news.release/archives/cpi_09192007.pdf"
+  },
+  {
+   "release_date": "2007-10-17",
+   "href": "/news.release/archives/cpi_10172007.pdf"
+  },
+  {
+   "release_date": "2007-11-15",
+   "href": "/news.release/archives/cpi_11152007.pdf"
+  },
+  {
+   "release_date": "2007-12-14",
+   "href": "/news.release/archives/cpi_12142007.pdf"
+  },
+  {
+   "release_date": "2008-01-16",
+   "href": "/news.release/archives/cpi_01162008.pdf"
+  },
+  {
+   "release_date": "2008-02-20",
+   "href": "/news.release/archives/cpi_02202008.pdf"
+  },
+  {
+   "release_date": "2008-03-14",
+   "href": "/news.release/archives/cpi_03142008.pdf"
+  },
+  {
+   "release_date": "2008-04-16",
+   "href": "/news.release/archives/cpi_04162008.pdf"
+  },
+  {
+   "release_date": "2008-05-14",
+   "href": "/news.release/archives/cpi_05142008.pdf"
+  },
+  {
+   "release_date": "2008-06-13",
+   "href": "/news.release/archives/cpi_06132008.pdf"
+  },
+  {
+   "release_date": "2008-07-16",
+   "href": "/news.release/archives/cpi_07162008.pdf"
+  },
+  {
+   "release_date": "2008-08-14",
+   "href": "/news.release/archives/cpi_08142008.pdf"
+  },
+  {
+   "release_date": "2008-09-16",
+   "href": "/news.release/archives/cpi_09162008.pdf"
+  },
+  {
+   "release_date": "2008-10-16",
+   "href": "/news.release/archives/cpi_10162008.pdf"
+  },
+  {
+   "release_date": "2008-11-19",
+   "href": "/news.release/archives/cpi_11192008.pdf"
+  },
+  {
+   "release_date": "2008-12-16",
+   "href": "/news.release/archives/cpi_12162008.pdf"
+  },
+  {
+   "release_date": "2009-01-16",
+   "href": "/news.release/archives/cpi_01162009.pdf"
+  },
+  {
+   "release_date": "2009-02-20",
+   "href": "/news.release/archives/cpi_02202009.pdf"
+  },
+  {
+   "release_date": "2009-03-18",
+   "href": "/news.release/archives/cpi_03182009.pdf"
+  },
+  {
+   "release_date": "2009-04-15",
+   "href": "/news.release/archives/cpi_04152009.pdf"
+  },
+  {
+   "release_date": "2009-05-15",
+   "href": "/news.release/archives/cpi_05152009.pdf"
+  },
+  {
+   "release_date": "2009-06-17",
+   "href": "/news.release/archives/cpi_06172009.pdf"
+  },
+  {
+   "release_date": "2009-07-15",
+   "href": "/news.release/archives/cpi_07152009.pdf"
+  },
+  {
+   "release_date": "2009-08-14",
+   "href": "/news.release/archives/cpi_08142009.pdf"
+  },
+  {
+   "release_date": "2009-09-16",
+   "href": "/news.release/archives/cpi_09162009.pdf"
+  },
+  {
+   "release_date": "2009-10-15",
+   "href": "/news.release/archives/cpi_10152009.pdf"
+  },
+  {
+   "release_date": "2009-11-18",
+   "href": "/news.release/archives/cpi_11182009.pdf"
+  },
+  {
+   "release_date": "2009-12-16",
+   "href": "/news.release/archives/cpi_12162009.pdf"
+  },
+  {
+   "release_date": "2010-01-15",
+   "href": "/news.release/archives/cpi_01152010.pdf"
+  },
+  {
+   "release_date": "2010-02-19",
+   "href": "/news.release/archives/cpi_02192010.pdf"
+  },
+  {
+   "release_date": "2010-03-18",
+   "href": "/news.release/archives/cpi_03182010.pdf"
+  },
+  {
+   "release_date": "2010-04-14",
+   "href": "/news.release/archives/cpi_04142010.pdf"
+  },
+  {
+   "release_date": "2010-05-19",
+   "href": "/news.release/archives/cpi_05192010.pdf"
+  },
+  {
+   "release_date": "2010-06-17",
+   "href": "/news.release/archives/cpi_06172010.pdf"
+  },
+  {
+   "release_date": "2010-07-16",
+   "href": "/news.release/archives/cpi_07162010.pdf"
+  },
+  {
+   "release_date": "2010-08-13",
+   "href": "/news.release/archives/cpi_08132010.pdf"
+  },
+  {
+   "release_date": "2010-09-17",
+   "href": "/news.release/archives/cpi_09172010.pdf"
+  },
+  {
+   "release_date": "2010-10-15",
+   "href": "/news.release/archives/cpi_10152010.pdf"
+  },
+  {
+   "release_date": "2010-11-17",
+   "href": "/news.release/archives/cpi_11172010.pdf"
+  },
+  {
+   "release_date": "2010-12-15",
+   "href": "/news.release/archives/cpi_12152010.pdf"
+  },
+  {
+   "release_date": "2011-01-14",
+   "href": "/news.release/archives/cpi_01142011.pdf"
+  },
+  {
+   "release_date": "2011-02-17",
+   "href": "/news.release/archives/cpi_02172011.pdf"
+  },
+  {
+   "release_date": "2011-03-17",
+   "href": "/news.release/archives/cpi_03172011.pdf"
+  },
+  {
+   "release_date": "2011-04-15",
+   "href": "/news.release/archives/cpi_04152011.pdf"
+  },
+  {
+   "release_date": "2011-05-13",
+   "href": "/news.release/archives/cpi_05132011.pdf"
+  },
+  {
+   "release_date": "2011-06-15",
+   "href": "/news.release/archives/cpi_06152011.pdf"
+  },
+  {
+   "release_date": "2011-07-15",
+   "href": "/news.release/archives/cpi_07152011.pdf"
+  },
+  {
+   "release_date": "2011-08-18",
+   "href": "/news.release/archives/cpi_08182011.pdf"
+  },
+  {
+   "release_date": "2011-09-15",
+   "href": "/news.release/archives/cpi_09152011.pdf"
+  },
+  {
+   "release_date": "2011-10-19",
+   "href": "/news.release/archives/cpi_10192011.pdf"
+  },
+  {
+   "release_date": "2011-11-16",
+   "href": "/news.release/archives/cpi_11162011.pdf"
+  },
+  {
+   "release_date": "2011-12-16",
+   "href": "/news.release/archives/cpi_12162011.pdf"
+  },
+  {
+   "release_date": "2012-01-19",
+   "href": "/news.release/archives/cpi_01192012.pdf"
+  },
+  {
+   "release_date": "2012-02-17",
+   "href": "/news.release/archives/cpi_02172012.pdf"
+  },
+  {
+   "release_date": "2012-03-16",
+   "href": "/news.release/archives/cpi_03162012.pdf"
+  },
+  {
+   "release_date": "2012-04-13",
+   "href": "/news.release/archives/cpi_04132012.pdf"
+  },
+  {
+   "release_date": "2012-05-15",
+   "href": "/news.release/archives/cpi_05152012.pdf"
+  },
+  {
+   "release_date": "2012-06-14",
+   "href": "/news.release/archives/cpi_06142012.pdf"
+  },
+  {
+   "release_date": "2012-07-17",
+   "href": "/news.release/archives/cpi_07172012.pdf"
+  },
+  {
+   "release_date": "2012-08-15",
+   "href": "/news.release/archives/cpi_08152012.pdf"
+  },
+  {
+   "release_date": "2012-09-14",
+   "href": "/news.release/archives/cpi_09142012.pdf"
+  },
+  {
+   "release_date": "2012-10-16",
+   "href": "/news.release/archives/cpi_10162012.pdf"
+  },
+  {
+   "release_date": "2012-11-15",
+   "href": "/news.release/archives/cpi_11152012.pdf"
+  },
+  {
+   "release_date": "2012-12-14",
+   "href": "/news.release/archives/cpi_12142012.pdf"
+  },
+  {
+   "release_date": "2013-01-16",
+   "href": "/news.release/archives/cpi_01162013.pdf"
+  },
+  {
+   "release_date": "2013-02-21",
+   "href": "/news.release/archives/cpi_02212013.pdf"
+  },
+  {
+   "release_date": "2013-03-15",
+   "href": "/news.release/archives/cpi_03152013.pdf"
+  },
+  {
+   "release_date": "2013-04-16",
+   "href": "/news.release/archives/cpi_04162013.pdf"
+  },
+  {
+   "release_date": "2013-05-16",
+   "href": "/news.release/archives/cpi_05162013.pdf"
+  },
+  {
+   "release_date": "2013-06-18",
+   "href": "/news.release/archives/cpi_06182013.pdf"
+  },
+  {
+   "release_date": "2013-07-16",
+   "href": "/news.release/archives/cpi_07162013.pdf"
+  },
+  {
+   "release_date": "2013-08-15",
+   "href": "/news.release/archives/cpi_08152013.pdf"
+  },
+  {
+   "release_date": "2013-09-17",
+   "href": "/news.release/archives/cpi_09172013.pdf"
+  },
+  {
+   "release_date": "2013-10-30",
+   "href": "/news.release/archives/cpi_10302013.pdf"
+  },
+  {
+   "release_date": "2013-11-20",
+   "href": "/news.release/archives/cpi_11202013.pdf"
+  },
+  {
+   "release_date": "2013-12-17",
+   "href": "/news.release/archives/cpi_12172013.pdf"
+  },
+  {
+   "release_date": "2014-01-16",
+   "href": "/news.release/archives/cpi_01162014.pdf"
+  },
+  {
+   "release_date": "2014-02-20",
+   "href": "/news.release/archives/cpi_02202014.pdf"
+  },
+  {
+   "release_date": "2014-03-18",
+   "href": "/news.release/archives/cpi_03182014.pdf"
+  },
+  {
+   "release_date": "2014-04-15",
+   "href": "/news.release/archives/cpi_04152014.pdf"
+  },
+  {
+   "release_date": "2014-05-15",
+   "href": "/news.release/archives/cpi_05152014.pdf"
+  },
+  {
+   "release_date": "2014-06-17",
+   "href": "/news.release/archives/cpi_06172014.pdf"
+  },
+  {
+   "release_date": "2014-07-22",
+   "href": "/news.release/archives/cpi_07222014.pdf"
+  },
+  {
+   "release_date": "2014-08-19",
+   "href": "/news.release/archives/cpi_08192014.pdf"
+  },
+  {
+   "release_date": "2014-09-17",
+   "href": "/news.release/archives/cpi_09172014.pdf"
+  },
+  {
+   "release_date": "2014-10-22",
+   "href": "/news.release/archives/cpi_10222014.pdf"
+  },
+  {
+   "release_date": "2014-11-20",
+   "href": "/news.release/archives/cpi_11202014.pdf"
+  },
+  {
+   "release_date": "2014-12-17",
+   "href": "/news.release/archives/cpi_12172014.pdf"
+  }
+ ]
+}

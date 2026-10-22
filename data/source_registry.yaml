@@ -176,3 +176,36 @@ sources:
     license_status: review_required
     enabled: true
     contract: data/contracts/daily6m_official_sources_v1.yaml
+  - id: fed_board_fomc_history
+    name: FOMC historical meeting calendars (2007-2014, scheduled decision days)
+    provider: Board of Governors of the Federal Reserve System
+    tier: official
+    endpoint: https://www.federalreserve.gov/monetarypolicy/fomchistorical2008.htm
+    cadence: one-time-design-window
+    freshness_sla_hours: 8760
+    vintage_capability: captured
+    license_status: approved
+    enabled: false
+    contract: data/contracts/multivariate_timeseries_v13_vol.yaml
+  - id: bls_release_archive_index
+    name: BLS archived news release index (Employment Situation, CPI release dates 2007-2014)
+    provider: U.S. Bureau of Labor Statistics
+    tier: official
+    endpoint: https://www.bls.gov/bls/news-release/empsit.htm
+    cadence: one-time-design-window
+    freshness_sla_hours: 8760
+    vintage_capability: captured
+    license_status: approved
+    enabled: false
+    contract: data/contracts/multivariate_timeseries_v13_vol.yaml
+  - id: cftc_public_reporting_tff
+    name: CFTC Traders in Financial Futures (futures only, VIX futures 1170E1 and NASDAQ-100 mini 209742)
+    provider: U.S. Commodity Futures Trading Commission
+    tier: official
+    endpoint: https://publicreporting.cftc.gov/resource/gpe5-46if.json
+    cadence: one-time-design-window
+    freshness_sla_hours: 8760
+    vintage_capability: captured
+    license_status: approved
+    enabled: false
+    contract: data/contracts/multivariate_timeseries_v13_vol.yaml
