@@ -5875,9 +5875,9 @@ function renderHeaderStrip(){
     items.push({k:'NASDAQ 종합',v:num(Math.round(latest.value)),sub:stale?`보관값 · ${latest.session}`:(lagNote||`${latest.session} · 전고점 대비 ${vsAth>=0?'+':''}${vsAth.toFixed(1)}%`),cls:stale||lagNote?'stale':vsAth!=null?(vsAth>=0?'up':'down'):''});}
   if(ath!=null)items.push({k:'전고점 ATH',v:num(Math.round(ath)),sub:'2023년 이후 최고 종가'});
   if(corr!=null)items.push({k:'−10% 조정선',v:num(Math.round(corr)),sub:'지지 기준'});
-  if(br.pct_above_200dma!=null)items.push({k:'시장 폭',v:br.pct_above_200dma+'%',sub:'200일선 상회'});
-  if(rg.recession_flag!=null)items.push({k:'경기 국면',v:rg.recession_flag?'침체':'확장',sub:'NBER 기준',cls:rg.recession_flag?'down':'up'});
-  else if(rg.hy_spread_pct!=null)items.push({k:'신용 스프레드',v:rg.hy_spread_pct.toFixed(2)+'%',sub:'HY OAS'});
+  if(br.pct_above_200dma!=null)items.push({k:'시장 폭 · 보관',v:br.pct_above_200dma+'%',sub:'200일선 상회 · '+(br.asof||'기준일 미확인'),cls:'stale'});
+  if(rg.recession_flag!=null)items.push({k:'경기 국면 · 보관',v:rg.recession_flag?'침체':'확장',sub:'NBER 기준 · '+(rg.recession_date||'기준일 미확인'),cls:'stale'});
+  else if(rg.hy_spread_pct!=null)items.push({k:'신용 스프레드 · 보관',v:rg.hy_spread_pct.toFixed(2)+'%',sub:'HY OAS · '+(rg.hy_spread_date||'기준일 미확인'),cls:'stale'});
   const strip=document.getElementById('mktstrip');
   if(!items.length){strip.style.display='none';return;}
   strip.innerHTML=items.map(it=>`<div><span>${esc(it.k)}</span>${it.sub?`<small>${esc(it.sub)}</small>`:''}<strong class="${it.cls||''}">${esc(it.v)}</strong></div>`).join('');

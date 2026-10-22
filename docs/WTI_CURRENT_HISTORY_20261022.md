@@ -66,3 +66,9 @@ join at all, and actual ALFRED collection now succeeds elsewhere. The producer
 and UI now describe that unimplemented lineage correctly. The closed status,
 all liquidity numbers and existing captured weekly vintages remain unchanged;
 no old snapshot is rewritten or current-vintage M2 substituted into a PIT field.
+
+The header's breadth/regime context still comes from a historical research run
+(breadth July 29; NBER observation June 1), independently of the current NASDAQ
+and statistics chart. Those header items now explicitly say archived and show
+their own observation date. This is a display correction, not an unsupported
+claim that the legacy breadth or CAPE research inputs refresh automatically.
