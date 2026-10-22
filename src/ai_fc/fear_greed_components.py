@@ -192,6 +192,8 @@ def refresh(root: Path, *, now: datetime | None = None, raw: bytes | None = None
             projection(root, now=_timestamp(previous["available_at"]), check_attempt=False, strict=True)
             if _timestamp(payload["source_as_of"]) < _timestamp(previous["source_as_of"]):
                 raise ComponentsError("component source timestamp regressed")
+            if now < _timestamp(previous["available_at"]):
+                raise ComponentsError("component acquisition clock regressed")
         # Identical source bytes do not append another observation/revision.
         if old.get("raw_sha256") == raw_sha:
             projection(root, now=now, check_attempt=False, strict=True)
@@ -201,7 +203,7 @@ def refresh(root: Path, *, now: datetime | None = None, raw: bytes | None = None
                 _atomic(status_path, {"status": "ok", "checked_at": now.isoformat(),
                                      "snapshot_id": old["snapshot_id"]})
             return old
-        payload.update(raw_sha256=raw_sha, available_at=available_at,
+        payload.update(raw_sha256=raw_sha, available_at=now.isoformat(), raw_first_acquired_at=available_at,
                        revision=old.get("revision", 0) + 1, supersedes=old.get("snapshot_id"))
         body = _bytes(payload)
         snapshot = _sha(body)
@@ -241,8 +243,12 @@ def projection(root: Path, *, now: datetime | None = None, check_attempt: bool =
             raise ComponentsError("component raw receipt mismatch")
         payload = json.loads(body)
         normalized = normalize(raw, now=now)
-        if payload["raw_sha256"] != raw_sha or payload["available_at"] != receipt["available_at"]:
+        if payload["raw_sha256"] != raw_sha or payload.get("raw_first_acquired_at", payload["available_at"]) != receipt["available_at"]:
             raise ComponentsError("component provenance mismatch")
+        if _timestamp(receipt["available_at"]) > _timestamp(payload["available_at"]):
+            raise ComponentsError("component revision predates raw acquisition")
+        if pointer["source_as_of"] != payload["source_as_of"]:
+            raise ComponentsError("component pointer source timestamp mismatch")
         if receipt.get("source") != SOURCE or receipt.get("source_url") != ENDPOINT or receipt.get("http_status") != 200:
             raise ComponentsError("component source receipt mismatch")
         if _timestamp(payload["available_at"]) > now:

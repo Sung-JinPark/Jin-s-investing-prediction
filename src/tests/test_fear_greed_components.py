@@ -177,3 +177,16 @@ def test_broken_predecessor_and_source_regression_do_not_replace_pointer(tmp_pat
     with pytest.raises((fc.ComponentsError, KeyError)):
         fc.refresh(tmp_path, now=NOW + timedelta(minutes=2), raw=encode(source()))
     assert json.loads((tmp_path / fc.BASE / 'latest.json').read_bytes()) == first
+
+
+def test_reappearing_old_bytes_are_a_new_revision_not_backdated(tmp_path):
+    raw = encode(source())
+    first = fc.refresh(tmp_path, now=NOW, raw=raw)
+    changed = source(); changed['indicators'][fc.KEYS[0]]['score'] = 40
+    second = fc.refresh(tmp_path, now=NOW + timedelta(minutes=1), raw=encode(changed))
+    third = fc.refresh(tmp_path, now=NOW + timedelta(minutes=2), raw=raw)
+    got = fc.projection(tmp_path, now=NOW + timedelta(minutes=2), strict=True)
+    assert got['supersedes'] == second['snapshot_id'] and got['revision'] == 3
+    assert got['available_at'] == (NOW + timedelta(minutes=2)).isoformat()
+    assert got['raw_first_acquired_at'] == NOW.isoformat()
+    assert third['raw_sha256'] == first['raw_sha256'] and third['snapshot_id'] != first['snapshot_id']
