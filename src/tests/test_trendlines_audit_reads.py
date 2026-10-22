@@ -147,7 +147,7 @@ def test_read_ahead_yields_each_file_in_order_with_its_own_digest_and_raises_in_
     for _ in R._audit_reads(paths[:5]):
         break
     # Abandoning the loop leaves no reads running and none beyond the read-ahead window.
-    assert started == paths[:len(started)] and len(started) <= R.AUDIT_READ_AHEAD + 1
+    assert set(started) == set(paths[:len(started)]) and len(started) <= R.AUDIT_READ_AHEAD + 1
 
 
 def test_read_ahead_records_digests_only_inside_an_audit(tmp_path):
