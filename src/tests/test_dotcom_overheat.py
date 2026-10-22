@@ -155,7 +155,11 @@ def test_daily_refresh_reaches_pages_and_failure_monitor() -> None:
 
     refresh = workflow("statistics-refresh")
     triggers = refresh.get("on", refresh.get(True))
-    assert triggers["schedule"] == [{"cron": "20 6 * * *"}]
+    assert triggers["schedule"] == [
+        {"cron": "20 6 * * *"},
+        {"cron": "23 22 * * 1-5"},
+        {"cron": "23 1 * * 2-6"},
+    ]
     steps = refresh["jobs"]["refresh"]["steps"]
     commands = "\n".join(step.get("run", "") for step in steps)
     assert "python -m ai_fc statistics-refresh" in commands
