@@ -75,6 +75,12 @@ def _scope_report(report):
     return report
 
 
+# Successful audits an entry may go unused before a full store may replace it.
+# A worker refresh runs about 13 audits, so ten assets use every live entry
+# within about 130; this leaves about 16 cycles for a slow or failing asset.
+REPLAY_CACHE_IDLE_AUDITS = 2048
+
+
 class VerifiedReplayCache:
     """Bounded, process-local proofs populated only by a successful full audit.
 
@@ -87,16 +93,25 @@ class VerifiedReplayCache:
     canonical form a successful audit checked. It is keyed by the SHA256 of the
     exact bytes read and hashed in each later audit, so changed bytes are decoded
     and checked again; it never stands in for hashing a file.
+
+    Each store holds at most ``max_entries``. A full store does not evict by
+    recency: every worker pass walks the whole store, and each asset's own
+    proofs are used once per ten-asset cycle, so LRU dropped exactly the entries
+    the next refresh needed. It keeps what it holds and replaces only an entry
+    no successful audit has used in REPLAY_CACHE_IDLE_AUDITS audits; otherwise
+    the new entry is not kept and is checked in full again next time.
     """
 
-    __slots__ = ("__limit", "__entries", "__evidence", "__lock")
+    __slots__ = ("__limit", "__entries", "__evidence", "__audits", "__shared", "__lock")
 
-    def __init__(self, *, max_entries: int = 16384):
-        if type(max_entries) is not int or not 1 <= max_entries <= 65536:
+    def __init__(self, *, max_entries: int = 262144):
+        if type(max_entries) is not int or not 1 <= max_entries <= 1048576:
             raise C.TrendlinesError("private_replay_cache_capacity_invalid")
         self.__limit = max_entries
         self.__entries = OrderedDict()
         self.__evidence = OrderedDict()
+        self.__audits = 0
+        self.__shared = {}
         self.__lock = threading.Lock()
 
     @property
@@ -120,8 +135,9 @@ class VerifiedReplayCache:
     def _contains(self, key, functions) -> bool:
         with self.__lock:
             prior = self.__entries.get(key)
-            if prior is None or not self._same(prior, functions):
+            if prior is None or not self._same(prior[0], functions):
                 return False
+            prior[-1] = self.__audits
             self.__entries.move_to_end(key)
             return True
 
@@ -130,6 +146,7 @@ class VerifiedReplayCache:
             prior = self.__evidence.get(key)
             if prior is None or not self._same(prior[0], functions):
                 return None
+            prior[-1] = self.__audits
             self.__evidence.move_to_end(key)
             return deepcopy(prior[1])
 
@@ -137,14 +154,32 @@ class VerifiedReplayCache:
         # Retain function objects as well as their IDs, so object-ID reuse cannot
         # revive a proof for a different validator after a monkeypatch or reload.
         with self.__lock:
-            for store, items in ((self.__entries, keys.items()),
-                                 (self.__evidence, ((key, (functions, deepcopy(value)))
-                                                    for key, (functions, value) in (evidence or {}).items()))):
-                for key, item in items:
-                    store[key] = item
-                    store.move_to_end(key)
-                    while len(store) > self.__limit:
-                        store.popitem(last=False)
+            self.__audits += 1
+            for key, functions in keys.items():
+                # A full replay of the same bytes subsumes the metadata-only check.
+                self.__entries.pop(("research_metadata", *key), None)
+                if self.__room(self.__entries, key):
+                    self.__entries[self.__compact(key)] = [functions, self.__audits]
+                    self.__entries.move_to_end(key)
+            for key, (functions, value) in (evidence or {}).items():
+                if self.__room(self.__evidence, key):
+                    self.__evidence[self.__compact(key)] = [functions, deepcopy(value), self.__audits]
+                    self.__evidence.move_to_end(key)
+
+    def __room(self, store, key) -> bool:
+        if key in store or len(store) < self.__limit:
+            return True
+        oldest = next(iter(store))
+        if store[oldest][-1] > self.__audits - REPLAY_CACHE_IDLE_AUDITS:
+            return False
+        del store[oldest]
+        return True
+
+    def __compact(self, key):
+        # Keys repeat the tuple of checking-function IDs; hold one equal copy.
+        if len(self.__shared) > 256:
+            self.__shared.clear()
+        return tuple(self.__shared.setdefault(part, part) if type(part) is tuple else part for part in key)
 
 
 @contextmanager
