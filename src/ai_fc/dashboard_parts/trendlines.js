@@ -804,10 +804,10 @@ function trendManualSessions(detail,analysis){
 function trendManualGeometry(record,detail,analysis,scale,m){
   const sessions=trendManualSessions(detail,analysis),a=sessions.find(p=>p.session===record.a.session),b=sessions.find(p=>p.session===record.b.session);if(!a||!b||a.index>=b.index)return null;
   const axis=record.axis&&record.axis!=='legacy'?record.axis:scale,transform=p=>axis==='log'?Math.log(p):p,intercept=transform(record.a.price),slope=(transform(record.b.price)-intercept)/(b.index-a.index),extension=record.extension||(record.extend?'right':'none');
-  const line={manual:true,line_id:record.id,number:record.number,name:record.name,note:record.note,style:record.style||TREND_MANUAL_STYLE,locked:record.locked,axis,role:'manual_reference',kind:'manual',intercept,slope,coordinate_origin_index:a.index,display_start_index:['left','both'].includes(extension)?m.first:a.index,first_anchor:{index:a.index,session:a.session,price:record.a.price},second_anchor:{index:b.index,session:b.session,price:record.b.price},extend:record.extend,extension};
+  const line={manual:true,line_id:record.id,number:record.number,name:record.name,note:record.note,style:record.style||TREND_MANUAL_STYLE,locked:record.locked,axis,role:'manual_reference',kind:'manual',intercept,slope,coordinate_origin_index:a.index,display_start_index:['left','both'].includes(extension)?Math.floor(m.first):a.index,first_anchor:{index:a.index,session:a.session,price:record.a.price},second_anchor:{index:b.index,session:b.session,price:record.b.price},extend:record.extend,extension};
   if(!Number.isFinite(intercept)||!Number.isFinite(slope))return null;
-  const last=['right','both'].includes(extension)?m.end:Math.min(b.index,m.end);
-  line.points=sessions.filter(p=>p.index>=Math.max(line.display_start_index,m.first)&&p.index<=last).map(p=>({index:p.index,session:p.session,price:trendLinePrice(line,p.index,axis),future:p.index>(m.sourceLast??m.last)})).filter(p=>Number.isFinite(p.price)&&p.price>0);return line;
+  const last=['right','both'].includes(extension)?Math.ceil(m.end):Math.min(b.index,Math.ceil(m.end));
+  line.points=sessions.filter(p=>p.index>=Math.max(line.display_start_index,Math.floor(m.first))&&p.index<=last).map(p=>({index:p.index,session:p.session,price:trendLinePrice(line,p.index,axis),future:p.index>(m.sourceLast??m.last)})).filter(p=>Number.isFinite(p.price)&&p.price>0);return line;
 }
 function trendManualPriceAt(m,y,scale){const bottom=m.ticks[0],top=m.ticks.at(-1),t=(m.H-m.B-y)/(m.H-m.T-m.B);return scale==='log'?Math.exp(Math.log(bottom)+(Math.log(top)-Math.log(bottom))*t):bottom+(top-bottom)*t;}
 function trendManualPoint(m,detail,x,y,scale,snap='weak',sx=1,sy=1){
@@ -1059,7 +1059,7 @@ function bindTrendManual(host,detail,m,asset,scale){
     try{let records=movedRecords(g,p);trendManualValidateV2(records,state.assetId);if(g.clone){records=trendManualClone(state,records);trendManualApply(state,[...state.lines,...records],records.at(-1).id);state.created.push(...records.map(l=>l.id));}else trendManualApply(state,state.lines.map(l=>records.find(r=>r.id===l.id)||l),g.line?.id);state.selection=records.map(l=>l.id);refresh();}catch(err){error(err);}
   });
   svg.addEventListener('pointercancel',()=>{if(gesture?.setFirst)state.first=null;gesture=null;state.hover=null;refresh();});svg.addEventListener('pointerleave',()=>{if(!gesture){state.hover=null;layer.innerHTML=trendManualSvg(m,state);}});
-  svg.addEventListener('keydown',event=>{if(!state.mode)return;if(event.key==='Escape'){consume(event);cancel();return;}if(!['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Home','End','Enter'].includes(event.key))return;consume(event);const rows=trendManualSessions(detail,m.analysis).filter(p=>p.index>=m.first&&p.index<=m.end);let i=Math.max(0,rows.findIndex(p=>p.session===cursor.session));if(event.key==='Enter'){trendManualChoose(state,cursor,trendManualSessions(detail,m.analysis));return;}if(event.key==='ArrowLeft')i=Math.max(0,i-1);if(event.key==='ArrowRight')i=Math.min(rows.length-1,i+1);if(event.key==='Home')i=0;if(event.key==='End')i=rows.length-1;if(event.key==='ArrowUp'||event.key==='ArrowDown'){const price=trendManualPriceAt(m,m.y(cursor.price)+(event.key==='ArrowUp'?-5:5),scale);if(Number.isFinite(price)&&price>0&&price<=1e15)cursor.price=price;}else cursor={session:rows[i].session,price:rows[i].bar?.close||cursor.price};state.hover={...cursor};layer.innerHTML=trendManualSvg(m,state);});
+  svg.addEventListener('keydown',event=>{if(!state.mode)return;if(event.key==='Escape'){consume(event);cancel();return;}if(!['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Home','End','Enter'].includes(event.key))return;consume(event);const rows=trendManualSessions(detail,m.analysis).filter(p=>p.index>=m.first&&p.index<=m.end);if(!rows.length)return;let i=Math.max(0,rows.findIndex(p=>p.session===cursor.session));if(event.key==='Enter'){trendManualChoose(state,cursor,trendManualSessions(detail,m.analysis));return;}if(event.key==='ArrowLeft')i=Math.max(0,i-1);if(event.key==='ArrowRight')i=Math.min(rows.length-1,i+1);if(event.key==='Home')i=0;if(event.key==='End')i=rows.length-1;if(event.key==='ArrowUp'||event.key==='ArrowDown'){const price=trendManualPriceAt(m,m.y(cursor.price)+(event.key==='ArrowUp'?-5:5),scale);if(Number.isFinite(price)&&price>0&&price<=1e15)cursor.price=price;}else cursor={session:rows[i].session,price:rows[i].bar?.close||cursor.price};state.hover={...cursor};layer.innerHTML=trendManualSvg(m,state);});
   refresh();
 }
 
@@ -1077,7 +1077,7 @@ function trendHoverAt(m,x,y,options={}){
   if(!Number.isFinite(x)||!Number.isFinite(y)||x<m.L||x>m.W-m.R||y<m.T||y>m.H-m.B)return null;
   const selectedManual=m.manualLines?.find(line=>line.line_id===m.manualState?.selected),selectedManualHit=selectedManual&&trendLineHit({...m,lines:[selectedManual]},x,y,options.touch?12:6,options.sx||1,options.sy||1);
   if(m.quote&&!selectedManualHit&&Math.hypot(m.x(m.quote.session_index)-x,m.y(m.quote.price)-y)<=12)return {kind:'quote',row:m.quote,index:m.quote.session_index};
-  const index=Math.max(m.first,Math.min(m.end,Math.round(m.first+(x-m.L)/(m.W-m.L-m.R)*(m.end-m.first)))),gap=m.gaps.find(row=>row.session_index===index);
+  const index=Math.round(Math.max(m.first,Math.min(m.end,m.first+(x-m.L)/(m.W-m.L-m.R)*(m.end-m.first)))),gap=m.gaps.find(row=>row.session_index===index);
   if(m.critical||m.manualLines?.length){const line=trendLineHit({...m,lines:[...(m.manualLines||[]),...m.lines]},x,y,options.touch?12:6,options.sx||1,options.sy||1);if(line){const price=trendLinePrice(line,index,m.analysis.axis||options.scale||line.axis),bar=m.bars.find(row=>row.session_index===index),session=bar?.session||gap?.session||m.analysis.projection_sessions?.find(row=>row.index===index)?.session||null;if(price>0&&index>=trendLineStart(line))return {kind:'line',row:{session,session_index:index,price,close:bar?.close??null},index,line,future:index>(m.sourceLast??m.last)};}}
   if(gap)return {kind:'gap',row:gap,index};
   if(index>m.last){const session=m.analysis.projection_sessions?.find(row=>row.index===index)?.session||null;return {kind:'future',row:{session_index:index,session},index};}
@@ -1094,14 +1094,14 @@ function trendHoverText(hit,asset){
   return `${date} · 종가 ${trendPrice(row.close,asset)} · 시가 ${trendPrice(row.open,asset)} · 고가 ${trendPrice(row.high,asset)} · 저가 ${trendPrice(row.low,asset)}`;
 }
 function trendSvg(detail,model,asset,version='current'){
-  const m=model,clip=`trend-clip-${detail.asset_id}-${version}`,futureX=m.x(m.last),showFuture=[...m.lines,...(m.manualLines||[])].some(line=>line.points.some(point=>point.future)),showFutureLabel=(m.W-m.R-futureX)*(m.cssWidth||m.W)/m.W>=50,bodyWidth=Math.max(1,Math.min(m.axisRight?16:8,(m.W-m.L-m.R)/(m.end-m.first+1)*.55));
+  const m=model,clip=`trend-clip-${detail.asset_id}-${version}`,futureX=Math.max(m.L,Math.min(m.W-m.R,m.x(m.last))),showFuture=m.end>m.last&&[...m.lines,...(m.manualLines||[])].some(line=>line.points.some(point=>point.future)),showFutureLabel=(m.W-m.R-futureX)*(m.cssWidth||m.W)/m.W>=50,bodyWidth=Math.max(1,Math.min(m.axisRight?16:8,(m.W-m.L-m.R)/(m.end-m.first+1)*.55));
   const gridTicks=m.axisRight?trendNiceTicks(m):m.ticks;
   const grid=gridTicks.map(price=>`<g><line x1="${m.L}" y1="${m.y(price)}" x2="${m.W-m.R}" y2="${m.y(price)}" stroke="#e1ded5"/>${m.axisRight?`<text x="${m.W-m.R+7}" y="${m.y(price)+4}">${esc(trendAxisNumber(price,gridTicks))}</text>`:`<text x="${m.L-7}" y="${m.y(price)+4}" text-anchor="end">${esc(Number(price).toLocaleString('ko-KR',{maximumFractionDigits:0}))}</text>`}</g>`).join('');
-  const tickBars=[m.bars[0]],tickGap=m.W<600?75:110;
-  for(const bar of m.bars.slice(1,-1))if(m.x(bar.session_index)-m.x(tickBars.at(-1).session_index)>=tickGap)tickBars.push(bar);
-  const finalBar=m.bars.at(-1);
+  const visibleBars=m.bars.filter(bar=>bar.session_index>=m.first&&bar.session_index<=m.end),tickBars=visibleBars.length?[visibleBars[0]]:[],tickGap=m.W<600?75:110;
+  for(const bar of visibleBars.slice(1,-1))if(m.x(bar.session_index)-m.x(tickBars.at(-1).session_index)>=tickGap)tickBars.push(bar);
+  const finalBar=visibleBars.at(-1);
   if(tickBars.length>1&&m.x(finalBar.session_index)-m.x(tickBars.at(-1).session_index)<(m.axisRight?tickGap:65))tickBars.pop();
-  if(finalBar!==tickBars.at(-1))tickBars.push(finalBar);
+  if(finalBar&&finalBar!==tickBars.at(-1))tickBars.push(finalBar);
   const ticks=tickBars.map(bar=>`<text x="${m.x(bar.session_index)}" y="${m.axisRight?m.H-9:m.H-15}" text-anchor="${m.axisRight&&m.x(bar.session_index)-m.L<30?'start':m.axisRight&&m.W-m.R-m.x(bar.session_index)<30?'end':'middle'}">${esc((bar.session||bar.session_date).slice(2))}</text>`).join('');
   const candles=m.bars.map(bar=>{const up=bar.close>=bar.open,color=up?'#bb4c1c':'#34738d',top=m.y(Math.max(bar.open,bar.close)),height=Math.max(1,Math.abs(m.y(bar.open)-m.y(bar.close)));return `<g data-trend-bar="${esc(bar.session||bar.session_date)}"><line x1="${m.x(bar.session_index)}" y1="${m.y(bar.high)}" x2="${m.x(bar.session_index)}" y2="${m.y(bar.low)}" stroke="${color}"/><rect x="${m.x(bar.session_index)-bodyWidth/2}" y="${top}" width="${bodyWidth}" height="${height}" fill="${color}"/></g>`;}).join('');
   const gaps=m.gaps.map(gap=>`<g data-trend-gap="${esc(gap.session)}"><rect x="${m.x(gap.session_index)-bodyWidth}" y="${m.T}" width="${bodyWidth*2}" height="${m.H-m.T-m.B}" fill="#b88120" opacity=".15"/><line x1="${m.x(gap.session_index)}" x2="${m.x(gap.session_index)}" y1="${m.T}" y2="${m.H-m.B}" stroke="#a77927" stroke-dasharray="2 4"/><title>${esc(gap.session)} · 원천 결측 일봉</title></g>`).join('');
@@ -1158,6 +1158,13 @@ function bindTrendChart(host,detail,m,asset,scale){
   paint({...entries[selected],index:entries[selected].row.session_index},false);
 }
 function trendZoomViewport(bars,state){
+  // Expanded workspaces keep a continuous display window; source rows stay intact.
+  if(state.xRange?.length===2&&state.xRange.every(Number.isFinite)&&state.xRange[1]>state.xRange[0]){
+    const first=bars.findIndex(bar=>bar.session_index>=state.xRange[0]),last=bars.findLastIndex(bar=>bar.session_index<=state.xRange[1]);
+    let from=first<0?bars.length-1:Math.max(0,first-1),to=last<0?1:Math.min(bars.length,last+2);
+    if(to-from<20){from=Math.max(0,from-Math.ceil((20-(to-from))/2));to=Math.min(bars.length,Math.max(to,from+20));from=Math.max(0,Math.min(from,to-20));}
+    state.offset=from;state.heldCount=to-from;return bars.slice(from,to);
+  }
   const maximum=Math.max(1,Math.min(state.maxFactor??8,bars.length/20));state.factor=Math.max(1,Math.min(maximum,Number(state.factor)||1));const count=Math.min(bars.length,Math.max(20,Number.isInteger(state.heldCount)?state.heldCount:Math.ceil(bars.length/state.factor))),limit=bars.length-count;
   const offset=state.offset===null||state.offset===undefined?limit:Math.max(0,Math.min(limit,Math.round(state.offset)));state.offset=offset;return bars.slice(offset,offset+count);
 }
@@ -1274,7 +1281,7 @@ function bindTrendWorkspaceChart(host,detail,m,asset){
   const show=event=>{
     const bounds=svg.getBoundingClientRect();if(!bounds.width||!bounds.height)return;const x=(event.clientX-bounds.left)/bounds.width*m.W,y=(event.clientY-bounds.top)/bounds.height*m.H;
     if(x<m.L||x>m.W-m.R||y<m.T||y>m.H-m.B){hide();return;}
-    const index=Math.max(m.first,Math.min(m.end,Math.round(m.first+(x-m.L)/(m.W-m.L-m.R)*(m.end-m.first)))),cx=m.x(index),price=trendManualPriceAt(m,y,m.scale),label=sessions.get(index)||'',left=Math.max(m.L,Math.min(m.W-m.R-80,cx-40));
+    const index=Math.round(Math.max(m.first,Math.min(m.end,m.first+(x-m.L)/(m.W-m.L-m.R)*(m.end-m.first)))),cx=m.x(index),price=trendManualPriceAt(m,y,m.scale),label=sessions.get(index)||'',left=Math.max(m.L,Math.min(m.W-m.R-80,cx-40));
     cross.setAttribute('x1',cx);cross.setAttribute('x2',cx);horizontal.setAttribute('y1',y);horizontal.setAttribute('y2',y);
     ylabel.querySelector('rect').setAttribute('y',y-9);const text=ylabel.querySelector('text');text.setAttribute('y',y+4);text.textContent=Number.isFinite(price)&&price>0?format(price):'';
     xlabel.querySelector('rect').setAttribute('x',left);const date=xlabel.querySelector('text');date.setAttribute('x',left+40);date.textContent=label;
@@ -1289,30 +1296,50 @@ function drawTrendWorkspace(host,detail,analysis,baseBars,bars,asset,scale,versi
   if(host._trendWsFrameKey!==frameKey||!host.querySelector?.('[data-trend-ws-stage]')){host.innerHTML=trendWorkspaceFrame(detail,asset,scale,ws);host._trendWsFrameKey=frameKey;}
   const stage=host.querySelector('[data-trend-ws-stage]'),width=stage?.clientWidth||Math.max(330,(host.clientWidth||1200)-48-(ws.panelOpen&&!narrow?300:0)),height=stage?.clientHeight||Math.max(260,(host.clientHeight||720)-96);
   const m=trendPlotModel(detail,analysis,bars,scale,width,{axis:'right',height,yRange:state.yRange});
+  const domain=[baseBars[0].session_index,Math.max(baseBars.at(-1).session_index,m.end,analysis.projection_sessions?.at(-1)?.index??0)];
+  if(state.xRange){[m.first,m.end]=state.xRange;m.x=index=>m.L+(index-m.first)/(m.end-m.first)*(m.W-m.L-m.R);}
   m.manualState=manual;m.manualDetail=detail;m.manualLines=manual.lines.filter(l=>!l.hidden).map(l=>trendManualGeometry(l,detail,analysis,scale,m)).filter(Boolean);
   if(stage)stage.innerHTML=trendWorkspaceLegend(detail,analysis,asset,scale)+trendSvg(detail,m,asset,'workspace')+trendWorkspaceSelectionBar();
   host._trendWorkspace=ws;bindTrendWorkspaceChart(host,detail,m,asset);bindTrendManual(host,detail,m,asset,scale);
   if(restoreName&&/^[a-z_]+$/.test(restoreName))host.querySelector('[data-trend-manual-form] [name="'+restoreName+'"]')?.focus();
   const repaint=()=>{if(host._trendWsFrameRequest)return;const run=()=>{host._trendWsFrameRequest=0;if(host.isConnected!==false&&TREND_ZOOM?.ws===ws)drawTrendInteractiveChart(host,detail,analysis,baseBars,asset,scale,version,state,()=>{},ws);};host._trendWsFrameRequest=globalThis.requestAnimationFrame?requestAnimationFrame(run):(run(),0);};
   const limit=()=>baseBars.length-bars.length,clampOffset=value=>Math.max(0,Math.min(limit(),Math.round(value)));
-  const zoom=(factor,ratio=.5)=>{const target=Math.max(1,Math.min(maximum,factor));if(Math.abs(target-state.factor)<1e-12&&!Number.isInteger(state.heldCount))return;const anchor=state.offset+ratio*(bars.length-1);state.factor=target;state.heldCount=null;const count=Math.min(baseBars.length,Math.max(20,Math.ceil(baseBars.length/target)));state.offset=anchor-ratio*(count-1);ws.range=null;repaint();};
-  const pan=delta=>{state.heldCount=bars.length;state.offset=clampOffset((state.offset??limit())+delta);ws.range=null;repaint();};
+  const windowRange=()=>state.xRange||[m.first,m.end];
+  const validRange=range=>range.every(Number.isFinite)&&range[1]>range[0]&&(scale!=='log'||range.every(value=>Math.exp(value)>0&&Number.isFinite(Math.exp(value))));
+  const boundedWindow=(start,span)=>{const size=Math.min(domain[1]-domain[0],span),first=Math.max(domain[0],Math.min(domain[1]-size,start));return [first,first+size];};
+  const priceFrame=range=>trendPlotFrame(m.W,{axis:'right',height:m.H},m.H,scale==='log'?Math.exp(range[1]):range[1]);
+  const zoom=(factor,ratio=.5,point=null)=>{
+    const target=Math.max(1,Math.min(maximum,factor));if(!Number.isFinite(target)||Math.abs(target-state.factor)<1e-12)return;
+    const current=windowRange(),range=state.yRange||m.range,frame=priceFrame(range),clamp=value=>Math.max(0,Math.min(1,value));
+    const rx=point?clamp((point.x-frame.L)/(frame.W-frame.L-frame.R)):clamp(ratio),anchor=current[0]+rx*(current[1]-current[0]),step=target/state.factor;
+    let nextRange=range;
+    if(point&&point.y>=frame.T&&point.y<=frame.H-frame.B){const ry=clamp((point.y-frame.T)/(frame.H-frame.T-frame.B)),price=range[1]-ry*(range[1]-range[0]),span=(range[1]-range[0])/step;nextRange=[price-(1-ry)*span,price+ry*span];if(!validRange(nextRange))return;}
+    const nextFrame=priceFrame(nextRange),nextRatio=point?clamp((point.x-nextFrame.L)/(nextFrame.W-nextFrame.L-nextFrame.R)):rx;
+    const span=target===1?domain[1]-domain[0]:(current[1]-current[0])/step;
+    state.xRange=boundedWindow(anchor-nextRatio*span,span);state.factor=target;state.heldCount=null;
+    if(nextRange!==range)state.yRange=nextRange;ws.range=null;repaint();
+  };
+  const panWindow=(first,range=null)=>{const current=windowRange();state.xRange=boundedWindow(first,current[1]-current[0]);if(range)state.yRange=range;ws.range=null;repaint();};
+  const pan=delta=>{if(state.xRange){panWindow(state.xRange[0]+delta);return;}state.heldCount=bars.length;state.offset=clampOffset((state.offset??limit())+delta);ws.range=null;repaint();};
   const panTo=(offset,range=null)=>{state.heldCount=bars.length;state.offset=clampOffset(offset);if(range)state.yRange=range;ws.range=null;repaint();};
-  const setRange=range=>{state.yRange=range;repaint();};
-  const scalePrice=factor=>{const [low,high]=state.yRange||m.range,mid=(low+high)/2,half=(high-low)/2*factor;if(half>0&&Number.isFinite(half))setRange([mid-half,mid+half]);};
-  const preset=label=>{const row=TREND_RANGE_PRESETS.find(item=>item[0]===label);if(!row)return;const crypto=detail.asset?.kind==='crypto'||detail.asset_id==='bitcoin',count=row[1]===null?baseBars.length:Math.min(baseBars.length,Math.max(20,crypto?row[2]:row[1]));state.heldCount=count;state.factor=baseBars.length/count;state.offset=null;state.yRange=null;ws.range=label;repaint();};
-  const goto=value=>{if(!trendManualDate(value))return;let position=baseBars.findIndex(bar=>date(bar)>=value);if(position<0)position=baseBars.length-1;state.heldCount=bars.length;state.offset=clampOffset(position-Math.floor(bars.length/2));ws.range=null;repaint();};
-  host._trendNavigation={m,zoom,pan,panTo,setRange,scalePrice,preset,goto,repaint,state,baseBars,bars};
-  host.querySelectorAll?.('[data-trend-tool]').forEach(button=>{const action=button.dataset.trendTool;button.disabled=action==='in'&&state.factor>=maximum&&bars.length<=20||action==='out'&&bars.length>=baseBars.length||action==='left'&&state.offset<=0||action==='right'&&state.offset>=limit();if(action==='range')button.setAttribute('aria-pressed',String(ws.range===button.dataset.trendRange));button.onclick=()=>{if(action==='range'){preset(button.dataset.trendRange);return;}if(action==='in'||action==='out'){zoom(state.factor*(action==='in'?1.5:1/1.5));return;}if(action==='reset'){ws.resetView();return;}pan(Math.round(bars.length*.4)*(action==='left'?-1:1));};});
+  const setRange=range=>{if(range&&!validRange(range))return;state.yRange=range;repaint();};
+  const scalePrice=(factor,ratio=.5)=>{const [low,high]=state.yRange||m.range,anchor=low+ratio*(high-low),span=(high-low)*factor;setRange([anchor-ratio*span,anchor+(1-ratio)*span]);};
+  const preset=label=>{const row=TREND_RANGE_PRESETS.find(item=>item[0]===label);if(!row)return;const crypto=detail.asset?.kind==='crypto'||detail.asset_id==='bitcoin',count=row[1]===null?baseBars.length:Math.min(baseBars.length,Math.max(20,crypto?row[2]:row[1]));state.heldCount=count;state.factor=baseBars.length/count;state.offset=null;state.yRange=null;state.xRange=null;ws.range=label;repaint();};
+  const goto=value=>{if(!trendManualDate(value))return;let position=baseBars.findIndex(bar=>date(bar)>=value);if(position<0)position=baseBars.length-1;state.heldCount=bars.length;state.offset=clampOffset(position-Math.floor(bars.length/2));state.xRange=null;ws.range=null;repaint();};
+  host._trendNavigation={m,zoom,pan,panTo,panWindow,setRange,scalePrice,preset,goto,repaint,state,baseBars,bars};
+  host.querySelectorAll?.('[data-trend-tool]').forEach(button=>{const action=button.dataset.trendTool;button.disabled=action==='in'&&state.factor>=maximum||action==='out'&&(state.xRange?state.xRange[1]-state.xRange[0]>=domain[1]-domain[0]-1e-9:bars.length>=baseBars.length)||action==='left'&&(state.xRange?state.xRange[0]<=domain[0]+1e-9:state.offset<=0)||action==='right'&&(state.xRange?state.xRange[1]>=domain[1]-1e-9:state.offset>=limit());if(action==='range')button.setAttribute('aria-pressed',String(ws.range===button.dataset.trendRange));button.onclick=()=>{if(action==='range'){preset(button.dataset.trendRange);return;}if(action==='in'||action==='out'){zoom(state.factor*(action==='in'?1.5:1/1.5));return;}if(action==='reset'){ws.resetView();return;}pan(Math.round(bars.length*.4)*(action==='left'?-1:1));};});
   const span=host.querySelector('[data-trend-ws-span]');if(span)span.textContent=`${date(bars[0])} — ${date(bars.at(-1))} · ${bars.length.toLocaleString('ko-KR')}봉`;
   const auto=host.querySelector('[data-trend-ws-action="auto"]');auto?.setAttribute('aria-pressed',String(!state.yRange));
   const goto_=host.querySelector('[data-trend-ws-goto]');if(goto_&&globalThis.document?.activeElement!==goto_){goto_.min=date(baseBars[0]);goto_.max=date(baseBars.at(-1));}
   if(host._trendWsNavBound||!host.addEventListener)return;host._trendWsNavBound=true;
   const local=event=>{const nav=host._trendNavigation,svg=host.querySelector('svg[data-trend-plot]'),bounds=svg?.getBoundingClientRect();if(!nav?.zoom||!bounds?.width||!bounds.height)return null;return {nav,bounds,x:(event.clientX-bounds.left)/bounds.width*nav.m.W,y:(event.clientY-bounds.top)/bounds.height*nav.m.H};};
   host.addEventListener('wheel',event=>{if(!event.target.closest?.('svg[data-trend-plot]'))return;const p=local(event);if(!p)return;event.preventDefault();const {nav}=p,plot=nav.m;
-    if(p.x>plot.W-plot.R){nav.scalePrice(Math.exp(event.deltaY*.0015));return;}
-    if(event.shiftKey||Math.abs(event.deltaX)>Math.abs(event.deltaY)){const delta=event.shiftKey?event.deltaY||event.deltaX:event.deltaX;nav.pan(Math.round(delta/Math.max(1,plot.W-plot.L-plot.R)*nav.bars.length)||Math.sign(delta));return;}
-    nav.zoom(nav.state.factor*Math.exp(-event.deltaY*.002),Math.max(0,Math.min(1,(p.x-plot.L)/Math.max(1,plot.W-plot.L-plot.R))));},{passive:false});
+    const unitY=event.deltaMode===1?16:event.deltaMode===2?(plot.H-plot.T-plot.B)/plot.H*p.bounds.height:1,unitX=event.deltaMode===2?(plot.W-plot.L-plot.R)/plot.W*p.bounds.width:unitY;
+    const dx=event.deltaX*unitX,dy=event.deltaY*unitY;if(!Number.isFinite(dx)||!Number.isFinite(dy)||!dx&&!dy)return;
+    const delta=Math.max(-160,Math.min(160,dy));
+    if(p.x>plot.W-plot.R){nav.scalePrice(Math.exp(delta*.0015),Math.max(0,Math.min(1,(plot.H-plot.B-p.y)/(plot.H-plot.T-plot.B))));return;}
+    if(event.shiftKey||Math.abs(dx)>Math.abs(dy)){const move=event.shiftKey?dy||dx:dx;nav.pan(Math.round(move/Math.max(1,plot.W-plot.L-plot.R)*nav.bars.length)||Math.sign(move));return;}
+    nav.zoom(nav.state.factor*Math.exp(-delta*.002),.5,{x:p.x,y:p.y});},{passive:false});
   const pointers=new Map();let gesture=null;
   const clearGesture=()=>{gesture=null;delete host.dataset.trendGesture;};
   host.addEventListener('pointerdown',event=>{if(event.button!==0&&event.pointerType!=='touch'||!event.target.closest?.('svg[data-trend-plot]'))return;const p=local(event);if(!p)return;const {nav}=p,plot=nav.m;
@@ -1320,14 +1347,14 @@ function drawTrendWorkspace(host,detail,analysis,baseBars,bars,asset,scale,versi
     event.preventDefault();event.target.closest('svg[data-trend-plot]')?.focus?.({preventScroll:true});
     pointers.set(event.pointerId,{x:event.clientX,y:event.clientY});if(event.isTrusted)host.setPointerCapture?.(event.pointerId);
     if(pointers.size===2){const values=[...pointers.values()];gesture={kind:'pinch',distance:Math.hypot(values[0].x-values[1].x,values[0].y-values[1].y),factor:nav.state.factor};host.dataset.trendGesture='plot';return;}
-    gesture={kind:p.x>plot.W-plot.R?'price':p.y>plot.H-plot.B?'time':'plot',id:event.pointerId,x:event.clientX,y:event.clientY,offset:nav.state.offset,factor:nav.state.factor,range:(nav.state.yRange||plot.range).slice(),plotWidth:Math.max(1,(plot.W-plot.L-plot.R)/plot.W*p.bounds.width),plotHeight:Math.max(1,(plot.H-plot.T-plot.B)/plot.H*p.bounds.height),count:nav.bars.length,moved:false};host.dataset.trendGesture=gesture.kind;});
+    gesture={kind:p.x>plot.W-plot.R?'price':p.y>plot.H-plot.B?'time':'plot',id:event.pointerId,x:event.clientX,y:event.clientY,offset:nav.state.offset,factor:nav.state.factor,range:(nav.state.yRange||plot.range).slice(),plotWidth:Math.max(1,(plot.W-plot.L-plot.R)/plot.W*p.bounds.width),plotHeight:Math.max(1,(plot.H-plot.T-plot.B)/plot.H*p.bounds.height),count:nav.bars.length,first:plot.first,span:plot.end-plot.first,moved:false};host.dataset.trendGesture=gesture.kind;});
   host.addEventListener('pointermove',event=>{if(!pointers.has(event.pointerId))return;pointers.set(event.pointerId,{x:event.clientX,y:event.clientY});const nav=host._trendNavigation;if(!gesture||!nav?.zoom)return;
     if(gesture.kind==='pinch'){if(pointers.size===2){const values=[...pointers.values()];event.preventDefault();nav.zoom(gesture.factor*Math.hypot(values[0].x-values[1].x,values[0].y-values[1].y)/Math.max(1,gesture.distance));}return;}
     if(gesture.id!==event.pointerId)return;const dx=event.clientX-gesture.x,dy=event.clientY-gesture.y;if(!gesture.moved&&Math.hypot(dx,dy)<5)return;gesture.moved=true;event.preventDefault();
     const [low,high]=gesture.range;
     if(gesture.kind==='price'){const half=(high-low)/2*Math.exp(dy*.006),mid=(low+high)/2;nav.setRange([mid-half,mid+half]);return;}
     if(gesture.kind==='time'){nav.zoom(gesture.factor*Math.exp(-dx*.006),1);return;}
-    const shift=dy/gesture.plotHeight*(high-low);nav.panTo(gesture.offset-dx/gesture.plotWidth*gesture.count,nav.state.yRange||Math.abs(dy)>12?[low+shift,high+shift]:null);});
+    const shift=dy/gesture.plotHeight*(high-low),range=nav.state.yRange||Math.abs(dy)>12?[low+shift,high+shift]:null;if(nav.state.xRange)nav.panWindow(gesture.first-dx/gesture.plotWidth*gesture.span,range);else nav.panTo(gesture.offset-dx/gesture.plotWidth*gesture.count,range);});
   const release=event=>{if(!pointers.delete(event.pointerId))return;if(gesture?.kind==='pinch'&&pointers.size<2||gesture?.id===event.pointerId)clearGesture();if(host.hasPointerCapture?.(event.pointerId))host.releasePointerCapture(event.pointerId);};
   host.addEventListener('pointerup',release);host.addEventListener('pointercancel',release);host.addEventListener('lostpointercapture',release);
   const cancel=()=>{for(const id of [...pointers.keys()])release({pointerId:id});clearGesture();};
@@ -1364,7 +1391,7 @@ function openTrendWorkspace(context,trigger=null,options={}){
     drawTrendInteractiveChart(host,built.source,ws.hideAuto?{...built.analysis,lines:[]}:built.analysis,base,ws.context.asset,ws.scale,ws.context.version||'workspace',ws.state,()=>{},ws);
   };
   ws.openPanel=()=>{if(!ws.panelOpen){ws.panelOpen=true;ws.render();}};
-  ws.resetView=()=>{ws.state.factor=1;ws.state.offset=null;ws.state.heldCount=null;ws.state.yRange=null;ws.pendingWindow=ws.home;ws.range=null;ws.render();};
+  ws.resetView=()=>{ws.state.factor=1;ws.state.offset=null;ws.state.heldCount=null;ws.state.yRange=null;ws.state.xRange=null;ws.pendingWindow=ws.home;ws.range=null;ws.render();};
   ws.setScale=scale=>{if(ws.context.fixedScale||!['linear','log'].includes(scale)||scale===ws.scale)return;ws.scale=scale;ws.state.yRange=null;ws.render();};
   ws.setFamily=value=>{if(value==='none')ws.hideAuto=!ws.hideAuto;else{ws.hideAuto=false;ws.family=value;}ws.render();};
   ws.switchAsset=id=>{ws.assetMenu=false;if(id===ws.assetId&&!ws.pendingAsset){ws.render();return;}if(!TREND_VISIBLE_ASSETS.some(row=>row[0]===id))return;ws.pendingAsset=id;ws.pendingMessage=null;ws.render();globalThis.location.hash='#trendlines/'+id;};
