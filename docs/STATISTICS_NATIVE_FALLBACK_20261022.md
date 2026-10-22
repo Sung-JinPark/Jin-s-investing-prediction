@@ -99,3 +99,21 @@ Both datasets advanced to the US October 21 session. NFCI also advanced to Octob
 their existing approved FRED definitions; no unverified free substitute is
 claimed as operational. A six-hour thread heartbeat separately checks actual API
 results and public propagation, notifying only on meaningful changes.
+
+
+## Incomplete FRED coverage isolation
+
+The first post-merge production refresh (39731613969) rejected DCOILWTICO
+because its returned non-missing dates did not cover the approved ledger.
+The previous snapshot remained selected; no invalid observation was promoted.
+A complete parse with missing historical coverage now preserves the exact
+API-rendered CSV and a separate rejection receipt, but appends no observations
+from that response. Its bounded coverage audit records missing dates, returned
+and approved endpoints, and the rejected hash/receipt, while selected-source
+metadata remains bound to the original approved receipt and availability time.
+Other independent series continue refreshing. Affected cards show a short
+review notice. The scheduled job reports the held series after valid partial
+publication; it does not report complete source health. Malformed input or
+broken raw/observation lineage still blocks publication. Every future batch
+retries FRED, so complete recovered coverage can leave this hold automatically.
+Repeated acquisition-only receipt IDs do not create clock-only snapshots.
