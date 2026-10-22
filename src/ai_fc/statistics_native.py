@@ -13,7 +13,7 @@ import math
 import subprocess
 import xml.etree.ElementTree as ET
 import zipfile
-from datetime import date
+from datetime import date, datetime, timezone
 from pathlib import Path
 from typing import Any, Callable
 
@@ -141,12 +141,12 @@ def collect_current(root: Path, specs: dict[str, Any], *, fetcher, request,
 
     A cache is allowed only from the approved append-only store, with every
     selected observation bound to intact raw bytes. A semantic/parser failure
-    remains fatal; only transport/API availability failures activate fallback.
+    remains fatal. Missing coverage is quarantined and retains the dated cache.
     """
     from . import fred_api
     from .authoritative_statistics import (
         load_authoritative_source_policy, read_normalized_observations,
-        read_raw_artifact_receipts, verify_raw_artifact_receipt,
+        read_raw_artifact_receipts, verify_raw_artifact_receipt, persist_raw_artifact,
     )
     from .statistics_lab import load_statistics_lab, _load_authoritative_current_rows
     previous = load_statistics_lab(root)
@@ -211,7 +211,32 @@ def collect_current(root: Path, specs: dict[str, Any], *, fetcher, request,
                             failed_probes = 0
                             continue
                 if regressed:
-                    raise NativeSourceError(f"FRED returned regressed coverage: {sid}")
+                    # A decoded but incomplete response is evidence, not a new
+                    # approved vintage. Preserve it without normalizing any rows
+                    # or rebinding the retained observations to its new receipt.
+                    rejected = persist_raw_artifact(
+                        store, policy, source_id="fred_market_signals", payload=raw,
+                        source_uri=fred_api.observations_public_url(
+                            sid, observation_start=spec.get("window_start", "1995-01-01")),
+                        fetched_at=datetime.now(timezone.utc).isoformat(timespec="seconds"),
+                        http_status=200, media_type="text/csv", series_ids=[sid],
+                    )
+                    missing = sorted({r["date"] for r in cached[sid]} - {r["date"] for r in rows})
+                    source_rows[sid] = cached[sid]
+                    metadata[sid] = {
+                        **meta[sid], "refresh_status": "verified_cache_waiting_source",
+                        "refresh_reason": "fred_coverage_regressed",
+                        "coverage_audit": {
+                            "missing_count": len(missing), "missing_dates_sample": missing[:32],
+                            "approved_endpoint": cached[sid][-1]["date"],
+                            "received_endpoint": rows[-1]["date"] if rows else None,
+                            "rejected_raw_sha256": rejected.raw_sha256,
+                            "rejected_receipt_id": rejected.receipt_id,
+                            "rejected_raw_path": "data/statistics/official_store/" + rejected.artifact_path,
+                        },
+                    }
+                    failed_probes = 0
+                    continue
                 source_rows[sid], raw_payloads[sid] = rows, raw
                 metadata[sid] = {"refresh_status": "current_fred"}
                 failed_probes = 0

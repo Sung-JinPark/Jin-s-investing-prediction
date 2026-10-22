@@ -103,8 +103,26 @@ def test_verified_retained_cache_keeps_original_clock_and_rejects_tampering(tmp_
     def invalid_schema(_):raise FredApiError("invalid observations schema")
     with pytest.raises(FredApiError, match="schema"):
         collect_current(tmp_path, {"M2SL":lab.FRED_SERIES["M2SL"]}, fetcher=invalid_schema, request=failed_native, cutoff=date(2026,4,2))
-    with pytest.raises(NativeSourceError, match="regressed"):
-        collect_current(tmp_path, {"M2SL":lab.FRED_SERIES["M2SL"]}, fetcher=lambda _:([],b""), request=failed_native, cutoff=date(2026,4,2))
+    original_observations = (store/"ledgers/normalized_observations.jsonl").read_bytes()
+    def regressed(sid):
+        if sid == "M2SL":
+            return [], b"observation_date,M2SL\n2026-01-01,.\n"
+        return [{"date":"2026-01-01","value":100}], b"healthy GS10 fixture"
+    rows, raws, meta = collect_current(tmp_path, {sid:lab.FRED_SERIES[sid] for sid in ("M2SL","GS10")}, fetcher=regressed, request=failed_native, cutoff=date(2026,4,2))
+    held = meta["M2SL"]
+    assert held["refresh_reason"] == "fred_coverage_regressed"
+    assert held["available_at"] == receipt.fetched_at
+    assert held["raw_sha256"] == receipt.raw_sha256
+    assert rows["M2SL"] == [{"date":"2026-01-01","value":100}]
+    assert "M2SL" not in raws and raws["GS10"] == b"healthy GS10 fixture"
+    assert meta["GS10"]["refresh_status"] == "current_fred"
+    audit = held["coverage_audit"]
+    assert audit["missing_count"] == 1 and audit["missing_dates_sample"] == ["2026-01-01"]
+    assert audit["received_endpoint"] is None and audit["approved_endpoint"] == "2026-01-01"
+    rejected = next(r for r in read_raw_artifact_receipts(store) if r.receipt_id == audit["rejected_receipt_id"])
+    assert (store/rejected.artifact_path).read_bytes() == b"observation_date,M2SL\n2026-01-01,.\n"
+    assert (store/"ledgers/normalized_observations.jsonl").read_bytes() == original_observations
+    assert lab._semantic_snapshot(held) == lab._semantic_snapshot({**held,"coverage_audit":{**audit,"rejected_receipt_id":"another-acquisition"}})
     (store/receipt.artifact_path).write_bytes(b"tampered fixture")
     with pytest.raises(RawArtifactMissing):
         collect_current(tmp_path, {"M2SL":lab.FRED_SERIES["M2SL"]}, fetcher=unavailable, request=failed_native, cutoff=date(2026,4,2))

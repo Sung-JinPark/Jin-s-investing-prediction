@@ -2911,7 +2911,7 @@ def build_statistics_lab(
         # Source identity belongs to the actual acquired artifact. Never label a
         # Board ZIP or a retained old observation as a fresh FRED response.
         for key in ("source_url", "request_url", "provider", "authority_class",
-                    "policy_source_id", "refresh_status", "refresh_reason", "equivalence_audit"):
+                    "policy_source_id", "refresh_status", "refresh_reason", "equivalence_audit", "coverage_audit"):
             if key in receipts[series_id]:
                 source_meta[-1][key] = receipts[series_id][key]
     sec_spec = SUPPLEMENTAL_SOURCES["SEC_IPO_QUARTERLY"]
@@ -3293,7 +3293,7 @@ def _semantic_snapshot(value: Any) -> Any:
         return {
             key: _semantic_snapshot(item)
             for key, item in value.items()
-            if key not in {"generated_at", "available_at", "knowledge_cutoff"}
+            if key not in {"generated_at", "available_at", "knowledge_cutoff", "rejected_receipt_id"}
         }
     if isinstance(value, list):
         return [_semantic_snapshot(item) for item in value]
@@ -3797,7 +3797,7 @@ def statistics_dashboard_projection(root: Path) -> dict[str, Any]:
         "native_frequency", "latest_observation", "authority_class",
         "usage_role", "numeric_input_allowed",
         "policy_source_id",
-        "refresh_status", "refresh_reason", "equivalence_audit",
+        "refresh_status", "refresh_reason", "equivalence_audit", "coverage_audit",
     }
     projected["sources"] = [
         {key: value for key, value in source.items() if key in public_source_keys}
