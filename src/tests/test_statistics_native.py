@@ -12,10 +12,12 @@ import pytest
 from ai_fc.statistics_native import NativeCollector, NativeSourceError, H6, parse_native, verify_overlap, collect_current
 
 
-def monthly_zip(*, adjustment="SA", unit="1e+09", value="100", duplicate=False):
+def monthly_zip(*, adjustment="SA", unit="1e+09", value="100", duplicate=False,
+                years=(2024,2025), through=None):
     observations = ''.join(
         f'<Obs OBS_STATUS="A" OBS_VALUE="{value}" TIME_PERIOD="{year}-{month:02d}-{calendar.monthrange(year, month)[1]}"/>'
-        for year in [2024, 2025] for month in range(1, 13)
+        for year in years for month in range(1, 13)
+        if through is None or date(year,month,1)<=through
     )
     if duplicate:
         observations += '<Obs OBS_STATUS="A" OBS_VALUE="100" TIME_PERIOD="2024-01-31"/>'
@@ -42,7 +44,7 @@ def test_native_same_month_label_units_and_full_exact_overlap():
     assert calls == [H6]
 
 
-@pytest.mark.parametrize("kwargs", [{"adjustment": "NSA"}, {"unit": "1e+06"}, {"value": "NaN"}, {"value": "inf"}, {"duplicate": True}])
+@pytest.mark.parametrize("kwargs", [{"adjustment": "NSA"}, {"unit": "1e+06"}, {"value": "NaN"}, {"value": "inf"}, {"value": "-1"}, {"duplicate": True}])
 def test_native_rejects_identity_unit_nonfinite_and_duplicate_changes(kwargs):
     with pytest.raises(NativeSourceError):
         parse_native(monthly_zip(**kwargs), "M2SL", cutoff=date(2026, 1, 1))
@@ -126,3 +128,36 @@ def test_shared_native_and_z1_raw_declares_all_extracted_series(tmp_path, monkey
     assert len(native)==2 and all(row.source_id=="federal_reserve_board" for row in native)
     receipts = [r for r in read_raw_artifact_receipts(tmp_path/"data/statistics/official_store") if r.raw_sha256==native[0].raw_sha256]
     assert receipts and all(set(native_ids)|set(lab.Z1_SERIES)<=set(r.series_ids) for r in receipts)
+
+
+def test_valid_but_delayed_fred_uses_verified_new_native_observation(tmp_path, monkeypatch):
+    import test_statistics_lab as fixtures
+    from ai_fc import statistics_lab as lab
+    from ai_fc.authoritative_statistics import (
+        read_raw_artifact_receipts,persist_raw_artifact,load_authoritative_source_policy,
+        NormalizedObservation,append_normalized_observations,
+    )
+    fixtures._append_official_persistence_batch(tmp_path,raw_tag="fixture",fetched_at="2026-04-01T00:00:00+00:00")
+    contract=Path(__file__).parents[2]/"data/contracts/authoritative_statistics_sources.yaml"
+    (tmp_path/"data/contracts").mkdir(parents=True)
+    shutil.copy2(contract,tmp_path/"data/contracts")
+    policy=load_authoritative_source_policy(contract);store=tmp_path/"data/statistics/official_store"
+    original=next(r for r in read_raw_artifact_receipts(store) if r.source_id=="fred_market_signals" and "M2SL" in r.series_ids)
+    receipt=persist_raw_artifact(store,policy,source_id="fred_market_signals",payload=b"controlled 24 month fixture",source_uri=original.source_uri,fetched_at=original.fetched_at,http_status=200,media_type="text/csv",series_ids=["M2SL"])
+    append_normalized_observations(store,policy,[NormalizedObservation(
+        source_id="fred_market_signals",series_id="M2SL",observation_date=f"{y}-{m:02d}-01",vintage_date="2026-04-01",revision_seq=0,
+        available_at=receipt.fetched_at,fetched_at=receipt.fetched_at,raw_value="100",value="100",raw_unit="billions_usd",unit="billions_usd",
+        semantic_type="currency",transformation_id="identity",parser_version="controlled-fixture",raw_sha256=receipt.raw_sha256,
+    ) for y in [2024,2025] for m in range(1,13)])
+    prior={"series_id":"M2SL","policy_source_id":"fred_market_signals","raw_sha256":original.raw_sha256,
+           "raw_path":"data/statistics/official_store/"+original.artifact_path,"latest_observation":"2026-01-01","available_at":original.fetched_at,"request_url":original.source_uri}
+    monkeypatch.setattr(lab,"load_statistics_lab",lambda _: {"sources":[prior]})
+    old=lab._load_authoritative_current_rows(tmp_path)["M2SL"]
+    actual=monthly_zip(years=(2024,2025,2026),through=date(2026,2,1))
+    rows,raws,meta=collect_current(tmp_path,{"M2SL":lab.FRED_SERIES["M2SL"]},fetcher=lambda _:(old,b"valid delayed FRED fixture"),request=lambda _:actual,cutoff=date(2026,4,2))
+    assert rows["M2SL"][-1]["date"]=="2026-02-01" and raws["M2SL"]==actual
+    assert meta["M2SL"]["refresh_reason"]=="fred_valid_response_behind_verified_native_release"
+    assert meta["M2SL"]["equivalence_audit"]["observations"]==25
+    # A bad optional native response leaves the valid API source usable.
+    _,raws,meta=collect_current(tmp_path,{"M2SL":lab.FRED_SERIES["M2SL"]},fetcher=lambda _:(old,b"valid FRED fixture"),request=lambda _:b"invalid optional native fixture",cutoff=date(2026,4,2))
+    assert raws["M2SL"]==b"valid FRED fixture" and meta["M2SL"]["refresh_status"]=="current_fred"

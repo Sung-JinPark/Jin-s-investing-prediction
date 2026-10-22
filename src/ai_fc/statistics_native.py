@@ -87,6 +87,8 @@ def parse_native(raw: bytes, series_id: str, *, cutoff: date) -> list[dict[str, 
         day, number = date.fromisoformat(observed), float(value)
         if not math.isfinite(number) or observed in seen:
             raise NativeSourceError("native duplicate/non-finite observation")
+        if series_id in {"M2SL", "BOGZ1LM153064475Q", "BOGZ1LM893064105Q"} and number <= 0:
+            raise NativeSourceError("native monetary/equity level must be positive")
         if day > cutoff:
             raise NativeSourceError("native future observation")
         seen.add(observed)
@@ -176,6 +178,11 @@ def collect_current(root: Path, specs: dict[str, Any], *, fetcher, request,
             raise NativeSourceError(f"cached source summary is not bound to its ledger: {sid}")
         verify_raw_artifact_receipt(store, policy, bound[-1])
     native = NativeCollector(request)
+    def native_candidate(sid, previous):
+        if specs[sid]["unit"] != SERIES[sid][2]:
+            raise NativeSourceError("configured unit differs from native contract")
+        return native.fetch(sid, start=specs[sid].get("window_start", "1995-01-01"),
+                            cutoff=cutoff, previous=previous)
     source_rows, raw_payloads, metadata = {}, {}, {}
     offline = False
     failed_probes = 0
@@ -185,8 +192,23 @@ def collect_current(root: Path, specs: dict[str, Any], *, fetcher, request,
         if not offline:
             try:
                 rows, raw = fetcher(sid)
-                if (not rows or rows[-1]["date"] < cached[sid][-1]["date"]
-                        or {r["date"] for r in cached[sid]} - {r["date"] for r in rows}):
+                regressed = (not rows or rows[-1]["date"] < cached[sid][-1]["date"]
+                             or bool({r["date"] for r in cached[sid]} - {r["date"] for r in rows}))
+                if sid in SERIES:
+                    try:
+                        # Compare with the fetched FRED vintage when complete;
+                        # otherwise require the entire previously approved view.
+                        # A HTTP 200 with an old endpoint is not a freshness gate.
+                        nr, nb, nm = native_candidate(sid, cached[sid] if regressed else rows)
+                    except (OSError, ValueError, KeyError, zipfile.BadZipFile, ET.ParseError):
+                        pass  # a rejected optional candidate cannot suppress healthy FRED
+                    else:
+                        if regressed or nr[-1]["date"] > rows[-1]["date"]:
+                            nm["refresh_reason"] = "fred_valid_response_behind_verified_native_release"
+                            source_rows[sid], raw_payloads[sid], metadata[sid] = nr, nb, nm
+                            failed_probes = 0
+                            continue
+                if regressed:
                     raise NativeSourceError(f"FRED returned regressed coverage: {sid}")
                 source_rows[sid], raw_payloads[sid] = rows, raw
                 metadata[sid] = {"refresh_status": "current_fred"}
@@ -212,11 +234,8 @@ def collect_current(root: Path, specs: dict[str, Any], *, fetcher, request,
             failure = "fred_api_probe_circuit_open"
         if sid in SERIES:
             try:
-                rows, raw, native_meta = native.fetch(
-                    sid, start=spec.get("window_start", "1995-01-01"),
-                    cutoff=cutoff, previous=cached[sid])
-                if spec["unit"] != SERIES[sid][2]:
-                    raise NativeSourceError("configured unit differs from native contract")
+                rows, raw, native_meta = native_candidate(sid, cached[sid])
+                native_meta["refresh_reason"] = failure
                 source_rows[sid], raw_payloads[sid], metadata[sid] = rows, raw, native_meta
                 continue
             except (OSError, ValueError, KeyError, zipfile.BadZipFile, ET.ParseError):

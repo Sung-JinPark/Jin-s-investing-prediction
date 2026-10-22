@@ -4,7 +4,8 @@ scope: current_display_statistics_only
 model_use: false
 official_forecast_input: false
 alfred_vintage_substitute: false
-activation: official_fred_api_availability_failure_only
+activation: official_fred_api_unavailable_or_verified_native_release_ahead
+healthy_api_policy: probe_native_five_retain_fred_unless_equivalent_native_endpoint_is_newer
 source_policy_id: federal_reserve_board
 license_url: https://www.federalreserve.gov/disclaimer.htm
 license: public_domain_unless_otherwise_indicated_cite_board

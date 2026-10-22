@@ -25,10 +25,12 @@ labels become the same period's start label used by FRED, without averaging,
 interpolation, scaling or changing values. Publisher series IDs, units, frequency
 and M2 seasonal adjustment are pinned in the contract and parser.
 
-On every actual API availability failure, each candidate must retain every stored
+On an API availability failure, or when a valid API response ends before the
+native publication, each candidate must retain every stored
 observation date, match the entire overlap within max(1e-8, abs(value)*1e-12), and
 have at least 24 overlapping observations. Any revision disagreement, truncation,
 duplicate, nonfinite value, wrong unit or missing identity rejects the candidate.
+Monetary/equity levels must be positive; interest rates may be negative.
 The old source remains dated and explicitly waiting. This is a conservative
 promotion gate, not a claim that genuine future publisher revisions are errors.
 
@@ -58,6 +60,14 @@ Sources:
 - No credit-spread proxy is substituted for ICE series in cross-asset analytics.
 
 ## Outage and recovery behavior
+
+The five native releases are also checked when FRED returns valid data. An
+equivalent native release can advance the read model if its endpoint is newer.
+Otherwise FRED remains the selected source; an unavailable or incompatible
+optional native download cannot suppress a healthy FRED series. This also
+handles a lagging API after a previous native promotion without moving dates
+backwards. Complete current FRED observations are used as the overlap comparator;
+if their coverage regresses, the previously approved view remains the comparator.
 
 Two consecutive availability failures for different series open a circuit for
 the remaining FRED requests in that batch. A successful response resets the
