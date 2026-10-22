@@ -293,3 +293,35 @@ def test_private_registry_gains_instruments_but_never_redefines_captured_ones(to
     with pytest.raises(C.TrendlinesError, match="existing definitions are immutable"):
         tool.private_root(output)
     assert target.read_bytes() == before
+
+
+def test_public_page_requests_a_rolling_window_without_a_fixed_start(tool, monkeypatch):
+    from datetime import datetime, timezone
+    now = datetime(2026, 10, 22, 8, tzinfo=timezone.utc)
+    equity = tool.capture_window({"kind": "equity"}, now)
+    crypto = tool.capture_window({"kind": "crypto"}, now)
+    assert equity[1] == crypto[1] == now
+    assert (now - equity[0]).days == 3652 and (now - crypto[0]).days == 2192
+    assert tool.capture_window(None, now) == equity
+
+    class Response:
+        status = 200
+        def __init__(self, url): self.url = url
+        def __enter__(self): return self
+        def __exit__(self, *_): return False
+        def read(self, _limit): return b"<html></html>"
+        def geturl(self): return self.url
+    seen = {}
+    def fake_urlopen(request, timeout):
+        seen["url"] = request.full_url
+        return Response(request.full_url)
+    monkeypatch.setattr(tool, "urlopen", fake_urlopen)
+    before = datetime.now(timezone.utc)
+    raw, receipt = tool.public_page("bitcoin")
+    query = dict(part.split("=") for part in seen["url"].split("?", 1)[1].split("&"))
+    span = (int(query["period2"]) - int(query["period1"])) / 86400
+    assert raw == b"<html></html>" and receipt["url"] == seen["url"] and 2191 <= span <= 2193
+    assert int(query["period2"]) >= int(before.timestamp()) and "2022" not in query["period1"]
+    raw, _ = tool.public_page("sk-hynix")
+    query = dict(part.split("=") for part in seen["url"].split("?", 1)[1].split("&"))
+    assert 3652 <= (int(query["period2"]) - int(query["period1"])) / 86400 <= 3654
