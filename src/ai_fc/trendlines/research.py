@@ -7,6 +7,7 @@ known only at its recorded capture time, including every retrospective anchor.
 
 from __future__ import annotations
 
+import functools
 import hashlib
 import json
 import os
@@ -38,6 +39,7 @@ PRIVATE_BAR_ID_PREFIX = "research-bar-"
 REJECTABLE_OHLC_ERRORS = {"OHLC must be finite positive numbers; close fallback forbidden", "OHLC containment violation"}
 _ACTIVE_REPLAY_CACHE: ContextVar[VerifiedReplayCache | None] = ContextVar("private_verified_replay_cache", default=None)
 _ACTIVE_REPLAY_ASSET: ContextVar[str | None] = ContextVar("private_replay_asset", default=None)
+_AUDIT_FILES: ContextVar[dict[str, tuple[str, int]] | None] = ContextVar("private_audit_file_digests", default=None)
 
 
 @contextmanager
@@ -218,19 +220,72 @@ def _source_replayed(root: Path, archive: dict[str, Any], archive_sha256: str) -
     return cache._contains(key, functions) or cache._contains(("research_metadata", *key), functions)
 
 
+@contextmanager
+def _audit_files():
+    """The digests of the files the current audit has read, shared with the audits nested in it.
+
+    Only the outermost verify opens a record, and it is discarded when that
+    verify returns, so every audit still reads and hashes each file it checks.
+    Within it, a nested audit or a later check of the same file compares the
+    digest of the bytes this audit already read instead of reading them again.
+    Nothing is persisted or accepted from a caller.
+    """
+    if _AUDIT_FILES.get() is not None:
+        yield
+        return
+    token = _AUDIT_FILES.set({})
+    try:
+        yield
+    finally:
+        _AUDIT_FILES.reset(token)
+
+
+def _audited(verify):
+    """Run an audit inside the file record of the outermost audit that encloses it."""
+    @functools.wraps(verify)
+    def audited(*args, **kwargs):
+        with _audit_files():
+            return verify(*args, **kwargs)
+    return audited
+
+
+def _audit_read(path: Path) -> tuple[bytes, str]:
+    """Read and hash a file, recording its digest for the rest of the current audit."""
+    data = path.read_bytes()
+    digest = hashlib.sha256(data).hexdigest()
+    files = _AUDIT_FILES.get()
+    if files is not None:
+        files[str(path)] = (digest, len(data))
+    return data, digest
+
+
+def _audit_digest(path: Path) -> tuple[str, int]:
+    """SHA256 and length of the bytes the current audit read at exactly this path, read now if none."""
+    files = _AUDIT_FILES.get()
+    if files is not None and str(path) in files:
+        return files[str(path)]
+    data, digest = _audit_read(path)
+    return digest, len(data)
+
+
 def _evidence_recall(root: Path, key, functions) -> dict[str, Any] | None:
     """Bindings from a successful audit, only while every file they name hashes the same.
 
-    Each recalled file is read and hashed again now, and each instrument is
+    Each recalled file's digest comes from the current audit: read and hashed
+    now, unless this audit already read that exact path. Each instrument is
     compared with today's registry. Any difference returns None, so the caller
     repeats its complete check and reports that check's own error.
     """
     cache = _ACTIVE_REPLAY_CACHE.get()
-    bound = cache._recall(key, functions) if cache is not None else None
+    return _evidence_current(root, cache._recall(key, functions) if cache is not None else None)
+
+
+def _evidence_current(root: Path, bound: dict[str, Any] | None) -> dict[str, Any] | None:
+    """The second half of _evidence_recall(), for bindings the caller recalled itself."""
     if bound is None:
         return None
     try:
-        if any(hashlib.sha256(S.safe_path(Path(root), relative).read_bytes()).hexdigest() != digest
+        if any(_audit_digest(S.safe_path(Path(root), relative))[0] != digest
                for relative, digest in bound["files"].items()):
             return None
         if any(C.canonical_hash(asset_definition(root, asset_id)) != digest for asset_id, digest in bound["assets"].items()):
@@ -291,6 +346,13 @@ def _checked_bytes(data: bytes, name: str) -> dict[str, Any]:
 def _receipt(raw: bytes, receipt: dict[str, Any], asset: dict[str, Any], as_of: str) -> dict[str, Any]:
     if not isinstance(raw, bytes) or not 0 < len(raw) <= MAX_RAW_BYTES:
         raise C.TrendlinesError("research_raw_size_or_type_invalid")
+    return _receipt_of(hashlib.sha256(raw).hexdigest(), len(raw), receipt, asset, as_of)
+
+
+def _receipt_of(sha: str, length: int, receipt: dict[str, Any], asset: dict[str, Any], as_of: str) -> dict[str, Any]:
+    """_receipt() from the SHA256 and length of raw bytes the caller read and hashed."""
+    if not 0 < length <= MAX_RAW_BYTES:
+        raise C.TrendlinesError("research_raw_size_or_type_invalid")
     if not isinstance(receipt, dict):
         raise C.TrendlinesError("research_receipt_required")
     url = receipt.get("url", receipt.get("source_uri"))
@@ -303,10 +365,9 @@ def _receipt(raw: bytes, receipt: dict[str, Any], asset: dict[str, Any], as_of: 
         raise C.TrendlinesError("research_source_url_identity_or_safety_violation")
     if any(key.lower() in S.SECRET_KEYS for key, _value in parse_qsl(parts.query, keep_blank_values=True)):
         raise C.TrendlinesError("research_source_url_credential_rejected")
-    sha = hashlib.sha256(raw).hexdigest()
     stated_sha = receipt.get("sha256", receipt.get("raw_sha256"))
     stated_length = receipt.get("bytes", receipt.get("byte_count"))
-    if stated_sha != sha or isinstance(stated_length, bool) or stated_length != len(raw):
+    if stated_sha != sha or isinstance(stated_length, bool) or stated_length != length:
         raise C.TrendlinesError("research_raw_receipt_sha_or_length_mismatch")
     fetched = S.aware_time(receipt.get("retrieved_at", receipt.get("fetched_at"))).isoformat()
     if not receipt.get("retrieved_at", receipt.get("fetched_at")) or S.aware_time(fetched) > S.aware_time(as_of):
@@ -320,7 +381,7 @@ def _receipt(raw: bytes, receipt: dict[str, Any], asset: dict[str, Any], as_of: 
             "asset_id": asset["asset_id"], "identity": asset["identity"], "symbol": asset["provider_symbol"],
             "source_id": SOURCE, "source_context": CONTEXT, "rights_status": RIGHTS,
             "verified_source": False, "official_forecast_write": False,
-            "url": url, "raw_sha256": sha, "byte_count": len(raw), "fetched_at": fetched,
+            "url": url, "raw_sha256": sha, "byte_count": length, "fetched_at": fetched,
             "available_at": fetched, "http_status": status, "media_type": "text/html",
             "parser_id": "yahoo_history_html_v1", "raw_path": (ROOT / "raw" / (sha + ".bin")).as_posix()}
     body["receipt_id"] = "research-receipt-" + C.canonical_hash(body)
@@ -527,39 +588,42 @@ def _archive_bindings(archive: dict[str, Any]) -> dict[str, Any]:
             "asset_sha256": C.canonical_hash(archive["asset"])}
 
 
+@_audited
 def verify(root: Path, *, replay: bool = True) -> dict[str, Any]:
     """Reparse immutable HTML and replay every research archive, never official DBs."""
     root = Path(root)
     resolved = str(root.resolve())
+    # Paths under the resolved root name files as safe_path() does, so nested
+    # audits find these digests under the same names.
+    store = Path(resolved)
     errors, snapshots = [], {}
     cache = _ACTIVE_REPLAY_CACHE.get() if replay is True else None
     pending, decoded = OrderedDict(), OrderedDict()
     functions = _replay_functions() if cache is not None else ()
     try:
         pointer = _latest(root)
-        for path in sorted((root / ROOT / "raw").glob("*.bin")):
-            if path.stem != hashlib.sha256(path.read_bytes()).hexdigest():
+        for path in sorted((store / ROOT / "raw").glob("*.bin")):
+            if path.stem != _audit_read(path)[1]:
                 raise C.TrendlinesError("research_original_raw_sha_mismatch")
         receipts, receipt_file_hashes = {}, {}
-        for path in sorted((root / ROOT / "receipts").glob("*.json")):
-            data = path.read_bytes()
+        for path in sorted((store / ROOT / "receipts").glob("*.json")):
+            data, receipt_sha = _audit_read(path)
             receipt = _checked_bytes(data, path.name)
             asset = asset_definition(root, receipt["asset_id"])
             raw_path = ROOT / "raw" / (receipt["raw_sha256"] + ".bin")
             if receipt.get("raw_path") != raw_path.as_posix():
                 raise C.TrendlinesError("research_raw_path_binding_invalid")
-            raw = S.safe_path(root, receipt["raw_path"]).read_bytes()
-            rebuilt = _receipt(raw, {"url": receipt["url"], "retrieved_at": receipt["fetched_at"],
-                                    "sha256": receipt["raw_sha256"], "bytes": receipt["byte_count"],
-                                    "http_status": receipt["http_status"]}, asset, receipt["fetched_at"])
+            # The digest of the original as the loop above read it in this audit.
+            raw_sha, raw_length = _audit_digest(S.safe_path(root, receipt["raw_path"]))
+            rebuilt = _receipt_of(raw_sha, raw_length, {"url": receipt["url"], "retrieved_at": receipt["fetched_at"],
+                                  "sha256": receipt["raw_sha256"], "bytes": receipt["byte_count"],
+                                  "http_status": receipt["http_status"]}, asset, receipt["fetched_at"])
             if receipt != rebuilt or path.name != receipt["receipt_id"] + ".json":
                 raise C.TrendlinesError("research_receipt_binding_invalid")
             receipts[receipt["receipt_id"]] = receipt
-            if cache is not None:
-                receipt_file_hashes[receipt["receipt_id"]] = hashlib.sha256(data).hexdigest()
-        for path in sorted((root / ROOT / "snapshots").glob("*.json")):
-            data = path.read_bytes()
-            file_sha = hashlib.sha256(data).hexdigest()
+            receipt_file_hashes[receipt["receipt_id"]] = receipt_sha
+        for path in sorted((store / ROOT / "snapshots").glob("*.json")):
+            data, file_sha = _audit_read(path)
             evidence_key = ("research_archive", resolved, file_sha, CONTEXT, RIGHTS,
                             tuple(id(function) for function in functions)) if cache is not None else None
             bindings = cache._recall(evidence_key, functions) if cache is not None else None
@@ -622,7 +686,7 @@ def verify(root: Path, *, replay: bool = True) -> dict[str, Any]:
             expected = ROOT / "snapshots" / (row["snapshot_id"] + ".json")
             if (row["snapshot_path"] != expected.as_posix() or row["snapshot_id"] not in snapshots
                     or snapshots[row["snapshot_id"]]["asset_id"] != asset_id
-                    or row["snapshot_sha256"] != hashlib.sha256((root / expected).read_bytes()).hexdigest()):
+                    or row["snapshot_sha256"] != _audit_digest(store / expected)[0]):
                 raise C.TrendlinesError("research_latest_snapshot_binding_invalid")
         for path in sorted((root / ROOT / "failures").glob("*.json")):
             failure = _checked(path)

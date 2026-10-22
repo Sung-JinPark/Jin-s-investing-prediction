@@ -972,6 +972,7 @@ def decode_envelope(envelope, expected_contract=None):
         raise C.TrendlinesError("representative_transport_json_invalid") from exc
 
 
+@R._audited
 def verify(root, *, asset_id=None, replay=True, now=None):
     root = Path(root)
     resolved = str(root.resolve())
@@ -983,19 +984,23 @@ def verify(root, *, asset_id=None, replay=True, now=None):
                  E._atr, E._value, E._epsilon, E._pivots, C.session_schedule)
     evidence_functions = functions + (verify, _read_snapshot, _bind_full, _verify_shadow, _export, _evidence, decode_envelope,
                                       F._read_snapshot, F._source_evidence, F._display_metadata, F._exports,
-                                      R._checked, R._receipt, R._source_replayed, R.asset_definition, R.research_source_policy)
+                                      R._checked, R._receipt, R._receipt_of, R._source_replayed, R.asset_definition,
+                                      R.research_source_policy)
     pending, decoded = {}, {}
     try:
         policy, pointer, snapshots = load_policy(root), _latest(root), {}
         for path in sorted(_path(root, ROOT / "snapshots").glob("*.json")):
-            data = path.read_bytes()
-            evidence_key = ("representative_evidence", resolved, path.name, _sha(data),
+            data, digest = R._audit_read(path)
+            evidence_key = ("representative_evidence", resolved, path.name, digest,
                             tuple(id(f) for f in evidence_functions))
-            bound = R._evidence_recall(root, evidence_key, evidence_functions) if cache is not None else None
+            recalled = cache._recall(evidence_key, evidence_functions) if cache is not None else None
+            # Another asset's snapshot is skipped whatever its dependencies hold,
+            # so it is identified before they are reread.
+            if asset_id is not None and (recalled or R._checked_bytes(data, path.name)).get("asset_id") != asset_id:
+                continue
+            bound = R._evidence_current(root, recalled)
             if bound is not None and S.aware_time(bound["capture_asof"]) > S.aware_time(now):
                 bound = None
-            if asset_id is not None and (bound or R._checked_bytes(data, path.name)).get("asset_id") != asset_id:
-                continue
             snapshot = source = full = None
             if bound is None:
                 snapshot, source, full = _read_snapshot(root, path.stem, now, reparse=replay)
@@ -1008,7 +1013,7 @@ def verify(root, *, asset_id=None, replay=True, now=None):
                 bound = _evidence(root, snapshot, source, full)
                 if cache is not None:
                     decoded[evidence_key] = (evidence_functions, bound)
-            key = ("representative", resolved, bound["content_hash"], _sha(data),
+            key = ("representative", resolved, bound["content_hash"], digest,
                    bound["source_content_hash"], bound["source_archive_sha256"], bound["raw_sha256"], bound["receipt_sha256"],
                    bound["full_content_hash"], bound["full_manifest_payload_sha256"], C.canonical_hash(policy), tuple(id(f) for f in functions))
             if replay and (cache is None or not cache._contains(key, functions)):
@@ -1029,7 +1034,8 @@ def verify(root, *, asset_id=None, replay=True, now=None):
             sp = ROOT / "snapshots" / (snapshot["snapshot_id"] + ".json")
             ep = ROOT / "exports" / snapshot["snapshot_id"] / "detail.json"
             if (snapshot["asset_id"] != asset or row["snapshot_path"] != sp.as_posix() or row["detail_path"] != ep.as_posix()
-                    or row["snapshot_sha256"] != _sha(_path(root, sp).read_bytes()) or row["detail_sha256"] != _sha(_path(root, ep).read_bytes())):
+                    or row["snapshot_sha256"] != R._audit_digest(_path(root, sp))[0]
+                    or row["detail_sha256"] != R._audit_digest(_path(root, ep))[0]):
                 raise C.TrendlinesError("representative_latest_snapshot_binding_invalid")
         if cache is not None:
             cache._remember(pending, decoded)

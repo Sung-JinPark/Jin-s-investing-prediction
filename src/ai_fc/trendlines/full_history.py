@@ -554,6 +554,7 @@ def _display_metadata(archive, receipt, archive_path, archive_sha):
             {"content_hash", "bars", "analyses", "audit_lines", "input_bar_ids", "selection_changes"}}
 
 
+@R._audited
 def verify(root: Path, *, asset_id: str | None = None, replay: bool = True, now=None) -> dict[str, Any]:
     """Replay every supplemental snapshot and retain old pinned source vintages."""
     root = Path(root)
@@ -570,13 +571,14 @@ def verify(root: Path, *, asset_id: str | None = None, replay: bool = True, now=
                  C.validate_config, C.validate_research_source, C.validate_bar,
                  C.session_schedule, C.latest_completed_session)
     evidence_functions = functions + (verify, _read_snapshot, _source_evidence, _display_metadata, _exports, _evidence,
-                                      R._checked, R._receipt, R.asset_definition, R.research_source_policy, D.compact_snapshot)
+                                      R._checked, R._receipt, R._receipt_of, R.asset_definition, R.research_source_policy,
+                                      D.compact_snapshot)
     try:
         pointer = _latest(root)
         snapshots = {}
         for path in sorted(_path(root, ROOT / "snapshots").glob("*.json")):
-            data = path.read_bytes()
-            evidence_key = ("full_history_evidence", resolved, path.name, _sha(data),
+            data, digest = R._audit_read(path)
+            evidence_key = ("full_history_evidence", resolved, path.name, digest,
                             tuple(id(f) for f in evidence_functions))
             bound = R._evidence_recall(root, evidence_key, evidence_functions) if cache is not None else None
             snapshot = source = None
@@ -594,7 +596,7 @@ def verify(root: Path, *, asset_id: str | None = None, replay: bool = True, now=
                 bound = _evidence(root, snapshot, source, manifest, chunks)
                 if cache is not None:
                     decoded[evidence_key] = (evidence_functions, bound)
-            key = ("full_history", resolved, bound["content_hash"], _sha(data),
+            key = ("full_history", resolved, bound["content_hash"], digest,
                    bound["source_archive_sha256"], tuple(id(f) for f in functions))
             if replay and R._replay_includes(bound["asset_id"]) and (cache is None or not cache._contains(key, functions)):
                 if source is None:
@@ -613,9 +615,9 @@ def verify(root: Path, *, asset_id: str | None = None, replay: bool = True, now=
             expected_path = ROOT / "snapshots" / (snapshot["snapshot_id"] + ".json")
             manifest_path = ROOT / "exports" / snapshot["snapshot_id"] / "manifest.json"
             if (snapshot["asset_id"] != aid or row["snapshot_path"] != expected_path.as_posix()
-                    or row["snapshot_sha256"] != _sha(_path(root, expected_path).read_bytes())
+                    or row["snapshot_sha256"] != R._audit_digest(_path(root, expected_path))[0]
                     or row["manifest_path"] != manifest_path.as_posix()
-                    or row["manifest_sha256"] != _sha(_path(root, manifest_path).read_bytes())):
+                    or row["manifest_sha256"] != R._audit_digest(_path(root, manifest_path))[0]):
                 raise C.TrendlinesError("full_history_latest_snapshot_binding_invalid")
     except (OSError, ValueError, KeyError, TypeError) as exc:
         errors.append(str(exc))
