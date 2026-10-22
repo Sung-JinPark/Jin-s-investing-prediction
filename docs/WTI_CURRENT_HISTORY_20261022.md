@@ -56,3 +56,13 @@ archive manifest/hash/range/count/availability. The chart displays one concise
 archive note only while the current source is healthy. A held source keeps its
 review notice. Each rerun checks coverage again. No old raw bytes, normalized
 observation, immutable snapshot or event is rewritten.
+
+
+## Final refresh audit: unsupported real M2 status
+
+The existing reference-only liquidity builder hard-coded "ALFRED vintage API key
+unavailable" even though that field does not implement a point-in-time M2/CPI
+join at all, and actual ALFRED collection now succeeds elsewhere. The producer
+and UI now describe that unimplemented lineage correctly. The closed status,
+all liquidity numbers and existing captured weekly vintages remain unchanged;
+no old snapshot is rewritten or current-vintage M2 substituted into a PIT field.
