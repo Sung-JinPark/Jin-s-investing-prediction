@@ -118,8 +118,8 @@ A refresh runs the whole-store audit at every write boundary: before selection,
 inside capture, after capture, before export, and inside the full, critical,
 representative and long-boundary steps, then once more before publication. No
 pass was removed. Each pass, cached or not, still reads and SHA-256 hashes every
-raw original, receipt and archive in every store. What the worker no longer
-repeats for unchanged bytes:
+raw original, receipt and archive in every store it checks. What the worker no
+longer repeats for unchanged bytes:
 
 - **Canonical decoding of an unchanged archive.** The cache also keeps an
   evidence memo: the bindings decoded from an archive whose canonical JSON,
@@ -129,19 +129,31 @@ repeats for unchanged bytes:
   "these bytes are identical to bytes this process already decoded and checked";
   changed bytes, a renamed file, or a replaced validator are decoded and checked
   again in full. For the full, critical, representative and long-boundary
-  archives, a hit also rereads and rehashes every file the archive depends on
+  archives, a hit also compares the digest of every file the archive depends on
   (source archive, receipt, raw original, full snapshot, manifest, candle chunks,
-  exports, and the critical snapshot used as the representative shadow). It
-  compares today's registry definition and calculation contract, and rechecks
-  the read cutoff. Any difference sends the archive through its full check,
-  which reports its own error.
+  exports, and the critical snapshot used as the representative shadow), as
+  read in the current audit. It compares today's registry definition and
+  calculation contract, and rechecks the read cutoff. Any difference sends the
+  archive through its full check, which reports its own error.
 - **HTML reparse in the representative and long-boundary audits.** These
   audits reuse the research audit's proof for exactly the same archive, receipt
   and raw bytes and the same parser functions. Without such a proof, including
   every audit outside the worker, they reparse the original HTML as before.
-- **One of three raw reads per research pass.** The original is hashed when the
-  store is listed and again when its receipt is rebuilt. It is read a third time
-  only when that archive must be reparsed.
+- **A second read of the same file in one audit.** An audit reads and hashes
+  each file once. The critical audit runs the full audit, which runs the
+  research audit; these nested audits, and later checks in the same audit (the
+  original behind a receipt, an archive's dependencies, a latest pointer), use
+  the digest of the bytes the audit already read at exactly that path. This
+  record exists only while the outermost audit runs; the next audit reads every
+  file again. A file changed after this audit read it is reported by the next
+  audit, just as a change after an audit's last read always was. The research
+  audit therefore reads each original once and rebuilds its receipt from that
+  read's digest and length. It reads the original again only to reparse it.
+- **Other assets' chains in a refresh's representative and long-boundary
+  audits.** These two audits check only the refreshed asset. They used to reread
+  every other asset's dependency chain and then skip that snapshot whatever the
+  result. They now see whose snapshot it is first. The research, full and
+  critical audits still check every asset.
 
 Relaxed guarantee, stated explicitly: within one worker process, an archive is
 not decoded and re-canonicalized again when its bytes hash to bytes the same
@@ -217,10 +229,40 @@ weighted with measured per-archive costs, gave about 310 s of extra work per
 refresh at the bound (LRU: 550 s) and about the same as LRU at twice the bound.
 No eviction order makes an overflowing store warm.
 
-Hashing binds long before the bound. One SHA-256 read of the 1.0 GB copy takes
-about 2.5 s; a warm pass through all five audits took 13–31 s and a warm
-refresh 69–98 s, depending on other load on the machine. The store grows about
-5.5 MB a capture, about 5 GB a month at this rate, and every pass reads all of it.
+Hashing binds long before the bound. The store grows about 5.5 MB a capture,
+about 5 GB a month at this rate, and every refresh reads it several times.
+
+#### What a warm refresh reads
+
+Measured on 2026-10-22 on a copy of the 182-capture store (1.0 GB, 2,427 files).
+Every asset's evidence was already cached, as in the worker after one cycle.
+Each refresh was a changed micron capture replayed from saved bytes. The two
+versions ran interleaved in one process on the same copy, so load on the machine
+affected both; they wrote byte-identical stores.
+
+| Per warm refresh | Before | After |
+|---|---:|---:|
+| Bytes read | 10.85 GB | 5.58 GB |
+| Six research audits, each | 812 MB | 583 MB |
+| Full audit, with its research audit | 1.63 GB | 0.85 GB |
+| Critical audit, with its full and research audits | 2.53 GB | 0.99 GB |
+| Representative and long-boundary audits, each | 0.81 GB | 0.03 GB |
+| Wall clock, five audits only (median of 8) | 16.2 s | 6.9 s |
+| Wall clock, refresh (median of 3) | 56.4 s | 50.0 s |
+
+SHA-256 itself takes about 0.5 s per GB here; reading the bytes takes 1–1.6 s
+per GB, so reads, not hashing, set the cost. About 25–35 s of a refresh is the
+refreshed asset's own calculation and the replay of its previous snapshots,
+which does not depend on the store's size.
+
+What still grows with the store: each refresh reads about 5.6 times the stored
+bytes, because six research audits read the whole research store and the full
+and critical audits read it once more with their own stores. Per-file work grows
+too. `storage.safe_path` resolves the root and the file for every dependency it
+checks (about 0.8 ms a call on this machine, 5,275 calls a refresh), and each
+archive check rereads and copies the asset registry (0.5 ms, 3,487 calls). At
+1.0 GB that is about 7.5 s of reading and hashing and 6 s of per-file work a
+refresh, against about 23 s before.
 
 ## Browser compatibility
 
