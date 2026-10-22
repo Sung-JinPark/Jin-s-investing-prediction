@@ -41,9 +41,14 @@ Sources:
 
 - Chicago Fed NFCI free direct CSV is reachable and goes through October 16.
   Against the old FRED vintage, 1,604 of 1,658 overlaps differ at the publisher's
-  three-decimal precision (maximum absolute difference 0.065). It is **not
-  promoted** under this contract. Chicago documents weekly revisions:
+  three-decimal precision (maximum absolute difference 0.065). After the actual
+  FRED recovery, all 1,659 overlaps match the new official vintage exactly,
+  confirming that the earlier difference was a published-vintage mismatch.
+  Direct collection remains **not promoted**: the source-specific legal/D0
+  review in `data/contracts/fred_nfci_d0.yaml` remains closed. This change does
+  not infer broader distribution permission from free download availability.
   https://www.chicagofed.org/research/data/nfci/current-data
+  https://www.chicagofed.org/utilities/legal-notices
 - Nasdaq's free website endpoints do not establish permission for this automated
   public-data use. No Nasdaq endpoint, Yahoo proxy or ETF replacement is enabled:
   https://www.nasdaq.com/legal
