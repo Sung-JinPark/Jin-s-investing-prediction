@@ -274,6 +274,9 @@ def components_projection(root: Path) -> dict[str, Any]:
         return {"status": "absent"}
     payload = json.loads(path.read_text(encoding="utf-8"))
     dates = list(payload.get("dates") or [])
+    # The daily composite tail does not refresh the captured component scores.
+    payload["components_observed_through"] = dates[-1] if dates else payload.get("seeded_at")
+    payload["components_refresh_policy"] = "frozen_browser_capture"
     sessions = _nasdaq_sessions(root)
     tail = _daily_tail(root, dates[-1] if dates else "", sessions)
     if tail:

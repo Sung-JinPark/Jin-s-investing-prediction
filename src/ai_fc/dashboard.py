@@ -1495,9 +1495,11 @@ def split_statistics_data(read_model: dict) -> tuple[dict, dict | None]:
         "contract_id": "statistics_route_v1",
         "data": {"statistics_lab": statistics_lab},
     }
-    payload_size = len(json.dumps(
+    payload_bytes = json.dumps(
         payload, ensure_ascii=False, default=str, separators=(",", ":")
-    ).encode("utf-8"))
+    ).encode("utf-8")
+    payload_size = len(payload_bytes)
+    base["statistics_lab"]["deferred_data"]["payload_sha256"] = hashlib.sha256(payload_bytes).hexdigest()
     if payload_size > STATISTICS_DATA_BUDGET_BYTES:
         raise ValueError(
             f"statistics data budget exceeded: {payload_size} > {STATISTICS_DATA_BUDGET_BYTES}"
