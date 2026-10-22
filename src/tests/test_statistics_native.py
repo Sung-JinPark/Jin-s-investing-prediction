@@ -86,6 +86,18 @@ def test_verified_retained_cache_keeps_original_clock_and_rejects_tampering(tmp_
     assert raws=={} and rows["M2SL"]==[{"date":"2026-01-01","value":100}]
     assert meta["M2SL"]["available_at"]==receipt.fetched_at
     assert meta["M2SL"]["refresh_status"]=="verified_cache_waiting_source"
+    gs_receipt = next(r for r in read_raw_artifact_receipts(store) if r.source_id=="fred_market_signals" and "GS10" in r.series_ids)
+    gs_meta = dict(prior,series_id="GS10",raw_sha256=gs_receipt.raw_sha256,
+                   raw_path="data/statistics/official_store/"+gs_receipt.artifact_path,request_url=gs_receipt.source_uri)
+    monkeypatch.setattr(lab,"load_statistics_lab",lambda _: {"sources":[prior,gs_meta]})
+    calls=[]
+    def isolated(sid):
+        calls.append(sid)
+        if sid=="M2SL":raise FredApiError("html; 3 attempts")
+        return [{"date":"2026-01-01","value":100}],b"fresh fixture GS10"
+    _,raws,meta=collect_current(tmp_path, {sid:lab.FRED_SERIES[sid] for sid in ("M2SL","GS10")}, fetcher=isolated, request=failed_native, cutoff=date(2026,4,2))
+    assert calls==["M2SL","GS10"] and meta["GS10"]["refresh_status"]=="current_fred"
+    assert raws["GS10"]==b"fresh fixture GS10"
     def invalid_schema(_):raise FredApiError("invalid observations schema")
     with pytest.raises(FredApiError, match="schema"):
         collect_current(tmp_path, {"M2SL":lab.FRED_SERIES["M2SL"]}, fetcher=invalid_schema, request=failed_native, cutoff=date(2026,4,2))

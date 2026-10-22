@@ -178,6 +178,7 @@ def collect_current(root: Path, specs: dict[str, Any], *, fetcher, request,
     native = NativeCollector(request)
     source_rows, raw_payloads, metadata = {}, {}, {}
     offline = False
+    failed_probes = 0
     circuit_reason = "fred_api_unavailable"
     for sid, spec in specs.items():
         failure = None
@@ -189,6 +190,7 @@ def collect_current(root: Path, specs: dict[str, Any], *, fetcher, request,
                     raise NativeSourceError(f"FRED returned regressed coverage: {sid}")
                 source_rows[sid], raw_payloads[sid] = rows, raw
                 metadata[sid] = {"refresh_status": "current_fred"}
+                failed_probes = 0
                 continue
             except (OSError, RuntimeError, subprocess.SubprocessError) as exc:
                 if isinstance(exc, fred_api.FredApiError) and not (
@@ -201,9 +203,13 @@ def collect_current(root: Path, specs: dict[str, Any], *, fetcher, request,
                 # Never persist transport exception text: it may contain a
                 # request URL with credentials. Only a closed reason code.
                 circuit_reason = "fred_credentials_unavailable" if "FRED_API_KEY" in str(exc) else "fred_api_unavailable"
-                offline, failure = True, circuit_reason
+                # A failure for one series is not proof that all other FRED
+                # series are unavailable. Probe a different series before
+                # opening the circuit; a successful response resets it.
+                failed_probes += 1
+                offline, failure = failed_probes >= 2, circuit_reason
         else:
-            failure = circuit_reason
+            failure = "fred_api_probe_circuit_open"
         if sid in SERIES:
             try:
                 rows, raw, native_meta = native.fetch(

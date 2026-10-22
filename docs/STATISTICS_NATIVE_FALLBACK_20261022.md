@@ -59,8 +59,10 @@ Sources:
 
 ## Outage and recovery behavior
 
-One transport failure opens a circuit for the remaining FRED requests in that
-batch. Five individually verified native series can still refresh. Other inputs
+Two consecutive availability failures for different series open a circuit for
+the remaining FRED requests in that batch. A successful response resets the
+failure count, so one failed series cannot suppress healthy series. Five
+individually verified native series can still refresh. Other inputs
 may retain only their approved ledger observations, original availability times
 and intact raw receipts. A raw/lineage failure blocks publication. Per-series
 waiting state is shown in the UI and makes the scheduled workflow report failure
