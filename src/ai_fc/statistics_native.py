@@ -157,7 +157,8 @@ def collect_current(root: Path, specs: dict[str, Any], *, fetcher, request,
     policy = load_authoritative_source_policy(root / "data/contracts/authoritative_statistics_sources.yaml")
     receipts = {(r.source_id, r.raw_sha256, r.fetched_at): r for r in read_raw_artifact_receipts(store)}
     verified = set()
-    for row in read_normalized_observations(store):
+    cached_observations = read_normalized_observations(store)
+    for row in cached_observations:
         if row.series_id not in specs or row.source_id != preferences.get(row.series_id):
             continue
         key = row.source_id, row.raw_sha256, row.fetched_at
@@ -210,6 +211,22 @@ def collect_current(root: Path, specs: dict[str, Any], *, fetcher, request,
                             source_rows[sid], raw_payloads[sid], metadata[sid] = nr, nb, nm
                             failed_probes = 0
                             continue
+                if regressed and sid == "DCOILWTICO":
+                    from .wti_history import review_current, WtiCoverageError
+                    try:
+                        history = review_current(root, rows=rows, raw=raw,
+                                                 cached=cached[sid], observations=cached_observations,
+                                                 cutoff=cutoff)
+                    except WtiCoverageError:
+                        pass  # unreviewed omissions keep the existing quarantine
+                    else:
+                        # Only actually returned current rows cross the append
+                        # boundary. The canonical view retains the separately
+                        # pinned archive revisions with their original clocks.
+                        source_rows[sid], raw_payloads[sid] = rows, raw
+                        metadata[sid] = {"refresh_status": "current_fred", "history_coverage": history}
+                        failed_probes = 0
+                        continue
                 if regressed:
                     # A decoded but incomplete response is evidence, not a new
                     # approved vintage. Preserve it without normalizing any rows

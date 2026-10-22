@@ -2911,7 +2911,7 @@ def build_statistics_lab(
         # Source identity belongs to the actual acquired artifact. Never label a
         # Board ZIP or a retained old observation as a fresh FRED response.
         for key in ("source_url", "request_url", "provider", "authority_class",
-                    "policy_source_id", "refresh_status", "refresh_reason", "equivalence_audit", "coverage_audit"):
+                    "policy_source_id", "refresh_status", "refresh_reason", "equivalence_audit", "coverage_audit", "history_coverage"):
             if key in receipts[series_id]:
                 source_meta[-1][key] = receipts[series_id][key]
     sec_spec = SUPPLEMENTAL_SOURCES["SEC_IPO_QUARTERLY"]
@@ -3118,6 +3118,11 @@ def validate_statistics_lab(payload: dict[str, Any], *, projected: bool = False)
     if payload.get("observation_through") != payload.get("as_of"):
         raise StatisticsLabError("statistics observation_through/as_of contract invalid")
     for row in sources:
+        from .wti_history import validate_summary as validate_wti_history
+        try:
+            validate_wti_history(row, projected=projected)
+        except ValueError as exc:
+            raise StatisticsLabError("WTI history/current coverage validation failed") from exc
         if row.get("usage_role") != "numeric_input":
             raise StatisticsLabError(f"source {row.get('series_id')} numeric role invalid")
         if row.get("numeric_input_allowed") is not True:
@@ -3797,7 +3802,7 @@ def statistics_dashboard_projection(root: Path) -> dict[str, Any]:
         "native_frequency", "latest_observation", "authority_class",
         "usage_role", "numeric_input_allowed",
         "policy_source_id",
-        "refresh_status", "refresh_reason", "equivalence_audit", "coverage_audit",
+        "refresh_status", "refresh_reason", "equivalence_audit", "coverage_audit", "history_coverage",
     }
     projected["sources"] = [
         {key: value for key, value in source.items() if key in public_source_keys}

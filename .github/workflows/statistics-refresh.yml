@@ -51,6 +51,7 @@ jobs:
           src/tests/test_official_data_workbook.py
           src/tests/test_statistics_lab.py
           src/tests/test_statistics_native.py
+          src/tests/test_wti_history.py
           src/tests/test_dotcom_overheat.py
           src/tests/test_dashboard.py
       - name: Refresh generated repository inventory

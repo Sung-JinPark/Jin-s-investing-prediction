@@ -539,7 +539,7 @@ def build_liquidity(*, rules: dict[str, Any], asof: date,
             "liquidity_zone": zone_by_week[start:],
         },
         "lead_lag": lead_lag,
-        "real_m2": {"status": "source_unavailable", "reason": "ALFRED vintage API key unavailable; current FRED M2 is not substituted"},
+        "real_m2": {"status": "source_unavailable", "reason": "point-in-time M2/CPI observation lineage not implemented; current-vintage values are not substituted"},
         "crypto_internal": {
             "stablecoin_supply": {"status": "source_unavailable", "reason": "14-day D0 stability/license gate incomplete"},
             "btc_etf_flows": {"status": "source_unavailable", "reason": "two-source and license gate incomplete"},

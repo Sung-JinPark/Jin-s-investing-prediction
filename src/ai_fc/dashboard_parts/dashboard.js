@@ -1466,11 +1466,13 @@ function renderStatistics(initialState){
   const appendCards=(target,rows,startIndex=0)=>rows.forEach((chart,index)=>{
     const latest=(chart.series||[]).map(row=>{const point=(row.points||[]).at(-1);return point?`<div><i style="background:${esc(row.color||'#111')}"></i><span>${esc(row.label)}</span><strong>${esc(statisticsValue(chart.unit,point.value))}</strong><small>${esc(row.latest_date||'최근 관측')}</small></div>`:'';}).join('');
     const profile=chart.chart_type==='profile_cards',liquidity=chart.chart_type==='liquidity_bars',era=chart.chart_type==='era_compare';
+    const archived=(chart.source_ids||[]).map(id=>(stats.sources||[]).find(source=>source.series_id===id&&source.refresh_status==='current_fred')?.history_coverage).find(Boolean);
+    const archiveNote=archived?`<p class="statistics-scope-note">최신 시세 자동 갱신 · 과거 ${esc(archived.archived_count)}개는 보존된 원본 이력입니다.</p>`:'';
     const review=(chart.source_ids||[]).some(id=>(stats.sources||[]).some(source=>source.series_id===id&&source.refresh_reason==='fred_coverage_regressed'))?'<p class="statistics-scope-note" role="status">원천 자료 재검수 중 · 이전 검수본을 표시합니다.</p>':'';
     const guide=chart.reading_guide?`<details class="statistics-reading-guide"><summary>읽는 법</summary><p>${esc(chart.reading_guide)}</p></details>`:'';
     const visual=liquidity?statisticsLiquidityBars(chart):(profile?statisticsProfileCards(chart):(era?statisticsEraCompare(chart):`<div class="statistics-chart">${statisticsChartSvg(chart,alignment)}</div>`));
     const cardClass=`statistics-card${profile?' is-profile-card':''}${liquidity?' is-liquidity-map':''}${era?' is-era-compare':''}`;
-    target.appendChild(el(`<section class="${cardClass}" data-stat-category="${esc(chart.category)}" data-stat-id="${esc(chart.id)}"><div class="statistics-card-head"><div><span>${String(startIndex+index+1).padStart(2,'0')} · ${esc(chart.category.toUpperCase())}</span><h2>${esc(chart.title)}</h2>${chart.conclusion?`<p class="statistics-head-conclusion">${esc(firstSentenceOf(chart.conclusion))}</p>`:''}</div><b>${esc(chart.display_unit||(profile?'핵심 지표':chart.unit))}</b></div>${profile||liquidity||era?'':`<div class="statistics-legend">${latest}</div>`}${statisticsApproachAlert(chart)}${review}${guide}${visual}<p class="statistics-scope-note">${esc(chart.scope_note||'')}</p>${(()=>{const rest=String(chart.conclusion||'').slice(firstSentenceOf(chart.conclusion||'').length).trim();return rest?`<p class="statistics-now-rest">${esc(rest)}</p>`:'';})()}${chart.caveat?`<div class="statistics-caveat-lead">${esc(firstSentenceOf(chart.caveat))}</div>`:''}</section>`));
+    target.appendChild(el(`<section class="${cardClass}" data-stat-category="${esc(chart.category)}" data-stat-id="${esc(chart.id)}"><div class="statistics-card-head"><div><span>${String(startIndex+index+1).padStart(2,'0')} · ${esc(chart.category.toUpperCase())}</span><h2>${esc(chart.title)}</h2>${chart.conclusion?`<p class="statistics-head-conclusion">${esc(firstSentenceOf(chart.conclusion))}</p>`:''}</div><b>${esc(chart.display_unit||(profile?'핵심 지표':chart.unit))}</b></div>${profile||liquidity||era?'':`<div class="statistics-legend">${latest}</div>`}${statisticsApproachAlert(chart)}${review}${archiveNote}${guide}${visual}<p class="statistics-scope-note">${esc(chart.scope_note||'')}</p>${(()=>{const rest=String(chart.conclusion||'').slice(firstSentenceOf(chart.conclusion||'').length).trim();return rest?`<p class="statistics-now-rest">${esc(rest)}</p>`:'';})()}${chart.caveat?`<div class="statistics-caveat-lead">${esc(firstSentenceOf(chart.caveat))}</div>`:''}</section>`));
   });
   appendCards(grid,charts);
   root.appendChild(grid);
@@ -4391,10 +4393,10 @@ function analogPanel(){
     ${eras.map(e=>`<button type="button" data-analog-focus="${e}" style="--focus-color:${ERA_META[e][1]}" aria-pressed="false"><i></i>${ERA_META[e][0]}</button>`).join('')}</div>`;
   const rg=ctx.regime||{},br=ctx.breadth||{},cc=ctx.concentration||{};
   const ctxItems=[
-    rg.recession_flag!=null?['경기 국면',rg.recession_flag?'침체':'확장']:null,
-    br.pct_above_200dma!=null?['시장 폭','200일선 '+br.pct_above_200dma+'%']:null,
-    cc.ratio_pctile!=null?['대형주 집중',cc.ratio_pctile+'%ile']:null,
-    ctx.perez_ai?['사이클 국면',esc(ctx.perez_ai.split(' — ')[0])+' (추정)']:null
+    rg.recession_flag!=null?['경기 국면 · 보관',(rg.recession_flag?'침체':'확장')+' · '+(rg.recession_date||'기준일 미확인')]:null,
+    br.pct_above_200dma!=null?['시장 폭 · 보관','200일선 '+br.pct_above_200dma+'% · '+(br.asof||'기준일 미확인')]:null,
+    cc.ratio_pctile!=null?['대형주 집중 · 보관',cc.ratio_pctile+'%ile']:null,
+    ctx.perez_ai?['사이클 국면 · 보관',esc(ctx.perez_ai.split(' — ')[0])+' (추정)']:null
   ].filter(Boolean).slice(0,4);
   const w=el(`<div class="chart-panel analysis-panel">
     <p class="eyebrow">START-ALIGNED · LOG SCALE</p>
@@ -4550,7 +4552,7 @@ function liquidityPanel(){
     <div class="liquidity-zone zone-${esc(model.zone)}"><span>현재 구간</span><strong>${esc(zoneLabel)}</strong><small>최근 4주 Fed 순유동성 ${signedDelta(model.zone_metric?.value,2,'%')}</small></div>
     <div class="chart-wrap"><div id="liquidity-chart"></div></div>
     ${model.history?`<p class="chart-note liquidity-vintage-note">${esc(String(model.history.operational_start||'').slice(0,4))}년 이전은 재계산값(실시간 기록 아님)${esc(wideNote)}</p>`:''}
-    <details class="scenario-v52-method liquidity-details"><summary>데이터 출처와 시차 통계 보기</summary><div class="liquidity-source-grid"><div><span>실질 M2 전년비</span><strong>수집 전</strong><small>${esc(model.real_m2?.reason||'시점별 원본 자료가 필요합니다.')}</small></div><div><span>스테이블코인 공급</span><strong>${stablecoinProgress}</strong><small>원천 안정성 확인 중 · 자동 반영하지 않음</small></div><div><span>BTC ETF 자금 흐름</span><strong>수집 전</strong><small>독립 출처 두 곳의 교차검증이 필요합니다.</small></div></div>
+    <details class="scenario-v52-method liquidity-details"><summary>데이터 출처와 시차 통계 보기</summary><div class="liquidity-source-grid"><div><span>실질 M2 전년비</span><strong>수집 전</strong><small>시점별 M2·물가 원본 연결 검수가 필요합니다.</small></div><div><span>스테이블코인 공급</span><strong>${stablecoinProgress}</strong><small>원천 안정성 확인 중 · 자동 반영하지 않음</small></div><div><span>BTC ETF 자금 흐름</span><strong>수집 전</strong><small>독립 출처 두 곳의 교차검증이 필요합니다.</small></div></div>
     <details class="analog-limit liquidity-lag"><summary>0·4·8·12주 시차 상관 진단</summary><div class="lag-table-grid"><div><h3>NASDAQ</h3><div class="table-shell"><table><thead><tr><th>시차</th><th>상관 또는 게이트</th><th>n</th></tr></thead><tbody>${lagRows('nasdaq')}</tbody></table></div></div><div><h3>Bitcoin</h3><div class="table-shell"><table><thead><tr><th>시차</th><th>상관 또는 게이트</th><th>n</th></tr></thead><tbody>${lagRows('bitcoin')}</tbody></table></div></div></div></details>
     </details>
   </div>`);w._liquidityModel=model;return w;
@@ -5873,9 +5875,9 @@ function renderHeaderStrip(){
     items.push({k:'NASDAQ 종합',v:num(Math.round(latest.value)),sub:stale?`보관값 · ${latest.session}`:(lagNote||`${latest.session} · 전고점 대비 ${vsAth>=0?'+':''}${vsAth.toFixed(1)}%`),cls:stale||lagNote?'stale':vsAth!=null?(vsAth>=0?'up':'down'):''});}
   if(ath!=null)items.push({k:'전고점 ATH',v:num(Math.round(ath)),sub:'2023년 이후 최고 종가'});
   if(corr!=null)items.push({k:'−10% 조정선',v:num(Math.round(corr)),sub:'지지 기준'});
-  if(br.pct_above_200dma!=null)items.push({k:'시장 폭',v:br.pct_above_200dma+'%',sub:'200일선 상회'});
-  if(rg.recession_flag!=null)items.push({k:'경기 국면',v:rg.recession_flag?'침체':'확장',sub:'NBER 기준',cls:rg.recession_flag?'down':'up'});
-  else if(rg.hy_spread_pct!=null)items.push({k:'신용 스프레드',v:rg.hy_spread_pct.toFixed(2)+'%',sub:'HY OAS'});
+  if(br.pct_above_200dma!=null)items.push({k:'시장 폭 · 보관 '+(br.asof||'기준일 미확인'),v:br.pct_above_200dma+'%',sub:'200일선 상회',cls:'stale'});
+  if(rg.recession_flag!=null)items.push({k:'경기 국면 · 보관 '+(rg.recession_date||'기준일 미확인'),v:rg.recession_flag?'침체':'확장',sub:'NBER 기준',cls:'stale'});
+  else if(rg.hy_spread_pct!=null)items.push({k:'신용 스프레드 · 보관 '+(rg.hy_spread_date||'기준일 미확인'),v:rg.hy_spread_pct.toFixed(2)+'%',sub:'HY OAS',cls:'stale'});
   const strip=document.getElementById('mktstrip');
   if(!items.length){strip.style.display='none';return;}
   strip.innerHTML=items.map(it=>`<div><span>${esc(it.k)}</span>${it.sub?`<small>${esc(it.sub)}</small>`:''}<strong class="${it.cls||''}">${esc(it.v)}</strong></div>`).join('');
