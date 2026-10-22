@@ -976,7 +976,7 @@ def verify(root, *, asset_id=None, replay=True, now=None):
             if export_path.read_bytes() != S.encode(_export(snapshot)):
                 raise C.TrendlinesError("representative_export_binding_invalid")
             decode_envelope(S.read_json(export_path))
-            snapshots[snapshot["snapshot_id"]] = snapshot
+            snapshots[snapshot["snapshot_id"]] = {field: snapshot[field] for field in ("snapshot_id", "asset_id")}
             count += 1
         for asset, row in pointer["assets"].items():
             if asset_id is not None and asset != asset_id:

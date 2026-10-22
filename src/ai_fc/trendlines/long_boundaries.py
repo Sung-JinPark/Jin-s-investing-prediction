@@ -394,7 +394,8 @@ def verify(root,*,asset_id=None,replay=True,now=None):
                 pending[key]=functions
             export=S.safe_path(root,(ROOT/'exports'/snapshot['snapshot_id']/'detail.json').as_posix())
             if export.read_bytes()!=S.encode(_export(snapshot)): raise C.TrendlinesError('long_boundaries_export_binding_invalid')
-            decode_envelope(S.read_json(export));snapshots[snapshot['snapshot_id']]=snapshot;count+=1
+            decode_envelope(S.read_json(export))
+            snapshots[snapshot['snapshot_id']]={field:snapshot[field] for field in ('snapshot_id','asset_id')};count+=1
         for asset,pointer in _latest(root)['assets'].items():
             if asset_id is not None and asset!=asset_id: continue
             snapshot=snapshots[pointer['snapshot_id']]

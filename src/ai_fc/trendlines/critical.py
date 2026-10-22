@@ -745,7 +745,7 @@ def verify(root, *, asset_id=None, replay=True, now=None):
             export_path = _path(root, ROOT / "exports" / snapshot["snapshot_id"] / "detail.json")
             if export_path.read_bytes() != S.encode(_export(snapshot)):
                 raise C.TrendlinesError("critical_export_binding_invalid")
-            snapshots[snapshot["snapshot_id"]] = snapshot
+            snapshots[snapshot["snapshot_id"]] = {field: snapshot[field] for field in ("snapshot_id", "asset_id")}
         for asset, row in pointer["assets"].items():
             snapshot = snapshots[row["snapshot_id"]]
             expected_path = ROOT / "snapshots" / (snapshot["snapshot_id"] + ".json")

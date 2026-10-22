@@ -575,7 +575,7 @@ def verify(root: Path, *, asset_id: str | None = None, replay: bool = True, now=
             for i, chunk in enumerate(chunks):
                 if _path(root, export_root / f"bars-{i:04d}.json").read_bytes() != S.encode(chunk):
                     raise C.TrendlinesError("full_history_chunk_binding_invalid")
-            snapshots[snapshot["snapshot_id"]] = snapshot
+            snapshots[snapshot["snapshot_id"]] = {field: snapshot[field] for field in ("snapshot_id", "asset_id")}
             count += 1
         for aid, row in pointer["assets"].items():
             snapshot = snapshots[row["snapshot_id"]]
