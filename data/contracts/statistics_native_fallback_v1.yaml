@@ -27,7 +27,7 @@ series:
 endpoints:
   h6: https://www.federalreserve.gov/releases/h6/data/FRB_h6_xml.zip
   h15: https://www.federalreserve.gov/releases/h15/data/FRB_h15_xml.zip
-  z1: https://www.federalreserve.gov/releases/z1/z1_csv_files.zip
+  z1: https://www.federalreserve.gov/releases/z1/current/z1_csv_files.zip
 date_labels: native_month_or_quarter_end_to_same_period_start_no_value_aggregation
 unavailable_series: retain_original_approved_observation_dates_and_availability_explicit_partial_state
 unsupported:

@@ -19,7 +19,9 @@ from typing import Any, Callable
 
 H6 = "https://www.federalreserve.gov/releases/h6/data/FRB_h6_xml.zip"
 H15 = "https://www.federalreserve.gov/releases/h15/data/FRB_h15_xml.zip"
-Z1 = "https://www.federalreserve.gov/releases/z1/z1_csv_files.zip"
+# Same current-release table ZIP used by the existing approved Z.1 collector.
+# The separate all-series FRB_Z1_csv.zip has a different format and size.
+Z1 = "https://www.federalreserve.gov/releases/z1/current/z1_csv_files.zip"
 # No reverse engineering of a series by numeric similarity. These identifiers
 # and units belong to the publisher's series dictionary.
 SERIES = {
