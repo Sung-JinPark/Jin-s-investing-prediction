@@ -5,17 +5,22 @@ on:
     # 매일 06:20 UTC (15:20 KST): 미국 전일 장 마감·원천 게시 뒤 확인.
     # 월·분기 계열은 새 발표만 반영하고 실제 관측일을 보존한다.
     - cron: "20 6 * * *"
+    # Morning capture plus a retry for delayed official API releases.
+    - cron: "23 22 * * 1-5"
+    - cron: "23 1 * * 2-6"
   workflow_dispatch:
 
 permissions:
   contents: write
+  actions: write
 
 concurrency:
-  group: investing-data-writer
+  group: ${{ github.ref != 'refs/heads/main' && format('statistics-skipped-{0}', github.run_id) || 'investing-data-writer' }}
   cancel-in-progress: false
 
 jobs:
   refresh:
+    if: ${{ github.ref == 'refs/heads/main' }}
     runs-on: ubuntu-latest
     timeout-minutes: 30
     env:
@@ -23,6 +28,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
+          ref: main
           fetch-depth: 0
       - uses: actions/setup-python@v5
         with:
@@ -49,8 +55,10 @@ jobs:
       - name: Refresh generated repository inventory
         run: cd src && python -m ai_fc inventory
       - name: Commit changed statistics snapshot
+        id: commit
         shell: bash
         run: |
+          echo "committed=false" >> "$GITHUB_OUTPUT"
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add \
@@ -78,3 +86,9 @@ jobs:
           git commit -m "data: daily dotcom statistics refresh $(date -u +%F)"
           git pull --rebase origin main
           git push origin HEAD:main
+          echo "committed=true" >> "$GITHUB_OUTPUT"
+      - name: Publish verified changed statistics
+        if: ${{ steps.commit.outcome == 'success' && steps.commit.outputs.committed == 'true' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run pages.yml --repo "$GITHUB_REPOSITORY" --ref main

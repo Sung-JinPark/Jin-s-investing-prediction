@@ -23,6 +23,7 @@ import csv
 import io
 import json
 import os
+import time
 import urllib.parse
 
 OBSERVATIONS_ENDPOINT = "https://api.stlouisfed.org/fred/series/observations"
@@ -111,4 +112,19 @@ def observations_csv(
         fetch_text = feed.get_with_curl_fallback
 
     url = _request_url(series_id, key=api_key(), observation_start=observation_start)
-    return observations_to_csv(fetch_text(url, timeout=timeout), series_id)
+    # A successful HTTP response can still be an empty/truncated gateway page.
+    # Retry only decoding failures; a valid JSON API/schema error stays fatal.
+    for attempt in range(3):
+        raw = fetch_text(url, timeout=timeout)
+        try:
+            return observations_to_csv(raw, series_id)
+        except FredApiError as exc:
+            if not isinstance(exc.__cause__, json.JSONDecodeError):
+                raise
+            if attempt == 2:
+                prefix = b'<' if isinstance(raw, bytes) else '<'
+                kind = 'empty' if not raw.strip() else 'html' if raw.lstrip().startswith(prefix) else 'non-json'
+                raise FredApiError(
+                    f"FRED API 응답 형식 위반: {series_id} ({kind}; 3 attempts)"
+                ) from exc
+            time.sleep(attempt + 1)
