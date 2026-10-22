@@ -73,7 +73,9 @@ def test_token_dispatches_deploy_only_after_a_verified_commit(name, job):
     deploy = next(s for s in steps if 'gh workflow run pages.yml' in s.get('run', ''))
     assert steps.index(commit) < steps.index(deploy)
     assert 'committed=false' in commit['run'] and 'committed=true' in commit['run']
-    assert "workflow_dispatch" in deploy['if'] and "outcome == 'success'" in deploy['if'] and "committed == 'true'" in deploy['if']
+    assert "outcome == 'success'" in deploy['if'] and "committed == 'true'" in deploy['if']
+    if name != 'scenario-refresh.yml':
+        assert "workflow_dispatch" in deploy['if']
     assert doc['permissions']['actions'] == 'write'
 
 

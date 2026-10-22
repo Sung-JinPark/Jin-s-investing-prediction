@@ -52,7 +52,7 @@ async function refreshForecastSummary(epoch){
   }finally{if(FORECAST_SUMMARY_PROMISE===pending)FORECAST_SUMMARY_PROMISE=null;}
 }
 function forecastRefreshNotice(root){
-  if(!FORECAST_SUMMARY_ERROR||document.body.dataset.view!=='future')return;
+  if(!FORECAST_SUMMARY_ERROR||!['future','statistics'].includes(document.body.dataset.view))return;
   const note=el(`<aside class="forecast-refresh-note" role="status"><p>최신 자료를 확인하지 못해 이전 조회본을 표시합니다. 조회본 기준: ${esc(formatKstTimestamp(DATA.meta.generated))}</p><button type="button" data-forecast-summary-retry>다시 확인</button></aside>`);
   note.querySelector('[data-forecast-summary-retry]').onclick=()=>{FORECAST_SUMMARY_CHECKED_AT=0;route();};root.prepend(note);
 }
@@ -117,11 +117,16 @@ async function ensureStatistics(){
   const request=(async()=>{
     const url=window.__STATISTICS_URL__||deferred.url;
     if(!url)throw new Error('statistics URL missing');
+    if(!globalThis.crypto?.subtle||!/^[a-f0-9]{64}$/.test(String(deferred.payload_sha256||'')))throw new Error('statistics integrity reference missing');
     const response=await fetch(url,{cache:'no-store'});
     if(!response.ok)throw new Error(`statistics HTTP ${response.status}`);
-    const payload=await response.json();
+    const raw=await response.text(),digest=await globalThis.crypto.subtle.digest('SHA-256',new TextEncoder().encode(raw));
+    const hash=[...new Uint8Array(digest)].map(value=>value.toString(16).padStart(2,'0')).join('');
+    if(hash!==deferred.payload_sha256)throw new Error('통계 파일이 요약과 일치하지 않습니다. 다시 시도해 주세요');
+    const payload=JSON.parse(raw),statistics=payload?.data?.statistics_lab;
     if(payload?.contract_id!=='statistics_route_v1'||payload.data?.statistics_lab?.status!=='ok')throw new Error('statistics route contract invalid');
-    if(DATA!==dataset)throw new Error('statistics summary changed during loading');
+    for(const key of ['dataset_id','generated_at','as_of'])if(!summary[key]||statistics[key]!==summary[key])throw new Error('statistics snapshot mismatch');
+    if(DATA!==dataset||DATA.statistics_lab!==summary)throw new Error('statistics summary changed during loading');
     DATA.statistics_lab=payload.data.statistics_lab;
     DATA.statistics_lab.deferred_data={...deferred,loaded:true,loaded_at:new Date().toISOString()};
     STATISTICS_ERROR=null;
@@ -1055,9 +1060,9 @@ const COMMAND_ROUTES=[
 function syncMidHash(hash){
   history.replaceState(null,'',hash);
   paintRailSubNav(document.body.dataset.view||'today',hash);
-  if(document.body.dataset.view==='future'&&hash.startsWith('#future')&&forecastSummaryCheckDue()){
-    const focused=document.activeElement?.dataset?.tsTab;
-    route().then(()=>{if(location.hash===hash&&focused)[...document.querySelectorAll('[data-ts-tab]')].find(node=>node.dataset.tsTab===focused)?.focus();});
+  if(((document.body.dataset.view==='future'&&hash.startsWith('#future'))||(document.body.dataset.view==='statistics'&&hash.startsWith('#statistics')))&&forecastSummaryCheckDue()){
+    const focused=document.activeElement?.dataset,key=focused?.tsTab?'tsTab':focused?.statFilter?'statFilter':null,value=key?focused[key]:null;
+    route().then(()=>{if(location.hash===hash&&key)[...document.querySelectorAll('[data-ts-tab],[data-stat-filter]')].find(node=>node.dataset[key]===value)?.focus();});
   }
 }
 function paintRailSubNav(navView,rawHash){
@@ -1360,15 +1365,16 @@ function renderFearGreedLab(){
   if(!lab||lab.status!=='live')return null;
   const comps=Object.entries(lab.components||{}).map(([k,c])=>fngComponentRow(k,c)).join('');
   const nqEnd=(lab.nasdaq||[]).filter(hasNumeric).at(-1);
+  const componentDate=lab.components_observed_through||lab.seeded_at||'기준일 미확인';
   return el(`<section class="fng-lab" id="fear-greed" aria-labelledby="fng-lab-head">
     <div class="page-heading"><div><p class="eyebrow">MARKET SENTIMENT · FEAR &amp; GREED</p><h2 id="fng-lab-head">공포·탐욕 지수와 NASDAQ</h2></div></div>
-    <div class="fng-lab-legend"><span class="is-fng">공포·탐욕 (좌 0~100)</span><span class="is-nq">NASDAQ 종합 (우${hasNumeric(nqEnd)?` · 현재 ${Math.round(nqEnd).toLocaleString()}`:''})</span></div>
+    <div class="fng-lab-legend"><span class="is-fng">공포·탐욕 (좌 0~100)</span><span class="is-nq">NASDAQ 종합 (우${hasNumeric(nqEnd)?` · ${esc(lab.observed_through||'')} ${Math.round(nqEnd).toLocaleString()}`:''})</span></div>
     <div class="fng-lab-legend fng-lab-zones">${[['extreme_fear','극단적 공포'],['fear','공포'],['neutral','중립'],['greed','탐욕'],['extreme_greed','극단적 탐욕']].map(([k,label])=>`<span style="--chip:${MOOD_BAND_COLOR[k]}">${label}</span>`).join('')}</div>
     ${fngOverlayChart(lab.dates||[],lab.fng||[],lab.nasdaq||[])}
-    <h3 class="fng-lab-sub">구성요소 7종</h3>
-    <p class="fng-lab-lead">점수는 현재값만 공표 · 아래 선은 원자료(점수 추이 아님)</p>
+    <h3 class="fng-lab-sub">구성요소 7종 · ${esc(componentDate)} 보관 자료</h3>
+    <p class="fng-lab-lead">구성요소 자동갱신 미지원 · 아래 선은 원자료(점수 추이 아님)</p>
     <div class="fng-comp-grid">${comps}</div>
-    <p class="fng-lab-foot">지수·NASDAQ ${esc(lab.observed_through||lab.seeded_at||'')}까지 · 구성요소 원자료 ${esc(lab.seeded_at||'')}까지(CNN)${lab.tail_from?` · ${esc(lab.tail_from)}부터 지수는 일일 수집값`:''} · 재배포 약관 미확인 · 표시 전용</p>
+    <p class="fng-lab-foot">지수·NASDAQ ${esc(lab.observed_through||lab.seeded_at||'')}까지 · 구성요소 원자료 ${esc(componentDate)}까지(CNN)${lab.tail_from?` · ${esc(lab.tail_from)}부터 지수는 일일 수집값`:''} · 재배포 약관 미확인 · 표시 전용</p>
   </section>`);
 }
 
@@ -1410,7 +1416,7 @@ function renderStatisticsStudy(initialState={},loadState={}){
   const root=el('<div class="statistics-page statistics-study"></div>');
   root.append(statisticsSectionNav(page),el(`<div class="page-heading"><div><h1>${esc(item?.label||'통계')}</h1></div></div>`));
   if(loadState.loading||loadState.error){
-    root.appendChild(el(`<section class="statistics-blocked"><strong>${loadState.error?'통계 자료를 불러오지 못했습니다':'통계 자료를 불러오는 중입니다'}</strong>${loadState.error?`<p>${esc(String(loadState.error.message||loadState.error))}</p><button type="button" data-stat-retry>다시 시도</button>`:''}</section>`));mount(root);root.querySelector('[data-stat-retry]')?.addEventListener('click',()=>route());return;
+    root.appendChild(el(`<section class="statistics-blocked"><strong>${loadState.error?'통계 자료를 불러오지 못했습니다':'통계 자료를 불러오는 중입니다'}</strong>${loadState.error?`<p>${esc(String(loadState.error.message||loadState.error))}</p><button type="button" data-stat-retry>다시 시도</button>`:''}</section>`));mount(root);root.querySelector('[data-stat-retry]')?.addEventListener('click',()=>{FORECAST_SUMMARY_CHECKED_AT=0;route();});return;
   }
   if(page==='fear-greed'){
     root.appendChild(el(`<div class="statistics-sentiment">${renderFearGreedCard(DATA.market_mood?.fear_greed)}</div>`));
@@ -1439,7 +1445,7 @@ function renderStatistics(initialState){
     root.appendChild(el(`<section class="statistics-blocked"><strong>통계 데이터를 불러오지 못했습니다</strong><p>${esc(STATISTICS_ERROR||'네트워크 응답 대기 중')} · 캐시가 아닌 실데이터만 표시합니다.</p><button type="button" data-stat-retry>다시 시도</button></section>`));
     mount(root);
     const retry=$('[data-stat-retry]',root);
-    if(retry)retry.onclick=()=>{STATISTICS_ERROR=null;route();};
+    if(retry)retry.onclick=()=>{STATISTICS_ERROR=null;FORECAST_SUMMARY_CHECKED_AT=0;route();};
     return;
   }
   if(stats.status!=='ok'){
@@ -2856,7 +2862,7 @@ async function route(){
     if(on)a.setAttribute('aria-current','page');else a.removeAttribute('aria-current');});
   paintRailSubNav(navView,rawHash);
   mobileMore?.classList.toggle('active',false);
-  if(navView==='future'){await refreshForecastSummary(epoch);if(epoch!==ROUTE_EPOCH)return;}
+  if(['future','statistics'].includes(navView)){await refreshForecastSummary(epoch);if(epoch!==ROUTE_EPOCH)return;}
   if(v==='trendlines'){
     try{await ensureTrendlineAssets();}catch(error){if(epoch!==ROUTE_EPOCH)return;mount(el(`<section class="page-heading"><div><p class="eyebrow">상·하방 추세선 · 03</p><h1>추세선을 불러오지 못했습니다</h1><p>${esc(error.message)}</p><button type="button" data-trend-ui-retry>다시 불러오기</button></div></section>`));app().querySelector('[data-trend-ui-retry]').onclick=()=>route();return;}
     if(epoch!==ROUTE_EPOCH)return;
@@ -2910,7 +2916,7 @@ async function route(){
     if(epoch!==ROUTE_EPOCH)return;
   }
   (VIEWS[v]||renderOverview)(arg);
-  if(navView==='future'&&app().firstElementChild)forecastRefreshNotice(app().firstElementChild);
+  if(['future','statistics'].includes(navView)&&app().firstElementChild)forecastRefreshNotice(app().firstElementChild);
   requestAnimationFrame(()=>enhanceChartZoom(app()));
   renderCompareTray();
   recordRecent();
@@ -2921,7 +2927,7 @@ async function route(){
 window.addEventListener('hashchange',route);
 document.addEventListener('click',event=>{
   if(event.defaultPrevented||event.button!==0||event.ctrlKey||event.metaKey||event.altKey||event.shiftKey)return;
-  const link=event.target.closest('a[href^="#future"]');
+  const link=event.target.closest('a[href^="#future"],a[href^="#statistics"]');
   if(link&&link.getAttribute('href')===location.hash&&forecastSummaryCheckDue()){event.preventDefault();route();}
 });
 /* role=tablist를 선언했으면 화살표 키가 동작해야 한다 — 클릭만 묶여 있던 위젯 3종 공용. */
@@ -3139,6 +3145,8 @@ function fngSector(from,to){const{rOut,rIn}=FNG_ARC;
 
 function renderFearGreedCard(fng){
   if(!fng||fng.status!=='live')return `<article class="mood-card mood-empty"><h3>공포 · 탐욕</h3><p>아직 수집되지 않았습니다.</p></article>`;
+  let provider=fng.source_label||fng.source_id||'공개 원천';
+  try{provider=new URL(fng.source_url).hostname.replace(/^www\./,'');}catch{}
   const v=Number(fng.value),raw=hasNumeric(fng.value_raw)?Number(fng.value_raw):v;
   const bands=fng.bands||[];
   const sectors=bands.map(b=>{const on=b.slug===fng.band,to=b.hi>=100?100:b.hi+1;
@@ -3161,7 +3169,7 @@ function renderFearGreedCard(fng){
     ${moodSpark(fng.trail,{lo:0,hi:100,w:264,h:52,stroke:MOOD_BAND_COLOR[fng.band]||'#8a877e',
       marks:[{v:75,c:'#247d78'},{v:55,c:'#8a877e'},{v:45,c:'#8a877e'},{v:25,c:'#c9002d'}]})}
     <dl class="mood-meta"><div><dt>전일</dt><dd>${hasNumeric(fng.previous_close)?fng.previous_close:'—'}</dd></div><div><dt>1주 전</dt><dd>${hasNumeric(fng.week_ago)?fng.week_ago:'—'}</dd></div><div><dt>1개월</dt><dd>${hasNumeric(fng.month_ago)?fng.month_ago:'—'}</dd></div></dl>
-    <p class="mood-note">${gate.gate_met?'':`일일 수집 <b>${num(gate.streak_days)}/${num(gate.gate_days)}일</b> · `}<span>${esc(fng.observed_date)} · CNN · 표시 전용</span></p>
+    <p class="mood-note">${gate.gate_met?'':`일일 수집 <b>${num(gate.streak_days)}/${num(gate.gate_days)}일</b> · `}<span>${esc(fng.observed_date)} · ${esc(provider)} · 표시 전용</span></p>
   </article>`;
 }
 

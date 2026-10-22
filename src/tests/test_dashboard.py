@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import inspect
+import hashlib
 import json
 import re
 import shutil
@@ -1722,6 +1723,7 @@ def test_future_paths_are_split_with_semantic_identity_and_fixed_budgets(tmp_pat
         "loaded": False,
         "url": "statistics.json",
         "failure_mode": "summary_with_explicit_error",
+        "payload_sha256": hashlib.sha256(json.dumps(statistics_data, ensure_ascii=False, default=str, separators=(",", ":")).encode("utf-8")).hexdigest(),
     }
     assert "statistics_lab" not in future["data"]
     assert len(json.dumps(statistics_data, ensure_ascii=False, default=str,
