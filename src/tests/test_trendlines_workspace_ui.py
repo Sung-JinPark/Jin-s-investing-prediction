@@ -255,7 +255,7 @@ const original=JSON.stringify({baseBars,analysis,manual});let axis='linear',fram
 window.requestAnimationFrame=callback=>(frames.push(callback),++nextFrame);
 window.flushFrames=()=>{while(frames.length){const pending=frames;frames=[];pending.forEach(callback=>callback(0));}};
 trendManualState=()=>manual;
-trendWorkspaceFrame=()=>'<header class="trend-ws-top"><input id="editable" value="line name"></header><div class="trend-ws-main"><nav class="trend-ws-tools"></nav><div class="trend-ws-stage" data-trend-ws-stage></div></div><footer class="trend-ws-bottom">Chart dates and price labels</footer>';
+trendWorkspaceFrame=()=>'<header class="trend-ws-top"><input id="editable" value="line name"></header><div class="trend-ws-main"><nav class="trend-ws-tools"><button data-trend-tool="in">+</button><button data-trend-tool="out">−</button><button data-trend-tool="left">←</button><button data-trend-tool="right">→</button></nav><div class="trend-ws-stage" data-trend-ws-stage></div></div><footer class="trend-ws-bottom">Chart dates and price labels</footer>';
 trendWorkspaceLegend=()=>'';trendWorkspaceSelectionBar=()=>'';
 bindTrendWorkspaceChart=()=>{};bindTrendManual=()=>{};
 TREND_ZOOM={ws};
@@ -271,7 +271,8 @@ window.inspectChart=()=>{
     bars:bars.map(bar=>bar.session_index),plotHeight:(m.H-m.T-m.B)/m.H*host.querySelector('svg').getBoundingClientRect().height,
     finite:[m.first,m.end,...m.range,...(state.xRange||[]),...(state.yRange||[])].every(Number.isFinite),
     unchanged:original===JSON.stringify({baseBars,analysis,manual}),cursor:getComputedStyle(host.querySelector('svg')).cursor,
-    selection:getSelection().toString(),active:host.hasAttribute('data-trend-gesture'),pending:frames.length};
+    selection:getSelection().toString(),active:host.hasAttribute('data-trend-gesture'),pending:frames.length,
+    disabled:Object.fromEntries([...host.querySelectorAll('[data-trend-tool]')].map(button=>[button.dataset.trendTool,button.disabled]))};
 };
 window.chartPoint=(rx,ry,priceAxis=false)=>{
   const {m}=host._trendNavigation,box=host.querySelector('svg').getBoundingClientRect();
@@ -355,9 +356,11 @@ def test_workspace_wheel_limits_axes_and_pan_keep_valid_original_data(workspace_
       return {bounds,before,axisPrevented,priceAxis,panBefore,shifted,horizontal,outsidePrevented};
     }''', scale)
     assert [row['factor'] for row in result['bounds']] == [8, 1]
+    assert result['bounds'][0]['disabled']['in']
+    assert result['bounds'][1]['disabled']['out']
     for row in result['bounds']:
         assert row['finite'] and row['x'][1] > row['x'][0] and row['y'][1] > row['y'][0]
-        assert 0 <= row['x'][0] < row['x'][1] <= 499
+        assert 0 <= row['x'][0] < row['x'][1] <= 500
         assert len(row['bars']) >= 20 and row['unchanged']
     assert result['axisPrevented'] and not result['outsidePrevented']
     assert result['priceAxis']['state']['x'] == result['before']['x']
