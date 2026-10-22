@@ -1367,6 +1367,7 @@ function renderFearGreedLab(){
   const comps=Object.entries(lab.components||{}).map(([k,c])=>fngComponentRow(k,c)).join('');
   const nqEnd=(lab.nasdaq||[]).filter(hasNumeric).at(-1);
   const componentDate=lab.components_observed_through||'갱신 대기';
+  const componentSource=String(lab.components_source_url||'').replace(/\/api\/fear-greed$/,'/data');
   const componentAge=Date.now()-Date.parse(lab.components_source_as_of||'');
   const componentsLive=lab.components_status==='live'&&Number.isFinite(componentAge)&&componentAge>=-300000&&componentAge<=96*3600000&&Object.values(lab.components||{}).every(c=>{const age=Date.now()-Date.parse(c.observed_at||'');return Number.isFinite(age)&&age>=-300000&&age<=96*3600000;});
   return el(`<section class="fng-lab" id="fear-greed" aria-labelledby="fng-lab-head">
@@ -1377,7 +1378,7 @@ function renderFearGreedLab(){
     <h3 class="fng-lab-sub">구성요소 7종 · ${esc(componentDate)}${componentsLive?' · 자동갱신':''}</h3>
     <p class="fng-lab-lead">${componentsLive?'아래 선은 원자료(점수 추이 아님)':'최신 구성요소를 확인하지 못했습니다. 이전 점수는 표시하지 않습니다.'}</p>
     ${componentsLive?`<div class="fng-comp-grid">${comps}</div>`:''}
-    <p class="fng-lab-foot">구성요소 <a href="https://feargreedflow.com/data" target="_blank" rel="noopener">Fear &amp; Greed 무료 공개 API</a>${componentsLive?` · 원천 갱신 ${esc(lab.components_source_as_of||'')} · 해당 원천 지수 ${esc(lab.components_headline_at_source)} (상단 종합지수와 원천·시점이 다를 수 있음)`:''} · 지수·NASDAQ ${esc(lab.observed_through||'')}까지 · 표시 전용</p>
+    <p class="fng-lab-foot">구성요소 <a href="${esc(componentSource)}" target="_blank" rel="noopener">Fear &amp; Greed 무료 공개 API</a>${componentsLive?` · 원천 갱신 ${esc(lab.components_source_as_of||'')} · 해당 원천 지수 ${esc(lab.components_headline_at_source)} (상단 종합지수와 원천·시점이 다를 수 있음)`:''} · 지수·NASDAQ ${esc(lab.observed_through||'')}까지 · 표시 전용</p>
   </section>`);
 }
 
