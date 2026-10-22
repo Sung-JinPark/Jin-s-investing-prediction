@@ -250,20 +250,28 @@ def workspace_chart(workspace_browser):
 const manual={ready:true,mode:false,lines:[],selection:[],saveStatus:'saved',view:{window:null}};
 const baseBars=Array.from({length:500},(_,i)=>({session:new Date(Date.UTC(2024,0,i+1)).toISOString().slice(0,10),session_index:i,open:90+i*.4,close:92+i*.4,low:85+i*.4,high:100+i*.4}));
 const analysis={lines:[],projection_sessions:[]},detail={asset_id:'soxx',bars:baseBars},asset={label:'SOXX'};
-const state={},ws={context:{family:null},family:null,panelOpen:false},host=document.querySelector('[data-trend-zoom-chart]');
-const original=JSON.stringify({baseBars,analysis,manual});let axis='linear',frames=[],nextFrame=0;
-window.requestAnimationFrame=callback=>(frames.push(callback),++nextFrame);
-window.flushFrames=()=>{while(frames.length){const pending=frames;frames=[];pending.forEach(callback=>callback(0));}};
+let state={},ws={context:{family:null},family:null,panelOpen:false},host=document.querySelector('[data-trend-zoom-chart]');
+const original=JSON.stringify({baseBars,analysis,manual});let axis='linear',frames=new Map(),nextFrame=0;
+window.requestAnimationFrame=callback=>{const id=++nextFrame;frames.set(id,callback);return id;};
+window.cancelAnimationFrame=id=>frames.delete(id);
+window.flushFrames=()=>{while(frames.size){const pending=[...frames.values()];frames.clear();pending.forEach(callback=>callback(0));}};
+const el=markup=>{const template=document.createElement('template');template.innerHTML=markup;return template.content.firstElementChild;};
 trendManualState=()=>manual;
 trendWorkspaceFrame=()=>'<header class="trend-ws-top"><input id="editable" value="line name"></header><div class="trend-ws-main"><nav class="trend-ws-tools"><button data-trend-tool="in">+</button><button data-trend-tool="out">−</button><button data-trend-tool="left">←</button><button data-trend-tool="right">→</button></nav><div class="trend-ws-stage" data-trend-ws-stage></div></div><footer class="trend-ws-bottom">Chart dates and price labels</footer>';
 trendWorkspaceLegend=()=>'';trendWorkspaceSelectionBar=()=>'';
 bindTrendWorkspaceChart=()=>{};bindTrendManual=()=>{};
 TREND_ZOOM={ws};
 window.resetChart=(scale='linear',initial={})=>{
-  axis=scale;frames=[];host._trendWsFrameRequest=0;
+  axis=scale;frames.clear();host._trendWsFrameRequest=0;
   for(const key of Object.keys(state))delete state[key];
   Object.assign(state,{factor:4,offset:150,heldCount:125,yRange:null,maxFactor:8},initial);
   drawTrendInteractiveChart(host,detail,analysis,baseBars,asset,axis,'workspace',state,()=>{},ws);
+};
+window.openFullWorkspace=(scale='linear')=>{
+  TREND_ZOOM=null;axis=scale;
+  ws=openTrendWorkspace({assetId:'soxx',asset,scale,family:null,initialBars:baseBars.slice(150,275),build:()=>({source:detail,analysis})});
+  host=TREND_ZOOM.host;state=ws.state;
+  host._trendManual={state:manual,busy:()=>manual.mode};
 };
 window.inspectChart=()=>{
   const {m,bars}=host._trendNavigation;
@@ -271,7 +279,7 @@ window.inspectChart=()=>{
     bars:bars.map(bar=>bar.session_index),plotHeight:(m.H-m.T-m.B)/m.H*host.querySelector('svg').getBoundingClientRect().height,
     finite:[m.first,m.end,...m.range,...(state.xRange||[]),...(state.yRange||[])].every(Number.isFinite),
     unchanged:original===JSON.stringify({baseBars,analysis,manual}),cursor:getComputedStyle(host.querySelector('svg')).cursor,
-    selection:getSelection().toString(),active:host.hasAttribute('data-trend-gesture'),pending:frames.length,
+    selection:getSelection().toString(),active:host.hasAttribute('data-trend-gesture'),pending:frames.size,
     disabled:Object.fromEntries([...host.querySelectorAll('[data-trend-tool]')].map(button=>[button.dataset.trendTool,button.disabled]))};
 };
 window.chartPoint=(rx,ry,priceAxis=false)=>{
@@ -420,3 +428,64 @@ def test_workspace_fractional_windows_keep_svg_dimensions_and_date_ticks_valid(w
     assert result['valid'] and result['unchanged']
     assert all(result['left'] <= x <= result['right'] for x in result['ticks'])
     assert bool(result['ticks']) == bool(result['visible'])
+
+
+@pytest.mark.parametrize('scale', ['linear', 'log'])
+@pytest.mark.parametrize('region', ['plot', 'price_axis', 'time_axis'])
+def test_workspace_double_click_restores_opening_window_and_keeps_dialog_and_drawings(workspace_chart, scale, region):
+    page = workspace_chart
+    initial = page.evaluate('''scale=>{
+      manual.lines=[{id:'manual-fixture',number:1,axis:scale,extension:'both',extend:true,name:'Saved line',note:'',hidden:false,locked:false,
+        a:{session:baseBars[160].session,price:160},b:{session:baseBars[200].session,price:180},style:{...TREND_MANUAL_STYLE}}];
+      openFullWorkspace(scale);window.sourceBeforeReset=JSON.stringify({baseBars,analysis,lines:manual.lines});
+      return inspectChart();
+    }''', scale)
+    assert initial['bars'] == list(range(150, 275)), 'home must differ from the full source series'
+    changed = page.evaluate('''()=>{
+      wheelAt({dy:-80});flushFrames();wheelAt({dy:80,shift:true});flushFrames();
+      wheelAt({dy:-60,priceAxis:true});flushFrames();return inspectChart();
+    }''')
+    assert changed['x'] != initial['x'] and changed['y'] != initial['y']
+    point = page.evaluate('''region=>region==='price_axis'?chartPoint(.5,.5,true):chartPoint(.5,region==='time_axis'?1.025:.5)''', region)
+    page.mouse.dblclick(point['x'], point['y'])
+    page.evaluate('flushFrames()')
+    restored = page.evaluate('inspectChart()')
+    for key in ('factor', 'x', 'y', 'bars'):
+        assert restored[key] == pytest.approx(initial[key])
+    assert page.locator('[data-trend-zoom] [role="dialog"][aria-modal="true"]').count() == 1
+    assert page.evaluate('TREND_ZOOM.ws===ws && state.xRange===null && state.yRange===null')
+    assert page.evaluate('sourceBeforeReset===JSON.stringify({baseBars,analysis,lines:manual.lines})')
+
+
+def test_workspace_double_click_on_controls_preserves_view_and_pending_render_cannot_undo_reset(workspace_chart):
+    page = workspace_chart
+    result = page.evaluate('''()=>{
+      openFullWorkspace();wheelAt({dy:-80});flushFrames();const changed=inspectChart();
+      const controlPoint=chartPoint(.5,.5);
+      for(const selector of ['#editable','[data-trend-tool="in"]'])host.querySelector(selector).dispatchEvent(new MouseEvent('dblclick',{bubbles:true,cancelable:true,clientX:controlPoint.x,clientY:controlPoint.y}));
+      const controls=inspectChart();wheelAt({dy:-40});const queued=inspectChart().pending;
+      const point=chartPoint(.5,.5);host.dispatchEvent(new MouseEvent('dblclick',{bubbles:true,cancelable:true,clientX:point.x,clientY:point.y}));
+      const pending=inspectChart().pending;flushFrames();return {changed,controls,queued,pending,restored:inspectChart()};
+    }''')
+    for key in ('factor', 'x', 'y', 'bars'):
+        assert result['controls'][key] == result['changed'][key]
+    assert result['queued'] == 1 and result['pending'] == 0
+    assert result['restored']['bars'] == list(range(150, 275))
+    assert result['restored']['factor'] == 4
+
+
+@pytest.mark.parametrize('priority', ['drawing', 'busy', 'selected', 'measure', 'draft'])
+def test_workspace_double_click_respects_manual_editing_priority(workspace_chart, priority):
+    result = workspace_chart.evaluate('''priority=>{
+      openFullWorkspace();wheelAt({dy:-80});flushFrames();const before=inspectChart();
+      if(priority==='drawing')manual.mode=true;
+      if(priority==='busy')host._trendManual.busy=()=>true;
+      if(priority==='selected')manual.selected='manual-fixture';
+      if(priority==='measure')manual.measure={a:{session:baseBars[160].session,price:160},b:{session:baseBars[200].session,price:180}};
+      if(priority==='draft')manual.editDraft={name:'Unsaved edit'};
+      const point=chartPoint(.5,.5),event=new MouseEvent('dblclick',{bubbles:true,cancelable:true,clientX:point.x,clientY:point.y});
+      host.querySelector('svg').dispatchEvent(event);flushFrames();
+      return {before,after:inspectChart()};
+    }''', priority)
+    for key in ('factor', 'x', 'y', 'bars'):
+        assert result['after'][key] == result['before'][key]
