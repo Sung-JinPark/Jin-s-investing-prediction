@@ -5,10 +5,17 @@
   "probability_space": "reference_only",
   "model_use": false,
   "official_forecast_input": false,
-  "generated_at": "2026-10-22T04:45:13+00:00",
-  "knowledge_cutoff": "2026-10-22T04:45:13+00:00",
+  "generated_at": "2026-10-22T06:50:50+00:00",
+  "knowledge_cutoff": "2026-10-22T06:50:50+00:00",
   "observation_through": "2026-10-21",
   "as_of": "2026-10-21",
+  "source_refresh": {
+    "state": "partial",
+    "waiting_series": [
+      "DCOILWTICO"
+    ],
+    "native_series": []
+  },
   "cycle_alignment": {
     "dotcom_start": "1995-01-01",
     "dotcom_end": "1999-12-31",
@@ -17102,12 +17109,13 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-10-22T04:45:13+00:00",
+      "available_at": "2026-10-22T06:50:50+00:00",
       "latest_observation": "2026-08-01",
       "row_count": 380,
       "raw_sha256": "28d8293a228a0a10f973b820fc3c456438e365cc8931c56b9134e1da40218b7d",
       "raw_path": "data/statistics/official_store/raw/fred_market_signals/28d8293a228a0a10f973b820fc3c456438e365cc8931c56b9134e1da40218b7d.bin",
-      "vintage": "current_release_reconstructed"
+      "vintage": "current_release_reconstructed",
+      "refresh_status": "current_fred"
     },
     {
       "series_id": "MMMFFAQ027S",
@@ -17122,12 +17130,13 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-10-22T04:45:13+00:00",
+      "available_at": "2026-10-22T06:50:50+00:00",
       "latest_observation": "2026-04-01",
       "row_count": 126,
       "raw_sha256": "d335ffcb6c5e92dd59fed845f5650d62124a7bd4522fbf755355ab015a41957b",
       "raw_path": "data/statistics/official_store/raw/fred_market_signals/d335ffcb6c5e92dd59fed845f5650d62124a7bd4522fbf755355ab015a41957b.bin",
-      "vintage": "current_release_reconstructed"
+      "vintage": "current_release_reconstructed",
+      "refresh_status": "current_fred"
     },
     {
       "series_id": "CDCABSHNO",
@@ -17142,12 +17151,13 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-10-22T04:45:13+00:00",
+      "available_at": "2026-10-22T06:50:50+00:00",
       "latest_observation": "2026-04-01",
       "row_count": 126,
       "raw_sha256": "c41624b65b3de00f361cb75dc8c917f3dd4f5f29903a757b3bb81eb429c95214",
       "raw_path": "data/statistics/official_store/raw/fred_market_signals/c41624b65b3de00f361cb75dc8c917f3dd4f5f29903a757b3bb81eb429c95214.bin",
-      "vintage": "current_release_reconstructed"
+      "vintage": "current_release_reconstructed",
+      "refresh_status": "current_fred"
     },
     {
       "series_id": "TSDABSHNO",
@@ -17162,12 +17172,13 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-10-22T04:45:13+00:00",
+      "available_at": "2026-10-22T06:50:50+00:00",
       "latest_observation": "2026-04-01",
       "row_count": 126,
       "raw_sha256": "820c4fd496881fb3adef393c6541bc7765c7ccae9393dee80c2d98dca2bc9630",
       "raw_path": "data/statistics/official_store/raw/fred_market_signals/820c4fd496881fb3adef393c6541bc7765c7ccae9393dee80c2d98dca2bc9630.bin",
-      "vintage": "current_release_reconstructed"
+      "vintage": "current_release_reconstructed",
+      "refresh_status": "current_fred"
     },
     {
       "series_id": "FGDSLAQ027S",
@@ -17182,12 +17193,13 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-10-22T04:45:13+00:00",
+      "available_at": "2026-10-22T06:50:50+00:00",
       "latest_observation": "2026-04-01",
       "row_count": 126,
       "raw_sha256": "c8bf5626bae11f9ec3ba53dba822486869b4283001001c5bec832e14ee7308f5",
       "raw_path": "data/statistics/official_store/raw/fred_market_signals/c8bf5626bae11f9ec3ba53dba822486869b4283001001c5bec832e14ee7308f5.bin",
-      "vintage": "current_release_reconstructed"
+      "vintage": "current_release_reconstructed",
+      "refresh_status": "current_fred"
     },
     {
       "series_id": "BOGZ1FL153064235Q",
@@ -17202,12 +17214,13 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-10-22T04:45:13+00:00",
+      "available_at": "2026-10-22T06:50:50+00:00",
       "latest_observation": "2026-04-01",
       "row_count": 126,
       "raw_sha256": "57e0c19c7263e86e49aa0a17e589081eccc44a69e68af7785d0201d07c02cf1d",
       "raw_path": "data/statistics/official_store/raw/fred_market_signals/57e0c19c7263e86e49aa0a17e589081eccc44a69e68af7785d0201d07c02cf1d.bin",
-      "vintage": "current_release_reconstructed"
+      "vintage": "current_release_reconstructed",
+      "refresh_status": "current_fred"
     },
     {
       "series_id": "IQ12260",
@@ -17222,12 +17235,13 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-10-22T04:45:13+00:00",
+      "available_at": "2026-10-22T06:50:50+00:00",
       "latest_observation": "2026-09-01",
       "row_count": 381,
       "raw_sha256": "7cc834800712c927c73b457b45a4bd64e97e9bf62100e59edfd9ce75b392bd05",
       "raw_path": "data/statistics/official_store/raw/fred_market_signals/7cc834800712c927c73b457b45a4bd64e97e9bf62100e59edfd9ce75b392bd05.bin",
-      "vintage": "current_release_reconstructed"
+      "vintage": "current_release_reconstructed",
+      "refresh_status": "current_fred"
     },
     {
       "series_id": "DABSHNO",
@@ -17242,12 +17256,13 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-10-22T04:45:13+00:00",
+      "available_at": "2026-10-22T06:50:50+00:00",
       "latest_observation": "2026-04-01",
       "row_count": 126,
       "raw_sha256": "db46a88ef69316d8b923ecc52f531b185f7b22816b5b8223843eccdc167589c9",
       "raw_path": "data/statistics/official_store/raw/fred_market_signals/db46a88ef69316d8b923ecc52f531b185f7b22816b5b8223843eccdc167589c9.bin",
-      "vintage": "current_release_reconstructed"
+      "vintage": "current_release_reconstructed",
+      "refresh_status": "current_fred"
     },
     {
       "series_id": "BOGZ1LM153064475Q",
@@ -17262,12 +17277,13 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-10-22T04:45:13+00:00",
+      "available_at": "2026-10-22T06:50:50+00:00",
       "latest_observation": "2026-04-01",
       "row_count": 126,
       "raw_sha256": "75ff74f8f1e14f3066f8f5b0b3cd865404b82b8eea230a04cb20ffa81b1793ab",
       "raw_path": "data/statistics/official_store/raw/fred_market_signals/75ff74f8f1e14f3066f8f5b0b3cd865404b82b8eea230a04cb20ffa81b1793ab.bin",
-      "vintage": "current_release_reconstructed"
+      "vintage": "current_release_reconstructed",
+      "refresh_status": "current_fred"
     },
     {
       "series_id": "BOGZ1FL154022375A",
@@ -17282,12 +17298,13 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-10-22T04:45:13+00:00",
+      "available_at": "2026-10-22T06:50:50+00:00",
       "latest_observation": "2025-01-01",
       "row_count": 31,
       "raw_sha256": "7d58e253925702f5205712a0e286c5bfb8441ce9e00845c032364b496c0d7bc9",
       "raw_path": "data/statistics/official_store/raw/fred_market_signals/7d58e253925702f5205712a0e286c5bfb8441ce9e00845c032364b496c0d7bc9.bin",
-      "vintage": "current_release_reconstructed"
+      "vintage": "current_release_reconstructed",
+      "refresh_status": "current_fred"
     },
     {
       "series_id": "NASDAQCOM",
@@ -17303,12 +17320,13 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-10-22T04:45:13+00:00",
+      "available_at": "2026-10-22T06:50:50+00:00",
       "latest_observation": "2026-10-21",
       "row_count": 10533,
       "raw_sha256": "b804458d3317749c5e665cc4a6cc726e7954b78e8ceb091ea5e39389e2ff1e3f",
       "raw_path": "data/statistics/official_store/raw/fred_market_signals/b804458d3317749c5e665cc4a6cc726e7954b78e8ceb091ea5e39389e2ff1e3f.bin",
-      "vintage": "current_release_reconstructed"
+      "vintage": "current_release_reconstructed",
+      "refresh_status": "current_fred"
     },
     {
       "series_id": "T10Y2Y",
@@ -17323,12 +17341,13 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-10-22T04:45:13+00:00",
+      "available_at": "2026-10-22T06:50:50+00:00",
       "latest_observation": "2026-10-21",
       "row_count": 7957,
       "raw_sha256": "cb8acd135a7b0a52da8e3f017d5ec9fe7e146723aa7f2a707f06c2f6bd5f6e10",
       "raw_path": "data/statistics/official_store/raw/fred_market_signals/cb8acd135a7b0a52da8e3f017d5ec9fe7e146723aa7f2a707f06c2f6bd5f6e10.bin",
-      "vintage": "current_release_reconstructed"
+      "vintage": "current_release_reconstructed",
+      "refresh_status": "current_fred"
     },
     {
       "series_id": "T10Y3M",
@@ -17343,12 +17362,13 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-10-22T04:45:13+00:00",
+      "available_at": "2026-10-22T06:50:50+00:00",
       "latest_observation": "2026-10-21",
       "row_count": 7957,
       "raw_sha256": "c1009d8bbe54c10fbe4e74736c113c71e704873e7272ae03e278a6d8d7b81a6f",
       "raw_path": "data/statistics/official_store/raw/fred_market_signals/c1009d8bbe54c10fbe4e74736c113c71e704873e7272ae03e278a6d8d7b81a6f.bin",
-      "vintage": "current_release_reconstructed"
+      "vintage": "current_release_reconstructed",
+      "refresh_status": "current_fred"
     },
     {
       "series_id": "FEDFUNDS",
@@ -17363,12 +17383,13 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-10-22T04:45:13+00:00",
+      "available_at": "2026-10-22T06:50:50+00:00",
       "latest_observation": "2026-09-01",
       "row_count": 381,
       "raw_sha256": "e1935f11db469dfb9f03d0064243f1018de9d4661c9ed56f5ab9096f10461a8e",
       "raw_path": "data/statistics/official_store/raw/fred_market_signals/e1935f11db469dfb9f03d0064243f1018de9d4661c9ed56f5ab9096f10461a8e.bin",
-      "vintage": "current_release_reconstructed"
+      "vintage": "current_release_reconstructed",
+      "refresh_status": "current_fred"
     },
     {
       "series_id": "TOTALSL",
@@ -17383,12 +17404,13 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-10-22T04:45:13+00:00",
+      "available_at": "2026-10-22T06:50:50+00:00",
       "latest_observation": "2026-08-01",
       "row_count": 380,
       "raw_sha256": "71832a3c352328a943b41d88c7ba5f10b82fb885e94cfbd368212ebffb0d2867",
       "raw_path": "data/statistics/official_store/raw/fred_market_signals/71832a3c352328a943b41d88c7ba5f10b82fb885e94cfbd368212ebffb0d2867.bin",
-      "vintage": "current_release_reconstructed"
+      "vintage": "current_release_reconstructed",
+      "refresh_status": "current_fred"
     },
     {
       "series_id": "TDSP",
@@ -17403,12 +17425,13 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-10-22T04:45:13+00:00",
+      "available_at": "2026-10-22T06:50:50+00:00",
       "latest_observation": "2026-04-01",
       "row_count": 86,
       "raw_sha256": "d823f31ec373375d0936996a4f3d80e2b5f54a1d83567f8be766b32bc2a65dad",
       "raw_path": "data/statistics/official_store/raw/fred_market_signals/d823f31ec373375d0936996a4f3d80e2b5f54a1d83567f8be766b32bc2a65dad.bin",
-      "vintage": "current_release_reconstructed"
+      "vintage": "current_release_reconstructed",
+      "refresh_status": "current_fred"
     },
     {
       "series_id": "BOGZ1FL010000346Q",
@@ -17423,12 +17446,13 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-10-22T04:45:13+00:00",
+      "available_at": "2026-10-22T06:50:50+00:00",
       "latest_observation": "2026-01-01",
       "row_count": 125,
       "raw_sha256": "076c941b2c8cf02a70c37dc498e13670102f938a8ad5a946ea94bde034604a86",
       "raw_path": "data/statistics/official_store/raw/fred_market_signals/076c941b2c8cf02a70c37dc498e13670102f938a8ad5a946ea94bde034604a86.bin",
-      "vintage": "current_release_reconstructed"
+      "vintage": "current_release_reconstructed",
+      "refresh_status": "current_fred"
     },
     {
       "series_id": "DRTSCILM",
@@ -17443,12 +17467,13 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-10-22T04:45:13+00:00",
+      "available_at": "2026-10-22T06:50:50+00:00",
       "latest_observation": "2026-07-01",
       "row_count": 127,
       "raw_sha256": "2d9f6b5e7930a1810e277c726cd88c404603d72893adf128c5e8cf3e920228be",
       "raw_path": "data/statistics/official_store/raw/fred_market_signals/2d9f6b5e7930a1810e277c726cd88c404603d72893adf128c5e8cf3e920228be.bin",
-      "vintage": "current_release_reconstructed"
+      "vintage": "current_release_reconstructed",
+      "refresh_status": "current_fred"
     },
     {
       "series_id": "NCBEILQ027S",
@@ -17463,12 +17488,13 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-10-22T04:45:13+00:00",
+      "available_at": "2026-10-22T06:50:50+00:00",
       "latest_observation": "2026-04-01",
       "row_count": 126,
       "raw_sha256": "ec285bef5e2e93ec02a5dbb4888afbbb6a1fa69e5c57e5fb5065c4b05096d257",
       "raw_path": "data/statistics/official_store/raw/fred_market_signals/ec285bef5e2e93ec02a5dbb4888afbbb6a1fa69e5c57e5fb5065c4b05096d257.bin",
-      "vintage": "current_release_reconstructed"
+      "vintage": "current_release_reconstructed",
+      "refresh_status": "current_fred"
     },
     {
       "series_id": "CPATAX",
@@ -17483,12 +17509,13 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-10-22T04:45:13+00:00",
+      "available_at": "2026-10-22T06:50:50+00:00",
       "latest_observation": "2026-04-01",
       "row_count": 126,
       "raw_sha256": "36f18a0f9ed66fbcc73c97c59e58b547112aef04a7f38a4f989511f82026d88f",
       "raw_path": "data/statistics/official_store/raw/fred_market_signals/36f18a0f9ed66fbcc73c97c59e58b547112aef04a7f38a4f989511f82026d88f.bin",
-      "vintage": "current_release_reconstructed"
+      "vintage": "current_release_reconstructed",
+      "refresh_status": "current_fred"
     },
     {
       "series_id": "W328RC1Q027SBEA",
@@ -17503,12 +17530,13 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-10-22T04:45:13+00:00",
+      "available_at": "2026-10-22T06:50:50+00:00",
       "latest_observation": "2026-04-01",
       "row_count": 126,
       "raw_sha256": "e0d1a194ffb701e611c7e0960f53c5b29d399d07533f2012d9be45fecc90f6da",
       "raw_path": "data/statistics/official_store/raw/fred_market_signals/e0d1a194ffb701e611c7e0960f53c5b29d399d07533f2012d9be45fecc90f6da.bin",
-      "vintage": "current_release_reconstructed"
+      "vintage": "current_release_reconstructed",
+      "refresh_status": "current_fred"
     },
     {
       "series_id": "UNRATE",
@@ -17523,12 +17551,13 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-10-22T04:45:13+00:00",
+      "available_at": "2026-10-22T06:50:50+00:00",
       "latest_observation": "2026-09-01",
       "row_count": 380,
       "raw_sha256": "3cfd38a124c11dce914b2f922098b5f9d08c5dfebf76e32d4e7a68394e670fc7",
       "raw_path": "data/statistics/official_store/raw/fred_market_signals/3cfd38a124c11dce914b2f922098b5f9d08c5dfebf76e32d4e7a68394e670fc7.bin",
-      "vintage": "current_release_reconstructed"
+      "vintage": "current_release_reconstructed",
+      "refresh_status": "current_fred"
     },
     {
       "series_id": "CPIAUCSL",
@@ -17543,12 +17572,13 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-10-22T04:45:13+00:00",
+      "available_at": "2026-10-22T06:50:50+00:00",
       "latest_observation": "2026-09-01",
       "row_count": 380,
       "raw_sha256": "c7515abff452af49fac6f48e6c576631f8687a907a4ef2627b26452b9f11f0ae",
       "raw_path": "data/statistics/official_store/raw/fred_market_signals/c7515abff452af49fac6f48e6c576631f8687a907a4ef2627b26452b9f11f0ae.bin",
-      "vintage": "current_release_reconstructed"
+      "vintage": "current_release_reconstructed",
+      "refresh_status": "current_fred"
     },
     {
       "series_id": "NFCI",
@@ -17563,12 +17593,13 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-10-22T04:45:13+00:00",
+      "available_at": "2026-10-22T06:50:50+00:00",
       "latest_observation": "2026-10-16",
       "row_count": 1659,
       "raw_sha256": "3ad4a926a6d388b0aafb931140c0e9035e8685b4e623285420b410951b31daf7",
       "raw_path": "data/statistics/official_store/raw/fred_market_signals/3ad4a926a6d388b0aafb931140c0e9035e8685b4e623285420b410951b31daf7.bin",
-      "vintage": "current_release_reconstructed"
+      "vintage": "current_release_reconstructed",
+      "refresh_status": "current_fred"
     },
     {
       "series_id": "BOGZ1LM893064105Q",
@@ -17583,12 +17614,13 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-10-22T04:45:13+00:00",
+      "available_at": "2026-10-22T06:50:50+00:00",
       "latest_observation": "2026-04-01",
       "row_count": 126,
       "raw_sha256": "db53d750408c3dad226327e965fb099205b58d533e8328a5c3bc70a49e41cfc6",
       "raw_path": "data/statistics/official_store/raw/fred_market_signals/db53d750408c3dad226327e965fb099205b58d533e8328a5c3bc70a49e41cfc6.bin",
-      "vintage": "current_release_reconstructed"
+      "vintage": "current_release_reconstructed",
+      "refresh_status": "current_fred"
     },
     {
       "series_id": "HQMCB10YR",
@@ -17603,12 +17635,13 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-10-22T04:45:13+00:00",
+      "available_at": "2026-10-22T06:50:50+00:00",
       "latest_observation": "2026-09-01",
       "row_count": 381,
       "raw_sha256": "6f88d5e44b02a3f97c158976d4fcd77a2b907eff4f3d8e24545edd581f30bfe0",
       "raw_path": "data/statistics/official_store/raw/fred_market_signals/6f88d5e44b02a3f97c158976d4fcd77a2b907eff4f3d8e24545edd581f30bfe0.bin",
-      "vintage": "current_release_reconstructed"
+      "vintage": "current_release_reconstructed",
+      "refresh_status": "current_fred"
     },
     {
       "series_id": "GS10",
@@ -17623,12 +17656,13 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-10-22T04:45:13+00:00",
+      "available_at": "2026-10-22T06:50:50+00:00",
       "latest_observation": "2026-09-01",
       "row_count": 381,
       "raw_sha256": "be681ac7f9152e3ae14f1c12d5b777ccd5a87ffc1bfeb67a76c4711e16c6895e",
       "raw_path": "data/statistics/official_store/raw/fred_market_signals/be681ac7f9152e3ae14f1c12d5b777ccd5a87ffc1bfeb67a76c4711e16c6895e.bin",
-      "vintage": "current_release_reconstructed"
+      "vintage": "current_release_reconstructed",
+      "refresh_status": "current_fred"
     },
     {
       "series_id": "DCOILWTICO",
@@ -17648,7 +17682,51 @@
       "row_count": 7979,
       "raw_sha256": "8688eeb0c4807836deb9afc28917c6ab7be099f1df491dce4e7c0e351b7f4942",
       "raw_path": "data/statistics/official_store/raw/fred_market_signals/8688eeb0c4807836deb9afc28917c6ab7be099f1df491dce4e7c0e351b7f4942.bin",
-      "vintage": "current_release_reconstructed"
+      "vintage": "current_release_reconstructed",
+      "refresh_status": "verified_cache_waiting_source",
+      "refresh_reason": "fred_coverage_regressed",
+      "coverage_audit": {
+        "missing_count": 620,
+        "missing_dates_sample": [
+          "1995-01-06",
+          "1995-01-09",
+          "1995-01-11",
+          "1995-01-13",
+          "1995-01-19",
+          "1995-01-27",
+          "1995-02-24",
+          "1995-03-02",
+          "1995-03-08",
+          "1995-03-14",
+          "1995-04-12",
+          "1995-05-10",
+          "1995-05-12",
+          "1995-05-22",
+          "1995-05-30",
+          "1995-05-31",
+          "1995-06-05",
+          "1995-07-13",
+          "1995-07-21",
+          "1995-07-27",
+          "1995-08-18",
+          "1995-09-05",
+          "1995-09-12",
+          "1995-10-04",
+          "1995-10-06",
+          "1995-10-31",
+          "1995-11-14",
+          "1995-12-26",
+          "1996-01-12",
+          "1996-01-24",
+          "1996-01-31",
+          "1996-02-05"
+        ],
+        "approved_endpoint": "2026-10-20",
+        "received_endpoint": "2026-10-20",
+        "rejected_raw_sha256": "8688eeb0c4807836deb9afc28917c6ab7be099f1df491dce4e7c0e351b7f4942",
+        "rejected_receipt_id": "4b5505ef81cfe5c2f0d2c490349ef101cf3a73a325c56dc301045944b890ec93",
+        "rejected_raw_path": "data/statistics/official_store/raw/fred_market_signals/8688eeb0c4807836deb9afc28917c6ab7be099f1df491dce4e7c0e351b7f4942.bin"
+      }
     },
     {
       "series_id": "WPU10260314",
@@ -17663,12 +17741,13 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-10-22T04:45:13+00:00",
+      "available_at": "2026-10-22T06:50:50+00:00",
       "latest_observation": "2026-09-01",
       "row_count": 380,
       "raw_sha256": "71e6e674c8e849788d21bbea8251c03e6d506962fe7e53c8bcafd064fbdbe223",
       "raw_path": "data/statistics/official_store/raw/fred_market_signals/71e6e674c8e849788d21bbea8251c03e6d506962fe7e53c8bcafd064fbdbe223.bin",
-      "vintage": "current_release_reconstructed"
+      "vintage": "current_release_reconstructed",
+      "refresh_status": "current_fred"
     },
     {
       "series_id": "GACDFSA066MSFRBPHI",
@@ -17683,12 +17762,13 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-10-22T04:45:13+00:00",
+      "available_at": "2026-10-22T06:50:50+00:00",
       "latest_observation": "2026-10-01",
       "row_count": 382,
       "raw_sha256": "f14eb8871abd7dfee6d1fd7a18aef6f4a045b823d56643e73c87409560fc92bc",
       "raw_path": "data/statistics/official_store/raw/fred_market_signals/f14eb8871abd7dfee6d1fd7a18aef6f4a045b823d56643e73c87409560fc92bc.bin",
-      "vintage": "current_release_reconstructed"
+      "vintage": "current_release_reconstructed",
+      "refresh_status": "current_fred"
     },
     {
       "series_id": "SP500",
@@ -17704,12 +17784,13 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-10-22T04:45:13+00:00",
+      "available_at": "2026-10-22T06:50:50+00:00",
       "latest_observation": "2026-10-21",
       "row_count": 954,
       "raw_sha256": "1e9be4c5ec0ed183d56f321f1530610ab01665718df0df63608008a379435958",
       "raw_path": "data/statistics/official_store/raw/fred_market_signals/1e9be4c5ec0ed183d56f321f1530610ab01665718df0df63608008a379435958.bin",
-      "vintage": "current_release_reconstructed"
+      "vintage": "current_release_reconstructed",
+      "refresh_status": "current_fred"
     },
     {
       "series_id": "CBBTCUSD",
@@ -17725,12 +17806,13 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-10-22T04:45:13+00:00",
+      "available_at": "2026-10-22T06:50:50+00:00",
       "latest_observation": "2026-10-21",
       "row_count": 1390,
       "raw_sha256": "9be1d8206ce66a490bf35d2897cad078153803e99a932cdd532ef26f9a2acdf8",
       "raw_path": "data/statistics/official_store/raw/fred_market_signals/9be1d8206ce66a490bf35d2897cad078153803e99a932cdd532ef26f9a2acdf8.bin",
-      "vintage": "current_release_reconstructed"
+      "vintage": "current_release_reconstructed",
+      "refresh_status": "current_fred"
     },
     {
       "series_id": "NASDAQSOX",
@@ -17746,12 +17828,13 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-10-22T04:45:13+00:00",
+      "available_at": "2026-10-22T06:50:50+00:00",
       "latest_observation": "2026-10-21",
       "row_count": 1710,
       "raw_sha256": "859020923a3de0cfd7f807e783bd41a14f150a8265496b7c194416638bd6ad2c",
       "raw_path": "data/statistics/official_store/raw/fred_market_signals/859020923a3de0cfd7f807e783bd41a14f150a8265496b7c194416638bd6ad2c.bin",
-      "vintage": "current_release_reconstructed"
+      "vintage": "current_release_reconstructed",
+      "refresh_status": "current_fred"
     },
     {
       "series_id": "SPASTT01KRM661N",
@@ -17767,12 +17850,13 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-10-22T04:45:13+00:00",
+      "available_at": "2026-10-22T06:50:50+00:00",
       "latest_observation": "2026-09-01",
       "row_count": 81,
       "raw_sha256": "efcc3424ed907635f5b1118fc4cbd69627bf0329b4434281ca9e511c255db091",
       "raw_path": "data/statistics/official_store/raw/fred_market_signals/efcc3424ed907635f5b1118fc4cbd69627bf0329b4434281ca9e511c255db091.bin",
-      "vintage": "current_release_reconstructed"
+      "vintage": "current_release_reconstructed",
+      "refresh_status": "current_fred"
     },
     {
       "series_id": "SPASTT01USM661N",
@@ -17788,12 +17872,13 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-10-22T04:45:13+00:00",
+      "available_at": "2026-10-22T06:50:50+00:00",
       "latest_observation": "2026-09-01",
       "row_count": 729,
       "raw_sha256": "684d5416515f99829370854a74a617c57e4340dcd509b2a3f5a3beb96339e8c6",
       "raw_path": "data/statistics/official_store/raw/fred_market_signals/684d5416515f99829370854a74a617c57e4340dcd509b2a3f5a3beb96339e8c6.bin",
-      "vintage": "current_release_reconstructed"
+      "vintage": "current_release_reconstructed",
+      "refresh_status": "current_fred"
     },
     {
       "series_id": "GFDEBTN",
@@ -17809,12 +17894,13 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-10-22T04:45:13+00:00",
+      "available_at": "2026-10-22T06:50:50+00:00",
       "latest_observation": "2026-04-01",
       "row_count": 242,
       "raw_sha256": "668cfc7020db17069cccb95a2975c5fe9db791beeabe2dd30876abfc9dcd6074",
       "raw_path": "data/statistics/official_store/raw/fred_market_signals/668cfc7020db17069cccb95a2975c5fe9db791beeabe2dd30876abfc9dcd6074.bin",
-      "vintage": "current_release_reconstructed"
+      "vintage": "current_release_reconstructed",
+      "refresh_status": "current_fred"
     },
     {
       "series_id": "HOUST",
@@ -17829,12 +17915,13 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-10-22T04:45:13+00:00",
+      "available_at": "2026-10-22T06:50:50+00:00",
       "latest_observation": "2026-09-01",
       "row_count": 381,
       "raw_sha256": "36dce216168ee7c438ff44de0f7e6afbfc4f8a6aa57c56b9bb3c9a6e701fec87",
       "raw_path": "data/statistics/official_store/raw/fred_market_signals/36dce216168ee7c438ff44de0f7e6afbfc4f8a6aa57c56b9bb3c9a6e701fec87.bin",
-      "vintage": "current_release_reconstructed"
+      "vintage": "current_release_reconstructed",
+      "refresh_status": "current_fred"
     },
     {
       "series_id": "GDP",
@@ -17849,12 +17936,13 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-10-22T04:45:13+00:00",
+      "available_at": "2026-10-22T06:50:50+00:00",
       "latest_observation": "2026-04-01",
       "row_count": 126,
       "raw_sha256": "b8de167e9d96779d7545b6fb3c2dc99f17ba04d07eb14f173507389ba9ca3f7e",
       "raw_path": "data/statistics/official_store/raw/fred_market_signals/b8de167e9d96779d7545b6fb3c2dc99f17ba04d07eb14f173507389ba9ca3f7e.bin",
-      "vintage": "current_release_reconstructed"
+      "vintage": "current_release_reconstructed",
+      "refresh_status": "current_fred"
     },
     {
       "series_id": "Y034RC1Q027SBEA",
@@ -17869,12 +17957,13 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-10-22T04:45:13+00:00",
+      "available_at": "2026-10-22T06:50:50+00:00",
       "latest_observation": "2026-04-01",
       "row_count": 126,
       "raw_sha256": "603f431ac814fbccc6c9b3112e80afe80a6a22725dff720f9ffcfa840c00cc54",
       "raw_path": "data/statistics/official_store/raw/fred_market_signals/603f431ac814fbccc6c9b3112e80afe80a6a22725dff720f9ffcfa840c00cc54.bin",
-      "vintage": "current_release_reconstructed"
+      "vintage": "current_release_reconstructed",
+      "refresh_status": "current_fred"
     },
     {
       "series_id": "Y001RC1Q027SBEA",
@@ -17889,12 +17978,13 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-10-22T04:45:13+00:00",
+      "available_at": "2026-10-22T06:50:50+00:00",
       "latest_observation": "2026-04-01",
       "row_count": 126,
       "raw_sha256": "971220711ed8cb3dd53fdc0a74cf999583159f94388712f99caa181f48ac729c",
       "raw_path": "data/statistics/official_store/raw/fred_market_signals/971220711ed8cb3dd53fdc0a74cf999583159f94388712f99caa181f48ac729c.bin",
-      "vintage": "current_release_reconstructed"
+      "vintage": "current_release_reconstructed",
+      "refresh_status": "current_fred"
     },
     {
       "series_id": "SEC_IPO_QUARTERLY",
@@ -17908,7 +17998,7 @@
       "policy_source_id": "sec_edgar",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-10-22T04:45:13+00:00",
+      "available_at": "2026-10-22T06:50:50+00:00",
       "latest_observation": "2026-06-01",
       "row_count": 106,
       "raw_sha256": "8499e48223bb72d93cd5919a4f3b2f84776d020b120e3133d992841da5ba5450",
@@ -17927,7 +18017,7 @@
       "policy_source_id": "federal_reserve_board",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-10-22T04:45:13+00:00",
+      "available_at": "2026-10-22T06:50:50+00:00",
       "latest_observation": "2026-04-01",
       "row_count": 126,
       "raw_sha256": "b63af9755437df0fb88b7cf346f8f9eaeb22bf1aa2b5df1709334135c43de4b6",
@@ -17948,7 +18038,7 @@
       "policy_source_id": "federal_reserve_board",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-10-22T04:45:13+00:00",
+      "available_at": "2026-10-22T06:50:50+00:00",
       "latest_observation": "2026-04-01",
       "row_count": 126,
       "raw_sha256": "b63af9755437df0fb88b7cf346f8f9eaeb22bf1aa2b5df1709334135c43de4b6",
@@ -17967,7 +18057,7 @@
       "policy_source_id": "federal_reserve_board",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-10-22T04:45:13+00:00",
+      "available_at": "2026-10-22T06:50:50+00:00",
       "latest_observation": "2026-04-01",
       "row_count": 126,
       "raw_sha256": "b63af9755437df0fb88b7cf346f8f9eaeb22bf1aa2b5df1709334135c43de4b6",
@@ -17986,7 +18076,7 @@
       "policy_source_id": "census",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-10-22T04:45:13+00:00",
+      "available_at": "2026-10-22T06:50:50+00:00",
       "latest_observation": "2026-08-01",
       "row_count": 404,
       "raw_sha256": "ff77dfdd4617c2a21b8446a06fc80cfb86ef5888a47e8bad85852767c7c911b8",
@@ -18005,7 +18095,7 @@
       "policy_source_id": "census",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-10-22T04:45:13+00:00",
+      "available_at": "2026-10-22T06:50:50+00:00",
       "latest_observation": "2026-08-01",
       "row_count": 404,
       "raw_sha256": "ff77dfdd4617c2a21b8446a06fc80cfb86ef5888a47e8bad85852767c7c911b8",
@@ -18024,7 +18114,7 @@
       "policy_source_id": "census",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-10-22T04:45:13+00:00",
+      "available_at": "2026-10-22T06:50:50+00:00",
       "latest_observation": "2026-08-01",
       "row_count": 404,
       "raw_sha256": "ff77dfdd4617c2a21b8446a06fc80cfb86ef5888a47e8bad85852767c7c911b8",
@@ -18043,7 +18133,7 @@
       "policy_source_id": "census",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-10-22T04:45:13+00:00",
+      "available_at": "2026-10-22T06:50:50+00:00",
       "latest_observation": "2026-08-01",
       "row_count": 404,
       "raw_sha256": "ff77dfdd4617c2a21b8446a06fc80cfb86ef5888a47e8bad85852767c7c911b8",
@@ -18062,7 +18152,7 @@
       "policy_source_id": "census",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-10-22T04:45:13+00:00",
+      "available_at": "2026-10-22T06:50:50+00:00",
       "latest_observation": "2026-08-01",
       "row_count": 152,
       "raw_sha256": "ff77dfdd4617c2a21b8446a06fc80cfb86ef5888a47e8bad85852767c7c911b8",
@@ -18168,7 +18258,7 @@
           "priced_total": 11
         }
       ],
-      "available_at": "2026-10-22T04:45:07+00:00"
+      "available_at": "2026-10-22T06:50:15+00:00"
     }
   ],
   "reference_statistics": {
