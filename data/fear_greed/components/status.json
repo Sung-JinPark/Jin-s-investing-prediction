@@ -1,1 +1,1 @@
-{"checked_at":"2026-10-23T20:38:37.729003+00:00","snapshot_id":"8e551007b05cec1138b5531b8a3410ec4d9e1dc840f23c1c168dad1fc701146e","status":"ok"}
+{"checked_at":"2026-10-23T21:35:31.065853+00:00","reason":"ComponentsError: component source timestamp regressed","status":"failed"}
