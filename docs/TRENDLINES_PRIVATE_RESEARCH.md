@@ -111,6 +111,69 @@ raw bytes and validator functions is reused in that process. New or changed
 evidence is recalculated; failed audits never mint a proof. The cache has no
 file, source-approval flag, or effect on ordinary CLI verification, and starts
 empty when the process restarts.
+
+### Audit cost inside the worker
+
+A refresh runs the whole-store audit at every write boundary: before selection,
+inside capture, after capture, before export, and inside the full, critical,
+representative and long-boundary steps, then once more before publication. No
+pass was removed. Each pass, cached or not, still reads and SHA-256 hashes every
+raw original, receipt and archive in every store. What the worker no longer
+repeats for unchanged bytes:
+
+- **Canonical decoding of an unchanged archive.** The cache also keeps an
+  evidence memo: the bindings decoded from an archive whose canonical JSON,
+  content hash, identity and contract fields a *successful* audit checked. It is
+  keyed by the SHA-256 of the exact bytes read and hashed in the current audit,
+  together with the file name and the checking functions. A hit therefore means
+  "these bytes are identical to bytes this process already decoded and checked";
+  changed bytes, a renamed file, or a replaced validator are decoded and checked
+  again in full. For the full, critical, representative and long-boundary
+  archives, a hit also rereads and rehashes every file the archive depends on
+  (source archive, receipt, raw original, full snapshot, manifest, candle chunks,
+  exports, and the critical snapshot used as the representative shadow). It
+  compares today's registry definition and calculation contract, and rechecks
+  the read cutoff. Any difference sends the archive through its full check,
+  which reports its own error.
+- **HTML reparse in the representative and long-boundary audits.** These
+  audits reuse the research audit's proof for exactly the same archive, receipt
+  and raw bytes and the same parser functions. Without such a proof, including
+  every audit outside the worker, they reparse the original HTML as before.
+- **One of three raw reads per research pass.** The original is hashed when the
+  store is listed and again when its receipt is rebuilt. It is read a third time
+  only when that archive must be reparsed.
+
+Relaxed guarantee, stated explicitly: within one worker process, an archive is
+not decoded and re-canonicalized again when its bytes hash to bytes the same
+process already checked. This relies on SHA-256 collision resistance, which the
+store already assumes for raw-original names and every binding hash. Proofs and
+evidence stay process-local, are never persisted or caller-supplied, and only a
+completely successful audit adds them.
+
+The calendar lookup behind each candle's session check and the contract YAML
+parse are now shared within the process. They return exactly the previous values
+and do not skip any check. Candle validation previously recomputed a one-day
+exchange schedule for every candle.
+
+Measured on 2026-10-22 against a copy of the 174-capture store (1.0 GB). Each
+refresh replayed the same saved public pages; other processes were running on
+the machine. Both versions wrote byte-identical artifacts.
+
+| Refresh | Before | After |
+|---|---|---|
+| New asset (micron), first after restart | 1,250.6 s | 295.0 s |
+| Same asset again (warm) | 391.7 s | 51.3 s |
+| Next asset (nvidia) in the same process | 479.8 s | 85.8 s |
+| Old asset (sk-hynix, 22 captures), first after restart | 1,321.0 s | 430.1 s |
+| Same old asset again (warm) | 396.7 s | 40.5 s |
+
+The first refresh after a restart still has to decode and replay every archive
+once, because proofs are never persisted; for an old asset this includes the
+numerical replay of each of its full-geometry snapshots. Warm refreshes still
+grow linearly with stored bytes, because every original is hashed on every pass.
+The proof and evidence stores each hold up to 16,384 entries. Roughly six months
+of three-a-day captures for ten assets would fill the evidence store, after which
+eviction makes passes progressively colder.
 The local browser shell also starts from the public HOLD projection. It obtains
 personal prices only through the validated private import interface, rather
 than copying them into the shell's dashboard data or static chart sidecars.
