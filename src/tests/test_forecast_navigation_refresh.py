@@ -96,7 +96,11 @@ function paintRailSubNav(){}function forecastSummaryCheckDue(){return true;}asyn
 (async()=>{
  syncMidHash('#future/trendlines/sk-hynix');await Promise.resolve();if(calls)throw Error('editor route refreshed');
  document.body.dataset.view='future';syncMidHash('#future/timeseries/path');await Promise.resolve();
- if(calls!==1||!focused)throw Error('forecast tab did not preserve focus');console.log('passed');
+ if(calls!==1||!focused)throw Error('forecast tab did not preserve focus');
+ focused=false;document.body.dataset.view='statistics';document.activeElement={dataset:{statFilter:'rates'}};
+ document.querySelectorAll=()=>[{dataset:{statFilter:'rates'},focus:()=>focused=true}];
+ syncMidHash('#statistics/dotcom/rates');await Promise.resolve();
+ if(calls!==2||!focused)throw Error('statistics filter kept stale data or lost focus');console.log('passed');
 })().catch(error=>{console.error(error);process.exitCode=1;});
 """
     path = tmp_path / 'scope.js'; path.write_text(program, encoding='utf-8')

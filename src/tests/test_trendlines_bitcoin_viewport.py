@@ -21,7 +21,7 @@ process.stdout.write(JSON.stringify({visible:visible.map(b=>b.session_index),can
     assert result['hoverKind'] == 'bar'
     assert result['hoverPrice'] == result['expectedPrice']
     assert result['hoverSession'] == result['expectedSession']
-    assert result['scopes']['all'] == list(range(1566))
+    assert result['scopes']['all'] == list(range(105, 1566))
     assert result['scopes']['anchors'] == list(range(790, 1566))
     assert len(result['focused']['current_structure']) == 126
     assert len(result['focused']['regression_200']) == 252
@@ -31,7 +31,7 @@ process.stdout.write(JSON.stringify({visible:visible.map(b=>b.session_index),can
     assert result['unchanged'] and result['lineId'] == 'same-anchor-equation'
 
 
-@pytest.mark.parametrize('count', [0, 50, 800])
+@pytest.mark.parametrize('count', [0, 50, 800, 1461, 3000])
 def test_bitcoin_overview_never_invents_missing_history(tmp_path, count):
     result = run(tmp_path, 'const bars=Array.from({length:' + str(count) + r'''},(_,i)=>({session_index:i})),d={asset_id:'bitcoin',bars},a={family:'all',lines:[]};process.stdout.write(JSON.stringify({count:trendRepresentativeViewport(d,a).length,all:trendRepresentativeViewport(d,a,'all').length,unchanged:d.bars.length}));''')
-    assert result == {'count': count, 'all': count, 'unchanged': count}
+    assert result == {'count': min(count, 1095), 'all': min(count, 1461), 'unchanged': count}

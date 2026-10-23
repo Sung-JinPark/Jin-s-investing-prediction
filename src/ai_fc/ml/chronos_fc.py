@@ -22,6 +22,28 @@ _t5_pipeline = None  # 모듈 캐시 (T5)
 _c2_pipeline = None  # 모듈 캐시 (Chronos-2)
 
 
+def _qkey(level: float) -> str:
+    """분위수 레벨 → 키 ("q10", "q05", "q01" …). 0.01 → "q01", 0.99 → "q99"."""
+    return f"q{int(round(level * 100)):02d}"
+
+
+def _interp_prob_above(threshold: float, levels: list[float], vals: list[float],
+                       cap_hi: float, cap_lo: float) -> float:
+    """분위수 점들의 선형 보간으로 P(X > threshold) 근사. 범위 밖은 캡 (꼬리 단정 금지)."""
+    if threshold <= vals[0]:
+        return cap_hi
+    if threshold >= vals[-1]:
+        return cap_lo
+    for i in range(len(vals) - 1):
+        if vals[i] <= threshold <= vals[i + 1]:
+            if vals[i + 1] == vals[i]:
+                return 1 - levels[i]
+            frac = (threshold - vals[i]) / (vals[i + 1] - vals[i])
+            cdf = levels[i] + frac * (levels[i + 1] - levels[i])
+            return 1.0 - cdf
+    return 0.5
+
+
 @dataclass
 class QuantileForecast:
     symbol: str
@@ -29,6 +51,8 @@ class QuantileForecast:
     horizon: int          # 주 단위 스텝 수
     quantiles: dict[str, list[float]]   # {"q10": [...], "q25": ..., "q50": ..., "q75": ..., "q90": ...}
     last_value: float
+    # C5 병기 필드 — Chronos-2 경로만 채운다 (LEVELS_C2 9레벨: q01…q99). Bolt·결합은 None.
+    tail_quantiles: dict[str, list[float]] | None = None
 
     def terminal(self, q: str) -> float:
         return self.quantiles[q][-1]
@@ -36,26 +60,28 @@ class QuantileForecast:
     def terminal_pct(self, q: str) -> float:
         return self.terminal(q) / self.last_value - 1.0
 
-    def prob_above(self, threshold: float) -> float:
-        """예측 종점에서 임계값 상회 확률 — 분위수 5점의 선형 보간 근사.
+    def prob_above(self, threshold: float, step: int = -1) -> float:
+        """스텝(기본 종점)에서 임계값 상회 확률 — 분위수 5점의 선형 보간 근사.
 
         Chronos-Bolt 학습 분위수 범위가 [0.1, 0.9]라 q10/q90 밖은 보간 불가 —
-        0.93/0.07로 캡 (분포 꼬리 단정 금지, 근사 상·하한).
+        0.93/0.07로 캡 (분포 꼬리 단정 금지, 근사 상·하한). step 은 주간 스텝 인덱스
+        (-1 = 종점) — 기한이 지평 끝보다 이른 종점 질문용.
         """
         qs = [0.10, 0.25, 0.50, 0.75, 0.90]
-        vals = [self.terminal(f"q{int(q * 100):02d}") for q in qs]
-        if threshold <= vals[0]:
-            return 0.93  # 분위수 밖 — 근사 상한
-        if threshold >= vals[-1]:
-            return 0.07
-        for i in range(len(vals) - 1):
-            if vals[i] <= threshold <= vals[i + 1]:
-                if vals[i + 1] == vals[i]:
-                    return 1 - qs[i]
-                frac = (threshold - vals[i]) / (vals[i + 1] - vals[i])
-                cdf = qs[i] + frac * (qs[i + 1] - qs[i])
-                return 1.0 - cdf
-        return 0.5
+        vals = [self.quantiles[_qkey(q)][step] for q in qs]
+        return _interp_prob_above(threshold, qs, vals, cap_hi=0.93, cap_lo=0.07)
+
+    def prob_above_tail(self, threshold: float, step: int = -1) -> float | None:
+        """꼬리 분위수(LEVELS_C2, q01~q99) 보간 — 'prob_tail_c2' 병기 필드용.
+
+        기존 prob_above 를 대체하지 않는다 (AGENTS.md 섀도 검증 규율 — 교체는 4주
+        병기 뒤 별도 결정). 꼬리 레벨이 없으면 None. q01/q99 밖은 0.99/0.01 캡 —
+        모델 자신의 1%/99% 분위수가 말하는 상한·하한이다.
+        """
+        if not self.tail_quantiles:
+            return None
+        vals = [self.tail_quantiles[_qkey(q)][step] for q in LEVELS_C2]
+        return _interp_prob_above(threshold, LEVELS_C2, vals, cap_hi=0.99, cap_lo=0.01)
 
 
 def _load_pipeline():
@@ -97,19 +123,28 @@ def sample_paths(closes: list[float], horizon: int, num_samples: int = 256,
 
 
 LEVELS = [0.1, 0.25, 0.5, 0.75, 0.9]  # Bolt 학습 범위 [0.1~0.9] 내 — 범위 밖은 조용히 잘림
+# Chronos-2 전용 꼬리 포함 레벨 (C5 병기). amazon/chronos-2 학습 분위수 집합
+# {0.01, 0.05, …, 0.95, 0.99} 의 부분집합이라 보간·외삽 없이 인덱스로 직접 얻는다
+# (2026-10-21 HF_HUB_OFFLINE 합성 스모크: 9레벨 호출의 공통 5레벨 값이 5레벨 호출과
+# 최대차 0.0 으로 일치 — 기존 prob 경로가 바뀌지 않음을 확인). Bolt 에는 쓰지 않는다.
+LEVELS_C2 = [0.01, 0.05, 0.1, 0.25, 0.5, 0.75, 0.9, 0.95, 0.99]
 
 
-def _to_qf(symbol: str, closes: list[float], horizon: int, arr: "np.ndarray"
-           ) -> QuantileForecast:
+def _to_qf(symbol: str, closes: list[float], horizon: int, arr: "np.ndarray",
+           levels: list[float] | None = None) -> QuantileForecast:
+    """분위수 배열 → QuantileForecast. levels 가 LEVELS 초집합이면 공용 5레벨은
+    `quantiles` 에, 전체 레벨은 `tail_quantiles` 에 담는다 (기존 소비자 무영향)."""
     if arr.ndim == 3:  # (n_targets, horizon, n_q) — 1타깃이면 축약
         arr = arr[0]
+    levels = LEVELS if levels is None else levels
+    full = {_qkey(l): [float(v) for v in arr[:, k]] for k, l in enumerate(levels)}
     return QuantileForecast(
         symbol=symbol,
         context_len=len(closes),
         horizon=horizon,
-        quantiles={f"q{int(l * 100):02d}": [float(v) for v in arr[:, k]]
-                   for k, l in enumerate(LEVELS)},
+        quantiles={_qkey(l): full[_qkey(l)] for l in LEVELS},
         last_value=float(closes[-1]),
+        tail_quantiles=full if levels is not LEVELS else None,
     )
 
 
@@ -155,6 +190,8 @@ def forecast_quantiles_c2(symbol: str, closes: list[float], horizon: int,
     """Chronos-2: 과거 공변량(past-only) 조건부 분위수 예측.
 
     미래 공변량은 쓰지 않는다 — 미래 VIX·금리를 아는 척하지 않는 정직 고지.
+    분위수는 LEVELS_C2(꼬리 포함 9레벨) 한 번 호출로 받아, 공용 5레벨은 기존대로
+    `quantiles` 에, 9레벨 전체는 `tail_quantiles` 에 병기한다 (C5 — prob 무변경).
     """
     pipe = _load_c2_pipeline()
     target = np.asarray(closes, dtype=np.float32)
@@ -164,8 +201,8 @@ def forecast_quantiles_c2(symbol: str, closes: list[float], horizon: int,
     else:
         inputs = [target]
     q, _ = pipe.predict_quantiles(
-        inputs, prediction_length=horizon, quantile_levels=LEVELS)
-    return _to_qf(symbol, closes, horizon, q[0].numpy())
+        inputs, prediction_length=horizon, quantile_levels=LEVELS_C2)
+    return _to_qf(symbol, closes, horizon, q[0].numpy(), levels=LEVELS_C2)
 
 
 def combine_median(fcs: list[QuantileForecast]) -> QuantileForecast:

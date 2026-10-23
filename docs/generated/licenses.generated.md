@@ -23,6 +23,9 @@
 | `btc_etf_flows` | pending two-source review | [pending](pending) | `review_required` | 파생 통계 표시 가능; 원시 재배포 금지 |
 | `iea_eia_capacity` | IEA and EIA | [pending-machine-readable-contract](pending-machine-readable-contract) | `review_required` | 파생 통계 표시 가능; 원시 재배포 금지 |
 | `nasdaq_comp_official` | Nasdaq | [https://api.nasdaq.com/api/quote/COMP/info?assetclass=index](https://api.nasdaq.com/api/quote/COMP/info?assetclass=index) | `review_required` | 파생 통계 표시 가능; 원시 재배포 금지 |
+| `fed_board_fomc_history` | Board of Governors of the Federal Reserve System | [https://www.federalreserve.gov/monetarypolicy/fomchistorical2008.htm](https://www.federalreserve.gov/monetarypolicy/fomchistorical2008.htm) | `approved` | 계약 범위 내 파생 통계 표시 |
+| `bls_release_archive_index` | U.S. Bureau of Labor Statistics | [https://www.bls.gov/bls/news-release/empsit.htm](https://www.bls.gov/bls/news-release/empsit.htm) | `approved` | 계약 범위 내 파생 통계 표시 |
+| `cftc_public_reporting_tff` | U.S. Commodity Futures Trading Commission | [https://publicreporting.cftc.gov/resource/gpe5-46if.json](https://publicreporting.cftc.gov/resource/gpe5-46if.json) | `approved` | 계약 범위 내 파생 통계 표시 |
 
 ## Pending manual reviews
 

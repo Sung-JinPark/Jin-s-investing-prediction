@@ -628,3 +628,62 @@ process.stdout.write(JSON.stringify({literal,nested,regex:pattern.test('`'),slas
     original = _run(tmp_path, source, helpers=False)
     compressed = _run(tmp_path, body, helpers=False)
     assert compressed == original
+
+
+def test_forward_record_summarizes_resolutions_without_claiming_validation() -> None:
+    """A9(2026-10-21): 해소 원장 요약은 채점·판정이 아니다 — 정정은 최신 개정만, 행 0이면 None."""
+    from ai_fc.timeseries_daily6m.display import forward_record
+
+    rows = [
+        {"resolution_id": "a:2026-10-15", "forecast_id": "a", "date": "2026-10-15", "brier": 0.14, "inside_p10_p90": True},
+        {"resolution_id": "a:2026-10-16", "forecast_id": "a", "date": "2026-10-16", "brier": 0.28, "inside_p10_p90": False},
+        {"resolution_id": "b:2026-10-16", "forecast_id": "b", "date": "2026-10-16", "brier": 0.18, "inside_p10_p90": True},
+        {"resolution_id": "b:2026-10-16:fix", "forecast_id": "b", "date": "2026-10-16", "brier": 0.10,
+         "inside_p10_p90": True, "supersedes": "b:2026-10-16", "resolution_kind": "correction"},
+        {"resolution_id": "broken", "forecast_id": "c", "date": "2026-10-17", "brier": None},
+    ]
+    record = forward_record(rows)
+    assert (record["resolved_rows"], record["forecasts"], record["resolved_dates"]) == (3, 2, 2)
+    assert record["mean_brier"] == round((0.14 + 0.28 + 0.10) / 3, 4)
+    assert record["covered_p10_p90_rows"] == 2 and record["no_information_brier"] == 0.25
+    assert record["nominal_interval_coverage"] == 0.8 and record["independent_rows"] is False
+    assert record["predictive_validation"] == "not_established" and record["display_only"] is True
+    assert (record["first_date"], record["last_date"]) == ("2026-10-15", "2026-10-16")
+    empty = forward_record([])
+    assert empty["resolved_rows"] == 0 and empty["mean_brier"] is None and empty["covered_p10_p90_rows"] is None
+    assert empty["predictive_validation"] == "not_established"
+
+
+def test_forward_record_loader_fails_closed_without_a_ledger(tmp_path: Path) -> None:
+    from ai_fc.timeseries_daily6m import contracts as C
+    from ai_fc.timeseries_daily6m.display import load_forward_record
+
+    assert load_forward_record(tmp_path)["resolved_rows"] == 0
+    path = tmp_path / C.RESOLUTION_LEDGER
+    path.parent.mkdir(parents=True)
+    path.write_text("{not json", encoding="utf-8")
+    broken = load_forward_record(tmp_path)
+    assert broken["resolved_rows"] == 0 and broken["mean_brier"] is None and "ledger_error" in broken
+
+
+def test_daily_record_markup_shows_dash_without_resolutions(tmp_path: Path) -> None:
+    program = """
+const withRows=tsDailyRecordMarkup({resolved_rows:5,forecasts:2,resolved_dates:4,mean_brier:0.2284,no_information_brier:0.25,covered_p10_p90_rows:4,first_date:'2026-10-15',last_date:'2026-10-20',predictive_validation:'not_established'});
+const empty=tsDailyRecordMarkup({resolved_rows:0,mean_brier:null,covered_p10_p90_rows:null,predictive_validation:'not_established'});
+const absent=tsDailyRecordMarkup({});
+process.stdout.write(JSON.stringify({withRows,empty,absent}));
+"""
+    out = _run(tmp_path, program)
+    full = out["withRows"]
+    assert "0.228" in full and "4/5" in full and "2 / 4" in full and "검증 전" in full
+    assert "무정보 0.25" in full and "predictive_validation=not_established" in full
+    for markup in (out["empty"], out["absent"]):
+        assert markup.count("—") >= 3 and "검증 전" in markup and "not_established" in markup
+    for markup in out.values():
+        assert "전진 검증 전" not in markup and "연구 프리뷰" not in markup
+    source = _source()
+    daily = source[source.index("function renderTimeseriesDaily("):source.index("function bindTimeseriesTabs")]
+    assert "tsDailyRecordMarkup(DATA.timeseries_daily_record||{})" in daily
+    from ai_fc import dashboard
+    wiring = Path(dashboard.__file__).read_text(encoding="utf-8")
+    assert '"timeseries_daily_record": timeseries_daily_record' in wiring

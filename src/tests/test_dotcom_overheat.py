@@ -155,7 +155,11 @@ def test_daily_refresh_reaches_pages_and_failure_monitor() -> None:
 
     refresh = workflow("statistics-refresh")
     triggers = refresh.get("on", refresh.get(True))
-    assert triggers["schedule"] == [{"cron": "20 6 * * *"}]
+    assert triggers["schedule"] == [
+        {"cron": "20 6 * * *"},
+        {"cron": "23 22 * * 1-5"},
+        {"cron": "23 1 * * 2-6"},
+    ]
     steps = refresh["jobs"]["refresh"]["steps"]
     commands = "\n".join(step.get("run", "") for step in steps)
     assert "python -m ai_fc statistics-refresh" in commands
@@ -222,9 +226,8 @@ def test_v2_contract_adds_the_ipo_count_and_keeps_v1_as_history() -> None:
 
 def test_v3_contract_changes_only_what_the_ipo_indicator_counts() -> None:
     """2026-10-08 사용자 결정: 시대 핵심 ADR 은 더하고 SPAC 은 계속 뺀다 — v2 는 역사로 무수정."""
-    assert CONTRACT_RELATIVE.name == "dotcom_overheat_index_v3.yaml"
     v2 = yaml.safe_load((ROOT / "data/contracts/dotcom_overheat_index_v2.yaml").read_text(encoding="utf-8"))
-    v3 = yaml.safe_load((ROOT / CONTRACT_RELATIVE).read_text(encoding="utf-8"))
+    v3 = yaml.safe_load((ROOT / "data/contracts/dotcom_overheat_index_v3.yaml").read_text(encoding="utf-8"))
     assert v3["contract_id"] == "dotcom_overheat_index_v3" and v3["supersedes"] == "dotcom_overheat_index_v2"
     assert v3["method"] == v2["method"], "축·집계 규칙은 그대로"
     strip = lambda rows: [{k: v for k, v in r.items() if k not in {"definition", "theme_adr_rule", "spac_rule"}} for r in rows]
@@ -234,9 +237,38 @@ def test_v3_contract_changes_only_what_the_ipo_indicator_counts() -> None:
     assert "1995~1999" in ipo["spac_rule"] and "CXMT" in ipo["theme_adr_rule"]
 
 
+def test_v4_contract_adds_large_foreign_listings_and_a_display_only_pipeline() -> None:
+    """2026-10-23 사용자 결정: 해외 대형 테마 상장은 상장지 불문 가산, 상장 대기(DeepSeek)는 표시만 — v3 는 역사."""
+    assert CONTRACT_RELATIVE.name == "dotcom_overheat_index_v4.yaml"
+    v3 = yaml.safe_load((ROOT / "data/contracts/dotcom_overheat_index_v3.yaml").read_text(encoding="utf-8"))
+    v4 = yaml.safe_load((ROOT / CONTRACT_RELATIVE).read_text(encoding="utf-8"))
+    assert v4["contract_id"] == "dotcom_overheat_index_v4" and v4["supersedes"] == "dotcom_overheat_index_v3"
+    assert v4["method"] == v3["method"], "축·집계 규칙은 그대로"
+    rule_keys = {"definition", "theme_adr_rule", "spac_rule", "foreign_listing_rule", "pipeline_rule", "sources"}
+    strip = lambda rows: [{k: v for k, v in r.items() if k not in rule_keys} for r in rows]
+    assert strip(v4["indicators"]) == strip(v3["indicators"])
+    ipo = next(row for row in v4["indicators"] if row["id"] == "ipo_count_operating_12m")
+    assert "theme_listing_additions.csv" in ipo["definition"]
+    assert "닷컴 250 / 현재 500" in ipo["foreign_listing_rule"] and "비대칭" in ipo["foreign_listing_rule"]
+    assert "DeepSeek" in ipo["pipeline_rule"] and "더하지 않는다" in ipo["pipeline_rule"]
+    assert ipo["spac_rule"] == next(row for row in v3["indicators"] if row["id"] == "ipo_count_operating_12m")["spac_rule"]
+
+
+def test_indicators_carry_their_data_month_so_a_flat_composite_is_explained() -> None:
+    """입력 14종 중 9종이 분기·연간이라 대표값은 발표 사이에 그대로다 — 지표마다 자료월을 내보낸다."""
+    result = compute_index(ROOT)
+    if result.get("status") != "ok":
+        import pytest
+        pytest.skip("statistics snapshot unavailable")
+    for row in result["indicators"]:
+        assert row["current_date"] and len(row["current_date"]) == 10
+    panel = (ROOT / "src/ai_fc/dashboard_parts/dashboard.js").read_text(encoding="utf-8")
+    assert "자료 ${esc(dataMonth(r))}" in panel and "current_date" in panel
+
+
 def test_live_index_includes_the_confirmed_ipo_count_in_its_own_category() -> None:
     result = compute_index(ROOT)
-    assert result["contract_id"] == "dotcom_overheat_index_v3"
+    assert result["contract_id"] == "dotcom_overheat_index_v4"
     row = next(r for r in result["indicators"] if r["id"] == "ipo_count_operating_12m")
     assert row["category"] == "ipo"
     assert "ipo" in result["category_medians"]

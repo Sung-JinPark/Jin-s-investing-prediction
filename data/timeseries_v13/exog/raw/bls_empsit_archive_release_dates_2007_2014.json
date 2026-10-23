@@ -1,0 +1,400 @@
+{
+ "schema_version": 1,
+ "source": "U.S. Bureau of Labor Statistics - Archived News Releases index page",
+ "release": "Employment Situation (nonfarm payrolls)",
+ "page_url": "https://www.bls.gov/bls/news-release/empsit.htm",
+ "capture_method": "in-app browser DOM query of anchor hrefs; curl was refused with HTTP 403 by bot protection. Dates are the actual release dates embedded in the archive filenames (MMDDYYYY).",
+ "captured_at": "2026-10-21T10:55:00+00:00",
+ "license": "BLS content is in the public domain (https://www.bls.gov/bls/linksite.htm); attribution requested",
+ "years": [
+  2007,
+  2014
+ ],
+ "count": 96,
+ "release_dates": [
+  {
+   "release_date": "2007-01-05",
+   "href": "/news.release/archives/empsit_01052007.pdf"
+  },
+  {
+   "release_date": "2007-02-02",
+   "href": "/news.release/archives/empsit_02022007.pdf"
+  },
+  {
+   "release_date": "2007-03-09",
+   "href": "/news.release/archives/empsit_03092007.pdf"
+  },
+  {
+   "release_date": "2007-04-06",
+   "href": "/news.release/archives/empsit_04062007.pdf"
+  },
+  {
+   "release_date": "2007-05-04",
+   "href": "/news.release/archives/empsit_05042007.pdf"
+  },
+  {
+   "release_date": "2007-06-01",
+   "href": "/news.release/archives/empsit_06012007.pdf"
+  },
+  {
+   "release_date": "2007-07-06",
+   "href": "/news.release/archives/empsit_07062007.pdf"
+  },
+  {
+   "release_date": "2007-08-03",
+   "href": "/news.release/archives/empsit_08032007.pdf"
+  },
+  {
+   "release_date": "2007-09-07",
+   "href": "/news.release/archives/empsit_09072007.pdf"
+  },
+  {
+   "release_date": "2007-10-05",
+   "href": "/news.release/archives/empsit_10052007.pdf"
+  },
+  {
+   "release_date": "2007-11-02",
+   "href": "/news.release/archives/empsit_11022007.pdf"
+  },
+  {
+   "release_date": "2007-12-07",
+   "href": "/news.release/archives/empsit_12072007.pdf"
+  },
+  {
+   "release_date": "2008-01-04",
+   "href": "/news.release/archives/empsit_01042008.pdf"
+  },
+  {
+   "release_date": "2008-02-01",
+   "href": "/news.release/archives/empsit_02012008.pdf"
+  },
+  {
+   "release_date": "2008-03-07",
+   "href": "/news.release/archives/empsit_03072008.pdf"
+  },
+  {
+   "release_date": "2008-04-04",
+   "href": "/news.release/archives/empsit_04042008.pdf"
+  },
+  {
+   "release_date": "2008-05-02",
+   "href": "/news.release/archives/empsit_05022008.pdf"
+  },
+  {
+   "release_date": "2008-06-06",
+   "href": "/news.release/archives/empsit_06062008.pdf"
+  },
+  {
+   "release_date": "2008-07-03",
+   "href": "/news.release/archives/empsit_07032008.pdf"
+  },
+  {
+   "release_date": "2008-08-01",
+   "href": "/news.release/archives/empsit_08012008.pdf"
+  },
+  {
+   "release_date": "2008-09-05",
+   "href": "/news.release/archives/empsit_09052008.pdf"
+  },
+  {
+   "release_date": "2008-10-03",
+   "href": "/news.release/archives/empsit_10032008.pdf"
+  },
+  {
+   "release_date": "2008-11-07",
+   "href": "/news.release/archives/empsit_11072008.pdf"
+  },
+  {
+   "release_date": "2008-12-05",
+   "href": "/news.release/archives/empsit_12052008.pdf"
+  },
+  {
+   "release_date": "2009-01-09",
+   "href": "/news.release/archives/empsit_01092009.pdf"
+  },
+  {
+   "release_date": "2009-02-06",
+   "href": "/news.release/archives/empsit_02062009.pdf"
+  },
+  {
+   "release_date": "2009-03-06",
+   "href": "/news.release/archives/empsit_03062009.pdf"
+  },
+  {
+   "release_date": "2009-04-03",
+   "href": "/news.release/archives/empsit_04032009.pdf"
+  },
+  {
+   "release_date": "2009-05-08",
+   "href": "/news.release/archives/empsit_05082009.pdf"
+  },
+  {
+   "release_date": "2009-06-05",
+   "href": "/news.release/archives/empsit_06052009.pdf"
+  },
+  {
+   "release_date": "2009-07-02",
+   "href": "/news.release/archives/empsit_07022009.pdf"
+  },
+  {
+   "release_date": "2009-08-07",
+   "href": "/news.release/archives/empsit_08072009.pdf"
+  },
+  {
+   "release_date": "2009-09-04",
+   "href": "/news.release/archives/empsit_09042009.pdf"
+  },
+  {
+   "release_date": "2009-10-02",
+   "href": "/news.release/archives/empsit_10022009.pdf"
+  },
+  {
+   "release_date": "2009-11-06",
+   "href": "/news.release/archives/empsit_11062009.pdf"
+  },
+  {
+   "release_date": "2009-12-04",
+   "href": "/news.release/archives/empsit_12042009.pdf"
+  },
+  {
+   "release_date": "2010-01-08",
+   "href": "/news.release/archives/empsit_01082010.pdf"
+  },
+  {
+   "release_date": "2010-02-05",
+   "href": "/news.release/archives/empsit_02052010.pdf"
+  },
+  {
+   "release_date": "2010-03-05",
+   "href": "/news.release/archives/empsit_03052010.pdf"
+  },
+  {
+   "release_date": "2010-04-02",
+   "href": "/news.release/archives/empsit_04022010.pdf"
+  },
+  {
+   "release_date": "2010-05-07",
+   "href": "/news.release/archives/empsit_05072010.pdf"
+  },
+  {
+   "release_date": "2010-06-04",
+   "href": "/news.release/archives/empsit_06042010.pdf"
+  },
+  {
+   "release_date": "2010-07-02",
+   "href": "/news.release/archives/empsit_07022010.pdf"
+  },
+  {
+   "release_date": "2010-08-06",
+   "href": "/news.release/archives/empsit_08062010.pdf"
+  },
+  {
+   "release_date": "2010-09-03",
+   "href": "/news.release/archives/empsit_09032010.pdf"
+  },
+  {
+   "release_date": "2010-10-08",
+   "href": "/news.release/archives/empsit_10082010.pdf"
+  },
+  {
+   "release_date": "2010-11-05",
+   "href": "/news.release/archives/empsit_11052010.pdf"
+  },
+  {
+   "release_date": "2010-12-03",
+   "href": "/news.release/archives/empsit_12032010.pdf"
+  },
+  {
+   "release_date": "2011-01-07",
+   "href": "/news.release/archives/empsit_01072011.pdf"
+  },
+  {
+   "release_date": "2011-02-04",
+   "href": "/news.release/archives/empsit_02042011.pdf"
+  },
+  {
+   "release_date": "2011-03-04",
+   "href": "/news.release/archives/empsit_03042011.pdf"
+  },
+  {
+   "release_date": "2011-04-01",
+   "href": "/news.release/archives/empsit_04012011.pdf"
+  },
+  {
+   "release_date": "2011-05-06",
+   "href": "/news.release/archives/empsit_05062011.pdf"
+  },
+  {
+   "release_date": "2011-06-03",
+   "href": "/news.release/archives/empsit_06032011.pdf"
+  },
+  {
+   "release_date": "2011-07-08",
+   "href": "/news.release/archives/empsit_07082011.pdf"
+  },
+  {
+   "release_date": "2011-08-05",
+   "href": "/news.release/archives/empsit_08052011.pdf"
+  },
+  {
+   "release_date": "2011-09-02",
+   "href": "/news.release/archives/empsit_09022011.pdf"
+  },
+  {
+   "release_date": "2011-10-07",
+   "href": "/news.release/archives/empsit_10072011.pdf"
+  },
+  {
+   "release_date": "2011-11-04",
+   "href": "/news.release/archives/empsit_11042011.pdf"
+  },
+  {
+   "release_date": "2011-12-02",
+   "href": "/news.release/archives/empsit_12022011.pdf"
+  },
+  {
+   "release_date": "2012-01-06",
+   "href": "/news.release/archives/empsit_01062012.pdf"
+  },
+  {
+   "release_date": "2012-02-03",
+   "href": "/news.release/archives/empsit_02032012.pdf"
+  },
+  {
+   "release_date": "2012-03-09",
+   "href": "/news.release/archives/empsit_03092012.pdf"
+  },
+  {
+   "release_date": "2012-04-06",
+   "href": "/news.release/archives/empsit_04062012.pdf"
+  },
+  {
+   "release_date": "2012-05-04",
+   "href": "/news.release/archives/empsit_05042012.pdf"
+  },
+  {
+   "release_date": "2012-06-01",
+   "href": "/news.release/archives/empsit_06012012.pdf"
+  },
+  {
+   "release_date": "2012-07-06",
+   "href": "/news.release/archives/empsit_07062012.pdf"
+  },
+  {
+   "release_date": "2012-08-03",
+   "href": "/news.release/archives/empsit_08032012.pdf"
+  },
+  {
+   "release_date": "2012-09-07",
+   "href": "/news.release/archives/empsit_09072012.pdf"
+  },
+  {
+   "release_date": "2012-10-05",
+   "href": "/news.release/archives/empsit_10052012.pdf"
+  },
+  {
+   "release_date": "2012-11-02",
+   "href": "/news.release/archives/empsit_11022012.pdf"
+  },
+  {
+   "release_date": "2012-12-07",
+   "href": "/news.release/archives/empsit_12072012.pdf"
+  },
+  {
+   "release_date": "2013-01-04",
+   "href": "/news.release/archives/empsit_01042013.pdf"
+  },
+  {
+   "release_date": "2013-02-01",
+   "href": "/news.release/archives/empsit_02012013.pdf"
+  },
+  {
+   "release_date": "2013-03-08",
+   "href": "/news.release/archives/empsit_03082013.pdf"
+  },
+  {
+   "release_date": "2013-04-05",
+   "href": "/news.release/archives/empsit_04052013.pdf"
+  },
+  {
+   "release_date": "2013-05-03",
+   "href": "/news.release/archives/empsit_05032013.pdf"
+  },
+  {
+   "release_date": "2013-06-07",
+   "href": "/news.release/archives/empsit_06072013.pdf"
+  },
+  {
+   "release_date": "2013-07-05",
+   "href": "/news.release/archives/empsit_07052013.pdf"
+  },
+  {
+   "release_date": "2013-08-02",
+   "href": "/news.release/archives/empsit_08022013.pdf"
+  },
+  {
+   "release_date": "2013-09-06",
+   "href": "/news.release/archives/empsit_09062013.pdf"
+  },
+  {
+   "release_date": "2013-10-22",
+   "href": "/news.release/archives/empsit_10222013.pdf"
+  },
+  {
+   "release_date": "2013-11-08",
+   "href": "/news.release/archives/empsit_11082013.pdf"
+  },
+  {
+   "release_date": "2013-12-06",
+   "href": "/news.release/archives/empsit_12062013.pdf"
+  },
+  {
+   "release_date": "2014-01-10",
+   "href": "/news.release/archives/empsit_01102014.pdf"
+  },
+  {
+   "release_date": "2014-02-07",
+   "href": "/news.release/archives/empsit_02072014.pdf"
+  },
+  {
+   "release_date": "2014-03-07",
+   "href": "/news.release/archives/empsit_03072014.pdf"
+  },
+  {
+   "release_date": "2014-04-04",
+   "href": "/news.release/archives/empsit_04042014.pdf"
+  },
+  {
+   "release_date": "2014-05-02",
+   "href": "/news.release/archives/empsit_05022014.pdf"
+  },
+  {
+   "release_date": "2014-06-06",
+   "href": "/news.release/archives/empsit_06062014.pdf"
+  },
+  {
+   "release_date": "2014-07-03",
+   "href": "/news.release/archives/empsit_07032014.pdf"
+  },
+  {
+   "release_date": "2014-08-01",
+   "href": "/news.release/archives/empsit_08012014.pdf"
+  },
+  {
+   "release_date": "2014-09-05",
+   "href": "/news.release/archives/empsit_09052014.pdf"
+  },
+  {
+   "release_date": "2014-10-03",
+   "href": "/news.release/archives/empsit_10032014.pdf"
+  },
+  {
+   "release_date": "2014-11-07",
+   "href": "/news.release/archives/empsit_11072014.pdf"
+  },
+  {
+   "release_date": "2014-12-05",
+   "href": "/news.release/archives/empsit_12052014.pdf"
+  }
+ ]
+}
