@@ -1,6 +1,6 @@
 # Ledger accumulation audit
 
-- Generated: `2026-10-23T06:12:59+00:00`
+- Generated: `2026-10-23T10:34:16+00:00`
 - Latest completed NYSE day: `2026-10-22`
 - Result: accumulating 54 · frozen 2 · stalled 8 · inactive 12 · violation 0 · planned 4
 
@@ -45,7 +45,7 @@
 | `timeseries_observation_facts` | trading_daily | 1 | — | **accumulating** | — |
 | `timeseries_event_facts` | event | 0 | — | **inactive** | — |
 | `timeseries_event_raw_receipts` | event | 0 | — | **inactive** | — |
-| `timeseries_shadow_forecasts` | trading_daily | 1 | 2026-10-22 | **accumulating** | — |
+| `timeseries_shadow_forecasts` | trading_daily | 1 | 2026-10-23 | **accumulating** | — |
 | `timeseries_shadow_resolutions` | trading_daily | 0 | — | **inactive** | — |
 | `timeseries_shadow_corrections` | event | 0 | — | **inactive** | — |
 | `timeseries_model_runs` | weekly | 11 | — | **accumulating** | — |
