@@ -25,10 +25,18 @@ def test_bad_upstream_cannot_displace_a_pending_main_refresh(name):
     assert _concurrency_group(name, 'workflow_run') == expected
     assert _concurrency_group(name, 'workflow_run', branch='codex/branch') != expected
     assert _concurrency_group(name, 'workflow_run', conclusion='failure') != expected
-    job = next(iter(workflow(name)['jobs'].values()))
+    doc = workflow(name)
+    job = next(iter(doc['jobs'].values()))
     assert "head_branch == 'main'" in job['if'] and "conclusion == 'success'" in job['if']
-    checkout = next(s for s in job['steps'] if s.get('uses', '').startswith('actions/checkout'))
-    assert checkout['with']['ref'] == 'main'
+    checked_jobs = [job]
+    if 'uses' in job:
+        assert job['uses'].startswith('./.github/workflows/')
+        research = doc['jobs']['research']
+        assert "head_branch == 'main'" in research['if'] and "conclusion == 'success'" in research['if']
+        checked_jobs = list(workflow(Path(job['uses']).name)['jobs'].values()) + [research]
+    for checked_job in checked_jobs:
+        checkout = next(s for s in checked_job['steps'] if s.get('uses', '').startswith('actions/checkout'))
+        assert checkout['with']['ref'] == 'main'
 
 
 def test_changed_sources_dispatch_every_consumer_even_if_one_dispatch_fails(tmp_path):
