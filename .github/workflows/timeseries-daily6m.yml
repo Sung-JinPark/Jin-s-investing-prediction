@@ -60,6 +60,7 @@ jobs:
         with:
           name: daily6m-readiness-${{ github.run_id }}
           path: .tmp/daily6m-readiness.json
+          include-hidden-files: true
           if-no-files-found: error
       - name: Explain an official source wait without issuing a forecast
         if: ${{ steps.readiness.outputs.ready == 'false' && steps.readiness.outcome == 'success' }}

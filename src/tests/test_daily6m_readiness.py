@@ -107,6 +107,8 @@ def test_automatic_run_waits_for_source_replay_and_cannot_recursively_dispatch()
     assert daily["jobs"]["research"]["needs"]=="sources"
     steps=daily["jobs"]["research"]["steps"]
     guard=next(i for i,s in enumerate(steps) if s.get("id")=="readiness")
+    report=next(s for s in steps if s.get("name")=="Preserve the ready or waiting decision")
+    assert report["with"]["include-hidden-files"] is True and report["with"]["if-no-files-found"]=="error"
     for name in ["Refresh the latest completed origin without rewriting prior forecasts","Score only completed and published daily outcomes","Recheck preview gates and publish current HOLD or ready pointer","Commit only the new research ledger and derived pointer"]:
         i=next(i for i,s in enumerate(steps) if s.get("name")==name)
         assert i>guard and steps[i]["if"]=="${{ steps.readiness.outputs.ready == 'true' }}"
