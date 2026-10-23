@@ -115,4 +115,6 @@ def test_automatic_run_waits_for_source_replay_and_cannot_recursively_dispatch()
     trigger=source.get("on",source.get(True))
     assert trigger["workflow_call"]["inputs"]["suppress_forecast_dispatch"]["default"] is False
     dispatch=next(s for s in source["jobs"]["publish"]["steps"] if s.get("name")=="Recheck and regenerate the separate weekly research forecast")
-    assert "inputs.suppress_forecast_dispatch != true" in dispatch["if"]
+    assert dispatch["if"]=="${{ steps.decision.outputs.changed == 'true' }}"
+    assert dispatch["env"]["SUPPRESS_FORECAST_DISPATCH"]=="${{ inputs.suppress_forecast_dispatch || false }}"
+    assert 'if [ "$workflow" = "timeseries-daily6m.yml" ] && [ "$SUPPRESS_FORECAST_DISPATCH" = "true" ]; then' in dispatch["run"]

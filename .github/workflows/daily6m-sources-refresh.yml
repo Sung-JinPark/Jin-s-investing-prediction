@@ -149,12 +149,16 @@ jobs:
               output.write(f"changed={str(result['changed']).lower()}\nstatus={result['status']}\n")
           PY
       - name: Recheck and regenerate the separate weekly research forecast
-        if: ${{ steps.decision.outputs.changed == 'true' && inputs.suppress_forecast_dispatch != true }}
+        if: ${{ steps.decision.outputs.changed == 'true' }}
         env:
           GH_TOKEN: ${{ github.token }}
+          SUPPRESS_FORECAST_DISPATCH: ${{ inputs.suppress_forecast_dispatch || false }}
         run: |
           dispatch_failed=false
           for workflow in timeseries-daily6m.yml timeseries-v8-daily.yml timeseries-v2-refresh.yml; do
+            if [ "$workflow" = "timeseries-daily6m.yml" ] && [ "$SUPPRESS_FORECAST_DISPATCH" = "true" ]; then
+              continue
+            fi
             gh workflow run "$workflow" --repo "$GITHUB_REPOSITORY" --ref main || dispatch_failed=true
           done
           if [ "$dispatch_failed" = "true" ]; then
