@@ -109,7 +109,7 @@ def test_every_retry_reparses_sources_against_a_fresh_tip_and_stages_only_resear
 
 def test_only_a_verified_source_change_dispatches_the_separate_forecast():
     dispatch = _step("Recheck and regenerate the separate weekly research forecast")
-    assert dispatch["if"] == "${{ steps.decision.outputs.changed == 'true' }}"
+    assert dispatch["if"] == "${{ steps.decision.outputs.changed == 'true' && inputs.suppress_forecast_dispatch != true }}"
     assert "timeseries-daily6m.yml" in dispatch["run"]
     assert "pages.yml" not in str(_workflow())
     assert "daily6m-sources-refresh" in (_workflow("ops-failure-alert.yml").get("on") or _workflow("ops-failure-alert.yml").get(True))["workflow_run"]["workflows"]

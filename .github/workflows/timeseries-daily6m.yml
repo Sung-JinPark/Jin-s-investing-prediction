@@ -16,14 +16,23 @@ on:
 
 permissions:
   contents: write
+  actions: write
 
 concurrency:
   group: ${{ github.event_name == 'workflow_run' && (github.event.workflow_run.conclusion != 'success' || github.event.workflow_run.head_branch != 'main') && format('daily6m-skipped-{0}', github.run_id) || 'investing-data-writer-daily6m' }}
   cancel-in-progress: false
 
 jobs:
-  research:
+  sources:
     if: ${{ github.event_name != 'workflow_run' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main') }}
+    uses: ./.github/workflows/daily6m-sources-refresh.yml
+    with:
+      suppress_forecast_dispatch: true
+  research:
+    needs: sources
+    # A partial collector can still checkpoint valid sources. Recheck those
+    # and eligible native facts, while preserving any collector failure.
+    if: ${{ always() && !cancelled() && (github.event_name != 'workflow_run' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main')) }}
     runs-on: ubuntu-latest
     timeout-minutes: 180
     permissions:
@@ -42,11 +51,29 @@ jobs:
           cache: pip
       - name: Use the already declared numerical dependencies
         run: pip install -e ".[pit,timeseries]" "exchange-calendars>=4.6,<5" pytest
+      - name: Check registered inputs before entering the frozen numerical kernel
+        id: readiness
+        run: python tools/check_daily6m_readiness.py --report .tmp/daily6m-readiness.json --github-output "$GITHUB_OUTPUT"
+      - name: Preserve the ready or waiting decision
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: daily6m-readiness-${{ github.run_id }}
+          path: .tmp/daily6m-readiness.json
+          if-no-files-found: error
+      - name: Explain an official source wait without issuing a forecast
+        if: ${{ steps.readiness.outputs.ready == 'false' && steps.readiness.outcome == 'success' }}
+        run: |
+          echo "Verified completed-session inputs are pending; the dated previous forecast remains selected." >> "$GITHUB_STEP_SUMMARY"
+          cat .tmp/daily6m-readiness.json >> "$GITHUB_STEP_SUMMARY"
       - name: Refresh the latest completed origin without rewriting prior forecasts
+        if: ${{ steps.readiness.outputs.ready == 'true' }}
         run: python -m ai_fc timeseries-daily6m-forecast --refresh-latest
       - name: Score only completed and published daily outcomes
+        if: ${{ steps.readiness.outputs.ready == 'true' }}
         run: python -m ai_fc timeseries-daily6m-resolve
       - name: Recheck preview gates and publish current HOLD or ready pointer
+        if: ${{ steps.readiness.outputs.ready == 'true' }}
         run: python -m ai_fc timeseries-daily6m-latest
       - name: Verify the separate research chain and targeted contracts
         run: |
@@ -59,6 +86,7 @@ jobs:
           path: outputs/timeseries_daily6m/
           if-no-files-found: ignore
       - name: Commit only the new research ledger and derived pointer
+        if: ${{ steps.readiness.outputs.ready == 'true' }}
         id: commit
         shell: bash
         run: |

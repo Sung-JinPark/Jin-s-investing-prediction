@@ -6,6 +6,12 @@ on:
   schedule:
     - cron: "4-59/5 * * * *"
   workflow_dispatch:
+  workflow_call:
+    inputs:
+      suppress_forecast_dispatch:
+        type: boolean
+        default: false
+        description: The caller already owns the forecast run; avoid recursive dispatch.
 
 permissions:
   contents: read
@@ -143,7 +149,7 @@ jobs:
               output.write(f"changed={str(result['changed']).lower()}\nstatus={result['status']}\n")
           PY
       - name: Recheck and regenerate the separate weekly research forecast
-        if: ${{ steps.decision.outputs.changed == 'true' }}
+        if: ${{ steps.decision.outputs.changed == 'true' && inputs.suppress_forecast_dispatch != true }}
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
