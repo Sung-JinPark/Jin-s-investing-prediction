@@ -451,3 +451,72 @@ def test_score100_rides_on_live_projection() -> None:
     row = sealed["sealed_window"]["horizons"]["63"]
     # 절대 CRPS는 공개 개선율의 분자·분모와 정확히 맞물린다
     assert abs((1 - row["crps"] / row["best_baseline_crps"]) - row["crps_improvement_vs_best"]) < 1e-4
+
+
+def test_score100_bounds_fix_the_sealed_pillars_and_bound_the_live_axis() -> None:
+    """봉인 4축은 불변, 실전 축만 0~15 — 상한·하한은 score100 과 같은 반올림 규칙으로 산출한다."""
+    from ai_fc.timeseries_v8_display import score100, score100_bounds
+
+    score = score100(_score_disclosure())
+    bounds = score100_bounds(score)
+    # 중립 입력: 15 + 0 + 30 + 15 = 60.0 고정 → 하한 60(실전 0점) · 상한 75(실전 만점) · 등급 B 고정
+    assert bounds["fixed_pillars"] == ["accuracy", "confidence", "calibration", "robustness"]
+    assert bounds["fixed_points"] == 60.0
+    assert (bounds["floor_total"], bounds["ceiling_total"]) == (60, 75)
+    assert bounds["floor_grade"] == bounds["ceiling_grade"] == "B" and bounds["grade_locked"] is True
+    assert bounds["variable_weight"] == 15 and bounds["live_points"] == score["pillars"]["live"]["points"]
+    assert bounds["floor_total"] <= score["total"] <= bounds["ceiling_total"]
+    assert bounds["method"] == score["method"]
+    # 봉인 축이 등급 경계에 걸치면 등급은 잠기지 않는다 (−4% 개선 → 정확도 30점 = 9.0 → 고정 54.0)
+    weak = _score_disclosure()
+    for row in weak["sealed_window"]["horizons"].values():
+        row["crps_improvement_vs_best"] = -0.04
+    open_bounds = score100_bounds(score100(weak))
+    assert (open_bounds["floor_total"], open_bounds["ceiling_total"]) == (54, 69)
+    assert (open_bounds["floor_grade"], open_bounds["ceiling_grade"]) == ("C", "B")
+    assert open_bounds["grade_locked"] is False
+    assert score100_bounds(None) is None and score100_bounds({"pillars": {}}) is None
+
+
+def test_shadow_progress_counts_nyse_sessions_after_the_first_origin() -> None:
+    """섀도 세션은 첫 원점 다음 거래일부터 NYSE 휴장 달력으로 센다 — 원점 수가 아니다."""
+    from ai_fc import config
+    from ai_fc.scenario import load_calendar_contract
+    from ai_fc.timeseries_v8_display import shadow_progress
+
+    calendar = load_calendar_contract(Path(config.ROOT))
+    progress = shadow_progress(
+        ["2026-08-28", "2026-08-14"], as_of_session="2026-10-20", calendar=calendar,
+        required_sessions=126)
+    assert progress["first_origin"] == "2026-08-14" and progress["origins"] == 2
+    # 08-14(금) 다음 세션 08-17부터, 노동절 09-07 제외 → 10-20까지 46세션
+    assert progress["sessions_elapsed"] == 46 and progress["sessions_remaining"] == 80
+    assert progress["first_h63_maturity_date"] == "2026-11-12" and progress["first_h63_matured"] is False
+    # 추수감사절·성탄절·신정·MLK·대통령의 날 제외
+    assert progress["required_session_date"] == "2027-02-16"
+    assert progress["promotion_automatic"] is False and progress["calendar"] == "NYSE"
+    assert progress["maturity_sessions"] == 63 and progress["as_of_session"] == "2026-10-20"
+    assert shadow_progress([], as_of_session="2026-10-20", calendar=calendar, required_sessions=126) is None
+    assert shadow_progress(["2026-08-14"], as_of_session="2026-10-20", calendar=calendar, required_sessions=0) is None
+    same_day = shadow_progress(["2026-08-14"], as_of_session="2026-08-14", calendar=calendar, required_sessions=126)
+    assert same_day["sessions_elapsed"] == 0
+    done = shadow_progress(["2026-08-14"], as_of_session="2027-06-30", calendar=calendar, required_sessions=126)
+    assert done["sessions_elapsed"] == 126 and done["sessions_remaining"] == 0 and done["first_h63_matured"] is True
+
+
+def test_live_projection_carries_shadow_progress_and_score_bounds() -> None:
+    from ai_fc import config
+    from ai_fc.timeseries_v8_display import load_projection
+
+    projection = load_projection(Path(config.ROOT))
+    if projection is None or projection.get("numbers_visible") is not True:
+        pytest.skip("V8 projection not visible in this checkout")
+    sealed = projection["sealed_metrics"]
+    progress = sealed["shadow_progress"]
+    assert progress["required_sessions"] == 126, "계약 promotion.minimum_shadow_sessions"
+    assert progress["first_origin"] == min(sealed["forward"]["origins"])
+    assert 0 <= progress["sessions_elapsed"] <= progress["required_sessions"]
+    assert progress["as_of_session"] >= str(projection["as_of"])[:10]
+    bounds = sealed["score100_bounds"]
+    assert bounds["floor_total"] <= sealed["score100"]["total"] <= bounds["ceiling_total"]
+    assert bounds["ceiling_total"] - bounds["floor_total"] == 15

@@ -1,0 +1,36 @@
+schema_version: 1
+source_id: feargreedflow_seven_indicators
+endpoint: https://feargreedflow.com/api/fear-greed
+documentation: https://feargreedflow.com/data
+terms: https://feargreedflow.com/accessibility
+checked_at: 2026-10-22
+access: free_public_api_no_key
+# /data explicitly includes seven sub-indicators and allows use for anything,
+# commercial included. This open dataset is distinct from the paid /api/v1 API.
+license_status: publisher_free_dataset
+attribution: Fear & Greed — https://feargreedflow.com/data
+probability_space: not_a_probability
+model_use: false
+official_forecast_input: false
+display_only: true
+cadence: daily_after_us_close_with_afternoon_retry
+source_may_be_intraday: true
+maximum_source_age_hours: 96
+duplicate_dates: last_source_occurrence_preserve_all_in_raw
+score_unit: index_points_0_to_100
+raw_series: published_values_not_score_history
+missing_or_failed: hide_all_component_scores_no_seed_fallback
+legacy_seed: data/fear_greed/fng_components.json
+legacy_seed_policy: preserve_bytes_never_use_for_current_components
+storage: data/fear_greed/components
+integrity: raw_sha256_receipt_snapshot_sha256_replay_atomic_pointer
+revisions: append_new_snapshot_with_supersedes
+headline_policy: independent_source_no_splice_into_headline_ledger
+indicators:
+  - market_momentum_sp500
+  - stock_price_strength
+  - stock_price_breadth
+  - put_call_options
+  - market_volatility_vix
+  - junk_bond_demand
+  - safe_haven_demand

@@ -12,7 +12,7 @@ import json
 import os
 import shutil
 import sys
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from urllib.parse import quote
 from urllib.request import Request, urlopen
@@ -68,10 +68,26 @@ def extend_private_registry(source: Path, target: Path) -> None:
     C.load_asset_registry(target.parents[2])
 
 
+# Rolling capture window (2026-10-22). Yahoo's own KRX history carries a
+# 2015-08-14 row (a temporary market holiday) that the calendar gate rejects as a
+# whole capture, and the full-geometry replay grows with the square of the pivot
+# count (measured: 1,047 bars 10.8 s, 2,520 bars 57.7 s, 2,920 bars 204 s,
+# 2,192 bars 110 s). Ten exchange years (~2,520 sessions) and six crypto years
+# (~2,192 days) stay clear of both and of F.MAX_BARS without truncation; older
+# sessions roll off as new ones arrive.
+CAPTURE_WINDOW_YEARS = {"crypto": 6}
+DEFAULT_CAPTURE_WINDOW_YEARS = 10
+
+
+def capture_window(asset: dict | None, now: datetime | None = None) -> tuple[datetime, datetime]:
+    end = now or datetime.now(timezone.utc)
+    years = CAPTURE_WINDOW_YEARS.get((asset or {}).get("kind"), DEFAULT_CAPTURE_WINDOW_YEARS)
+    return end - timedelta(days=round(years * 365.25)), end
+
+
 def public_page(asset_id: str) -> tuple[bytes, dict]:
     symbol = R.SYMBOLS[asset_id]
-    end = datetime.now(timezone.utc)
-    start = datetime(2022, 7, 1, tzinfo=timezone.utc)
+    start, end = capture_window(R.asset_definition(PROJECT, asset_id))
     url = ("https://finance.yahoo.com/quote/" + quote(symbol, safe="")
            + "/history/?period1=" + str(int(start.timestamp())) + "&period2=" + str(int(end.timestamp())))
     request = Request(url, headers={"User-Agent": "Mozilla/5.0", "Accept": "text/html"})
