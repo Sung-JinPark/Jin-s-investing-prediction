@@ -29,8 +29,9 @@ def captured(tmp_path):
 @pytest.fixture
 def calls(monkeypatch):
     counts = {"prepare": 0, "numeric": 0, "receipt": 0}
+    # _receipt() and each audit's rebuild from the original's digest both go through _receipt_of().
     for module, name, key in ((R, "_prepare", "prepare"), (E, "verify_research_asset_snapshot", "numeric"),
-                              (R, "_receipt", "receipt")):
+                              (R, "_receipt_of", "receipt")):
         original = getattr(module, name)
 
         def count(*args, _original=original, _key=key, **kwargs):

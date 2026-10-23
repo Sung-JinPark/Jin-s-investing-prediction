@@ -140,3 +140,28 @@ def test_lineage_cannot_carry_captured_yield_across_an_unfilled_open_day():
     next(r for r in rows if r["series_id"] == "DGS2" and r["observation_time"] == "2026-10-13")["session"] = ORIGIN
     with pytest.raises(Daily6mContractError, match="incomplete"):
         L.validate_tail_lineage_rows(rows, ORIGIN)
+
+
+def test_automatic_preflight_requires_registered_vix_before_mixed_tail_validation(tmp_path,monkeypatch):
+    import pandas as pd
+    from ai_fc import daily6m_readiness as R, daily6m_sources as S
+    base=frame(); original=base.copy(deep=True)
+    current=observations()
+    checkpoint=[r for r in current if r["source_id"]!="cboe_vix_archive"]
+    monkeypatch.setattr(S,"_native_at",lambda *args:{"VIXCLS":{"2026-10-13":{}}})
+    monkeypatch.setattr(S,"load_verified_source_observations",lambda *args,**kwargs:checkpoint)
+    calls=[]
+    def registered_frame(*args,**kwargs):
+        calls.append(True)
+        tails=L.select_live_tails(base,checkpoint,as_of=AS_OF,completed=ORIGIN)
+        return F.eligible_frame(pd.concat([base,pd.DataFrame(tails)],ignore_index=True),as_of=AS_OF)
+    monkeypatch.setattr(F,"read_native_frame",registered_frame)
+    pending=R.check_daily6m_readiness(tmp_path,as_of=AS_OF)
+    assert not pending["ready"] and not calls
+    checkpoint.append(next(r for r in current if r["source_id"]=="cboe_vix_archive"))
+    ready=R.check_daily6m_readiness(tmp_path,as_of=AS_OF)
+    assert ready["ready"] and len(calls)==1
+    actual=registered_frame()
+    expected=F.eligible_frame(pd.concat([base,pd.DataFrame(L.select_live_tails(base,current,as_of=AS_OF,completed=ORIGIN))],ignore_index=True),as_of=AS_OF)
+    pd.testing.assert_frame_equal(actual,expected)
+    pd.testing.assert_frame_equal(base,original)

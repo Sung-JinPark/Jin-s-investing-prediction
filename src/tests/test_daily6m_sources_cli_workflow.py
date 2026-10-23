@@ -2,7 +2,10 @@
 from __future__ import annotations
 
 import json
+import os
 import re
+import shutil
+import subprocess
 import sys
 from pathlib import Path
 from types import ModuleType
@@ -113,3 +116,24 @@ def test_only_a_verified_source_change_dispatches_the_separate_forecast():
     assert "timeseries-daily6m.yml" in dispatch["run"]
     assert "pages.yml" not in str(_workflow())
     assert "daily6m-sources-refresh" in (_workflow("ops-failure-alert.yml").get("on") or _workflow("ops-failure-alert.yml").get(True))["workflow_run"]["workflows"]
+
+
+@pytest.mark.parametrize("suppress", ["false", "true"])
+@pytest.mark.parametrize("failed_workflow", ["", "timeseries-v8-daily.yml"])
+def test_parent_suppression_keeps_other_consumers_and_reports_dispatch_failures(suppress, failed_workflow):
+    bash = str(Path("C:/Program Files/Git/bin/bash.exe")) if os.name == "nt" else shutil.which("bash")
+    if not bash or not Path(bash).is_file():
+        pytest.skip("workflow shell unavailable")
+    dispatch = _step("Recheck and regenerate the separate weekly research forecast")
+    # Execute the real workflow body with a harmless local gh function: never
+    # contact GitHub or run a model, including on a failed consumer dispatch.
+    stub = 'gh() { printf "%s\\n" "$3"; [ "$3" != "$FAIL_WORKFLOW" ]; }\n'
+    result = subprocess.run([bash, "--noprofile", "--norc", "-e", "-c", stub + dispatch["run"]],
+                            env={"SUPPRESS_FORECAST_DISPATCH": suppress,
+                                 "FAIL_WORKFLOW": failed_workflow, "GITHUB_REPOSITORY": "fixture/repo"},
+                            capture_output=True, text=True, timeout=10)
+    expected = ["timeseries-v8-daily.yml", "timeseries-v2-refresh.yml"]
+    if suppress == "false":
+        expected.insert(0, "timeseries-daily6m.yml")
+    assert [line for line in result.stdout.splitlines() if line.endswith(".yml")] == expected, result.stderr
+    assert result.returncode == (1 if failed_workflow else 0), result.stderr

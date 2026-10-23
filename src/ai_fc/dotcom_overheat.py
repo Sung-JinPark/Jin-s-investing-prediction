@@ -1,7 +1,12 @@
-"""닷컴 대비 과열도 지수 — 사전등록 계약(dotcom_overheat_index_v3)의 결정론적 집계.
+"""닷컴 대비 과열도 지수 — 사전등록 계약(dotcom_overheat_index_v4)의 결정론적 집계.
 
-v2(2026-10-06): IPO 건수(운영기업 12개월 합, Ritter 확정치만) 지표·`ipo` 부문 추가. v1 은
+v2(2026-10-06): IPO 건수(운영기업 12개월 합, Ritter 확정치만) 지표·`ipo` 부문 추가. v3(2026-10-08):
+시대 핵심 ADR 가산. v4(2026-10-23): 시대 핵심 테마의 해외 대형 IPO(상장지 불문) 가산. v1~v3 은
 역사 기록으로 남아 있다.
+
+지수는 매일 대시보드 빌드 때 통계 스냅샷에서 다시 계산된다. 입력 14종 중 9종이 분기·연간
+(Z.1·GDP·Ritter) 계열이라 대표값은 분기 발표 사이에 그대로일 수 있다 — 그래서 지표마다
+`current_date`(자료 기준월)를 함께 내보내 화면이 "언제 자료인지"를 보이게 한다.
 
 읽는 사람이 알고 싶은 것은 "닷컴 정점에 얼마나 가까운가" 다. 그래서 **100% 를 닷컴
 사이클의 극단(정점)에 고정**한다 — 100% 면 그 지표는 닷컴이 터지기 직전 수준이고,
@@ -31,7 +36,7 @@ from typing import Any
 
 import yaml
 
-CONTRACT_RELATIVE = Path("data/contracts/dotcom_overheat_index_v3.yaml")
+CONTRACT_RELATIVE = Path("data/contracts/dotcom_overheat_index_v5.yaml")
 STATISTICS_RELATIVE = Path("data/statistics/dotcom_statistics_latest.json")
 
 
@@ -112,6 +117,9 @@ def compute_index(root: Path) -> dict[str, Any]:
             "direction": spec.get("direction"),
             "current_value": latest.get("value"),
             "current_period": latest.get("period"),
+            # 자료 기준월 — 분기·연간 입력은 발표 사이에 값이 그대로다. 화면이 이것을 보여야
+            # "매일 갱신되는데 왜 같은가" 가 설명된다.
+            "current_date": latest.get("date"),
             "dotcom_low": round(min(reference), 4),
             "dotcom_high": round(max(reference), 4),
             "reference_n": len(reference),

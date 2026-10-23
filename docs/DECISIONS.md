@@ -2310,3 +2310,90 @@ run_ts 로 읽으므로 weekly 면 첫 행부터 stalled 로 읽힌다.
 
 **하지 않은 것.** 홀드아웃·봉인 열람 0 · V13 동결 계수·게이트 산술·60·T7 무변경 · V14 결과 후 블록·임계·조건 문턱·셀 변경 0 · rung-2 미집행 · gates.armed 무장 0 · V14 라이브 verb·워크플로·패키지 0 ·
 의존성 설치 0 · 메일 0 · 구매 0 · `forecasts/`·`calibration/ledger.csv`·V8·V2 무수정 · data/ml_history 는 append 만.
+
+## 2026-10-23 — 닷컴 대비 과열도 v4: IPO 건수에 해외 대형 테마 상장 가산(상장지 불문) · 상장 대기 표시 전용 · 자료월 표시 (사용자 결정)
+
+**지시 (사용자, 2026-10-23).** "닷컴대비과열도 매일 수치가 같은데 매번 갱신하고 있는거지 — 모든 수치를
+최종점검. DeepSeek IPO 하는 것도 IPO 에 추가. 저런 대형 타국가의 IPO 까지 넣어, 유럽이든 다."
+
+**점검 결과 — 갱신은 매일 되고 있다.** 지수는 대시보드 빌드 때 통계 스냅샷에서 다시 계산되며
+라이브 `data.json` 의 `dotcom_overheat.as_of` 는 2026-10-22(생성 2026-10-23 00:45 UTC)다. 최근 40개
+스냅샷을 같은 계약으로 재계산하면 대표값은 61(09-01) → 59(09-18, Z.1 2026Q2) → 63(10-01, GDP 2026Q2)
+→ 54(10-06, IPO 부문 편입) 로 움직였고 10-06 이후 **54 로 고정**이다. 이유는 집계 구조다: 대표값은
+부문 중앙값 6개의 중앙값 = (credit 44.7 + valuation 62.7)/2 ≈ 53.7 이고, 그 두 부문의 입력은 전부
+Z.1·GDP 분기 계열이라 다음 발표(2026Q3, 12월) 전까지 그대로다. 그 사이 금리 부문은 NFCI·스프레드로
+67.2 → 67.8 → 68.2 로 움직였지만 중앙값에 닿지 않는다. 입력 14종의 원천 최신 관측은 모두 FRED
+게시분과 일치(UNRATE 2026-09, NFCI 2026-10-16, Z.1 2026-04-01, Ritter 2025-12). 한 가지 원천 측 지연:
+가계 원리금 부담은 Z.1 계열 `BOGZ1FL010000346Q` 를 쓰는데 FRED 자체가 2026Q1 까지만 싣고 있다
+(`TDSP` 는 2026Q2 게시) — 계열 교체는 정의 변경이라 하지 않고 KNOWN_LIMITS 37 에 남긴다.
+**화면 수정**: 지표마다 자료 기준월(`current_date`)을 내보내 패널 행에 `자료 YYYY-MM` 으로, 하단에
+자료월 범위로 표시한다 — "매일 갱신인데 왜 같은가" 가 화면에서 설명되게.
+
+**DeepSeek — 아직 상장 전이라 세지 않는다.** Bloomberg 2026-07-14·TechNode 2026-09-09: 상하이 STAR 상장
+준비(CITIC 등 주관사 선정, 첫 CFO 선임), 2026 말 신청·2027 상장 예상, 공모 규모 미정. 완료되지 않은
+IPO 를 건수에 넣으면 그것은 데이터가 아니라 기대다. 그래서 **상장 대기 목록**
+(`data/statistics/ipo/theme_listing_pipeline.csv`: DeepSeek · Kunlunxin · CCSH/YMTC · Zhaoxin · Unisoc —
+정식 신청·주관사 선정 단계만, 소문 단계 제외)을 두고 차트 결론에 "상장 대기 N건 — 미집계" 로 표시만
+한다. 상장이 완료되면 additions 로 옮긴다.
+
+**해외 대형 테마 상장 — 상장지 불문으로 더한다 (v3 의 CXMT 제외 규칙을 대체).** 범위 `foreign_primary`:
+시대 핵심 테마(닷컴 반도체·인터넷 / 현재 반도체·AI) 기업의 **미국 밖 거래소 첫 상장**, 총공모(명목 USD)
+**닷컴 $2.5억 / 현재 $5억 이상**(조사 전에 사전지정, 대략 CPI 2배 차이). 2차·이중 상장(A+H)·SPAC 제외.
+Ritter 도 Nasdaq 캘린더도 이들을 세지 않으므로 **확정월·잠정월 모두** 더한다(ADR 은 종전대로 확정월만).
+- 현재(17, 2023-05~2026-09): Nexchip·SMEC 2023-05(STAR) · Kokusai Electric 2023-10(도쿄) · Horizon Robotics
+  2024-10(홍콩) · Kioxia 2024-12(도쿄) · JX Advanced Metals 2025-03(도쿄) · Tekscend Photomask·ESWIN 2025-10 ·
+  Moore Threads·MetaX 2025-12(STAR) · Biren·Zhipu·MiniMax 2026-01(홍콩) · SJ Semiconductor 2026-04(STAR) ·
+  Momenta 2026-07(홍콩) · CXMT 2026-07(STAR, $86억) · Enflame 2026-09(STAR). 행마다 출처·현지통화·환산.
+- 유럽: 창 안에 임계를 넘는 반도체·AI IPO 가 **없다**(Raspberry Pi ≈ £1.7억, Mistral 미상장).
+  한국·대만·인도도 없음(LG CNS 는 IT 서비스, SK hynix 는 Nasdaq ADS 로 이미 가산).
+- 닷컴(0): 1995~99 미국 밖 반도체·인터넷 IPO 중 $2.5억 이상은 확인되지 않았다. 가장 가까운
+  LG반도체 1996-11·현대전자 1996-12(각 공모 2,000억원 ≈ $240M, 우리사주분 포함 시 넘을 수 있음 [미검증])
+  는 임계 아래로 제외. ASML 1995 ≈ $170M, Tiscali 1999 ≈ $148M, freenet 1999 ≈ $103M, 대만 6사 금액 미확인.
+  Infineon·T-Online·World Online 은 2000년 — 창 밖. **따라서 이 가산은 현재 쪽만 늘리는 비대칭**이다.
+  SPAC 때는 같은 비대칭을 이유로 뺐지만, 이번에는 사용자가 비대칭을 알고 포함을 지시했고 caveat 에 공시한다.
+- 임계 바로 아래 기각: Iluvatar CoreX 2026-01 홍콩 ≈ $476M, Axera 2026-02 ≈ $379M, Innoscience·Black Sesame.
+
+**영향 (같은 스냅샷).** 현재 확정 12개월 합 2025-12 **90 → 95**(+JX 2025-03, Tekscend·ESWIN 2025-10,
+Moore Threads·MetaX 2025-12), 잠정 2026-09 **141 → 152**(+Biren·Zhipu·MiniMax 2026-01, SJ 2026-04, Momenta·CXMT 2026-07, Enflame 2026-09). 닷컴 범위 258~712 불변.
+IPO 위치 −37.0% → **−35.9%**, 대표값 **54% 그대로**(IPO 부문은 최저 부문이라 중앙값에 닿지 않음).
+
+**기록.** `data/contracts/dotcom_overheat_index_v4.yaml`(신규, v1~v3 보존), `theme_adr_additions.csv` →
+`theme_listing_additions.csv`(열 추가: market_country·listing_scope·proceeds_usd_m), `ipo_monthly_counts.py`
+(`load_theme_listing_additions`·`load_theme_listing_pipeline`·잠정월 가산), `statistics_lab.py`(차트 제목·caveat·
+가산 목록·대기 목록·규칙 공시), `dotcom_overheat.py`(`current_date`), 대시보드 패널(자료월), 통계 스냅샷
+오프라인 재구축(IPO 차트만 교체). 지위: reference_only · 참고 의견.
+
+## 2026-10-23 — 닷컴 대비 과열도 v5: 중소 테마 IPO 전수 포함(규모 하한 폐지) · DeepSeek 상장 시 확정 편입 (사용자 결정)
+
+**지시 (사용자, 2026-10-23).** "IPO 카운트에 딥시크 넣는 건 확정이고 유사한 AI 기업들도 다 넣어. IPO 가 너무 중요해졌다.
+닷컴 때도 중소 IPO 가 많아지다가 결국 나락 간 것처럼 중소 AI IPO 도 포함하는 방향으로 전환하고 정밀하게 조사해."
+
+**규칙 — 조사 전에 고정 (2026-10-23T02:44:50Z).** v4 의 대형 임계(닷컴 $2.5억·현재 $5억)를 없애고 **두 시대 모두**
+테마 기업의 첫 상장을 규모와 상장지에 관계없이 센다(닷컴: 인터넷·반도체 / 현재: AI·반도체). 초소형 발행인 전용 시장
+(인도 SME·KONEX·興櫃·新三板·OTC BB)만 제외, 한 회사는 시대마다 한 번, 미국은 ADR 만(보통주는 Ritter net 이 셈).
+규칙 전문: 계약 `dotcom_overheat_index_v5.yaml` 의 theme/size/venue/event/pipeline_rule.
+
+**DeepSeek — '확정' 을 상장 달 편입으로 구현했다.** 2026-10-23 현재 DeepSeek 은 상하이 STAR 상장을 준비(CITIC 주관,
+2026 말 신청·2027 상장 보도, 약 1,000억 위안 사모 라운드 마감 임박)할 뿐 신청서도 내지 않았다. 아직 일어나지 않은
+상장을 지금 건수에 넣으면 존재하지 않는 사건을 기록하게 된다(AGENTS.md 시점 무결성). 그래서 대기 목록에
+`decision=committed` 로 두고 **상장하는 달에 규모와 무관하게 additions 로 옮겨 센다**. 상장된 회사가 대기 목록에 남아
+있으면 로더가 거부한다. 같은 대기 목록: Moonshot AI(홍콩 비공개 신청 보도 2026-09) · Kunlunxin · CCSH/YMTC · Zhaoxin ·
+Unisoc · Anthropic(미국 비공개 S-1 2026-06) · OpenAI. 미국 보통주 상장은 Ritter net·Nasdaq 잠정이 센다.
+
+**전수조사.** 시대·지역 10개 조각 병렬 + 공백 보충 5건 + 독립 검증 1건. 시장×연도마다 공식 총계와 항목별 목록을 구해
+목록 전체를 분류했다(중국 A주 Eastmoney 347건·STAR 연도표, 홍콩 HKEX NLR 전 행, 한국 KIND, 일본 JPX, 대만 TWSE/MOPS,
+Neuer Markt 1997-99 185건, 닷컴 KRX 969코드·일본 2,671사 연혁 등). 결과 **402건**(닷컴 117: 인터넷 53·반도체 64 /
+현재 285: AI 81·반도체 204). 층화 무작위 65행 독립 검증: 월·첫 상장·테마·공모액 **틀림 0**, 확인 불가 10·7·4·6.
+상세·공백·경계 사례: `data/statistics/ipo/theme_listing_census_v5.md`.
+
+**큐레이션.** 해외 IPO 와 동시에 미국 보통주를 상장한 STMicro·ASML·Besi·Cybernet 은 Ritter net 이중 계상을 막으려 제외
+(ADS 였던 ARM·Freeserve·QXL·ebookers·Chartered 는 한 번만 셈). 검증이 지적한 IQE(합병 상장 의심)·musicmusicmusic(테마
+의심) 제외, 디스플레이용 포토마스크 주력 路维光电 제외.
+
+**영향 (같은 스냅샷).** 닷컴 12개월 합 범위 258~712 → **275~721**, 같은 35개월차 474 → 490. 현재 확정 2025-12
+**95 → 137**, 잠정 2026-09 **152 → 218**. IPO 위치 −35.9% → **−30.9%**. 대표값 **54% 그대로**(IPO 는 여전히 최저 부문).
+현재 쪽 증가는 주로 중국 STAR(2022-23 반도체 소부장 상장 붐)·한국 KOSDAQ·대만·홍콩 18C AI 상장이다.
+
+**한계.** 미국 쪽은 전 업종, 가산 쪽은 테마만 — 혼합 척도. 닷컴 쪽은 Nouveau Marché 1999·영국 AIM 소형·홍콩 1994-98이,
+현재 쪽은 동남아·TASE·북유럽 소형이 덜 덮였다(KNOWN_LIMITS 37). 지위: reference_only · 참고 의견.
+

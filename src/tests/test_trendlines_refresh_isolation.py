@@ -65,7 +65,11 @@ def test_scoped_replay_does_not_seed_unreplayed_math_and_default_audit_is_still_
         global_report=R.verify(pair)
         assert global_report=={'ok':True,'errors':[],'snapshots':2,'replay':True}
         assert calls.count(('bitcoin',True))==1 and calls.count(('dow',True))==1
-        assert cache.entry_count==3  # Global replay cannot borrow the metadata-only proof.
+        # Global replay cannot borrow the metadata-only proof; its full proof then replaces it.
+        assert cache.entry_count==2
+        with R.use_asset_replay_scope('dow'):
+            assert R.verify(pair)['ok']
+        assert calls.count(('bitcoin',False))==1 and cache.entry_count==2
     assert all_bytes(pair)==before
 
 

@@ -1383,7 +1383,7 @@ function renderFearGreedLab(){
   </section>`);
 }
 
-/* 닷컴 대비 과열도 (dotcom_overheat_index_v1) — 통계 화면 맨 위. 100% = 닷컴 사이클 정점.
+/* 닷컴 대비 과열도 (dotcom_overheat_index_v4) — 통계 화면 맨 위. 100% = 닷컴 사이클 정점.
    확률이 아니다. 대표값은 언제나 부문 산포와 함께 낸다(홈 카드와 같은 규칙). */
 const OVERHEAT_CATEGORY_LABELS={economy:'경기·물가',rates:'금리',valuation:'기업가치',credit:'신용',liquidity:'유동성',ipo:'IPO·상장'};
 const overheatTone=v=>v>=100?'is-over':v>=80?'is-hot':v>=50?'is-warm':'is-cool';
@@ -1395,13 +1395,18 @@ function statisticsOverheatPanel(idx){
   const X=v=>Math.max(0,Math.min(100,Number(v)/top*100));
   const bar=(v,cls='')=>`<span class="oh-track"><i class="oh-fill ${cls||overheatTone(v)}" style="width:${X(v).toFixed(1)}%"></i><b class="oh-peak" style="left:${X(100).toFixed(1)}%"></b></span>`;
   const catRows=cats.map(([key,v])=>`<li><em>${esc(OVERHEAT_CATEGORY_LABELS[key]||key)}</em>${bar(v)}<strong class="${overheatTone(v)}">${Math.round(v)}%</strong></li>`).join('');
-  const indRows=rows.map(r=>`<li><button type="button" data-oh-jump="${esc(r.chart||'')}" title="${esc(r.why||'')}"><em>${esc(r.title||r.id)}<small>${esc(OVERHEAT_CATEGORY_LABELS[r.category]||r.category)}${r.why?` · ${esc(r.why)}`:''}</small></em>${bar(r.pct)}<strong class="${overheatTone(r.pct)}">${Math.round(r.pct)}%${r.beyond_dotcom_peak?'<small>정점 초과</small>':''}</strong></button></li>`).join('');
+  /* 자료월: 입력 14종 중 9종이 분기·연간 계열이라 대표값은 발표 사이에 그대로다 — 지표마다
+     어느 달 자료인지 보여야 "매일 갱신인데 왜 같은가" 가 화면에서 설명된다. */
+  const dataMonth=r=>r.current_date?String(r.current_date).slice(0,7):'';
+  const indRows=rows.map(r=>`<li><button type="button" data-oh-jump="${esc(r.chart||'')}" title="${esc(r.why||'')}"><em>${esc(r.title||r.id)}<small>${esc(OVERHEAT_CATEGORY_LABELS[r.category]||r.category)}${r.why?` · ${esc(r.why)}`:''}${dataMonth(r)?` · 자료 ${esc(dataMonth(r))}`:''}</small></em>${bar(r.pct)}<strong class="${overheatTone(r.pct)}">${Math.round(r.pct)}%${r.beyond_dotcom_peak?'<small>정점 초과</small>':''}</strong></button></li>`).join('');
+  const months=rows.map(dataMonth).filter(Boolean).sort();
+  const dataRange=months.length?` · 자료 ${esc(months[0])}~${esc(months[months.length-1])}`:'';
   const node=el(`<section class="statistics-overheat" aria-labelledby="statistics-overheat-title"><h2 id="statistics-overheat-title">닷컴 대비 과열도</h2>`
     +`<div class="oh-hero"><div class="oh-score ${overheatTone(sig.pct)}"><span>현재</span><strong>${sig.pct}<small>%</small></strong><p>부문별 ${sig.lo}~${sig.hi}% · 정점 초과 ${sig.beyond}개 / ${sig.included}개</p></div>`
     +`<div class="oh-gauge"><div class="oh-gauge-bar"><i class="oh-span" style="left:${X(sig.lo).toFixed(1)}%;width:${(X(sig.hi)-X(sig.lo)).toFixed(1)}%"></i><b class="oh-peak" style="left:${X(100).toFixed(1)}%"></b><b class="oh-pin" style="left:${X(sig.pct).toFixed(1)}%"></b></div>`
     +`<div class="oh-gauge-scale"><span style="left:0">0%</span><span style="left:${X(50).toFixed(1)}%">50%</span><span class="is-peak" style="left:${X(100).toFixed(1)}%">닷컴 정점 100%</span></div></div></div>`
     +`<div class="oh-grid"><div><h3>부문별</h3><ul class="oh-list">${catRows}</ul></div><div><h3>지표별 ${rows.length}개</h3><ul class="oh-list is-indicators">${indRows}</ul></div></div>`
-    +`<p class="oh-note">확률 아님 · 100% = 닷컴 사이클 정점(1995~1999 범위 위치) · 부문 중앙값의 중앙값 · 참고 의견${idx.as_of?` · ${esc(idx.as_of)} 기준`:''}</p></section>`);
+    +`<p class="oh-note">확률 아님 · 100% = 닷컴 사이클 정점(1995~1999 범위 위치) · 부문 중앙값의 중앙값 · 참고 의견${idx.as_of?` · ${esc(idx.as_of)} 기준`:''}${dataRange}</p></section>`);
   node.querySelectorAll('[data-oh-jump]').forEach(button=>button.onclick=()=>{
     const card=document.querySelector(`[data-stat-id="${CSS.escape(button.dataset.ohJump)}"]`);
     if(!card)return;
@@ -1467,11 +1472,13 @@ function renderStatistics(initialState){
   const appendCards=(target,rows,startIndex=0)=>rows.forEach((chart,index)=>{
     const latest=(chart.series||[]).map(row=>{const point=(row.points||[]).at(-1);return point?`<div><i style="background:${esc(row.color||'#111')}"></i><span>${esc(row.label)}</span><strong>${esc(statisticsValue(chart.unit,point.value))}</strong><small>${esc(row.latest_date||'최근 관측')}</small></div>`:'';}).join('');
     const profile=chart.chart_type==='profile_cards',liquidity=chart.chart_type==='liquidity_bars',era=chart.chart_type==='era_compare';
+    const archived=(chart.source_ids||[]).map(id=>(stats.sources||[]).find(source=>source.series_id===id&&source.refresh_status==='current_fred')?.history_coverage).find(Boolean);
+    const archiveNote=archived?`<p class="statistics-scope-note">최신 시세 자동 갱신 · 과거 ${esc(archived.archived_count)}개는 보존된 원본 이력입니다.</p>`:'';
     const review=(chart.source_ids||[]).some(id=>(stats.sources||[]).some(source=>source.series_id===id&&source.refresh_reason==='fred_coverage_regressed'))?'<p class="statistics-scope-note" role="status">원천 자료 재검수 중 · 이전 검수본을 표시합니다.</p>':'';
     const guide=chart.reading_guide?`<details class="statistics-reading-guide"><summary>읽는 법</summary><p>${esc(chart.reading_guide)}</p></details>`:'';
     const visual=liquidity?statisticsLiquidityBars(chart):(profile?statisticsProfileCards(chart):(era?statisticsEraCompare(chart):`<div class="statistics-chart">${statisticsChartSvg(chart,alignment)}</div>`));
     const cardClass=`statistics-card${profile?' is-profile-card':''}${liquidity?' is-liquidity-map':''}${era?' is-era-compare':''}`;
-    target.appendChild(el(`<section class="${cardClass}" data-stat-category="${esc(chart.category)}" data-stat-id="${esc(chart.id)}"><div class="statistics-card-head"><div><span>${String(startIndex+index+1).padStart(2,'0')} · ${esc(chart.category.toUpperCase())}</span><h2>${esc(chart.title)}</h2>${chart.conclusion?`<p class="statistics-head-conclusion">${esc(firstSentenceOf(chart.conclusion))}</p>`:''}</div><b>${esc(chart.display_unit||(profile?'핵심 지표':chart.unit))}</b></div>${profile||liquidity||era?'':`<div class="statistics-legend">${latest}</div>`}${statisticsApproachAlert(chart)}${review}${guide}${visual}<p class="statistics-scope-note">${esc(chart.scope_note||'')}</p>${(()=>{const rest=String(chart.conclusion||'').slice(firstSentenceOf(chart.conclusion||'').length).trim();return rest?`<p class="statistics-now-rest">${esc(rest)}</p>`:'';})()}${chart.caveat?`<div class="statistics-caveat-lead">${esc(firstSentenceOf(chart.caveat))}</div>`:''}</section>`));
+    target.appendChild(el(`<section class="${cardClass}" data-stat-category="${esc(chart.category)}" data-stat-id="${esc(chart.id)}"><div class="statistics-card-head"><div><span>${String(startIndex+index+1).padStart(2,'0')} · ${esc(chart.category.toUpperCase())}</span><h2>${esc(chart.title)}</h2>${chart.conclusion?`<p class="statistics-head-conclusion">${esc(firstSentenceOf(chart.conclusion))}</p>`:''}</div><b>${esc(chart.display_unit||(profile?'핵심 지표':chart.unit))}</b></div>${profile||liquidity||era?'':`<div class="statistics-legend">${latest}</div>`}${statisticsApproachAlert(chart)}${review}${archiveNote}${guide}${visual}<p class="statistics-scope-note">${esc(chart.scope_note||'')}</p>${(()=>{const rest=String(chart.conclusion||'').slice(firstSentenceOf(chart.conclusion||'').length).trim();return rest?`<p class="statistics-now-rest">${esc(rest)}</p>`:'';})()}${chart.caveat?`<div class="statistics-caveat-lead">${esc(firstSentenceOf(chart.caveat))}</div>`:''}</section>`));
   });
   appendCards(grid,charts);
   root.appendChild(grid);
@@ -4396,10 +4403,10 @@ function analogPanel(){
     ${eras.map(e=>`<button type="button" data-analog-focus="${e}" style="--focus-color:${ERA_META[e][1]}" aria-pressed="false"><i></i>${ERA_META[e][0]}</button>`).join('')}</div>`;
   const rg=ctx.regime||{},br=ctx.breadth||{},cc=ctx.concentration||{};
   const ctxItems=[
-    rg.recession_flag!=null?['경기 국면',rg.recession_flag?'침체':'확장']:null,
-    br.pct_above_200dma!=null?['시장 폭','200일선 '+br.pct_above_200dma+'%']:null,
-    cc.ratio_pctile!=null?['대형주 집중',cc.ratio_pctile+'%ile']:null,
-    ctx.perez_ai?['사이클 국면',esc(ctx.perez_ai.split(' — ')[0])+' (추정)']:null
+    rg.recession_flag!=null?['경기 국면 · 보관',(rg.recession_flag?'침체':'확장')+' · '+(rg.recession_date||'기준일 미확인')]:null,
+    br.pct_above_200dma!=null?['시장 폭 · 보관','200일선 '+br.pct_above_200dma+'% · '+(br.asof||'기준일 미확인')]:null,
+    cc.ratio_pctile!=null?['대형주 집중 · 보관',cc.ratio_pctile+'%ile']:null,
+    ctx.perez_ai?['사이클 국면 · 보관',esc(ctx.perez_ai.split(' — ')[0])+' (추정)']:null
   ].filter(Boolean).slice(0,4);
   const w=el(`<div class="chart-panel analysis-panel">
     <p class="eyebrow">START-ALIGNED · LOG SCALE</p>
@@ -4555,7 +4562,7 @@ function liquidityPanel(){
     <div class="liquidity-zone zone-${esc(model.zone)}"><span>현재 구간</span><strong>${esc(zoneLabel)}</strong><small>최근 4주 Fed 순유동성 ${signedDelta(model.zone_metric?.value,2,'%')}</small></div>
     <div class="chart-wrap"><div id="liquidity-chart"></div></div>
     ${model.history?`<p class="chart-note liquidity-vintage-note">${esc(String(model.history.operational_start||'').slice(0,4))}년 이전은 재계산값(실시간 기록 아님)${esc(wideNote)}</p>`:''}
-    <details class="scenario-v52-method liquidity-details"><summary>데이터 출처와 시차 통계 보기</summary><div class="liquidity-source-grid"><div><span>실질 M2 전년비</span><strong>수집 전</strong><small>${esc(model.real_m2?.reason||'시점별 원본 자료가 필요합니다.')}</small></div><div><span>스테이블코인 공급</span><strong>${stablecoinProgress}</strong><small>원천 안정성 확인 중 · 자동 반영하지 않음</small></div><div><span>BTC ETF 자금 흐름</span><strong>수집 전</strong><small>독립 출처 두 곳의 교차검증이 필요합니다.</small></div></div>
+    <details class="scenario-v52-method liquidity-details"><summary>데이터 출처와 시차 통계 보기</summary><div class="liquidity-source-grid"><div><span>실질 M2 전년비</span><strong>수집 전</strong><small>시점별 M2·물가 원본 연결 검수가 필요합니다.</small></div><div><span>스테이블코인 공급</span><strong>${stablecoinProgress}</strong><small>원천 안정성 확인 중 · 자동 반영하지 않음</small></div><div><span>BTC ETF 자금 흐름</span><strong>수집 전</strong><small>독립 출처 두 곳의 교차검증이 필요합니다.</small></div></div>
     <details class="analog-limit liquidity-lag"><summary>0·4·8·12주 시차 상관 진단</summary><div class="lag-table-grid"><div><h3>NASDAQ</h3><div class="table-shell"><table><thead><tr><th>시차</th><th>상관 또는 게이트</th><th>n</th></tr></thead><tbody>${lagRows('nasdaq')}</tbody></table></div></div><div><h3>Bitcoin</h3><div class="table-shell"><table><thead><tr><th>시차</th><th>상관 또는 게이트</th><th>n</th></tr></thead><tbody>${lagRows('bitcoin')}</tbody></table></div></div></div></details>
     </details>
   </div>`);w._liquidityModel=model;return w;
@@ -5878,9 +5885,9 @@ function renderHeaderStrip(){
     items.push({k:'NASDAQ 종합',v:num(Math.round(latest.value)),sub:stale?`보관값 · ${latest.session}`:(lagNote||`${latest.session} · 전고점 대비 ${vsAth>=0?'+':''}${vsAth.toFixed(1)}%`),cls:stale||lagNote?'stale':vsAth!=null?(vsAth>=0?'up':'down'):''});}
   if(ath!=null)items.push({k:'전고점 ATH',v:num(Math.round(ath)),sub:'2023년 이후 최고 종가'});
   if(corr!=null)items.push({k:'−10% 조정선',v:num(Math.round(corr)),sub:'지지 기준'});
-  if(br.pct_above_200dma!=null)items.push({k:'시장 폭',v:br.pct_above_200dma+'%',sub:'200일선 상회'});
-  if(rg.recession_flag!=null)items.push({k:'경기 국면',v:rg.recession_flag?'침체':'확장',sub:'NBER 기준',cls:rg.recession_flag?'down':'up'});
-  else if(rg.hy_spread_pct!=null)items.push({k:'신용 스프레드',v:rg.hy_spread_pct.toFixed(2)+'%',sub:'HY OAS'});
+  if(br.pct_above_200dma!=null)items.push({k:'시장 폭 · 보관 '+(br.asof||'기준일 미확인'),v:br.pct_above_200dma+'%',sub:'200일선 상회',cls:'stale'});
+  if(rg.recession_flag!=null)items.push({k:'경기 국면 · 보관 '+(rg.recession_date||'기준일 미확인'),v:rg.recession_flag?'침체':'확장',sub:'NBER 기준',cls:'stale'});
+  else if(rg.hy_spread_pct!=null)items.push({k:'신용 스프레드 · 보관 '+(rg.hy_spread_date||'기준일 미확인'),v:rg.hy_spread_pct.toFixed(2)+'%',sub:'HY OAS',cls:'stale'});
   const strip=document.getElementById('mktstrip');
   if(!items.length){strip.style.display='none';return;}
   strip.innerHTML=items.map(it=>`<div><span>${esc(it.k)}</span>${it.sub?`<small>${esc(it.sub)}</small>`:''}<strong class="${it.cls||''}">${esc(it.v)}</strong></div>`).join('');

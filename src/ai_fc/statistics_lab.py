@@ -1899,12 +1899,33 @@ def _build_ipo_count_chart(
     잠정 계열은 점선·별도 라벨로만 그리며 ``source_ids`` 에 넣지 않는다. 과열도 지수는
     라벨로 확정 계열만 읽는다.
     """
-    from .ipo_monthly_counts import NASDAQ_OVERCOUNT_MEASURED, ipo_count_series, month_start
+    from .ipo_monthly_counts import (
+        NASDAQ_OVERCOUNT_MEASURED, THEME_LISTING_RELATIVE, THEME_LISTING_WINDOWS, ipo_count_series, month_start,
+    )
 
     ritter = ipo_monthly["ritter"]
     nasdaq = ipo_monthly.get("nasdaq")
-    theme_adr = ipo_monthly.get("theme_adr") or []
-    built = ipo_count_series(ritter, nasdaq, theme_adr)
+    theme_listings = ipo_monthly.get("theme_listings") or []
+    theme_pipeline = ipo_monthly.get("theme_pipeline") or []
+    built = ipo_count_series(ritter, nasdaq, theme_listings)
+    theme_listing_sha256 = hashlib.sha256(
+        json.dumps(theme_listings, ensure_ascii=False, sort_keys=True).encode("utf-8")
+    ).hexdigest()
+    era_counts = {"dotcom": 0, "ai": 0}
+    theme_listing_summary: dict[str, Any] = {}
+    for row in theme_listings:
+        era_counts[row["era"]] += 1
+        era = theme_listing_summary.setdefault(row["era"], {
+            "count": 0, "by_theme": {}, "by_scope": {}, "by_country": {}, "by_year": {}, "with_proceeds": 0,
+        })
+        era["count"] += 1
+        for key, value in (("by_theme", row["theme"]), ("by_scope", row["listing_scope"]),
+                           ("by_country", row["market_country"]), ("by_year", row["month"][:4])):
+            era[key][value] = era[key].get(value, 0) + 1
+        era["with_proceeds"] += 1 if row["proceeds_usd_m"] else 0
+    for era in theme_listing_summary.values():
+        for key in ("by_theme", "by_scope", "by_country", "by_year"):
+            era[key] = dict(sorted(era[key].items()))
     confirmed_points = [
         {"date": month_start(month), "value": float(value)}
         for month, value in sorted(built["confirmed"].items())
@@ -1929,8 +1950,8 @@ def _build_ipo_count_chart(
         provisional.update({"provisional": True, "dash": "2 5"})
         series.append(provisional)
     chart = make(
-        IPO_COUNT_CHART_ID, "미국 IPO 건수: 최근 12개월", "ipo", "count",
-        series, [IPO_COUNT_SERIES_ID], "*미국 운영기업 IPO + 시대 핵심 ADR 기준",
+        IPO_COUNT_CHART_ID, "IPO 건수: 최근 12개월", "ipo", "count",
+        series, [IPO_COUNT_SERIES_ID], "*미국 운영기업 IPO + 테마 기업 해외·ADR 상장(규모 무관) 기준",
         "운영기업 IPO 12개월 합계, 닷컴과 같은 경과월 비교.",
     )
     measured = " · ".join(
@@ -1940,23 +1961,44 @@ def _build_ipo_count_chart(
     chart["caveat"] = (
         ("점선 잠정치는 거래소 캘린더 근사라 확정치보다 많이 세며 과열도 지수에 쓰지 않습니다. "
          if provisional_points else "")
-        + "확정치는 Ritter 순(net) 건수로 SPAC·펀드·REIT·유닛·ADR·공모가 $5 미만·은행·LP를 "
-        "빼며 연 1회 개정됩니다. 단 시대 핵심 외국기업의 미국 ADR 상장(닷컴: 반도체·인터넷, "
-        "현재: 반도체·AI)은 출처를 단 목록만 다시 더합니다. SPAC은 닷컴기(1995~99) 7건뿐인 소형 "
-        "장외 블랭크체크라 비교 계열이 없어 계속 뺍니다. 잠정 근사 필터 대 확정치 실측: "
-        + measured + "."
+        + "확정치는 Ritter 순(net) 미국 운영기업 IPO(전 업종, SPAC·펀드·REIT·유닛·ADR·공모가 $5 미만·"
+        "은행·LP 제외)에 테마 기업 상장을 규모와 상장지에 관계없이 더한 값입니다 — 닷컴: 인터넷·반도체, "
+        "현재: AI·반도체, 미국 ADR과 미국 밖 거래소 첫 상장(중소형 포함, 초소형 전용 시장 제외). "
+        f"출처를 단 회사 단위 목록: 닷컴 {era_counts['dotcom']}건 · 현재 {era_counts['ai']}건. "
+        "미국 쪽은 전 업종, 해외 쪽은 테마만 세므로 혼합 척도입니다. 상장 대기 기업(DeepSeek 등)은 "
+        "상장한 달부터 셉니다. SPAC은 닷컴기 7건뿐인 소형 장외 블랭크체크라 비교 계열이 없어 계속 뺍니다. "
+        "잠정 근사 필터 대 확정치 실측: " + measured + "."
     )
     chart.update({
         "display_unit": "건 · 12개월 합",
         "line_markers": False,
         "projection_max_points": 24,
         "observed_end_label": "최신",
-        "definition": "ritter_net_plus_theme_adr_ipos_trailing_12_month_sum",
-        "theme_adr_additions": [
-            {key: row[key] for key in ("month", "era", "theme", "company", "ticker", "exchange", "source_url")}
-            for row in theme_adr
+        "definition": "ritter_net_plus_theme_listings_trailing_12_month_sum",
+        # 회사 단위 목록은 수백 행이라 페이로드 예산을 넘는다 — 차트는 요약과 원본 CSV 경로·해시만 싣는다.
+        "theme_listing_source": {
+            "path": THEME_LISTING_RELATIVE.as_posix(),
+            "rows": len(theme_listings),
+            "sha256": theme_listing_sha256,
+        },
+        "theme_listing_summary": theme_listing_summary,
+        "theme_added_to_confirmed": built.get("theme_added_confirmed", {}),
+        "theme_added_to_provisional": built.get("theme_added_provisional", {}),
+        "theme_added_skipped": built.get("theme_added_skipped", []),
+        "theme_listing_rule": {
+            "themes": {"dotcom": ["internet", "semiconductor"], "ai": ["ai", "semiconductor"]},
+            "scopes": {"us_adr": "confirmed_months_only", "foreign_primary": "confirmed_and_provisional_months"},
+            "min_gross_proceeds_usd_m": None,
+            "windows": {era: list(window) for era, window in THEME_LISTING_WINDOWS.items()},
+            "excluded_boards": "micro_issuer_platforms (India SME, KONEX, Emerging Stock Board, NEEQ, OTC BB)",
+            "one_event_per_company_per_era": True,
+        },
+        # 상장 대기 — 표시 전용. 어떤 합계에도 들어가지 않는다.
+        "theme_listing_pipeline": [
+            {key: row[key] for key in ("company", "era", "theme", "decision", "status", "expected_venue",
+                                       "expected_timing", "source_url", "source_date")}
+            for row in theme_pipeline
         ],
-        "theme_adr_added_to_confirmed": built.get("theme_adr_added", {}),
         "confirmed_through": built["last_confirmed_month"],
         "index_input_series": ["닷컴", "현재"],
         "cross_check": _ipo_sec_cross_check(ritter, sec_rows),
@@ -1976,6 +2018,9 @@ def _build_ipo_count_chart(
             f" 잠정 {provisional_points[-1]['value']:.0f}건"
             f"({provisional_points[-1]['date'][:7]}까지)."
         )
+    if theme_pipeline:
+        names = [row["company"] for row in theme_pipeline[:2]]
+        conclusion += f" 상장 대기 {len(theme_pipeline)}건({' · '.join(names)} 등) — 상장 달부터 집계."
     chart["conclusion"] = conclusion
     source_meta = {
         "series_id": IPO_COUNT_SERIES_ID,
@@ -2911,7 +2956,7 @@ def build_statistics_lab(
         # Source identity belongs to the actual acquired artifact. Never label a
         # Board ZIP or a retained old observation as a fresh FRED response.
         for key in ("source_url", "request_url", "provider", "authority_class",
-                    "policy_source_id", "refresh_status", "refresh_reason", "equivalence_audit", "coverage_audit"):
+                    "policy_source_id", "refresh_status", "refresh_reason", "equivalence_audit", "coverage_audit", "history_coverage"):
             if key in receipts[series_id]:
                 source_meta[-1][key] = receipts[series_id][key]
     sec_spec = SUPPLEMENTAL_SOURCES["SEC_IPO_QUARTERLY"]
@@ -3118,6 +3163,11 @@ def validate_statistics_lab(payload: dict[str, Any], *, projected: bool = False)
     if payload.get("observation_through") != payload.get("as_of"):
         raise StatisticsLabError("statistics observation_through/as_of contract invalid")
     for row in sources:
+        from .wti_history import validate_summary as validate_wti_history
+        try:
+            validate_wti_history(row, projected=projected)
+        except ValueError as exc:
+            raise StatisticsLabError("WTI history/current coverage validation failed") from exc
         if row.get("usage_role") != "numeric_input":
             raise StatisticsLabError(f"source {row.get('series_id')} numeric role invalid")
         if row.get("numeric_input_allowed") is not True:
@@ -3797,7 +3847,7 @@ def statistics_dashboard_projection(root: Path) -> dict[str, Any]:
         "native_frequency", "latest_observation", "authority_class",
         "usage_role", "numeric_input_allowed",
         "policy_source_id",
-        "refresh_status", "refresh_reason", "equivalence_audit", "coverage_audit",
+        "refresh_status", "refresh_reason", "equivalence_audit", "coverage_audit", "history_coverage",
     }
     projected["sources"] = [
         {key: value for key, value in source.items() if key in public_source_keys}
