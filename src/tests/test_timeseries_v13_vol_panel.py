@@ -137,3 +137,71 @@ def test_v13_vol_panel_has_no_trailing_line_comments() -> None:
     for line in SCRIPT[start:end].splitlines():
         stripped = line.strip()
         assert not re.search(r"(?<![:'\"])//(?!.*['\"`])", stripped) or stripped.startswith("/*") or stripped.startswith("*"), line
+
+
+# ── V13-D13 live_claim_restriction — 판정불가(제한) 칩 (표시 전용·열 수 불변) ────────────────────
+
+
+def _live_forward_renderer() -> str:
+    renderer = re.search(r"function renderV13LiveForward\([\s\S]+?\n}\n", SCRIPT)
+    assert renderer
+    return renderer.group(0)
+
+
+def test_live_forward_marks_claim_blocked_cells_without_adding_columns() -> None:
+    renderer = _live_forward_renderer()
+    assert "c.claim_blocked===true" in renderer
+    assert ("<small class=\"v13-lf-claim\" title=\"${esc(plainTerm('v13_claim_hint'))}\">판정불가(제한)</small>"
+            in renderer)
+    assert "' 전 셀 <b>판정불가(제한)</b>.'" in renderer
+    thead = renderer[renderer.index("<thead>"):renderer.index("</thead>")]
+    assert thead.count('<th scope="col">') == 6, "열 수 불변 — 라벨은 셀 이름 칸 안의 칩"
+    assert "  v13_claim_hint:'" in SCRIPT
+    term = re.search(r"  v13_claim_hint:'([^']*)'", SCRIPT).group(1)
+    assert "V13-D13" in term and "강등 판정은 그대로" in term and "20 미만" in term and "5 미만" in term
+    assert ".v13-lf-claim{" in STYLE and ".v13-lf-table tr.is-claim-blocked td{" in STYLE
+
+
+def test_live_forward_chip_renders_only_for_blocked_cells() -> None:
+    import json
+    import shutil
+    import subprocess
+
+    import pytest
+
+    if shutil.which("node") is None:
+        pytest.skip("node 미설치")
+
+    def render(cells: list[dict]) -> str:
+        lf = {"status": "accumulating", "minimum": 60, "matured_total": 30, "origins_recorded": 31,
+              "events_total": 3, "cells": cells}
+        program = (
+            "const esc=s=>String(s).replace(/[&<>\"]/g,c=>({'&':'&amp;','<':'&lt;',"
+            "'>':'&gt;','\"':'&quot;'}[c]));\n"
+            "const plainTerm=k=>k;const num=String;\n"
+            "const hasNumeric=v=>typeof v==='number'&&Number.isFinite(v);\n"
+            + _live_forward_renderer()
+            + "\nconsole.log(JSON.stringify({html:renderV13LiveForward(" + json.dumps(lf) + ",[])}));\n"
+        )
+        completed = subprocess.run(["node", "-e", program], check=True, capture_output=True,
+                                   text=True, encoding="utf-8")
+        return json.loads(completed.stdout)["html"]
+
+    blocked = {"cell": "vix25_h5", "matured": 26, "minimum": 60, "progress": 0.43, "events": 0,
+               "brier_model": 0.0001, "brier_climatology": 0.09, "bss": 0.99,
+               "episodes": {"event_runs": 0, "non_event_runs": 1},
+               "claim_blocked": True, "claim_block_reasons": ["events<20", "episodes<5"]}
+    allowed = {"cell": "rv_h5", "matured": 60, "minimum": 60, "progress": 1, "events": 30,
+               "brier_model": 0.12, "brier_climatology": 0.2, "bss": 0.4,
+               "episodes": {"event_runs": 6, "non_event_runs": 6},
+               "claim_blocked": False, "claim_block_reasons": []}
+    html = render([blocked, allowed])
+    assert html.count('class="v13-lf-claim"') == 1 and 'title="v13_claim_hint"' in html
+    assert '<th scope="row">vix25_h5<small class="v13-lf-claim"' in html
+    assert '<th scope="row">rv_h5</th>' in html
+    assert '<tr class="is-degenerate is-claim-blocked">' in html
+    assert "전 셀 <b>판정불가(제한)</b>" not in html, "한 셀만 제한이면 리드에 쓰지 않는다"
+    assert html.count("<th scope=\"col\">") == 6 and html.count("</td>") == 2 * 5
+    # 전 셀 제한 → 리드 끝에 라벨 한 조각
+    html = render([blocked, dict(allowed, claim_blocked=True, claim_block_reasons=["episodes<5"])])
+    assert html.count('class="v13-lf-claim"') == 2 and "전 셀 <b>판정불가(제한)</b>." in html
