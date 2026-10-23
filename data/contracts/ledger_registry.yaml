@@ -433,12 +433,19 @@ ledgers:
   - id: ml_reference_scores
     path: data/ml_reference/ledgers/reference_scores.jsonl
     kind: jsonl
-    cadence: weekly
+    cadence: event          # 성숙 기반 채점 — 행의 run_ts 는 4~13주 전 run 이라 weekly 로 두면 첫 행부터 stalled 로 읽힌다(2026-10-22 검토)
     criticality: medium
     schema_ref: jsonl
     timestamp_field: knowledge_cutoff
     allow_empty_accumulating: true
     expected_state: planned
+  - id: ml_reference_approvals
+    path: data/ml_reference/ledgers/approvals.jsonl
+    kind: jsonl
+    cadence: event
+    criticality: high
+    schema_ref: jsonl
+    timestamp_field: approved_at
   - id: timeseries_v13_exog_scheduled_events
     path: data/timeseries_v13/exog/scheduled_events_2007_2014.jsonl
     kind: immutable_files
@@ -548,3 +555,50 @@ ledgers:
     cadence: event
     criticality: high
     schema_ref: jsonl
+  # V14 조건부 전이 트랙(2026-10-22 track_open, V14-D0 A2). 원장 4개 + 사전등록 진단·결과 불변 파일.
+  - id: timeseries_v14_approvals
+    path: data/timeseries_v14/ledgers/approvals.jsonl
+    kind: jsonl
+    cadence: event
+    criticality: high
+    schema_ref: jsonl
+    timestamp_field: approved_at
+  - id: timeseries_v14_experiments
+    path: data/timeseries_v14/ledgers/v14_experiments.jsonl
+    kind: jsonl
+    cadence: event
+    criticality: high
+    schema_ref: jsonl
+    allow_empty_accumulating: true
+    expected_state: planned
+    timestamp_field: knowledge_cutoff
+  - id: timeseries_v14_live
+    path: data/timeseries_v14/ledgers/v14_live.jsonl
+    kind: jsonl
+    cadence: trading_daily
+    criticality: high
+    schema_ref: jsonl
+    allow_empty_accumulating: true
+    expected_state: planned
+    timestamp_field: knowledge_cutoff
+  - id: timeseries_v14_live_resolutions
+    path: data/timeseries_v14/ledgers/v14_live_resolutions.jsonl
+    kind: jsonl
+    cadence: trading_daily
+    criticality: high
+    schema_ref: jsonl
+    allow_empty_accumulating: true
+    expected_state: planned
+    timestamp_field: resolved_session
+  - id: timeseries_v14_prereg_diagnostics
+    path: data/timeseries_v14/prereg/*.json
+    kind: immutable_files
+    cadence: event
+    criticality: medium
+    schema_ref: json_object
+  - id: timeseries_v14_ladder_results
+    path: data/timeseries_v14/vol/*.json
+    kind: immutable_files
+    cadence: event
+    criticality: medium
+    schema_ref: json_object

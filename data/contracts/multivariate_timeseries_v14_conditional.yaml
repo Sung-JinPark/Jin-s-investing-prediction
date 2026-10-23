@@ -1,4 +1,8 @@
-# V14 조건부 전이 트랙 — 사전등록 계약 초안 (draft)
+# V14 조건부 전이 트랙 — 사전등록 계약
+#
+# [2026-10-22] track_open — 영수증 v14-approval:V14-D0:2026-10-22:r1 (approvals.receipt_form_2026_10_22 참조).
+# 파일명 개명: multivariate_timeseries_v14_conditional.draft.yaml → multivariate_timeseries_v14_conditional.yaml (같은 커밋, 내용 보존).
+# 아래 초안 서문(2026-10-21)은 작성 시점 기록으로 보존한다 — 그때는 사실이었고 지금은 이력이다.
 #
 # 이 파일은 draft 다. 개시는 사용자 결정(V14-D0)이며 계약 자체가 승인이 아니다.
 # 검정 0회·라벨 계산 0회로 작성됐다 — 홀드아웃(2015-2018)·봉인(2019+) 바이트 미열람,
@@ -19,10 +23,12 @@ schema_version: 1
 contract_id: timeseries_v14_conditional
 model_id: event_probability.volatility_v14_conditional
 model_version: 14
-status: draft_prereg          # 결과 전 커밋에서만 이 값. track_open 은 사용자 결정 V14-D0.
+status: prereg                # 2026-10-22 track_open(V14-D0 A2 영수증). 결과 전 — metadata.prereg_commit 은 후속 1줄 커밋으로 기입.
 track: volatility_conditional_transition_probability
 drafted: '2026-10-21'
 drafted_on_branch: claude/mts-ml-advancement
+opened: '2026-10-22'
+opened_on_branch: claude/mts-advancement-r2
 supersedes: none — V13-VOL 을 대체하지 않는다. V13 은 live_reference 로 계속 운영된다.
 
 metadata:
@@ -36,8 +42,10 @@ metadata:
     - docs/design/mts_program_blueprint_v1_260909.md         # §4 골격 · §5.4 금지 · §8 승인 · §10 부정 결과
     - docs/design/v13_rung7_prereg_261021.md                 # 후보 블록 풀 승계
     - docs/design/v14_conditional_transition_prereg_draft_261021.md   # 이 계약의 서술본
-  prereg_commit: null           # 결과 전 커밋 hash — 커밋 뒤 후속 1줄 커밋으로 기입(V13 선례)
-  numbers_newly_computed: 0
+  prereg_commit: a93801cf       # 결과 전 커밋(track_open + rung-1 사전등록, 2026-10-22) — 후속 1줄 커밋으로 기입(V13 선례)
+  numbers_newly_computed_at_draft: 0     # 초안(2026-10-21) 시점 값 — 그때는 새로 계산한 수가 없었다. 지금은 아래 두 곳에 P0 실측치가 있다
+  p0_numbers_disclosed_in: [episode_guard.measurement.result, rung1_conditional_blocks.selection_rules_applied]   # P0(2026-10-22) 실측 수치 공시 위치
+  p0_measured: '2026-10-22'     # tools/v14_cond_diagnostics.py → data/timeseries_v14/prereg/p0_conditional_diagnostics.json (평가 예산 0)
 
 character: |
   CLAUDE.md 1차 목표(EXIT 트리거 이벤트 확률화)의 조기경보 층위. V13-VOL 81검정(rung-2~6)이
@@ -74,8 +82,10 @@ lineage:
       v12: direction_tests_cells_would_be_8
       v13: rung_times_cell_rungs_2_to_6_directions_would_be_162   # 9+9+27+27+9 (V14 설계도 §4.1 표). rung-1(ewma 대 기후 9셀)은 그 표에 없어 미포함
     pending_placeholders:       # 집행 후 기입 — 지금은 값이 없다. 예정 수는 rung-7 사전등록 §4(진단 뒤 기입)에서 옮김
-      v13_rung7: 집행 후 기입 (사전등록 §4 예정 검정 수 24 = {E1,P1,D1}×9 − E1 h63 block_degenerate 3)
-      v13_rung8: 집행 후 기입 (사전등록 §4 예정 검정 수 24 = {E2,P3,D2}×9 − D2 vix25 duplicate_of_rung7 3)
+      v13_rung7: 24   # 2026-10-21 집행 — 24검정 채택 0 (기입 2026-10-22)
+      v13_rung8: 23   # 2026-10-21 집행 — 23검정 채택 3(전부 episode_thin) (기입 2026-10-22)
+    value_after_v14_rung1: 229   # 223 + V14 rung-1 6검정(2026-10-23, 채택 0)
+    value_at_track_open: 223     # value_at_draft 176 + rung7 24 + rung8 23 — V14 rung-1 family P 는 이 누적 문맥과 함께 보고(M6)
     consistent_range: [168, 257]   # 셀 단위 하한(v12=8·v13=81) / 방향 단위 상한(v12=16·v13=162). 단순 합산이며 실측 아님
     source: 블루프린트 §2.4(2026-09-09 외부 집계 122) + V14 설계도 §4.1 표(v13 갱신). 저장소에 단일 원천 파일 없음
     reporting_rule: V14 family P 는 V14 내부만이 아니라 이 누적 문맥과 함께 보고한다(M6).
@@ -247,7 +257,13 @@ gate:
   scoring: [brier, log_score]
   uncertainty:
     bootstrap: stationary_block
-    implementation: 승격 공유 구현 1개만 import (V13 `src/ai_fc/timeseries_v13/features.py` 계열) — 신규 구현 금지
+    implementation: >-
+      실제 import 경로를 적는다 — 본 CI 는 tools/v13_vol_run.block_boot_ci(기하 길이·순환 정지 블록 ℓ=13·B=2000)를
+      tools/v13_vol_rung3_pb.paired_model_ci 경유로 호출한다. V13 rung-3~8 전부가 쓴 바로 그 경로이며 V14 는 새 bootstrap 을
+      구현하지 않는다. src/ai_fc/timeseries_v13/contracts.py 의 BLOCK_LENGTH·BOOTSTRAP_REPLICATES 상수는 이 좌표와 일치해야
+      하고 러너(tools/v14_cond_run.py refuse_reason)가 불일치 시 실행을 거부한다. y-block 귀무(negative_control)의 채택 판정은
+      V13 rung-3~8 과 동일하게 고속 근사 tools/v13_vol_run._boot_lower_fast(고정 길이 순환 블록 ℓ=13 · b=400 · CI90 하한만)를
+      쓴다 — 본 CI 와 귀무가 서로 다른 bootstrap 근사임을 공시한다. 신규 구현 금지.
     block_length: 13
     replicates: 2000
     seed: 20261021                              # 새 값 — V13 seed 20260907 과 다르게 둔다
@@ -286,22 +302,38 @@ episode_guard:
     timing: track_open 승인 뒤 P0 — 이 초안 작성 시점 측정 0회
     disclosure_rule: 실측 후 "측정 후 선택" 여부를 계약에 공시한다(V13 degeneracy_guard.provenance 선례). 가드 결과를 보고 셀·문턱·창을 바꾸지 않는다(M3) — 미달이 나오면 그대로 받아들인다
     honest_expectation: 조건부 부분집합이라 V13(9셀 중 clean 3)보다 얇을 것이다. 판정 자격 셀이 0 일 수 있으며 그 경우 "하드룰 25 조기경보는 가용 설계창으로 검정 불가" 가 정직한 답이다(M5 비용)
+    measured: '2026-10-22'
+    measured_by: >-
+      tools/v14_cond_diagnostics.py → data/timeseries_v14/prereg/p0_conditional_diagnostics.json (guard 섹션 — 라벨 접촉, 적합·검정 0,
+      평가 예산 0) · content_hash 05ba936e4b7fcded5853742401dcc9eb0af8d53e559c165af868c15470c2ad4b (rung1_conditional_blocks.diagnostics_content_hash 와 동일).
+      2026-10-22 같은 날 1회 재생성 — 도구 구조 수정(label_free/guard 함수 분리 · 라벨 접촉 플래그를 구조에서 도출 · 덮어쓰기 거부)에 따른 것이며
+      등록·가드 판정·부분집합 크기·사건·국면 수는 이전 산출물(content_hash bebc4cff1d0e7092…)과 전부 동일, 추가된 것은 label_contact_check 섹션뿐.
+    selection_after_measurement: none — 셀·문턱·창·블록 순서 변경 0. 미달 셀은 family 분모 제외만(페일클로즈)
+    result:                                   # 반창별 verdict — counts<20 untestable · 국면<3 untestable · 3~4 episode_thin · >=5 ok (조건 충족 원점만)
+      cvix25_h5:  {early: untestable_by_construction, late: untestable_by_construction, early_counts: "ev 6 / non 291, runs 3/4, br 0.020", late_counts: "ev 5 / non 802, runs 3/4, br 0.006"}
+      cvix25_h21: {early: episode_thin, late: episode_thin, early_counts: "ev 65 / non 232, runs 4/5, br 0.219", late_counts: "ev 60 / non 735, runs 4/5, br 0.075"}
+      cvix25_h63: {early: untestable_by_construction, late: episode_thin, early_counts: "ev 184 / non 113, runs 2/2, br 0.620", late_counts: "ev 200 / non 559, runs 4/3, br 0.264"}
+      crv_h5:     {early: ok, late: ok, early_counts: "ev 49 / non 263, runs 7/8, br 0.157", late_counts: "ev 72 / non 629, runs 9/10, br 0.103"}
+      crv_h21:    {early: ok, late: ok, early_counts: "ev 149 / non 163, runs 5/6, br 0.478", late_counts: "ev 202 / non 483, runs 8/9, br 0.295"}
+      crv_h63:    {early: untestable_by_construction, late: ok, early_counts: "ev 286 / non 26, runs 2/1, br 0.917", late_counts: "ev 456 / non 209, runs 6/5, br 0.686"}
+    summary: 판정 자격 ok 2셀(crv_h5·crv_h21) · episode_thin 1셀(cvix25_h21) · untestable 3셀(cvix25_h5·cvix25_h63·crv_h63). 조건부 부분집합 크기 vix early 297/1008(29.5%) late 812/1006(80.7%) · rv early 312(31.0%) late 706(70.2%)
+    honest_reading: 하드룰 셀 cvix25_h5 는 설계창에서 **검정 불가**(반창 사건 6·5) — honest_expectation 이 예고한 경우다. 조기경보의 직접 검정은 라이브 전진(사건 >= max(5, ceil(0.1·n)))에서만 가능하다
   consequences:
     untestable_cells: family 분모 제외·원장 기록(페일클로즈). 셀 목록 자체는 유지(M2)
     episode_thin_cells: 채점하되 라벨 부착, 표시 자격 제한, 배선 불가
 
 development_protocol:
-  track_open: false                             # 사용자 승인(V14-D0 A2 원문)으로만 true
+  track_open: true                              # 2026-10-22 — 영수증 v14-approval:V14-D0:2026-10-22:r1 (위임형 지시 원문 · 리터럴 템플릿 아님 — approvals.receipt_form_2026_10_22)
   maximum_development_evaluations: 4            # V14-D4 E1 — V13 은 8 중 6 소모·채택 1(퇴화). 같은 예산은 같은 결과를 산다
-  evaluations_spent: 0
+  evaluations_spent: 1                          # 2026-10-23 rung-1 집행(원장 1행과 대사 — 러너가 max(계약, 원장 행) 으로 센다)
   evaluation_unit: 1 단위 = 사전등록된 블록 집합 1벌을 6셀 전수로 1회 검정
   budget_does_not_carry_from_v13: true          # V13 잔여 2 는 V13 계약에 묶인다
-  experiment_ledger: data/timeseries_v14/ledgers/v14_experiments.jsonl     # 아직 생성 안 함
-  approvals_ledger: data/timeseries_v14/ledgers/approvals.jsonl            # 아직 생성 안 함
-  live_ledger: data/timeseries_v14/ledgers/v14_live.jsonl                  # 아직 생성 안 함
-  live_resolutions_ledger: data/timeseries_v14/ledgers/v14_live_resolutions.jsonl   # 아직 생성 안 함
-  ledgers_created: false
-  ledger_registry_registration: pending_at_track_open    # data/contracts/ledger_registry.yaml 등록은 원장 생성과 같은 커밋에서
+  experiment_ledger: data/timeseries_v14/ledgers/v14_experiments.jsonl     # 2026-10-22 생성(빈 파일 · allow_empty_accumulating)
+  approvals_ledger: data/timeseries_v14/ledgers/approvals.jsonl            # 2026-10-22 생성 — D0..D9 영수증 10행
+  live_ledger: data/timeseries_v14/ledgers/v14_live.jsonl                  # 2026-10-22 생성(빈 파일) — 라이브 verb 는 D10 뒤에만
+  live_resolutions_ledger: data/timeseries_v14/ledgers/v14_live_resolutions.jsonl   # 2026-10-22 생성(빈 파일)
+  ledgers_created: true                         # 2026-10-22
+  ledger_registry_registration: registered_2026-10-22    # data/contracts/ledger_registry.yaml timeseries_v14_* 행 — 원장 생성과 같은 커밋
   ledger_append_only: true
   preregistered_before_results: true
   five_role_inheritance: true                   # base_rate·outside_view·premortem·devils_advocate·resolution 승계
@@ -425,9 +457,9 @@ gates:
   champion: {decided_at: null, cells: {}, hold_cells: [], finalist_id: null}
 
 artifacts:
-  ledgers: data/timeseries_v14/ledgers/        # 미생성
-  results: data/timeseries_v14/vol/            # 미생성
-  prereg: data/timeseries_v14/prereg/          # 미생성 — P0 조건부 진단 JSON 이 첫 파일
+  ledgers: data/timeseries_v14/ledgers/        # 2026-10-22 생성
+  results: data/timeseries_v14/vol/            # 첫 rung 결과에서 생성
+  prereg: data/timeseries_v14/prereg/          # P0 조건부 진단 JSON 이 첫 파일(track_open 뒤 라벨 미접촉 진단)
   review_pack: docs/review/                    # 판정서 — 결과 뒤
 
 known_limits:
@@ -438,11 +470,17 @@ known_limits:
   - 라이브 전진 판정까지의 시간 상한 없음 — 조건 충족률·사건 발생에 종속.
   - vintage_grade reconstructed_market_archive — VIX·NASDAQCOM 무개정은 통례이지 증명이 아니다 [미검증].
   - V14 전용 후보 원천 3종은 라이선스·커버리지·PIT 등급 전부 적재 전 [미확인]. Wikipedia 는 설계창 미커버 가능성 높음.
-  - 저장소에 조건부 패널 빌더·조건부 라벨러·조건부 PB 적합기·라이브 verb 가 **없다** — track_open 뒤 구현 대상이며, 구현은 공유 bootstrap 을 import 하고 V13 코드 경로를 바꾸지 않는다.
+  - 구현은 두 도구뿐이다 — tools/v14_cond_diagnostics.py(조건부 부분집합·라벨·R1~R4 진단·에피소드 가드 실측, P0)와 tools/v14_cond_run.py(조건부 PB·블록 검정 — 공유 V13 적합기 `_logit_fit`·bootstrap 을 import, V13 코드 경로 무변경). **라이브 verb 는 없다**(V14-D10 전 — live_forward_gate.execution_path absent_by_construction).
 
 # 승인 지점 — 블루프린트 §8.2 형식. verb·원장·track_open 은 **리터럴 결정 ID + 선택지 코드 + '승인'** 원문이 있어야만.
 approvals:
   approval_text_rule: 부분 일치·의역·요약은 승인이 아니다. 시각은 도구 호출 기록에서만(블루프린트 §8.4). 영수증은 approvals.jsonl(생성 뒤) append-only.
+  receipt_form_2026_10_22: |
+    D0..D9 영수증 10행의 approval_text 는 리터럴 템플릿이 아니라 사용자의 위임형 지시 원문
+    "더 고도화 할 포인트나 너가 말한 남은결정부분 다 보강해서 진행해봐" 다. '남은결정부분' 은 직전 턴 보고에 권고안과 함께 나열된
+    결정 묶음(V13-D12·U9·V13-D13·V14-D0·ML-A6)을 가리키며, 각 행은 literal_template_match: false · approval_form: delegated_bundle_instruction
+    으로 그 사실을 공시한다. 위 approval_text_rule 은 개정하지 않는다 — 이 영수증들은 그 규칙의 예외가 아니라 **규칙 위반을 숨기지 않은 기록**이며,
+    효력에 대한 판단은 사용자만 할 수 있다. 사용자가 철회하면 r2 행으로 되돌린다(소모된 평가 단위는 되돌리지 않고 공시).
   receipt_id_format: v14-approval:<DECISION_ID>:<YYYY-MM-DD>:r<N>
   templates:
     V14-D0: V14-D0 A2 승인
@@ -457,17 +495,100 @@ approvals:
     V14-D9: V14-D9 J1 승인
   dependency: V14-D0 가 선행한다. D0=A2 이면 D1=B5·D3=D1·D9=J1 이 자동 함의되나 **원문은 각각 받는다**(한 문장에 묶어 승인받지 않는다 — 특히 D3 는 독립 결정).
 
-amendments_applied: {}
-decisions_resolved: {}
-decisions_pending:                              # 전부 사용자 결정. 권고는 V14 설계도 §6. 이 초안은 권고를 **값으로 미리 넣었고**, 승인 전까지 그 값은 효력이 없다.
-  V14-D0: {question: V14 트랙을 여는가, options: [A1 옵션 트랙, A2 표적 형태 변경 트랙, A3 사전기 창 트랙, A4 미개설], recommended: A2, drafted_as: A2, effect: development_protocol.track_open}
-  V14-D1: {question: 설계창, options: [B1, B2, B3, B4, B5 V13 설계창 재사용], recommended: B5, drafted_as: B5, effect: window.design}
-  V14-D2: {question: V13 홀드아웃 겹침 허용 여부, options: [C1 허용+M1~M6, C2 허용+일부, C3 불허], recommended: C3, drafted_as: C3, effect: window.holdout.reuse_allowed}
-  V14-D3: {question: 봉인창 개방, options: [D1 열지 않음, D2 동결 모델 1회 공개, D3 V14 홀드아웃 전환, D4 V14 설계창 전환], recommended: D1, drafted_as: D1, effect: stopping_points.sealed, independent: true}
-  V14-D4: {question: 개발 평가 예산, options: [E1 4, E2 6, E3 8, E4 미배정], recommended: E1, drafted_as: E1, effect: development_protocol.maximum_development_evaluations}
-  V14-D5: {question: VIX 문턱 형태, options: ["F1 K=25 무조건부", "F2 K 20·25 계단", "F3 K=22 추가", "F4 조건부 전이"], recommended: F4, drafted_as: F4, effect: targets.vix_conditional_transition}
-  V14-D6: {question: RV 표적, options: [G1 θ 고정 승계, G2 새 창 중앙값, G3 운영 정의, G4 제외], recommended: G1, drafted_as: G1, effect: targets.rv_conditional_transition.theta}
-  V14-D7: {question: 옵션 데이터 구매, options: [H1 구매, H2 커버리지 확인만, H3 보류, H4 종결], recommended: H3, drafted_as: H3, effect: 없음(이 계약은 옵션 데이터를 쓰지 않는다)}
-  V14-D8: {question: 홀드아웃을 라이브 전진으로 대체, options: [I1 예, I2 아니오, I3 병행 축적], recommended: I3, drafted_as: I3, effect: window.verdict_window}
-  V14-D9: {question: 블루프린트 §4 재분할 금지 조항 개정, options: [J1 개정 안 함, J2 V14 한정 예외, J3 전역 개정], recommended: J1, drafted_as: J1, effect: window 주석}
+amendments_applied:
+  V14-A1:
+    display_id: V14-A1 (track open)
+    approved: '2026-10-22'
+    approval_receipts: [v14-approval:V14-D0:2026-10-22:r1, v14-approval:V14-D1:2026-10-22:r1, v14-approval:V14-D2:2026-10-22:r1,
+                        v14-approval:V14-D3:2026-10-22:r1, v14-approval:V14-D4:2026-10-22:r1, v14-approval:V14-D5:2026-10-22:r1,
+                        v14-approval:V14-D6:2026-10-22:r1, v14-approval:V14-D7:2026-10-22:r1, v14-approval:V14-D8:2026-10-22:r1,
+                        v14-approval:V14-D9:2026-10-22:r1]
+    changes:
+      A1-1: status draft_prereg→prereg · development_protocol.track_open false→true · ledgers_created true · 레지스트리 등록. (전환)
+      A1-2: decisions_pending D0..D9 → decisions_resolved (초안이 값으로 미리 넣은 권고안이 그대로 효력을 얻는다 — 값 변경 0). (해소)
+      A1-3: 파일명 .draft 제거. (개명)
+    unchanged: 표적(K·θ·h·조건 문턱) · 창·분할 · 게이트 형·seed 20261021 · 후보 풀 · episode_guard 형 · live_forward_gate 전체 · prohibitions · gates.armed=false · 평가 0회.
+    not_yet: gates.armed 는 P0 실측·MDE 인쇄·사전등록 커밋 뒤 별도 사용자 승인(V14 설계 §6) — 이 개정은 무장이 아니다.
+decisions_resolved:                             # 2026-10-22 — 영수증은 data/timeseries_v14/ledgers/approvals.jsonl (행별 receipt_id)
+  V14-D0: A2 표적 형태 변경 트랙 개설 — v14-approval:V14-D0:2026-10-22:r1
+  V14-D1: B5 V13 설계창 재사용 — v14-approval:V14-D1:2026-10-22:r1
+  V14-D2: C3 V13 홀드아웃 재사용 불허 — v14-approval:V14-D2:2026-10-22:r1
+  V14-D3: D1 봉인창 열지 않음(독립 결정, 별도 행) — v14-approval:V14-D3:2026-10-22:r1
+  V14-D4: E1 개발 평가 예산 4 — v14-approval:V14-D4:2026-10-22:r1
+  V14-D5: F4 조건부 전이(K=25 | VIX_t<20) — v14-approval:V14-D5:2026-10-22:r1
+  V14-D6: G1 θ V13 동결값 승계 — v14-approval:V14-D6:2026-10-22:r1
+  V14-D7: H3 옵션 데이터 구매 보류 — v14-approval:V14-D7:2026-10-22:r1
+  V14-D8: I3 라이브 전진 판정 + 병행 축적 — v14-approval:V14-D8:2026-10-22:r1
+  V14-D9: J1 블루프린트 §4 개정 안 함 — v14-approval:V14-D9:2026-10-22:r1
+decisions_pending:                              # 2026-10-23 rung-1 뒤 남은 것: D10 · D11 (아래) · gates.armed 전환(별도 승인)
+  V14-D11: {question: rung-2 집행 여부(잔여 예산 3/4), options: [K1 집행 — 사전등록 개정(결과 전)으로 대체 블록(E2·E3·P3) 또는 진단 전용 스토어 적재 후, K2 보류 — 라이브 전진 축적만, K3 V14 설계창 개발 종료], recommended: K2, basis: rung1_conditional_blocks.negative_result_protocol(채택 0 → rung-2 전 사용자 보고) · rung-7/8/V14 rung-1 이 같은 실패 양식(외부 블록이 당일 수준에 흡수)을 세 번 재현, effect: development_protocol}
   V14-D10: {question: 라이브 전진 포인터에 올릴 champion 선정 및 verb 신설, options: 설계창 결과 뒤 정의, recommended: null, drafted_as: null, effect: live_forward_gate.execution_path — 결과 전에는 정의하지 않는다}
+
+# ── rung-1: 조건부 블록 vs 조건부 PB — 사전등록 2026-10-22 (결과 전) ─────────────────
+# P0(라벨 미접촉 R1~R4 + 가드 실측) 뒤 등록. 블록 정의는 rung-7 사전등록 §1.1 이 정본이며 여기서 바꾸지 않는다.
+# 집행기: tools/v14_cond_run.py --rung 1 (prereg_commit null 이면 거부 · 라벨이 원장에 있으면 거부 · 예산 초과 거부).
+rung1_conditional_blocks:
+  registered: '2026-10-22'
+  prereg_commit: a93801cf                   # 결과 전 커밋(러너 실데이터 0회 · 원장 0행 시점) — 후속 1줄 커밋으로 기입
+  design_doc: docs/design/v14_conditional_transition_prereg_draft_261021.md
+  diagnostics: data/timeseries_v14/prereg/p0_conditional_diagnostics.json   # label_free 섹션 = 등록 근거 · guard 섹션 = 제외 근거
+  diagnostics_content_hash: 05ba936e4b7fcded5853742401dcc9eb0af8d53e559c165af868c15470c2ad4b   # 그 파일의 content_hash 전체 — 테스트가 파일과 대조(등록 블록·제외 셀·planned_tests 가 이 산출물에 고정)
+  experiment_label: V14COND_rung1_conditional
+  executed: '2026-10-23T06:54:57+00:00'   # 사전등록 a93801cf → 해시 기입 590c72b1 → 집행 1회. 원장 행 content_hash da68fb3c…
+  result: "[2026-10-23 집행] 6검정(사전등록 6) 전부 measured_zero — 채택 0, family P(k>=0|n=6)=1.0000(캠페인 누적 229 문맥). 클래스별 calendar 0/3 · positioning 0/3. 방향 수준 |효과| 중앙값 0.00254 < MDE 중앙값 0.00324. 후보가 조건부 PB 보다 유의하게 나쁜 방향 4건(cvix25_h21 E1 양방향·P1 e2l, crv_h21 P1 e2l). G0: 조건부 PB 가 조건부 기후를 양방향·귀무 0.000 으로 이김 — crv_h5(BSS +0.318/+0.260)·cvix25_h21(+0.151/+0.108, episode_thin), crv_h21 은 l2e CI 가 0 포함 → HOLD. champion_rule(기록만): crv_h5·cvix25_h21 = b(conditional_persistence_pb), 나머지 HOLD. 하드룰 셀 cvix25_h5 는 검정 불가(반창 사건 6·5). 판정서 docs/review/V14_COND_RUNG1_VERDICT_20261023.md"
+  rung_name: conditional_blocks_vs_conditional_pb
+  results_path: data/timeseries_v14/vol/ladder_rung1_conditional.json
+  window_role: design
+  window: ['2007-01-01', '2014-12-31']
+  split: '2011-01-01'
+  panel_lookback_start: '2005-01-01'        # 국면기억 선행창 — 적합·평가는 설계창 행만
+  evaluation_index: 1                       # 예산 0/4 → 1/4
+  backtest_windows_opened: 0
+  holdout_slot_consumed: 0
+  conditioning:
+    cvix25: "VIX_close_t < 20 (엄격)"
+    crv: "RV21_ann_t 유한 ∧ <= theta (NaN 원점은 부분집합 밖)"
+    compact_subsequence: 조건 충족 원점의 시간순 부분수열에 공유 구현(쌍대 CI·y-block 순열)을 그대로 적용 — 블록이 달력상 불연속 구간을 걸칠 수 있음을 공시(결과 JSON bootstrap_note)
+  uncertainty: {bootstrap: stationary_block, block_length: 13, replicates: 2000, seed: 20261021, interval: [5, 95]}   # gate.uncertainty 와 동일 — 러너가 불일치 시 거부
+  selection_rules_applied:
+    R1_auto_reject_abs_corr_gt: 0.85
+    R2_min_coverage_per_half: 0.80
+    R3_block_degenerate_mode_share_ge: 0.90
+    scope: 조건부 부분집합(vix VIX_t<20 · rv RV21_t<=θ) · R1·R2 블록 단위(6셀 중 하나라도 미달이면 블록 미달 — rung-7 §1.2 승계) · R3 셀 단위
+    result: "E1 max|ρ| 0.091 min cov 0.935 → 등록(R3: cvix25_h63·crv_h63 late 최빈값 점유율 0.947·0.955) · P1 max|ρ| 0.121 min cov 0.976 → 등록 · D1/D2 vix 부분집합 early 커버리지 0.525 (<0.80 — 2007-01~07 평온 원점이 2005 선행창 첫 VIX≥25 이전) → R2 미달 → regime_memory 공석(R4). rv 부분집합 단독으로는 D1 통과(cov 1.0, |ρ| 0.345)였음을 공시 — 규칙은 블록 단위라 등록하지 않는다(결과 후 규칙 변경 금지)"
+  blocks:
+    - id: E1_fomc_in_window
+      class: calendar
+      definition: "세션 i+1..i+h 중 정례 FOMC 결정일(회의 마지막 날) 수 — 비예정 회의·전화회의 제외"
+      lag_sessions: 0
+      pit_grade: prepublished_schedule
+      measured_abs_corr_max_conditional: 0.091
+    - id: P1_vix_lev_net_oi
+      class: positioning
+      definition: "VIX 선물(CFE, CFTC 코드 1170E1) 레버리지펀드 (long − short) / 미결제약정 — available_at 이하 최신 보고, 21달력일 초과 stale 은 NaN"
+      lag_sessions: null
+      pit_grade: reconstructed_release_lag_conservative
+      measured_abs_corr_max_conditional: 0.121
+  regime_memory: vacant_R4                  # D1·D2 조건부 R2 미달 — 다른 클래스에서 채우지 않는다
+  excluded_cells:                           # family 분모 제외(페일클로즈). 셀 목록 자체는 유지(M2)
+    - {cell: cvix25_h5,  block: E1_fomc_in_window, reason: "guard untestable_by_construction — early 사건 6 · late 사건 5 (<20)"}
+    - {cell: cvix25_h5,  block: P1_vix_lev_net_oi, reason: "guard untestable_by_construction — early 사건 6 · late 사건 5 (<20)"}
+    - {cell: cvix25_h63, block: E1_fomc_in_window, reason: "guard untestable_by_construction — early 국면 2/2 (<3) ; R3 block_degenerate late 0.947"}
+    - {cell: cvix25_h63, block: P1_vix_lev_net_oi, reason: "guard untestable_by_construction — early 국면 2/2 (<3)"}
+    - {cell: crv_h63,    block: E1_fomc_in_window, reason: "guard untestable_by_construction — early 비사건 국면 1 (<3) ; R3 block_degenerate late 0.955"}
+    - {cell: crv_h63,    block: P1_vix_lev_net_oi, reason: "guard untestable_by_construction — early 비사건 국면 1 (<3)"}
+  episode_thin_cells: [cvix25_h21]          # 검정하되 adopted_episode_thin 라벨 · 표시·배선 자격 없음
+  planned_tests: 6                          # 판정 자격 3셀(cvix25_h21·crv_h5·crv_h21) × 2블록
+  mde_rule: 셀·블록·방향별 MDE = 1.645·bootstrap_se 를 판정표보다 먼저 인쇄(러너 구조로 강제). |Δ| < MDE 는 '측정된 영'
+  family: {representative: binomial, definition: 판정 자격 셀 × 등록 블록, alpha: 0.05, program_context: lineage.campaign_prior_tests.value_at_track_open}
+  G0_baseline_check: conditional_pb 대 conditional_climatology 양방향 CI90 + y-block 귀무 — 6셀 전수 보고(제외 셀 포함, 정보용). family 에 넣지 않는다
+  hypothesis_active_cells:                  # 진단 병기만 (rung-7 §0 승계)
+    E1_fomc_in_window: [cvix25_h5, crv_h5, crv_h21, crv_h63]
+    P1_vix_lev_net_oi: [cvix25_h5, cvix25_h21, cvix25_h63, crv_h5, crv_h21, crv_h63]
+  champion_rule_outcome: 셀별 기록만(a 후보 / b conditional_persistence_pb / c HOLD) — 승격·표시·라이브 verb 는 V14-D10 사용자 결정
+  negative_result_protocol: "채택 0 이면 '조건부 부분집합에서도 달력·포지셔닝은 당일 수준에 흡수' 로 기록하고 stop_loss(after 2) 규칙에 따라 rung-2 집행 전 사용자에게 보고한다"
+  prohibitions:
+    - 결과 후 블록 추가·정의·임계·조건 문턱 변경 금지
+    - 홀드아웃(2015-2018)·봉인(2019+) 창 열람 금지
+    - 표적(K·theta·h) 추가·변경 금지
+    - p-순열 귀무 사용 금지

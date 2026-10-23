@@ -21,6 +21,12 @@ CI90 하한 ≤ 0 이면 그 셀 표시 hold" 와 "y-block 귀무 통과율 ≤ 
 모양으로 G4 실패). 계약 346행의 "초과 시 판정 무효화" 는 **강등이 아니라 판정 보류**다. 여기서는
 `null_invalid: true` 로 표시만 하고, 실행 시점 degeneracy_guard(사건·국면 수)를 함께 낸다. 그 뒤의
 귀결(보류·축적 계속)을 계약에 못 박는 것은 사용자 결정(V13-D12)이며 이 코드가 대신하지 않는다.
+
+## 판정불가(제한) — V13-D13 `live_claim_restriction` (추가 제약·완화 0)
+
+사건 < 20 또는 국면 < 5 인 셀은 `positive_claim_allowed: false` — pass·BSS·배선·표시 승격을 주장할 수
+없다. **status 산술은 그대로다**: 라벨은 긍정 주장만 막고 강등·T7(부정 귀결)은 막지도 미루지도 않는다.
+임계·국면 계산은 live_scoreboard 와 같은 함수를 쓴다(화면과 verb 가 다른 라벨을 내지 않게).
 """
 
 from __future__ import annotations
@@ -34,8 +40,11 @@ import numpy as np
 
 from . import contracts as C
 from . import scoring as S
+from .live_scoreboard import claim_restriction_for, claim_thresholds
 from .resolve import (RESOLUTION_LEDGER_RELATIVE, _read_rows, distinct_origin_count,
                       distinct_resolutions, pinned_coefficients_sha)
+
+CLAIM_BLOCKED_NOTE = "positive claim blocked (V13-D13 live_claim_restriction)"
 
 NULL_DRAWS = 120       # holdout.py 와 같은 귀무 추출 수
 NULL_BOOT_B = 300      # holdout.py `_decide` 와 같은 내부 부트스트랩 반복
@@ -131,14 +140,23 @@ def live_verdict(root: Path, *, draws: int = NULL_DRAWS, now: datetime | None = 
     pass_cells = [str(c) for c in (publication.get("holdout_pass_cells") or [])]
     t7 = ((contract.get("live_forward_termination") or {}).get("T7") or {})
 
+    claim = claim_thresholds(contract)                 # V13-D13 임계(20/5) — 계약을 못 읽으면 예비값
+
     by_cell = _cell_rows(root)
     live_rows = _read_rows(root / C.LIVE_LEDGER_RELATIVE)
     horizons = {spec["name"]: int(spec["h"]) for spec in C.cell_specs()}
     cells = {}
     for name in C.CELL_ORDER:
-        cell = _evaluate_cell(by_cell.get(name, []), minimum=minimum, min_events=min_events,
+        rows = by_cell.get(name, [])
+        cell = _evaluate_cell(rows, minimum=minimum, min_events=min_events,
                               min_episodes=min_episodes, draws=draws)
         cell["resolution"] = resolution_disclosure(cell["matured"], horizons[name])
+        # 판정불가(제한) — status 는 위에서 이미 정해졌다. 여기서는 긍정 주장 가능 여부만 병기한다.
+        label = claim_restriction_for(rows, min_events=claim["min_events"], min_episodes=claim["min_episodes"])
+        cell["positive_claim_allowed"] = not label["claim_blocked"]
+        cell["claim_block_reasons"] = label["claim_block_reasons"]
+        if cell.get("status") == "gate_passed_descriptive" and label["claim_blocked"]:
+            cell["status_note"] = CLAIM_BLOCKED_NOTE
         cells[name] = cell
 
     evaluable = [c for c in pass_cells if cells.get(c, {}).get("matured", 0) >= minimum]
@@ -162,6 +180,7 @@ def live_verdict(root: Path, *, draws: int = NULL_DRAWS, now: datetime | None = 
         "coefficients_sha256_pinned": pinned_coefficients_sha(root),
         "origins_recorded_distinct": distinct_origin_count(live_rows),
         "negative_control_draws": draws,
+        "claim_restriction": claim,
         "cells": cells,
         "T7": t7_out,
         "disclaimer": "참고 의견. 판정 적용(강등·종결)은 사용자 승인 영수증 뒤의 별도 단계이며 이 출력은 산술만 보여 준다.",
@@ -169,21 +188,23 @@ def live_verdict(root: Path, *, draws: int = NULL_DRAWS, now: datetime | None = 
 
 
 def render_table(result: dict[str, Any]) -> str:
-    lines = ["{:11s} {:>7s} {:>5s} {:>9s} {:>9s} {:>7s} {:>6s} {:>6s}  상태 (플래그)".format(
-        "셀", "성숙", "사건", "Brier", "기후", "BSS", "귀무", "블록")]
+    lines = ["{:11s} {:>7s} {:>5s} {:>9s} {:>9s} {:>7s} {:>6s} {:>6s} {:>4s}  상태 (플래그)".format(
+        "셀", "성숙", "사건", "Brier", "기후", "BSS", "귀무", "블록", "주장")]
     for name, c in result["cells"].items():
         bss = c.get("bss")
         null = c.get("negative_control_pass_rate")
         flags = [k for k in ("events_below_holdout_guard", "episode_thin", "null_degenerate") if c.get(k)]
         res = c.get("resolution") or {}
-        lines.append("{:11s} {:>3d}/{:<3d} {:>5d} {:>9s} {:>9s} {:>7s} {:>6s} {:>6s}  {}{}".format(
+        lines.append("{:11s} {:>3d}/{:<3d} {:>5d} {:>9s} {:>9s} {:>7s} {:>6s} {:>6s} {:>4s}  {}{}{}".format(
             name, c["matured"], c["minimum"], c["events"],
             "{:.4f}".format(c["brier_model"]) if "brier_model" in c else "—",
             "{:.4f}".format(c["brier_climatology"]) if "brier_climatology" in c else "—",
             "{:+.3f}".format(bss) if isinstance(bss, (int, float)) else "—",
             "{:.2f}".format(null) if isinstance(null, (int, float)) else "—",
             "{:.1f}".format(res["effective_blocks"]) if res else "—",
-            c["status"], " [" + ",".join(flags) + "]" if flags else ""))
+            "가능" if c.get("positive_claim_allowed") else "제한",      # V13-D13 — 긍정 주장 가능 여부
+            c["status"], " [" + ",".join(flags) + "]" if flags else "",
+            " (" + c["status_note"] + ")" if c.get("status_note") else ""))
     t7 = result["T7"]
     lines.append("T7: 범위 {} · 60도달 {} · 강등후보 {} · would_trigger={}".format(
         t7["scope_cells"], t7["cells_at_minimum"], t7["demotion_candidates"], t7["would_trigger"]))
