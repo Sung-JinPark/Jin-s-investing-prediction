@@ -1,6 +1,6 @@
 {
   "as_of": "2026-10-23",
-  "content_hash": "8da173dfcd096418bf7efb77fb808b9f0cc498ce44eb73dffe7d2c13b9d214ec",
+  "content_hash": "1c913b6e2d46a65260f4ad217ca090421cb76bf502726db1f4280531f0e866af",
   "daily": {
     "anchor": {
       "provisional": true,
@@ -102,7 +102,7 @@
       "probability_up": 0.715
     }
   },
-  "knowledge_cutoff": "2026-10-23T23:42:23+00:00",
+  "knowledge_cutoff": "2026-10-23T23:46:13+00:00",
   "model_id": "shadow.mf_dfm_varx_calibrated_v8",
   "model_version": 8,
   "operational": {
@@ -140,7 +140,7 @@
         "status": "fresh"
       },
       {
-        "age_hours": 167.70692268805556,
+        "age_hours": 167.77064687416666,
         "group": "DTWEXBGS_or_DTWEXB",
         "limit_hours": 216.0,
         "observation_time": "2026-10-16",
