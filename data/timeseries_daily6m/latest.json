@@ -1,11 +1,11 @@
 {
-  "as_of": "2026-10-21T01:54:43.353690+00:00",
-  "content_hash": "a57e2964dc855cf31cc0a56441ae616f33ce04b482c4dbb4d52e5b8b76582127",
+  "as_of": "2026-10-23T05:23:45.327229+00:00",
+  "content_hash": "5cb2e12941cae88b429f7ea0556c01ebeea59b97fdcc67777ddcc6343d3f30fa",
   "model_id": "research.nasdaq_daily6m_varx_v1",
   "numbers_visible": true,
-  "run_content_hash": "bfba41daba48e69f0707bfc456f2c7ce6323b090a42c3fe384eaef623ac7f908",
-  "run_id": "daily6m-a03fc62abc9a0db5768db281",
-  "run_path": "data/timeseries_daily6m/runs/daily6m-a03fc62abc9a0db5768db281.json",
+  "run_content_hash": "b5e802f03cca95a5254c057818b54ba01e717c516bdc7dee7155d7eed7d4b696",
+  "run_id": "daily6m-83bc46c3330ade1aee583a0e",
+  "run_path": "data/timeseries_daily6m/runs/daily6m-83bc46c3330ade1aee583a0e.json",
   "schema_version": 1,
   "status": "research_preview"
 }

@@ -674,6 +674,9 @@ def verify(root: Path, *, replay: bool = True) -> dict[str, Any]:
                     pending[key if numeric_replay else metadata_key] = functions
                     while len(pending) > cache.max_entries:
                         pending.popitem(last=False)
+            # All hashes, originals and numerical checks above still run. Only the
+            # small bindings are kept after this archive is checked; retaining
+            # every OHLC/candidate graph exhausts long-running workers.
             snapshots[sid] = bindings
         for sid, archive in snapshots.items():
             prior = archive.get("supersedes_snapshot_id")

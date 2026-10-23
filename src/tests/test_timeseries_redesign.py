@@ -325,3 +325,42 @@ def test_payload_budget_declarations_match_code() -> None:
     assert budgets["data_json_max_bytes"] == dashboard.DATA_JSON_BUDGET_BYTES
     assert budgets["band_calibration_json_max_bytes"] == dashboard.BAND_CALIBRATION_BUDGET_BYTES
     assert budgets["timeseries_v13_vol_max_bytes"] == dashboard.TIMESERIES_V13_VOL_BUDGET_BYTES
+
+
+def test_score_card_discloses_bounds_and_shadow_progress_as_labels_only() -> None:
+    """A8·A11(2026-10-21): 실전 축 옆 섀도 진행률 라벨 + 총점 상한 한 줄 — 산식은 빌더 값 그대로."""
+    html = _html()
+    helper = html[html.index("function tsShadowProgressLabel"):html.index("function timeseriesScore100Card")]
+    assert "섀도 세션 ${done}/${need}" in helper and "거래일 성숙" in helper
+    card = html[html.index("function timeseriesScore100Card"):html.index("function timeseriesErrorCompare")]
+    assert "sealed_metrics||{}).score100_bounds" in card and "sealed_metrics||{}).shadow_progress" in card
+    assert "key==='live'?progressLabel:''" in card
+    assert 'class="ts-score-bounds"' in card and "점 고정" in card
+    # 요약은 라벨 한 줄, 상세 문장은 접기(점수 기준) 안에만
+    assert card.index('class="ts-score-bounds"') < card.index('<details class="ts-score-method">')
+    assert "총점 상한" in card[card.index("const boundsNote="):card.index("const scale=")]
+    assert card.index("+boundsNote") > card.index('<details class="ts-score-method">')
+    live = html[html.index("function timeseriesLiveTiles"):html.index("function bindTimeseriesV8Interactions")]
+    assert "tsShadowProgressLabel(" in live
+
+
+def test_shadow_progress_label_renders_from_builder_values_or_nothing() -> None:
+    node = shutil.which("node")
+    if not node:
+        pytest.skip("node not available")
+    html = _html()
+    helper = html[html.index("function tsShadowProgressLabel"):html.index("function timeseriesScore100Card")]
+    probe = "const esc=s=>String(s==null?'':s);\n" + helper + """
+const full=tsShadowProgressLabel({sessions_elapsed:46,required_sessions:126,required_session_date:'2027-02-16',maturity_sessions:63,first_h63_maturity_date:'2026-11-12',first_h63_matured:false});
+process.stdout.write(JSON.stringify({full,none:tsShadowProgressLabel(null),empty:tsShadowProgressLabel({})}));
+"""
+    with tempfile.TemporaryDirectory() as tmp:
+        path = Path(tmp) / "progress.js"
+        path.write_text(probe, encoding="utf-8")
+        result = subprocess.run([node, str(path)], capture_output=True, text=True, encoding="utf-8")
+    assert result.returncode == 0, result.stderr[:2000]
+    import json
+    out = json.loads(result.stdout)
+    assert "섀도 세션 46/126" in out["full"] and "126번째 세션 2027-02-16" in out["full"]
+    assert "첫 63거래일 성숙 2026-11-12" in out["full"]
+    assert out["none"] == "" and out["empty"] == ""

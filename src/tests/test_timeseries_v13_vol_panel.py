@@ -110,7 +110,7 @@ def test_live_forward_table_scrolls_inside_mobile_card_without_hiding_cells() ->
                   return {
                     overflow:Math.max(document.documentElement.scrollWidth,document.body.scrollWidth)-innerWidth,
                     scrolls:wrap.scrollWidth>wrap.clientWidth&&wrap.scrollLeft>0,
-                    lastColumnReachable:table.rows[1].cells[4].getBoundingClientRect().right<=wrap.getBoundingClientRect().right+1,
+                    lastColumnReachable:table.rows[1].cells[5].getBoundingClientRect().right<=wrap.getBoundingClientRect().right+1,
                     focusable:wrap.tabIndex===0,unchanged:before===JSON.stringify(lf),
                     rows:[...table.tBodies[0].rows].map(row=>[...row.cells].map(cell=>cell.innerText.trim()))
                   };
@@ -119,11 +119,12 @@ def test_live_forward_table_scrolls_inside_mobile_card_without_hiding_cells() ->
                 assert all(result[key] for key in (
                     "scrolls", "lastColumnReachable", "focusable", "unchanged",
                 ))
-                expected = ["0/60", "—", "—", "—"] if status == "empty" else [
-                    "60/60", "0.2100", "0.2500", "+16%",
+                # 2026-10-21: '사건' 열 추가 — 고정 fixture 에는 events 가 없으므로 '—' 로 렌더된다
+                expected = ["0/60", "—", "—", "—", "—"] if status == "empty" else [
+                    "60/60", "—", "0.2100", "0.2500", "+16%",
                 ]
                 assert result["rows"] == [
-                    ["vix25_h21", *expected], ["rv_h5", "0/60", "—", "—", "—"],
+                    ["vix25_h21", *expected], ["rv_h5", "0/60", "—", "—", "—", "—"],
                 ]
         finally:
             browser.close()

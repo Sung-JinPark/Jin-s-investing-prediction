@@ -258,10 +258,10 @@ def projection(root: Path, *, today: Optional[date] = None) -> dict[str, Any]:
 COMPONENTS_RELATIVE = Path("data/fear_greed/fng_components.json")
 
 
-def components_projection(root: Path) -> dict[str, Any]:
+def components_projection(root: Path, *, now: Optional[datetime] = None) -> dict[str, Any]:
     """통계 탭용 — 구성요소 7종 + 같은 축의 NASDAQ.
 
-    CNN 은 구성요소의 **점수 시계열을 공표하지 않는다**. 현재 점수(0~100)와 그 점수를
+    구성요소는 무료 공개 API의 별도 검증 snapshot을 사용한다. 현재 점수(0~100)와 그 점수를
     만든 **원자료 시계열**만 준다. 그래서 화면도 그대로 나눠 보여 준다 — 점수는 막대로,
     원자료는 스파크라인으로. 둘을 섞어 "점수 추이"처럼 그리면 없는 데이터를 지어내는 것이다.
 
@@ -274,6 +274,8 @@ def components_projection(root: Path) -> dict[str, Any]:
         return {"status": "absent"}
     payload = json.loads(path.read_text(encoding="utf-8"))
     dates = list(payload.get("dates") or [])
+    # The daily composite tail does not refresh the captured component scores.
+    payload["legacy_components_observed_through"] = dates[-1] if dates else payload.get("seeded_at")
     sessions = _nasdaq_sessions(root)
     tail = _daily_tail(root, dates[-1] if dates else "", sessions)
     if tail:
@@ -290,6 +292,18 @@ def components_projection(root: Path) -> dict[str, Any]:
     payload["observed_through"] = dates[-1] if dates else None
     payload["status"] = "live"
     payload["nasdaq"] = _nasdaq_on(root, dates)
+    from .fear_greed_components import projection as current_components
+    current = current_components(root, now=now)
+    # Keep the original headline/NASDAQ overlay, but never fall back to old
+    # component scores. Their source dates/axes are independent of this overlay.
+    payload.update(components=current["components"], components_status=current["status"],
+                   components_refresh_policy="automatic",
+                   components_observed_through=current.get("components_observed_through"),
+                   components_source=current["source"], components_source_url=current["source_url"],
+                   components_source_as_of=current.get("source_as_of"),
+                   components_snapshot_id=current.get("snapshot_id"),
+                   components_reason=current.get("reason"),
+                   components_headline_at_source=current.get("headline_at_source"))
     return payload
 
 
