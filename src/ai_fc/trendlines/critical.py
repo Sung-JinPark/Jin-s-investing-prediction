@@ -747,8 +747,7 @@ def verify(root, *, asset_id=None, replay=True, now=None):
     try:
         policy = load_policy(root)
         pointer = _latest(root)
-        for path in sorted(_path(root, ROOT / "snapshots").glob("*.json")):
-            data, digest = R._audit_read(path)
+        for path, data, digest in R._audit_reads(sorted(_path(root, ROOT / "snapshots").glob("*.json"))):
             evidence_key = ("critical_evidence", resolved, path.name, digest,
                             tuple(id(f) for f in evidence_functions))
             bound = R._evidence_recall(root, evidence_key, evidence_functions) if cache is not None else None

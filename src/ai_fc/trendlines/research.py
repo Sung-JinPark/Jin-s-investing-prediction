@@ -12,11 +12,13 @@ import hashlib
 import json
 import os
 import threading
-from collections import OrderedDict
+from collections import OrderedDict, deque
+from concurrent.futures import ThreadPoolExecutor
 from contextlib import contextmanager
 from contextvars import ContextVar
 from copy import deepcopy
 from datetime import datetime, timedelta
+from itertools import islice
 from pathlib import Path
 from typing import Any
 from urllib.parse import parse_qsl, unquote, urlsplit
@@ -39,7 +41,10 @@ PRIVATE_BAR_ID_PREFIX = "research-bar-"
 REJECTABLE_OHLC_ERRORS = {"OHLC must be finite positive numbers; close fallback forbidden", "OHLC containment violation"}
 _ACTIVE_REPLAY_CACHE: ContextVar[VerifiedReplayCache | None] = ContextVar("private_verified_replay_cache", default=None)
 _ACTIVE_REPLAY_ASSET: ContextVar[str | None] = ContextVar("private_replay_asset", default=None)
-_AUDIT_FILES: ContextVar[dict[str, tuple[str, int]] | None] = ContextVar("private_audit_file_digests", default=None)
+_AUDIT: ContextVar[_AuditRecord | None] = ContextVar("private_audit_record", default=None)
+# Files read ahead per audit loop. Reads and SHA256 release the GIL; four
+# threads read the whole 1.0 GB store about three times faster than one.
+AUDIT_READ_AHEAD = 4
 
 
 @contextmanager
@@ -220,28 +225,40 @@ def _source_replayed(root: Path, archive: dict[str, Any], archive_sha256: str) -
     return cache._contains(key, functions) or cache._contains(("research_metadata", *key), functions)
 
 
+class _AuditRecord:
+    """What the current audit has read: file digests, its roots' resolution and the registry."""
+
+    __slots__ = ("files", "roots", "registries")
+
+    def __init__(self):
+        self.files: dict[str, tuple[str, int]] = {}
+        self.roots: dict[str, Any] = {}
+        self.registries: dict[str, dict[str, Any]] = {}
+
+
 @contextmanager
 def _audit_files():
-    """The digests of the files the current audit has read, shared with the audits nested in it.
+    """The record of what the current audit has read, shared with the audits nested in it.
 
     Only the outermost verify opens a record, and it is discarded when that
     verify returns, so every audit still reads and hashes each file it checks.
     Within it, a nested audit or a later check of the same file compares the
-    digest of the bytes this audit already read instead of reading them again.
-    Nothing is persisted or accepted from a caller.
+    digest of the bytes this audit already read instead of reading them again;
+    the audited root is resolved and the asset registry read once. Nothing is
+    persisted or accepted from a caller.
     """
-    if _AUDIT_FILES.get() is not None:
+    if _AUDIT.get() is not None:
         yield
         return
-    token = _AUDIT_FILES.set({})
+    token = _AUDIT.set(_AuditRecord())
     try:
         yield
     finally:
-        _AUDIT_FILES.reset(token)
+        _AUDIT.reset(token)
 
 
 def _audited(verify):
-    """Run an audit inside the file record of the outermost audit that encloses it."""
+    """Run an audit inside the record of the outermost audit that encloses it."""
     @functools.wraps(verify)
     def audited(*args, **kwargs):
         with _audit_files():
@@ -249,23 +266,74 @@ def _audited(verify):
     return audited
 
 
+def _read_hash(path: Path) -> tuple[bytes, str]:
+    data = path.read_bytes()
+    return data, hashlib.sha256(data).hexdigest()
+
+
 def _audit_read(path: Path) -> tuple[bytes, str]:
     """Read and hash a file, recording its digest for the rest of the current audit."""
-    data = path.read_bytes()
-    digest = hashlib.sha256(data).hexdigest()
-    files = _AUDIT_FILES.get()
-    if files is not None:
-        files[str(path)] = (digest, len(data))
+    data, digest = _read_hash(path)
+    record = _AUDIT.get()
+    if record is not None:
+        record.files[str(path)] = (digest, len(data))
     return data, digest
+
+
+def _audit_reads(paths):
+    """(path, bytes, SHA256) of each path in order, read and hashed a few files ahead on threads.
+
+    The same files are read and hashed as by _audit_read() in a loop, and each
+    digest is of the bytes yielded with it. A failed read is raised when its
+    path is reached, after the checks of every earlier file. At most
+    AUDIT_READ_AHEAD + 1 files are held at once.
+    """
+    paths = iter(paths)
+    record = _AUDIT.get()
+    with ThreadPoolExecutor(AUDIT_READ_AHEAD) as pool:
+        pending = deque((path, pool.submit(_read_hash, path)) for path in islice(paths, AUDIT_READ_AHEAD))
+        try:
+            while pending:
+                path, future = pending.popleft()
+                data, digest = future.result()
+                pending.extend((path_, pool.submit(_read_hash, path_)) for path_ in islice(paths, 1))
+                if record is not None:
+                    record.files[str(path)] = (digest, len(data))
+                yield path, data, digest
+        finally:
+            for _path, future in pending:
+                future.cancel()
 
 
 def _audit_digest(path: Path) -> tuple[str, int]:
     """SHA256 and length of the bytes the current audit read at exactly this path, read now if none."""
-    files = _AUDIT_FILES.get()
-    if files is not None and str(path) in files:
-        return files[str(path)]
+    record = _AUDIT.get()
+    if record is not None and str(path) in record.files:
+        return record.files[str(path)]
     data, digest = _audit_read(path)
     return digest, len(data)
+
+
+def _audit_path(root: Path, relative: str) -> Path:
+    """storage.safe_path(), with the audited root resolved once per audit."""
+    record = _AUDIT.get()
+    if record is None:
+        return S.safe_path(Path(root), relative)
+    resolver = record.roots.get(str(root))
+    if resolver is None:
+        resolver = record.roots[str(root)] = S.root_resolver(Path(root))
+    return resolver(relative)
+
+
+def _asset_registry(root: Path) -> dict[str, dict[str, Any]]:
+    """The asset registry, read once per audit; callers copy what they keep."""
+    record = _AUDIT.get()
+    if record is None:
+        return C.load_asset_registry(Path(root))
+    registry = record.registries.get(str(root))
+    if registry is None:
+        registry = record.registries[str(root)] = C.load_asset_registry(Path(root))
+    return registry
 
 
 def _evidence_recall(root: Path, key, functions) -> dict[str, Any] | None:
@@ -285,7 +353,7 @@ def _evidence_current(root: Path, bound: dict[str, Any] | None) -> dict[str, Any
     if bound is None:
         return None
     try:
-        if any(_audit_digest(S.safe_path(Path(root), relative))[0] != digest
+        if any(_audit_digest(_audit_path(root, relative))[0] != digest
                for relative, digest in bound["files"].items()):
             return None
         if any(C.canonical_hash(asset_definition(root, asset_id)) != digest for asset_id, digest in bound["assets"].items()):
@@ -301,7 +369,7 @@ def asset_definition(root: Path, asset_id: str) -> dict[str, Any]:
     """Declare an exact research instrument without enabling official sources."""
     if asset_id not in SYMBOLS:
         raise C.TrendlinesError("research_source_instrument_unavailable")
-    asset = deepcopy(C.load_asset_registry(Path(root))[asset_id])
+    asset = deepcopy(_asset_registry(root)[asset_id])
     asset.update({"provider_symbol": SYMBOLS[asset_id], "source_id": SOURCE, "enabled": True,
                   "price_basis": "provider_reported_ohlc_current_vintage", "source_context": CONTEXT,
                   "verified_source": False, "rights_status": RIGHTS})
@@ -602,19 +670,18 @@ def verify(root: Path, *, replay: bool = True) -> dict[str, Any]:
     functions = _replay_functions() if cache is not None else ()
     try:
         pointer = _latest(root)
-        for path in sorted((store / ROOT / "raw").glob("*.bin")):
-            if path.stem != _audit_read(path)[1]:
+        for path, _data, digest in _audit_reads(sorted((store / ROOT / "raw").glob("*.bin"))):
+            if path.stem != digest:
                 raise C.TrendlinesError("research_original_raw_sha_mismatch")
         receipts, receipt_file_hashes = {}, {}
-        for path in sorted((store / ROOT / "receipts").glob("*.json")):
-            data, receipt_sha = _audit_read(path)
+        for path, data, receipt_sha in _audit_reads(sorted((store / ROOT / "receipts").glob("*.json"))):
             receipt = _checked_bytes(data, path.name)
             asset = asset_definition(root, receipt["asset_id"])
             raw_path = ROOT / "raw" / (receipt["raw_sha256"] + ".bin")
             if receipt.get("raw_path") != raw_path.as_posix():
                 raise C.TrendlinesError("research_raw_path_binding_invalid")
             # The digest of the original as the loop above read it in this audit.
-            raw_sha, raw_length = _audit_digest(S.safe_path(root, receipt["raw_path"]))
+            raw_sha, raw_length = _audit_digest(_audit_path(root, receipt["raw_path"]))
             rebuilt = _receipt_of(raw_sha, raw_length, {"url": receipt["url"], "retrieved_at": receipt["fetched_at"],
                                   "sha256": receipt["raw_sha256"], "bytes": receipt["byte_count"],
                                   "http_status": receipt["http_status"]}, asset, receipt["fetched_at"])
@@ -622,8 +689,7 @@ def verify(root: Path, *, replay: bool = True) -> dict[str, Any]:
                 raise C.TrendlinesError("research_receipt_binding_invalid")
             receipts[receipt["receipt_id"]] = receipt
             receipt_file_hashes[receipt["receipt_id"]] = receipt_sha
-        for path in sorted((store / ROOT / "snapshots").glob("*.json")):
-            data, file_sha = _audit_read(path)
+        for path, data, file_sha in _audit_reads(sorted((store / ROOT / "snapshots").glob("*.json"))):
             evidence_key = ("research_archive", resolved, file_sha, CONTEXT, RIGHTS,
                             tuple(id(function) for function in functions)) if cache is not None else None
             bindings = cache._recall(evidence_key, functions) if cache is not None else None

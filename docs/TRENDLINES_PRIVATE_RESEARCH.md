@@ -154,6 +154,16 @@ longer repeats for unchanged bytes:
   every other asset's dependency chain and then skip that snapshot whatever the
   result. They now see whose snapshot it is first. The research, full and
   critical audits still check every asset.
+- **Waiting for one file at a time, and per-file lookups.** Each audit loop
+  reads and hashes the next four files on worker threads while it checks the
+  current one. The same files are read and hashed. Each digest is of the bytes
+  checked with it, and a failed read is reported at its place in file order,
+  after every earlier file's checks. Dependency paths are still resolved one by
+  one and must lie inside the store's root, which each audit resolves once. A
+  root that resolves elsewhere later can only make more paths fail. The asset
+  registry is read and validated once per audit, and every caller still gets
+  its own copy of an asset. A registry edited during an audit is reported by
+  the next one, as with files.
 
 Relaxed guarantee, stated explicitly: within one worker process, an archive is
 not decoded and re-canonicalized again when its bytes hash to bytes the same
@@ -258,11 +268,25 @@ which does not depend on the store's size.
 What still grows with the store: each refresh reads about 5.6 times the stored
 bytes, because six research audits read the whole research store and the full
 and critical audits read it once more with their own stores. Per-file work grows
-too. `storage.safe_path` resolves the root and the file for every dependency it
-checks (about 0.8 ms a call on this machine, 5,275 calls a refresh), and each
-archive check rereads and copies the asset registry (0.5 ms, 3,487 calls). At
-1.0 GB that is about 7.5 s of reading and hashing and 6 s of per-file work a
-refresh, against about 23 s before.
+too. Resolving a path costs about 0.4 ms on this machine. The dependency checks
+of one refresh make about 5,300 path checks; before the root was resolved once
+per audit, each check resolved it again. Archive checks also read the asset
+registry about 3,500 times a refresh. At 1.0 GB that came to about 7.5 s of
+serial reading and hashing and 6 s of per-file work a refresh, against about
+23 s before the change above.
+
+Reading four files ahead on threads, resolving the root once per audit and
+reading the registry once per audit were then measured the same way: the
+version with and the version without them alternated in one process on a copy
+taken at 16:59 (1.1 GB, 2,476 files). Both read the same bytes.
+
+| Warm, same bytes read (medians) | Without | With |
+|---|---:|---:|
+| Five audits only: 12 pairs in two runs, every pair faster (0.34–0.70×) | 9.6 s | 5.2 s |
+| Refresh: 5 pairs, every pair faster (by 0.5–11.1 s) | 37.2 s | 29.8 s |
+
+The machine was busy with other work, so single runs varied by up to three
+times; each pair ran back to back.
 
 ## Browser compatibility
 
