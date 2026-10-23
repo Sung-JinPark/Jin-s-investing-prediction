@@ -1,6 +1,6 @@
 {
   "as_of": "2026-10-16",
-  "content_hash": "8aedc5ee0203fffb780134eb65b91d59d77062ae537f362138fcd7854c9b7861",
+  "content_hash": "5fd24d1b2c99046ff32c665d4e959a2edb7951fa9e19d41cf1a6d572549983c5",
   "data_summary": {
     "candidate": "C1",
     "data_grades": [
@@ -21,7 +21,7 @@
     "required_market_freshness": {
       "groups": [
         {
-          "age_hours": 5.569444444444445,
+          "age_hours": 13.693888888888889,
           "available_at": "2026-10-23T04:51:49.589989+00:00",
           "group": "NASDAQCOM",
           "observation_time": "2026-10-22",
@@ -29,7 +29,7 @@
           "status": "fresh"
         },
         {
-          "age_hours": 5.569444444444445,
+          "age_hours": 13.693888888888889,
           "available_at": "2026-10-23T04:51:48.623440+00:00",
           "group": "VIX",
           "observation_time": "2026-10-22",
@@ -37,7 +37,7 @@
           "status": "fresh"
         },
         {
-          "age_hours": 7.937134208055555,
+          "age_hours": 16.0615786525,
           "available_at": "2026-10-22T21:37:55.316851+00:00",
           "group": "DGS2",
           "observation_time": "2026-10-22",
@@ -45,7 +45,7 @@
           "status": "fresh"
         },
         {
-          "age_hours": 7.937134208055555,
+          "age_hours": 16.0615786525,
           "available_at": "2026-10-22T21:37:55.316851+00:00",
           "group": "DGS10",
           "observation_time": "2026-10-22",
@@ -53,7 +53,7 @@
           "status": "fresh"
         },
         {
-          "age_hours": 149.56944444444446,
+          "age_hours": 157.6938888888889,
           "available_at": "2026-10-19T21:46:11.603652+00:00",
           "group": "DTWEXBGS_or_DTWEXB",
           "observation_time": "2026-10-16",
@@ -86,7 +86,7 @@
       "필수 시장 입력 48시간 SLA 초과: DTWEXBGS_or_DTWEXB"
     ]
   },
-  "knowledge_cutoff": "2026-10-23T05:34:09+00:00",
+  "knowledge_cutoff": "2026-10-23T13:41:37+00:00",
   "model_id": "shadow.mf_dfm_ridge_varx_v2",
   "model_version": 2,
   "probability_space": "research_timeseries_v2_conditional",
