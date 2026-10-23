@@ -99,8 +99,8 @@ def test_audit_releases_checked_archive_bodies_but_still_checks_old_evidence(sto
         raw = public_html() + f"<!-- capture {index} -->".encode()
         R.capture_html(store, "bitcoin", raw, receipt(raw, fetched), as_of=fetched)
     before = all_bytes(store)
-    original_checked = R._checked
-    living, peak = 0, 0
+    original_checked, original_checked_bytes = R._checked, R._checked_bytes
+    living, peak, tracked = 0, 0, 0
 
     class TrackedArchive(dict):
         pass
@@ -109,20 +109,22 @@ def test_audit_releases_checked_archive_bodies_but_still_checks_old_evidence(sto
         nonlocal living
         living -= 1
 
-    def checked(path):
-        nonlocal living, peak
-        value = original_checked(path)
+    def track(value):
+        nonlocal living, peak, tracked
         if value.get("contract_id") == "trendlines_research_snapshot_v1":
             gc.collect()
             value = TrackedArchive(value)
             living += 1
+            tracked += 1
             peak = max(peak, living)
             weakref.finalize(value, released)
         return value
 
-    monkeypatch.setattr(R, "_checked", checked)
+    # The audit decodes archives from the bytes it hashed; other readers parse the file.
+    monkeypatch.setattr(R, "_checked", lambda path: track(original_checked(path)))
+    monkeypatch.setattr(R, "_checked_bytes", lambda data, name: track(original_checked_bytes(data, name)))
     audit = R.verify(store, replay=True)
-    assert audit["ok"] and audit["snapshots"] == 5
+    assert audit["ok"] and audit["snapshots"] == 5 and tracked >= 5
     assert peak <= 2, "checked historical bodies must not accumulate in the revision index"
     assert before == all_bytes(store)
     # Releasing a parsed body must not skip old raw evidence or revision checks.

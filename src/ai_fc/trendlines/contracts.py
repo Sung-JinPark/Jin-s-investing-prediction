@@ -6,6 +6,7 @@ import hashlib
 import json
 import math
 import re
+from copy import deepcopy
 from datetime import date, datetime, timedelta, timezone
 from functools import lru_cache
 from pathlib import Path
@@ -56,9 +57,16 @@ def aware_time(value: str | datetime) -> datetime:
     return result.astimezone(timezone.utc)
 
 
+@lru_cache(maxsize=32)
+def _parse_yaml(text: str) -> Any:
+    return yaml.safe_load(text)
+
+
 def _yaml(root: Path, relative: Path) -> dict[str, Any]:
+    # The file is reread on every call; only the parse of identical text is
+    # shared, and callers receive their own copy.
     try:
-        value = yaml.safe_load((root / relative).read_text(encoding="utf-8"))
+        value = deepcopy(_parse_yaml((root / relative).read_text(encoding="utf-8")))
     except (OSError, yaml.YAMLError) as exc:
         raise TrendlinesError(f"cannot read {relative.as_posix()}") from exc
     if not isinstance(value, dict) or value.get("schema_version") != 1:
@@ -234,6 +242,36 @@ def session_schedule(calendar_id: str, start: str, end: str) -> tuple[tuple[str,
                  for day, row in schedule.iterrows())
 
 
+@lru_cache(maxsize=16)
+def _default_session_index(calendar_id: str):
+    try:
+        import exchange_calendars as xcals
+        calendar = xcals.get_calendar(calendar_id)
+        first, last = str(calendar.first_session.date()), str(calendar.last_session.date())
+    except (ImportError, KeyError, ValueError, TypeError) as exc:
+        raise TrendlinesError(f"calendar unavailable: {calendar_id}") from exc
+    return calendar, first, last, {row[0]: row for row in session_schedule(calendar_id, first, last)}
+
+
+def _session_on(calendar_id: str, day: str) -> tuple[tuple[str, datetime, datetime], ...]:
+    """Exactly ``session_schedule(calendar_id, day, day)``, indexed per calendar.
+
+    A per-bar range query misses the small range cache on every distinct day.
+    Days inside the same default calendar are read from its one schedule; any
+    other day or calendar instance takes the original query.
+    """
+    calendar, first, last, sessions = _default_session_index(calendar_id)
+    try:
+        import exchange_calendars as xcals
+        current = xcals.get_calendar(calendar_id)
+    except (ImportError, KeyError, ValueError, TypeError) as exc:
+        raise TrendlinesError(f"calendar unavailable: {calendar_id}") from exc
+    if current is not calendar or not first <= day <= last:
+        return session_schedule(calendar_id, day, day)
+    row = sessions.get(day)
+    return () if row is None else (row,)
+
+
 def latest_completed_session(asset: dict[str, Any], as_of: str | datetime, *, buffer_minutes: int = 15,
                              source_policy: dict[str, Any] | None = None) -> str | None:
     current = aware_time(as_of)
@@ -284,7 +322,7 @@ def validate_bar(bar: dict[str, Any], asset: dict[str, Any], as_of: str | dateti
         revision > 1 and (not isinstance(prior, str) or not prior)):
         raise TrendlinesError("invalid supersedes_bar_id")
     available, fetched, finalized = (aware_time(bar[field]) for field in ("available_at", "fetched_at", "finalized_at"))
-    schedule = session_schedule(asset["calendar_id"], day.isoformat(), day.isoformat())
+    schedule = _session_on(asset["calendar_id"], day.isoformat())
     if len(schedule) != 1 or schedule[0][0] != day.isoformat():
         raise TrendlinesError("nontrading session bar")
     if (finalized < schedule[0][2] or available < finalized or fetched < available
