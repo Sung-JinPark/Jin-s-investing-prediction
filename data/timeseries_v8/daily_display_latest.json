@@ -1,6 +1,6 @@
 {
   "as_of": "2026-10-23",
-  "content_hash": "3c2bcde09a840fb5ef512594cb8512619dd256baeeee6fbdf2d0b4c4c34a348d",
+  "content_hash": "8da173dfcd096418bf7efb77fb808b9f0cc498ce44eb73dffe7d2c13b9d214ec",
   "daily": {
     "anchor": {
       "provisional": true,
@@ -36,22 +36,10 @@
         "series_id": "DTWEXBGS"
       }
     ],
-    "display_id": "tsv8-daily-fa94d98b2a6caf6d1c15d952",
+    "display_id": "tsv8-daily-5c352a1ab921f97b01e2c6d6",
     "display_only": true,
     "input_state": "provisional",
     "provisional_inputs": [
-      {
-        "observation_time": "2026-10-23",
-        "series_id": "DGS10",
-        "source": "us_treasury_daily_par_yield_curve",
-        "value": 5.0
-      },
-      {
-        "observation_time": "2026-10-23",
-        "series_id": "DGS2",
-        "source": "us_treasury_daily_par_yield_curve",
-        "value": 4.69
-      },
       {
         "observation_time": "2026-10-23",
         "series_id": "NASDAQCOM",
@@ -66,12 +54,10 @@
       }
     ],
     "provisional_series": [
-      "DGS10",
-      "DGS2",
       "NASDAQCOM",
       "VIX"
     ],
-    "row_knowledge_cutoff": "2026-10-23T20:39:54+00:00",
+    "row_knowledge_cutoff": "2026-10-23T22:20:02+00:00",
     "scoring_excluded": true
   },
   "display_state": "research_reference",
@@ -116,7 +102,7 @@
       "probability_up": 0.715
     }
   },
-  "knowledge_cutoff": "2026-10-23T22:05:46+00:00",
+  "knowledge_cutoff": "2026-10-23T23:42:23+00:00",
   "model_id": "shadow.mf_dfm_varx_calibrated_v8",
   "model_version": 8,
   "operational": {
@@ -142,7 +128,7 @@
         "group": "DGS2",
         "limit_hours": 48.0,
         "observation_time": "2026-10-23",
-        "provisional": true,
+        "provisional": false,
         "status": "fresh"
       },
       {
@@ -150,11 +136,11 @@
         "group": "DGS10",
         "limit_hours": 48.0,
         "observation_time": "2026-10-23",
-        "provisional": true,
+        "provisional": false,
         "status": "fresh"
       },
       {
-        "age_hours": 166.09663125722224,
+        "age_hours": 167.70692268805556,
         "group": "DTWEXBGS_or_DTWEXB",
         "limit_hours": 216.0,
         "observation_time": "2026-10-16",
