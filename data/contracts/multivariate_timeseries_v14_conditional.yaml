@@ -42,7 +42,7 @@ metadata:
     - docs/design/mts_program_blueprint_v1_260909.md         # §4 골격 · §5.4 금지 · §8 승인 · §10 부정 결과
     - docs/design/v13_rung7_prereg_261021.md                 # 후보 블록 풀 승계
     - docs/design/v14_conditional_transition_prereg_draft_261021.md   # 이 계약의 서술본
-  prereg_commit: null           # 결과 전 커밋 hash — 커밋 뒤 후속 1줄 커밋으로 기입(V13 선례)
+  prereg_commit: a93801cf       # 결과 전 커밋(track_open + rung-1 사전등록, 2026-10-22) — 후속 1줄 커밋으로 기입(V13 선례)
   numbers_newly_computed_at_draft: 0     # 초안(2026-10-21) 시점 값 — 그때는 새로 계산한 수가 없었다. 지금은 아래 두 곳에 P0 실측치가 있다
   p0_numbers_disclosed_in: [episode_guard.measurement.result, rung1_conditional_blocks.selection_rules_applied]   # P0(2026-10-22) 실측 수치 공시 위치
   p0_measured: '2026-10-22'     # tools/v14_cond_diagnostics.py → data/timeseries_v14/prereg/p0_conditional_diagnostics.json (평가 예산 0)
@@ -527,7 +527,7 @@ decisions_pending:                              # 2026-10-22 이후 남은 것: 
 # 집행기: tools/v14_cond_run.py --rung 1 (prereg_commit null 이면 거부 · 라벨이 원장에 있으면 거부 · 예산 초과 거부).
 rung1_conditional_blocks:
   registered: '2026-10-22'
-  prereg_commit: null                       # 결과 전 커밋 뒤 후속 1줄 커밋으로 기입 — null 이면 러너가 거부
+  prereg_commit: a93801cf                   # 결과 전 커밋(러너 실데이터 0회 · 원장 0행 시점) — 후속 1줄 커밋으로 기입
   design_doc: docs/design/v14_conditional_transition_prereg_draft_261021.md
   diagnostics: data/timeseries_v14/prereg/p0_conditional_diagnostics.json   # label_free 섹션 = 등록 근거 · guard 섹션 = 제외 근거
   diagnostics_content_hash: 05ba936e4b7fcded5853742401dcc9eb0af8d53e559c165af868c15470c2ad4b   # 그 파일의 content_hash 전체 — 테스트가 파일과 대조(등록 블록·제외 셀·planned_tests 가 이 산출물에 고정)
