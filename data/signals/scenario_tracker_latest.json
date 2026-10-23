@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
-  "asof": "2026-10-16",
-  "generated_at": "2026-10-17T05:46:48+00:00",
+  "asof": "2026-10-23",
+  "generated_at": "2026-10-23T20:39:32+00:00",
   "probability_space": "reference_only",
   "rules_version": "2026-08-04.v2",
   "status": "partial",
@@ -9,8 +9,8 @@
     "available": 7,
     "total": 9,
     "counts": {
-      "deleveraging_support": 1,
-      "easing_rotation_support": 2,
+      "deleveraging_support": 0,
+      "easing_rotation_support": 3,
       "rates_stay_high_support": 0,
       "neutral": 4
     },
@@ -20,16 +20,16 @@
     {
       "id": "S1",
       "name": "HY 스프레드 방향",
-      "state": "deleveraging_support",
+      "state": "neutral",
       "status": "available",
       "metrics": {
-        "four_week_change_bp": 55.0,
+        "four_week_change_bp": 47.0,
         "drawdown_from_13w_peak_bp": 0.0
       },
-      "observation_period": "2026-10-16",
-      "available_at": "2026-10-17T05:46:31+00:00",
+      "observation_period": "2026-10-23",
+      "available_at": "2026-10-23T20:39:29+00:00",
       "source_url": "https://api.stlouisfed.org/fred/series/observations?series_id=BAMLH0A0HYM2&file_type=json&observation_start=2025-01-01",
-      "source_fingerprint": "9a6d2239baaa6b8e0d5abfaa41861c85c4ab9586b7cd1c74384200b8c7e64eb3",
+      "source_fingerprint": "202397e0cdcfb87c851c5270c646c8404c364e6c46e0f6db1e17d9d75cd1db84",
       "revision_vintage": "captured_current"
     },
     {
@@ -38,13 +38,13 @@
       "state": "neutral",
       "status": "available",
       "metrics": {
-        "weekly_increases_last_4": 2,
-        "drawdown_from_13w_peak_bp": -14.0
+        "weekly_increases_last_4": 1,
+        "drawdown_from_13w_peak_bp": -28.0
       },
-      "observation_period": "2026-10-16",
-      "available_at": "2026-10-17T05:46:32+00:00",
+      "observation_period": "2026-10-23",
+      "available_at": "2026-10-23T20:39:30+00:00",
       "source_url": "https://api.stlouisfed.org/fred/series/observations?series_id=DFII10&file_type=json&observation_start=2025-01-01",
-      "source_fingerprint": "ed08ea1eb55a1f73b932e3b8b7ca32233aa89260be2d7200ca98f0791fff74f6",
+      "source_fingerprint": "a364dfc460d3f5645421358f72d01e77a141866270c5882725a5b225fbfdecd5",
       "revision_vintage": "captured_current"
     },
     {
@@ -53,12 +53,12 @@
       "state": "neutral",
       "status": "available",
       "metrics": {
-        "four_week_change_pct": 1.75
+        "four_week_change_pct": 0.89
       },
-      "observation_period": "2026-10-16",
-      "available_at": "2026-10-17T05:46:32+00:00",
+      "observation_period": "2026-10-23",
+      "available_at": "2026-10-23T20:39:30+00:00",
       "source_url": "https://api.stlouisfed.org/fred/series/observations?series_id=DTWEXBGS&file_type=json&observation_start=2025-01-01",
-      "source_fingerprint": "91efd74e37acc1fcbb8cbbb56b62f5d07aab1e3278a9c616375a5ce3d40d24ee",
+      "source_fingerprint": "2b7c43ac4b2dc8d332f88c4e4c7e7ced67c11c1e277baae2c3eb3787bb0eafe3",
       "revision_vintage": "captured_current"
     },
     {
@@ -68,12 +68,12 @@
       "status": "available",
       "metrics": {
         "weekly_decreases_last_4": 1,
-        "four_week_change_pct": 0.05
+        "four_week_change_pct": 0.54
       },
-      "observation_period": "2026-10-16",
-      "available_at": "2026-10-17T05:46:34+00:00",
+      "observation_period": "2026-10-23",
+      "available_at": "2026-10-23T20:39:31+00:00",
       "source_url": "https://api.stlouisfed.org/fred/series/observations?series_id=WALCL&file_type=json&observation_start=2025-01-01 + https://api.stlouisfed.org/fred/series/observations?series_id=WTREGEN&file_type=json&observation_start=2025-01-01 + https://api.stlouisfed.org/fred/series/observations?series_id=RRPONTSYD&file_type=json&observation_start=2025-01-01",
-      "source_fingerprint": "09868f526a420969d49b5af0f4b0bb015a65015f40f767a9820865480b8a8b41",
+      "source_fingerprint": "675821fc4b07e67ea25345ae4429df8c54b09caaea87dffa843c3877adb855ca",
       "revision_vintage": "captured_current"
     },
     {
@@ -95,16 +95,16 @@
     {
       "id": "S7",
       "name": "NASDAQ 대비 BTC 상대강도",
-      "state": "neutral",
+      "state": "easing_rotation_support",
       "status": "available",
       "metrics": {
-        "relative_return_60d_pct": 21.45,
-        "relative_return_20d_pct": -2.07
+        "relative_return_60d_pct": -0.31,
+        "relative_return_20d_pct": 0.06
       },
-      "observation_period": "2026-10-16",
-      "available_at": "2026-10-17T05:46:48+00:00",
-      "source_url": "https://query1.finance.yahoo.com/v8/finance/chart/%5EIXIC?interval=1d&period1=1735689600&period2=1792195200&events=div%2Csplits + https://query1.finance.yahoo.com/v8/finance/chart/BTC-USD?interval=1d&period1=1735689600&period2=1792195200&events=div%2Csplits",
-      "source_fingerprint": "222d48b8e63e0c5eba84555bfef12341cfc33a7ab5f812d0f08c6d51b6ce2a9b",
+      "observation_period": "2026-10-23",
+      "available_at": "2026-10-23T20:39:31+00:00",
+      "source_url": "https://query1.finance.yahoo.com/v8/finance/chart/%5EIXIC?interval=1d&period1=1735689600&period2=1792800000&events=div%2Csplits + https://query1.finance.yahoo.com/v8/finance/chart/BTC-USD?interval=1d&period1=1735689600&period2=1792800000&events=div%2Csplits",
+      "source_fingerprint": "21c06a600b91577755044dca0ec78a32b1dfa9cea9069fcfaff82c0508a7d59e",
       "revision_vintage": "captured_current"
     },
     {
@@ -113,12 +113,12 @@
       "state": "neutral",
       "status": "available",
       "metrics": {
-        "four_week_change_bp": 9.0
+        "four_week_change_bp": -21.0
       },
-      "observation_period": "2026-10-16",
-      "available_at": "2026-10-17T05:46:42+00:00",
+      "observation_period": "2026-10-23",
+      "available_at": "2026-10-23T20:39:31+00:00",
       "source_url": "https://api.stlouisfed.org/fred/series/observations?series_id=DGS10&file_type=json&observation_start=2025-01-01",
-      "source_fingerprint": "2e109c4d6fc0c52fad379a538794aef78139ba12bc33ff20998376599964e32f",
+      "source_fingerprint": "afc1e9ab418dfd919ca7686c1cb3f716ea76c5ac9ca45c50f4f321f534a0ad57",
       "revision_vintage": "captured_current"
     },
     {
@@ -131,28 +131,28 @@
         "cuts_last_12_events": 0,
         "latest_amount": 0.272
       },
-      "observation_period": "2026-10-16",
-      "available_at": "2026-10-17T05:46:48+00:00",
-      "source_url": "https://query1.finance.yahoo.com/v8/finance/chart/O?interval=1d&period1=1729036800&period2=1792195200&events=div",
-      "source_fingerprint": "c2ce0f58b67451293241ac73094cd6574022ebcadc6823af16de96e7a2861517",
+      "observation_period": "2026-10-23",
+      "available_at": "2026-10-23T20:39:32+00:00",
+      "source_url": "https://query1.finance.yahoo.com/v8/finance/chart/O?interval=1d&period1=1729641600&period2=1792800000&events=div",
+      "source_fingerprint": "f532a25510597a193257b89fa8f698449c380e9562f62e9443a9f12c3c439c5e",
       "revision_vintage": "captured_current"
     }
   ],
   "realty_income_hypothesis": {
     "status": "ok",
-    "conditions_met": 1,
+    "conditions_met": 2,
     "conditions_total": 4,
     "conditions": [
       {
         "id": "C1",
         "signal": "S1",
-        "met": false,
-        "signal_state": "deleveraging_support",
+        "met": true,
+        "signal_state": "neutral",
         "status": "available",
         "metrics": {
-          "four_week_change_bp": 55.0
+          "four_week_change_bp": 47.0
         },
-        "as_of": "2026-10-16"
+        "as_of": "2026-10-23"
       },
       {
         "id": "C2",
@@ -161,9 +161,9 @@
         "signal_state": "neutral",
         "status": "available",
         "metrics": {
-          "four_week_change_bp": 9.0
+          "four_week_change_bp": -21.0
         },
-        "as_of": "2026-10-16"
+        "as_of": "2026-10-23"
       },
       {
         "id": "C3",
@@ -172,9 +172,9 @@
         "signal_state": "neutral",
         "status": "available",
         "metrics": {
-          "weekly_increases_last_4": 2
+          "weekly_increases_last_4": 1
         },
-        "as_of": "2026-10-16"
+        "as_of": "2026-10-23"
       },
       {
         "id": "C4",
@@ -185,7 +185,7 @@
         "metrics": {
           "c4_met": 1
         },
-        "as_of": "2026-10-16"
+        "as_of": "2026-10-23"
       }
     ],
     "text": "조건 충족 개수이며 O 상승 확률이 아닙니다."
@@ -194,14 +194,14 @@
     "bitcoin": {
       "halving_anchor": "2024-04-20",
       "months_since_halving": 30,
-      "price_vs_200dma_pct": 12.6
+      "price_vs_200dma_pct": 11.6
     },
     "realty_income": {
-      "ttm_dividend_yield_pct": 5.79,
-      "dgs10_pct": 5.1,
-      "dividend_yield_spread_pp": 0.69,
-      "dgs10_four_week_change_bp": 9.0,
-      "rate_change_o_return_corr_52w": -0.461,
+      "ttm_dividend_yield_pct": 5.71,
+      "dgs10_pct": 4.96,
+      "dividend_yield_spread_pp": 0.75,
+      "dgs10_four_week_change_bp": -21.0,
+      "rate_change_o_return_corr_52w": -0.467,
       "return_basis": "O adjusted-close weekly return vs DGS10 weekly change"
     }
   },
@@ -209,82 +209,82 @@
     {
       "source": "fred_market_signals",
       "series_id": "BAMLH0A0HYM2",
-      "response_sha256": "d0e274007ba47e41866cfdcec1015f51b79e9653dfb325c9d9f7145a1bfe5858",
-      "fetched_at": "2026-10-17T05:46:31+00:00",
+      "response_sha256": "ab6f2fb35f59ae410d87124e8d3282839f49eea304ab6c0d9d6def404d50df49",
+      "fetched_at": "2026-10-23T20:39:29+00:00",
       "revision_vintage": "captured_current"
     },
     {
       "source": "fred_market_signals",
       "series_id": "DFII10",
-      "response_sha256": "ec9b7b1f0ca8e68c9bee5c20b1d29a06aecb7a2ff970dc1f773c4727b429793d",
-      "fetched_at": "2026-10-17T05:46:32+00:00",
+      "response_sha256": "a935fe25e469fb4e364250872add5963688086a0b426dcc0f9121e482127b16c",
+      "fetched_at": "2026-10-23T20:39:30+00:00",
       "revision_vintage": "captured_current"
     },
     {
       "source": "fred_market_signals",
       "series_id": "DTWEXBGS",
-      "response_sha256": "ff862986d0f5094f48f973b724eefdb7c5d5f0a6d36159f2e6294b994885b1af",
-      "fetched_at": "2026-10-17T05:46:32+00:00",
+      "response_sha256": "22b831735485154c5df0f32b31adae47fd881b342fb03d563dd8f9f413b49e33",
+      "fetched_at": "2026-10-23T20:39:30+00:00",
       "revision_vintage": "captured_current"
     },
     {
       "source": "fred_market_signals",
       "series_id": "WALCL",
-      "response_sha256": "b3839354c7fe15dd824ec1a9cb8cd30afccb6c1d81fbbd98e4ff05eae91485a0",
-      "fetched_at": "2026-10-17T05:46:33+00:00",
+      "response_sha256": "18a4e08ae16ee155ebe35b5e330bf88de6fccce2c97d92c643ca6ab42c1b615d",
+      "fetched_at": "2026-10-23T20:39:30+00:00",
       "revision_vintage": "captured_current"
     },
     {
       "source": "fred_market_signals",
       "series_id": "WTREGEN",
-      "response_sha256": "ffdd345b748c4b0d6900ff528f7af0be4780e287ef1d76de224cacb4127e3d86",
-      "fetched_at": "2026-10-17T05:46:33+00:00",
+      "response_sha256": "bdb29b413a78cf5ecc34d67631a03c79c79202f334da2b8f85f22288698a7f64",
+      "fetched_at": "2026-10-23T20:39:31+00:00",
       "revision_vintage": "captured_current"
     },
     {
       "source": "fred_market_signals",
       "series_id": "RRPONTSYD",
-      "response_sha256": "ebdfff9f20780afc1fedd19a1f298907e4ae37c69b3fea07d3df97539a643471",
-      "fetched_at": "2026-10-17T05:46:34+00:00",
+      "response_sha256": "bb46333bfaffa57a8b4683a5891006e5fe021deb5a4feb7da345f99bec4d7259",
+      "fetched_at": "2026-10-23T20:39:31+00:00",
       "revision_vintage": "captured_current"
     },
     {
       "source": "fred_market_signals",
       "series_id": "DGS10",
-      "response_sha256": "629630aebcc202b5c57e7c79a54cdea18397f65fc7e92b6188364b34d776fb2f",
-      "fetched_at": "2026-10-17T05:46:42+00:00",
+      "response_sha256": "60e6b1653ccbf893347ca5ee375f66ab739f38aadbb8afd9c08577a74778e902",
+      "fetched_at": "2026-10-23T20:39:31+00:00",
       "revision_vintage": "captured_current"
     },
     {
       "source": "yahoo-chart",
       "symbol": "^IXIC",
       "interval": "1d",
-      "response_sha256": "f4d90fcd97ab795d3f64116341ca2f191764a431008cf1beaedc1c0298675472",
-      "fetched_at": "2026-10-17T05:46:47+00:00"
+      "response_sha256": "87edda3b9d9a33fce3648adff1a411ce1084df5e26502a990fb51aaf91205c6e",
+      "fetched_at": "2026-10-23T20:39:31+00:00"
     },
     {
       "source": "yahoo-chart",
       "symbol": "BTC-USD",
       "interval": "1d",
-      "response_sha256": "3ff1a249b573ae2c3928e56a958d1348ee08826c133c83a1d21422f5f971a932",
-      "fetched_at": "2026-10-17T05:46:48+00:00"
+      "response_sha256": "549b7e414f07144d5c924fcc5dd7dfbd6642c6b6118d093d84f52428f0c8eba2",
+      "fetched_at": "2026-10-23T20:39:31+00:00"
     },
     {
       "source": "yahoo-chart",
       "symbol": "O",
       "interval": "1d",
-      "response_sha256": "ea1336c5073ad75049b565dd07b54b0b924228fb4d3cc9506d6bc44f7abfd804",
-      "fetched_at": "2026-10-17T05:46:48+00:00"
+      "response_sha256": "ae33f9cbcffb08657cc1465c85ec1c9e96d42b4608cf89a345ae58ed928a482a",
+      "fetched_at": "2026-10-23T20:39:32+00:00"
     },
     {
       "source": "yahoo-chart",
       "symbol": "O",
       "interval": "dividend_events",
-      "response_sha256": "90b52735710a349de4d16b3c555f3d1151d9995ed736bdb26e3a62ce54f60c6d",
-      "fetched_at": "2026-10-17T05:46:48+00:00"
+      "response_sha256": "4dd3dababd91d74a94d73cf4918940a601b09875239337e7de7294fce39ded97",
+      "fetched_at": "2026-10-23T20:39:32+00:00"
     }
   ],
   "warning": "이 체크리스트는 사전 등록된 방향 규칙이며 확률이 아닙니다.",
-  "snapshot_id": "scenario-tracker:2026-10-16:r1",
+  "snapshot_id": "scenario-tracker:2026-10-23:r1",
   "revision": 1
 }
