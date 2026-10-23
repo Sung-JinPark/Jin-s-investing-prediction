@@ -376,23 +376,26 @@ def _read_snapshot(root,sid,now=None,*,reparse=False):
     return snapshot,source,full,representative
 
 
+@R._audited
 def verify(root,*,asset_id=None,replay=True,now=None):
     root=Path(root);resolved=str(root.resolve());count=0;pending={};cache=R._ACTIVE_REPLAY_CACHE.get() if replay else None
     functions=(_calculate,_candidate,_eligible,_identity,_rank,_over,_geometry_equal,_scalar_verify,_scalar_candidate,_formation_counts,
                V._pivot_line,V._geometry,V._state,V._independent,V._pivots,V._scalar_pivots,V._scalar_atr,V._scalar_state,
                V._scalar_value,V._future,E._atr,E._epsilon,E._value,E._pivots,C.session_schedule,R._prepare)
     evidence_functions=functions+(verify,_read_snapshot,_export,_evidence,decode_envelope,V._read_snapshot,V._bind_full,
-                                  V._verify_shadow,V._export,V._evidence,R._checked,R._receipt,R._source_replayed,
+                                  V._verify_shadow,V._export,V._evidence,R._checked,R._receipt,R._receipt_of,R._source_replayed,
                                   R.asset_definition,R.research_source_policy)
     decoded={}
     try:
         load_policy(root);snapshots={}
         for path in sorted(S.safe_path(root,(ROOT/'snapshots').as_posix()).glob('*.json')):
-            data=path.read_bytes()
-            evidence_key=('long_boundaries_evidence',resolved,path.name,_sha(data),tuple(id(f) for f in evidence_functions))
-            bound=R._evidence_recall(root,evidence_key,evidence_functions) if cache is not None else None
+            data,digest=R._audit_read(path)
+            evidence_key=('long_boundaries_evidence',resolved,path.name,digest,tuple(id(f) for f in evidence_functions))
+            recalled=cache._recall(evidence_key,evidence_functions) if cache is not None else None
+            # Another asset's snapshot is skipped whatever its dependencies hold; identify it before rereading them.
+            if asset_id is not None and (recalled or R._checked_bytes(data,path.name)).get('asset_id')!=asset_id: continue
+            bound=R._evidence_current(root,recalled)
             if bound is not None and S.aware_time(bound['capture_asof'])>S.aware_time(now): bound=None
-            if asset_id is not None and (bound or R._checked_bytes(data,path.name)).get('asset_id')!=asset_id: continue
             snapshot=source=full=representative=None
             if bound is None:
                 snapshot,source,full,representative=_read_snapshot(root,path.stem,now,reparse=replay)
@@ -401,7 +404,7 @@ def verify(root,*,asset_id=None,replay=True,now=None):
                 if export.read_bytes()!=S.encode(_export(snapshot)): raise C.TrendlinesError('long_boundaries_export_binding_invalid')
                 decode_envelope(S.read_json(export));bound=_evidence(root,snapshot,source,full,representative)
                 if cache is not None: decoded[evidence_key]=(evidence_functions,bound)
-            key=('long_boundaries',resolved,bound['content_hash'],_sha(data),bound['source_content_hash'],
+            key=('long_boundaries',resolved,bound['content_hash'],digest,bound['source_content_hash'],
                  bound['full_content_hash'],bound['representative_content_hash'],tuple(id(f) for f in functions))
             if replay and (cache is None or not cache._contains(key,functions)):
                 if source is None:
@@ -435,8 +438,8 @@ def _evidence(root,snapshot,source,full,representative):
 def _check_pointer(root,pointer,snapshot):
     sp=ROOT/'snapshots'/(snapshot['snapshot_id']+'.json');ep=ROOT/'exports'/snapshot['snapshot_id']/'detail.json'
     if (pointer['snapshot_path']!=sp.as_posix() or pointer['detail_path']!=ep.as_posix()
-            or _sha(S.safe_path(root,sp.as_posix()).read_bytes())!=pointer['snapshot_sha256']
-            or _sha(S.safe_path(root,ep.as_posix()).read_bytes())!=pointer['detail_sha256']):
+            or R._audit_digest(S.safe_path(root,sp.as_posix()))[0]!=pointer['snapshot_sha256']
+            or R._audit_digest(S.safe_path(root,ep.as_posix()))[0]!=pointer['detail_sha256']):
         raise C.TrendlinesError('long_boundaries_latest_binding_invalid')
 
 

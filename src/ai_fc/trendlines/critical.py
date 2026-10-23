@@ -729,6 +729,7 @@ def decode_envelope(envelope, expected_contract=None):
         raise C.TrendlinesError("critical_transport_json_invalid") from exc
 
 
+@R._audited
 def verify(root, *, asset_id=None, replay=True, now=None):
     root = Path(root)
     resolved = str(root.resolve())
@@ -740,15 +741,15 @@ def verify(root, *, asset_id=None, replay=True, now=None):
                  _scalar_selection_verify, _scalar_zone_memberships,
                  _rank, _future, _scalar_verify, _scalar_price, E._value, E._atr, E._epsilon, F._scalar_price, C.session_schedule)
     evidence_functions = functions + (verify, _read_snapshot, _export, _evidence, F._read_snapshot, F._source_evidence,
-                                      F._display_metadata, F._exports, R._checked, R._receipt, R.asset_definition,
-                                      R.research_source_policy)
+                                      F._display_metadata, F._exports, R._checked, R._receipt, R._receipt_of,
+                                      R.asset_definition, R.research_source_policy)
     pending, decoded, snapshots = {}, {}, {}
     try:
         policy = load_policy(root)
         pointer = _latest(root)
         for path in sorted(_path(root, ROOT / "snapshots").glob("*.json")):
-            data = path.read_bytes()
-            evidence_key = ("critical_evidence", resolved, path.name, _sha(data),
+            data, digest = R._audit_read(path)
+            evidence_key = ("critical_evidence", resolved, path.name, digest,
                             tuple(id(f) for f in evidence_functions))
             bound = R._evidence_recall(root, evidence_key, evidence_functions) if cache is not None else None
             # An unrelated asset's newer capture is not an input to this
@@ -769,7 +770,7 @@ def verify(root, *, asset_id=None, replay=True, now=None):
                 bound = _evidence(root, snapshot, source, full)
                 if cache is not None:
                     decoded[evidence_key] = (evidence_functions, bound)
-            key = ("critical", resolved, bound["content_hash"], _sha(data), bound["source_archive_sha256"],
+            key = ("critical", resolved, bound["content_hash"], digest, bound["source_archive_sha256"],
                    bound["source_full_content_hash"], tuple(id(f) for f in functions))
             if replay and R._replay_includes(bound["asset_id"]) and (cache is None or not cache._contains(key, functions)):
                 if source is None:
@@ -787,8 +788,8 @@ def verify(root, *, asset_id=None, replay=True, now=None):
             expected_export = ROOT / "exports" / snapshot["snapshot_id"] / "detail.json"
             if (snapshot["asset_id"] != asset or row["snapshot_path"] != expected_path.as_posix()
                     or row["detail_path"] != expected_export.as_posix()
-                    or row["snapshot_sha256"] != _sha(_path(root, expected_path).read_bytes())
-                    or row["detail_sha256"] != _sha(_path(root, expected_export).read_bytes())):
+                    or row["snapshot_sha256"] != R._audit_digest(_path(root, expected_path))[0]
+                    or row["detail_sha256"] != R._audit_digest(_path(root, expected_export))[0]):
                 raise C.TrendlinesError("critical_latest_snapshot_binding_invalid")
         if cache is not None:
             cache._remember(pending, decoded)
