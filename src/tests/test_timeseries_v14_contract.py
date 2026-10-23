@@ -11,6 +11,7 @@
 """
 from __future__ import annotations
 
+import hashlib
 import json
 import re
 from pathlib import Path
@@ -116,7 +117,9 @@ def test_approvals_ledger_has_one_receipt_per_decision_and_contract_points_at_th
         assert row["literal_template_match"] is False
         assert row["approval_form"] == "delegated_bundle_instruction"
         assert receipt in str(resolved[decision]), decision
-    assert set(contract["decisions_pending"]) == {"V14-D10"}
+    # D10(champion·verb)은 결과 뒤 정의 · D11(rung-2 집행 여부)은 rung-1 negative_result_protocol 이 만든 결정
+    assert set(contract["decisions_pending"]) <= {"V14-D10", "V14-D11"} and "V14-D10" in contract["decisions_pending"]
+    assert not set(contract["decisions_pending"]) & set(DECISIONS), "해소된 D0..D9 가 대기 목록에 남아 있다"
     assert "delegated_bundle_instruction" in contract["approvals"]["receipt_form_2026_10_22"]
     assert contract["approvals"]["approval_text_rule"]
     templates = contract["approvals"]["templates"]
@@ -321,11 +324,23 @@ def test_rung1_prereg_shape_budget_index_and_uncertainty_coordinates() -> None:
     protocol = contract["development_protocol"]
     ledger = ROOT / protocol["experiment_ledger"]
     rows = _ledger_rows(ledger)
-    assert rung1["experiment_label"] not in {r.get("experiment_label") for r in rows}
     assert rung1["results_path"].startswith("data/timeseries_v14/")
-    assert not (ROOT / rung1["results_path"]).exists(), "결과 전 커밋 전에 결과 파일이 있다"
-    spent = max(int(protocol["evaluations_spent"]), len(rows))
-    assert rung1["evaluation_index"] == spent + 1 <= protocol["maximum_development_evaluations"]
+    results = ROOT / rung1["results_path"]
+    executed = [r for r in rows if r.get("experiment_label") == rung1["experiment_label"]]
+    if not executed:
+        # 집행 전 상태 — 결과 파일이 없고 다음 평가 순번이어야 한다
+        assert not results.exists(), "결과 전 커밋 전에 결과 파일이 있다"
+        spent = max(int(protocol["evaluations_spent"]), len(rows))
+        assert rung1["evaluation_index"] == spent + 1 <= protocol["maximum_development_evaluations"]
+    else:
+        # 집행 후 상태 — 원장 1행, 그 행이 사전등록 커밋·순번·결과 파일 해시를 가리킨다(예산은 원장과 대사)
+        assert len(executed) == 1, "평가 예산은 1회용이다 — 같은 라벨이 두 번 원장에 있다"
+        row = executed[0]
+        assert commit and row["prereg_commit"] == commit
+        assert row["evaluation_index"] == rung1["evaluation_index"]
+        assert results.is_file()
+        assert hashlib.sha256(results.read_bytes()).hexdigest() == row["results_sha256"]
+        assert int(protocol["evaluations_spent"]) == len(rows) <= protocol["maximum_development_evaluations"]
     gate_unc = contract["gate"]["uncertainty"]
     for key in UNCERTAINTY_KEYS:
         assert rung1["uncertainty"][key] == gate_unc[key], key

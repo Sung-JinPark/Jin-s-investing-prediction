@@ -52,7 +52,14 @@ class _Obs:
 
 
 def _contract() -> dict:
-    return yaml.safe_load(CONTRACT.read_text(encoding="utf-8"))
+    """실계약의 **새 트랙 사본** — 합성 시험은 '아직 집행 전' 상태에서 출발한다.
+
+    실계약은 2026-10-23 rung-1 집행으로 evaluations_spent 1 을 기록했다. 러너의 예산·순번 규칙을
+    시험하려면 소모 0 상태가 필요하므로 사본에서만 0 으로 되돌린다(실계약·실원장 무접촉).
+    """
+    contract = yaml.safe_load(CONTRACT.read_text(encoding="utf-8"))
+    contract["development_protocol"]["evaluations_spent"] = 0
+    return contract
 
 
 def _synthetic_panel(seed: int = 7) -> tuple[list[str], np.ndarray, np.ndarray]:
@@ -375,8 +382,9 @@ def test_refuse_reason_checks_shared_bootstrap_constants(monkeypatch, tmp_path: 
 
 
 @pytest.mark.usefixtures("no_archive")
-def test_runner_refuses_when_rung_key_is_missing(tmp_path: Path, capsys) -> None:
-    root = _temp_root(tmp_path, lambda c: None)
+def test_runner_refuses_when_rung_key_is_missing(tmp_path: Path, capsys, no_archive) -> None:
+    # 키를 실제로 지운다 — 실계약의 rung-1 키는 사전등록 커밋이 기입된 유효한 키라 그대로 두면 거부 사유가 생기지 않는다
+    root = _temp_root(tmp_path, lambda c: c.pop(KEY, None))
     code, out = _run_main(root, capsys)
     assert code == 2 and KEY in out
     assert not (root / "data/timeseries_v14/vol").exists()

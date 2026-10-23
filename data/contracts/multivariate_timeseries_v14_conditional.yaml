@@ -84,6 +84,7 @@ lineage:
     pending_placeholders:       # 집행 후 기입 — 지금은 값이 없다. 예정 수는 rung-7 사전등록 §4(진단 뒤 기입)에서 옮김
       v13_rung7: 24   # 2026-10-21 집행 — 24검정 채택 0 (기입 2026-10-22)
       v13_rung8: 23   # 2026-10-21 집행 — 23검정 채택 3(전부 episode_thin) (기입 2026-10-22)
+    value_after_v14_rung1: 229   # 223 + V14 rung-1 6검정(2026-10-23, 채택 0)
     value_at_track_open: 223     # value_at_draft 176 + rung7 24 + rung8 23 — V14 rung-1 family P 는 이 누적 문맥과 함께 보고(M6)
     consistent_range: [168, 257]   # 셀 단위 하한(v12=8·v13=81) / 방향 단위 상한(v12=16·v13=162). 단순 합산이며 실측 아님
     source: 블루프린트 §2.4(2026-09-09 외부 집계 122) + V14 설계도 §4.1 표(v13 갱신). 저장소에 단일 원천 파일 없음
@@ -324,7 +325,7 @@ episode_guard:
 development_protocol:
   track_open: true                              # 2026-10-22 — 영수증 v14-approval:V14-D0:2026-10-22:r1 (위임형 지시 원문 · 리터럴 템플릿 아님 — approvals.receipt_form_2026_10_22)
   maximum_development_evaluations: 4            # V14-D4 E1 — V13 은 8 중 6 소모·채택 1(퇴화). 같은 예산은 같은 결과를 산다
-  evaluations_spent: 0
+  evaluations_spent: 1                          # 2026-10-23 rung-1 집행(원장 1행과 대사 — 러너가 max(계약, 원장 행) 으로 센다)
   evaluation_unit: 1 단위 = 사전등록된 블록 집합 1벌을 6셀 전수로 1회 검정
   budget_does_not_carry_from_v13: true          # V13 잔여 2 는 V13 계약에 묶인다
   experiment_ledger: data/timeseries_v14/ledgers/v14_experiments.jsonl     # 2026-10-22 생성(빈 파일 · allow_empty_accumulating)
@@ -519,7 +520,8 @@ decisions_resolved:                             # 2026-10-22 — 영수증은 da
   V14-D7: H3 옵션 데이터 구매 보류 — v14-approval:V14-D7:2026-10-22:r1
   V14-D8: I3 라이브 전진 판정 + 병행 축적 — v14-approval:V14-D8:2026-10-22:r1
   V14-D9: J1 블루프린트 §4 개정 안 함 — v14-approval:V14-D9:2026-10-22:r1
-decisions_pending:                              # 2026-10-22 이후 남은 것: D10 (설계창 결과 뒤 정의) · gates.armed 전환(P0·MDE·사전등록 커밋 뒤 별도 승인)
+decisions_pending:                              # 2026-10-23 rung-1 뒤 남은 것: D10 · D11 (아래) · gates.armed 전환(별도 승인)
+  V14-D11: {question: rung-2 집행 여부(잔여 예산 3/4), options: [K1 집행 — 사전등록 개정(결과 전)으로 대체 블록(E2·E3·P3) 또는 진단 전용 스토어 적재 후, K2 보류 — 라이브 전진 축적만, K3 V14 설계창 개발 종료], recommended: K2, basis: rung1_conditional_blocks.negative_result_protocol(채택 0 → rung-2 전 사용자 보고) · rung-7/8/V14 rung-1 이 같은 실패 양식(외부 블록이 당일 수준에 흡수)을 세 번 재현, effect: development_protocol}
   V14-D10: {question: 라이브 전진 포인터에 올릴 champion 선정 및 verb 신설, options: 설계창 결과 뒤 정의, recommended: null, drafted_as: null, effect: live_forward_gate.execution_path — 결과 전에는 정의하지 않는다}
 
 # ── rung-1: 조건부 블록 vs 조건부 PB — 사전등록 2026-10-22 (결과 전) ─────────────────
@@ -532,6 +534,8 @@ rung1_conditional_blocks:
   diagnostics: data/timeseries_v14/prereg/p0_conditional_diagnostics.json   # label_free 섹션 = 등록 근거 · guard 섹션 = 제외 근거
   diagnostics_content_hash: 05ba936e4b7fcded5853742401dcc9eb0af8d53e559c165af868c15470c2ad4b   # 그 파일의 content_hash 전체 — 테스트가 파일과 대조(등록 블록·제외 셀·planned_tests 가 이 산출물에 고정)
   experiment_label: V14COND_rung1_conditional
+  executed: '2026-10-23T06:54:57+00:00'   # 사전등록 a93801cf → 해시 기입 590c72b1 → 집행 1회. 원장 행 content_hash da68fb3c…
+  result: "[2026-10-23 집행] 6검정(사전등록 6) 전부 measured_zero — 채택 0, family P(k>=0|n=6)=1.0000(캠페인 누적 229 문맥). 클래스별 calendar 0/3 · positioning 0/3. 방향 수준 |효과| 중앙값 0.00254 < MDE 중앙값 0.00324. 후보가 조건부 PB 보다 유의하게 나쁜 방향 4건(cvix25_h21 E1 양방향·P1 e2l, crv_h21 P1 e2l). G0: 조건부 PB 가 조건부 기후를 양방향·귀무 0.000 으로 이김 — crv_h5(BSS +0.318/+0.260)·cvix25_h21(+0.151/+0.108, episode_thin), crv_h21 은 l2e CI 가 0 포함 → HOLD. champion_rule(기록만): crv_h5·cvix25_h21 = b(conditional_persistence_pb), 나머지 HOLD. 하드룰 셀 cvix25_h5 는 검정 불가(반창 사건 6·5). 판정서 docs/review/V14_COND_RUNG1_VERDICT_20261023.md"
   rung_name: conditional_blocks_vs_conditional_pb
   results_path: data/timeseries_v14/vol/ladder_rung1_conditional.json
   window_role: design

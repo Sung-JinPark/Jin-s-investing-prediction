@@ -59,11 +59,11 @@ provisional_fills.DTWEXBGS`, 채점 제외). **남는 한계(유효)**: 원인 �
     Q4로 갈수록 보정 불가 조합이 늘 수 있고, 절반을 넘으면 다시 막힌다 — 근본 해결은 보정 창을
     달력 연도 대신 원점부터 고정 길이(예: 52주)로 바꾸는 것이며, 이는 모델 계약 변경이라 사용자 결정 사안.
 
-37. **[신설 2026-10-22]** V13 라이브 원점 백필(`origin_backfill`, late_capture 등급)은 **쓰는 시각이 늦다**. p 는 원점 관측의
+40. **[신설 2026-10-22]** V13 라이브 원점 백필(`origin_backfill`, late_capture 등급)은 **쓰는 시각이 늦다**. p 는 원점 관측의
     최초 빈티지 available_at 으로 되감은 정보집합만의 함수라 PIT 는 지키지만, 행이 결과(h5 만기) 이후에 기록될 수 있다.
     선택 백필(결과를 보고 골라 쓰기)은 코드가 기계적·무조건이고 verify 완전성 규칙이 막는다 — 단 포인터 `backfill.unfillable`
     에 기록된 원점(as_of_drift·no_observation)만 예외이며, verify 가 그 원점을 **다시 되감아 재현**해 실제로 채울 수 없을 때만 공시로 통과시킨다
-    (재현되면 'unfillable not reproducible' 실패). 패널은 원점에서 절단(end=origin)하므로 같은 영수증에 담긴 이후 세션은 결손 사유가 아니다. 남는 한계: unfillable 사유가 구조적인지
+    (되감아 보니 채울 수 있으면 — 즉 unfillable 이 재현되지 않으면 — 'unfillable not reproducible' 로 실패). 패널은 원점에서 절단(end=origin)하므로 같은 영수증에 담긴 이후 세션은 결손 사유가 아니다. 남는 한계: unfillable 사유가 구조적인지
     사람이 봐야 하며, 분석자는 `late_capture_sessions > h` 행을 따로 볼 수 있어야 한다(필드는 있으나 화면 분리는 없음).
 38. **[신설 2026-10-22]** V14 조건부 전이 검정은 **조건 충족 원점의 시간순 부분수열**에 공유 블록 부트스트랩(ℓ=13)과 y-block
     순열을 그대로 적용한다. 블록이 달력상 불연속 구간(조건 불충족으로 빠진 날)을 걸치므로 블록 길이의 의미가 달력일과 다르고,
@@ -120,5 +120,9 @@ provisional_fills.DTWEXBGS`, 채점 제외). **남는 한계(유효)**: 원인 �
 24. 스펙-구현 이탈은 dualdb CHANGELOG #1~#11 — 기록 누락이 발견되면 그것이 결함
 39. **[신설 2026-10-22]** 라운드 2 승인 영수증 14행(V13-D12·D13, ML-A6·U9, V14-D0..D9)의 `approval_text` 는 리터럴 템플릿이 아니라
     **위임형 지시 원문**("…남은결정부분 다 보강해서 진행해봐")이다. V14 계약 `approvals.approval_text_rule`(의역·요약은 승인이 아니다)에
-    비추면 규칙 위반을 **숨기지 않은 기록**이며 효력 판단은 사용자 몫이다(`literal_template_match: false` · `approval_form:
-    delegated_bundle_instruction` · 계약 `receipt_form_2026_10_22`). 철회 시 r2 행으로 되돌리되 소모된 V14 평가 단위는 되돌리지 않는다.
+    비추면 규칙 위반을 **숨기지 않은 기록**이며 효력 판단은 사용자 몫이다. 14행 전부가 행 필드(`literal_template_match: false` · `approval_form:
+    delegated_bundle_instruction` · `template_text` · `revocation`)로 공시하고, V14 계약 `receipt_form_2026_10_22` 는 그중 V14 10행만 공시한다(V13·ML 계약에는
+    대응 문구 없음 — DECISIONS 2026-10-22 v2.2). 철회 시 같은 원장에 r2(철회) 행을 append 하고 계약을 되돌리되, 소모된 V14 평가 단위(1)는 되돌리지 않는다.
+41. **[신설 2026-10-22]** ML 참조층의 FinBERT 는 `from_pretrained` 에 **리비전 핀이 없다**. 2026-10-22 첫 U9 run 에서 새 리비전 `0bc2ac10` 가중치를 내려받았다
+    (HF 캐시 스냅샷 16:51 KST). 주간 예약 실행은 상류 리비전이 바뀌면 감성 산출이 예고 없이 바뀔 수 있다 — 추론 전용이라 게이트 영향은 없으나 run 간 비교의
+    동일성이 보장되지 않는다. 리비전 고정은 ML 런너 코드 변경이라 별도 작업이다. Chronos 3모델도 같은 확인이 필요하다 [미검증].
