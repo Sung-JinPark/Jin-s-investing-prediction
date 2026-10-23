@@ -2246,3 +2246,55 @@ V13 라이브 표의 `trail`(스파크라인 미사용). 생략 사실은 `embed
 ### 2026-10-22 — 통계 무료 원발표처 대체 경로 (사용자 승인)
 
 FRED API 장애 또는 원발표처의 최신 관측일이 앞설 때 닷컴 통계의 M2SL·FEDFUNDS·GS10·BOGZ1LM153064475Q·BOGZ1LM893064105Q만 연준 원발표처에서 자동 취득할 수 있다. 매번 전체 중첩값·단위·정의·기간 완전성을 검수한 경우에 한한다. 원본 ZIP·영수증·별도 source ID·실제 취득 시각을 보존하며 과거 FRED 원장과 ALFRED PIT를 대체하지 않는다. 나머지는 원래 관측일과 미갱신 상태를 유지하고 API를 다음 배치에서 다시 확인한다. Nasdaq·Coinbase·NFCI·신용 스프레드의 미검증 대체는 활성화하지 않는다. 근거와 한계: [원천 검수](STATISTICS_NATIVE_FALLBACK_20261022.md), 계약 statistics_native_fallback_v1.yaml. 12-6의 FRED 공식 API 전용 원칙은 유지한다.
+
+## 2026-10-23 — 닷컴 대비 과열도 v4: IPO 건수에 해외 대형 테마 상장 가산(상장지 불문) · 상장 대기 표시 전용 · 자료월 표시 (사용자 결정)
+
+**지시 (사용자, 2026-10-23).** "닷컴대비과열도 매일 수치가 같은데 매번 갱신하고 있는거지 — 모든 수치를
+최종점검. DeepSeek IPO 하는 것도 IPO 에 추가. 저런 대형 타국가의 IPO 까지 넣어, 유럽이든 다."
+
+**점검 결과 — 갱신은 매일 되고 있다.** 지수는 대시보드 빌드 때 통계 스냅샷에서 다시 계산되며
+라이브 `data.json` 의 `dotcom_overheat.as_of` 는 2026-10-22(생성 2026-10-23 00:45 UTC)다. 최근 40개
+스냅샷을 같은 계약으로 재계산하면 대표값은 61(09-01) → 59(09-18, Z.1 2026Q2) → 63(10-01, GDP 2026Q2)
+→ 54(10-06, IPO 부문 편입) 로 움직였고 10-06 이후 **54 로 고정**이다. 이유는 집계 구조다: 대표값은
+부문 중앙값 6개의 중앙값 = (credit 44.7 + valuation 62.7)/2 ≈ 53.7 이고, 그 두 부문의 입력은 전부
+Z.1·GDP 분기 계열이라 다음 발표(2026Q3, 12월) 전까지 그대로다. 그 사이 금리 부문은 NFCI·스프레드로
+67.2 → 67.8 → 68.2 로 움직였지만 중앙값에 닿지 않는다. 입력 14종의 원천 최신 관측은 모두 FRED
+게시분과 일치(UNRATE 2026-09, NFCI 2026-10-16, Z.1 2026-04-01, Ritter 2025-12). 한 가지 원천 측 지연:
+가계 원리금 부담은 Z.1 계열 `BOGZ1FL010000346Q` 를 쓰는데 FRED 자체가 2026Q1 까지만 싣고 있다
+(`TDSP` 는 2026Q2 게시) — 계열 교체는 정의 변경이라 하지 않고 KNOWN_LIMITS 37 에 남긴다.
+**화면 수정**: 지표마다 자료 기준월(`current_date`)을 내보내 패널 행에 `자료 YYYY-MM` 으로, 하단에
+자료월 범위로 표시한다 — "매일 갱신인데 왜 같은가" 가 화면에서 설명되게.
+
+**DeepSeek — 아직 상장 전이라 세지 않는다.** Bloomberg 2026-07-14·TechNode 2026-09-09: 상하이 STAR 상장
+준비(CITIC 등 주관사 선정, 첫 CFO 선임), 2026 말 신청·2027 상장 예상, 공모 규모 미정. 완료되지 않은
+IPO 를 건수에 넣으면 그것은 데이터가 아니라 기대다. 그래서 **상장 대기 목록**
+(`data/statistics/ipo/theme_listing_pipeline.csv`: DeepSeek · Kunlunxin · CCSH/YMTC · Zhaoxin · Unisoc —
+정식 신청·주관사 선정 단계만, 소문 단계 제외)을 두고 차트 결론에 "상장 대기 N건 — 미집계" 로 표시만
+한다. 상장이 완료되면 additions 로 옮긴다.
+
+**해외 대형 테마 상장 — 상장지 불문으로 더한다 (v3 의 CXMT 제외 규칙을 대체).** 범위 `foreign_primary`:
+시대 핵심 테마(닷컴 반도체·인터넷 / 현재 반도체·AI) 기업의 **미국 밖 거래소 첫 상장**, 총공모(명목 USD)
+**닷컴 $2.5억 / 현재 $5억 이상**(조사 전에 사전지정, 대략 CPI 2배 차이). 2차·이중 상장(A+H)·SPAC 제외.
+Ritter 도 Nasdaq 캘린더도 이들을 세지 않으므로 **확정월·잠정월 모두** 더한다(ADR 은 종전대로 확정월만).
+- 현재(17, 2023-05~2026-09): Nexchip·SMEC 2023-05(STAR) · Kokusai Electric 2023-10(도쿄) · Horizon Robotics
+  2024-10(홍콩) · Kioxia 2024-12(도쿄) · JX Advanced Metals 2025-03(도쿄) · Tekscend Photomask·ESWIN 2025-10 ·
+  Moore Threads·MetaX 2025-12(STAR) · Biren·Zhipu·MiniMax 2026-01(홍콩) · SJ Semiconductor 2026-04(STAR) ·
+  Momenta 2026-07(홍콩) · CXMT 2026-07(STAR, $86억) · Enflame 2026-09(STAR). 행마다 출처·현지통화·환산.
+- 유럽: 창 안에 임계를 넘는 반도체·AI IPO 가 **없다**(Raspberry Pi ≈ £1.7억, Mistral 미상장).
+  한국·대만·인도도 없음(LG CNS 는 IT 서비스, SK hynix 는 Nasdaq ADS 로 이미 가산).
+- 닷컴(0): 1995~99 미국 밖 반도체·인터넷 IPO 중 $2.5억 이상은 확인되지 않았다. 가장 가까운
+  LG반도체 1996-11·현대전자 1996-12(각 공모 2,000억원 ≈ $240M, 우리사주분 포함 시 넘을 수 있음 [미검증])
+  는 임계 아래로 제외. ASML 1995 ≈ $170M, Tiscali 1999 ≈ $148M, freenet 1999 ≈ $103M, 대만 6사 금액 미확인.
+  Infineon·T-Online·World Online 은 2000년 — 창 밖. **따라서 이 가산은 현재 쪽만 늘리는 비대칭**이다.
+  SPAC 때는 같은 비대칭을 이유로 뺐지만, 이번에는 사용자가 비대칭을 알고 포함을 지시했고 caveat 에 공시한다.
+- 임계 바로 아래 기각: Iluvatar CoreX 2026-01 홍콩 ≈ $476M, Axera 2026-02 ≈ $379M, Innoscience·Black Sesame.
+
+**영향 (같은 스냅샷).** 현재 확정 12개월 합 2025-12 **90 → 95**(+JX 2025-03, Tekscend·ESWIN 2025-10,
+Moore Threads·MetaX 2025-12), 잠정 2026-09 **141 → 152**(+Biren·Zhipu·MiniMax 2026-01, SJ 2026-04, Momenta·CXMT 2026-07, Enflame 2026-09). 닷컴 범위 258~712 불변.
+IPO 위치 −37.0% → **−35.9%**, 대표값 **54% 그대로**(IPO 부문은 최저 부문이라 중앙값에 닿지 않음).
+
+**기록.** `data/contracts/dotcom_overheat_index_v4.yaml`(신규, v1~v3 보존), `theme_adr_additions.csv` →
+`theme_listing_additions.csv`(열 추가: market_country·listing_scope·proceeds_usd_m), `ipo_monthly_counts.py`
+(`load_theme_listing_additions`·`load_theme_listing_pipeline`·잠정월 가산), `statistics_lab.py`(차트 제목·caveat·
+가산 목록·대기 목록·규칙 공시), `dotcom_overheat.py`(`current_date`), 대시보드 패널(자료월), 통계 스냅샷
+오프라인 재구축(IPO 차트만 교체). 지위: reference_only · 참고 의견.
