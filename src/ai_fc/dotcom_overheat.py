@@ -36,7 +36,7 @@ from typing import Any
 
 import yaml
 
-CONTRACT_RELATIVE = Path("data/contracts/dotcom_overheat_index_v4.yaml")
+CONTRACT_RELATIVE = Path("data/contracts/dotcom_overheat_index_v5.yaml")
 STATISTICS_RELATIVE = Path("data/statistics/dotcom_statistics_latest.json")
 
 
