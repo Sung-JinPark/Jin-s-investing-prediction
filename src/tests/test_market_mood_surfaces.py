@@ -246,10 +246,18 @@ def test_the_real_ledger_carries_a_year_of_history_with_provenance() -> None:
 
 # ── 구성요소 실험실 (통계 탭) ─────────────────────────────────────
 
+def _component_lab():
+    """Replay the committed capture at acquisition time, independent of wall clock."""
+    pointer = json.loads((ROOT / "data/fear_greed/components/latest.json").read_text(encoding="utf-8"))
+    snapshot = json.loads((ROOT / f"data/fear_greed/components/snapshots/{pointer['snapshot_id']}.json").read_text(encoding="utf-8"))
+    from datetime import datetime
+    return fg.components_projection(ROOT, now=datetime.fromisoformat(snapshot["available_at"]))
+
+
 def test_components_carry_all_seven_with_raw_series() -> None:
     """CNN 이 쓰는 7축이 전부 있어야 한다 — 하나라도 빠지면 합성값을 설명하지 못한다."""
-    lab = fg.components_projection(ROOT)
-    assert lab["status"] == "live"
+    lab = _component_lab()
+    assert lab["status"] == "live" and lab["components_status"] == "live"
     expected = {"market_momentum_sp500", "stock_price_strength", "stock_price_breadth",
                 "put_call_options", "market_volatility_vix", "junk_bond_demand",
                 "safe_haven_demand"}
@@ -257,7 +265,7 @@ def test_components_carry_all_seven_with_raw_series() -> None:
     for name, component in lab["components"].items():
         assert 0 <= component["score"] <= 100, name
         assert component["rating"] and component["label"] and component["unit"]
-        assert len(component["series"]) == len(lab["dates"]), name
+        assert len(component["series"]) == len(component["dates"]), name
 
 
 def test_nasdaq_is_joined_on_the_same_axis() -> None:
@@ -278,8 +286,7 @@ def test_component_series_are_raw_inputs_not_scores() -> None:
 
     S&P500 모멘텀 축은 지수 레벨(수천), VIX 축은 20 안팎이다. 둘 다 0~100 이 아니다.
     """
-    lab = fg.components_projection(ROOT)
-    # 시드 뒤 구간은 원자료가 없어 None 으로 비어 있다 — 관측값만 본다
+    lab = _component_lab()
     momentum = [v for v in lab["components"]["market_momentum_sp500"]["series"] if v is not None]
     vix = [v for v in lab["components"]["market_volatility_vix"]["series"] if v is not None]
     assert min(momentum) > 1000 and max(vix) < 60
@@ -287,10 +294,18 @@ def test_component_series_are_raw_inputs_not_scores() -> None:
 
 
 def test_the_lab_declares_its_provenance_and_status() -> None:
-    lab = fg.components_projection(ROOT)
+    lab = _component_lab()
     assert lab["source"] == "cnn_graphdata"
     assert lab["license_status"] == "review_required"
     assert lab["method"] == "real_browser_session"
+    original_path = ROOT / fg.COMPONENTS_RELATIVE
+    before = original_path.read_bytes()
+    captured = json.loads(before)
+    assert lab["legacy_components_observed_through"] == captured["dates"][-1]
+    assert lab["components_observed_through"] > captured["dates"][-1]
+    assert lab["components_refresh_policy"] == "automatic"
+    assert lab["components_source_url"] == "https://feargreedflow.com/api/fear-greed"
+    assert original_path.read_bytes() == before
     source = (ROOT / "src/ai_fc/dashboard_parts/dashboard.js").read_text(encoding="utf-8")
     renderer = source.split("function renderFearGreedLab(){", 1)[1].split("\n}", 1)[0]
     assert "상관을 주장하지 않습니다" not in renderer
@@ -311,6 +326,4 @@ def test_the_lab_line_continues_daily_past_the_seed() -> None:
         start = lab["dates"].index(lab["tail_from"])
         assert lab["tail_from"] > lab["seeded_at"]
         assert lab["dates"] == sorted(set(lab["dates"])), "거래일 중복 없이 정렬"
-        for component in lab["components"].values():
-            assert all(v is None for v in component["series"][start:]), "원자료를 지어내지 않는다"
         assert all(v is not None for v in lab["fng"][start:])

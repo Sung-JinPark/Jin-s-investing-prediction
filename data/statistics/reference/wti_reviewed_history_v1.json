@@ -1,0 +1,4358 @@
+{
+  "schema_version": 1,
+  "policy": "wti-reviewed-history-v1",
+  "series_id": "DCOILWTICO",
+  "source_id": "fred_market_signals",
+  "unit": "dollars_per_barrel",
+  "model_use": false,
+  "official_forecast_input": false,
+  "semantics": "archived_observations_unavailable_in_current_release_not_current_release_values",
+  "reviewed_at": "2026-10-22",
+  "archive_raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a",
+  "last_complete_api_raw_sha256": "07cde8aa1f235dd7f248f6d3d53f53353d4c4b97e4045c056f4e191ae8174f48",
+  "first_missing_api_raw_sha256": "d37f6269634dd3b8006e1692cd62dcda542dc9902341431e496bc0b3e0e4ae47",
+  "eia_xls_sha256": "7f2f5b92d5330ef9707e25808eb9498a0d59f26f8716caf1adf1692176b23369",
+  "publisher_internal_reason": "not_officially_established",
+  "observations": [
+    {
+      "date": "1995-01-06",
+      "value": "17.69",
+      "observation_id": "a18cd146b1bb1a83235c2f99d7e77fdbcaaaad96fb8f71fe0ac343ba70328063",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1995-01-09",
+      "value": "17.4",
+      "observation_id": "eb2c782bc371756474e5fbbecd9679b393ad49e4f367204fd454ce269a769f76",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1995-01-11",
+      "value": "17.7",
+      "observation_id": "82401888ccc745310bc57e97623998518ceee4ed5b33049729ddeb3f358eec33",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1995-01-13",
+      "value": "17.52",
+      "observation_id": "2a602813e3bc5caff8a09c211854501212d25055d0f8b5e5fe5f08b80d5242b4",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1995-01-19",
+      "value": "18.7",
+      "observation_id": "3b5c98f82624301c434c27a487d23d7fde5237d1c4bd937cfc13a1c93e2d9999",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1995-01-27",
+      "value": "17.95",
+      "observation_id": "8acf0304c2f2ff4189b27f68164eb0d5d60692c13645ddd96b1b09abc676e4dc",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1995-02-24",
+      "value": "18.7",
+      "observation_id": "ffce14c3a74760cb3ed70592420b88e3595d50bfe6fd8853b2508542dd518303",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1995-03-02",
+      "value": "18.4",
+      "observation_id": "810e9d812fb3d765e8513dff1897fd55d0921703474e34186dd0e25c1d668eb8",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1995-03-08",
+      "value": "18.3",
+      "observation_id": "b0ecf6adddc62fa35abf486eae7809ddd5ebd90918995b532613e02b68073a38",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1995-03-14",
+      "value": "17.9",
+      "observation_id": "bfe7515c93bc018c66019377ec35cc951c0ebefa27ad541812870e17c661d378",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1995-04-12",
+      "value": "19.5",
+      "observation_id": "adca158335be736e48cd449ba409fb31aa035ae0105fad489f563fbf5103b9c7",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1995-05-10",
+      "value": "19.76",
+      "observation_id": "91bae75a9cd7ca5b5ebd0e66afb6dd786a94afa51385ccad7ae0ef28a4e61695",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1995-05-12",
+      "value": "19.55",
+      "observation_id": "b2f90624500701f27049cfd9038cfb7b1149ca40d08d06d0dc18c2947c6bba59",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1995-05-22",
+      "value": "19.86",
+      "observation_id": "55b4038787ef402c8b0bb2c59d8e2e0eb3f720598e77b078db076f68680b559a",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1995-05-30",
+      "value": "18.78",
+      "observation_id": "b9c043358d00c2802244071a3d7659d8a33cf8f92d12d47d7f136200d32e9606",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1995-05-31",
+      "value": "18.88",
+      "observation_id": "3f7397f6287d0bde13754b0b39555ec2c2d248a13e4767189221aed567b4fd30",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1995-06-05",
+      "value": "19.25",
+      "observation_id": "b1a8d012f88f069ca7c63668a64c7ff94814f526239f0219c8c90b082d89470e",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1995-07-13",
+      "value": "17.25",
+      "observation_id": "133d22efb4c7c060df320e5064d69542ea195f121c76f49df15a3de9d55ab52a",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1995-07-21",
+      "value": "17.07",
+      "observation_id": "05a5d3c14a5ad49e3337686f5f9764af6e6eef681913f3a35fdde825dc95515c",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1995-07-27",
+      "value": "17.51",
+      "observation_id": "823685c9bc6ee5f17ff1d25c5bcbbe9b5473925323c57b8d163700ac9c668021",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1995-08-18",
+      "value": "17.87",
+      "observation_id": "abb426b677c6a5e607673b31c312887d88685a6f1d89b2d133edec93cbd59c6d",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1995-09-05",
+      "value": "18.49",
+      "observation_id": "f939587525a13654e2de47dc720438fbf7c1b896e469e0d4189f8064c8d1c7a9",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1995-09-12",
+      "value": "18.76",
+      "observation_id": "5e23024ce5ce0374e0012ab9e62a82e5701a820d314ced68cc7d93fe535f0e76",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1995-10-04",
+      "value": "17.32",
+      "observation_id": "779daccb137325f71f889bd50fc92c01a738acd882da1065f9351c8ac4ea07b4",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1995-10-06",
+      "value": "17.03",
+      "observation_id": "275c9dc7d45cbca90cc6c62d5d050f0927ba98d6a38e1fe5189752ca7ba13ebb",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1995-10-31",
+      "value": "17.67",
+      "observation_id": "efc2096e72daec7e9893e9a6c505cab637e0329facc3541b762932db856f3038",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1995-11-14",
+      "value": "17.89",
+      "observation_id": "3db6c726939100caf020816b33df953a555a42aa5bf72c450649f31f48f6dab3",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1995-12-26",
+      "value": "19.25",
+      "observation_id": "b59824bd5a70ffb9b29cb2edba1d51c54bbf4e965e08df9c457b116dc677c565",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1996-01-12",
+      "value": "18.28",
+      "observation_id": "afb95c8a4457f82a8f940e0044c4d2eadb60b2cf5e2eb9ab82794e0ed9195c17",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1996-01-24",
+      "value": "18.95",
+      "observation_id": "5ccdc6d78d6000a1211fc6e8f6d8b5ec22a44efc71fe8f5eadbcfed7bb968d34",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1996-01-31",
+      "value": "17.76",
+      "observation_id": "eb05fd05ef0880f9ecc7ad4d64140520de40e875f0ceb71f11417b9432cafd35",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1996-02-05",
+      "value": "17.53",
+      "observation_id": "17abd307f84a8614e5dda7013091894c2abdeb5caf8ce99694209080edec1d28",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1996-02-28",
+      "value": "19.3",
+      "observation_id": "0b6146095039528848b1f0f9c83d2770ea619e917ca726c0c0b229391bbe0e8e",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1996-03-01",
+      "value": "19.45",
+      "observation_id": "67163f8b5d36765f9ef0306dd62e903fa08c5984e5530500c4708572409ce930",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1996-03-05",
+      "value": "19.65",
+      "observation_id": "852d9f897d20cb328eeb58acf0fc5b7ff7747310bee45c0f5ea9ca7468a6c303",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1996-03-06",
+      "value": "20.16",
+      "observation_id": "ba7e510cf77efcb2a9c60983a43ce6a34e39267ddbc485c4b82e97022b1d2333",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1996-04-01",
+      "value": "22.29",
+      "observation_id": "bbf89c8a8999b6597e9627531009729fa6a01edf64fe22b0b75df0626f0de0d4",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1996-04-25",
+      "value": "24.35",
+      "observation_id": "5088f011132e930d64466b369fef3fd70781088c7a47fbea561c267a88d85fb4",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1996-06-24",
+      "value": "20.1",
+      "observation_id": "9950b889c3f1c0618b4c23d5abaab68acec72d0f6d5569d81bb10387a0b98b58",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1996-06-26",
+      "value": "20.63",
+      "observation_id": "ba3f77e0a4b654f445f63e64f459c6b6371a2a3efc440b7e2d71b6af5479d489",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1996-07-08",
+      "value": "21.33",
+      "observation_id": "a0f22112f30f058d878e0b2d671983ae83b53004305646bb04da00129ac2f5d2",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1996-07-23",
+      "value": "21.58",
+      "observation_id": "b9af620fa100cb3a9ec1da8232777866edd18884753961af5d817cde5857dd70",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1996-07-26",
+      "value": "20.13",
+      "observation_id": "7e1387856d7e093941287fd111363290d31473fcbc969bfabd62f5929b9fa0c3",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1996-07-29",
+      "value": "20.28",
+      "observation_id": "42cb59444d48a9a4f34106ab41cb6640319d2da52f0b68e0a557804158c378a2",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1996-07-30",
+      "value": "20.28",
+      "observation_id": "b7bba19c40dce947a1d1d141a0ae6b9aeb16c95608a76f3d0ba5e23784573cd3",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1996-07-31",
+      "value": "20.46",
+      "observation_id": "504106fcbced81dbf25c7ab2f55b88b05f825da1868fd899db5b650c649cad9c",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1996-08-06",
+      "value": "21.08",
+      "observation_id": "812d86ca14bcdc015c0983318d7c2ace237e37f1fb3bb49b043b12f4bc8202e9",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1996-08-08",
+      "value": "21.45",
+      "observation_id": "1b831b5beada1fc3808ffbe1ba43cfd50cb451af7a7dfea496e9a654c64bd678",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1996-08-12",
+      "value": "22.25",
+      "observation_id": "3c977b626026bfc90c4fbf19b8f047f7f8a2c2033c3b7a2f7b6bdfe3a2ab9cd4",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1996-08-16",
+      "value": "22.6",
+      "observation_id": "3f35e03572d6b5a2f4ef8f76fc9366e44c4bb107432f452a6a1277c37350b637",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1996-08-20",
+      "value": "22.53",
+      "observation_id": "fd37e234703d75749953d6f8c12fc89cfca3bf23c5a0ad3b1fde79a6a64d6fe7",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1996-08-21",
+      "value": "22.15",
+      "observation_id": "cf481d08b1cfc70ed659194ce57f7304a38edf927fbd2747cf4dbf1d42ca8398",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1996-08-30",
+      "value": "22.25",
+      "observation_id": "b53049e82bc1912449d11cf19657813b0c2ffed6f9d7a0bc343ad447928ef13a",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1996-09-03",
+      "value": "23.35",
+      "observation_id": "d7b6bf5dd566fba1a07c6e87f92c19fc871d901a347f11692a614ab2f5530f64",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1996-09-10",
+      "value": "24.15",
+      "observation_id": "a38394ff9bd5d49ce46a2a9f9789d4cd5134d0262fedf6c1016b1248644e3c5a",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1996-09-11",
+      "value": "24.75",
+      "observation_id": "c693f5eb7088f4034daefabf68d2b11f0b62c5456b13ed8f4d023cc7266edfb5",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1996-09-16",
+      "value": "23.3",
+      "observation_id": "7901a865ea52023966685780217a11154dca001745f441419da55759c0b512ef",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1996-09-26",
+      "value": "24.05",
+      "observation_id": "d8e507f6ea2d5e034d11540fea2b9bcefa56394982d0a83cc22583aee8f53073",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1996-10-04",
+      "value": "24.75",
+      "observation_id": "58dee81abc661ac62e3cbd9f26ba872ac7bb1370df329c8f189724501d2e237a",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1996-10-08",
+      "value": "25.45",
+      "observation_id": "fa2b9b0bbc061e85286f1f516712c269f0e961f76ec05fd6754f8e66c4452d74",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1996-10-09",
+      "value": "25",
+      "observation_id": "3a8e2ad24335f8f7bb09b051bfcdb52273cd26c2a72cfbcf5712f108cccc94c3",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1996-10-11",
+      "value": "24.65",
+      "observation_id": "6be52a128bea4b6f9a01590fc11c70dc7fe43965a84902fc035108c6c0cfa0f3",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1996-10-15",
+      "value": "25.45",
+      "observation_id": "d8294f647eddbe13d6f0ee5e5610d4908d6507d4de450213f7510084429ccf55",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1996-10-18",
+      "value": "25.8",
+      "observation_id": "c48581daee7a87e79c3eb7d3797fcd49c7b86189d91641523ecd4d7407bd336c",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1996-10-21",
+      "value": "25.85",
+      "observation_id": "bbcb264719227f8e79c88c88b4cbf5696e2473c07bba4741b3c67d881fa62a7e",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1996-10-22",
+      "value": "25.79",
+      "observation_id": "e18bcb6d06f6f22c48669e280a9c764c0fd3e12a1cc51a2f5e3001756ea3ecd8",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1996-10-24",
+      "value": "24.55",
+      "observation_id": "83abf653cf500517ef5d00a675e27c808ad1d2cc201a72248168aba44fec126d",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1996-10-29",
+      "value": "24.15",
+      "observation_id": "5eb35b1f9725790b063ec7e7933418ed536a82893375607878e505fa34e57352",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1996-10-30",
+      "value": "24.4",
+      "observation_id": "a8115d46790b53385c5afe8938d57d0b22f95b3a5d1a7c450cefa200cb97fced",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1996-10-31",
+      "value": "23.25",
+      "observation_id": "7f12cf9b7e50ef1b40cc72b6bda50101f01ed127ac4d881a1cfeff36923e2e6f",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1996-11-04",
+      "value": "22.8",
+      "observation_id": "f78eab27fe7b372dfbeac6f760c96afae7b0471e67d0283696fee68c13d07cd5",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1996-11-07",
+      "value": "22.8",
+      "observation_id": "8f6c8405b4e9fd29c22b6b25d510c47da86083f64553015ed74f4bfacbb244e2",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1996-11-08",
+      "value": "23.6",
+      "observation_id": "9215581c5f5783c087c1768e41878f534c8f8ec20f2a76d37b19c7f1fc8a2f95",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1996-11-15",
+      "value": "24.15",
+      "observation_id": "79f8c75abd18f96f8a76487b6eefbc61176d8d7c7715cb2c743d3bcb43ad1f2b",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1996-11-18",
+      "value": "23.85",
+      "observation_id": "a4fd86fa1d57deaf1219fecb896b68b88d619dbcd275c374971ac34436c35403",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1996-11-21",
+      "value": "23.9",
+      "observation_id": "23d4a4a558833f7967e33a18a1ee25ba1d3205c79903b706fd2b5d81b69dd567",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1996-11-29",
+      "value": "23.7",
+      "observation_id": "cb49d456a3bb5475100fbb5c1c255ef178e230a3360e7f5c00d2398d01c96fb9",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1996-12-04",
+      "value": "25",
+      "observation_id": "c267cbcaf9f0c1a5edbeaf2b96c9f6a5ef7c6002cad678a1a10107510f2a9476",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1996-12-06",
+      "value": "25.6",
+      "observation_id": "164e9e8919b94eaab3adaf1568753892108c0e5d5567231d89f94f136df22c52",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1996-12-09",
+      "value": "25.15",
+      "observation_id": "4262c94480dc292de09e6620df10af3c943683a2218ccc63ecdc9262d0897521",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1996-12-10",
+      "value": "24.25",
+      "observation_id": "4a4735df28317983418803b7677a810caaf10da8c048ac79c97bd96f25687057",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1996-12-16",
+      "value": "25.7",
+      "observation_id": "7563e5d61d36b0af17baa1bb62a838cc7e5ae4e2c5a327d9d842f73513fca953",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1996-12-24",
+      "value": "25.05",
+      "observation_id": "768d302e4a8210d7666e6f0c4bd5d3165198dcae20c93aa8bd77082e8685b1f8",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1996-12-27",
+      "value": "25.2",
+      "observation_id": "8653b7af292ac0b6b4841df6a7fb77011f87decf84cd32bf99dd157cde892441",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1997-01-02",
+      "value": "25.55",
+      "observation_id": "82d9f6ec66d13532075a0aa56560a84e9bdf3735631716c7d234bb55a4fba27a",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1997-01-20",
+      "value": "25.1",
+      "observation_id": "074f0044409c8724da8e4dfe0974e82c1be32a604853d07d3413d9d74f55e054",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1997-01-27",
+      "value": "23.85",
+      "observation_id": "d820d73eb2c112a3a8301a878c6c55a9a893688e46ccdb18093075c38df60f25",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1997-01-29",
+      "value": "24.5",
+      "observation_id": "fe9920af39a3c05f587917c0beac15acab1396bc4e3aaea611dbafbae43dfbe1",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1997-02-06",
+      "value": "23.05",
+      "observation_id": "1d1393713d02a40be0f0d58d0ff39095cb9f758a4240707a5891d74940092cd4",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1997-02-12",
+      "value": "21.75",
+      "observation_id": "8099655345322a02dce1954c7f88db4483801cbf482760a72c04bc70a7442703",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1997-02-13",
+      "value": "22.1",
+      "observation_id": "946a429debe2a035d0fa3c38dcf2b1d38b20f21e1bc61b168ab951f98b6f2e96",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1997-02-14",
+      "value": "22.4",
+      "observation_id": "8e71f1086118e56a02936fa33fb2d7a2bd4440fb29a93bc659ba548e86ff2938",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1997-02-20",
+      "value": "21.95",
+      "observation_id": "d31181da6361042330ca023067e2637646c2bbf4d978e881c7c6da04e0e86251",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1997-02-21",
+      "value": "21.6",
+      "observation_id": "5cb01a36407e1bb49bee9397fa60ca435539cea357b9d43ebd0cf47171a2e8d7",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1997-02-27",
+      "value": "20.8",
+      "observation_id": "7ce22e60401685c2db612e2e632acc8f00e67e805e28013c21147eacdf13d055",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1997-03-17",
+      "value": "20.9",
+      "observation_id": "d83c07876b35bff70509b2532fc360d10cf47504e92bb3b3721d72c782c19fe6",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1997-03-19",
+      "value": "22",
+      "observation_id": "5320173aa43b0e04975dc007608c580edb2b2746ff354274b5f00d43d750cccb",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1997-03-21",
+      "value": "21.7",
+      "observation_id": "ea03579926074bc95db9033f9ed5736e1162bfe0832bd4663576280c5748c837",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1997-04-07",
+      "value": "19.25",
+      "observation_id": "0faafe202667d3b18e5363561393654033ebd397bb99a36f5dd25d8b8ef50932",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1997-04-09",
+      "value": "19.25",
+      "observation_id": "21671a5eea1c39c5cbf9e97176e34bdf07a3cd70fd844ba8fd74f345fdf3b681",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1997-04-17",
+      "value": "19.5",
+      "observation_id": "8eab5d6f5d666687d20e30a2aee9dd2003a74b0492a9f7e6cea61315f7f12e8d",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1997-04-18",
+      "value": "19.9",
+      "observation_id": "ac4a1ed166f6991e5bbe3ec2a47782ddf4e6041466d1e9ca4628c44730535ee3",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1997-05-01",
+      "value": "19.9",
+      "observation_id": "b3d7232d9c01fb7087070ebb0d6f346e14a91b50bf1c70855d8d64bebfbd5113",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1997-05-05",
+      "value": "19.6",
+      "observation_id": "ee249b0107943b977f0567c9932ac61ed93f2fb07dfac6b19ffcec7a34cba860",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1997-05-08",
+      "value": "20.35",
+      "observation_id": "9b76547f1e76e5b99fb0027016e3332fd4a2820390f4463df4cbb5a999308473",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1997-05-15",
+      "value": "21.3",
+      "observation_id": "45f7f704df58060ef3bdc2ebb2a4e2c06f8048ba2a252f45f812c81b6125ae77",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1997-05-22",
+      "value": "21.6",
+      "observation_id": "fc97be8b0b1f48698c24f27c4203074308dfdffc6415f98c2887448c34a1bd19",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1997-05-27",
+      "value": "20.75",
+      "observation_id": "b1919553cb47148027ac83e8c1c47ce28a972eefa31d5292411d15de1872c5e2",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1997-05-28",
+      "value": "20.7",
+      "observation_id": "5f4e0c64c3f7a271b474cef4c317429d83e9b638304ed48e10808683a07f4579",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1997-05-29",
+      "value": "21.15",
+      "observation_id": "20d6aaf09b2b49e0da217f328eba8f26c498e79378f62653acef6e7b2f777374",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1997-06-02",
+      "value": "21.15",
+      "observation_id": "7a1478eca953511c729839ef9981030f09279a93f9ef316268b2170a299e4b69",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1997-06-04",
+      "value": "20.3",
+      "observation_id": "328b676ce1b7a608d6cdd91630ee448033bf1547da8b04c09682afba1d9b9614",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1997-06-09",
+      "value": "18.85",
+      "observation_id": "1c6aab1a7bf6168f236f29edd450f6d8742683ab294132bb0a725c2c6362676c",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1997-06-12",
+      "value": "19",
+      "observation_id": "83d8cec3948dfa77742635684a382b97ec358d197a50e4dac863801c05049780",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1997-06-30",
+      "value": "19.82",
+      "observation_id": "7ec0ea4208edcc76f626bdfe59e4ba34e1acc597ee1b74a820dc47166fc8b77b",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1997-07-22",
+      "value": "19.25",
+      "observation_id": "5e886435ad36767778b72c70d0efc659e5d7c7686785f5e398bc25a45eb043f9",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1997-07-31",
+      "value": "20.19",
+      "observation_id": "d4a723117591da9ac289b658db78da1637421b322313a6dc33b2ffb36548c32d",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1997-08-04",
+      "value": "20.81",
+      "observation_id": "68dd19a61936a60e4a48a54e600365106ad395f7f3df54ec604ebb7ac274b696",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1997-08-19",
+      "value": "20.04",
+      "observation_id": "1d4ef9b95dc3850407018fe503e233fff41fa851bd1002b8845db25a6fc6cda4",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1997-08-20",
+      "value": "20.07",
+      "observation_id": "cf0f752f3ec3ae891b2372fefff9251ad70096903a2b9754e3362caad6d019f8",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1997-09-03",
+      "value": "19.65",
+      "observation_id": "ccdb8a6ea558bc81d66967595236a455440fe42d2ae4f99d90ff332fe022ba57",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1997-09-25",
+      "value": "20.38",
+      "observation_id": "599f7305f1ed51edab45c1947afcab8ff65feebdc0e2d52b39ca57840395702c",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1997-10-01",
+      "value": "21.02",
+      "observation_id": "a79480474a691823557b7a454434ba2c142d859cafd3cbb6c8235aab6f76fadb",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1997-10-02",
+      "value": "21.82",
+      "observation_id": "478715c881d44561e26853dc5baebad4522e7f0d8feab41440b58eae2430ffff",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1997-10-10",
+      "value": "22.01",
+      "observation_id": "88382132f860f13f385528b31fd752bca08025c4889ef374d9f97300aeadbfa4",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1997-10-15",
+      "value": "20.65",
+      "observation_id": "4bdd7131a6d4c40f4fb78459c961da3b6cf9cafab354eb4f570920546f561dc1",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1997-10-28",
+      "value": "20.4",
+      "observation_id": "1f78e8c12ed8f576439769e6aba6862c8948087558b3c26aab4ac5cbf229ad76",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1997-10-31",
+      "value": "21.1",
+      "observation_id": "e6927b896bebb2c7577894a698928bc15a29e93f85ecc62d8127ff3412237258",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1997-11-06",
+      "value": "20.46",
+      "observation_id": "4b22ba31c63680f3cfdcbb4180a6a5b6dbc1d14738fc0aaa363a2a9daf829f46",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1997-11-07",
+      "value": "20.8",
+      "observation_id": "831d6267e182f242021d05bad6b6e63359c888927331b6f38dc3a3b3bd355d5b",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1997-11-12",
+      "value": "20.53",
+      "observation_id": "b5b5afee65b88c91bf7a7e652f43ff8bd66fcb9be158774c036ecdb0276f036b",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1997-11-19",
+      "value": "19.82",
+      "observation_id": "32a2c3aff6a86f7675e15a5451805e8bb95b4605f98072e57c71879de74d0934",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1997-11-26",
+      "value": "19.13",
+      "observation_id": "ab04606f547f1f526e8180c8168b9dbd18c58970b5b74ba08f92e2d57d8d5372",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1998-01-02",
+      "value": "17.41",
+      "observation_id": "71b17133a26150b708850b5545aff6c4ab0712c9462b634e1aa7efb6d9bb0f35",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1998-01-05",
+      "value": "16.95",
+      "observation_id": "e3c3728a4e7e7a88e8ddd744666298137d67f91b59a5ea4bd9a87e404c1a2ea6",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1998-01-13",
+      "value": "16.44",
+      "observation_id": "c2955d377fe4f9e044a12739015adf2b6adc91e875c3df20ce7ae8d02a4a613d",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1998-01-14",
+      "value": "16.54",
+      "observation_id": "e077886df7a22b2c939659a80d27b31e9d78822131a21a16084e270285483bb1",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1998-02-12",
+      "value": "15.97",
+      "observation_id": "eeb34c065f682b37a5784f8dfc6a2dcf00ee57b69a7086f532ed7061dfbea881",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1998-02-20",
+      "value": "16.13",
+      "observation_id": "3fbd7be338f0db578d3c742b326139dec662f892f0c26943457550d04e9fe978",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1998-03-06",
+      "value": "14.9",
+      "observation_id": "0fbd245f1aacb86658c8ab7fa3d2a40294894a644000fed813498ea35beb6aa4",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1998-05-06",
+      "value": "15.45",
+      "observation_id": "6d3dc51ba868494e1bbd4e82f3a49b031e8a3f3e8508b12fd3df3ee5b8001e02",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1998-05-18",
+      "value": "14.15",
+      "observation_id": "984cc04adf92c8bc9e240c53dfe761559f4546d62ea3aac98e77fbd66a7d3e9b",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1998-05-27",
+      "value": "14.98",
+      "observation_id": "7c7ccd0f66f1836e2a59fc5c593e4a19d8ee7938cba3c68f1c5bb5c39e738cc0",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1998-07-14",
+      "value": "14.87",
+      "observation_id": "3c7243b64e678c5ee783eee764ee7f411fd2e114409164e2981d81907d285175",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1998-07-28",
+      "value": "14.2",
+      "observation_id": "62a0bebd01c98b98a5579c195e1d1461a751cbb1143d43fd1419ec4e31966701",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1998-07-29",
+      "value": "14.13",
+      "observation_id": "edce0a2c5f0afee64eff34840ee34d7a6ec491d8c5625b041dc153d3fc7a2640",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1998-07-31",
+      "value": "14.27",
+      "observation_id": "161f0eb2b04568618d125c3e0e607745dc01693311a91b5449ae95d360766f87",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1998-09-04",
+      "value": "14.59",
+      "observation_id": "a35597a237f7247d0617d8a53e462cd5b18e43e254ef01b92a28ace5572764d9",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1998-09-09",
+      "value": "14.37",
+      "observation_id": "84383abd4186b9296b1f1fcf6de02a5f602861d971cbffc8d0fd2ab9ba0dcb94",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1998-11-04",
+      "value": "14.09",
+      "observation_id": "2093a1ec9c2824300bc1f9e1c8a273b01e5ec3406a01e1d31e5d82473a1ac8f8",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1998-11-18",
+      "value": "12.33",
+      "observation_id": "de15114eb0224bc2a03dc20b86ea016e25e411fe24d1d3ed0ee16427d8fb06d2",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1998-11-19",
+      "value": "12.21",
+      "observation_id": "a7f7239cbcd6bcb697e76ab398254890bf7afdc4714218da0612ebea23de2782",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1998-12-03",
+      "value": "11.25",
+      "observation_id": "d8d5d9a063e125984ee207367521b056144654ef8e42740b1b59a33ecdd20329",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1998-12-08",
+      "value": "11.33",
+      "observation_id": "715e660123fa82508b78db5d25a46ef675d39dc2e48192620dc3414c7f4e5b39",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1998-12-23",
+      "value": "11.12",
+      "observation_id": "42245de10b085b32d174daf84bc52d146222921c9ff33e7d5d03f895ab3d387e",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1998-12-30",
+      "value": "11.75",
+      "observation_id": "f68c086c6f0b9db7f2dfe431434ea7b474dfa3ccd0d9dc5ddf409c070b6c7082",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1999-02-09",
+      "value": "11.66",
+      "observation_id": "a2f7452faeb960f634f6621c655f7406398d5ddee463ab3f00fd1942a71af847",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1999-03-23",
+      "value": "15.36",
+      "observation_id": "a6b316d2c3ed4fab682a1be91550541af23668d302ea0f7d8d130aafa53430e7",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1999-03-25",
+      "value": "15.66",
+      "observation_id": "d404fc97400845b82331bbbd6b1176ac74f609127a3cbbe19354dc0fd0d2b8f1",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1999-03-26",
+      "value": "16.16",
+      "observation_id": "27ae9ed2566966ba38db6a1142738266c0f3442eaa9065cd98bc37da17e40660",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1999-03-29",
+      "value": "16.46",
+      "observation_id": "e03e894d8ba478a9d74f7f3553129aa292f8b233bc9e02943f3d6d1360513f07",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1999-03-30",
+      "value": "16.66",
+      "observation_id": "d8e31794d13685ba17ef36273b2f1c1f6049f31a9f260462a573809a25f881be",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1999-03-31",
+      "value": "16.66",
+      "observation_id": "1ed4397871061c54aea3d45a0d8b89dd157b98fe88bc9c9998c887f384770080",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1999-04-01",
+      "value": "16.65",
+      "observation_id": "239fd019c75518cd37f3c47f3a422c630f187b40bd7673f95fa5aaef6cb75528",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1999-04-12",
+      "value": "16.44",
+      "observation_id": "936bb41712fb54bad12b32568b6f4ce772351d6e087bbf53b91fddf1d8e19c99",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1999-04-13",
+      "value": "16.73",
+      "observation_id": "2d1a204afa1cbfa4f05a657fecd51ea7e77e656dc0d399d397b48dbd9992e397",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1999-04-14",
+      "value": "16.51",
+      "observation_id": "fb2fbaaf824836e289d162b154238c7dabf8ffd3d755e028a7748094f6b0f46e",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1999-04-20",
+      "value": "17.79",
+      "observation_id": "ad0c71475fab8cc64d4c86783a1a4323e3494155855ace6221219a03b1c80f70",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1999-04-22",
+      "value": "18.02",
+      "observation_id": "68c0fe9ec1c26cf8a21f41d8b9235b8b8548d8666f7ade2f691361f75054bf24",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1999-05-03",
+      "value": "18.83",
+      "observation_id": "1f36cd1736ed2a3b58564418bb8402e79762687474c0f54791204e58ccbb974c",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1999-05-04",
+      "value": "18.94",
+      "observation_id": "7b459aa01894910c8887824d15421b6f63c685dd67a023a7beab9eb08c53bdd5",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1999-05-07",
+      "value": "18.23",
+      "observation_id": "df05d6329587240454e2c145e8ca731adbfad50b885203ce26fc49bd0610d857",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1999-05-11",
+      "value": "17.84",
+      "observation_id": "85e1ec73430d664e063f618dab267769b36cd06f0355b86f9149f2557526e221",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1999-05-17",
+      "value": "17.76",
+      "observation_id": "4b0ed2d01d9a481df208ca237f17fc6dac53ad8c4c8ad939d6a67edf43b02c01",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1999-05-18",
+      "value": "17.09",
+      "observation_id": "2a173dd98bdc17f8ddd8fdeac461c31aecff1d3a614504615e9a8b61a570bdd8",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1999-05-20",
+      "value": "17.04",
+      "observation_id": "dc446d7464909a6e8a9731f2039d2929824a8ed22c66aaad5af0fabf64fbe193",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1999-05-21",
+      "value": "17.22",
+      "observation_id": "29394278ea8aa609ee1a467d02590d1bd391e5db4e575132a459810593667f38",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1999-05-25",
+      "value": "17.25",
+      "observation_id": "404c1db2a8d7d98d95c48ceb662b860a2d92c5d4a15cf0a583943b09d8aae719",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1999-05-27",
+      "value": "17.18",
+      "observation_id": "8416edd7b42892e0403a6f8afe6b9829473d74a0a13be57eae4e016c712a0d07",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1999-05-28",
+      "value": "16.85",
+      "observation_id": "aa28ff14de31676680feffd22f1f3a642c4af9e42ed8a8eaaf74492f070df944",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1999-06-02",
+      "value": "16.61",
+      "observation_id": "bd032ff2be35a29cc22a80eea745e0bf696b6a9049323ed7f0f631ae612075a0",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1999-06-04",
+      "value": "17.36",
+      "observation_id": "f7705b02c6b27a31e751aa36e9a08f48e9309531528ec1c1058fa6beaf61e7a9",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1999-06-21",
+      "value": "17.79",
+      "observation_id": "d50d0456532df849d6bb41ae99e5c71944a0b41ccd6562dc5fa5bfcf31fb878e",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1999-06-22",
+      "value": "17.62",
+      "observation_id": "133ccd8893b95184651e30c2227c5d1edf405c0237ef9e71bed097bb2b08c89b",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1999-06-24",
+      "value": "18.26",
+      "observation_id": "b4716e07d1a224418a4775edd5e9f7477ea9c1296e7c2c64fec58830f6da04d0",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1999-06-25",
+      "value": "18.17",
+      "observation_id": "8d4afb284bf649349a98f11c3d6c491de50d30e409f1fed6bd83a0ddd0242b4e",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1999-06-28",
+      "value": "18.22",
+      "observation_id": "54137f77a08a78e7b493545eee5791f9962e31f269a984ec8b36b2a296fb9c09",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1999-06-29",
+      "value": "18.56",
+      "observation_id": "c36957ede65e285d61191d4a6d7cf45b615c05ce42b4e6e6b3c8f3f7ef89e16d",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1999-07-01",
+      "value": "19.39",
+      "observation_id": "4b9de4fa187fbc7b6520b7f7c6047673a415c255567b05f711c55602bcbca1ef",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1999-07-06",
+      "value": "19.78",
+      "observation_id": "94b0600f9e9f67bf22975b25853ab05931ffc2ff202edad36cf15c3460d4abb3",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1999-07-07",
+      "value": "19.98",
+      "observation_id": "3a1e722c4b7ed7b9e535000271172e1cc082b723e366da32c682cccd079d7885",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1999-07-08",
+      "value": "19.76",
+      "observation_id": "8129c38f7141ef159827c491acb670c11f18e17f832c20200e9191479370b383",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1999-07-09",
+      "value": "19.94",
+      "observation_id": "0b63d19237f1f3348e28d6d846c14f1b89b667adc9e75143a22029cbd2b4b5bf",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1999-07-12",
+      "value": "19.92",
+      "observation_id": "11b6b8843aac16d24831eb69a9989b360c3d578e8f22c4c74ab24b93bdac808c",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1999-07-14",
+      "value": "19.89",
+      "observation_id": "e7e2d96d6d64f84e31390cdbaa527efdfc658cf6aa19e6f7e55d28f30fd87a81",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1999-07-15",
+      "value": "20.26",
+      "observation_id": "d0830e3df642ac26df4bb900bb2555c25d3e4b2097f8572f04d069cafb56866b",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1999-07-19",
+      "value": "20.28",
+      "observation_id": "864869a8be8383a7dbe9b77912d62d9a5b475422520d0b5eadff7ea68fb8601e",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1999-07-20",
+      "value": "19.38",
+      "observation_id": "e4b0be067ee983590503fc3c0cb0ad42e197fdf8669aee51770a780ab77ceb41",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1999-07-23",
+      "value": "20.41",
+      "observation_id": "2b7d9ba0ed1a68cd0e0c5ff637a64c0db54d6b95bdf271ab9156a671e48f1ed7",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1999-07-26",
+      "value": "20.49",
+      "observation_id": "c19ba00488cb691f8b8ad173a638d23876c621b6a3a6dae08b5aecde60f98d79",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1999-07-27",
+      "value": "20.4",
+      "observation_id": "c28441d4303a446d3db4acf8c78aae9b1a6fc9374832cd9388890336510c56cc",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1999-07-28",
+      "value": "20.61",
+      "observation_id": "452c82471aa2870d47751d335e60e974ce525edeca90ac30ef918e0f3ffc8b9d",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1999-08-06",
+      "value": "20.89",
+      "observation_id": "1f06ba236ed6cea966f54f8c0148cb5ca4c05445ee942a5b24f33f0cfd5e3315",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1999-08-09",
+      "value": "21.26",
+      "observation_id": "53d529c233fb7a71955eef5656cccce8c5dacf009900a668251328c61ff8ed2d",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1999-08-10",
+      "value": "21.31",
+      "observation_id": "f9140fc3216d5f4beb0ef32bf52aaa393c8fbb2fdb31c6a610600012f63c86ba",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1999-08-11",
+      "value": "21.54",
+      "observation_id": "642008632854d2676e8a322320c6ac6507abd7ab5f13140408abd56297c74fbe",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1999-08-16",
+      "value": "21.34",
+      "observation_id": "5a074480cbc6c3434a8559eb95c9897efb10ceeae99aa78cbac993aceb1f24f4",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1999-08-20",
+      "value": "21.66",
+      "observation_id": "e348abbc2896ac9641b2317f82e4cb8fde96cf8b3fc885dc4c4b387d0f037a72",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1999-08-26",
+      "value": "21.09",
+      "observation_id": "9f502be538726a4ee79534a0b5de405108e76eaf186c7656cf0fcde7f0e7b294",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1999-08-27",
+      "value": "21.31",
+      "observation_id": "01e951b15c6689fb740412b336de9bd0f290eaf2976c596a5dd4108182273fb6",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1999-08-30",
+      "value": "21.93",
+      "observation_id": "938ea2da0ae91d975410197fe958476eab3ba6925cf89b60ab3f62b035bdb7e0",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1999-08-31",
+      "value": "22.15",
+      "observation_id": "30cdd9856bd5bd6ddda9c42baabab246f965a6f8b8947c5f803fdd584c0453c7",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1999-09-02",
+      "value": "21.54",
+      "observation_id": "0af399b87ead0b4a7b427212860c498c9d89995bfd786a605fcac87124cee933",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1999-09-03",
+      "value": "22",
+      "observation_id": "23a0f6379f814fcd87c4b0d027de2c0a18e5a969ab8fde41ec6d15beefa25dde",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1999-09-07",
+      "value": "22.58",
+      "observation_id": "894d3b39c73a01b867a1c23772e6018e9432c67a3368c1d6d5e8b588a58fe594",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1999-09-08",
+      "value": "22.64",
+      "observation_id": "d81c6b7e7f5c4a6fea2ccb03cadc1b4bb84e6bf21224062e04060b72e6d934f8",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1999-09-09",
+      "value": "23.24",
+      "observation_id": "49124f968a5b189f57e4e645c7f7d69c1e76f93a956f5377050e25f2d4c7527d",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1999-09-10",
+      "value": "23.55",
+      "observation_id": "6700ca5e080f856fa319a5aab352f28ad2fd2c1220f850b62d49b0b7c49e66af",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1999-09-13",
+      "value": "24.18",
+      "observation_id": "62dd422ed2cd3ab6c4073df51b5870295ff2dd779f7722bdf13bd9c35c33dd29",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1999-09-14",
+      "value": "23.86",
+      "observation_id": "cc8640c4e4ccd6593f12c5be3c17129509844eae151dfd73c7d60183a661065d",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1999-09-16",
+      "value": "24.52",
+      "observation_id": "fe28783d04b6f05001e38257de56c0e3773408cc12d0bfebe3feb8489974e99f",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1999-09-24",
+      "value": "24.81",
+      "observation_id": "1484bb3570c891ecc9a18e8bbdbc3f5f3dfaf660d5684d645556ceb40bcfecfa",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1999-09-27",
+      "value": "24.63",
+      "observation_id": "8f74e21e765540e7a3228c674c8626a6bd7bfd221ebf89a8315f3021a5593b9b",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1999-09-28",
+      "value": "24.52",
+      "observation_id": "6336fec739c5bef73076307a0a634dd51acf2f78e5ae3a882783ea94d8277d82",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1999-10-04",
+      "value": "23.71",
+      "observation_id": "8dd2b7f0823bdcbda10fa82f770e466593a8e7d41b9abb6506647e397ef4ab2e",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1999-10-05",
+      "value": "23.37",
+      "observation_id": "8b2709ab8ae86c07aaec5fbff6e2f9a3be353cc824eced6b9fe1f4f7302ac30f",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1999-10-06",
+      "value": "23.24",
+      "observation_id": "bb1e903842973a77c8f85d6bfdbc7b6c99070b27d9de8a687fb15781997b79a5",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1999-10-07",
+      "value": "22.46",
+      "observation_id": "d949b3ca84db3c79c1b2d1ecdc536420367a6e44f34edf5c785700851c2addbb",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1999-10-12",
+      "value": "22.93",
+      "observation_id": "fbf8472047e75ac94d1ba810a6ef0ae834724b3f87d1cc9282ff124c603f0ffc",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1999-10-13",
+      "value": "22.93",
+      "observation_id": "37087b1b3d09262e460681cf04a8f39e49791153bda0fdb40caf1c27c23b59a8",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1999-10-18",
+      "value": "22.44",
+      "observation_id": "1072cb862d63d059f382d4e6b322564f40e26792004898831b7825f283a873ad",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1999-10-20",
+      "value": "22.21",
+      "observation_id": "bd262078458ef7e60ead17d1b4ecffc5d688f0817fafdf9e33042f11148df247",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1999-10-22",
+      "value": "23.48",
+      "observation_id": "c01179bb013846c7310cc8d9a6b39ed5bdd2f69af3a3016c12c8af31dbc6ecbf",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1999-10-25",
+      "value": "23.22",
+      "observation_id": "2b02ffb83b6adde098a9b60fb1efbe88f28cb20b5a685959d415ca61fbdb91b3",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1999-10-27",
+      "value": "22.71",
+      "observation_id": "b1a6837d28dcb4f67ff8379d5a2fc14ed637341c77e12f4ab1b22a774532f5f7",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1999-10-28",
+      "value": "21.59",
+      "observation_id": "9a922d2fb10b3e14ab1936351d33a08dce240564b622ac0a1f77d4ec47a0fbc2",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1999-11-01",
+      "value": "22.44",
+      "observation_id": "57830c3d287578650c4b24a32826e9235b800c9c071be58321d6f79ab11fae2e",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1999-11-03",
+      "value": "22.59",
+      "observation_id": "0339906d843630ae4fcdbd21e59fc77c7c781e5bb8a9dcebeafc266cb56fb206",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1999-11-11",
+      "value": "24.33",
+      "observation_id": "6f37a016f006e2588708a8020c19d6f5645949b328be96d9a44d4461d52b1546",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1999-12-14",
+      "value": "25.87",
+      "observation_id": "01c2ad64371cf03cee1c01229a474c26a849da3e41c65b7e23dc9911f2518dc6",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1999-12-21",
+      "value": "26.34",
+      "observation_id": "2f1f77cd85cae580b33f57fcaa18be24a690f75fba657cb822e06de2231674db",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "1999-12-23",
+      "value": "25.86",
+      "observation_id": "209d28a452dddbb9e468fdcfa95259741bbdc33d673f55c3acbac2ba3326325f",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2000-01-13",
+      "value": "26.63",
+      "observation_id": "0d0f7442fb76dede10b912b2bc46409dae138f3881d0caa6a8aae3fa5a3b6812",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2000-01-26",
+      "value": "27.66",
+      "observation_id": "9a6d3065d27fa8f4f4c9ab09cc41a928273ea62c87c29824ecd0303566432e20",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2000-02-07",
+      "value": "28.4",
+      "observation_id": "30092dba6a2ef3da24ff4b9d3f15f63842ae3ffb2b97a43c5b557d44da2661b9",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2000-03-28",
+      "value": "27.1",
+      "observation_id": "1fdfc077b9cf5fe8ce0836f33ad64691de301ba9f28b13288942ff1156004511",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2000-03-29",
+      "value": "26.36",
+      "observation_id": "d09560238be5da0513ca0d9f5d860d30cfc3e20457021f4aefcf8b1fdc429f69",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2000-03-31",
+      "value": "26.86",
+      "observation_id": "26d5a29e626a62fa215e109e3613f1875a1f6e5d4e8955db6ea8f99142bf9843",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2000-04-03",
+      "value": "26.28",
+      "observation_id": "2584cce3dfef12b57bd0de91bd1aebaa9d07dd114b145159b74d7f6131450c99",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2000-04-05",
+      "value": "25.76",
+      "observation_id": "088960eb330bef9760d0c5be02daeeffa6f13e2cb6546743a2d2c2a09db23d02",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2000-05-03",
+      "value": "26.6",
+      "observation_id": "3b38ed320d69b08a2c833d81f01f5d656ec1278eccc00de867415e45df67afe8",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2000-06-14",
+      "value": "32.72",
+      "observation_id": "b2ea1473a53f75cbb4f854345afa867c57d065514f02fe30c315223745a25211",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2000-07-05",
+      "value": "30.76",
+      "observation_id": "cfefc26c6822473c847a0a9b9adde802cf03a3d75d56ecbba209402b3c36189e",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2000-07-11",
+      "value": "29.61",
+      "observation_id": "3b455e407375b329e7cb815838c2711ca0bc15fe3470117b537a4170bf728693",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2000-07-14",
+      "value": "31.31",
+      "observation_id": "2c4b43c877f46e22cab3d405ec3600b7f8578e9d7be6d97955a0240ce722434a",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2000-07-24",
+      "value": "27.97",
+      "observation_id": "25f4adc31ad80f2c38033b792426693c49e434105f4f41de3128e321a22c6dfe",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2000-07-26",
+      "value": "27.81",
+      "observation_id": "eafd2e5dde8f2a0a5cd78691b5c7250e98e691a00976b5461f74d4fdc17ad4bc",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2000-07-31",
+      "value": "27.5",
+      "observation_id": "8a26724d21885c1d4a377d8b0feb65b3dd1fe82b4c12ffe6a3cca48581ffa3ce",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2000-08-16",
+      "value": "31.91",
+      "observation_id": "2934386aa8cd3de16cda03f90a7749b30287bd58b6926554a69426a669fee2bc",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2000-09-25",
+      "value": "31.5",
+      "observation_id": "1a0fd9b409b8730a3aec16bfd397f4d355c09f3a4590a5cd98a7916a02299296",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2000-09-27",
+      "value": "31.23",
+      "observation_id": "030422d6564a5347ca9d4517e874e27c2909deb1247601eba14d15278afcafeb",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2000-10-02",
+      "value": "32.05",
+      "observation_id": "4216926b473947a88c0b66fc2da031b650b5159a25fda11a9040159f351f0ed7",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2000-10-05",
+      "value": "30.66",
+      "observation_id": "07c622ff763e5f3f2d9a7f720455936508d8cb8d8fa69ad2aead6d9f0cb6622e",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2000-10-10",
+      "value": "33.29",
+      "observation_id": "0e9a308043ac820c260c4d1f0a72dd3a954baeebffd49df9bbc995ccdafe0a50",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2000-10-12",
+      "value": "36.06",
+      "observation_id": "4175b3fc1bca6d0b5ec9d0fa4015986c4feec83e94c10943b898c3f6a970a5b8",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2000-10-19",
+      "value": "33.06",
+      "observation_id": "5b1f1ec7240cb50d707f7ef9adf9a37a65e998ef35dc2a9a7a00bb02da513f36",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2000-10-23",
+      "value": "34.9",
+      "observation_id": "2b4672b3d576875a84748ebf72ae831cd92bc03e1e81447160c8b3f04af54288",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2000-10-30",
+      "value": "32.86",
+      "observation_id": "baac0686467c1df75bb5c5f0bcf74986e0c6feda1470e038f49d109c2dcf853a",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2000-11-24",
+      "value": "36.06",
+      "observation_id": "8290c068a42e61247562afd472455862956115397d61bee643ee84da234737f2",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2000-12-13",
+      "value": "28.75",
+      "observation_id": "93eda92c94eafe0ecf69e9b66bf46a4c2dc41bdb7b9f6e41c5eaf2e35ffed799",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2000-12-22",
+      "value": "26.16",
+      "observation_id": "82b1fc61a83604c267a772b54bcd90f6673c5740a59ab9079faffe3498a10fb6",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2000-12-26",
+      "value": "27",
+      "observation_id": "56cf836d5f980718002fd0c4efad0270573ad53c033b06bba7198446af79496e",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2001-01-26",
+      "value": "29.79",
+      "observation_id": "785710ed26b5051283a85b2751f60cb2fe0d809e64076999a08d07e01fd02128",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2001-01-29",
+      "value": "29.07",
+      "observation_id": "38f34d9595467e19716f8a6d5a936958f3cc88d60c4e4f3ced262064d82434cf",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2001-04-02",
+      "value": "25.7",
+      "observation_id": "4381cfb48c1708890104745b713435bc2eae10189c98210b021c08e6d02cf265",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2001-04-20",
+      "value": "27",
+      "observation_id": "7d22399129376c7cd94c508efe4acec76a3cd6e5286d7451a0b931b7e7e2b1d9",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2001-04-26",
+      "value": "28.47",
+      "observation_id": "6715f105f796584fe6446319c6a1f01926eb16590719be2f7033effd24806409",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2001-05-04",
+      "value": "28.41",
+      "observation_id": "88e5db0599ccbb60a55aca656fa230107fc894b862fffb2c3c9af95bdaad41d0",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2001-05-07",
+      "value": "27.79",
+      "observation_id": "f2a5474714cb1ceb71525ad3393bd39253e31b00732748a32fbf6a0fce64fd33",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2001-06-01",
+      "value": "27.88",
+      "observation_id": "99676c8a3d80c6cf28431ef1a2df6d630392f3619a21520ce4afea4d2ba183a8",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2001-06-05",
+      "value": "27.84",
+      "observation_id": "8a4e80cbfd8a87d8d4b25956f0d01cf63cbf428f690ee77cc699d8231b423f54",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2001-07-17",
+      "value": "25.33",
+      "observation_id": "730c580d5e59e580a921302e0ae27eb487368484c8fed2aef67ebecfddfc8fbd",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2001-07-19",
+      "value": "24.65",
+      "observation_id": "2c793717cd084310ab648fb2c33335c62d796d381c087cb61ed1a1b903e7917d",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2001-07-25",
+      "value": "26.71",
+      "observation_id": "dfd380e3b012a00bf2d83bf3c0113aa246cfd76ae06f3f411d800979c1309e04",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2001-09-21",
+      "value": "25.46",
+      "observation_id": "490f5c8b8fb09782437c695913f43d5f10a7ec27f3a65f5a4586c5cc8a3ff169",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2001-09-26",
+      "value": "22.4",
+      "observation_id": "83188ebb6e3ef0ac4c50a40307375bde182ba03782575ed1b0cc87433dbff870",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2001-10-08",
+      "value": "22.25",
+      "observation_id": "2e956dff03e5207d070a269fa8d1c37ac001acdfa08887e376c8084ef9022ccd",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2001-10-10",
+      "value": "22.51",
+      "observation_id": "c802c6b56062400f5a8e812916f0a26a22e38c10dbf255febae051acce48fc04",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2001-11-07",
+      "value": "20.11",
+      "observation_id": "0b7696ede6b7e1bd87950a5c9d026ee43751e6497a616910ddb7d1e4b8ed967c",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2001-11-14",
+      "value": "19.63",
+      "observation_id": "50233c42748c2e418b86fc0a055ccb703749281c6e2d0bbd2556517b7950f468",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2001-11-20",
+      "value": "18.71",
+      "observation_id": "1136fa186a4ba61d963c53ef4a9c1c05818cfe6365a556a923dab127721fa326",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2001-11-29",
+      "value": "18.55",
+      "observation_id": "1142993bb59e75a367107ba99c2e8b834dd2f2d78193b1102b3c859736207889",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2001-12-12",
+      "value": "18.38",
+      "observation_id": "e3a813d49714f1e1195e9e0402cdb1b72780d0c0a65e02d591f422a1e10935bc",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2001-12-14",
+      "value": "19.31",
+      "observation_id": "e8edca58386ca72f9585fbe4474d57fc4117d929a06cf53ed384b0731278f79b",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2002-01-03",
+      "value": "20.65",
+      "observation_id": "085edf84dd97e7e547df36fb089804e709f5a7afb581ab905b55c9aca647e696",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2002-01-08",
+      "value": "20.82",
+      "observation_id": "5d18027709fdc1d4caad8c78f2f4fd68f8a2d6de346ee1d52a648c7997c7bf67",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2002-01-14",
+      "value": "18.88",
+      "observation_id": "c054d464f6c0085d2a59145a0a429285218c0aff8a8cc75f03a89db3a79588c8",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2002-01-28",
+      "value": "20.05",
+      "observation_id": "97e28ea65d56e85f3ece35d7e81caaa6297d2e274e052b223ebb6f5a6cda1325",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2002-02-04",
+      "value": "20.02",
+      "observation_id": "25b8dd291092f978226af328b48099b94a2655d8b3cad2dd2f7db4919a3b1251",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2002-02-05",
+      "value": "20.06",
+      "observation_id": "1d5974147c6b385694ca27fc9bb3d08f7150e1db44c074ff4e6050f2546c5dfe",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2002-02-26",
+      "value": "21.37",
+      "observation_id": "26875b3dc1244e7dfc81fafad6853e5d462f00ddfa9e53c4e0fe47353071d6da",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2002-03-04",
+      "value": "22.55",
+      "observation_id": "719f8dfc4253f49e94456189262306c593d8434312063329ee93134379a138b2",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2002-03-06",
+      "value": "23.32",
+      "observation_id": "8bd6cb8fdd2a175b3f769c5e721bd8fa2874246966272d0f4710879d8781d1ee",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2002-03-12",
+      "value": "24.55",
+      "observation_id": "953b0eeabed514aeb4fca80c16ff76a5e0d71320bc5bed00534b64c2659c8449",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2002-04-29",
+      "value": "27.45",
+      "observation_id": "702d2cd7688870e11a18fd193f0451ecc88eae7f136e0932216da6785beefb17",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2002-05-29",
+      "value": "25.64",
+      "observation_id": "160113ff3d4f25967d3155f912757f3cbb5b723b27df5f5527d65a00aa6f796f",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2002-06-06",
+      "value": "24.89",
+      "observation_id": "6fe51dc7c80c6bd96454be316e3500300ba7b7f1ac2127f515b7a0f6cdd9b7d1",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2002-06-18",
+      "value": "25.36",
+      "observation_id": "229ace50e3ccb9c6c96d3c6df1aa3cd850f8f42495a4dc111f331b765e19a15e",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2002-06-19",
+      "value": "25.57",
+      "observation_id": "440e538e5c5f4ac6a59ff85bf37a89f3c6eb138dcacc7b325e7bfd7b6bd6f53b",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2002-06-20",
+      "value": "25.62",
+      "observation_id": "1fe04c97a7b634c32e47143e1ae3126cbd7027ef98c22a473c705ceea1ed16c6",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2002-06-24",
+      "value": "26.31",
+      "observation_id": "480653a8b7049ad2de9297d07c8738b4d1da8429e02888e7667c223694f7e115",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2002-07-17",
+      "value": "27.88",
+      "observation_id": "75c46b78eb0f5038fedd28afc10347993743103140d74c172c9de777c927ce66",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2002-11-13",
+      "value": "25.28",
+      "observation_id": "629e982fc0b55fb4b7ddb321dcab0ca41aee6a0aaf66f01f6bd6b919efefe623",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2002-12-09",
+      "value": "27.29",
+      "observation_id": "a25aaff540c3f93eb30a2bdbcffa21786f05d4a2a4903559f8e447ea097255f3",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2002-12-20",
+      "value": "30.57",
+      "observation_id": "7b2fca92e90cf9cd335e8e87f452a6bd1accd48dbe6837c3c54d4fbed14dd44f",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2003-01-14",
+      "value": "32.42",
+      "observation_id": "1d0de56166c461954ad977d3ae5572bd796e4ad26108353f0d5733f28994f996",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2003-01-28",
+      "value": "32.7",
+      "observation_id": "cb052d15f94110d5e9e5e249805847c8292478ba0b25e7a1caf6fbd49e26522a",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2003-01-30",
+      "value": "33.78",
+      "observation_id": "f0a35562225ced65e864a23e7be940e4490bc9bb86fd1bc046261dbf24c7db0b",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2003-02-03",
+      "value": "32.84",
+      "observation_id": "3fca9a00a2fbe682c460dd76c698f8b56f2b7895df31c7a27d763f6d3eb4dce8",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2003-02-06",
+      "value": "34.36",
+      "observation_id": "057f8109504c61627fdfd4602e2d3b6a97fc2151b362e86a50bfa8b71210593b",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2003-02-12",
+      "value": "35.83",
+      "observation_id": "226ce04998841b3370aef0cd99761f93b8fc3f2ed042ced0870e3be704bf0f9e",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2003-02-14",
+      "value": "36.61",
+      "observation_id": "005574f3d3f80967f2ca600fe9830c36c8769423c64159cebd48f4cabd0f4e91",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2003-02-19",
+      "value": "37.02",
+      "observation_id": "d60ed36c17236c117136bbf611fc0f6a20a9bbef01363e3df79be4772b69391b",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2003-02-25",
+      "value": "36.06",
+      "observation_id": "b24295cde52076591c29e2ec16e67cd6ebc5e3fac51cf016fae0af337b34e585",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2003-02-27",
+      "value": "36.83",
+      "observation_id": "e3e7b6cd3b29b0383dfe927ea7e6b5bbad788a9263d4286a8474a9f79a6adc73",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2003-03-03",
+      "value": "36.1",
+      "observation_id": "c145d76bd97590effc57d3f01efc9f5eaec37574bd09b663cd8c41e90b06b669",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2003-03-04",
+      "value": "36.95",
+      "observation_id": "e32c04e86f26c0670d83e4e887079ac81ddd062458b92b490dabe863f4e664a5",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2003-03-10",
+      "value": "37.18",
+      "observation_id": "a33d1f7a1b2bd94fb99c537c2d643ef890f276c9fd95e1ecc5b09d7029e54d41",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2003-03-13",
+      "value": "36.05",
+      "observation_id": "6006267733178ca45ac60874eb876a0ff77c1069489215acaef99d66b879a7e0",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2003-03-14",
+      "value": "35.41",
+      "observation_id": "a0a855b9973ab7b7efc4d77b76ab65507bf11a9f3426080abcc4e797121f429b",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2003-03-17",
+      "value": "34.92",
+      "observation_id": "107e8fde9f9e0f2a6fc12d29a8178f05310d45207f16550a83574160657db0a2",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2003-03-18",
+      "value": "31.55",
+      "observation_id": "fdbdd8e44a1dcec450991ebade83cced397870e0396d1f089d92045024f5ddcf",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2003-03-20",
+      "value": "28.62",
+      "observation_id": "bc6ea0aaedc1b0a7160c6cd50927726b5dd486bb72cc698a86037095e5f2fad6",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2003-03-26",
+      "value": "28.71",
+      "observation_id": "3e25571f3da128dbc76ac384bb859bd1dc06647ce8f79098daf3e7d98dcaba17",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2003-03-27",
+      "value": "30.31",
+      "observation_id": "6e22623ebf85d9a3c998dc63544a33aa51810f15a7edf8d86846d14bdddd9559",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2003-03-28",
+      "value": "30.21",
+      "observation_id": "d41ea57fa50e3283d1d4c5f35623215b8c2b11a6fa6de4d391e2141ccf3d62a9",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2003-04-02",
+      "value": "28.55",
+      "observation_id": "4ca22835b0f9f04fda44cbc88c1d5ea77b1640d36067df0a9e7058b48c397bc4",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2003-04-03",
+      "value": "29.05",
+      "observation_id": "d8a5fb1832ac858d59fdbcb733dadaefdff1ff7a4e6b1cd836b293a28a5147b3",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2003-04-04",
+      "value": "28.41",
+      "observation_id": "d6a50d0f9643cde6770543ce6bdb65571c4498af750d0cba157d81670a77b632",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2003-04-07",
+      "value": "27.76",
+      "observation_id": "1c096bc9d0442a41cf823f85c68ea59275ee7cf97fafcf1c475e5099c9fe8184",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2003-04-09",
+      "value": "28.93",
+      "observation_id": "89bdfc65535538c604fc1373562fcd253547ca3a0bee3b551e315169ad7402d8",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2003-04-11",
+      "value": "28.28",
+      "observation_id": "9b8f13885812ac897edde59ac27ca03ef6d2c69c1d4cab03f23a75335ebb551d",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2003-04-14",
+      "value": "28.41",
+      "observation_id": "3c610c145832251dfbfbd9ee7218dc39de26e10673156029548ba17b7389b412",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2003-04-21",
+      "value": "30.76",
+      "observation_id": "ee4369cc4eb52813eafdd737eb72d5b2772a1f1b936f298463cca1f4d91cc1a9",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2003-04-22",
+      "value": "29.92",
+      "observation_id": "23d00428211256bccbd42b9dead34091d9503e5c2256160f48014c9af457a1de",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2003-04-28",
+      "value": "25.25",
+      "observation_id": "c268682c43df09b4ec61253bec58264bb7c4268a596e78982d5812f827081fd6",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2003-04-30",
+      "value": "26.09",
+      "observation_id": "bf655083668b17269442cc0dc477c82910a83c5f2b62dae0dd9a82f64550a44d",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2003-05-02",
+      "value": "25.74",
+      "observation_id": "01f50caee0b4003ce5aeb9b706013a56d442a9951ebaf44e00360de7a8bb0344",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2003-05-05",
+      "value": "26.43",
+      "observation_id": "bbb1ac1c89093f43db1f2281c5f210b41f1c4eb51bf67d627bbb7a760c1d74de",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2003-05-06",
+      "value": "25.65",
+      "observation_id": "ce25461c3fc43add0e5aedacd0f844c7c16397c5443b6024f3f983794f199ba9",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2003-05-07",
+      "value": "26.24",
+      "observation_id": "7c1713f61488b8f5840b5fbd432f323f31a44fb2ca9ed41074aa2a9fa3791b8f",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2003-05-09",
+      "value": "27.65",
+      "observation_id": "8bc7d56c1038913eb14fef99e506efc24a5c8ea0afd4b8a52f18dce6a28a35b4",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2003-05-12",
+      "value": "27.34",
+      "observation_id": "3f918f3f60f5432c02c786312874b3e6450f219b8e07342935fc41fda37d98bd",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2003-05-14",
+      "value": "29.21",
+      "observation_id": "336e5298955b4c8e487d413f3e36a26a3930deeb787751be1adf7950d2fc9d45",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2003-05-15",
+      "value": "28.57",
+      "observation_id": "53013fea7e7faf06808527b7828ca76bc929340f1368da7263d33e4656df4205",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2003-05-19",
+      "value": "28.84",
+      "observation_id": "5d4caad0f3aff32213a008d856a365815b0c494bdae069aa1eb93828993e248b",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2003-05-23",
+      "value": "29.74",
+      "observation_id": "ea8b704a840543c3ee377d775c3d2ed37fedc47da87755e565bf42b5bd9fb278",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2003-05-27",
+      "value": "29.24",
+      "observation_id": "2c2f9b39d78b4de76f4dfa7bcecd967b97c15f4c9704a368a727380a8737925c",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2003-05-30",
+      "value": "29.56",
+      "observation_id": "09235f5cc162360f5c7d188211ff90435c0fb8bfbd6d74bddef3eeedc6ef4c9e",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2003-06-02",
+      "value": "30.72",
+      "observation_id": "a26b2a2e32a0bdcc8b392bd0031116e0402cb64e81d94f733ad6bb09926dacc4",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2003-06-03",
+      "value": "30.78",
+      "observation_id": "1c02175244db375405e18c0850f20df11de72687a0044e9663c7d66b2dff58d2",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2003-06-04",
+      "value": "29.81",
+      "observation_id": "8390c20c6a92aa0d79c438a708bcc7167dfeb625510ab6a827e69d226ead6cb6",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2003-06-05",
+      "value": "30.84",
+      "observation_id": "3b8431790cc9406125836e008440ede6fbe422b05471aaff353bd5ce0a98762f",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2003-06-11",
+      "value": "32.17",
+      "observation_id": "476cb352a9392487e08893e20570855b1dd126155a0449a0d5f81f9e28e247c2",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2003-06-12",
+      "value": "31.41",
+      "observation_id": "2acf8f8a59d109ee49d86d3ed17b048a58dbcb76d38cbd6511215ff611d13c44",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2003-06-13",
+      "value": "30.63",
+      "observation_id": "2f8e5d503b7d84a5653fc9e35f50331de0112cffd0f34e70d41ba9b25ad4d76b",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2003-06-16",
+      "value": "31.14",
+      "observation_id": "1eaa3cf294556c66a1fe21cc3c1532e9855b4d95cbb2f2cd26a0d27e9b2eb8f9",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2003-06-18",
+      "value": "30.28",
+      "observation_id": "98bb6c89396621915e8ecc8bb3367554aed77adbe43fd3d639720c3be54810c0",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2003-06-27",
+      "value": "29.18",
+      "observation_id": "419aa1b0c1bcb1c988490f2e0f7a0f105af032f900884c2d3f59d1cbc113abe8",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2003-07-02",
+      "value": "30.29",
+      "observation_id": "16b5937b7a67371fb2da04608eec9736a5683cb7fd2f4b6c1269d761e215a252",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2003-07-03",
+      "value": "30.39",
+      "observation_id": "a1d4d947fd36305ed64cd99ae0c310f086a96483c7a62cbbf63443ff5fd3b003",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2003-07-08",
+      "value": "30.32",
+      "observation_id": "89ec45cad30cc99335df4d81482905813723befe24b6b0a73e6ab6a23c7ccc75",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2003-07-09",
+      "value": "30.87",
+      "observation_id": "ae8b7ebc0eb846255821bbb569242260b559be1e9e0eb7bd013739c7005afa40",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2003-07-11",
+      "value": "31.33",
+      "observation_id": "f2f02fc3b13fffb245cdb707113c44e83b4e0feb2ba47d7e1f1930c3660d8e9c",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2003-07-14",
+      "value": "31.2",
+      "observation_id": "97cfc0428e076f8021a4c548c241805bc3fccb6ac8bd6eb0c5b6e24f62247679",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2003-07-18",
+      "value": "31.96",
+      "observation_id": "f25a70e6608104d0d856a83a0bce8376c71f4c90a00ae5c57fdd981ee1dd4367",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2003-07-22",
+      "value": "30.2",
+      "observation_id": "0630df3b7cd00d9b80113b1e355080efa6ed84457328771d5e4e871a9c80d62e",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2003-07-30",
+      "value": "30.69",
+      "observation_id": "1c8c119cd103f8c5323eb68091a6cf539e3c61969f60df29192531fb30114e37",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2003-07-31",
+      "value": "30.56",
+      "observation_id": "91a87142d1ca41b9a58d9c79fe1d07f590e7ba7379b626c816c09ba0dec28a2d",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2003-08-01",
+      "value": "32.23",
+      "observation_id": "dff61ddc0126251a0b1017cd31ea82200913faf9eaed4748c73edcb4ec11783e",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2003-08-05",
+      "value": "32.34",
+      "observation_id": "bf8cd60ea4b9b78a08b7b4da80f6c21c7af17810e4b03affe4455bd7b4351d66",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2003-08-12",
+      "value": "31.91",
+      "observation_id": "40d048030c7cd76c8737b483ff0df66ae75a36796fa838432721ce8b21606400",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2003-08-14",
+      "value": "30.85",
+      "observation_id": "ed922dae3f54164e53833125f38c08c6546b9dd6936f7f618385ea879d29d4b9",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2003-08-18",
+      "value": "30.81",
+      "observation_id": "a22d0ec005efe40809f8ad2f904bf149ea10bd3a4a14ac249bc7a3d3ff2c0066",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2003-08-20",
+      "value": "30.96",
+      "observation_id": "233f0ad798a99dca95df51fd095afe7c0f9b67f084e06d57b0b0b1afd455c8e8",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2003-08-27",
+      "value": "31.18",
+      "observation_id": "e5779e5d22015ca35e9621a231d15764d82b5148e63933a3b800ec6e2ebbd94a",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2003-08-28",
+      "value": "31.41",
+      "observation_id": "1df3c8a63f461eaadc8e623610a0581484e0b90afbed7cbe5bf20c8df5ad3b89",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2003-09-03",
+      "value": "29.43",
+      "observation_id": "1bd1db4477c7aaf13f8ac84acd3e36ec4a5ad735832ea68db10f753c7801f038",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2003-09-04",
+      "value": "28.87",
+      "observation_id": "8a39039dcbe4076d1aae676fedcfee46426fd6f050b092cb97bcaed1ada98986",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2003-09-09",
+      "value": "29.22",
+      "observation_id": "d25bb297db6681d8739f4f3572ba82c5587cb759cda8597951bd4e500752a453",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2003-09-15",
+      "value": "28.15",
+      "observation_id": "5671d32a8c338d3cf4dbd9bd1f14eeda621f53f0e0a1af6ce0a529a42d0a2da5",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2003-09-18",
+      "value": "27.26",
+      "observation_id": "3a83d2d7f1e57e3be8bd186364cf494e6192b3925983f25989f1a40eb5059bdf",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2003-09-19",
+      "value": "26.93",
+      "observation_id": "0c8a9506003e17949074c14f48240aeb00d7d12e20111f8d207e5d8e254e0a13",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2003-09-22",
+      "value": "26.97",
+      "observation_id": "9601542b96b5ab7b70d76a3971a410e08a16abcfe0d261d8a558556d0ce7d8a7",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2003-09-26",
+      "value": "28.21",
+      "observation_id": "f2d1a956497e8d1b49a184a6f31f27d7e4316ada8c163b3a346e6d988059b6b8",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2003-09-30",
+      "value": "29.19",
+      "observation_id": "a980f3c3568989397d9251197609efefdeed54d24b77e1d40d5fe3e94290cf48",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2003-10-02",
+      "value": "29.83",
+      "observation_id": "eeb3fe056608c647a0f9c4ca00d8f30d1a5ecd79568f5e397786dd07e172ee4a",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2003-10-03",
+      "value": "30.37",
+      "observation_id": "5bcc692508a7d084c7330af91378a341000915585a447bee313fd6c440da2454",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2003-10-06",
+      "value": "30.4",
+      "observation_id": "d53cc5e60189af9f5d02015388f4532401b5db81f537fbb08c4709b767932cd0",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2003-10-07",
+      "value": "30.48",
+      "observation_id": "1d9aa0be051cbcc19ed5369d4d25001d5bf71701a06d267fdfc45b9809bec296",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2003-10-08",
+      "value": "29.6",
+      "observation_id": "3c77d595e20742e0c6b26a7ea70f972ea8bda477bb9387d85a6233ed6f463c63",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2003-10-14",
+      "value": "31.68",
+      "observation_id": "bcf42720f24099e05e6802d2d852a73f85894c914ef37f9c99fd457174f12444",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2003-10-15",
+      "value": "31.74",
+      "observation_id": "d895d21438530e237b3e75a6b4a9384c82f18040849734027059e39ce4730dda",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2003-10-17",
+      "value": "30.61",
+      "observation_id": "2ed4e17e4f5fca5b02b8ed4e911f9d7c2c54d9e48a34f80892947ffc214fdab8",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2003-10-20",
+      "value": "30.37",
+      "observation_id": "b5f7925c226c4f7a3684b5f1e2a746ed465712de28edde8c98b229513a1c390f",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2003-10-21",
+      "value": "30.19",
+      "observation_id": "8cf2eb58ab72cd515050a058518e673989696afcefe58c4b467392da8f438c39",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2003-10-27",
+      "value": "29.95",
+      "observation_id": "2d8a34b227418977f4e0703955d0edd05f2d90f533aca053b995fa5124cb4deb",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2003-10-30",
+      "value": "28.67",
+      "observation_id": "131dd6f37050024cf6dde7131ce33a8373c297f496d79281da75f276316fbfdc",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2003-11-03",
+      "value": "28.81",
+      "observation_id": "c54ec51e97d387a2dbca5a25357692c7bb0d9f796922bdf4711daba9e77b7880",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2003-11-04",
+      "value": "28.86",
+      "observation_id": "3e90b125ba542c729d2ddfd54404315b1294c353b24d3372b219be47514733de",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2003-11-05",
+      "value": "30.29",
+      "observation_id": "c418d0f04ab1a5a1b8d6e54285864fb6cd075ed62813db3361cfb74381f2bdf7",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2003-11-06",
+      "value": "30.25",
+      "observation_id": "24b8d9c64fb02f2d8e00ef42e5e59c4d346e4bbb6aad80539773ca8911f112aa",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2003-11-12",
+      "value": "31.37",
+      "observation_id": "6c9c0c527c3d9b39872ac11f1d59afaadab278976350e5a183807335817b5b15",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2003-11-13",
+      "value": "31.89",
+      "observation_id": "713d783a08481e5be0e74cb57775f1abb3193df822e162c168e170d3a1ed0274",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2003-11-17",
+      "value": "31.75",
+      "observation_id": "a7fd6032314b356e8699f16a6c3900ddce74893f60cc8bdb5bd4f84a981f2423",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2003-11-18",
+      "value": "33.16",
+      "observation_id": "c1fdc3ff5697615e49789bb238239ffdacdeb5b8d3116395f7f28e79fc6f16b8",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2003-11-19",
+      "value": "32.84",
+      "observation_id": "31886f1f97ce20ebc7861ead59bffe7232a54c9208bed6705a32c9736edffad2",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2003-11-20",
+      "value": "32.87",
+      "observation_id": "179b8d33f98c8003a751604563ac1630662b8ac06c96d8a842564b75413666b8",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2003-12-01",
+      "value": "29.89",
+      "observation_id": "8fd1527bef09c70b05df338875b318860332d4c344a20e520a84f4c8d984e15f",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2003-12-02",
+      "value": "30.74",
+      "observation_id": "372d69e3c28e76abd91ac4600609e670304397617f20b820217b72e564cbe4dc",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2003-12-05",
+      "value": "30.68",
+      "observation_id": "08c7cfce68674035fe9e0ff548a5424d87993a122621543f27c2e580e0732ef2",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2003-12-08",
+      "value": "32.08",
+      "observation_id": "806f8eca0f41826de71bd8f2427801be381f6f87e7b3d000f34266a7fd8110d3",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2003-12-15",
+      "value": "33.17",
+      "observation_id": "55513a518ec8f07e624e2a54d2ab783a9f1a0981b756a3526f62eb038d369949",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2003-12-17",
+      "value": "33.36",
+      "observation_id": "65b639e56ff0af890560ff78dbb784e3dc121b70998c4a2ba5cfbd476abc149e",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2003-12-18",
+      "value": "33.72",
+      "observation_id": "afeec764bdd57b39582e0d7d269a4f57cf992b5e668399dccb10dda41a4e259b",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2003-12-31",
+      "value": "32.51",
+      "observation_id": "678a603003e09874a35d1c0f5f4111b8f9a33e5d3a8076085614e8fc417c4c49",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2004-01-05",
+      "value": "33.71",
+      "observation_id": "30ec91b5645c30a961be1cfbca422082803a771645bd50604d76a140418fe17b",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2004-01-07",
+      "value": "33.57",
+      "observation_id": "70e9ba40d396979f5d107012ce1d4702169a045771392036bce19ce085ee01bc",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2004-01-08",
+      "value": "34.27",
+      "observation_id": "ad3c6a87d06d9d6b43b09c799f4f4fd9bdb12e52afc3551cc171c6be1959b5bc",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2004-01-09",
+      "value": "34.38",
+      "observation_id": "62e6d3b0d7941b553590567d079a48e7e3e1599e2718b05e5720873ad42fa914",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2004-01-12",
+      "value": "34.92",
+      "observation_id": "6c2a32dc7811c1575f89b83a5961f2b3cee1d4c1b84ac0f07148d14eb7cec6f4",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2004-01-13",
+      "value": "34.26",
+      "observation_id": "2407b53909ac92620e8c0ce90fa60ca2a9f1290472ded19eb5da411a6f67e784",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2004-01-16",
+      "value": "35.16",
+      "observation_id": "ad063eabef4aa8f4c7b03d6e47eee59cc164c8f479b4c6299deae06f53cc4049",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2004-01-20",
+      "value": "36.21",
+      "observation_id": "c2ea7bd17a67e4fe7eec53df5505c18ac9a4c6379c76ce0ebdfff71305180b03",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2004-01-27",
+      "value": "33.99",
+      "observation_id": "2740ae079fbd0b232de011dcf5d83f3498daa2d04e3753e9318708534fa5e523",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2004-01-29",
+      "value": "32.86",
+      "observation_id": "415f76f55ffd0f147582947938e9630a096f063c36feb471a7d123307679fa7b",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2004-01-30",
+      "value": "33.16",
+      "observation_id": "3fd93fe0ce59e265f70eb1c5a7c844aa0c04a156b85ce76ab013c165025903f3",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2004-02-10",
+      "value": "34.03",
+      "observation_id": "f04075186c15293ec4035ef541840f7abbf04ea209c6fc6c9085109c067b6e26",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2004-02-11",
+      "value": "33.93",
+      "observation_id": "e088a8a29fdcae6859fd4c83e8a09a2a4e85b5e1daf542454eb34c7468513e76",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2004-02-12",
+      "value": "34.03",
+      "observation_id": "27eee505370f63ebaff1055e5109e950c0347fe684822b306e06d66b97b8adb0",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2004-02-17",
+      "value": "35.13",
+      "observation_id": "42c30bed91c2bb749d9d17ad3a26a21d6afb9d00073e795cab27b076fd6ad61c",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2004-02-19",
+      "value": "35.81",
+      "observation_id": "f1293ce8d6ef889410cd7113a18261e62379f4e71b19a50a38db7d9a1b0ce20b",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2004-02-25",
+      "value": "37.28",
+      "observation_id": "f45dc1f7850702c2340b32b0d1bd1475b5eab02c3fa4b2e2e5d720283732891c",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2004-02-26",
+      "value": "35.45",
+      "observation_id": "6a8ca0794672dcd0cf5f0674c637bd7e6c8b67ffbc1b86379ab3bc34d045e9da",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2004-03-01",
+      "value": "36.85",
+      "observation_id": "3ecd66b41a3dc8dcca1a00dd8cfb72ac96867b457d3c76e5c25e2ccf23113a35",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2004-03-03",
+      "value": "35.8",
+      "observation_id": "ff7708c96b0c1267523a58a18d597bdeb589f18e97294e8aabc1a0bc5e96ab63",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2004-03-04",
+      "value": "36.81",
+      "observation_id": "cc17c6d3733830bc483fc2eaa98e227cd147ab51f4213a50933242d51faff162",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2004-03-09",
+      "value": "36.29",
+      "observation_id": "a4d052005ded06816ab36fa50e7cacd2216aa91c24c259fc80e1004b27060e86",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2004-03-10",
+      "value": "36.21",
+      "observation_id": "c0c192d63c3da2748bd626c56cd131a142b50c2634c4cb40f54d1cfdb317f33c",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2004-03-16",
+      "value": "37.36",
+      "observation_id": "6a10385ff902ccd87cd2e6acd6f9fc52b4c71a7a0a8233d835a9ed484ffe84be",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2004-03-19",
+      "value": "38.09",
+      "observation_id": "b38759f522b900bcdcaea2a67b302f6903f6933c19ec195cc7775b66ae6a451f",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2004-03-26",
+      "value": "35.61",
+      "observation_id": "ddb8ba073f590712e03609482e896e02d90b6d6c1142c11ab859d08ce7c8fc93",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2004-03-29",
+      "value": "35.41",
+      "observation_id": "8fb7725e6dfee8891925959af33be18a711d1039454c88a3c68c2bebb7d79ce2",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2004-03-31",
+      "value": "35.75",
+      "observation_id": "ad29447758b9859a23dde55a90b75280bf10150ea84ef8d1933b0d3818c5e768",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2004-04-01",
+      "value": "34.47",
+      "observation_id": "38029db74261f90865bb2e9666c6a2e7bbb7e7054e587fe60f2bcd1455212cd2",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2004-04-02",
+      "value": "34.39",
+      "observation_id": "b8e1352842d62f293a240e7abc1e516951b827bfd6998b565fd9346b0418082a",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2004-04-06",
+      "value": "35.09",
+      "observation_id": "ca53c7f37f4b03256c833b36cb366ba5fdb017a3f61481e7b28f6f933c15f2e0",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2004-04-07",
+      "value": "36.28",
+      "observation_id": "0c057b070f77a1839412a7065ce96ef6050a6a528129f128bdbd3794043b9144",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2004-04-12",
+      "value": "37.79",
+      "observation_id": "909d592fb3be6efce78acf8cc6fc6d1098e80c3f9c7c9eaa32cab085066a22f0",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2004-04-13",
+      "value": "37.09",
+      "observation_id": "2c4239f1f68a223933f71ceb4cfcad34e7b9ff31ccf1b00cf81aba980bfcc001",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2004-04-16",
+      "value": "37.7",
+      "observation_id": "92d830c3583c4a9ef0de88cced50d91e4a60f60f22c5a5c4d5ed2b2c8c47038b",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2004-04-19",
+      "value": "37.46",
+      "observation_id": "b60eb5e7dff280d7fb1345b548dd84f6da9dedaade28b6790a00c2e0f94d9e23",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2004-04-28",
+      "value": "37.23",
+      "observation_id": "d97c363139b74b786452850eef9f9224c938a8464360395d6cbea7b3ab3d2d3c",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2004-04-30",
+      "value": "37.31",
+      "observation_id": "49dd06b76ece80b28f56420457ecb60155bebed9e741476c004e21e680e41a09",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2004-05-03",
+      "value": "38.26",
+      "observation_id": "893ccd5a1340dfab81a4c373cd95b49258d6ac7fa5d5d17d7d55685dcbd57ecf",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2004-05-04",
+      "value": "38.86",
+      "observation_id": "63ced5e9472e4f006b43347135112f4d94a7ded74e0c4d58c6c59888b6e3bdd3",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2004-05-12",
+      "value": "40.3",
+      "observation_id": "28503f65297098e7f92c7e47f88cd46b12bf23cdd5f70fd44adcbc7e2487b736",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2004-05-13",
+      "value": "40.94",
+      "observation_id": "09fa5c5f680f59a27a0ff141acda5fac42098f9fc8cb6e36272d302b7a4e12a0",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2004-05-19",
+      "value": "41.61",
+      "observation_id": "2045bdc610822874171e3fa47e365402d1647bbd98e6c03ceaf613ea9b873748",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2004-05-20",
+      "value": "40.92",
+      "observation_id": "f9b50afc874d023296086034decaff5b168628723f1a1ad164c703e99cc810a6",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2004-06-04",
+      "value": "38.44",
+      "observation_id": "2ac76f84a44365d32c2443bb892eb42e3dc28c88516d433702ef2ef5a41cfa57",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2004-06-18",
+      "value": "38.68",
+      "observation_id": "0cd96df356b7b661fe87be3431b45d7afdc004c0d11c0702801212b4020309ba",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2004-06-25",
+      "value": "37.34",
+      "observation_id": "314e48373300f483bac38c54f6fc0722b185491c1145e3c3397389b4f39acefc",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2004-06-28",
+      "value": "36.25",
+      "observation_id": "c6307a84d87373f470ce7e76f51e6f16d9f439d9cc6bcb1f532f4545f83507c8",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2004-07-09",
+      "value": "39.9",
+      "observation_id": "1c4a518e6b2b9aae88f0d63787065695780d32b06e17f6d2c1c7c1341b2113fe",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2004-07-15",
+      "value": "40.7",
+      "observation_id": "db600d06d17b34a187a6af5de5088446316abb7e562256ef2c7fcbe4e6e17ce6",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2004-07-27",
+      "value": "41.83",
+      "observation_id": "4e65d8d75923b8a2cedd07fe2805d2c753f55f420e0d25450538145bb15de959",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2004-08-02",
+      "value": "43.83",
+      "observation_id": "93a2d73846c53e7f5495a770e87d7f69592dd07eedcbcd150c31c147fde20baa",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2004-08-04",
+      "value": "42.73",
+      "observation_id": "7132d1bfcb31aec64fe4287a844d506de98aaa39faf2ff228b3126cba840e011",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2004-08-27",
+      "value": "43.11",
+      "observation_id": "7c45d52e94cc95a1e990c35830754a7f5ff2f959d6aa7fa370591a5d32658177",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2004-09-03",
+      "value": "43.94",
+      "observation_id": "e8024c68b94d3e3558ffdacd4824898d42ee020f86f52cc2486e59ba4fcc4a3e",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2004-09-08",
+      "value": "42.77",
+      "observation_id": "f7a4bc4afe0caae7695fe32613b7f978a55f80e99f90b48d66ee275dbf9af173",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2004-09-10",
+      "value": "42.84",
+      "observation_id": "fd29c6446dce6da7b524ce4b2f6a49f88aabd99b583d5df8b50023ba57db7890",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2004-09-17",
+      "value": "45.63",
+      "observation_id": "e3a99180306f5c77d1a6273dcecced8d99ddbe2e7e61ee52f3a5c3b2f6055a87",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2004-09-21",
+      "value": "47.11",
+      "observation_id": "4f9e02017f6dcb3ae937682ea25135193e7ccdfc8321658b160371f371ed8552",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2004-10-01",
+      "value": "50.16",
+      "observation_id": "8b314c973cd5387fa79f849438a655ac7ee6c3ccc04b88168b1e710a3902a141",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2004-10-14",
+      "value": "54.69",
+      "observation_id": "219dd1805c6b8e486a0ca9b9aeea5d5a886eed7a00d5b5e99c5752b04080b5e9",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2004-10-20",
+      "value": "54.93",
+      "observation_id": "868bafd13209e8196792341dd3316f931ae11a3ca52bdbfa37e42f88e130ae15",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2004-10-22",
+      "value": "55.83",
+      "observation_id": "435c0010291555db0a918428eb94de21d120df39763f9a29433d82e12bdb58a3",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2004-11-15",
+      "value": "46.95",
+      "observation_id": "944c8e9abb3346aac752418dbd9c467236e311c7cb5ad060daa9bfced24c5d62",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2005-01-12",
+      "value": "46.46",
+      "observation_id": "b767d2a3b725024bd6a9a9dc158f8e55b26f5c50e60af7d5565220ab0e5e822c",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2005-02-14",
+      "value": "47.5",
+      "observation_id": "456e45cef70d6991e69631aec409f750093d402add61b840422194e2fda80647",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2005-02-17",
+      "value": "47.5",
+      "observation_id": "6e158a80df00f9aa17e31c6d602c031e1d5c31315fcde0bbecc661c00031fbeb",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2005-02-22",
+      "value": "51",
+      "observation_id": "15c59445077b33e183c7e6763f899cf4ed4fca48e5d44dc91f5d2dead520185d",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2005-02-28",
+      "value": "51.75",
+      "observation_id": "8ef3a01a7158ad121239269eb57871fe0e0e649273127747050381eab138b246",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2005-03-15",
+      "value": "55.05",
+      "observation_id": "89f928c50e2077a750b72021f5528cf73d354d1d4f32f09a8105c39617cf31ad",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2005-03-16",
+      "value": "56.5",
+      "observation_id": "86868da83e5d0be8b6e98c509a275bbb432af5e181716bc27237b8c32410e141",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2005-03-24",
+      "value": "49.7",
+      "observation_id": "e39d7fbaf5ae8d159af144772601933d6961631605b21aa935e5f206ba47ef49",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2005-04-01",
+      "value": "57.26",
+      "observation_id": "0bd415ca50f3fd3a1685b60d5284ee36b9f06ce6d6fcd344a2e326e364d4ea53",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2005-04-04",
+      "value": "56.86",
+      "observation_id": "0e47ab706fbda6493b04a94bcc2c66ec93c588418d0726c5447a823694d0096b",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2005-04-11",
+      "value": "53.71",
+      "observation_id": "8bc6b777ff18a495e69bc82d1cee79c5c06ac9256c95496cb279cb6876927747",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2005-04-15",
+      "value": "50.61",
+      "observation_id": "1291964dd9031a0938382dd06357ddda7cb1f94388eaf30d1bec489823cc4af0",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2005-04-19",
+      "value": "52.33",
+      "observation_id": "b9f6eee8c0ee9f7477647d72052cc217250f5ca5ef3468cf762f094fd29e754b",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2005-05-06",
+      "value": "51.3",
+      "observation_id": "e692970d7ff8155f626e7ebdc6e3a0dbaea4f495973ca05dc72c28b6a634e79a",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2005-05-13",
+      "value": "48.65",
+      "observation_id": "41c9f0a5898405569d25b7445ec2e0676a5bb950e416600b597b30ab58a1dfc7",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2005-05-17",
+      "value": "48.97",
+      "observation_id": "40fb8210273ae51b1c69bd2121ed8dfd0b0ce1e553f7f10f7f888dcbcbd54c41",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2005-05-20",
+      "value": "47.25",
+      "observation_id": "4ffc3303692a646a606a3160f19f296cdb2b65241170b61a336ad79a3895ba6c",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2005-06-03",
+      "value": "55.08",
+      "observation_id": "1be2d5391393e7705620177fadcf769a4f4fb695b3de7b807f6f05d5e59fbbbd",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2005-06-10",
+      "value": "53.55",
+      "observation_id": "6d89068b0ef7390c2c9dc0656d870a03039140cd9d72a8fa54ba9341a596c3bc",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2005-06-20",
+      "value": "59.19",
+      "observation_id": "86f6de292f87ccacb9576d839fbe4be31eca3628263512cbc148d744bed51982",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2005-06-21",
+      "value": "58.9",
+      "observation_id": "bd4194d3109d125895ffbf8e3a3901c771b135243bf56d9743a0100df9841fc8",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2005-07-08",
+      "value": "59.71",
+      "observation_id": "a37073f64b75cc0e7f4927cfd92d6e3462d60cf5dadb77ae7d8e062aa70df414",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2005-07-15",
+      "value": "58.36",
+      "observation_id": "0c00f17ef2ca14120fd928790b2561bc365293964942f7391ae29815df9c8e4d",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2005-07-25",
+      "value": "58.16",
+      "observation_id": "2bf066a4a72fff49300c70c35631a65fb5efb2f8ed0d859254ec7ea1e5228f1a",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2005-07-29",
+      "value": "60.71",
+      "observation_id": "da0db941d2d0cc22062036c14144178f37ff231ea5fd0a51abe61aed905c4a9a",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2005-08-12",
+      "value": "66.71",
+      "observation_id": "7f67e4ddad9a4ea49ab4c1bf2ef508f3663135a92c5d18f33f2574cdf998bd2e",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2005-08-19",
+      "value": "65.51",
+      "observation_id": "35d1f294a116ddbcefd3ba143456727790bfaa73304bf895ec1160dfb5013d9c",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2005-08-30",
+      "value": "69.91",
+      "observation_id": "130c1c6de6f3f75cd4461b224323c057605824abb85626b186c12cad890bd2ce",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2005-09-02",
+      "value": "66.91",
+      "observation_id": "26dd07b4387a1b41086bbfc10a8a25b0423e5c14f0295b8bb5fa2f332229d4d0",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2005-09-09",
+      "value": "64.21",
+      "observation_id": "8348282c7e49dbb8e076b2da300fb2b61d71db024b21184f819504587f1b57f2",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2005-09-20",
+      "value": "66.24",
+      "observation_id": "226dd733cfebb39f2b0d5317dab7a6cbd86e77dbf5f40490fc44ab843b1b8979",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2005-09-29",
+      "value": "66.83",
+      "observation_id": "88d4ec7a2eb4e41715e8b12c5808ac7b748585b15e62542b41f3abc6d41a2aae",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2005-10-05",
+      "value": "62.56",
+      "observation_id": "e36fe2b9df1a064ae5172338c1cf61b914388f4045b10f19c604371787a14eb7",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2005-10-10",
+      "value": "60.71",
+      "observation_id": "6a4503c772f6f209b0e6e2fd7758ef9e7427726164333d84f411d3e52183910f",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2005-10-14",
+      "value": "62.61",
+      "observation_id": "42c81076ff9a3afa93a21fb1dca3c5677fe56eed37ebff90e1f9e7f326121f23",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2005-10-20",
+      "value": "61.04",
+      "observation_id": "05e50f01beb3560c2f624015ae271761f60745c5cead1f2165268d50aad9ae45",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2005-10-21",
+      "value": "61.05",
+      "observation_id": "067d5e8b8fe781da6a6d41ee5342f8366726d922090428bc7ac2c7df30199de2",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2005-11-02",
+      "value": "59.75",
+      "observation_id": "2d003f45088131dbd5878723a74ac08e700b98e98a4f9bb0e0b7fc371dd51605",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2005-11-10",
+      "value": "57.8",
+      "observation_id": "e4c5cc883c4ccef43292a423339d3e5e0a41724dfae546037c892aaf2d310d36",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2005-11-15",
+      "value": "57.05",
+      "observation_id": "828ccddcff0c2f8dd16bc67a7e9213782aa1f7a2d0967dcbfe6018f94a83ea10",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2005-11-28",
+      "value": "57.36",
+      "observation_id": "6e907b8b1432915b54857f73d3b2f33dd3205ab1c090afb3f25f12cd476060ff",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2005-12-05",
+      "value": "59.91",
+      "observation_id": "0c76c5e96c6aeb049321c0e1591bb3a3650ac34e2f10811280ef2dae49bb779a",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2005-12-07",
+      "value": "59.21",
+      "observation_id": "a3bccce7daea693b0eacc92ec176cd836c54e4bcd0bb2fdb970e6dab70dac0e9",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2005-12-08",
+      "value": "60.66",
+      "observation_id": "f7092b2ab76e6a8a57edffbbb747b527bf7dec6744c41678a300ca575eaa7247",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2005-12-22",
+      "value": "58.08",
+      "observation_id": "08f0e067bc168c38719504d2d0baf21829066618023590a1cb8120c315ddaf82",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2005-12-27",
+      "value": "58.16",
+      "observation_id": "bfdf9674a68a6ecaba39065abccbd174d3029ebb9a43ddab1f7b09ac080d6917",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2005-12-30",
+      "value": "61.06",
+      "observation_id": "dfbd4f07c250ec46a58175a3c1059d5408f98ee11ccb0dd920cf9bc1b3ea1856",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2006-01-06",
+      "value": "64.21",
+      "observation_id": "194fbdfa3ea6a1a2f191a79be009ac60046b06e9ed01a531b3afabd059d81650",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2006-01-12",
+      "value": "63.96",
+      "observation_id": "abcc2d4a58504d1a4f3f523febc904422abff50bce24f7e2bc9598b2662fbb26",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2006-02-17",
+      "value": "59.76",
+      "observation_id": "ac84061cfb406566e8363e4ab595bf5dcead95f1b1586d072bee7c03daba57e9",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2006-02-27",
+      "value": "61.01",
+      "observation_id": "b75a66f178ae478791050c5237bc5248fdba79c03866b2a4800d221110cf3b86",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2006-03-02",
+      "value": "63.36",
+      "observation_id": "ecad47ec1641108b5a035dd4b5ad6a50c627bfdd82c82635da8d5805cf21d9e4",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2006-03-03",
+      "value": "63.61",
+      "observation_id": "aa41456b198f1a3d2ece60488514f72f658ca86ae5f6e27ec9841355da1ba3f5",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2006-03-14",
+      "value": "63.01",
+      "observation_id": "a7118902788bc3825bab00f2c1953ee4e8ee21e99a681b5d854d0df1d1c10cab",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2006-03-31",
+      "value": "66.25",
+      "observation_id": "a0fe943f607faf532d21785e9fd5c044aff3f27e1a30c58de37cb4c4f67afbc7",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2006-04-13",
+      "value": "69.53",
+      "observation_id": "81f7c6ce8d886135b2eb4c7a3e4ba7127609ac3498df5532ef31b9bf37c86b44",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2006-04-20",
+      "value": "71.96",
+      "observation_id": "81af7ab62f8217b7e2064318f05eff1d298bdf7b741c7ab9808681a2a82eb35f",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2006-05-04",
+      "value": "69.98",
+      "observation_id": "46d8a8e15acce00740750e58a28949d49168697c5289f5dfb2cbe31b33f1e432",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2006-05-09",
+      "value": "70.71",
+      "observation_id": "54758a0fd889b31ab1eee1a84e1fcdb6deaa8da6739ec88d35b7c913b0227e88",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2006-06-27",
+      "value": "72.05",
+      "observation_id": "ccb44ae89dde71df433fe419c04d6fda282a88cb6c4db0cc075a84c5956e0778",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2006-07-12",
+      "value": "74.99",
+      "observation_id": "0c172bfa40ed4ae85669d927935ff2de5bf8c1804c71533e69fbf296c15ff58f",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2006-07-13",
+      "value": "76.7",
+      "observation_id": "9dc16c437c7f9737c616cc1c01fb870c949bdb0b2feda85f8e0b05aa7f0d6e7c",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2006-07-14",
+      "value": "76.8",
+      "observation_id": "5b8b9fc5709d032e44a54f6546ebef81cfb07ad451835ca1292f6f388872f1c8",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2006-08-29",
+      "value": "69.74",
+      "observation_id": "1afe51c52a5c6c2f75732f2cb42352cfcbf2f74b88b15f7f93790eb46df70b28",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2006-09-18",
+      "value": "63.84",
+      "observation_id": "3d77db99bd93b1c5e7e073a022e11aeeb4640e2f9f0283d562c21fedc7d7ca4c",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2006-09-20",
+      "value": "60",
+      "observation_id": "9062f3dc2518167e4e9fd437736194da1ab998ae8c335688aedad9ba531ddd47",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2006-09-27",
+      "value": "62.96",
+      "observation_id": "6de450834bced0c36a495e7fc8bcb6cee149b58fb13236d140ef5f320cda1943",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2006-11-02",
+      "value": "57.87",
+      "observation_id": "794d5adb54a033bbd2dff7fb9b4c7e085aa999b75879df1f4f0dd766cc288256",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2006-11-08",
+      "value": "59.93",
+      "observation_id": "95d41171218bec27a54114c9a906f9534fbaaa6a3b013c20093e990ac67d2a88",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2006-11-14",
+      "value": "58.28",
+      "observation_id": "89068e0d2575fa456226244e056738c8012eece40f11fbc5bd6701ccbc1e956d",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2007-01-29",
+      "value": "54.01",
+      "observation_id": "4a269c9f6b4289eef80bf341b0eeac4dae48fc4e116435ac3dc1f894a0750f22",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2007-02-14",
+      "value": "58",
+      "observation_id": "a74d8baf02b9ed4d3fac179da38520709134278177e5786ebf5bbd8a4b8a4de8",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2007-02-27",
+      "value": "61.46",
+      "observation_id": "e54ec9ef7adcdfe9d15b8ecd546aea0512137a79397fd4fd48f00e4c3254281e",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2007-04-12",
+      "value": "63.87",
+      "observation_id": "a013dbe01d1c977a963907ee11747a7e711cf2dec5d38cf7472db13678e2c77e",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2009-02-27",
+      "value": "44.15",
+      "observation_id": "a9d1decf6f7ff6606f884b244a781671b3592afee8d4b28212b996944bf5c3bd",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2009-07-21",
+      "value": "64.81",
+      "observation_id": "592a446ae7384c51f7d4176600143213afcca2eceb3a7f7017392182f6f51b84",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2011-03-28",
+      "value": "103.54",
+      "observation_id": "919af26257c6676087879cd3c9785a6886fdf6db65b14365fb85353384475b1f",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2011-04-08",
+      "value": "112.27",
+      "observation_id": "2283f0e85352cf36a47ece8fba345ac4d8a34a13a0fea3e48ae33e41baf17411",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2011-04-12",
+      "value": "105.75",
+      "observation_id": "240cc92506c75ca4a7879276cd36f697ab88465b9264b2c13e3bcf5da47ed708",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2011-04-14",
+      "value": "107.73",
+      "observation_id": "78e18f7a096c065525e0de528f277b5af3d9a1e0f0b53cf9b6e83462dd521d04",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2011-04-19",
+      "value": "107.18",
+      "observation_id": "59de0439ff05927b1c7003025fcce6e16babf13815c2e507e92f42dfd6330d5b",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2011-04-20",
+      "value": "110.84",
+      "observation_id": "10994f8b26bd0f65b307b447b34b1ebd235a10a400a609fe754f73e5ccd6fed1",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2011-04-21",
+      "value": "111.72",
+      "observation_id": "53643b9d11a6eea30f781c37d2265cf1a2ea83657f437ab6dc70a96d8cc70676",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2011-04-29",
+      "value": "113.39",
+      "observation_id": "9a5a1f2e7b10bf1ac949569a845462996bf6dd8b442e6dc3ba10d2e4f02c2da1",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2011-05-04",
+      "value": "108.79",
+      "observation_id": "fe87b2a3914262082daaa0f42c6c5c83e23296df2e19424a3c1639e24def7343",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2011-05-05",
+      "value": "99.89",
+      "observation_id": "3d6e0a6c8201182d0fb08ec72a0d26091076fdc1e552bc4c12bff1e4727a21cb",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2011-05-06",
+      "value": "96.87",
+      "observation_id": "3f919d30a330bc6160e71ec2a0b03288e4377fe7c5af9c4a0de62e3db42122c1",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2011-05-09",
+      "value": "100.32",
+      "observation_id": "11b5385a5b0cfbc0315e8820674b4c1b614b4c5a9d11f2b1f194e08c260b0f3b",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2011-05-12",
+      "value": "98.53",
+      "observation_id": "78471dd592074c4afdbd1440038af7b41500ed358507a968b2c5ad173723c515",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2011-05-13",
+      "value": "99.21",
+      "observation_id": "2f39ec592c39866e3a3f6c3ac0647b33a72b8991699f9dffd99a845aeec0cccf",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2011-05-16",
+      "value": "96.91",
+      "observation_id": "8eb35f3e9344c1eac52a2ca4d86385d101882f3b664b020fdc9fbc8e3019aefe",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2011-05-19",
+      "value": "97.99",
+      "observation_id": "4e16112c752911e39fb99270cd0372e1f04ef47518bd95b70823f18f1352fa9b",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2011-05-20",
+      "value": "99.15",
+      "observation_id": "a355965a1cda76d87092cd9c8f48758ce8f3d6861b564210b1911059ae52e58c",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2011-05-24",
+      "value": "99.13",
+      "observation_id": "c535f183d06f1834fafb26a8665500a281bfd9dd777139c5f90ee56db0e2c896",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2011-05-25",
+      "value": "100.78",
+      "observation_id": "42ac4c978291ea851495d912d393e790ee262585220373d7de08ff31c8a4a244",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2011-05-26",
+      "value": "100.18",
+      "observation_id": "ac646d94d0b56cc851f6fee05d2f4c6d77e2213829b34ac65af757b23356972c",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2011-05-27",
+      "value": "100.58",
+      "observation_id": "16a1ab14848f518bff17118e3cc2a7c7b76cf3d4c58711525dc8a7a7c0579ace",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2011-06-02",
+      "value": "100.41",
+      "observation_id": "1c71d5899c055a8b9e1770a1a23f253d4033ca27f1fb6a1c4676e461c4d9a0fa",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2011-06-06",
+      "value": "99.07",
+      "observation_id": "1f6de85e58a7a2dd2c15d949fe57dcbd15498047c3aaedb3ade29bb2dd2c756b",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2011-06-07",
+      "value": "99.18",
+      "observation_id": "0d7c4431d9a610cdfe937ba3b8b23118e22cc1f11e89ad970cef5f677b24abd0",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2011-06-09",
+      "value": "101.95",
+      "observation_id": "606ad9baac5e3dcd24d2f2a698200621c92998c4fe50e080dbeb26e931e7f4ac",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2011-06-14",
+      "value": "99.37",
+      "observation_id": "7c572915891fc10f7dd90bfc5160b1d2f406a7142de5b96a061cd9e1e7c28325",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2011-06-15",
+      "value": "94.83",
+      "observation_id": "9fd3bd1480bcead5635c195ca15f511f253a2b98988b8beb91c1ac1f39b8c93a",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2011-06-16",
+      "value": "94.95",
+      "observation_id": "6e05eb8508f7350a308269ad01ab7fc52cdd5b841e5b279921fa7f28f88045ee",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2011-06-17",
+      "value": "93.02",
+      "observation_id": "0cefbe1fa3e3caa56dfd33202bee8b6749c2e8d4a1a50639996cf129853da9df",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2011-06-20",
+      "value": "93.23",
+      "observation_id": "05b62725c1e6918f1d86e667996509b6e6ecf0f1bb8fd20195adb317cb3ea15a",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2011-06-22",
+      "value": "94.96",
+      "observation_id": "355b67bc847563eb0ff70c5860f52f1049a6ab01125027edf75ac1d8c704e22a",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2011-06-24",
+      "value": "90.89",
+      "observation_id": "b6c761b8159e77c4c739594a76206d1363a40e4aab81907997f51aea73d5fc50",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2011-06-27",
+      "value": "90.65",
+      "observation_id": "9820f11dc9389af090d995a64198e7133911085bf6a7b03c5f2a3ad31021d70a",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2011-06-29",
+      "value": "94.85",
+      "observation_id": "c1c34780426d643150c29f7e13bd0b9c054aafb579955aec843a5463d10c76fb",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2011-07-05",
+      "value": "96.92",
+      "observation_id": "a63cc43d756d842a41c775ba9c2d10f383fb53aa358b695aba79c6af728ca582",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2011-07-06",
+      "value": "96.67",
+      "observation_id": "cadacdf5ed3bb6e3fe22d3c87b44747421526d2ec966eb23e9319aa30edcc5ed",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2011-07-11",
+      "value": "95.16",
+      "observation_id": "ea6a4f8dd9f1543aaf86dc4804e699706b87f4333c624add3bcbfb00aebceb93",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2011-07-12",
+      "value": "97.41",
+      "observation_id": "20c85ace4dff062dcf98fa703ea8f90173cb475b7bb7c1233fe0d9f5b7d10ade",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2011-07-13",
+      "value": "98.04",
+      "observation_id": "88ea11d32b6b996a3ad202f31239f5df948613691539c6132bac27a5a015ed0e",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2011-07-22",
+      "value": "99.53",
+      "observation_id": "ba583b20ad4155ed416566ebfaff88ccb40b80a4bf854c7ee9f1479b174c5911",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2013-05-07",
+      "value": "95.28",
+      "observation_id": "3018e148f144dc82fcf2a58a88d9403481155208b48cb88bcfeb21fb3312cace",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2013-12-10",
+      "value": "98.32",
+      "observation_id": "d42c15aecc11c0263868d6891009340f3410dbb62a5982752eea13d687f708a7",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2014-10-14",
+      "value": "81.72",
+      "observation_id": "dbc37fe6fe29f30cdff6bb5c9d352fcaf3c58bf7f7cc792c3d7225f40e5c4c65",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2014-10-27",
+      "value": "81.26",
+      "observation_id": "008b9ec0884179ca64d6a8a25664a55d57050816d617276343fb1a241f289daf",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2014-12-03",
+      "value": "67.3",
+      "observation_id": "674504c91736e3a8a75b2770b8d9cb4c54bc277fcbb25e059ae75d26b9dc179b",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2014-12-24",
+      "value": "55.7",
+      "observation_id": "8805fb01d27f82e42ab75948139d2b31e25243ab3577e91b11659a54129f3c51",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2015-01-08",
+      "value": "48.8",
+      "observation_id": "9857626efacf79c439e86768cdaa576e9d15a67c8bc3c064c8dd97f398772961",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2015-01-22",
+      "value": "45.93",
+      "observation_id": "47ee1ed517316e3d374bf6abcf404940f205b597eaaaca2b765af3e0b9faff62",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2015-01-26",
+      "value": "44.8",
+      "observation_id": "0710817e9ac4fa8d763385a4c21b63ad3e0904a45f9910b830d16317f140a968",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2015-01-27",
+      "value": "45.84",
+      "observation_id": "f95184f8079e4acdadca49d070eb124d1c988ba9a0865264b152f7568217b871",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2015-01-28",
+      "value": "44.08",
+      "observation_id": "3138029ec8efb60e2e4a2896efa6a825570486bd29cf073df4e32089ae2477d6",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2015-01-29",
+      "value": "44.12",
+      "observation_id": "cb4d43ac67bfcb3dfa3c17ce533bd0601c304113b48b5e821cb2516ab2f9ada2",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2015-02-02",
+      "value": "49.25",
+      "observation_id": "58fedf10dd63d4ebb9e94893079d3d64292076d7d816bc5f254ee0066c7dfb8c",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    },
+    {
+      "date": "2015-02-04",
+      "value": "48.45",
+      "observation_id": "965961c74f6310c04d68cf29d000295b9720a1541223d85b08a5171b3212c2cc",
+      "available_at": "2026-08-18T08:26:51+00:00",
+      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a"
+    }
+  ]
+}

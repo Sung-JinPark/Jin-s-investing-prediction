@@ -137,10 +137,19 @@ def test_question_maps_registry_alignment() -> None:
 
     from ai_fc import config
     reg = yaml.safe_load((config.ROOT / "questions" / "registry.yaml").read_text(encoding="utf-8"))
-    ids = {q["id"] for q in reg["questions"]}
+    by_id = {q["id"]: q for q in reg["questions"]}
     valid_modes = {"above_path", "below_path", "above_terminal", "below_terminal"}
     for qm in QUESTION_MAPS:
-        assert qm.question_id in ids, f"registry에 없는 qid: {qm.question_id}"
+        assert qm.question_id in by_id, f"registry에 없는 qid: {qm.question_id}"
+        # 폐기(void)된 질문은 판정기준이 바뀐 것이라 매핑에 남으면 안 된다. 해소·만료는 자동 해소 워크플로가
+        # main 에서 상태를 바꾸므로 여기서 실패시키면 CI 가 갑자기 깨진다 — 그 정리는 ml 실행 시 경고(런타임)로 넘긴다.
+        status = by_id[qm.question_id].get("status", "active")
+        assert status != "void", f"폐기된 질문이 매핑에 남아 있음: {qm.question_id}"
+        assert status in {"active", "resolved", "expired"}, f"알 수 없는 상태 {status}: {qm.question_id}"
         assert qm.mode in valid_modes
         if qm.window:
             assert qm.window[0] < qm.window[1]
+        if qm.deadline:
+            assert str(by_id[qm.question_id].get("deadline")) == qm.deadline,                 f"매핑 deadline 이 registry 와 다름: {qm.question_id}"
+            if qm.window:
+                assert qm.window[1] <= qm.deadline

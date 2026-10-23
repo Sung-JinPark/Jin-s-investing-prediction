@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import math
 from datetime import datetime
 from pathlib import Path
 from typing import Any
@@ -10,6 +11,64 @@ from typing import Any
 from . import contracts as C
 from . import features as F
 from .pipeline import Daily6mPipelineError, hold_payload, load_run, validate_run
+
+# 전진 성적(표시 전용) 기준값 — 무정보 Brier 0.25 = p=0.5 고정 예측의 점수, 공칭 구간 80%.
+NO_INFORMATION_BRIER = 0.25
+NOMINAL_INTERVAL_COVERAGE = 0.8
+
+
+def forward_record(rows: list[dict[str, Any]]) -> dict[str, Any]:
+    """해소 원장 행을 전진 성적으로 요약한다 — 표시 전용 순수 함수, 채점·판정이 아니다.
+
+    누적 Brier(무정보 0.25 병기)·80% 구간 적중 n/N·발행 수·해소일 수만 센다. 같은 발행의
+    일별 행은 독립 표본이 아니므로 발행 수와 해소일 수를 함께 싣는다. 정정(supersedes)된
+    해소 행은 최신 개정만 센다 — 원장 자체는 그대로다. 행이 없으면 숫자 대신 None(화면은
+    '—')이고, predictive_validation 은 어떤 경우에도 not_established 로 유지한다.
+    """
+    superseded = {str(row.get("supersedes")) for row in rows if row.get("supersedes")}
+    active = []
+    for row in rows:
+        if str(row.get("resolution_id")) in superseded:
+            continue
+        brier = row.get("brier")
+        if isinstance(brier, bool) or not isinstance(brier, (int, float)) or not math.isfinite(float(brier)):
+            continue
+        active.append(row)
+    count = len(active)
+    dates = sorted({str(row.get("date")) for row in active if row.get("date")})
+    forecasts = {str(row.get("forecast_id")) for row in active if row.get("forecast_id")}
+    return {
+        "schema_version": 1,
+        "model_id": C.MODEL_ID,
+        "ledger": C.RESOLUTION_LEDGER.as_posix(),
+        "display_only": True,
+        "probability_unit": "fraction",
+        "resolved_rows": count,
+        "forecasts": len(forecasts),
+        "resolved_dates": len(dates),
+        "first_date": dates[0] if dates else None,
+        "last_date": dates[-1] if dates else None,
+        "mean_brier": round(sum(float(row["brier"]) for row in active) / count, 4) if count else None,
+        "no_information_brier": NO_INFORMATION_BRIER,
+        "covered_p10_p90_rows": sum(1 for row in active if row.get("inside_p10_p90") is True) if count else None,
+        "nominal_interval_coverage": NOMINAL_INTERVAL_COVERAGE,
+        "independent_rows": False,
+        "predictive_validation": "not_established",
+    }
+
+
+def load_forward_record(root: Path) -> dict[str, Any]:
+    """원장이 없거나 깨졌으면 행 0 으로 닫는다 — 빌드를 세우지 않고 숫자를 지어내지 않는다."""
+    path = root / C.RESOLUTION_LEDGER
+    try:
+        rows = [
+            json.loads(line) for line in path.read_text(encoding="utf-8").splitlines() if line.strip()
+        ] if path.is_file() else []
+    except (OSError, ValueError) as exc:
+        record = forward_record([])
+        record["ledger_error"] = str(exc)
+        return record
+    return forward_record(rows)
 
 
 def project_run(root: Path, run: dict[str, Any], *, now: datetime | None = None) -> dict[str, Any]:

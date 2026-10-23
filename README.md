@@ -43,7 +43,7 @@
 
 **V13-VOL**은 동결된 지속성 모델로 VIX·실현변동성 이벤트의 기준율을 제공합니다. 홀드아웃은 9셀 중 3셀(VIX 25 이상·21영업일, 실현변동성·5/21영업일)만 통과했으며 나머지 6셀의 숫자는 표시하지 않습니다. 통과 셀도 신선도·계수 무결성·라이브 검증 상태에 따라 보류할 수 있습니다. AI 질문 예측과 정의·지평·출처를 구분하며 자동 합산하거나 매매 신호로 사용하지 않습니다. [V13-VOL 계약·셀별 표시 정책](data/contracts/multivariate_timeseries_v13_vol.yaml)
 
-**닷컴 대비 과열도 v3**는 통계페이지의 같은 자료에서 계산해 메인 카드와 통계 상단에 함께 표시합니다. 100%는 닷컴 비교 구간의 극단 수준이며, 확률이 아닙니다. 부문별 중앙값을 다시 중앙값으로 집계하고 100% 초과도 그대로 표시합니다. IPO 부문은 최근 12개월 운영기업 IPO 건수에 출처가 확인된 시대 핵심 ADR 상장을 가산하며 SPAC은 제외합니다. [과열도 v3 계약](data/contracts/dotcom_overheat_index_v3.yaml)
+**닷컴 대비 과열도 v4**는 통계페이지의 같은 자료에서 매일 다시 계산해 메인 카드와 통계 상단에 함께 표시합니다. 100%는 닷컴 비교 구간의 극단 수준이며, 확률이 아닙니다. 부문별 중앙값을 다시 중앙값으로 집계하고 100% 초과도 그대로 표시합니다. 입력 14종 중 9종이 분기·연간 계열이라 대표값은 발표 사이에 그대로일 수 있고, 지표마다 자료 기준월을 함께 표시합니다. IPO 부문은 최근 12개월 운영기업 IPO 건수에 출처가 확인된 시대 핵심 ADR 상장과 해외 대형 IPO(상장지 불문, 총공모 임계 이상)를 가산하며 SPAC은 제외하고, 상장 대기 기업(DeepSeek 등)은 표시만 합니다. [과열도 v4 계약](data/contracts/dotcom_overheat_index_v4.yaml)
 
 **상·하방 추세선**은 미래탐색의 마지막 카테고리에서 7개 자산의 확정 일봉과 지지·저항 경계를 표시합니다. 선형·로그축을 따로 검수하며 선의 미래 연장은 가격 예측이 아닙니다. 원본·정정·이탈 기록은 별도 append-only 원장에 보존합니다. 현재 승인된 무료 OHLC 정본이 없어 7개 모두 미산출이며, 종가나 다른 상품으로 대체하지 않습니다. [추세선 계약](data/contracts/trendlines_v1.yaml) · [구현·원천·운영 안내](docs/design/trendlines_implementation_261013.md)
 
@@ -104,7 +104,7 @@ flowchart LR
 
 | 계약 | 위치 |
 |---|---|
-| 닷컴 대비 과열도 v3 | [`dotcom_overheat_index_v3.yaml`](data/contracts/dotcom_overheat_index_v3.yaml) |
+| 닷컴 대비 과열도 v4 | [`dotcom_overheat_index_v4.yaml`](data/contracts/dotcom_overheat_index_v4.yaml) |
 | 아침 시장 지표 최신성 | [`morning_freshness_v1.yaml`](data/contracts/morning_freshness_v1.yaml) |
 | 이벤트 실제·예상·이전 값 원장 | [`event_consensus.jsonl`](data/calendar/event_consensus.jsonl) |
 | 공식 숫자 원천 허용목록 | [`authoritative_statistics_sources.yaml`](data/contracts/authoritative_statistics_sources.yaml) |

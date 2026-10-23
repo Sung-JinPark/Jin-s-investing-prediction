@@ -90,6 +90,49 @@ def test_exact_html_research_capture_replays_without_approving_official_source(s
                                for path in (store / S.ROOT).rglob("*") if path.is_file()}
 
 
+def test_audit_releases_checked_archive_bodies_but_still_checks_old_evidence(store, monkeypatch):
+    import gc
+    import weakref
+
+    for index in range(5):
+        fetched = f"2024-04-{10+index:02d}T01:00:00+00:00"
+        raw = public_html() + f"<!-- capture {index} -->".encode()
+        R.capture_html(store, "bitcoin", raw, receipt(raw, fetched), as_of=fetched)
+    before = all_bytes(store)
+    original_checked, original_checked_bytes = R._checked, R._checked_bytes
+    living, peak, tracked = 0, 0, 0
+
+    class TrackedArchive(dict):
+        pass
+
+    def released():
+        nonlocal living
+        living -= 1
+
+    def track(value):
+        nonlocal living, peak, tracked
+        if value.get("contract_id") == "trendlines_research_snapshot_v1":
+            gc.collect()
+            value = TrackedArchive(value)
+            living += 1
+            tracked += 1
+            peak = max(peak, living)
+            weakref.finalize(value, released)
+        return value
+
+    # The audit decodes archives from the bytes it hashed; other readers parse the file.
+    monkeypatch.setattr(R, "_checked", lambda path: track(original_checked(path)))
+    monkeypatch.setattr(R, "_checked_bytes", lambda data, name: track(original_checked_bytes(data, name)))
+    audit = R.verify(store, replay=True)
+    assert audit["ok"] and audit["snapshots"] == 5 and tracked >= 5
+    assert peak <= 2, "checked historical bodies must not accumulate in the revision index"
+    assert before == all_bytes(store)
+    # Releasing a parsed body must not skip old raw evidence or revision checks.
+    raw_path = next((store / R.ROOT / "raw").glob("*.bin"))
+    raw_path.write_bytes(b"controlled corruption of retained source")
+    assert not R.verify(store, replay=True)["ok"]
+
+
 def test_refetch_identical_html_preserves_first_acquisition_and_is_noop(store):
     raw = public_html()
     first = R.capture_html(store, "bitcoin", raw, receipt(raw), as_of=FETCHED)

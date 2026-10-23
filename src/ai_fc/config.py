@@ -190,6 +190,9 @@ BASE_RATES_DIGEST_MAX_CHARS = 1500  # 프롬프트 주입 다이제스트 하드
 # 경고 전용 — 차단하지 않는다.
 BASE_RATE_VINTAGE_WARN_DAYS = 7
 ML_HISTORY_DIR = ROOT / "data" / "ml_history"
+# ML 참조 채점 원장 (ML_M4_REFERENCE_SCORING — 기록·표시만, 게이트 무관, C5 분모 기여 0)
+ML_REFERENCE_CONTRACT = "data/contracts/ml_technique_m4_reference_scoring.yaml"
+ML_REFERENCE_LEDGER = "data/ml_reference/ledgers/reference_scores.jsonl"
 
 # ── 게이트 (CLAUDE.md와 동기) ─────────────────────────────────────
 GATE_P2 = {"n": 30, "brier": 0.20}

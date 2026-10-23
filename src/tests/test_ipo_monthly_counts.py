@@ -370,56 +370,110 @@ def test_policy_admits_only_the_ipoall_counts_as_numeric() -> None:
     assert "provisional_display_only" in policy.rule_for("nasdaq_ipo_calendar").usage_roles
 
 
-def test_theme_adr_additions_are_sourced_symmetric_and_confirmed_only(tmp_path: Path) -> None:
-    """2026-10-08 사용자 결정: 시대 핵심 ADR(닷컴 반도체·인터넷 / 현재 반도체·AI)은 확정 계열에 더한다.
+def _listing(month: str, scope: str, **extra: str) -> dict[str, str]:
+    base = {"month": month, "era": "ai", "theme": "semiconductor", "company": f"{scope}-{month}", "ticker": "",
+            "exchange": "Nasdaq" if scope == "us_adr" else "Shanghai STAR",
+            "market_country": "US" if scope == "us_adr" else "CN",
+            "instrument": "ADS" if scope == "us_adr" else "A-share", "listing_scope": scope,
+            "proceeds_usd_m": "" if scope == "us_adr" else "900", "source_url": "https://example.org", "note": ""}
+    return {**base, **extra}
 
-    잠정(Nasdaq 근사) 구간에는 더하지 않는다 — 근사 필터가 ADR 을 이미 센다(SK hynix 2026-07).
-    """
-    from ai_fc.ipo_monthly_counts import ipo_count_series, load_theme_adr_additions
 
-    rows = load_theme_adr_additions(ROOT)
+def test_theme_listing_additions_are_sourced_and_scoped() -> None:
+    """2026-10-08 ADR + 2026-10-23 해외 대형 상장(상장지 불문) — 행마다 출처·범위 규칙이 검증된다."""
+    from ai_fc.ipo_monthly_counts import THEME_FOREIGN_MIN_PROCEEDS_USD_M, load_theme_listing_additions
+
+    rows = load_theme_listing_additions(ROOT)
     assert {row["era"] for row in rows} == {"dotcom", "ai"}
     names = {row["company"] for row in rows}
     assert {"SK hynix", "Arm Holdings", "Taiwan Semiconductor Manufacturing"} <= names
+    assert {"CXMT (ChangXin Memory)", "Moore Threads", "Biren Technology", "Zhipu AI (Z.ai)", "Kioxia Holdings"} <= names
     assert all(row["source_url"].startswith(("https://", "http://")) for row in rows)
-    assert all(row["instrument"] in {"ADR", "ADS"} for row in rows)
+    for row in rows:
+        if row["listing_scope"] == "us_adr":
+            assert row["instrument"] in {"ADR", "ADS"} and row["market_country"] == "US"
+        else:
+            assert row["listing_scope"] == "foreign_primary" and row["market_country"] != "US"
+            assert int(row["proceeds_usd_m"]) >= THEME_FOREIGN_MIN_PROCEEDS_USD_M[row["era"]]
+    # 닷컴기에는 임계를 넘는 해외 상장이 없다 — 비대칭은 숨기지 않고 계약·caveat 에 공시한다.
+    assert not [row for row in rows if row["era"] == "dotcom" and row["listing_scope"] == "foreign_primary"]
+
+
+def test_adr_counts_in_confirmed_months_only_and_foreign_listings_in_all_months() -> None:
+    """ADR 은 확정월만(잠정은 Nasdaq 근사가 이미 센다), 해외 주 상장은 확정·잠정 모두(아무도 안 센다)."""
+    from ai_fc.ipo_monthly_counts import ipo_count_series
+
     ritter = {"last_confirmed_month": "2024-12", "months": [
         {"month": f"{2024 if i >= 12 else 2023}-{(i % 12) + 1:02d}", "net": 5, "gross": 9} for i in range(24)]}
-    nasdaq = {"months": {"2025-01": {"complete": True, "operating_approx": 7, "priced_total": 9}}}
+    nasdaq = {"months": {"2025-01": {"complete": True, "operating_approx": 7, "priced_total": 9},
+                         "2025-02": {"complete": True, "operating_approx": 4, "priced_total": 6}}}
     extra = [
-        {"month": "2024-10", "era": "ai", "theme": "ai", "company": "X", "ticker": "", "exchange": "Nasdaq",
-         "instrument": "ADS", "source_url": "https://example.org", "note": ""},
-        {"month": "2025-01", "era": "ai", "theme": "semiconductor", "company": "Y", "ticker": "", "exchange": "Nasdaq",
-         "instrument": "ADS", "source_url": "https://example.org", "note": ""},
+        _listing("2024-10", "us_adr"),
+        _listing("2025-01", "us_adr"),                    # 잠정월 ADR — 더하지 않는다
+        _listing("2024-11", "foreign_primary"),
+        _listing("2025-01", "foreign_primary"),
+        _listing("2025-01", "foreign_primary", company="second"),
+        _listing("2025-04", "foreign_primary"),           # Nasdaq 달 없음 — 건너뛰고 공시
     ]
     built = ipo_count_series(ritter, nasdaq, extra)
-    assert built["confirmed"]["2024-12"] == 61, "확정월 가산 1건"
-    assert built["theme_adr_added"] == {"2024-10": 1}, "확정월 이후(잠정) 행은 더하지 않는다"
-    assert built["provisional"]["2025-01"] == 61 - 5 + 7
+    assert built["confirmed"]["2024-12"] == 62, "확정월 가산 ADR 1 + 해외 1"
+    assert built["theme_added_confirmed"] == {"2024-10": 1, "2024-11": 1}
+    assert built["theme_added_provisional"] == {"2025-01": 2}
+    assert built["provisional"]["2025-01"] == 62 - 5 + 7 + 2
+    assert built["provisional"]["2025-02"] == 62 - 5 - 5 + 7 + 2 + 4
+    assert built["theme_added_skipped"] == [{"month": "2025-04", "count": 1, "reason": "Nasdaq 잠정 달 없음·미완결"}]
+    assert built["provisional_months"][0]["theme_foreign_added"] == 2
     base = ipo_count_series(ritter, nasdaq)
-    assert base["confirmed"]["2024-12"] == 60 and base["theme_adr_added"] == {}
+    assert base["confirmed"]["2024-12"] == 60 and base["theme_added_confirmed"] == {}
 
 
-def test_theme_adr_rows_outside_the_era_theme_are_rejected(tmp_path: Path) -> None:
+def test_theme_listing_rows_breaking_the_rules_are_rejected(tmp_path: Path) -> None:
     from ai_fc.ipo_monthly_counts import (
-        THEME_ADR_FIELDS, THEME_ADR_RELATIVE, IPOMonthlyCountsError, load_theme_adr_additions,
+        THEME_LISTING_FIELDS, THEME_LISTING_RELATIVE, IPOMonthlyCountsError, load_theme_listing_additions,
     )
 
-    path = tmp_path / THEME_ADR_RELATIVE
+    path = tmp_path / THEME_LISTING_RELATIVE
     path.parent.mkdir(parents=True)
-    path.write_text(",".join(THEME_ADR_FIELDS) + "\n"
-                    "1999-10,dotcom,ai,Bad,,Nasdaq,ADS,https://example.org,\n", encoding="utf-8")
-    with pytest.raises(IPOMonthlyCountsError):
-        load_theme_adr_additions(tmp_path)
-    path.write_text(",".join(THEME_ADR_FIELDS) + "\n"
-                    "2026-07,ai,semiconductor,CXMT,,Shanghai STAR,A-share,https://example.org,\n", encoding="utf-8")
-    with pytest.raises(IPOMonthlyCountsError):
-        load_theme_adr_additions(tmp_path)
+    header = ",".join(THEME_LISTING_FIELDS) + "\n"
+    bad_rows = [
+        "1999-10,dotcom,ai,Bad,,Nasdaq,US,ADS,us_adr,,https://example.org,",              # 시대 밖 테마
+        "2026-07,ai,semiconductor,CXMT,,Shanghai STAR,CN,A-share,us_adr,,https://example.org,",   # ADR 범위에 해외 주식
+        "2026-07,ai,semiconductor,Small,,HKEX,HK,ordinary,foreign_primary,120,https://example.org,",  # 임계 미달
+        "2026-07,ai,semiconductor,NoSize,,HKEX,HK,ordinary,foreign_primary,,https://example.org,",   # 공모액 없음
+        "2026-07,ai,semiconductor,USListed,,Nasdaq,US,ordinary,foreign_primary,900,https://example.org,",  # 미국 상장
+        "2026-07,ai,semiconductor,NoSource,,HKEX,HK,ordinary,foreign_primary,900,,",            # 출처 없음
+    ]
+    for row in bad_rows:
+        path.write_text(header + row + "\n", encoding="utf-8")
+        with pytest.raises(IPOMonthlyCountsError):
+            load_theme_listing_additions(tmp_path)
+    path.write_text(header + "2026-07,ai,semiconductor,CXMT,,Shanghai STAR,CN,A-share,foreign_primary,8600,https://example.org,\n",
+                    encoding="utf-8")
+    assert [row["company"] for row in load_theme_listing_additions(tmp_path)] == ["CXMT"]
+
+
+def test_pipeline_is_display_only_and_names_deepseek() -> None:
+    """상장 대기(DeepSeek 등)는 출처·날짜를 달고 표시만 — 어떤 합계에도 들어가지 않는다."""
+    from ai_fc.ipo_monthly_counts import ipo_count_series, load_ipo_monthly_tables, load_theme_listing_pipeline
+
+    rows = load_theme_listing_pipeline(ROOT)
+    assert any(row["company"].startswith("DeepSeek") for row in rows)
+    assert all(row["source_url"].startswith("https://") and row["source_date"] for row in rows)
+    tables = load_ipo_monthly_tables(ROOT)
+    assert tables is not None and tables["theme_pipeline"] == rows
+    with_pipeline = ipo_count_series(tables["ritter"], tables["nasdaq"], tables["theme_listings"])
+    assert "DeepSeek" not in json.dumps(with_pipeline, ensure_ascii=False)
 
 
 def test_published_ipo_chart_discloses_the_additions_and_spac_rule() -> None:
     payload = json.loads((ROOT / "data/statistics/dotcom_statistics_latest.json").read_text(encoding="utf-8"))
     chart = next(c for c in payload["charts"] if c["id"] == "ipo_count_operating_12m")
-    assert chart["definition"] == "ritter_net_plus_theme_adr_ipos_trailing_12_month_sum"
-    assert any(row["company"] == "SK hynix" for row in chart["theme_adr_additions"])
-    assert "SPAC은 닷컴기" in chart["caveat"]
+    assert chart["definition"] == "ritter_net_plus_theme_listings_trailing_12_month_sum"
+    assert any(row["company"] == "SK hynix" for row in chart["theme_listing_additions"])
+    assert any(row["company"].startswith("CXMT") and row["listing_scope"] == "foreign_primary"
+               for row in chart["theme_listing_additions"])
+    assert any(row["company"].startswith("DeepSeek") for row in chart["theme_listing_pipeline"])
+    assert chart["foreign_listing_rule"]["min_gross_proceeds_usd_m"] == {"dotcom": 250, "ai": 500}
+    assert chart["foreign_listing_rule"]["dotcom_rows_meeting_threshold"] == 0
+    assert "SPAC은 닷컴기" in chart["caveat"] and "비대칭" in chart["caveat"]
+    assert "상장 대기" in chart["conclusion"] and "미집계" in chart["conclusion"]
