@@ -239,9 +239,8 @@ def test_v3_contract_changes_only_what_the_ipo_indicator_counts() -> None:
 
 def test_v4_contract_adds_large_foreign_listings_and_a_display_only_pipeline() -> None:
     """2026-10-23 사용자 결정: 해외 대형 테마 상장은 상장지 불문 가산, 상장 대기(DeepSeek)는 표시만 — v3 는 역사."""
-    assert CONTRACT_RELATIVE.name == "dotcom_overheat_index_v4.yaml"
     v3 = yaml.safe_load((ROOT / "data/contracts/dotcom_overheat_index_v3.yaml").read_text(encoding="utf-8"))
-    v4 = yaml.safe_load((ROOT / CONTRACT_RELATIVE).read_text(encoding="utf-8"))
+    v4 = yaml.safe_load((ROOT / "data/contracts/dotcom_overheat_index_v4.yaml").read_text(encoding="utf-8"))
     assert v4["contract_id"] == "dotcom_overheat_index_v4" and v4["supersedes"] == "dotcom_overheat_index_v3"
     assert v4["method"] == v3["method"], "축·집계 규칙은 그대로"
     rule_keys = {"definition", "theme_adr_rule", "spac_rule", "foreign_listing_rule", "pipeline_rule", "sources"}
@@ -252,6 +251,24 @@ def test_v4_contract_adds_large_foreign_listings_and_a_display_only_pipeline() -
     assert "닷컴 250 / 현재 500" in ipo["foreign_listing_rule"] and "비대칭" in ipo["foreign_listing_rule"]
     assert "DeepSeek" in ipo["pipeline_rule"] and "더하지 않는다" in ipo["pipeline_rule"]
     assert ipo["spac_rule"] == next(row for row in v3["indicators"] if row["id"] == "ipo_count_operating_12m")["spac_rule"]
+
+
+def test_v5_contract_drops_the_size_floor_and_commits_deepseek_on_listing() -> None:
+    """2026-10-23 사용자 결정: 중소 테마 IPO 도 두 시대 모두 센다, DeepSeek 은 상장 달에 확정 편입 — v4 는 역사."""
+    assert CONTRACT_RELATIVE.name == "dotcom_overheat_index_v5.yaml"
+    v4 = yaml.safe_load((ROOT / "data/contracts/dotcom_overheat_index_v4.yaml").read_text(encoding="utf-8"))
+    v5 = yaml.safe_load((ROOT / CONTRACT_RELATIVE).read_text(encoding="utf-8"))
+    assert v5["contract_id"] == "dotcom_overheat_index_v5" and v5["supersedes"] == "dotcom_overheat_index_v4"
+    assert v5["method"] == v4["method"], "축·집계 규칙은 그대로"
+    assert str(v5["change_log"][0]["rules_fixed_at"]).startswith("2026-10-23T02:44")
+    rule_keys = {"definition", "theme_adr_rule", "spac_rule", "foreign_listing_rule", "pipeline_rule", "sources",
+                 "theme_rule", "size_rule", "venue_rule", "event_rule"}
+    strip = lambda rows: [{k: v for k, v in r.items() if k not in rule_keys} for r in rows]
+    assert strip(v5["indicators"]) == strip(v4["indicators"])
+    ipo = next(row for row in v5["indicators"] if row["id"] == "ipo_count_operating_12m")
+    assert "규모 하한 없음" in ipo["size_rule"] and "중소" in ipo["size_rule"]
+    assert "committed" in ipo["pipeline_rule"] and "DeepSeek" in ipo["pipeline_rule"]
+    assert "SME" in ipo["venue_rule"] and "한 번" in ipo["event_rule"]
 
 
 def test_indicators_carry_their_data_month_so_a_flat_composite_is_explained() -> None:
@@ -268,7 +285,7 @@ def test_indicators_carry_their_data_month_so_a_flat_composite_is_explained() ->
 
 def test_live_index_includes_the_confirmed_ipo_count_in_its_own_category() -> None:
     result = compute_index(ROOT)
-    assert result["contract_id"] == "dotcom_overheat_index_v4"
+    assert result["contract_id"] == "dotcom_overheat_index_v5"
     row = next(r for r in result["indicators"] if r["id"] == "ipo_count_operating_12m")
     assert row["category"] == "ipo"
     assert "ipo" in result["category_medians"]

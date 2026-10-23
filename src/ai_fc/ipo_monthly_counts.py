@@ -45,21 +45,30 @@ NASDAQ_POLICY_SOURCE_ID = "nasdaq_ipo_calendar"
 NASDAQ_TABLE_RELATIVE = Path("data/statistics/ipo/nasdaq_calendar_monthly.json")
 # 테마 상장 가산 — Ritter net 은 ADR 을 모두 빼고, 미국 밖 거래소 상장은 아예 세지 않는다. 그래서 두 종류를
 # 출처를 단 행만 더한다.
-#   us_adr(2026-10-08 사용자 결정): 시대 핵심 반도체·AI(닷컴: 반도체·인터넷) 외국기업의 미국 ADR/ADS 상장.
-#       확정(Ritter)월에만 더한다 — 잠정(Nasdaq 근사) 구간은 근사 필터가 ADR 을 이미 센다.
-#   foreign_primary(2026-10-23 사용자 결정): 같은 테마 기업의 **미국 밖 주 상장 대형 IPO**(상하이 STAR·홍콩·도쿄·
-#       유럽 등, 상장지 불문). Ritter 도 Nasdaq 캘린더도 세지 않으므로 확정월·잠정월 모두 더한다. '대형' 은
-#       사전지정 임계(총공모 USD, 명목) 이상만 — 닷컴 250 / 현재 500 (대략 CPI 2배 차이). 임계는 조사 전에 정했다.
+#   us_adr(2026-10-08 사용자 결정): 테마 기업의 미국 ADR/ADS 상장(공모가 $5 이상). 확정(Ritter)월에만 더한다 —
+#       잠정(Nasdaq 근사) 구간은 근사 필터가 ADR 을 이미 센다.
+#   foreign_primary(2026-10-23 사용자 결정): 테마 기업의 미국 밖 거래소 첫 상장. Ritter 도 Nasdaq 캘린더도 세지 않으므로
+#       확정월·잠정월 모두 더한다.
+# v5(2026-10-23 사용자 결정): **규모 하한을 없앤다** — 닷컴 때 중소 IPO 가 쏟아진 것처럼 지금의 중소 AI·반도체 IPO 도
+# 센다. 같은 규칙을 두 시대에 건다(닷컴: 인터넷·반도체 / 현재: AI·반도체). 규칙은 조사 전에 고정했다
+# (data/contracts/dotcom_overheat_index_v5.yaml). 초소형 발행인 전용 시장(인도 SME·KONEX·興櫃·新三板 등)은
+# 두 시대 비교가 안 되어 뺀다. 한 회사는 시대마다 한 번(창 안의 첫 상장)만 센다.
 THEME_LISTING_RELATIVE = Path("data/statistics/ipo/theme_listing_additions.csv")
-THEME_LISTING_FIELDS = ["month", "era", "theme", "company", "ticker", "exchange", "market_country",
-                        "instrument", "listing_scope", "proceeds_usd_m", "source_url", "note"]
+THEME_LISTING_FIELDS = ["month", "era", "theme", "subtheme", "company", "ticker", "exchange", "board",
+                        "market_country", "instrument", "listing_scope", "proceeds_usd_m", "source_url", "note"]
 THEME_LISTING_THEMES = {"dotcom": {"semiconductor", "internet"}, "ai": {"semiconductor", "ai"}}
 THEME_LISTING_SCOPES = {"us_adr", "foreign_primary"}
-THEME_FOREIGN_MIN_PROCEEDS_USD_M = {"dotcom": 250, "ai": 500}
+#: 시대별 조사 창 — 첫 달은 12개월 합의 첫 점(닷컴 1995-01·현재 2023-01)에 들어가는 앞 11개월부터다.
+THEME_LISTING_WINDOWS = {"dotcom": ("1994-02", "1999-12"), "ai": ("2022-02", "9999-12")}
+#: 초소형 발행인 전용 시장 — 두 시대 비교가 안 된다. 이 이름이 board 에 있으면 파일을 거부한다.
+THEME_EXCLUDED_BOARDS = ("NSE Emerge", "SME Emerge", "BSE SME", "NSE SME", "KONEX", "Emerging Stock", "興櫃",
+                         "NEEQ", "New Third Board", "新三板", "OTC Bulletin", "OTCBB", "Pink")
 #: 상장 대기(발표·신청 단계) — 표시 전용, 어떤 건수에도 더하지 않는다. 상장이 완료되면 additions 로 옮긴다.
 THEME_PIPELINE_RELATIVE = Path("data/statistics/ipo/theme_listing_pipeline.csv")
-THEME_PIPELINE_FIELDS = ["company", "era", "theme", "status", "expected_venue", "expected_timing",
+THEME_PIPELINE_FIELDS = ["company", "era", "theme", "decision", "status", "expected_venue", "expected_timing",
                          "source_url", "source_date", "note"]
+#: committed = 사용자가 상장 시 반드시 센다고 확정(DeepSeek, 2026-10-23), rule_eligible = 규칙상 상장 시 들어간다.
+THEME_PIPELINE_DECISIONS = {"committed", "rule_eligible"}
 NASDAQ_FILTER_VERSION = "nasdaq-operating-approx-v1"
 #: 2026-10-06 사용자 승인 — 이 엔드포인트에 한한 브라우저형 UA. 다른 원천에 쓰지 않는다.
 NASDAQ_USER_AGENT = (
@@ -257,11 +266,19 @@ def _has_source(row: dict[str, str]) -> bool:
     return row["source_url"].startswith("https://") or row["source_url"].startswith("http://")
 
 
-def load_theme_listing_additions(root: Path) -> list[dict[str, str]]:
-    """테마 상장 가산 목록 — 행마다 출처·시대별 허용 테마·범위별 규칙을 검증한다(실패는 거부).
+def _company_key(name: str) -> str:
+    """회사 중복 판정 키 — 괄호 속 별칭·법인 접미사·공백을 지운 소문자."""
+    base = re.sub(r"\(.*?\)", "", name).lower()
+    base = re.sub(r"\b(inc|corp|corporation|co|ltd|limited|plc|ag|sa|nv|holdings?|group|technology|technologies)\b\.?",
+                  "", base)
+    return re.sub(r"[^0-9a-z\u3040-\u30ff\u3400-\u9fff\uac00-\ud7af]+", "", base)
 
-    us_adr 은 미국 거래소 ADR/ADS 만, foreign_primary 는 미국 밖 거래소의 보통주(A/H주 등) 상장이면서
-    총공모가 시대별 임계 이상이어야 한다. 임계 미만·미국 상장·테마 밖 행은 조용히 빼지 않고 파일을 거부한다.
+
+def load_theme_listing_additions(root: Path) -> list[dict[str, str]]:
+    """테마 상장 가산 목록 — 행마다 출처·시대 창·테마·범위·시장 규칙을 검증한다(실패는 조용히 빼지 않고 거부).
+
+    us_adr 은 미국 거래소 ADR/ADS 만, foreign_primary 는 미국 밖 거래소 첫 상장. 규모 하한은 없다(v5).
+    한 회사는 시대마다 한 번만 — 같은 회사가 두 번 나오면 파일을 거부한다.
     """
     import csv
 
@@ -276,33 +293,35 @@ def load_theme_listing_additions(root: Path) -> list[dict[str, str]]:
     seen: set[tuple[str, str]] = set()
     for row in rows:
         name = row["company"]
-        if not re.fullmatch(r"\d{4}-\d{2}", row["month"]):
-            raise IPOMonthlyCountsError(f"theme listing month invalid: {name}")
-        if row["theme"] not in THEME_LISTING_THEMES.get(row["era"], set()):
+        if not name or not re.fullmatch(r"\d{4}-\d{2}", row["month"]):
+            raise IPOMonthlyCountsError(f"theme listing month/company invalid: {name!r}")
+        window = THEME_LISTING_WINDOWS.get(row["era"])
+        if window is None or not window[0] <= row["month"] <= window[1]:
+            raise IPOMonthlyCountsError(f"theme listing outside its era window: {name}")
+        if row["theme"] not in THEME_LISTING_THEMES[row["era"]]:
             raise IPOMonthlyCountsError(f"theme listing theme not allowed for era: {name}")
         if row["listing_scope"] not in THEME_LISTING_SCOPES:
             raise IPOMonthlyCountsError(f"theme listing scope invalid: {name}")
         if not _has_source(row):
             raise IPOMonthlyCountsError(f"theme listing needs a source: {name}")
+        if any(marker.lower() in row["board"].lower() for marker in THEME_EXCLUDED_BOARDS):
+            raise IPOMonthlyCountsError(f"theme listing on an excluded micro-issuer board: {name}")
         if row["listing_scope"] == "us_adr":
             if row["instrument"] not in {"ADR", "ADS"} or row["market_country"] != "US":
                 raise IPOMonthlyCountsError(f"us_adr row must be a US ADR/ADS listing: {name}")
-        else:
-            if row["instrument"] in {"ADR", "ADS"} or row["market_country"] == "US":
-                raise IPOMonthlyCountsError(f"foreign_primary row must be a non-US primary listing: {name}")
-            if not re.fullmatch(r"\d+", row["proceeds_usd_m"] or ""):
-                raise IPOMonthlyCountsError(f"foreign_primary row needs proceeds_usd_m: {name}")
-            if int(row["proceeds_usd_m"]) < THEME_FOREIGN_MIN_PROCEEDS_USD_M[row["era"]]:
-                raise IPOMonthlyCountsError(f"foreign_primary row below the size threshold: {name}")
-        key = (name, row["month"])
+        elif row["instrument"] in {"ADR", "ADS"} or row["market_country"] == "US":
+            raise IPOMonthlyCountsError(f"foreign_primary row must be a non-US primary listing: {name}")
+        if row["proceeds_usd_m"] and not re.fullmatch(r"\d+", row["proceeds_usd_m"]):
+            raise IPOMonthlyCountsError(f"theme listing proceeds_usd_m must be an integer or blank: {name}")
+        key = (row["era"], _company_key(name))
         if key in seen:
-            raise IPOMonthlyCountsError(f"duplicate theme listing row: {name}")
+            raise IPOMonthlyCountsError(f"company counted twice in one era: {name}")
         seen.add(key)
     return rows
 
 
 def load_theme_listing_pipeline(root: Path) -> list[dict[str, str]]:
-    """상장 대기 목록 — 표시 전용. 출처와 시대·테마만 검증하고 어떤 합계에도 쓰지 않는다."""
+    """상장 대기 목록 — 표시 전용. 출처·날짜·시대·테마·결정 상태만 검증하고 어떤 합계에도 쓰지 않는다."""
     import csv
 
     path = root / THEME_PIPELINE_RELATIVE
@@ -319,10 +338,20 @@ def load_theme_listing_pipeline(root: Path) -> list[dict[str, str]]:
             raise IPOMonthlyCountsError(f"theme pipeline company invalid or duplicate: {row['company']!r}")
         if row["theme"] not in THEME_LISTING_THEMES.get(row["era"], set()):
             raise IPOMonthlyCountsError(f"theme pipeline theme not allowed for era: {row['company']}")
+        if row["decision"] not in THEME_PIPELINE_DECISIONS:
+            raise IPOMonthlyCountsError(f"theme pipeline decision invalid: {row['company']}")
         if not _has_source(row) or not re.fullmatch(r"\d{4}-\d{2}(-\d{2})?", row["source_date"]):
             raise IPOMonthlyCountsError(f"theme pipeline needs a dated source: {row['company']}")
         seen.add(row["company"])
     return rows
+
+
+def check_pipeline_not_listed(listings: list[dict[str, str]], pipeline: list[dict[str, str]]) -> None:
+    """상장이 끝나 additions 로 옮긴 회사가 대기 목록에도 남아 있으면 거부한다(이중 표시 방지)."""
+    listed = {(row["era"], _company_key(row["company"])) for row in listings}
+    for row in pipeline:
+        if (row["era"], _company_key(row["company"])) in listed:
+            raise IPOMonthlyCountsError(f"pipeline company already listed — remove it from the pipeline: {row['company']}")
 
 
 def ipo_count_series(
@@ -623,9 +652,11 @@ def load_ipo_monthly_tables(root: Path) -> dict[str, Any] | None:
     raw_path = root / "data/statistics/official_store" / str(ritter.get("raw_path") or "")
     if raw_path.is_file() and hashlib.sha256(raw_path.read_bytes()).hexdigest() != ritter.get("raw_sha256"):
         raise IPOMonthlyCountsError("Ritter table raw_sha256 does not match its raw artifact")
+    listings = load_theme_listing_additions(root)
+    pipeline = load_theme_listing_pipeline(root)
+    check_pipeline_not_listed(listings, pipeline)
     return {"ritter": ritter, "nasdaq": _read_json(root / NASDAQ_TABLE_RELATIVE),
-            "theme_listings": load_theme_listing_additions(root),
-            "theme_pipeline": load_theme_listing_pipeline(root)}
+            "theme_listings": listings, "theme_pipeline": pipeline}
 
 
 def month_start(month: str) -> str:
