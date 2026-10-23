@@ -234,9 +234,10 @@ def test_evidence_memo_has_no_entry_api_and_is_bounded():
     cache = R.VerifiedReplayCache(max_entries=1)
     functions = (len,)
     cache._remember({}, {("a",): (functions, {"files": {}, "assets": {}}), ("b",): (functions, {"files": {}, "assets": {}})})
-    assert cache.evidence_count == 1 and cache._recall(("a",), functions) is None
-    recalled = cache._recall(("b",), functions)
+    # A full store keeps the entry it already holds; the new one is not kept.
+    assert cache.evidence_count == 1 and cache._recall(("b",), functions) is None
+    recalled = cache._recall(("a",), functions)
     recalled["files"]["injected"] = "0" * 64
-    assert cache._recall(("b",), functions) == {"files": {}, "assets": {}}
-    assert cache._recall(("b",), (repr,)) is None
+    assert cache._recall(("a",), functions) == {"files": {}, "assets": {}}
+    assert cache._recall(("a",), (repr,)) is None
     assert not any(hasattr(cache, name) for name in ("remember", "add", "update", "load", "preload"))

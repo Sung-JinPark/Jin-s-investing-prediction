@@ -171,12 +171,56 @@ The first refresh after a restart still has to decode and replay every archive
 once, because proofs are never persisted; for an old asset this includes the
 numerical replay of each of its full-geometry snapshots. Warm refreshes still
 grow linearly with stored bytes, because every original is hashed on every pass.
-The proof and evidence stores each hold up to 16,384 entries. Roughly six months
-of three-a-day captures for ten assets would fill the evidence store, after which
-eviction makes passes progressively colder.
 The local browser shell also starts from the public HOLD projection. It obtains
 personal prices only through the validated private import interface, rather
 than copying them into the shell's dashboard data or static chart sidecars.
+
+#### Cache bound
+
+Every pass walks the whole store, so the cache's working set is the whole store,
+not the recent captures, and a restart does not shrink it: the first cycle after
+a restart refills it. Each capture adds one proof and one evidence entry per
+layer (research, full, critical, representative, long boundaries), so five to
+each store. A full research proof replaces the metadata-only proof for the same
+bytes; before, those twins made the proof store fill first.
+
+Measured on 2026-10-22 on a copy of the 182-capture store after one ten-asset
+cycle, with a second cycle adding nothing:
+
+| Entry | Count | Bytes each |
+|---|---:|---:|
+| Proof (research / full / critical / representative / long) | 813 | 744 (505–1,187) |
+| Evidence (same layers) | 813 | 3,122 (1,382–4,569) |
+| Dict and ordering overhead, per entry | | about 98 |
+
+Sizes come from a `sys.getsizeof` walk of each store, skipping the shared
+function objects. On entries of the same shape, the walk agreed with
+`tracemalloc` within 3%. One shared copy of the checking functions' ID tuple
+per key brought these down from 1,524 and 4,407 bytes. That is about 20 KB per
+capture, 3 MB today and about 212 MB a year at ten assets three times a day.
+Full and critical evidence grows a little as the candle history adds chunks.
+
+Each store holds up to 262,144 entries (`max_entries`; the constructor accepts
+up to 1,048,576). At 150 entries per store per day, the stores fill around
+2031-07-30, holding about 1.0 GB; the whole store stays resident until then.
+The previous 16,384 would have filled around 2027-01-16. The worker logs both
+counts after every refresh (`Private replay cache` in `local-service.log`).
+
+A full store does not evict by recency. Under LRU, each asset's own full,
+critical, representative and long-boundary proofs, used once per ten-asset
+cycle, were exactly the entries evicted before their next use. A full store
+keeps what it holds and gives up only an entry that no successful audit has
+used in 2,048 audits (about five days of refreshes). A new entry that finds no
+such slot is not kept; that archive is decoded and replayed in full on each
+pass, so cost grows with the overflow. A simulation of the worker's pass order,
+weighted with measured per-archive costs, gave about 310 s of extra work per
+refresh at the bound (LRU: 550 s) and about the same as LRU at twice the bound.
+No eviction order makes an overflowing store warm.
+
+Hashing binds long before the bound. One SHA-256 read of the 1.0 GB copy takes
+about 2.5 s; a warm pass through all five audits took 13–31 s and a warm
+refresh 69–98 s, depending on other load on the machine. The store grows about
+5.5 MB a capture, about 5 GB a month at this rate, and every pass reads all of it.
 
 ## Browser compatibility
 
