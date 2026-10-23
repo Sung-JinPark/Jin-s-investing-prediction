@@ -1951,7 +1951,7 @@ def _build_ipo_count_chart(
         series.append(provisional)
     chart = make(
         IPO_COUNT_CHART_ID, "IPO 건수: 최근 12개월", "ipo", "count",
-        series, [IPO_COUNT_SERIES_ID], "*미국 운영기업 IPO + 시대 핵심 ADR·해외 대형 상장 기준",
+        series, [IPO_COUNT_SERIES_ID], "*미국 운영기업 IPO + 테마 기업 해외·ADR 상장(규모 무관) 기준",
         "운영기업 IPO 12개월 합계, 닷컴과 같은 경과월 비교.",
     )
     measured = " · ".join(

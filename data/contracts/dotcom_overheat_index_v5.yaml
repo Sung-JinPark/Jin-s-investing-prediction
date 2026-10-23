@@ -7,7 +7,7 @@ change_log:
     decided_by: user
     change: ipo_count_theme_listings_drop_size_floor_small_and_mid_included_both_eras_deepseek_committed_on_listing
     decision_record: docs/DECISIONS.md (2026-10-23 IPO 건수 v5 — 중소 테마 IPO 포함 · DeepSeek 상장 시 확정 편입)
-    rules_fixed_at: 2026-10-23T02:44:50Z   # 조사(서브에이전트 10개) 착수 전에 규칙을 고정했다
+    rules_fixed_at: "2026-10-23T02:44:50Z" # 조사(서브에이전트 10개) 착수 전에 규칙을 고정했다
     method_change: indicator_definition    # 축·집계 규칙 무변경, IPO 지표의 '무엇을 세나'만 바뀜
   - date: 2026-10-23
     decided_by: user

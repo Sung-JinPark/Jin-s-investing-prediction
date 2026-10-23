@@ -5,8 +5,8 @@
   "probability_space": "reference_only",
   "model_use": false,
   "official_forecast_input": false,
-  "generated_at": "2026-10-23T06:09:31+00:00",
-  "knowledge_cutoff": "2026-10-23T06:09:31+00:00",
+  "generated_at": "2026-10-23T07:17:47+00:00",
+  "knowledge_cutoff": "2026-10-23T07:17:47+00:00",
   "observation_through": "2026-10-22",
   "as_of": "2026-10-22",
   "source_refresh": {
@@ -120,7 +120,7 @@
       "category": "ipo",
       "unit": "count",
       "description": "운영기업 IPO 12개월 합계, 닷컴과 같은 경과월 비교.",
-      "caveat": "점선 잠정치는 거래소 캘린더 근사라 확정치보다 많이 세며 과열도 지수에 쓰지 않습니다. 확정치는 Ritter 순(net) 건수로 SPAC·펀드·REIT·유닛·ADR·공모가 $5 미만·은행·LP를 빼며 연 1회 개정됩니다. 단 시대 핵심 외국기업의 미국 ADR 상장(닷컴: 반도체·인터넷, 현재: 반도체·AI)과 같은 테마의 해외 대형 IPO(미국 밖 주 상장, 총공모 닷컴 $2.5억·현재 $5억 이상, 상장지 불문)는 출처를 단 목록만 더합니다 — 닷컴기(1995~99)에는 임계를 넘는 해외 상장이 확인되지 않아 현재 쪽만 늘어나는 비대칭이 있습니다. 상장 대기 기업(DeepSeek 등)은 표시만 하고 세지 않습니다. SPAC은 닷컴기 7건뿐인 소형 장외 블랭크체크라 비교 계열이 없어 계속 뺍니다. 잠정 근사 필터 대 확정치 실측: 2023 87건 vs 54건 · 2024 103건 vs 72건 · 2025 116건 vs 90건.",
+      "caveat": "점선 잠정치는 거래소 캘린더 근사라 확정치보다 많이 세며 과열도 지수에 쓰지 않습니다. 확정치는 Ritter 순(net) 미국 운영기업 IPO(전 업종, SPAC·펀드·REIT·유닛·ADR·공모가 $5 미만·은행·LP 제외)에 테마 기업 상장을 규모와 상장지에 관계없이 더한 값입니다 — 닷컴: 인터넷·반도체, 현재: AI·반도체, 미국 ADR과 미국 밖 거래소 첫 상장(중소형 포함, 초소형 전용 시장 제외). 출처를 단 회사 단위 목록: 닷컴 117건 · 현재 285건. 미국 쪽은 전 업종, 해외 쪽은 테마만 세므로 혼합 척도입니다. 상장 대기 기업(DeepSeek 등)은 상장한 달부터 셉니다. SPAC은 닷컴기 7건뿐인 소형 장외 블랭크체크라 비교 계열이 없어 계속 뺍니다. 잠정 근사 필터 대 확정치 실측: 2023 87건 vs 54건 · 2024 103건 vs 72건 · 2025 116건 vs 90건.",
       "series": [
         {
           "label": "닷컴",
@@ -130,302 +130,302 @@
             {
               "period": 0,
               "date": "1995-01-01",
-              "value": 391.0
+              "value": 395.0
             },
             {
               "period": 1,
               "date": "1995-02-01",
-              "value": 367.0
+              "value": 371.0
             },
             {
               "period": 2,
               "date": "1995-03-01",
-              "value": 347.0
+              "value": 352.0
             },
             {
               "period": 3,
               "date": "1995-04-01",
-              "value": 337.0
+              "value": 343.0
             },
             {
               "period": 4,
               "date": "1995-05-01",
-              "value": 317.0
+              "value": 324.0
             },
             {
               "period": 5,
               "date": "1995-06-01",
-              "value": 327.0
+              "value": 334.0
             },
             {
               "period": 6,
               "date": "1995-07-01",
-              "value": 348.0
+              "value": 355.0
             },
             {
               "period": 7,
               "date": "1995-08-01",
-              "value": 356.0
+              "value": 363.0
             },
             {
               "period": 8,
               "date": "1995-09-01",
-              "value": 360.0
+              "value": 367.0
             },
             {
               "period": 9,
               "date": "1995-10-01",
-              "value": 379.0
+              "value": 386.0
             },
             {
               "period": 10,
               "date": "1995-11-01",
-              "value": 418.0
+              "value": 425.0
             },
             {
               "period": 11,
               "date": "1995-12-01",
-              "value": 457.0
+              "value": 465.0
             },
             {
               "period": 12,
               "date": "1996-01-01",
-              "value": 469.0
+              "value": 477.0
             },
             {
               "period": 13,
               "date": "1996-02-01",
-              "value": 502.0
+              "value": 510.0
             },
             {
               "period": 14,
               "date": "1996-03-01",
-              "value": 537.0
+              "value": 546.0
             },
             {
               "period": 15,
               "date": "1996-04-01",
-              "value": 566.0
+              "value": 575.0
             },
             {
               "period": 16,
               "date": "1996-05-01",
-              "value": 614.0
+              "value": 622.0
             },
             {
               "period": 17,
               "date": "1996-06-01",
-              "value": 638.0
+              "value": 646.0
             },
             {
               "period": 18,
               "date": "1996-07-01",
-              "value": 644.0
+              "value": 653.0
             },
             {
               "period": 19,
               "date": "1996-08-01",
-              "value": 658.0
+              "value": 667.0
             },
             {
               "period": 20,
               "date": "1996-09-01",
-              "value": 672.0
+              "value": 683.0
             },
             {
               "period": 21,
               "date": "1996-10-01",
-              "value": 712.0
+              "value": 721.0
             },
             {
               "period": 22,
               "date": "1996-11-01",
-              "value": 703.0
+              "value": 713.0
             },
             {
               "period": 23,
               "date": "1996-12-01",
-              "value": 676.0
+              "value": 686.0
             },
             {
               "period": 24,
               "date": "1997-01-01",
-              "value": 680.0
+              "value": 692.0
             },
             {
               "period": 25,
               "date": "1997-02-01",
-              "value": 670.0
+              "value": 682.0
             },
             {
               "period": 26,
               "date": "1997-03-01",
-              "value": 638.0
+              "value": 649.0
             },
             {
               "period": 27,
               "date": "1997-04-01",
-              "value": 607.0
+              "value": 617.0
             },
             {
               "period": 28,
               "date": "1997-05-01",
-              "value": 558.0
+              "value": 569.0
             },
             {
               "period": 29,
               "date": "1997-06-01",
-              "value": 538.0
+              "value": 549.0
             },
             {
               "period": 30,
               "date": "1997-07-01",
-              "value": 533.0
+              "value": 544.0
             },
             {
               "period": 31,
               "date": "1997-08-01",
-              "value": 517.0
+              "value": 530.0
             },
             {
               "period": 32,
               "date": "1997-09-01",
-              "value": 510.0
+              "value": 523.0
             },
             {
               "period": 33,
               "date": "1997-10-01",
-              "value": 476.0
+              "value": 489.0
             },
             {
               "period": 34,
               "date": "1997-11-01",
-              "value": 480.0
+              "value": 496.0
             },
             {
               "period": 35,
               "date": "1997-12-01",
-              "value": 474.0
+              "value": 490.0
             },
             {
               "period": 36,
               "date": "1998-01-01",
-              "value": 461.0
+              "value": 475.0
             },
             {
               "period": 37,
               "date": "1998-02-01",
-              "value": 453.0
+              "value": 468.0
             },
             {
               "period": 38,
               "date": "1998-03-01",
-              "value": 453.0
+              "value": 470.0
             },
             {
               "period": 39,
               "date": "1998-04-01",
-              "value": 466.0
+              "value": 483.0
             },
             {
               "period": 40,
               "date": "1998-05-01",
-              "value": 475.0
+              "value": 492.0
             },
             {
               "period": 41,
               "date": "1998-06-01",
-              "value": 469.0
+              "value": 487.0
             },
             {
               "period": 42,
               "date": "1998-07-01",
-              "value": 463.0
+              "value": 482.0
             },
             {
               "period": 43,
               "date": "1998-08-01",
-              "value": 445.0
+              "value": 464.0
             },
             {
               "period": 44,
               "date": "1998-09-01",
-              "value": 407.0
+              "value": 425.0
             },
             {
               "period": 45,
               "date": "1998-10-01",
-              "value": 353.0
+              "value": 373.0
             },
             {
               "period": 46,
               "date": "1998-11-01",
-              "value": 300.0
+              "value": 316.0
             },
             {
               "period": 47,
               "date": "1998-12-01",
-              "value": 284.0
+              "value": 299.0
             },
             {
               "period": 48,
               "date": "1999-01-01",
-              "value": 280.0
+              "value": 295.0
             },
             {
               "period": 49,
               "date": "1999-02-01",
-              "value": 270.0
+              "value": 286.0
             },
             {
               "period": 50,
               "date": "1999-03-01",
-              "value": 260.0
+              "value": 276.0
             },
             {
               "period": 51,
               "date": "1999-04-01",
-              "value": 258.0
+              "value": 275.0
             },
             {
               "period": 52,
               "date": "1999-05-01",
-              "value": 270.0
+              "value": 288.0
             },
             {
               "period": 53,
               "date": "1999-06-01",
-              "value": 275.0
+              "value": 299.0
             },
             {
               "period": 54,
               "date": "1999-07-01",
-              "value": 298.0
+              "value": 325.0
             },
             {
               "period": 55,
               "date": "1999-08-01",
-              "value": 319.0
+              "value": 349.0
             },
             {
               "period": 56,
               "date": "1999-09-01",
-              "value": 358.0
+              "value": 390.0
             },
             {
               "period": 57,
               "date": "1999-10-01",
-              "value": 415.0
+              "value": 452.0
             },
             {
               "period": 58,
               "date": "1999-11-01",
-              "value": 456.0
+              "value": 499.0
             },
             {
               "period": 59,
               "date": "1999-12-01",
-              "value": 481.0
+              "value": 537.0
             }
           ]
         },
@@ -437,182 +437,182 @@
             {
               "period": 0,
               "date": "2023-01-01",
-              "value": 38.0
+              "value": 118.0
             },
             {
               "period": 1,
               "date": "2023-02-01",
-              "value": 35.0
+              "value": 114.0
             },
             {
               "period": 2,
               "date": "2023-03-01",
-              "value": 37.0
+              "value": 116.0
             },
             {
               "period": 3,
               "date": "2023-04-01",
-              "value": 36.0
+              "value": 114.0
             },
             {
               "period": 4,
               "date": "2023-05-01",
-              "value": 38.0
+              "value": 115.0
             },
             {
               "period": 5,
               "date": "2023-06-01",
-              "value": 42.0
+              "value": 116.0
             },
             {
               "period": 6,
               "date": "2023-07-01",
-              "value": 45.0
+              "value": 112.0
             },
             {
               "period": 7,
               "date": "2023-08-01",
-              "value": 46.0
+              "value": 112.0
             },
             {
               "period": 8,
               "date": "2023-09-01",
-              "value": 50.0
+              "value": 118.0
             },
             {
               "period": 9,
               "date": "2023-10-01",
-              "value": 53.0
+              "value": 116.0
             },
             {
               "period": 10,
               "date": "2023-11-01",
-              "value": 59.0
+              "value": 120.0
             },
             {
               "period": 11,
               "date": "2023-12-01",
-              "value": 58.0
+              "value": 118.0
             },
             {
               "period": 12,
               "date": "2024-01-01",
-              "value": 58.0
+              "value": 115.0
             },
             {
               "period": 13,
               "date": "2024-02-01",
-              "value": 64.0
+              "value": 122.0
             },
             {
               "period": 14,
               "date": "2024-03-01",
-              "value": 67.0
+              "value": 120.0
             },
             {
               "period": 15,
               "date": "2024-04-01",
-              "value": 71.0
+              "value": 118.0
             },
             {
               "period": 16,
               "date": "2024-05-01",
-              "value": 71.0
+              "value": 115.0
             },
             {
               "period": 17,
               "date": "2024-06-01",
-              "value": 70.0
+              "value": 112.0
             },
             {
               "period": 18,
               "date": "2024-07-01",
-              "value": 70.0
+              "value": 109.0
             },
             {
               "period": 19,
               "date": "2024-08-01",
-              "value": 67.0
+              "value": 102.0
             },
             {
               "period": 20,
               "date": "2024-09-01",
-              "value": 68.0
+              "value": 99.0
             },
             {
               "period": 21,
               "date": "2024-10-01",
-              "value": 75.0
+              "value": 107.0
             },
             {
               "period": 22,
               "date": "2024-11-01",
-              "value": 72.0
+              "value": 102.0
             },
             {
               "period": 23,
               "date": "2024-12-01",
-              "value": 76.0
+              "value": 111.0
             },
             {
               "period": 24,
               "date": "2025-01-01",
-              "value": 78.0
+              "value": 116.0
             },
             {
               "period": 25,
               "date": "2025-02-01",
-              "value": 77.0
+              "value": 116.0
             },
             {
               "period": 26,
               "date": "2025-03-01",
-              "value": 77.0
+              "value": 117.0
             },
             {
               "period": 27,
               "date": "2025-04-01",
-              "value": 70.0
+              "value": 108.0
             },
             {
               "period": 28,
               "date": "2025-05-01",
-              "value": 72.0
+              "value": 109.0
             },
             {
               "period": 29,
               "date": "2025-06-01",
-              "value": 78.0
+              "value": 116.0
             },
             {
               "period": 30,
               "date": "2025-07-01",
-              "value": 83.0
+              "value": 126.0
             },
             {
               "period": 31,
               "date": "2025-08-01",
-              "value": 87.0
+              "value": 130.0
             },
             {
               "period": 32,
               "date": "2025-09-01",
-              "value": 90.0
+              "value": 131.0
             },
             {
               "period": 33,
               "date": "2025-10-01",
-              "value": 89.0
+              "value": 126.0
             },
             {
               "period": 34,
               "date": "2025-11-01",
-              "value": 90.0
+              "value": 129.0
             },
             {
               "period": 35,
               "date": "2025-12-01",
-              "value": 95.0
+              "value": 137.0
             }
           ]
         },
@@ -624,52 +624,52 @@
             {
               "period": 35,
               "date": "2025-12-01",
-              "value": 95.0
+              "value": 137.0
             },
             {
               "period": 36,
               "date": "2026-01-01",
-              "value": 101.0
+              "value": 143.0
             },
             {
               "period": 37,
               "date": "2026-02-01",
-              "value": 111.0
+              "value": 152.0
             },
             {
               "period": 38,
               "date": "2026-03-01",
-              "value": 111.0
+              "value": 153.0
             },
             {
               "period": 39,
               "date": "2026-04-01",
-              "value": 126.0
+              "value": 174.0
             },
             {
               "period": 40,
               "date": "2026-05-01",
-              "value": 139.0
+              "value": 194.0
             },
             {
               "period": 41,
               "date": "2026-06-01",
-              "value": 145.0
+              "value": 202.0
             },
             {
               "period": 42,
               "date": "2026-07-01",
-              "value": 152.0
+              "value": 210.0
             },
             {
               "period": 43,
               "date": "2026-08-01",
-              "value": 156.0
+              "value": 217.0
             },
             {
               "period": 44,
               "date": "2026-09-01",
-              "value": 152.0
+              "value": 218.0
             }
           ],
           "provisional": true,
@@ -680,12 +680,12 @@
         "RITTER_IPOALL_MONTHLY"
       ],
       "range": {
-        "minimum": 35.0,
-        "maximum": 712.0
+        "minimum": 99.0,
+        "maximum": 721.0
       },
-      "scope_note": "*미국 운영기업 IPO + 시대 핵심 ADR·해외 대형 상장 기준",
+      "scope_note": "*미국 운영기업 IPO + 테마 기업 해외·ADR 상장(규모 무관) 기준",
       "insight": "운영기업 IPO 12개월 합계, 닷컴과 같은 경과월 비교.",
-      "conclusion": "최근 12개월 95건(2025-12 확정) — 닷컴 같은 35개월차 474건, 닷컴 최대 712건. 잠정 152건(2026-09까지). 상장 대기 5건(DeepSeek · Kunlunxin (Baidu) 등) — 미집계.",
+      "conclusion": "최근 12개월 137건(2025-12 확정) — 닷컴 같은 35개월차 490건, 닷컴 최대 721건. 잠정 218건(2026-09까지). 상장 대기 8건(DeepSeek · Moonshot AI (Kimi) 등) — 상장 달부터 집계.",
       "metric_source_ids": [
         "RITTER_IPOALL_MONTHLY"
       ],
@@ -695,444 +695,267 @@
       "projection_max_points": 24,
       "observed_end_label": "최신",
       "definition": "ritter_net_plus_theme_listings_trailing_12_month_sum",
-      "theme_listing_additions": [
-        {
-          "month": "1996-05",
-          "era": "dotcom",
-          "theme": "semiconductor",
-          "company": "Macronix International",
-          "ticker": "",
-          "exchange": "Nasdaq",
-          "market_country": "US",
-          "instrument": "ADS",
-          "listing_scope": "us_adr",
-          "proceeds_usd_m": "",
-          "source_url": "https://www.sec.gov/Archives/edgar/data/0001009680/000114554906001020/h00650e20vf.htm"
+      "theme_listing_source": {
+        "path": "data/statistics/ipo/theme_listing_additions.csv",
+        "rows": 402,
+        "sha256": "7d9740de1b8e2ce9568c70a2a5772cb6e4c3bc5836d13a78ae3c7bdd15ee5131"
+      },
+      "theme_listing_summary": {
+        "ai": {
+          "count": 285,
+          "by_theme": {
+            "ai": 81,
+            "semiconductor": 204
+          },
+          "by_scope": {
+            "foreign_primary": 278,
+            "us_adr": 7
+          },
+          "by_country": {
+            "AE": 2,
+            "AU": 2,
+            "CN": 102,
+            "FR": 2,
+            "GB": 3,
+            "HK": 38,
+            "IL": 1,
+            "IN": 1,
+            "IT": 1,
+            "JP": 22,
+            "KR": 53,
+            "MY": 6,
+            "SE": 2,
+            "TW": 43,
+            "US": 7
+          },
+          "by_year": {
+            "2022": 77,
+            "2023": 64,
+            "2024": 39,
+            "2025": 47,
+            "2026": 58
+          },
+          "with_proceeds": 230
         },
-        {
-          "month": "1997-10",
-          "era": "dotcom",
-          "theme": "semiconductor",
-          "company": "Taiwan Semiconductor Manufacturing",
-          "ticker": "TSM",
-          "exchange": "NYSE",
-          "market_country": "US",
-          "instrument": "ADR",
-          "listing_scope": "us_adr",
-          "proceeds_usd_m": "",
-          "source_url": "https://pr.tsmc.com/english/news/2085"
-        },
-        {
-          "month": "1998-04",
-          "era": "dotcom",
-          "theme": "semiconductor",
-          "company": "ARM Holdings",
-          "ticker": "ARMHY",
-          "exchange": "Nasdaq",
-          "market_country": "US",
-          "instrument": "ADS",
-          "listing_scope": "us_adr",
-          "proceeds_usd_m": "",
-          "source_url": "http://media.corporate-ir.net/media_files/irol/19/197211/ar/ar98.pdf"
-        },
-        {
-          "month": "1999-07",
-          "era": "dotcom",
-          "theme": "internet",
-          "company": "Freeserve",
-          "ticker": "",
-          "exchange": "Nasdaq",
-          "market_country": "US",
-          "instrument": "ADS",
-          "listing_scope": "us_adr",
-          "proceeds_usd_m": "",
-          "source_url": "https://www.bloomberg.com/news/articles/1999-07-25/freeserve-will-test-appetite-for-u-k-internet-stocks-repeat"
-        },
-        {
-          "month": "1999-10",
-          "era": "dotcom",
-          "theme": "semiconductor",
-          "company": "Chartered Semiconductor Manufacturing",
-          "ticker": "CHRT",
-          "exchange": "Nasdaq",
-          "market_country": "US",
-          "instrument": "ADS",
-          "listing_scope": "us_adr",
-          "proceeds_usd_m": "",
-          "source_url": "https://www.sec.gov/Archives/edgar/data/0001095270/000095015099001186/0000950150-99-001186.txt"
-        },
-        {
-          "month": "1999-10",
-          "era": "dotcom",
-          "theme": "internet",
-          "company": "QXL.com",
-          "ticker": "",
-          "exchange": "Nasdaq",
-          "market_country": "US",
-          "instrument": "ADS",
-          "listing_scope": "us_adr",
-          "proceeds_usd_m": "",
-          "source_url": "https://money.cnn.com/1999/10/07/europe/qxl/"
-        },
-        {
-          "month": "1999-10",
-          "era": "dotcom",
-          "theme": "internet",
-          "company": "Satyam Infoway",
-          "ticker": "SIFY",
-          "exchange": "Nasdaq",
-          "market_country": "US",
-          "instrument": "ADS",
-          "listing_scope": "us_adr",
-          "proceeds_usd_m": "",
-          "source_url": "https://www.sec.gov/Archives/edgar/data/0001094324/000101287099003688/0001012870-99-003688.txt"
-        },
-        {
-          "month": "1999-11",
-          "era": "dotcom",
-          "theme": "internet",
-          "company": "Terra Networks",
-          "ticker": "TRRA",
-          "exchange": "Nasdaq",
-          "market_country": "US",
-          "instrument": "ADS",
-          "listing_scope": "us_adr",
-          "proceeds_usd_m": "",
-          "source_url": "https://money.cnn.com/1999/11/17/europe/terra/"
-        },
-        {
-          "month": "2023-05",
-          "era": "ai",
-          "theme": "semiconductor",
-          "company": "Nexchip Semiconductor",
-          "ticker": "688249",
-          "exchange": "Shanghai STAR",
-          "market_country": "CN",
-          "instrument": "A-share",
-          "listing_scope": "foreign_primary",
-          "proceeds_usd_m": "1440",
-          "source_url": "https://en.wikipedia.org/wiki/Nexchip"
-        },
-        {
-          "month": "2023-05",
-          "era": "ai",
-          "theme": "semiconductor",
-          "company": "United Nova Technology (SMEC)",
-          "ticker": "688469",
-          "exchange": "Shanghai STAR",
-          "market_country": "CN",
-          "instrument": "A-share",
-          "listing_scope": "foreign_primary",
-          "proceeds_usd_m": "1600",
-          "source_url": "https://www.allbrightlaw.com/CN/10454/2f0e4da072fb9656.aspx"
-        },
-        {
-          "month": "2023-09",
-          "era": "ai",
-          "theme": "semiconductor",
-          "company": "Arm Holdings",
-          "ticker": "ARM",
-          "exchange": "Nasdaq",
-          "market_country": "US",
-          "instrument": "ADS",
-          "listing_scope": "us_adr",
-          "proceeds_usd_m": "",
-          "source_url": "https://www.sec.gov/Archives/edgar/data/1973239/000119312523235320/d550931d424b4.htm"
-        },
-        {
-          "month": "2023-10",
-          "era": "ai",
-          "theme": "semiconductor",
-          "company": "Kokusai Electric",
-          "ticker": "6525",
-          "exchange": "Tokyo Prime",
-          "market_country": "JP",
-          "instrument": "ordinary",
-          "listing_scope": "foreign_primary",
-          "proceeds_usd_m": "724",
-          "source_url": "https://sg.news.yahoo.com/kokusai-electric-raises-724-4-062037489.html"
-        },
-        {
-          "month": "2024-10",
-          "era": "ai",
-          "theme": "ai",
-          "company": "Horizon Robotics",
-          "ticker": "9660",
-          "exchange": "HKEX",
-          "market_country": "HK",
-          "instrument": "ordinary",
-          "listing_scope": "foreign_primary",
-          "proceeds_usd_m": "696",
-          "source_url": "https://www.davispolk.com/experience/horizon-robotics-hk-5-41-billion-ipo"
-        },
-        {
-          "month": "2024-10",
-          "era": "ai",
-          "theme": "ai",
-          "company": "WeRide",
-          "ticker": "WRD",
-          "exchange": "Nasdaq",
-          "market_country": "US",
-          "instrument": "ADS",
-          "listing_scope": "us_adr",
-          "proceeds_usd_m": "",
-          "source_url": "https://ir.weride.ai/news-releases/news-release-details/weride-inc-announces-pricing-initial-public-offering"
-        },
-        {
-          "month": "2024-11",
-          "era": "ai",
-          "theme": "ai",
-          "company": "Pony AI",
-          "ticker": "PONY",
-          "exchange": "Nasdaq",
-          "market_country": "US",
-          "instrument": "ADS",
-          "listing_scope": "us_adr",
-          "proceeds_usd_m": "",
-          "source_url": "https://ir.pony.ai/news-releases/news-release-details/pony-ai-inc-announces-pricing-initial-public-offering"
-        },
-        {
-          "month": "2024-12",
-          "era": "ai",
-          "theme": "semiconductor",
-          "company": "Kioxia Holdings",
-          "ticker": "285A",
-          "exchange": "Tokyo Prime",
-          "market_country": "JP",
-          "instrument": "ordinary",
-          "listing_scope": "foreign_primary",
-          "proceeds_usd_m": "800",
-          "source_url": "https://investing.com/news/stock-market-news/kioxia-prices-ipo-at-1455-yen-per-share-3760492"
-        },
-        {
-          "month": "2025-03",
-          "era": "ai",
-          "theme": "semiconductor",
-          "company": "JX Advanced Metals",
-          "ticker": "5016",
-          "exchange": "Tokyo Prime",
-          "market_country": "JP",
-          "instrument": "ordinary",
-          "listing_scope": "foreign_primary",
-          "proceeds_usd_m": "2970",
-          "source_url": "https://media.dealstreetasia.com/stories/jx-advanced-tokyo-debut-435101"
-        },
-        {
-          "month": "2025-10",
-          "era": "ai",
-          "theme": "semiconductor",
-          "company": "ESWIN Material",
-          "ticker": "",
-          "exchange": "Shanghai STAR",
-          "market_country": "CN",
-          "instrument": "A-share",
-          "listing_scope": "foreign_primary",
-          "proceeds_usd_m": "645",
-          "source_url": "https://www.caixinglobal.com/2025-10-29/chinas-star-market-embraces-unprofitable-tech-with-146-billion-eswin-debut-102376695.html"
-        },
-        {
-          "month": "2025-10",
-          "era": "ai",
-          "theme": "semiconductor",
-          "company": "Tekscend Photomask",
-          "ticker": "429A",
-          "exchange": "Tokyo Prime",
-          "market_country": "JP",
-          "instrument": "ordinary",
-          "listing_scope": "foreign_primary",
-          "proceeds_usd_m": "1030",
-          "source_url": "https://www.davispolk.com/experience/tekscend-photomask-y-157-billion-ipo"
-        },
-        {
-          "month": "2025-12",
-          "era": "ai",
-          "theme": "semiconductor",
-          "company": "MetaX",
-          "ticker": "688802",
-          "exchange": "Shanghai STAR",
-          "market_country": "CN",
-          "instrument": "A-share",
-          "listing_scope": "foreign_primary",
-          "proceeds_usd_m": "596",
-          "source_url": "https://www.yicaiglobal.com/news/chinese-gpu-maker-metax-surges-nearly-700-on-trading-debut-in-shanghai"
-        },
-        {
-          "month": "2025-12",
-          "era": "ai",
-          "theme": "semiconductor",
-          "company": "Moore Threads",
-          "ticker": "688795",
-          "exchange": "Shanghai STAR",
-          "market_country": "CN",
-          "instrument": "A-share",
-          "listing_scope": "foreign_primary",
-          "proceeds_usd_m": "1130",
-          "source_url": "https://www.yicaiglobal.com/news/chinas-first-gpu-stock-moore-threads-soars-over-fivefold-on-shanghai-debut"
-        },
-        {
-          "month": "2026-01",
-          "era": "ai",
-          "theme": "semiconductor",
-          "company": "Biren Technology",
-          "ticker": "6082",
-          "exchange": "HKEX",
-          "market_country": "HK",
-          "instrument": "H-share",
-          "listing_scope": "foreign_primary",
-          "proceeds_usd_m": "717",
-          "source_url": "https://www.scmp.com/business/banking-finance/article/3338447/biren-shares-soar-hong-kong-investors-seize-chinas-first-gpu-start-list"
-        },
-        {
-          "month": "2026-01",
-          "era": "ai",
-          "theme": "ai",
-          "company": "MiniMax Group",
-          "ticker": "0100",
-          "exchange": "HKEX",
-          "market_country": "HK",
-          "instrument": "ordinary",
-          "listing_scope": "foreign_primary",
-          "proceeds_usd_m": "619",
-          "source_url": "https://cdn.dealstreetasia.com/stories/minimax-group-hong-kong-ipo-468716"
-        },
-        {
-          "month": "2026-01",
-          "era": "ai",
-          "theme": "ai",
-          "company": "Zhipu AI (Z.ai)",
-          "ticker": "2513",
-          "exchange": "HKEX",
-          "market_country": "HK",
-          "instrument": "ordinary",
-          "listing_scope": "foreign_primary",
-          "proceeds_usd_m": "560",
-          "source_url": "https://finance.yahoo.com/news/chinas-zhipu-ai-launches-us-093000355.html"
-        },
-        {
-          "month": "2026-04",
-          "era": "ai",
-          "theme": "semiconductor",
-          "company": "SJ Semiconductor",
-          "ticker": "688820",
-          "exchange": "Shanghai STAR",
-          "market_country": "CN",
-          "instrument": "A-share",
-          "listing_scope": "foreign_primary",
-          "proceeds_usd_m": "730",
-          "source_url": "https://www.allbrightlaw.com/CN/10454/d08ee55df3fcce79.aspx"
-        },
-        {
-          "month": "2026-07",
-          "era": "ai",
-          "theme": "semiconductor",
-          "company": "CXMT (ChangXin Memory)",
-          "ticker": "",
-          "exchange": "Shanghai STAR",
-          "market_country": "CN",
-          "instrument": "A-share",
-          "listing_scope": "foreign_primary",
-          "proceeds_usd_m": "8600",
-          "source_url": "https://www.trendforce.com/news/2026/07/24/news-chinas-dram-maker-cxmt-to-debut-jul-27-ipo-to-raise-rmb-57-9b-largest-on-star-market-since-launch/"
-        },
-        {
-          "month": "2026-07",
-          "era": "ai",
-          "theme": "ai",
-          "company": "Momenta",
-          "ticker": "6880",
-          "exchange": "HKEX",
-          "market_country": "HK",
-          "instrument": "ordinary",
-          "listing_scope": "foreign_primary",
-          "proceeds_usd_m": "751",
-          "source_url": "https://momenta.cn/en/article/582.html"
-        },
-        {
-          "month": "2026-07",
-          "era": "ai",
-          "theme": "semiconductor",
-          "company": "SK hynix",
-          "ticker": "SKHY",
-          "exchange": "Nasdaq",
-          "market_country": "US",
-          "instrument": "ADS",
-          "listing_scope": "us_adr",
-          "proceeds_usd_m": "",
-          "source_url": "https://www.sec.gov/Archives/edgar/data/0002120882/000119312526299963/d32785d424b4.htm"
-        },
-        {
-          "month": "2026-09",
-          "era": "ai",
-          "theme": "semiconductor",
-          "company": "Enflame Technology",
-          "ticker": "688801",
-          "exchange": "Shanghai STAR",
-          "market_country": "CN",
-          "instrument": "A-share",
-          "listing_scope": "foreign_primary",
-          "proceeds_usd_m": "912",
-          "source_url": "https://www.dealstreetasia.com/?p=494900"
+        "dotcom": {
+          "count": 117,
+          "by_theme": {
+            "internet": 53,
+            "semiconductor": 64
+          },
+          "by_scope": {
+            "foreign_primary": 113,
+            "us_adr": 4
+          },
+          "by_country": {
+            "AU": 2,
+            "BE": 1,
+            "CA": 2,
+            "CN": 2,
+            "DE": 24,
+            "ES": 1,
+            "FR": 5,
+            "GB": 5,
+            "HK": 1,
+            "IT": 1,
+            "JP": 15,
+            "KR": 23,
+            "MY": 2,
+            "NO": 1,
+            "SE": 3,
+            "SG": 4,
+            "TW": 21,
+            "US": 4
+          },
+          "by_year": {
+            "1994": 4,
+            "1995": 8,
+            "1996": 11,
+            "1997": 17,
+            "1998": 16,
+            "1999": 61
+          },
+          "with_proceeds": 35
         }
-      ],
+      },
       "theme_added_to_confirmed": {
+        "1994-04": 1,
+        "1994-09": 1,
+        "1994-10": 2,
+        "1995-03": 1,
+        "1995-04": 2,
+        "1995-05": 1,
+        "1995-09": 1,
+        "1995-10": 2,
+        "1995-12": 1,
+        "1996-03": 2,
+        "1996-04": 2,
         "1996-05": 1,
+        "1996-07": 1,
+        "1996-09": 3,
+        "1996-11": 1,
+        "1996-12": 1,
+        "1997-01": 2,
+        "1997-03": 1,
+        "1997-04": 1,
+        "1997-05": 1,
+        "1997-07": 1,
+        "1997-08": 2,
+        "1997-09": 3,
         "1997-10": 1,
-        "1998-04": 1,
-        "1999-07": 1,
-        "1999-10": 3,
-        "1999-11": 1,
-        "2023-05": 2,
-        "2023-09": 1,
-        "2023-10": 1,
-        "2024-10": 2,
-        "2024-11": 1,
-        "2024-12": 1,
-        "2025-03": 1,
-        "2025-10": 2,
-        "2025-12": 2
+        "1997-11": 4,
+        "1997-12": 1,
+        "1998-02": 1,
+        "1998-03": 3,
+        "1998-04": 2,
+        "1998-05": 1,
+        "1998-06": 1,
+        "1998-07": 2,
+        "1998-08": 2,
+        "1998-09": 2,
+        "1998-10": 2,
+        "1999-02": 2,
+        "1999-03": 3,
+        "1999-04": 2,
+        "1999-05": 2,
+        "1999-06": 7,
+        "1999-07": 6,
+        "1999-08": 5,
+        "1999-09": 4,
+        "1999-10": 10,
+        "1999-11": 7,
+        "1999-12": 13,
+        "2022-02": 3,
+        "2022-03": 7,
+        "2022-04": 9,
+        "2022-05": 6,
+        "2022-06": 7,
+        "2022-07": 10,
+        "2022-08": 8,
+        "2022-09": 4,
+        "2022-10": 10,
+        "2022-11": 7,
+        "2022-12": 6,
+        "2023-01": 3,
+        "2023-02": 2,
+        "2023-03": 7,
+        "2023-04": 8,
+        "2023-05": 7,
+        "2023-06": 4,
+        "2023-07": 3,
+        "2023-08": 7,
+        "2023-09": 7,
+        "2023-10": 6,
+        "2023-11": 5,
+        "2023-12": 5,
+        "2024-02": 3,
+        "2024-03": 2,
+        "2024-04": 2,
+        "2024-05": 2,
+        "2024-06": 2,
+        "2024-08": 3,
+        "2024-09": 2,
+        "2024-10": 8,
+        "2024-11": 4,
+        "2024-12": 11,
+        "2025-01": 3,
+        "2025-02": 4,
+        "2025-03": 4,
+        "2025-05": 1,
+        "2025-06": 3,
+        "2025-07": 5,
+        "2025-08": 3,
+        "2025-10": 4,
+        "2025-11": 5,
+        "2025-12": 15
       },
       "theme_added_to_provisional": {
-        "2026-01": 3,
-        "2026-04": 1,
-        "2026-07": 2,
-        "2026-09": 1
+        "2026-01": 6,
+        "2026-02": 3,
+        "2026-03": 4,
+        "2026-04": 7,
+        "2026-05": 8,
+        "2026-06": 5,
+        "2026-07": 8,
+        "2026-08": 6,
+        "2026-09": 6
       },
-      "theme_added_skipped": [],
-      "foreign_listing_rule": {
-        "scope": "non_us_primary_listing_ipo_of_era_theme_company_any_venue",
-        "min_gross_proceeds_usd_m": {
-          "dotcom": 250,
-          "ai": 500
+      "theme_added_skipped": [
+        {
+          "month": "2026-10",
+          "count": 4,
+          "reason": "Nasdaq 잠정 달 없음·미완결"
+        }
+      ],
+      "theme_listing_rule": {
+        "themes": {
+          "dotcom": [
+            "internet",
+            "semiconductor"
+          ],
+          "ai": [
+            "ai",
+            "semiconductor"
+          ]
         },
-        "counted_in": "confirmed_and_provisional_months",
-        "dotcom_rows_meeting_threshold": 0
+        "scopes": {
+          "us_adr": "confirmed_months_only",
+          "foreign_primary": "confirmed_and_provisional_months"
+        },
+        "min_gross_proceeds_usd_m": null,
+        "windows": {
+          "dotcom": [
+            "1994-02",
+            "1999-12"
+          ],
+          "ai": [
+            "2022-02",
+            "9999-12"
+          ]
+        },
+        "excluded_boards": "micro_issuer_platforms (India SME, KONEX, Emerging Stock Board, NEEQ, OTC BB)",
+        "one_event_per_company_per_era": true
       },
       "theme_listing_pipeline": [
         {
           "company": "DeepSeek",
           "era": "ai",
           "theme": "ai",
-          "status": "pre-IPO advisers hired; no public filing yet",
+          "decision": "committed",
+          "status": "preparing STAR filing with CITIC Securities; no application submitted as of 2026-10-23",
           "expected_venue": "Shanghai STAR",
           "expected_timing": "filing late 2026 / listing 2027 (reported)",
           "source_url": "https://technode.com/2026/09/09/deepseek-citic-securities-shanghai-star-market-ipo/",
           "source_date": "2026-09-09"
         },
         {
+          "company": "Moonshot AI (Kimi)",
+          "era": "ai",
+          "theme": "ai",
+          "decision": "rule_eligible",
+          "status": "confidential HKEX A1 application reported",
+          "expected_venue": "HKEX",
+          "expected_timing": "2026-2027 (unconfirmed)",
+          "source_url": "https://technode.com/2026/09/03/moonshot-ai-reportedly-submits-confidential-hong-kong-ipo-filing/",
+          "source_date": "2026-09-03"
+        },
+        {
           "company": "Kunlunxin (Baidu)",
           "era": "ai",
           "theme": "semiconductor",
-          "status": "confidential HKEX A1 filing 2026-01-01; STAR tutoring",
-          "expected_venue": "HKEX (+ Shanghai STAR)",
+          "decision": "rule_eligible",
+          "status": "HKEX A1 filed (carve-out from Baidu)",
+          "expected_venue": "HKEX",
           "expected_timing": "2026-2027 (unconfirmed)",
-          "source_url": "https://www.thestandard.com.hk/finance/article/331544/Baidus-Kunlunxin-prepares-for-STAR-Market-listing-Hong-Kong-IPO-next",
-          "source_date": "2026-01"
+          "source_url": "https://www.cnbc.com/2026/01/02/baidus-semiconductor-kunlunxin-hong-kong-ipo-ai-chips-listing-china.html",
+          "source_date": "2026-01-02"
         },
         {
           "company": "CCSH / YMTC",
           "era": "ai",
           "theme": "semiconductor",
-          "status": "STAR application accepted 2026-08-21; under inquiry since 2026-09-03",
+          "decision": "rule_eligible",
+          "status": "STAR application accepted 2026-08-21; under inquiry",
           "expected_venue": "Shanghai STAR",
           "expected_timing": "H1 2027 (reported)",
           "source_url": "https://www.dealstreetasia.com/stories/ymtc-parent-ipo-492883",
@@ -1142,7 +965,8 @@
           "company": "Zhaoxin",
           "era": "ai",
           "theme": "semiconductor",
-          "status": "STAR application filed 2025-06",
+          "decision": "rule_eligible",
+          "status": "STAR application filed",
           "expected_venue": "Shanghai STAR",
           "expected_timing": "unknown",
           "source_url": "https://apps.digitimes.com/news/a20250618PD238/shanghai-ipo-cpu-x86-expansion.html",
@@ -1152,11 +976,34 @@
           "company": "Unisoc",
           "era": "ai",
           "theme": "semiconductor",
+          "decision": "rule_eligible",
           "status": "IPO tutoring filed 2025-06-25",
           "expected_venue": "Shanghai STAR",
           "expected_timing": "unknown",
           "source_url": "https://apps.digitimes.com/news/a20250702PD228/unisoc-ipo-shanghai-chips-2025.html",
           "source_date": "2025-07-02"
+        },
+        {
+          "company": "Anthropic",
+          "era": "ai",
+          "theme": "ai",
+          "decision": "rule_eligible",
+          "status": "confidential draft S-1 submitted 2026-06-01; no public S-1 as of mid-October",
+          "expected_venue": "NYSE/Nasdaq",
+          "expected_timing": "late 2026 (reported, unconfirmed)",
+          "source_url": "https://finance.yahoo.com/markets/stocks/articles/anthropic-files-confidential-1-joins-161008569.html",
+          "source_date": "2026-06"
+        },
+        {
+          "company": "OpenAI",
+          "era": "ai",
+          "theme": "ai",
+          "decision": "rule_eligible",
+          "status": "confidential draft reported; listing reportedly leaning to 2027",
+          "expected_venue": "NYSE/Nasdaq",
+          "expected_timing": "2027 (reported)",
+          "source_url": "https://www.indmoney.com/blog/us-stocks/anthropic-openai-ipo-date-valuation-risks",
+          "source_date": "2026-10"
         }
       ],
       "confirmed_through": "2025-12",
