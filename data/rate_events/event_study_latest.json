@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
-  "asof": "2026-10-21",
-  "generated_at": "2026-10-22T04:50:54+00:00",
+  "asof": "2026-10-22",
+  "generated_at": "2026-10-23T05:24:36+00:00",
   "probability_space": "reference_only",
   "status": "ok",
   "registry_version": "2026-08-04.v1",
@@ -160,10 +160,10 @@
   "hy_history_receipt": {
     "source": "fred_historical_event_study",
     "series_id": "BAMLH0A0HYM2",
-    "fetched_at": "2026-10-22T04:50:52+00:00",
+    "fetched_at": "2026-10-23T05:24:34+00:00",
     "revision_vintage": "captured_current",
     "primary_request_url": "https://api.stlouisfed.org/fred/series/observations?series_id=BAMLH0A0HYM2&file_type=json&observation_start=1996-01-01",
-    "primary_response_sha256": "f98e231319777899c69f282ccf3b4e6a48106818d55b6e32d7f7f8de9081c817",
+    "primary_response_sha256": "c4d92f2ba36a148d890d3225f9ec4c556b280c1f52a66dc08512e56fc431c6ed",
     "primary_coverage_start": "2023-10-23",
     "redistribution_policy": "derived_event_diagnostics_only",
     "history_status": "legacy_public_fred_capture_plus_current",
