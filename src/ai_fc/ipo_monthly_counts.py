@@ -43,13 +43,23 @@ NASDAQ_CALENDAR_URL = "https://api.nasdaq.com/api/ipo/calendar?date={month}"
 NASDAQ_SOURCE_ID = "NASDAQ_IPO_CALENDAR_MONTHLY"
 NASDAQ_POLICY_SOURCE_ID = "nasdaq_ipo_calendar"
 NASDAQ_TABLE_RELATIVE = Path("data/statistics/ipo/nasdaq_calendar_monthly.json")
-# 테마 ADR 가산(2026-10-08 사용자 결정) — Ritter net 은 ADR 을 모두 빼므로 SK hynix·TSMC·Arm 같은
-# 시대 핵심 반도체·AI(닷컴: 반도체·인터넷) 외국기업의 미국 ADR 상장이 사라진다. 출처를 단 행만
-# 확정 계열에 더한다. 잠정(Nasdaq 근사) 구간에는 더하지 않는다 — 근사 필터가 ADR 을 이미 센다.
-THEME_ADR_RELATIVE = Path("data/statistics/ipo/theme_adr_additions.csv")
-THEME_ADR_FIELDS = ["month", "era", "theme", "company", "ticker", "exchange", "instrument",
-                    "source_url", "note"]
-THEME_ADR_THEMES = {"dotcom": {"semiconductor", "internet"}, "ai": {"semiconductor", "ai"}}
+# 테마 상장 가산 — Ritter net 은 ADR 을 모두 빼고, 미국 밖 거래소 상장은 아예 세지 않는다. 그래서 두 종류를
+# 출처를 단 행만 더한다.
+#   us_adr(2026-10-08 사용자 결정): 시대 핵심 반도체·AI(닷컴: 반도체·인터넷) 외국기업의 미국 ADR/ADS 상장.
+#       확정(Ritter)월에만 더한다 — 잠정(Nasdaq 근사) 구간은 근사 필터가 ADR 을 이미 센다.
+#   foreign_primary(2026-10-23 사용자 결정): 같은 테마 기업의 **미국 밖 주 상장 대형 IPO**(상하이 STAR·홍콩·도쿄·
+#       유럽 등, 상장지 불문). Ritter 도 Nasdaq 캘린더도 세지 않으므로 확정월·잠정월 모두 더한다. '대형' 은
+#       사전지정 임계(총공모 USD, 명목) 이상만 — 닷컴 250 / 현재 500 (대략 CPI 2배 차이). 임계는 조사 전에 정했다.
+THEME_LISTING_RELATIVE = Path("data/statistics/ipo/theme_listing_additions.csv")
+THEME_LISTING_FIELDS = ["month", "era", "theme", "company", "ticker", "exchange", "market_country",
+                        "instrument", "listing_scope", "proceeds_usd_m", "source_url", "note"]
+THEME_LISTING_THEMES = {"dotcom": {"semiconductor", "internet"}, "ai": {"semiconductor", "ai"}}
+THEME_LISTING_SCOPES = {"us_adr", "foreign_primary"}
+THEME_FOREIGN_MIN_PROCEEDS_USD_M = {"dotcom": 250, "ai": 500}
+#: 상장 대기(발표·신청 단계) — 표시 전용, 어떤 건수에도 더하지 않는다. 상장이 완료되면 additions 로 옮긴다.
+THEME_PIPELINE_RELATIVE = Path("data/statistics/ipo/theme_listing_pipeline.csv")
+THEME_PIPELINE_FIELDS = ["company", "era", "theme", "status", "expected_venue", "expected_timing",
+                         "source_url", "source_date", "note"]
 NASDAQ_FILTER_VERSION = "nasdaq-operating-approx-v1"
 #: 2026-10-06 사용자 승인 — 이 엔드포인트에 한한 브라우저형 UA. 다른 원천에 쓰지 않는다.
 NASDAQ_USER_AGENT = (
@@ -243,43 +253,90 @@ def nasdaq_month_is_complete(month: str, fetched_at: str) -> bool:
     return _month_index(month) < fetched.year * 12 + fetched.month - 1
 
 
-def load_theme_adr_additions(root: Path) -> list[dict[str, str]]:
-    """테마 ADR 가산 목록 — 행마다 https 출처·시대별 허용 테마를 검증한다(실패는 거부)."""
+def _has_source(row: dict[str, str]) -> bool:
+    return row["source_url"].startswith("https://") or row["source_url"].startswith("http://")
+
+
+def load_theme_listing_additions(root: Path) -> list[dict[str, str]]:
+    """테마 상장 가산 목록 — 행마다 출처·시대별 허용 테마·범위별 규칙을 검증한다(실패는 거부).
+
+    us_adr 은 미국 거래소 ADR/ADS 만, foreign_primary 는 미국 밖 거래소의 보통주(A/H주 등) 상장이면서
+    총공모가 시대별 임계 이상이어야 한다. 임계 미만·미국 상장·테마 밖 행은 조용히 빼지 않고 파일을 거부한다.
+    """
     import csv
 
-    path = root / THEME_ADR_RELATIVE
+    path = root / THEME_LISTING_RELATIVE
     if not path.is_file():
         return []
     with path.open(encoding="utf-8", newline="") as handle:
         reader = csv.DictReader(handle)
-        if reader.fieldnames != THEME_ADR_FIELDS:
-            raise IPOMonthlyCountsError("theme ADR additions schema drift")
+        if reader.fieldnames != THEME_LISTING_FIELDS:
+            raise IPOMonthlyCountsError("theme listing additions schema drift")
         rows = list(reader)
     seen: set[tuple[str, str]] = set()
     for row in rows:
+        name = row["company"]
         if not re.fullmatch(r"\d{4}-\d{2}", row["month"]):
-            raise IPOMonthlyCountsError(f"theme ADR month invalid: {row['company']}")
-        if row["theme"] not in THEME_ADR_THEMES.get(row["era"], set()):
-            raise IPOMonthlyCountsError(f"theme ADR theme not allowed for era: {row['company']}")
-        if row["instrument"] not in {"ADR", "ADS"}:
-            raise IPOMonthlyCountsError(f"theme ADR must be an ADR/ADS listing: {row['company']}")
-        if not row["source_url"].startswith("https://") and not row["source_url"].startswith("http://"):
-            raise IPOMonthlyCountsError(f"theme ADR needs a source: {row['company']}")
-        key = (row["company"], row["month"])
+            raise IPOMonthlyCountsError(f"theme listing month invalid: {name}")
+        if row["theme"] not in THEME_LISTING_THEMES.get(row["era"], set()):
+            raise IPOMonthlyCountsError(f"theme listing theme not allowed for era: {name}")
+        if row["listing_scope"] not in THEME_LISTING_SCOPES:
+            raise IPOMonthlyCountsError(f"theme listing scope invalid: {name}")
+        if not _has_source(row):
+            raise IPOMonthlyCountsError(f"theme listing needs a source: {name}")
+        if row["listing_scope"] == "us_adr":
+            if row["instrument"] not in {"ADR", "ADS"} or row["market_country"] != "US":
+                raise IPOMonthlyCountsError(f"us_adr row must be a US ADR/ADS listing: {name}")
+        else:
+            if row["instrument"] in {"ADR", "ADS"} or row["market_country"] == "US":
+                raise IPOMonthlyCountsError(f"foreign_primary row must be a non-US primary listing: {name}")
+            if not re.fullmatch(r"\d+", row["proceeds_usd_m"] or ""):
+                raise IPOMonthlyCountsError(f"foreign_primary row needs proceeds_usd_m: {name}")
+            if int(row["proceeds_usd_m"]) < THEME_FOREIGN_MIN_PROCEEDS_USD_M[row["era"]]:
+                raise IPOMonthlyCountsError(f"foreign_primary row below the size threshold: {name}")
+        key = (name, row["month"])
         if key in seen:
-            raise IPOMonthlyCountsError(f"duplicate theme ADR row: {row['company']}")
+            raise IPOMonthlyCountsError(f"duplicate theme listing row: {name}")
         seen.add(key)
+    return rows
+
+
+def load_theme_listing_pipeline(root: Path) -> list[dict[str, str]]:
+    """상장 대기 목록 — 표시 전용. 출처와 시대·테마만 검증하고 어떤 합계에도 쓰지 않는다."""
+    import csv
+
+    path = root / THEME_PIPELINE_RELATIVE
+    if not path.is_file():
+        return []
+    with path.open(encoding="utf-8", newline="") as handle:
+        reader = csv.DictReader(handle)
+        if reader.fieldnames != THEME_PIPELINE_FIELDS:
+            raise IPOMonthlyCountsError("theme listing pipeline schema drift")
+        rows = list(reader)
+    seen: set[str] = set()
+    for row in rows:
+        if not row["company"] or row["company"] in seen:
+            raise IPOMonthlyCountsError(f"theme pipeline company invalid or duplicate: {row['company']!r}")
+        if row["theme"] not in THEME_LISTING_THEMES.get(row["era"], set()):
+            raise IPOMonthlyCountsError(f"theme pipeline theme not allowed for era: {row['company']}")
+        if not _has_source(row) or not re.fullmatch(r"\d{4}-\d{2}(-\d{2})?", row["source_date"]):
+            raise IPOMonthlyCountsError(f"theme pipeline needs a dated source: {row['company']}")
+        seen.add(row["company"])
     return rows
 
 
 def ipo_count_series(
     ritter: dict[str, Any], nasdaq: dict[str, Any] | None,
-    theme_adr: list[dict[str, str]] | None = None,
+    theme_listings: list[dict[str, str]] | None = None,
 ) -> dict[str, Any]:
     """확정 12개월 합계(월별) + 확정월 이후 잠정 12개월 합계.
 
     잠정 = Ritter 확정월은 확정치, 그 이후 달은 Nasdaq 근사치로 채운 12개월 합. 확정
     계열에는 Nasdaq 값이 한 건도 들어가지 않는다.
+
+    테마 가산: us_adr 은 확정월에만(잠정 구간은 Nasdaq 근사가 ADR 을 이미 센다), foreign_primary 는
+    확정월·잠정월 모두(어느 원천도 미국 밖 상장을 세지 않는다). 잠정 구간에서 Nasdaq 달이 없거나
+    미완결이면 그 달의 해외 상장은 더할 자리가 없어 ``theme_added_skipped`` 에 남긴다.
     """
     months = ritter.get("months") or []
     net = {row["month"]: row.get("net") for row in months}
@@ -287,17 +344,21 @@ def ipo_count_series(
     if last is None:
         raise IPOMonthlyCountsError("Ritter table has no confirmed month")
     confirmed_net = {month: value for month, value in net.items() if _month_index(month) <= _month_index(last)}
-    added: dict[str, int] = {}
-    for row in theme_adr or []:
+    added_confirmed: dict[str, int] = {}
+    foreign_after: dict[str, int] = {}
+    for row in theme_listings or []:
         month = row["month"]
-        # 확정월 이후(잠정)는 더하지 않는다 — Nasdaq 근사 필터가 ADR 을 이미 센다.
         if month in confirmed_net and confirmed_net[month] is not None:
-            added[month] = added.get(month, 0) + 1
-    for month, count in added.items():
+            added_confirmed[month] = added_confirmed.get(month, 0) + 1
+        elif row.get("listing_scope") == "foreign_primary" and _month_index(month) > _month_index(last):
+            foreign_after[month] = foreign_after.get(month, 0) + 1
+        # us_adr 이 확정월 이후면 더하지 않는다 — 근사 필터가 이미 센다.
+    for month, count in added_confirmed.items():
         confirmed_net[month] = int(confirmed_net[month]) + count  # type: ignore[arg-type]
     confirmed = trailing_sums(confirmed_net)
     provisional: dict[str, int] = {}
     provisional_months: list[dict[str, Any]] = []
+    added_provisional: dict[str, int] = {}
     if nasdaq:
         extension: dict[str, int | None] = dict(confirmed_net)
         for month, row in sorted((nasdaq.get("months") or {}).items()):
@@ -305,9 +366,12 @@ def ipo_count_series(
                 continue
             if not row.get("complete"):
                 continue
-            extension[month] = int(row["operating_approx"])
+            extension[month] = int(row["operating_approx"]) + foreign_after.get(month, 0)
+            if month in foreign_after:
+                added_provisional[month] = foreign_after[month]
             provisional_months.append({"month": month, "operating_approx": int(row["operating_approx"]),
-                                       "priced_total": int(row["priced_total"])})
+                                       "priced_total": int(row["priced_total"]),
+                                       "theme_foreign_added": foreign_after.get(month, 0)})
         # 확정월 다음 달부터 끊김 없이 이어진 달까지만 잠정 합계를 낸다.
         cursor = _month_index(last) + 1
         while _month_from_index(cursor) in extension:
@@ -317,12 +381,16 @@ def ipo_count_series(
             month: value for month, value in sums.items()
             if _month_index(last) < _month_index(month) < cursor
         }
+    skipped = [{"month": month, "count": count, "reason": "Nasdaq 잠정 달 없음·미완결"}
+               for month, count in sorted(foreign_after.items()) if month not in added_provisional]
     return {
         "last_confirmed_month": last,
         "confirmed": confirmed,
         "provisional": provisional,
         "provisional_months": [row for row in provisional_months if row["month"] in provisional],
-        "theme_adr_added": dict(sorted(added.items())),
+        "theme_added_confirmed": dict(sorted(added_confirmed.items())),
+        "theme_added_provisional": dict(sorted(added_provisional.items())),
+        "theme_added_skipped": skipped,
     }
 
 
@@ -556,7 +624,8 @@ def load_ipo_monthly_tables(root: Path) -> dict[str, Any] | None:
     if raw_path.is_file() and hashlib.sha256(raw_path.read_bytes()).hexdigest() != ritter.get("raw_sha256"):
         raise IPOMonthlyCountsError("Ritter table raw_sha256 does not match its raw artifact")
     return {"ritter": ritter, "nasdaq": _read_json(root / NASDAQ_TABLE_RELATIVE),
-            "theme_adr": load_theme_adr_additions(root)}
+            "theme_listings": load_theme_listing_additions(root),
+            "theme_pipeline": load_theme_listing_pipeline(root)}
 
 
 def month_start(month: str) -> str:

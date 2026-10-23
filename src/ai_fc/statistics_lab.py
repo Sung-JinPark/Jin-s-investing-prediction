@@ -1899,12 +1899,15 @@ def _build_ipo_count_chart(
     잠정 계열은 점선·별도 라벨로만 그리며 ``source_ids`` 에 넣지 않는다. 과열도 지수는
     라벨로 확정 계열만 읽는다.
     """
-    from .ipo_monthly_counts import NASDAQ_OVERCOUNT_MEASURED, ipo_count_series, month_start
+    from .ipo_monthly_counts import (
+        NASDAQ_OVERCOUNT_MEASURED, THEME_FOREIGN_MIN_PROCEEDS_USD_M, ipo_count_series, month_start,
+    )
 
     ritter = ipo_monthly["ritter"]
     nasdaq = ipo_monthly.get("nasdaq")
-    theme_adr = ipo_monthly.get("theme_adr") or []
-    built = ipo_count_series(ritter, nasdaq, theme_adr)
+    theme_listings = ipo_monthly.get("theme_listings") or []
+    theme_pipeline = ipo_monthly.get("theme_pipeline") or []
+    built = ipo_count_series(ritter, nasdaq, theme_listings)
     confirmed_points = [
         {"date": month_start(month), "value": float(value)}
         for month, value in sorted(built["confirmed"].items())
@@ -1929,8 +1932,8 @@ def _build_ipo_count_chart(
         provisional.update({"provisional": True, "dash": "2 5"})
         series.append(provisional)
     chart = make(
-        IPO_COUNT_CHART_ID, "미국 IPO 건수: 최근 12개월", "ipo", "count",
-        series, [IPO_COUNT_SERIES_ID], "*미국 운영기업 IPO + 시대 핵심 ADR 기준",
+        IPO_COUNT_CHART_ID, "IPO 건수: 최근 12개월", "ipo", "count",
+        series, [IPO_COUNT_SERIES_ID], "*미국 운영기업 IPO + 시대 핵심 ADR·해외 대형 상장 기준",
         "운영기업 IPO 12개월 합계, 닷컴과 같은 경과월 비교.",
     )
     measured = " · ".join(
@@ -1942,21 +1945,41 @@ def _build_ipo_count_chart(
          if provisional_points else "")
         + "확정치는 Ritter 순(net) 건수로 SPAC·펀드·REIT·유닛·ADR·공모가 $5 미만·은행·LP를 "
         "빼며 연 1회 개정됩니다. 단 시대 핵심 외국기업의 미국 ADR 상장(닷컴: 반도체·인터넷, "
-        "현재: 반도체·AI)은 출처를 단 목록만 다시 더합니다. SPAC은 닷컴기(1995~99) 7건뿐인 소형 "
-        "장외 블랭크체크라 비교 계열이 없어 계속 뺍니다. 잠정 근사 필터 대 확정치 실측: "
-        + measured + "."
+        "현재: 반도체·AI)과 같은 테마의 해외 대형 IPO(미국 밖 주 상장, 총공모 닷컴 $2.5억·현재 $5억 이상, "
+        "상장지 불문)는 출처를 단 목록만 더합니다 — 닷컴기(1995~99)에는 임계를 넘는 해외 상장이 "
+        "확인되지 않아 현재 쪽만 늘어나는 비대칭이 있습니다. 상장 대기 기업(DeepSeek 등)은 표시만 하고 "
+        "세지 않습니다. SPAC은 닷컴기 7건뿐인 소형 장외 블랭크체크라 비교 계열이 없어 계속 뺍니다. "
+        "잠정 근사 필터 대 확정치 실측: " + measured + "."
     )
     chart.update({
         "display_unit": "건 · 12개월 합",
         "line_markers": False,
         "projection_max_points": 24,
         "observed_end_label": "최신",
-        "definition": "ritter_net_plus_theme_adr_ipos_trailing_12_month_sum",
-        "theme_adr_additions": [
-            {key: row[key] for key in ("month", "era", "theme", "company", "ticker", "exchange", "source_url")}
-            for row in theme_adr
+        "definition": "ritter_net_plus_theme_listings_trailing_12_month_sum",
+        "theme_listing_additions": [
+            {key: row[key] for key in ("month", "era", "theme", "company", "ticker", "exchange",
+                                       "market_country", "instrument", "listing_scope", "proceeds_usd_m",
+                                       "source_url")}
+            for row in theme_listings
         ],
-        "theme_adr_added_to_confirmed": built.get("theme_adr_added", {}),
+        "theme_added_to_confirmed": built.get("theme_added_confirmed", {}),
+        "theme_added_to_provisional": built.get("theme_added_provisional", {}),
+        "theme_added_skipped": built.get("theme_added_skipped", []),
+        "foreign_listing_rule": {
+            "scope": "non_us_primary_listing_ipo_of_era_theme_company_any_venue",
+            "min_gross_proceeds_usd_m": dict(THEME_FOREIGN_MIN_PROCEEDS_USD_M),
+            "counted_in": "confirmed_and_provisional_months",
+            "dotcom_rows_meeting_threshold": sum(
+                1 for row in theme_listings if row["era"] == "dotcom" and row["listing_scope"] == "foreign_primary"
+            ),
+        },
+        # 상장 대기 — 표시 전용. 어떤 합계에도 들어가지 않는다.
+        "theme_listing_pipeline": [
+            {key: row[key] for key in ("company", "era", "theme", "status", "expected_venue",
+                                       "expected_timing", "source_url", "source_date")}
+            for row in theme_pipeline
+        ],
         "confirmed_through": built["last_confirmed_month"],
         "index_input_series": ["닷컴", "현재"],
         "cross_check": _ipo_sec_cross_check(ritter, sec_rows),
@@ -1976,6 +1999,9 @@ def _build_ipo_count_chart(
             f" 잠정 {provisional_points[-1]['value']:.0f}건"
             f"({provisional_points[-1]['date'][:7]}까지)."
         )
+    if theme_pipeline:
+        names = [row["company"] for row in theme_pipeline[:2]]
+        conclusion += f" 상장 대기 {len(theme_pipeline)}건({' · '.join(names)} 등) — 미집계."
     chart["conclusion"] = conclusion
     source_meta = {
         "series_id": IPO_COUNT_SERIES_ID,

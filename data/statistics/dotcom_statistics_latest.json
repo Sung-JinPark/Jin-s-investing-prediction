@@ -5,8 +5,8 @@
   "probability_space": "reference_only",
   "model_use": false,
   "official_forecast_input": false,
-  "generated_at": "2026-10-23T00:45:58+00:00",
-  "knowledge_cutoff": "2026-10-23T00:45:58+00:00",
+  "generated_at": "2026-10-23T02:09:45+00:00",
+  "knowledge_cutoff": "2026-10-23T02:09:45+00:00",
   "observation_through": "2026-10-22",
   "as_of": "2026-10-22",
   "source_refresh": {
@@ -116,11 +116,11 @@
     },
     {
       "id": "ipo_count_operating_12m",
-      "title": "미국 IPO 건수: 최근 12개월",
+      "title": "IPO 건수: 최근 12개월",
       "category": "ipo",
       "unit": "count",
       "description": "운영기업 IPO 12개월 합계, 닷컴과 같은 경과월 비교.",
-      "caveat": "점선 잠정치는 거래소 캘린더 근사라 확정치보다 많이 세며 과열도 지수에 쓰지 않습니다. 확정치는 Ritter 순(net) 건수로 SPAC·펀드·REIT·유닛·ADR·공모가 $5 미만·은행·LP를 빼며 연 1회 개정됩니다. 단 시대 핵심 외국기업의 미국 ADR 상장(닷컴: 반도체·인터넷, 현재: 반도체·AI)은 출처를 단 목록만 다시 더합니다. SPAC은 닷컴기(1995~99) 7건뿐인 소형 장외 블랭크체크라 비교 계열이 없어 계속 뺍니다. 잠정 근사 필터 대 확정치 실측: 2023 87건 vs 54건 · 2024 103건 vs 72건 · 2025 116건 vs 90건.",
+      "caveat": "점선 잠정치는 거래소 캘린더 근사라 확정치보다 많이 세며 과열도 지수에 쓰지 않습니다. 확정치는 Ritter 순(net) 건수로 SPAC·펀드·REIT·유닛·ADR·공모가 $5 미만·은행·LP를 빼며 연 1회 개정됩니다. 단 시대 핵심 외국기업의 미국 ADR 상장(닷컴: 반도체·인터넷, 현재: 반도체·AI)과 같은 테마의 해외 대형 IPO(미국 밖 주 상장, 총공모 닷컴 $2.5억·현재 $5억 이상, 상장지 불문)는 출처를 단 목록만 더합니다 — 닷컴기(1995~99)에는 임계를 넘는 해외 상장이 확인되지 않아 현재 쪽만 늘어나는 비대칭이 있습니다. 상장 대기 기업(DeepSeek 등)은 표시만 하고 세지 않습니다. SPAC은 닷컴기 7건뿐인 소형 장외 블랭크체크라 비교 계열이 없어 계속 뺍니다. 잠정 근사 필터 대 확정치 실측: 2023 87건 vs 54건 · 2024 103건 vs 72건 · 2025 116건 vs 90건.",
       "series": [
         {
           "label": "닷컴",
@@ -457,162 +457,162 @@
             {
               "period": 4,
               "date": "2023-05-01",
-              "value": 36.0
+              "value": 38.0
             },
             {
               "period": 5,
               "date": "2023-06-01",
-              "value": 40.0
+              "value": 42.0
             },
             {
               "period": 6,
               "date": "2023-07-01",
-              "value": 43.0
+              "value": 45.0
             },
             {
               "period": 7,
               "date": "2023-08-01",
-              "value": 44.0
+              "value": 46.0
             },
             {
               "period": 8,
               "date": "2023-09-01",
-              "value": 48.0
+              "value": 50.0
             },
             {
               "period": 9,
               "date": "2023-10-01",
-              "value": 50.0
+              "value": 53.0
             },
             {
               "period": 10,
               "date": "2023-11-01",
-              "value": 56.0
+              "value": 59.0
             },
             {
               "period": 11,
               "date": "2023-12-01",
-              "value": 55.0
+              "value": 58.0
             },
             {
               "period": 12,
               "date": "2024-01-01",
-              "value": 55.0
+              "value": 58.0
             },
             {
               "period": 13,
               "date": "2024-02-01",
-              "value": 61.0
+              "value": 64.0
             },
             {
               "period": 14,
               "date": "2024-03-01",
-              "value": 64.0
+              "value": 67.0
             },
             {
               "period": 15,
               "date": "2024-04-01",
-              "value": 68.0
+              "value": 71.0
             },
             {
               "period": 16,
               "date": "2024-05-01",
-              "value": 70.0
+              "value": 71.0
             },
             {
               "period": 17,
               "date": "2024-06-01",
-              "value": 69.0
+              "value": 70.0
             },
             {
               "period": 18,
               "date": "2024-07-01",
-              "value": 69.0
+              "value": 70.0
             },
             {
               "period": 19,
               "date": "2024-08-01",
-              "value": 66.0
+              "value": 67.0
             },
             {
               "period": 20,
               "date": "2024-09-01",
-              "value": 67.0
+              "value": 68.0
             },
             {
               "period": 21,
               "date": "2024-10-01",
-              "value": 74.0
+              "value": 75.0
             },
             {
               "period": 22,
               "date": "2024-11-01",
-              "value": 71.0
+              "value": 72.0
             },
             {
               "period": 23,
               "date": "2024-12-01",
-              "value": 74.0
+              "value": 76.0
             },
             {
               "period": 24,
               "date": "2025-01-01",
-              "value": 76.0
+              "value": 78.0
             },
             {
               "period": 25,
               "date": "2025-02-01",
-              "value": 75.0
+              "value": 77.0
             },
             {
               "period": 26,
               "date": "2025-03-01",
-              "value": 74.0
+              "value": 77.0
             },
             {
               "period": 27,
               "date": "2025-04-01",
-              "value": 67.0
+              "value": 70.0
             },
             {
               "period": 28,
               "date": "2025-05-01",
-              "value": 69.0
+              "value": 72.0
             },
             {
               "period": 29,
               "date": "2025-06-01",
-              "value": 75.0
+              "value": 78.0
             },
             {
               "period": 30,
               "date": "2025-07-01",
-              "value": 80.0
+              "value": 83.0
             },
             {
               "period": 31,
               "date": "2025-08-01",
-              "value": 84.0
+              "value": 87.0
             },
             {
               "period": 32,
               "date": "2025-09-01",
-              "value": 87.0
+              "value": 90.0
             },
             {
               "period": 33,
               "date": "2025-10-01",
-              "value": 85.0
+              "value": 89.0
             },
             {
               "period": 34,
               "date": "2025-11-01",
-              "value": 86.0
+              "value": 90.0
             },
             {
               "period": 35,
               "date": "2025-12-01",
-              "value": 90.0
+              "value": 95.0
             }
           ]
         },
@@ -624,52 +624,52 @@
             {
               "period": 35,
               "date": "2025-12-01",
-              "value": 90.0
+              "value": 95.0
             },
             {
               "period": 36,
               "date": "2026-01-01",
-              "value": 93.0
+              "value": 101.0
             },
             {
               "period": 37,
               "date": "2026-02-01",
-              "value": 103.0
+              "value": 111.0
             },
             {
               "period": 38,
               "date": "2026-03-01",
-              "value": 104.0
+              "value": 111.0
             },
             {
               "period": 39,
               "date": "2026-04-01",
-              "value": 118.0
+              "value": 126.0
             },
             {
               "period": 40,
               "date": "2026-05-01",
-              "value": 131.0
+              "value": 139.0
             },
             {
               "period": 41,
               "date": "2026-06-01",
-              "value": 137.0
+              "value": 145.0
             },
             {
               "period": 42,
               "date": "2026-07-01",
-              "value": 142.0
+              "value": 152.0
             },
             {
               "period": 43,
               "date": "2026-08-01",
-              "value": 146.0
+              "value": 156.0
             },
             {
               "period": 44,
               "date": "2026-09-01",
-              "value": 141.0
+              "value": 152.0
             }
           ],
           "provisional": true,
@@ -683,9 +683,9 @@
         "minimum": 35.0,
         "maximum": 712.0
       },
-      "scope_note": "*미국 운영기업 IPO + 시대 핵심 ADR 기준",
+      "scope_note": "*미국 운영기업 IPO + 시대 핵심 ADR·해외 대형 상장 기준",
       "insight": "운영기업 IPO 12개월 합계, 닷컴과 같은 경과월 비교.",
-      "conclusion": "최근 12개월 90건(2025-12 확정) — 닷컴 같은 35개월차 474건, 닷컴 최대 712건. 잠정 141건(2026-09까지).",
+      "conclusion": "최근 12개월 95건(2025-12 확정) — 닷컴 같은 35개월차 474건, 닷컴 최대 712건. 잠정 152건(2026-09까지). 상장 대기 5건(DeepSeek · Kunlunxin (Baidu) 등) — 미집계.",
       "metric_source_ids": [
         "RITTER_IPOALL_MONTHLY"
       ],
@@ -694,8 +694,8 @@
       "line_markers": false,
       "projection_max_points": 24,
       "observed_end_label": "최신",
-      "definition": "ritter_net_plus_theme_adr_ipos_trailing_12_month_sum",
-      "theme_adr_additions": [
+      "definition": "ritter_net_plus_theme_listings_trailing_12_month_sum",
+      "theme_listing_additions": [
         {
           "month": "1996-05",
           "era": "dotcom",
@@ -703,6 +703,10 @@
           "company": "Macronix International",
           "ticker": "",
           "exchange": "Nasdaq",
+          "market_country": "US",
+          "instrument": "ADS",
+          "listing_scope": "us_adr",
+          "proceeds_usd_m": "",
           "source_url": "https://www.sec.gov/Archives/edgar/data/0001009680/000114554906001020/h00650e20vf.htm"
         },
         {
@@ -712,6 +716,10 @@
           "company": "Taiwan Semiconductor Manufacturing",
           "ticker": "TSM",
           "exchange": "NYSE",
+          "market_country": "US",
+          "instrument": "ADR",
+          "listing_scope": "us_adr",
+          "proceeds_usd_m": "",
           "source_url": "https://pr.tsmc.com/english/news/2085"
         },
         {
@@ -721,6 +729,10 @@
           "company": "ARM Holdings",
           "ticker": "ARMHY",
           "exchange": "Nasdaq",
+          "market_country": "US",
+          "instrument": "ADS",
+          "listing_scope": "us_adr",
+          "proceeds_usd_m": "",
           "source_url": "http://media.corporate-ir.net/media_files/irol/19/197211/ar/ar98.pdf"
         },
         {
@@ -730,7 +742,24 @@
           "company": "Freeserve",
           "ticker": "",
           "exchange": "Nasdaq",
+          "market_country": "US",
+          "instrument": "ADS",
+          "listing_scope": "us_adr",
+          "proceeds_usd_m": "",
           "source_url": "https://www.bloomberg.com/news/articles/1999-07-25/freeserve-will-test-appetite-for-u-k-internet-stocks-repeat"
+        },
+        {
+          "month": "1999-10",
+          "era": "dotcom",
+          "theme": "semiconductor",
+          "company": "Chartered Semiconductor Manufacturing",
+          "ticker": "CHRT",
+          "exchange": "Nasdaq",
+          "market_country": "US",
+          "instrument": "ADS",
+          "listing_scope": "us_adr",
+          "proceeds_usd_m": "",
+          "source_url": "https://www.sec.gov/Archives/edgar/data/0001095270/000095015099001186/0000950150-99-001186.txt"
         },
         {
           "month": "1999-10",
@@ -739,6 +768,10 @@
           "company": "QXL.com",
           "ticker": "",
           "exchange": "Nasdaq",
+          "market_country": "US",
+          "instrument": "ADS",
+          "listing_scope": "us_adr",
+          "proceeds_usd_m": "",
           "source_url": "https://money.cnn.com/1999/10/07/europe/qxl/"
         },
         {
@@ -748,16 +781,11 @@
           "company": "Satyam Infoway",
           "ticker": "SIFY",
           "exchange": "Nasdaq",
+          "market_country": "US",
+          "instrument": "ADS",
+          "listing_scope": "us_adr",
+          "proceeds_usd_m": "",
           "source_url": "https://www.sec.gov/Archives/edgar/data/0001094324/000101287099003688/0001012870-99-003688.txt"
-        },
-        {
-          "month": "1999-10",
-          "era": "dotcom",
-          "theme": "semiconductor",
-          "company": "Chartered Semiconductor Manufacturing",
-          "ticker": "CHRT",
-          "exchange": "Nasdaq",
-          "source_url": "https://www.sec.gov/Archives/edgar/data/0001095270/000095015099001186/0000950150-99-001186.txt"
         },
         {
           "month": "1999-11",
@@ -766,7 +794,37 @@
           "company": "Terra Networks",
           "ticker": "TRRA",
           "exchange": "Nasdaq",
+          "market_country": "US",
+          "instrument": "ADS",
+          "listing_scope": "us_adr",
+          "proceeds_usd_m": "",
           "source_url": "https://money.cnn.com/1999/11/17/europe/terra/"
+        },
+        {
+          "month": "2023-05",
+          "era": "ai",
+          "theme": "semiconductor",
+          "company": "Nexchip Semiconductor",
+          "ticker": "688249",
+          "exchange": "Shanghai STAR",
+          "market_country": "CN",
+          "instrument": "A-share",
+          "listing_scope": "foreign_primary",
+          "proceeds_usd_m": "1440",
+          "source_url": "https://en.wikipedia.org/wiki/Nexchip"
+        },
+        {
+          "month": "2023-05",
+          "era": "ai",
+          "theme": "semiconductor",
+          "company": "United Nova Technology (SMEC)",
+          "ticker": "688469",
+          "exchange": "Shanghai STAR",
+          "market_country": "CN",
+          "instrument": "A-share",
+          "listing_scope": "foreign_primary",
+          "proceeds_usd_m": "1600",
+          "source_url": "https://www.allbrightlaw.com/CN/10454/2f0e4da072fb9656.aspx"
         },
         {
           "month": "2023-09",
@@ -775,7 +833,37 @@
           "company": "Arm Holdings",
           "ticker": "ARM",
           "exchange": "Nasdaq",
+          "market_country": "US",
+          "instrument": "ADS",
+          "listing_scope": "us_adr",
+          "proceeds_usd_m": "",
           "source_url": "https://www.sec.gov/Archives/edgar/data/1973239/000119312523235320/d550931d424b4.htm"
+        },
+        {
+          "month": "2023-10",
+          "era": "ai",
+          "theme": "semiconductor",
+          "company": "Kokusai Electric",
+          "ticker": "6525",
+          "exchange": "Tokyo Prime",
+          "market_country": "JP",
+          "instrument": "ordinary",
+          "listing_scope": "foreign_primary",
+          "proceeds_usd_m": "724",
+          "source_url": "https://sg.news.yahoo.com/kokusai-electric-raises-724-4-062037489.html"
+        },
+        {
+          "month": "2024-10",
+          "era": "ai",
+          "theme": "ai",
+          "company": "Horizon Robotics",
+          "ticker": "9660",
+          "exchange": "HKEX",
+          "market_country": "HK",
+          "instrument": "ordinary",
+          "listing_scope": "foreign_primary",
+          "proceeds_usd_m": "696",
+          "source_url": "https://www.davispolk.com/experience/horizon-robotics-hk-5-41-billion-ipo"
         },
         {
           "month": "2024-10",
@@ -784,6 +872,10 @@
           "company": "WeRide",
           "ticker": "WRD",
           "exchange": "Nasdaq",
+          "market_country": "US",
+          "instrument": "ADS",
+          "listing_scope": "us_adr",
+          "proceeds_usd_m": "",
           "source_url": "https://ir.weride.ai/news-releases/news-release-details/weride-inc-announces-pricing-initial-public-offering"
         },
         {
@@ -793,7 +885,167 @@
           "company": "Pony AI",
           "ticker": "PONY",
           "exchange": "Nasdaq",
+          "market_country": "US",
+          "instrument": "ADS",
+          "listing_scope": "us_adr",
+          "proceeds_usd_m": "",
           "source_url": "https://ir.pony.ai/news-releases/news-release-details/pony-ai-inc-announces-pricing-initial-public-offering"
+        },
+        {
+          "month": "2024-12",
+          "era": "ai",
+          "theme": "semiconductor",
+          "company": "Kioxia Holdings",
+          "ticker": "285A",
+          "exchange": "Tokyo Prime",
+          "market_country": "JP",
+          "instrument": "ordinary",
+          "listing_scope": "foreign_primary",
+          "proceeds_usd_m": "800",
+          "source_url": "https://investing.com/news/stock-market-news/kioxia-prices-ipo-at-1455-yen-per-share-3760492"
+        },
+        {
+          "month": "2025-03",
+          "era": "ai",
+          "theme": "semiconductor",
+          "company": "JX Advanced Metals",
+          "ticker": "5016",
+          "exchange": "Tokyo Prime",
+          "market_country": "JP",
+          "instrument": "ordinary",
+          "listing_scope": "foreign_primary",
+          "proceeds_usd_m": "2970",
+          "source_url": "https://media.dealstreetasia.com/stories/jx-advanced-tokyo-debut-435101"
+        },
+        {
+          "month": "2025-10",
+          "era": "ai",
+          "theme": "semiconductor",
+          "company": "ESWIN Material",
+          "ticker": "",
+          "exchange": "Shanghai STAR",
+          "market_country": "CN",
+          "instrument": "A-share",
+          "listing_scope": "foreign_primary",
+          "proceeds_usd_m": "645",
+          "source_url": "https://www.caixinglobal.com/2025-10-29/chinas-star-market-embraces-unprofitable-tech-with-146-billion-eswin-debut-102376695.html"
+        },
+        {
+          "month": "2025-10",
+          "era": "ai",
+          "theme": "semiconductor",
+          "company": "Tekscend Photomask",
+          "ticker": "429A",
+          "exchange": "Tokyo Prime",
+          "market_country": "JP",
+          "instrument": "ordinary",
+          "listing_scope": "foreign_primary",
+          "proceeds_usd_m": "1030",
+          "source_url": "https://www.davispolk.com/experience/tekscend-photomask-y-157-billion-ipo"
+        },
+        {
+          "month": "2025-12",
+          "era": "ai",
+          "theme": "semiconductor",
+          "company": "MetaX",
+          "ticker": "688802",
+          "exchange": "Shanghai STAR",
+          "market_country": "CN",
+          "instrument": "A-share",
+          "listing_scope": "foreign_primary",
+          "proceeds_usd_m": "596",
+          "source_url": "https://www.yicaiglobal.com/news/chinese-gpu-maker-metax-surges-nearly-700-on-trading-debut-in-shanghai"
+        },
+        {
+          "month": "2025-12",
+          "era": "ai",
+          "theme": "semiconductor",
+          "company": "Moore Threads",
+          "ticker": "688795",
+          "exchange": "Shanghai STAR",
+          "market_country": "CN",
+          "instrument": "A-share",
+          "listing_scope": "foreign_primary",
+          "proceeds_usd_m": "1130",
+          "source_url": "https://www.yicaiglobal.com/news/chinas-first-gpu-stock-moore-threads-soars-over-fivefold-on-shanghai-debut"
+        },
+        {
+          "month": "2026-01",
+          "era": "ai",
+          "theme": "semiconductor",
+          "company": "Biren Technology",
+          "ticker": "6082",
+          "exchange": "HKEX",
+          "market_country": "HK",
+          "instrument": "H-share",
+          "listing_scope": "foreign_primary",
+          "proceeds_usd_m": "717",
+          "source_url": "https://www.scmp.com/business/banking-finance/article/3338447/biren-shares-soar-hong-kong-investors-seize-chinas-first-gpu-start-list"
+        },
+        {
+          "month": "2026-01",
+          "era": "ai",
+          "theme": "ai",
+          "company": "MiniMax Group",
+          "ticker": "0100",
+          "exchange": "HKEX",
+          "market_country": "HK",
+          "instrument": "ordinary",
+          "listing_scope": "foreign_primary",
+          "proceeds_usd_m": "619",
+          "source_url": "https://cdn.dealstreetasia.com/stories/minimax-group-hong-kong-ipo-468716"
+        },
+        {
+          "month": "2026-01",
+          "era": "ai",
+          "theme": "ai",
+          "company": "Zhipu AI (Z.ai)",
+          "ticker": "2513",
+          "exchange": "HKEX",
+          "market_country": "HK",
+          "instrument": "ordinary",
+          "listing_scope": "foreign_primary",
+          "proceeds_usd_m": "560",
+          "source_url": "https://finance.yahoo.com/news/chinas-zhipu-ai-launches-us-093000355.html"
+        },
+        {
+          "month": "2026-04",
+          "era": "ai",
+          "theme": "semiconductor",
+          "company": "SJ Semiconductor",
+          "ticker": "688820",
+          "exchange": "Shanghai STAR",
+          "market_country": "CN",
+          "instrument": "A-share",
+          "listing_scope": "foreign_primary",
+          "proceeds_usd_m": "730",
+          "source_url": "https://www.allbrightlaw.com/CN/10454/d08ee55df3fcce79.aspx"
+        },
+        {
+          "month": "2026-07",
+          "era": "ai",
+          "theme": "semiconductor",
+          "company": "CXMT (ChangXin Memory)",
+          "ticker": "",
+          "exchange": "Shanghai STAR",
+          "market_country": "CN",
+          "instrument": "A-share",
+          "listing_scope": "foreign_primary",
+          "proceeds_usd_m": "8600",
+          "source_url": "https://www.trendforce.com/news/2026/07/24/news-chinas-dram-maker-cxmt-to-debut-jul-27-ipo-to-raise-rmb-57-9b-largest-on-star-market-since-launch/"
+        },
+        {
+          "month": "2026-07",
+          "era": "ai",
+          "theme": "ai",
+          "company": "Momenta",
+          "ticker": "6880",
+          "exchange": "HKEX",
+          "market_country": "HK",
+          "instrument": "ordinary",
+          "listing_scope": "foreign_primary",
+          "proceeds_usd_m": "751",
+          "source_url": "https://momenta.cn/en/article/582.html"
         },
         {
           "month": "2026-07",
@@ -802,20 +1054,111 @@
           "company": "SK hynix",
           "ticker": "SKHY",
           "exchange": "Nasdaq",
+          "market_country": "US",
+          "instrument": "ADS",
+          "listing_scope": "us_adr",
+          "proceeds_usd_m": "",
           "source_url": "https://www.sec.gov/Archives/edgar/data/0002120882/000119312526299963/d32785d424b4.htm"
+        },
+        {
+          "month": "2026-09",
+          "era": "ai",
+          "theme": "semiconductor",
+          "company": "Enflame Technology",
+          "ticker": "688801",
+          "exchange": "Shanghai STAR",
+          "market_country": "CN",
+          "instrument": "A-share",
+          "listing_scope": "foreign_primary",
+          "proceeds_usd_m": "912",
+          "source_url": "https://www.dealstreetasia.com/?p=494900"
         }
       ],
-      "theme_adr_added_to_confirmed": {
+      "theme_added_to_confirmed": {
         "1996-05": 1,
         "1997-10": 1,
         "1998-04": 1,
         "1999-07": 1,
         "1999-10": 3,
         "1999-11": 1,
+        "2023-05": 2,
         "2023-09": 1,
-        "2024-10": 1,
-        "2024-11": 1
+        "2023-10": 1,
+        "2024-10": 2,
+        "2024-11": 1,
+        "2024-12": 1,
+        "2025-03": 1,
+        "2025-10": 2,
+        "2025-12": 2
       },
+      "theme_added_to_provisional": {
+        "2026-01": 3,
+        "2026-04": 1,
+        "2026-07": 2,
+        "2026-09": 1
+      },
+      "theme_added_skipped": [],
+      "foreign_listing_rule": {
+        "scope": "non_us_primary_listing_ipo_of_era_theme_company_any_venue",
+        "min_gross_proceeds_usd_m": {
+          "dotcom": 250,
+          "ai": 500
+        },
+        "counted_in": "confirmed_and_provisional_months",
+        "dotcom_rows_meeting_threshold": 0
+      },
+      "theme_listing_pipeline": [
+        {
+          "company": "DeepSeek",
+          "era": "ai",
+          "theme": "ai",
+          "status": "pre-IPO advisers hired; no public filing yet",
+          "expected_venue": "Shanghai STAR",
+          "expected_timing": "filing late 2026 / listing 2027 (reported)",
+          "source_url": "https://technode.com/2026/09/09/deepseek-citic-securities-shanghai-star-market-ipo/",
+          "source_date": "2026-09-09"
+        },
+        {
+          "company": "Kunlunxin (Baidu)",
+          "era": "ai",
+          "theme": "semiconductor",
+          "status": "confidential HKEX A1 filing 2026-01-01; STAR tutoring",
+          "expected_venue": "HKEX (+ Shanghai STAR)",
+          "expected_timing": "2026-2027 (unconfirmed)",
+          "source_url": "https://www.thestandard.com.hk/finance/article/331544/Baidus-Kunlunxin-prepares-for-STAR-Market-listing-Hong-Kong-IPO-next",
+          "source_date": "2026-01"
+        },
+        {
+          "company": "CCSH / YMTC",
+          "era": "ai",
+          "theme": "semiconductor",
+          "status": "STAR application accepted 2026-08-21; under inquiry since 2026-09-03",
+          "expected_venue": "Shanghai STAR",
+          "expected_timing": "H1 2027 (reported)",
+          "source_url": "https://www.dealstreetasia.com/stories/ymtc-parent-ipo-492883",
+          "source_date": "2026-08"
+        },
+        {
+          "company": "Zhaoxin",
+          "era": "ai",
+          "theme": "semiconductor",
+          "status": "STAR application filed 2025-06",
+          "expected_venue": "Shanghai STAR",
+          "expected_timing": "unknown",
+          "source_url": "https://apps.digitimes.com/news/a20250618PD238/shanghai-ipo-cpu-x86-expansion.html",
+          "source_date": "2025-06-18"
+        },
+        {
+          "company": "Unisoc",
+          "era": "ai",
+          "theme": "semiconductor",
+          "status": "IPO tutoring filed 2025-06-25",
+          "expected_venue": "Shanghai STAR",
+          "expected_timing": "unknown",
+          "source_url": "https://apps.digitimes.com/news/a20250702PD228/unisoc-ipo-shanghai-chips-2025.html",
+          "source_date": "2025-07-02"
+        }
+      ],
       "confirmed_through": "2025-12",
       "index_input_series": [
         "닷컴",
