@@ -1,6 +1,6 @@
 {
   "as_of": "2026-10-16",
-  "content_hash": "a09accbf9d632fb73de2dfd152d68c6a86fe814a06790ab91c81c498736f1c0f",
+  "content_hash": "dc0413972c637d435621a89cebf91324978d9ba3314785c56200a7932964fa94",
   "data_summary": {
     "candidate": "C1",
     "data_grades": [
@@ -21,7 +21,7 @@
     "required_market_freshness": {
       "groups": [
         {
-          "age_hours": 5.636388888888889,
+          "age_hours": 12.874444444444444,
           "available_at": "2026-10-24T05:06:32.110859+00:00",
           "group": "NASDAQCOM",
           "observation_time": "2026-10-23",
@@ -29,7 +29,7 @@
           "status": "fresh"
         },
         {
-          "age_hours": 5.636388888888889,
+          "age_hours": 12.874444444444444,
           "available_at": "2026-10-24T05:06:31.183171+00:00",
           "group": "VIX",
           "observation_time": "2026-10-23",
@@ -37,7 +37,7 @@
           "status": "fresh"
         },
         {
-          "age_hours": 7.380248691666667,
+          "age_hours": 14.618304247222222,
           "available_at": "2026-10-23T22:15:21.104710+00:00",
           "group": "DGS2",
           "observation_time": "2026-10-23",
@@ -45,7 +45,7 @@
           "status": "fresh"
         },
         {
-          "age_hours": 7.380248691666667,
+          "age_hours": 14.618304247222222,
           "available_at": "2026-10-23T22:15:21.104710+00:00",
           "group": "DGS10",
           "observation_time": "2026-10-23",
@@ -53,7 +53,7 @@
           "status": "fresh"
         },
         {
-          "age_hours": 173.6363888888889,
+          "age_hours": 180.87444444444444,
           "available_at": "2026-10-19T21:46:11.603652+00:00",
           "group": "DTWEXBGS_or_DTWEXB",
           "observation_time": "2026-10-16",
@@ -86,7 +86,7 @@
       "필수 시장 입력 48시간 SLA 초과: DTWEXBGS_or_DTWEXB"
     ]
   },
-  "knowledge_cutoff": "2026-10-24T05:38:10+00:00",
+  "knowledge_cutoff": "2026-10-24T12:52:27+00:00",
   "model_id": "shadow.mf_dfm_ridge_varx_v2",
   "model_version": 2,
   "probability_space": "research_timeseries_v2_conditional",
