@@ -1120,7 +1120,7 @@ function trendAxisChrome(detail,m,asset){
   return `<line x1="${m.W-m.R}" x2="${m.W-m.R}" y1="${m.T}" y2="${m.H-m.B}" stroke="#d6d3ca"/><line x1="${m.L}" x2="${m.W-m.R}" y1="${m.H-m.B}" y2="${m.H-m.B}" stroke="#d6d3ca"/>`
     +(visible?`<line data-trend-last-line x1="${m.L}" x2="${m.W-m.R}" y1="${y}" y2="${y}" stroke="${color}" stroke-dasharray="1 3" opacity=".8" pointer-events="none"/>`+tag(y,color,trendAxisPrice(reference.price,asset),' data-trend-last-tag'):'')
     +`<g data-trend-manual-tags>${m.manualState?trendManualTags(m,m.manualState,asset):''}</g>`
-    +`<rect data-trend-price-axis x="${m.W-m.R}" y="${m.T}" width="${m.R}" height="${m.H-m.B-m.T}" fill="transparent"><title>드래그: 세로 배율 · 더블클릭: 처음 화면</title></rect><rect data-trend-time-axis x="${m.L}" y="${m.H-m.B}" width="${m.W-m.L-m.R}" height="${m.B}" fill="transparent"><title>드래그: 가로 배율</title></rect>`
+    +`<rect data-trend-price-axis x="${m.W-m.R}" y="${m.T}" width="${m.R}" height="${m.H-m.B-m.T}" fill="transparent"><title>드래그: 세로 배율 · 더블클릭 · 두 번 터치: 처음 화면</title></rect><rect data-trend-time-axis x="${m.L}" y="${m.H-m.B}" width="${m.W-m.L-m.R}" height="${m.B}" fill="transparent"><title>드래그: 가로 배율</title></rect>`
     +`<g data-trend-ws-ylabel visibility="hidden" pointer-events="none"><rect x="${m.W-m.R+1}" y="0" width="${m.R-2}" height="18" rx="2" fill="#26302b"/><text x="${m.W-m.R+6}" y="13" style="fill:#fff"></text></g>`
     +`<g data-trend-ws-xlabel visibility="hidden" pointer-events="none"><rect x="0" y="${m.H-m.B+3}" width="80" height="18" rx="2" fill="#26302b"/><text x="40" y="${m.H-m.B+16}" text-anchor="middle" style="fill:#fff"></text></g>`;
 }
@@ -1245,7 +1245,7 @@ function trendWorkspaceSymbol(ws,label,ticker){
   return `<div class="trend-ws-symbol"><button type="button" class="trend-ws-asset" data-trend-ws-action="assets" aria-haspopup="menu" aria-expanded="${ws.assetMenu}"><strong>${esc(label)}</strong>${ticker?`<small>${esc(ticker)}</small>`:''}<span aria-hidden="true">▾</span></button>${ws.assetMenu?trendWorkspaceAssetMenu(ws):''}</div>`;
 }
 function trendWorkspaceHelp(){
-  const rows=[['그리기',[['Alt+T','추세선'],['Alt+H','수평선'],['Alt+J','수평 반직선'],['Shift+드래그','측정'],['Shift (그리는 중)','수평 고정'],['Esc','취소']]],['편집',[['Delete','삭제'],['Ctrl+Z · Ctrl+Y','되돌리기 · 다시'],['Ctrl+C · Ctrl+V','복사 · 붙여넣기'],['Ctrl+드래그','복제'],['Ctrl+클릭','여러 선 선택'],['방향키','선택한 선 이동'],['Ctrl+S','저장'],['Ctrl+Alt+H','모두 숨김']]],['화면',[['휠','확대 · 축소'],['Shift+휠','좌우 이동'],['드래그','이동'],['가격축 드래그','세로 배율'],['더블클릭','처음 화면'],['시간축 드래그','가로 배율'],['← · →','1봉 이동'],['Ctrl+↑ · ↓','확대 · 축소'],['Alt+R','초기화'],['Alt+L','로그 축'],['Alt+G','날짜로 이동']]]];
+  const rows=[['그리기',[['Alt+T','추세선'],['Alt+H','수평선'],['Alt+J','수평 반직선'],['Shift+드래그','측정'],['Shift (그리는 중)','수평 고정'],['Esc','취소']]],['편집',[['Delete','삭제'],['Ctrl+Z · Ctrl+Y','되돌리기 · 다시'],['Ctrl+C · Ctrl+V','복사 · 붙여넣기'],['Ctrl+드래그','복제'],['Ctrl+클릭','여러 선 선택'],['방향키','선택한 선 이동'],['Ctrl+S','저장'],['Ctrl+Alt+H','모두 숨김']]],['화면',[['휠','확대 · 축소'],['Shift+휠','좌우 이동'],['드래그','이동'],['가격축 드래그','세로 배율'],['더블클릭 · 두 번 터치','처음 화면'],['시간축 드래그','가로 배율'],['← · →','1봉 이동'],['Ctrl+↑ · ↓','확대 · 축소'],['Alt+R','초기화'],['Alt+L','로그 축'],['Alt+G','날짜로 이동']]]];
   return `<div class="trend-ws-help" role="dialog" aria-label="단축키"><div class="trend-ws-help-head"><strong>단축키</strong><button type="button" class="trend-ws-icon" data-trend-ws-action="help" aria-label="닫기">${trendIcon('close')}</button></div>${rows.map(([title,items])=>`<section><h3>${esc(title)}</h3><dl>${items.map(([key,text])=>`<div><dt><kbd>${esc(key)}</kbd></dt><dd>${esc(text)}</dd></div>`).join('')}</dl></section>`).join('')}</div>`;
 }
 function trendWorkspaceFrame(detail,asset,scale,ws){
@@ -1336,22 +1336,26 @@ function drawTrendWorkspace(host,detail,analysis,baseBars,bars,asset,scale,versi
   const goto_=host.querySelector('[data-trend-ws-goto]');if(goto_&&globalThis.document?.activeElement!==goto_){goto_.min=date(baseBars[0]);goto_.max=date(baseBars.at(-1));}
   if(host._trendWsNavBound||!host.addEventListener)return;host._trendWsNavBound=true;
   const local=event=>{const nav=host._trendNavigation,svg=host.querySelector('svg[data-trend-plot]'),bounds=svg?.getBoundingClientRect();if(!nav?.zoom||!bounds?.width||!bounds.height)return null;return {nav,bounds,x:(event.clientX-bounds.left)/bounds.width*nav.m.W,y:(event.clientY-bounds.top)/bounds.height*nav.m.H};};
-  host.addEventListener('wheel',event=>{if(!event.target.closest?.('svg[data-trend-plot]'))return;const p=local(event);if(!p)return;event.preventDefault();const {nav}=p,plot=nav.m;
+  const pointers=new Map();let gesture=null,tapSeed=null,touchPress=null,lastTap=null,lastTouchAt=-Infinity;
+  const clearTaps=()=>{tapSeed=null;touchPress=null;lastTap=null;};
+  // Capture also sees toolbar actions and drawing handlers that consume pointerdown.
+  host.addEventListener('pointerdown',event=>{const previous=lastTap;clearTaps();if(event.pointerType==='touch'){lastTouchAt=event.timeStamp;tapSeed={id:event.pointerId,previous};}else lastTouchAt=-Infinity;},true);
+  host.addEventListener('wheel',event=>{clearTaps();if(!event.target.closest?.('svg[data-trend-plot]'))return;const p=local(event);if(!p)return;event.preventDefault();const {nav}=p,plot=nav.m;
     const unitY=event.deltaMode===1?16:event.deltaMode===2?(plot.H-plot.T-plot.B)/plot.H*p.bounds.height:1,unitX=event.deltaMode===2?(plot.W-plot.L-plot.R)/plot.W*p.bounds.width:unitY;
     const dx=event.deltaX*unitX,dy=event.deltaY*unitY;if(!Number.isFinite(dx)||!Number.isFinite(dy)||!dx&&!dy)return;
     const delta=Math.max(-160,Math.min(160,dy));
     if(p.x>plot.W-plot.R){nav.scalePrice(Math.exp(delta*.0015),Math.max(0,Math.min(1,(plot.H-plot.B-p.y)/(plot.H-plot.T-plot.B))));return;}
     if(event.shiftKey||Math.abs(dx)>Math.abs(dy)){const move=event.shiftKey?dy||dx:dx;nav.pan(Math.round(move/Math.max(1,plot.W-plot.L-plot.R)*nav.bars.length)||Math.sign(move));return;}
     nav.zoom(nav.state.factor*Math.exp(-delta*.002),.5,{x:p.x,y:p.y});},{passive:false});
-  const pointers=new Map();let gesture=null;
   const clearGesture=()=>{gesture=null;delete host.dataset.trendGesture;};
   host.addEventListener('pointerdown',event=>{if(event.button!==0&&event.pointerType!=='touch'||!event.target.closest?.('svg[data-trend-plot]'))return;const p=local(event);if(!p)return;const {nav}=p,plot=nav.m;
     // Suppress native text selection before the SVG is repainted during panning.
     event.preventDefault();event.target.closest('svg[data-trend-plot]')?.focus?.({preventScroll:true});
+    if(event.pointerType==='touch'&&!pointers.size)touchPress={id:event.pointerId,x:event.clientX,y:event.clientY,at:event.timeStamp,previous:tapSeed?.id===event.pointerId?tapSeed.previous:null};else clearTaps();tapSeed=null;
     pointers.set(event.pointerId,{x:event.clientX,y:event.clientY});if(event.isTrusted)host.setPointerCapture?.(event.pointerId);
     if(pointers.size===2){const values=[...pointers.values()];gesture={kind:'pinch',distance:Math.hypot(values[0].x-values[1].x,values[0].y-values[1].y),factor:nav.state.factor};host.dataset.trendGesture='plot';return;}
     gesture={kind:p.x>plot.W-plot.R?'price':p.y>plot.H-plot.B?'time':'plot',id:event.pointerId,x:event.clientX,y:event.clientY,offset:nav.state.offset,factor:nav.state.factor,range:(nav.state.yRange||plot.range).slice(),plotWidth:Math.max(1,(plot.W-plot.L-plot.R)/plot.W*p.bounds.width),plotHeight:Math.max(1,(plot.H-plot.T-plot.B)/plot.H*p.bounds.height),count:nav.bars.length,first:plot.first,span:plot.end-plot.first,moved:false};host.dataset.trendGesture=gesture.kind;});
-  host.addEventListener('pointermove',event=>{if(!pointers.has(event.pointerId))return;pointers.set(event.pointerId,{x:event.clientX,y:event.clientY});const nav=host._trendNavigation;if(!gesture||!nav?.zoom)return;
+  host.addEventListener('pointermove',event=>{if(!pointers.has(event.pointerId))return;if(touchPress?.id===event.pointerId&&Math.hypot(event.clientX-touchPress.x,event.clientY-touchPress.y)>=5)clearTaps();pointers.set(event.pointerId,{x:event.clientX,y:event.clientY});const nav=host._trendNavigation;if(!gesture||!nav?.zoom)return;
     if(gesture.kind==='pinch'){if(pointers.size===2){const values=[...pointers.values()];event.preventDefault();nav.zoom(gesture.factor*Math.hypot(values[0].x-values[1].x,values[0].y-values[1].y)/Math.max(1,gesture.distance));}return;}
     if(gesture.id!==event.pointerId)return;const dx=event.clientX-gesture.x,dy=event.clientY-gesture.y;if(!gesture.moved&&Math.hypot(dx,dy)<5)return;gesture.moved=true;event.preventDefault();
     const [low,high]=gesture.range;
@@ -1359,16 +1363,33 @@ function drawTrendWorkspace(host,detail,analysis,baseBars,bars,asset,scale,versi
     if(gesture.kind==='time'){nav.zoom(gesture.factor*Math.exp(-dx*.006),1);return;}
     const shift=dy/gesture.plotHeight*(high-low),range=nav.state.yRange||Math.abs(dy)>12?[low+shift,high+shift]:null;if(nav.state.xRange)nav.panWindow(gesture.first-dx/gesture.plotWidth*gesture.span,range);else nav.panTo(gesture.offset-dx/gesture.plotWidth*gesture.count,range);});
   const release=event=>{if(!pointers.delete(event.pointerId))return;if(gesture?.kind==='pinch'&&pointers.size<2||gesture?.id===event.pointerId)clearGesture();if(host.hasPointerCapture?.(event.pointerId))host.releasePointerCapture(event.pointerId);};
-  host.addEventListener('pointerup',release);host.addEventListener('pointercancel',release);host.addEventListener('lostpointercapture',release);
-  const cancel=()=>{for(const id of [...pointers.keys()])release({pointerId:id});clearGesture();};
+  const cancel=()=>{clearTaps();for(const id of [...pointers.keys()])release({pointerId:id});clearGesture();};
   window.addEventListener('blur',cancel);host._trendWsDisposeNavigation=()=>{cancel();window.removeEventListener('blur',cancel);};
-  host.addEventListener('dblclick',event=>{
+  const canResetFromChart=event=>{
     const p=local(event),editor=host._trendManual;
     // Pointer capture can retarget a chart double-click to this stable host.
-    if(!p||!event.target.closest?.('svg[data-trend-plot]')&&event.target!==host||p.x<0||p.x>p.nav.m.W||p.y<0||p.y>p.nav.m.H||editor?.busy()||editor?.state.selected||editor?.state.measure||editor?.state.editDraft)return;
+    return !!p&&(!!event.target.closest?.('svg[data-trend-plot]')||event.target===host)&&p.x>=0&&p.x<=p.nav.m.W&&p.y>=0&&p.y<=p.nav.m.H&&!editor?.busy()&&!editor?.state.selected&&!editor?.state.measure&&!editor?.state.editDraft;
+  };
+  const resetFromChart=event=>{
+    if(!canResetFromChart(event))return;
     event.preventDefault();cancel();
     if(host._trendWsFrameRequest){globalThis.cancelAnimationFrame?.(host._trendWsFrameRequest);host._trendWsFrameRequest=0;}
     host._trendWorkspace?.resetView();
+  };
+  host.addEventListener('pointerup',event=>{
+    const press=touchPress;touchPress=null;tapSeed=null;release(event);
+    if(event.pointerType!=='touch')return;lastTouchAt=event.timeStamp;
+    if(!press||press.id!==event.pointerId||pointers.size||event.timeStamp-press.at>250||Math.hypot(event.clientX-press.x,event.clientY-press.y)>=5||!canResetFromChart(event)){clearTaps();return;}
+    const previous=press.previous,tap={x:event.clientX,y:event.clientY,at:event.timeStamp};
+    if(previous&&tap.at-previous.at<=350&&Math.hypot(tap.x-previous.x,tap.y-previous.y)<=24){resetFromChart(event);return;}
+    lastTap=tap;
+  });
+  const cancelPointer=event=>{if(pointers.has(event.pointerId)){clearTaps();release(event);}};
+  host.addEventListener('pointercancel',cancelPointer);host.addEventListener('lostpointercapture',cancelPointer);
+  host.addEventListener('dblclick',event=>{
+    // Some browsers also emit a compatibility dblclick after the touch reset.
+    if(event.sourceCapabilities?.firesTouchEvents||event.timeStamp-lastTouchAt<=700)return;
+    resetFromChart(event);
   });
   host.addEventListener('click',event=>{const w=host._trendWorkspace;if(!w)return;if(w.assetMenu&&!event.target.closest?.('.trend-ws-symbol')){w.assetMenu=false;w.render();}const target=event.target.closest?.('[data-trend-ws-action],[data-trend-ws-family],[data-trend-ws-asset]');if(!target)return;
     if(target.dataset.trendWsAsset){w.switchAsset(target.dataset.trendWsAsset);return;}if(target.dataset.trendWsFamily){w.setFamily(target.dataset.trendWsFamily);return;}w.command(target.dataset.trendWsAction);});

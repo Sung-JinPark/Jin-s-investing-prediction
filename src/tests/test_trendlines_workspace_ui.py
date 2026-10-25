@@ -240,7 +240,7 @@ window.inspect=()=>({offset:state.offset,cursor:getComputedStyle(host.querySelec
 
 
 @pytest.fixture
-def workspace_chart(workspace_browser):
+def workspace_chart(workspace_browser, request):
     """Use production viewport/model/redraw code, isolating editor UI and storage."""
     parts = Path(__file__).parents[1] / 'ai_fc/dashboard_parts'
     source = (parts / 'trendlines.js').read_text(encoding='utf-8')
@@ -302,9 +302,10 @@ window.wheelAt=({rx=.5,ry=.5,dy=-80,dx=0,mode=0,shift=false,priceAxis=false,targ
 host.addEventListener('pointerdown',event=>{window.lastPointer=event.pointerId;});
 resetChart();
 '''
-    page = workspace_browser.new_page(viewport={'width': 1280, 'height': 900})
+    options = getattr(request, 'param', {'viewport': {'width': 1280, 'height': 900}})
+    page = workspace_browser.new_page(**options)
     try:
-        page.set_content('<style>' + css + '</style><div class="trend-ws" style="width:1100px;height:700px"><div class="trend-ws-host" data-trend-zoom-chart></div></div><script>' + program + '</script>')
+        page.set_content('<meta name="viewport" content="width=device-width, initial-scale=1"><style>' + css + '</style><div class="trend-ws" style="width:min(1100px,100%);height:700px;overflow:hidden"><div class="trend-ws-host" data-trend-zoom-chart></div></div><script>' + program + '</script>')
         yield page
     finally:
         page.close()
@@ -489,3 +490,124 @@ def test_workspace_double_click_respects_manual_editing_priority(workspace_chart
     }''', priority)
     for key in ('factor', 'x', 'y', 'bars'):
         assert result['after'][key] == result['before'][key]
+
+
+MOBILE_WORKSPACE = pytest.mark.parametrize('workspace_chart', [{
+    'viewport': {'width': 390, 'height': 844}, 'is_mobile': True, 'has_touch': True,
+}], indirect=True, ids=['mobile-390'])
+
+
+def prepare_mobile_gesture(page, scale='linear'):
+    return page.evaluate('''scale=>{
+      manual.lines=[{id:'manual-touch',number:1,axis:scale,extension:'both',extend:true,name:'Saved touch line',note:'',hidden:false,locked:false,
+        a:{session:baseBars[160].session,price:160},b:{session:baseBars[200].session,price:180},style:{...TREND_MANUAL_STYLE}}];
+      openFullWorkspace(scale);window.touchResetCount=0;window.touchSource=JSON.stringify({baseBars,analysis,lines:manual.lines});
+      const reset=ws.resetView;ws.resetView=()=>{touchResetCount++;return reset();};
+      const home=inspectChart();wheelAt({dy:-80});flushFrames();wheelAt({dy:60,shift:true});flushFrames();
+      wheelAt({dy:-40,priceAxis:true});flushFrames();
+      return {home,changed:inspectChart(),width:innerWidth,touch:navigator.maxTouchPoints};
+    }''', scale)
+
+
+def dispatch_native_touch(session, kind, points=()):
+    session.send('Input.dispatchTouchEvent', {
+        'type': kind,
+        'touchPoints': [{'id': i + 1, 'x': point['x'], 'y': point['y']} for i, point in enumerate(points)],
+    })
+
+
+@MOBILE_WORKSPACE
+@pytest.mark.parametrize('scale', ['linear', 'log'])
+@pytest.mark.parametrize('region', ['plot', 'price_axis', 'time_axis'])
+def test_workspace_native_double_tap_restores_home_once(workspace_chart, scale, region):
+    page = workspace_chart
+    initial = prepare_mobile_gesture(page, scale)
+    assert initial['width'] == 390 and initial['touch'] > 0
+    assert initial['home']['bars'] == list(range(150, 275))
+    assert initial['changed']['x'] != initial['home']['x'] and initial['changed']['y'] != initial['home']['y']
+    point = page.evaluate("region=>region==='price_axis'?chartPoint(.5,.5,true):chartPoint(.5,region==='time_axis'?1.025:.5)", region)
+    page.touchscreen.tap(point['x'], point['y'])
+    assert page.evaluate('touchResetCount') == 0
+    page.touchscreen.tap(point['x'], point['y'])
+    page.evaluate('flushFrames()')
+    restored = page.evaluate('inspectChart()')
+    for key in ('factor', 'x', 'y', 'bars'):
+        assert restored[key] == pytest.approx(initial['home'][key])
+    assert page.evaluate('touchResetCount') == 1, 'compatibility mouse events must not cause a second reset'
+    assert page.locator('[data-trend-zoom] [role="dialog"][aria-modal="true"]').count() == 1
+    assert page.evaluate('touchSource===JSON.stringify({baseBars,analysis,lines:manual.lines})')
+
+
+@MOBILE_WORKSPACE
+@pytest.mark.parametrize('interruption', ['drag', 'move_return', 'pinch', 'long_press', 'cancel', 'slow', 'far', 'control', 'wheel', 'blur'])
+def test_workspace_touch_gestures_and_interruptions_do_not_become_double_taps(workspace_chart, interruption):
+    page = workspace_chart
+    prepare_mobile_gesture(page)
+    point = page.evaluate('chartPoint(.4,.5)')
+    moved = {'x': point['x'] + 35, 'y': point['y']}
+    page.touchscreen.tap(point['x'], point['y'])
+    session = page.context.new_cdp_session(page)
+    if interruption in ('drag', 'move_return', 'long_press', 'cancel'):
+        dispatch_native_touch(session, 'touchStart', [point])
+        if interruption in ('drag', 'move_return'):
+            dispatch_native_touch(session, 'touchMove', [moved])
+            if interruption == 'move_return':
+                dispatch_native_touch(session, 'touchMove', [point])
+        elif interruption == 'long_press':
+            page.wait_for_timeout(350)
+        dispatch_native_touch(session, 'touchCancel' if interruption == 'cancel' else 'touchEnd')
+        if interruption != 'drag':
+            page.touchscreen.tap(point['x'], point['y'])
+    elif interruption == 'pinch':
+        dispatch_native_touch(session, 'touchStart', [point])
+        dispatch_native_touch(session, 'touchStart', [point, moved])
+        dispatch_native_touch(session, 'touchMove', [{'x': point['x'] - 15, 'y': point['y']}, {'x': moved['x'] + 15, 'y': moved['y']}])
+        dispatch_native_touch(session, 'touchEnd')
+        page.touchscreen.tap(point['x'], point['y'])
+    elif interruption == 'slow':
+        page.wait_for_timeout(450)
+        page.touchscreen.tap(point['x'], point['y'])
+    elif interruption == 'far':
+        page.touchscreen.tap(point['x'] + 70, point['y'])
+    elif interruption == 'control':
+        box = page.locator('[data-trend-zoom] #editable').bounding_box()
+        assert box
+        page.touchscreen.tap(box['x'] + box['width'] / 2, box['y'] + box['height'] / 2)
+        page.touchscreen.tap(point['x'], point['y'])
+    elif interruption == 'wheel':
+        page.evaluate('wheelAt({dy:-20})')
+        page.touchscreen.tap(point['x'], point['y'])
+    else:
+        page.evaluate("window.dispatchEvent(new Event('blur'))")
+        page.touchscreen.tap(point['x'], point['y'])
+    page.evaluate('flushFrames()')
+    assert page.evaluate('touchResetCount') == 0
+    assert page.evaluate('touchSource===JSON.stringify({baseBars,analysis,lines:manual.lines})')
+
+
+@MOBILE_WORKSPACE
+@pytest.mark.parametrize('priority', ['drawing', 'selected'])
+def test_workspace_native_double_tap_preserves_manual_editing_priority(workspace_chart, priority):
+    page = workspace_chart
+    initial = prepare_mobile_gesture(page)
+    page.evaluate("priority=>{if(priority==='drawing')manual.mode=true;else manual.selected='manual-touch';}", priority)
+    point = page.evaluate('chartPoint(.4,.5)')
+    page.touchscreen.tap(point['x'], point['y'])
+    page.touchscreen.tap(point['x'], point['y'])
+    page.evaluate('flushFrames()')
+    after = page.evaluate('inspectChart()')
+    assert page.evaluate('touchResetCount') == 0
+    for key in ('factor', 'x', 'y', 'bars'):
+        assert after[key] == initial['changed'][key]
+
+
+@MOBILE_WORKSPACE
+def test_workspace_genuine_mouse_double_click_still_resets_after_touch(workspace_chart):
+    page = workspace_chart
+    initial = prepare_mobile_gesture(page)
+    point = page.evaluate('chartPoint(.4,.5)')
+    page.touchscreen.tap(point['x'], point['y'])
+    page.mouse.dblclick(point['x'], point['y'])
+    page.evaluate('flushFrames()')
+    assert page.evaluate('touchResetCount') == 1
+    assert page.evaluate('inspectChart().bars') == initial['home']['bars']
