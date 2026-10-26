@@ -464,7 +464,7 @@ questions:
   title: MSFT FY27 Q1 — 조정 EPS 컨센 상회
   question: Microsoft가 2026-10-28(장후 추정) 발표하는 FY2027 Q1 실적에서 EPS가 발표 직전 컨센서스를 상회할 확률은?
   deadline: 2026-10-28
-  deadline_estimated: true
+  deadline_estimated: false
   resolution: YES = 발표 EPS > 발표 전 마지막 예측 파일 스냅샷 컨센. 동률 NO.
   resolution_source: Microsoft IR + 컨센 스냅샷 (D-3 회차)
   domain: earnings
@@ -472,7 +472,10 @@ questions:
   action_link: 하이퍼스케일러 캐펙스/Azure 사이클 + 캘리브레이션 표본
   status: active
   created: 2026-07-20
-  notes: '등록필터: (a) beat율 5년 78%, MSFT 최근 4분기 4/4 비트. 발표일 추정(WSH INFERRED) — 10월 초순 공식 확정 시 재확인.'
+  notes: '등록필터: (a) beat율 5년 78%, MSFT 최근 4분기 4/4 비트. 발표일 추정(WSH INFERRED) — 10월 초순 공식 확정 시 재확인.
+    2026-10-26 확정: Microsoft IR 2026-10-07 공지 "after the close of the market on Wednesday, Oct. 28, 2026"
+    (https://news.microsoft.com/source/2026/10/07/microsoft-announces-quarterly-earnings-release-date-69/)
+    → deadline 2026-10-28 과 일치, deadline_estimated 해제 (deadline·판정기준 무변경).'
   tier: lite
   schedule:
   - once: true
@@ -484,7 +487,7 @@ questions:
   title: GOOGL Q3 2026 — EPS 컨센 상회
   question: Alphabet이 2026-10-28(장후 추정) 발표하는 Q3 2026 실적에서 EPS가 발표 직전 컨센서스를 상회할 확률은?
   deadline: 2026-10-28
-  deadline_estimated: true
+  deadline_estimated: false
   resolution: YES = 발표 EPS > 발표 전 마지막 예측 파일 스냅샷 컨센. 동률 NO.
   resolution_source: Alphabet IR + 컨센 스냅샷 (D-3 회차)
   domain: earnings
@@ -492,7 +495,10 @@ questions:
   action_link: 하이퍼스케일러 + 클라우드 백로그 + 캘리브레이션 표본
   status: active
   created: 2026-07-20
-  notes: '등록필터: (a) beat율 5년 78%, GOOGL 최근 4분기 4/4 비트. 발표일 추정(WSH INFERRED) — 10월 초순 재확인.'
+  notes: '등록필터: (a) beat율 5년 78%, GOOGL 최근 4분기 4/4 비트. 발표일 추정(WSH INFERRED) — 10월 초순 재확인.
+    2026-10-26 확정: Alphabet IR 2026-10-06 공지 — 2026-10-28 13:30 PT 컨퍼런스콜, 실적 자료는 콜 전 IR 게시
+    (https://abc.xyz/investor/news/news-details/2026/Alphabet-Announces-Date-of-Third-Quarter-2026-Financial-Results-Conference-Call-2026-8tpGZsLS6v/default.aspx)
+    → deadline 2026-10-28 과 일치, deadline_estimated 해제 (deadline·판정기준 무변경).'
   tier: lite
   schedule:
   - once: true
@@ -512,7 +518,10 @@ questions:
   action_link: AI capex 최대 증액 주체 감시 + 캘리브레이션 표본
   status: active
   created: 2026-07-20
-  notes: '등록필터: (a) beat율 5년 78%, META 최근 4분기 4/4 비트. 발표일 추정(WSH INFERRED) — 10월 초순 재확인.'
+  notes: '등록필터: (a) beat율 5년 78%, META 최근 4분기 4/4 비트. 발표일 추정(WSH INFERRED) — 10월 초순 재확인.
+    2026-10-26 확인: Meta IR 2026-10-12 공지 "after market close on Wednesday, October 21st, 2026" — 실적은 이미 공개됨
+    (https://investor.atmeta.com/investor-news/press-release-details/2026/Meta-to-Announce-Third-Quarter-2026-Results/default.aspx).
+    추정 마감(10-28)보다 7일 앞섬 → 신규 회차 금지(결과 기지), /resolve 대상. deadline_estimated 는 무인 배치 차단용으로 유지.'
   tier: lite
   schedule:
   - once: true
@@ -524,7 +533,7 @@ questions:
   title: AMZN Q3 2026 — EPS 컨센 상회
   question: Amazon이 2026-10-29(장후 추정) 발표하는 Q3 2026 실적에서 EPS가 발표 직전 컨센서스를 상회할 확률은?
   deadline: 2026-10-29
-  deadline_estimated: true
+  deadline_estimated: false
   resolution: YES = 발표 EPS > 발표 전 마지막 예측 파일 스냅샷 컨센. 동률 NO.
   resolution_source: Amazon IR + 컨센 스냅샷 (D-3 회차)
   domain: earnings
@@ -532,7 +541,10 @@ questions:
   action_link: AWS 가속 사이클 + 캘리브레이션 표본
   status: active
   created: 2026-07-20
-  notes: '등록필터: (a) beat율 5년 78%, AMZN 최근 4분기 3/4 비트. 발표일 추정(WSH INFERRED) — 10월 초순 재확인.'
+  notes: '등록필터: (a) beat율 5년 78%, AMZN 최근 4분기 3/4 비트. 발표일 추정(WSH INFERRED) — 10월 초순 재확인.
+    2026-10-26 확정: Amazon IR 2026-10-15 공지 — 2026-10-29 14:00 PT 실적 컨퍼런스콜
+    (https://ir.aboutamazon.com/news-release/news-release-details/2026/Amazon-com-to-Webcast-Third-Quarter-2026-Financial-Results-Conference-Call/default.aspx)
+    → deadline 2026-10-29 과 일치, deadline_estimated 해제 (deadline·판정기준 무변경).'
   tier: lite
   schedule:
   - once: true
@@ -550,7 +562,11 @@ questions:
   action_link: 빅테크 이틀 집중일(10/28-29) 캘리브레이션 표본
   status: active
   created: 2026-07-20
-  notes: '등록필터: (a) beat율 5년 78%, AAPL 최근 4분기 4/4 비트. 발표일 추정(WSH INFERRED) — 10월 초순 재확인.'
+  notes: '등록필터: (a) beat율 5년 78%, AAPL 최근 4분기 4/4 비트. 발표일 추정(WSH INFERRED) — 10월 초순 재확인.
+    2026-10-26 확인: Apple IR 이벤트 페이지 — FY26 Q4 실적 콜 2026-11-02 14:00 PT
+    (https://investor.apple.com/investor-relations/event-details/2026/FY-26-Fourth-Quarter-Results/default.aspx).
+    실제 발표가 deadline(10-29) 이후 → deadline 은 판정기준이라 정정 불가. void + 새 질문 여부는 사용자 결정 대기.
+    deadline_estimated 는 무인 배치 차단용으로 유지.'
   tier: lite
   schedule:
   - once: true
