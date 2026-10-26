@@ -1,9 +1,9 @@
 {
-  "bundle_id": "ts-inputs-5cf84f42eef04b184e875088",
-  "capture_completed_at": "2026-10-26T14:17:54.962141+00:00",
+  "bundle_id": "ts-inputs-2986d6eb2437d2d1dab67527",
+  "capture_completed_at": "2026-10-26T20:00:46.531417+00:00",
   "changed": true,
-  "checked_at": "2026-10-26T14:19:10.598070+00:00",
-  "content_hash": "f1cf1b3c9d00e31a3c443c953e0452de128bb8658cc53d9976463493c22925be",
+  "checked_at": "2026-10-26T20:02:03.525211+00:00",
+  "content_hash": "57eea97096b8f6d9be5999acb101ca485f71667e3bfc641e9907ec38a0acb070",
   "contract_id": "timeseries_inputs_refresh_v1",
   "eligibility_changed": true,
   "eligibility_hash": "8a41055593349a57ff58338862f50a2106adb5fe60a281d6ac39bba1f1e0f105",
@@ -52,16 +52,24 @@
   },
   "expected_session": "2026-10-23",
   "native_watermarks": {
-    "DGS2": "2026-10-26T14:17:52.651719+00:00",
-    "DTWEXBGS": "2026-10-26T14:17:53.493866+00:00",
-    "NASDAQCOM": "2026-10-26T14:17:51.148195+00:00",
-    "T10Y2Y": "2026-10-26T14:17:52.984705+00:00",
-    "VIXCLS": "2026-10-26T14:17:52.245080+00:00"
+    "DGS2": "2026-10-26T20:00:32.487167+00:00",
+    "DTWEXBGS": "2026-10-26T20:00:43.726617+00:00",
+    "NASDAQCOM": "2026-10-26T20:00:16.002947+00:00",
+    "T10Y2Y": "2026-10-26T20:00:37.304159+00:00",
+    "VIXCLS": "2026-10-26T20:00:23.668121+00:00"
   },
-  "publication_allowed": true,
+  "publication_allowed": false,
   "schema_version": 1,
-  "semantic_changed": true,
-  "source_failures": [],
+  "semantic_changed": false,
+  "source_failures": [
+    {
+      "http_status": null,
+      "reason": "TimeSeriesInputsError",
+      "series_id": "DGS2_DGS10",
+      "source_id": "us_treasury_yield_archive",
+      "stage": "market_treasury"
+    }
+  ],
   "source_status": [
     {
       "series_id": "NASDAQCOM",
@@ -84,5 +92,5 @@
       "status": "stale"
     }
   ],
-  "status": "ready"
+  "status": "hold"
 }
