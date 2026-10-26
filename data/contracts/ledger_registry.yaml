@@ -602,3 +602,54 @@ ledgers:
     cadence: event
     criticality: medium
     schema_ref: json_object
+  - id: mts_research_events
+    path: data/mts_research/ledgers/events.jsonl
+    kind: jsonl
+    cadence: event
+    criticality: low
+    schema_ref: jsonl
+    allow_empty_accumulating: true
+    expected_state: planned
+  - id: mts_research_forecasts
+    path: data/mts_research/ledgers/forecasts.jsonl
+    kind: jsonl
+    cadence: event
+    criticality: medium
+    schema_ref: jsonl
+    allow_empty_accumulating: true
+    expected_state: planned
+    timestamp_field: issued_at
+  - id: mts_research_resolutions
+    path: data/mts_research/ledgers/resolutions.jsonl
+    kind: jsonl
+    cadence: event
+    criticality: medium
+    schema_ref: jsonl
+    allow_empty_accumulating: true
+    expected_state: planned
+  - id: mts_research_attempts
+    path: data/mts_research/ledgers/attempts.jsonl
+    kind: jsonl
+    cadence: event
+    criticality: low
+    schema_ref: jsonl
+    allow_empty_accumulating: true
+    expected_state: planned
+    timestamp_field: attempted_at
+  - id: mts_research_approvals
+    path: data/mts_research/ledgers/approvals.jsonl
+    kind: jsonl
+    cadence: event
+    criticality: medium
+    schema_ref: jsonl
+    allow_empty_accumulating: true
+    expected_state: planned
+    timestamp_field: approved_at
+  - id: mts_research_exposures
+    path: data/mts_research/ledgers/exposures.jsonl
+    kind: jsonl
+    cadence: event
+    criticality: low
+    schema_ref: jsonl
+    allow_empty_accumulating: true
+    expected_state: planned
