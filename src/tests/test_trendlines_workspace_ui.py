@@ -291,6 +291,10 @@ window.anchorAt=(rx,ry)=>{
   const {m}=host._trendNavigation,t=m.range[1]-ry*(m.range[1]-m.range[0]);
   return {...chartPoint(rx,ry),index:m.first+rx*(m.end-m.first),price:axis==='log'?Math.exp(t):t};
 };
+window.anchorAtClientPoint=point=>{
+  const {m}=host._trendNavigation,box=host.querySelector('svg').getBoundingClientRect();
+  return anchorAt(((point.x-box.left)/box.width*m.W-m.L)/(m.W-m.L-m.R),((point.y-box.top)/box.height*m.H-m.T)/(m.H-m.T-m.B));
+};
 window.anchorError=(anchor,target=anchor)=>{
   const {m}=host._trendNavigation,box=host.querySelector('svg').getBoundingClientRect();
   return {x:Math.abs(box.left+m.x(anchor.index)/m.W*box.width-target.x),y:Math.abs(box.top+m.y(anchor.price)/m.H*box.height-target.y)};
@@ -760,8 +764,11 @@ def test_workspace_native_pinch_release_then_double_tap_restores_home(workspace_
             assert len(remaining) == 1, remaining
             move_native_touches(page, session, [{**moved[0], 'x': moved[0]['x'] + 20}])
             page.evaluate('flushFrames()')
-            for key in ('factor', 'x', 'y'):
-                assert page.evaluate('inspectChart()')[key] == before_release[key]
+            panned = page.evaluate('inspectChart()')
+            assert panned['factor'] == before_release['factor']
+            assert panned['x'][0] < before_release['x'][0]
+            assert panned['x'][1] - panned['x'][0] == pytest.approx(before_release['x'][1] - before_release['x'][0])
+            assert panned['y'] == before_release['y']
             dispatch_native_touch(session, 'touchEnd')
         else:
             dispatch_native_touch(session, 'touchCancel')
@@ -835,5 +842,161 @@ def test_workspace_pinch_from_old_axis_cannot_change_new_axis_view(workspace_cha
         assert page.evaluate('inspectChart().factor') > switched['factor']
         assert page.evaluate('touchSource===JSON.stringify({baseBars,analysis,lines:manual.lines})')
         dispatch_native_touch(session, 'touchEnd')
+    finally:
+        session.detach()
+
+
+@PINCH_WORKSPACES
+@pytest.mark.parametrize('scale', ['linear', 'log'])
+@pytest.mark.parametrize('released_finger', [0, 1])
+@pytest.mark.parametrize('flush_before_release', [False, True], ids=['before-raf', 'after-raf'])
+def test_workspace_pinch_handoff_pans_immediately_without_changing_zoom(workspace_chart, scale, released_finger, flush_before_release):
+    page = workspace_chart
+    prepare_mobile_gesture(page, scale)
+    page.evaluate("scale=>{state.yRange=scale==='log'?[Math.log(50),Math.log(1005)]:[50,1005];ws.render();}", scale)
+    midpoint = page.evaluate('anchorAt(.28,.25)')
+    session = page.context.new_cdp_session(page)
+    try:
+        dispatch_native_touch(session, 'touchStart', native_pinch_points(midpoint))
+        points = native_pinch_points(midpoint, 1.3, 10, -8)
+        move_native_touches(page, session, points)
+        if flush_before_release:
+            page.evaluate('flushFrames()')
+        before_release = page.evaluate('inspectChart()')
+        survivor = points[1 - released_finger]
+        dispatch_native_touch(session, 'touchEnd', [points[released_finger]])
+        page.evaluate('flushFrames()')
+        handoff = page.evaluate('inspectChart()')
+        for key in ('factor', 'x', 'y'):
+            assert handoff[key] == before_release[key], 'releasing one finger must not move the viewport'
+        assert handoff['active']
+        anchor = page.evaluate('point=>anchorAtClientPoint(point)', survivor)
+        for dx, dy in [(2, 1), (24, 18)]:
+            destination = {**survivor, 'x': survivor['x'] + dx, 'y': survivor['y'] + dy}
+            move_native_touches(page, session, [destination])
+            page.evaluate('flushFrames()')
+            panned = page.evaluate('inspectChart()')
+            error = page.evaluate('({anchor,target})=>anchorError(anchor,target)', {'anchor': anchor, 'target': destination})
+            assert error['x'] < 1 and error['y'] < 1
+            assert panned['factor'] == handoff['factor']
+            assert panned['x'][0] < handoff['x'][0] and panned['y'][0] > handoff['y'][0]
+            for key in ('x', 'y'):
+                assert panned[key][1] - panned[key][0] == pytest.approx(handoff[key][1] - handoff[key][0])
+        dispatch_native_touch(session, 'touchEnd')
+        assert not page.evaluate('inspectChart().active')
+        assert page.evaluate('touchResetCount') == 0
+        assert page.evaluate('touchSource===JSON.stringify({baseBars,analysis,lines:manual.lines})')
+    finally:
+        session.detach()
+
+
+@PINCH_WORKSPACES
+@pytest.mark.parametrize('axis_area', ['price', 'time'])
+def test_workspace_pinch_handoff_from_axis_keeps_both_axes_in_pan_mode(workspace_chart, axis_area):
+    page = workspace_chart
+    prepare_mobile_gesture(page)
+    body = page.evaluate('chartPoint(.5,.5)')
+    axis_point = page.evaluate("area=>area==='price'?chartPoint(.5,.5,true):chartPoint(.5,1.025)", axis_area)
+    points = [{**body, 'id': 1}, {**axis_point, 'id': 2}]
+    session = page.context.new_cdp_session(page)
+    try:
+        dispatch_native_touch(session, 'touchStart', points)
+        moved = [{**points[0], 'x': points[0]['x'] - 15, 'y': points[0]['y'] - 10}, points[1]]
+        move_native_touches(page, session, moved)
+        page.evaluate('flushFrames()')
+        before = page.evaluate('inspectChart()')
+        dispatch_native_touch(session, 'touchEnd', [moved[0]])
+        move_native_touches(page, session, [{**moved[1], 'x': moved[1]['x'] + 18, 'y': moved[1]['y'] + 14}])
+        page.evaluate('flushFrames()')
+        after = page.evaluate('inspectChart()')
+        assert after['factor'] == before['factor']
+        assert after['x'][0] < before['x'][0] and after['y'][0] > before['y'][0]
+        for key in ('x', 'y'):
+            assert after[key][1] - after[key][0] == pytest.approx(before[key][1] - before[key][0])
+        dispatch_native_touch(session, 'touchEnd')
+    finally:
+        session.detach()
+
+
+@PINCH_WORKSPACES
+def test_workspace_pinch_pan_can_repeat_without_becoming_a_tap(workspace_chart):
+    page = workspace_chart
+    initial = prepare_mobile_gesture(page)
+    midpoint = page.evaluate('anchorAt(.3,.4)')
+    session = page.context.new_cdp_session(page)
+    try:
+        dispatch_native_touch(session, 'touchStart', native_pinch_points(midpoint))
+        points = native_pinch_points(midpoint, 1.2, 8, -6)
+        move_native_touches(page, session, points)
+        dispatch_native_touch(session, 'touchEnd', [points[1]])
+        survivor = {**points[0], 'x': points[0]['x'] + 12, 'y': points[0]['y'] + 8}
+        move_native_touches(page, session, [survivor])
+        page.evaluate('flushFrames()')
+        before_second_pinch = page.evaluate('inspectChart()')
+        next_midpoint = {'x': survivor['x'] + 28, 'y': survivor['y']}
+        dispatch_native_touch(session, 'touchStart', native_pinch_points(next_midpoint))
+        second = native_pinch_points(next_midpoint, 1.15, 10, -6)
+        move_native_touches(page, session, second)
+        page.evaluate('flushFrames()')
+        zoomed = page.evaluate('inspectChart()')
+        assert zoomed['factor'] > before_second_pinch['factor']
+        dispatch_native_touch(session, 'touchEnd', [second[0]])
+        move_native_touches(page, session, [{**second[1], 'x': second[1]['x'] + 12, 'y': second[1]['y'] - 9}])
+        page.evaluate('flushFrames()')
+        panned = page.evaluate('inspectChart()')
+        assert panned['factor'] == zoomed['factor']
+        assert panned['x'][0] < zoomed['x'][0] and panned['y'][0] < zoomed['y'][0]
+        dispatch_native_touch(session, 'touchEnd')
+        point = page.evaluate('chartPoint(.4,.5)')
+        page.touchscreen.tap(point['x'], point['y'])
+        assert page.evaluate('touchResetCount') == 0
+        page.touchscreen.tap(point['x'], point['y'])
+        page.evaluate('flushFrames()')
+        assert page.evaluate('touchResetCount') == 1
+        assert page.evaluate('inspectChart().bars') == initial['home']['bars']
+        assert page.evaluate('touchSource===JSON.stringify({baseBars,analysis,lines:manual.lines})')
+    finally:
+        session.detach()
+
+
+@MOBILE_WORKSPACE
+@pytest.mark.parametrize('interruption', ['cancel', 'lostcapture', 'third_pointer', 'axis_change', 'data_change'])
+def test_workspace_invalidated_pinch_cannot_resume_with_remaining_finger(workspace_chart, interruption):
+    page = workspace_chart
+    prepare_mobile_gesture(page)
+    midpoint = page.evaluate('anchorAt(.3,.4)')
+    session = page.context.new_cdp_session(page)
+    try:
+        dispatch_native_touch(session, 'touchStart', native_pinch_points(midpoint))
+        points = native_pinch_points(midpoint, 1.2, 8, -6)
+        move_native_touches(page, session, points)
+        page.evaluate('flushFrames()')
+        if interruption == 'cancel':
+            # CDP only cancels all contacts; inject the per-pointer OS signal.
+            page.evaluate('''point=>{const [id]=[...nativeTouchPositions.entries()].find(([,p])=>Math.hypot(p.x-point.x,p.y-point.y)<.05);host.dispatchEvent(new PointerEvent('pointercancel',{bubbles:true,pointerType:'touch',pointerId:id}));}''', points[0])
+        elif interruption == 'lostcapture':
+            page.evaluate('''point=>{const entry=[...nativeTouchPositions.entries()].find(([,p])=>Math.hypot(p.x-point.x,p.y-point.y)<.05);host.releasePointerCapture(entry[0]);}''', points[0])
+            points[0] = {**points[0], 'x': points[0]['x'] + 1}
+            move_native_touches(page, session, points)
+        elif interruption == 'third_pointer':
+            third = {**page.evaluate('chartPoint(.8,.65)'), 'id': 3}
+            dispatch_native_touch(session, 'touchStart', [*points, third])
+            dispatch_native_touch(session, 'touchEnd', [third])
+        elif interruption == 'axis_change':
+            page.keyboard.press('Alt+l')
+        else:
+            page.evaluate('''()=>{const replacement={...detail,bars:baseBars.map(bar=>({...bar}))};ws.context.build=()=>({source:replacement,analysis});ws.render();}''')
+        dispatch_native_touch(session, 'touchEnd', [points[0]])
+        page.evaluate('flushFrames()')
+        before_move = page.evaluate('inspectChart()')
+        move_native_touches(page, session, [{**points[1], 'x': points[1]['x'] + 20, 'y': points[1]['y'] + 15}])
+        page.evaluate('flushFrames()')
+        after_move = page.evaluate('inspectChart()')
+        for key in ('factor', 'x', 'y'):
+            assert after_move[key] == before_move[key]
+        assert not after_move['active']
+        dispatch_native_touch(session, 'touchEnd')
+        assert page.evaluate('touchResetCount') == 0
+        assert page.evaluate('touchSource===JSON.stringify({baseBars,analysis,lines:manual.lines})')
     finally:
         session.detach()
