@@ -63,3 +63,12 @@ ts,question_id,stage,model,input_tokens,output_tokens,cost_usd,provider,snapshot
 2026-10-20T10:15:46+09:00,cpi-nov2026-headline-below-28,research:general,claude-opus-4-8,142179,7414,0.89624500,anthropic,claude-opus-4-8,,0,0
 2026-10-20T10:15:46+09:00,cpi-nov2026-headline-below-28,research:devil,claude-opus-4-8,72381,5623,0.50248000,anthropic,claude-opus-4-8,,0,0
 2026-10-20T10:15:46+09:00,cpi-nov2026-headline-below-28,reasoning,claude-opus-4-8,0,0,0.11220500,anthropic,claude-opus-4-8,,0,0
+2026-10-26T10:44:39+09:00,fomc-2026-10-28-hike,research:general,claude-opus-4-8,58419,5283,0.42417000,anthropic,claude-opus-4-8,,0,0
+2026-10-26T10:44:39+09:00,fomc-2026-10-28-hike,research:devil,claude-opus-4-8,342885,7585,1.90405000,anthropic,claude-opus-4-8,,0,0
+2026-10-26T10:44:39+09:00,fomc-2026-10-28-hike,reasoning,claude-opus-4-8,0,0,0.10980500,anthropic,claude-opus-4-8,,0,0
+2026-10-26T11:45:14+09:00,gdp-q3adv-2026-beat,research:general,claude-opus-4-8,147177,6162,0.88993500,anthropic,claude-opus-4-8,,0,0
+2026-10-26T11:45:14+09:00,gdp-q3adv-2026-beat,research:devil,claude-opus-4-8,356982,7596,1.97481000,anthropic,claude-opus-4-8,,0,0
+2026-10-26T11:45:14+09:00,gdp-q3adv-2026-beat,reasoning,claude-opus-4-8,0,0,0.13132500,anthropic,claude-opus-4-8,,0,0
+2026-10-26T12:00:01+09:00,nasdaq-corr10-augoct-2026,research:general,claude-opus-4-8,67051,7865,0.53188000,anthropic,claude-opus-4-8,,0,0
+2026-10-26T12:00:01+09:00,nasdaq-corr10-augoct-2026,research:devil,claude-opus-4-8,98537,6312,0.65048500,anthropic,claude-opus-4-8,,0,0
+2026-10-26T12:00:01+09:00,nasdaq-corr10-augoct-2026,reasoning,claude-opus-4-8,0,0,0.11724500,anthropic,claude-opus-4-8,,0,0

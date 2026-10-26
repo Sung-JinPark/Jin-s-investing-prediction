@@ -85,17 +85,65 @@ process.stdout.write(JSON.stringify({charts,pages,otherOrigins}));''')
     assert result['otherOrigins'] == [None] * 4
 
 
-def test_public_held_chart_enters_first_party_app_before_cross_origin_fetch(tmp_path):
-    out = run(tmp_path, r'''
-const TREND_PRIVATE_DETAILS=new Map(),assets=['sk-hynix','soxx','nasdaq','sp500','bitcoin','dow'],targets=[];
+ENTRY_HARNESS = r'''
+const TREND_PRIVATE_DETAILS=new Map(),assets=['sk-hynix','soxx','nasdaq','sp500','bitcoin','dow'],targets=[],requests=[],mounted=[];
 globalThis.DATA={trendlines:{assets:assets.map(asset_id=>({asset_id,status:'hold'}))}};const before=JSON.stringify(DATA);
 globalThis.location={origin:'https://sung-jinpark.github.io',replace:url=>targets.push(url)};
-globalThis.fetch=()=>{throw new Error('chart entry must not depend on a cross-origin request')};
-for(const asset of [...assets,'mag7'])renderTrendlinePage({asset});
-process.stdout.write(JSON.stringify({targets,unchanged:before===JSON.stringify(DATA),privateCache:TREND_PRIVATE_DETAILS.size}));''')
+globalThis.el=html=>{const button={onclick:null},host={dataset:{},html:'',set innerHTML(value){this.html=value},get innerHTML(){return this.html},querySelector:key=>key==='[data-trend-local-check]'&&host.html.includes('data-trend-local-check')?button:null};
+  return {html,isConnected:true,host,button,querySelector:key=>key==='[data-trend-local-entry]'?host:null};};
+globalThis.mount=root=>mounted.push(root);
+const setPermission=state=>Object.defineProperty(globalThis,'navigator',{configurable:true,value:state===undefined?{}:{permissions:{query:async({name})=>{if(state.alias&&name==='loopback-network')throw new TypeError('unknown');return {state:state.value}}}}});
+const setService=ok=>{globalThis.fetch=async(url,options)=>{requests.push({url,credentials:options.credentials,mode:options.mode,space:options.targetAddressSpace});if(ok===null)throw new TypeError('Failed to fetch');return {ok}};};
+const settle=async()=>{for(let i=0;i<5;i++)await new Promise(resolve=>setTimeout(resolve,0));};
+const view=root=>({phase:root.host.dataset.trendLocalEntry,link:/href="([^"]+)"/.exec(root.host.html)?.[1]??null,check:root.host.html.includes('data-trend-local-check')});
+'''
+
+
+def entry_run(tmp_path, program):
+    return run(tmp_path, ENTRY_HARNESS + '(async()=>{' + program + '})().catch(error=>{process.stderr.write(String(error.stack));process.exit(1);});')
+
+
+def test_public_held_chart_enters_first_party_app_when_companion_answers(tmp_path):
+    out = entry_run(tmp_path, r'''
+setPermission({value:'granted'});setService(true);
+for(const asset of [...assets,'mag7'])renderTrendlinePage({asset});await settle();
+process.stdout.write(JSON.stringify({targets,requests,unchanged:before===JSON.stringify(DATA),privateCache:TREND_PRIVATE_DETAILS.size}));''')
     assert out['targets'] == ['http://127.0.0.1:8878/#future/trendlines/' + asset for asset in
                               ['sk-hynix', 'soxx', 'nasdaq', 'sp500', 'bitcoin', 'dow', 'sk-hynix']]
+    assert out['requests'] == [{'url': 'http://127.0.0.1:8878/api/private-trendlines/status', 'credentials': 'omit',
+                                'mode': 'cors', 'space': 'loopback'}] * 7
     assert out['unchanged'] and out['privateCache'] == 0
+
+
+@pytest.mark.parametrize('ok', [None, False])
+def test_public_held_chart_stays_on_site_when_companion_is_off(tmp_path, ok):
+    out = entry_run(tmp_path, 'setPermission({value:"granted"});setService(' + json.dumps(ok) + r''');
+renderTrendlinePage({asset:'bitcoin'});await settle();const root=mounted.at(-1),first=view(root);
+setService(true);root.button.onclick();const pending=view(root);await settle();
+process.stdout.write(JSON.stringify({first,pending,targets,requests:requests.length}));''')
+    assert out['first'] == {'phase': 'offline', 'link': 'http://127.0.0.1:8878/#future/trendlines/bitcoin', 'check': True}
+    assert out['pending']['phase'] == 'checking' and not out['pending']['check']
+    assert out['targets'] == ['http://127.0.0.1:8878/#future/trendlines/bitcoin'] and out['requests'] == 2
+
+
+@pytest.mark.parametrize('permission', [{'value': 'prompt'}, {'value': 'prompt', 'alias': True},
+                                        {'value': 'denied'}, None])
+def test_public_held_chart_never_raises_local_permission_unasked(tmp_path, permission):
+    out = entry_run(tmp_path, 'setPermission(' + (json.dumps(permission) if permission else 'undefined') + r''');setService(true);
+renderTrendlinePage({asset:'soxx'});await settle();const root=mounted.at(-1),idle=view(root),before=requests.length;
+root.button.onclick();await settle();
+process.stdout.write(JSON.stringify({idle,before,after:requests.length,targets}));''')
+    assert out['idle'] == {'phase': 'idle', 'link': 'http://127.0.0.1:8878/#future/trendlines/soxx', 'check': True}
+    assert out['before'] == 0 and out['after'] == 1
+    assert out['targets'] == ['http://127.0.0.1:8878/#future/trendlines/soxx']
+
+
+def test_public_entry_ignores_check_after_page_changes(tmp_path):
+    out = entry_run(tmp_path, r'''
+setPermission({value:'granted'});let release;globalThis.fetch=()=>new Promise(resolve=>{release=()=>resolve({ok:true})});
+renderTrendlinePage({asset:'dow'});await settle();mounted.at(-1).isConnected=false;release();await settle();
+process.stdout.write(JSON.stringify({targets}));''')
+    assert out['targets'] == []
 
 
 @pytest.mark.parametrize('origin,hash_value,redirect', [

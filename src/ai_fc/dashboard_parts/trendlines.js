@@ -1558,11 +1558,36 @@ function leaveTrendlineApp(event){
   const hash=globalThis.location.hash||'#today';if(hash==='#app'||/^#(?:future\/)?trendlines(?:\/|$)/.test(hash))return;
   const target=trendlineAppNavigation(globalThis.location.origin,'other',hash);event.stopImmediatePropagation();globalThis.TrendlineUI?.cleanup();globalThis.location.replace(target);
 }
+// A refused loopback navigation ends on the browser's own error page, so the
+// handoff checks the companion first. Without a granted permission the check
+// waits for a click: the public page never raises the prompt on its own.
+async function trendLocalPermission(){
+  for(const name of ['loopback-network','local-network-access']){try{const state=(await globalThis.navigator?.permissions?.query({name}))?.state;if(state)return state;}catch(_){}}
+  return 'unsupported';
+}
+async function probeTrendLocalApp(){
+  const controller=new AbortController(),deadline=setTimeout(()=>controller.abort(),30000);
+  try{return (await fetch(TREND_LOCAL_BASE+'status',{method:'GET',mode:'cors',credentials:'omit',cache:'no-store',redirect:'error',targetAddressSpace:'loopback',signal:controller.signal})).ok;}catch(_){return false;}finally{clearTimeout(deadline);}
+}
+const TREND_ENTRY_COPY={checking:['로컬 갱신기 확인 중','연결되면 차트로 이동합니다.'],idle:['로컬 갱신기에서 열립니다','이 PC에서 실행 중인 갱신기의 차트를 엽니다.'],offline:['로컬 갱신기에 연결하지 못했습니다','이 PC에서 갱신기를 켠 뒤 다시 확인하세요.']};
+function trendEntryMarkup(phase,target){
+  const [title,text]=TREND_ENTRY_COPY[phase],checking=phase==='checking';
+  return `<div class="trend-empty-content${checking?' is-loading':''}"><span class="trend-empty-icon" aria-hidden="true">${checking?'⋯':'—'}</span><h2>${title}</h2><p>${text}</p>${checking?'':`<div class="trend-local-actions"><button type="button" data-trend-local-check>연결 확인</button><a href="${esc(target)}">갱신기에서 열기</a></div>`}</div>`;
+}
+function renderTrendlineEntry(assetId,target){
+  const nav=TREND_VISIBLE_ASSETS.map(([id,label])=>`<a href="#trendlines/${id}"${id===assetId?' aria-current="page"':''}>${esc(label)}</a>`).join('');
+  const root=el(`<div class="trend-page"><header class="trend-heading"><p class="eyebrow">상·하방 추세선 · 03</p><h1>상·하방 추세선</h1></header><nav class="trend-assets" aria-label="추세선 자산 선택">${nav}</nav><section class="trend-body"><div class="trend-empty" data-trend-local-entry role="status"></div></section></div>`),host=root.querySelector('[data-trend-local-entry]');
+  let sequence=0;
+  const paint=phase=>{host.dataset.trendLocalEntry=phase;host.innerHTML=trendEntryMarkup(phase,target);const button=host.querySelector('[data-trend-local-check]');if(button)button.onclick=()=>check();};
+  const check=async()=>{const current=++sequence;paint('checking');const ok=await probeTrendLocalApp();if(current!==sequence||!root.isConnected)return;if(ok)globalThis.location.replace(target);else paint('offline');};
+  paint('checking');mount(root);
+  trendLocalPermission().then(state=>{if(!root.isConnected||sequence)return;if(state==='granted')check();else paint('idle');});
+}
 function renderTrendlinePage(initial={},loadState=null,localSession=null){
   if(initial?.asset==='mag7'){globalThis.history?.replaceState(null,'','#trendlines/sk-hynix');initial={...initial,asset:'sk-hynix'};}
   if(TREND_ZOOM&&!(TREND_ZOOM.ws&&[TREND_ZOOM.ws.assetId,TREND_ZOOM.ws.pendingAsset].includes(initial?.asset||'sk-hynix')))closeTrendZoom(false);if(TRENDLINES_RESIZE){TRENDLINES_RESIZE.disconnect();TRENDLINES_RESIZE=null;}
   const assetId=initial?.asset||'sk-hynix',projection=DATA?.trendlines||{},officialAsset=projection.assets?.find(row=>row.asset_id===assetId),localDetail=TREND_PRIVATE_DETAILS.get(assetId);let detail=localDetail||projection.details?.[assetId],validationError=null;
-  const chartNavigation=!['ready','stale'].includes(officialAsset?.status)&&trendlineAppNavigation(globalThis.location?.origin,'trendlines','',assetId);if(chartNavigation){globalThis.location.replace(chartNavigation);return;}
+  const chartNavigation=!['ready','stale'].includes(officialAsset?.status)&&trendlineAppNavigation(globalThis.location?.origin,'trendlines','',assetId);if(chartNavigation){renderTrendlineEntry(assetId,chartNavigation);return;}
   const workspace=trendManualState(assetId);
   if(workspace.ready&&!TREND_REPRESENTATIVE_VIEW_OPTIONS.has(assetId)&&workspace.view)TREND_REPRESENTATIVE_VIEW_OPTIONS.set(assetId,workspace.view);
   if(detail&&['ready','stale','unverified_display'].includes(detail.status)){try{trendValidateDetail(detail);}catch(error){validationError=error;detail=null;}}
