@@ -80,6 +80,89 @@ def make_ready_draft(**overrides: Any):
     return ForecastDraft(**body)
 
 
+def make_event(series_id: str, obs_date: str, value: float, *,
+               available_at, first_seen=None, recorded=None,
+               grade: str = "captured_forward", revision_seq: int = 1,
+               revision_id: str | None = None, supersedes: str | None = None,
+               batch: str | None = "batch-1", precision: str | None = None):
+    """합성 AvailabilityEvent 빌더."""
+    from ai_fc.mts_research.availability import AvailabilityEvent
+
+    first = first_seen or available_at
+    return AvailabilityEvent(
+        series_id=series_id,
+        observation_period_start=obs_date,
+        observation_period_end=obs_date,
+        value=value,
+        unit="level",
+        source_published_at=None,
+        provider_available_at=None,
+        first_seen_at=first,
+        recorded_at=recorded or first,
+        availability_lower_bound=None,
+        availability_upper_bound=available_at,
+        availability_precision=precision or {
+            "native_pit": "date",
+            "reconstructed_market_archive": "inferred",
+            "captured_forward": "captured_only",
+        }.get(grade, "captured_only"),
+        availability_policy_id="synthetic_v1",
+        data_grade=grade,
+        revision_id=revision_id or f"{series_id}:{obs_date}:r{revision_seq}",
+        supersedes_id=supersedes,
+        revision_seq=revision_seq,
+        raw_sha256=None,
+        receipt_id=batch,
+        source_id="synthetic",
+        ingestion_batch_id=batch,
+        instrument_id=None,
+    )
+
+
+def synthetic_checkpoint(*, now=None):
+    from ai_fc.mts_research.availability import LedgerCheckpoint
+
+    return LedgerCheckpoint(
+        checkpoint_id="ckpt-synthetic",
+        ledger_path="synthetic.jsonl",
+        row_count=0,
+        content_sha256="0" * 64,
+        created_at=now or utc(2026, 10, 26),
+    )
+
+
+def synthetic_calendar_ref():
+    from ai_fc.mts_research.sessions import CalendarRef
+
+    return CalendarRef(
+        calendar_id="observation_grid",
+        calendar_hash="synthetic-grid-hash",
+        library_version=None,
+        window_start="2026-01-01",
+        window_end="2026-12-31",
+    )
+
+
+def build_synthetic_snapshot(events, *, cutoff, replay_mode="operational_replay",
+                             kind="input", completed_batches=None,
+                             transform_code_hash="tc1", environment_lock="env1"):
+    from ai_fc.mts_research.snapshots import build_snapshot
+
+    return build_snapshot(
+        cutoff=cutoff,
+        replay_mode=replay_mode,
+        events=events,
+        checkpoint=synthetic_checkpoint(),
+        calendar=synthetic_calendar_ref(),
+        source_specs_hash="ss1",
+        availability_policy_hash="ap1",
+        transform_code_hash=transform_code_hash,
+        environment_lock=environment_lock,
+        kind=kind,
+        completed_batches=completed_batches,
+    )
+
+
 def write_approval_receipt(root: Path, *, receipt_id: str, windows: list[str],
                            series: list[str], purposes: list[str]) -> dict[str, Any]:
     from ai_fc.mts_research import artifacts
