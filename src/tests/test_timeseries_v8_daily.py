@@ -405,6 +405,40 @@ def test_pointer_measures_freshness_on_the_inputs_the_row_used(
     assert stale["publication"]["customer_numbers_visible"] is False and "horizons" not in stale
 
 
+def test_source_only_hold_is_reevaluated_without_mutating_pointer_or_ledgers(tmp_path, monkeypatch):
+    root = _root(tmp_path)
+    _sealed_ledger(root)
+    _wire_heavy_parts(monkeypatch, sealed={"run_id": "tsv8-sealed-test"})
+    daily.daily_forecast_timeseries_v8(root, now=NOW, fetcher=_fetcher(), quote_fetcher=_no_quote)
+    monkeypatch.undo()
+    pointer = daily.publish_daily_display_latest(root, now=NOW)
+    expected = pointer.pop("horizons")
+    pointer["status"] = "shadow_operational_hold"
+    pointer["display_state"] = "validation_pending"
+    pointer["publication"]["customer_numbers_visible"] = False
+    pointer["gate"]["operational_pass"] = False
+    pointer["gate"]["reasons"] = ["필수 시장 입력 신선도 초과: DTWEXBGS_or_DTWEXB"]
+    pointer.pop("content_hash")
+    pointer["content_hash"] = canonical_hash(pointer)
+    path = root / daily.DAILY_LATEST_RELATIVE
+    path.write_text(json.dumps(pointer), encoding="utf-8")
+    before = {p: p.read_bytes() for p in (path, root / daily.DAILY_LEDGER_RELATIVE)}
+    recovered = display.load_projection(root, now=NOW)
+    assert recovered["status"] == "shadow_live" and recovered["numbers_visible"] is True
+    assert recovered["as_of"] == pointer["as_of"]
+    # The common publication builder only copies the existing row's distribution.
+    assert daily.publish_daily_display_latest(root, now=NOW, persist=False)["horizons"] == expected
+    for p, raw in before.items():
+        assert p.read_bytes() == raw
+    overdue = display.load_projection(root, now=datetime(2026, 10, 10, 6, tzinfo=timezone.utc))
+    assert overdue["numbers_visible"] is False
+    pointer["gate"]["reasons"].append("최근 shadow 원점 CRPS가 기준선 대비 허용치 초과")
+    pointer.pop("content_hash")
+    pointer["content_hash"] = canonical_hash(pointer)
+    path.write_text(json.dumps(pointer), encoding="utf-8")
+    assert display.load_projection(root, now=NOW)["numbers_visible"] is False
+
+
 def test_display_prefers_the_daily_pointer_and_labels_it(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
 ) -> None:

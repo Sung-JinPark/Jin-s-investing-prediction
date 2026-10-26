@@ -196,6 +196,27 @@ Register-ScheduledTask -TaskName "ai-fc-due-digest" -Action $action -Trigger $tr
 텔레그램 연동: `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID` 환경변수 설정 후 `python -m ai_fc notify --test`.
 due 계산은 순수 함수라 PC가 꺼져 있던 날이 있어도 다음 실행에서 자동 복구된다.
 
+## 데스크톱 앱 예약 작업 (무인 실행, 2026-10-26 정비)
+
+토요일 KST 순서: `weekly-model-refresh` 09:00 → `weekly-ml-reference` 10:00 → `weekly-forecast-3` 11:30.
+작업 정의(SKILL.md)는 `~/.claude/scheduled-tasks/<id>/` 에 있고 저장소 밖이다.
+
+- **권한**: 무인 세션은 권한 프롬프트에 답할 사람이 없다. 2026-08 ~ 10-26 동안 `weekly-model-refresh`
+  10회가 전부 첫 명령의 프롬프트에서 수십 초 만에 끝나 "succeeded"로 표시됐고, dualdb 는
+  2026-08-13 이후 갱신되지 않았다. 그래서 `.claude/settings.json` 에 `defaultMode: acceptEdits` 와
+  Bash·PowerShell·Web 허용을 두고, 원장·예측 파일 쓰기만 deny + 불변 경로 훅으로 막는다.
+  예약 세션이 시작되는 메인 체크아웃은 오래된 브랜치일 수 있으므로 같은 권한을
+  그 체크아웃의 `.claude/settings.local.json` 에도 둔다.
+- **작업 위치**: 세 작업 모두 `origin/main` 에서 새 worktree(`worktrees/active/<작업>-YYYYMMDD`)를
+  만들어 그 안에서 실행하고 PR → CI 초록 → 머지 커밋으로 끝낸다. 메인 체크아웃의 브랜치·파일은
+  건드리지 않는다.
+- **주 1회 중복 가드**: ML 추론(`ai_fc ml`)은 `weekly-ml-reference` 만 돌린다(ML-A6 주 1 run).
+  각 작업은 시작 시 이번 주에 같은 산출이 이미 main 에 있으면(예: `ml_history` 의 `kind=ml` run,
+  `forecasts/` 의 이번 주 배치) 실행하지 않고 보고만 한다 — 다른 계정의 같은 예약이 겹쳐도
+  두 번 생산되지 않는다.
+- **dualdb DB**: `dualdb/db/dualdb.sqlite`·`dualdb/data/raw` 는 gitignore 라 worktree 에 없다.
+  메인 체크아웃에서 복사해 쓰고, 끝나면 갱신된 DB 를 메인 체크아웃으로 되돌려 둔다.
+
 ## 비용·처리량 규율 (C5-A4, 2026-09-11 — 월 상한 $50)
 
 ### 실측 (2026-09-11 `calibration/cost_log.csv`)

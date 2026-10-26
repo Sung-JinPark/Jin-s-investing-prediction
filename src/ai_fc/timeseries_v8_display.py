@@ -575,6 +575,8 @@ def build_projection(
                 # 포인터가 기록한 마지막 관측일 — 나이(age_hours)는 포인터 생성 시각 기준이라
                 # 화면은 관측일을 함께 보여 '언제 기준 신선도인지'를 드러낸다.
                 "observation_time": None if row.get("observation_time") is None else str(row["observation_time"]),
+                **{key: row[key] for key in ("policy_id", "rule", "expected_observation",
+                    "publication_deadline", "next_publication_deadline") if key in row},
             }
             for row in (latest.get("operational", {}).get("freshness") or [])
         ],
@@ -832,7 +834,7 @@ def _hold_projection(
     }
 
 
-def load_projection(root: Path) -> dict[str, Any] | None:
+def load_projection(root: Path, *, now=None) -> dict[str, Any] | None:
     """Return the selected V8 decision, or None only when no pointer exists.
 
     HOLD keeps V8's own metadata and reasons on the surface while omitting all
@@ -851,6 +853,22 @@ def load_projection(root: Path) -> dict[str, Any] | None:
     latest = daily if use_daily else weekly
     if latest is None:
         return None
+    reasons = latest.get("gate", {}).get("reasons") or []
+    if (use_daily and latest.get("daily", {}).get("display_id") and reasons
+            and all(str(reason).startswith("필수 시장 입력 신선도 초과:") for reason in reasons)):
+        # Reevaluate a source-only HOLD against the same published daily row.
+        # Sealed gate, CRPS monitor, source validation and origin-age still apply;
+        # this read path never trains, appends or replaces a pointer.
+        from .timeseries_v8_daily import publish_daily_display_latest
+        try:
+            current = publish_daily_display_latest(root, now=now, persist=False)
+        except (OSError, ValueError, KeyError, RuntimeError, TypeError, ImportError) as exc:
+            closed = {**latest, "gate": {**latest["gate"], "reasons": [
+                *reasons, "운영 신선도 재검수 실패: " + str(exc)[:256]]}}
+            return _hold_projection(closed, use_daily=use_daily, weekly=weekly)
+        if (current.get("daily", {}).get("display_id") == latest.get("daily", {}).get("display_id")
+                and current.get("as_of") == latest.get("as_of")):
+            latest = current
     if latest.get("publication", {}).get("customer_numbers_visible") is not True:
         return _hold_projection(latest, use_daily=use_daily, weekly=weekly)
     realized = _realized_after_origin(

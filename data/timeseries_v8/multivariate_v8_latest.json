@@ -1,59 +1,56 @@
 {
   "as_of": "2026-10-16",
-  "content_hash": "1a3ec4fffaf2c4c0549a05104cdcfddf1ecb8adab40bce6f4e24b28391f14726",
+  "content_hash": "e4a459cea9b503ef52c3275597fb7774ee739b3f97386346eae6af6dcece2c73",
   "display_state": "validation_pending",
   "footnote": "*미국 시장·미국 공식 거시자료 기준 · 참고 의견",
   "gate": {
     "operational_pass": false,
     "reasons": [
       "필수 시장 입력 신선도 초과: NASDAQCOM",
-      "필수 시장 입력 신선도 초과: VIX",
-      "필수 시장 입력 신선도 초과: DGS2",
-      "필수 시장 입력 신선도 초과: DGS10",
-      "필수 시장 입력 신선도 초과: DTWEXBGS_or_DTWEXB"
+      "필수 시장 입력 신선도 초과: VIX"
     ],
     "sealed_gate_pass": true,
     "sealed_run_id": "tsv8-sealed-64345a816b4857171915d5b8"
   },
-  "knowledge_cutoff": "2026-10-26T01:29:38+00:00",
+  "knowledge_cutoff": "2026-10-26T21:13:36+00:00",
   "model_id": "shadow.mf_dfm_varx_calibrated_v8",
   "model_version": 8,
   "operational": {
     "freshness": [
       {
-        "age_hours": 49.49428648638889,
+        "age_hours": 69.22700887027779,
         "group": "NASDAQCOM",
         "limit_hours": 48.0,
         "observation_time": "2026-10-23",
         "status": "stale"
       },
       {
-        "age_hours": 49.49428648638889,
+        "age_hours": 69.22700887027779,
         "group": "VIX",
         "limit_hours": 48.0,
         "observation_time": "2026-10-23",
         "status": "stale"
       },
       {
-        "age_hours": 49.49428648638889,
+        "age_hours": 0.0,
         "group": "DGS2",
         "limit_hours": 48.0,
-        "observation_time": "2026-10-23",
-        "status": "stale"
+        "observation_time": "2026-10-26",
+        "status": "fresh"
       },
       {
-        "age_hours": 49.49428648638889,
+        "age_hours": 0.0,
         "group": "DGS10",
         "limit_hours": 48.0,
-        "observation_time": "2026-10-23",
-        "status": "stale"
+        "observation_time": "2026-10-26",
+        "status": "fresh"
       },
       {
-        "age_hours": 217.4942864863889,
+        "age_hours": 69.22700887027779,
         "group": "DTWEXBGS_or_DTWEXB",
         "limit_hours": 216.0,
-        "observation_time": "2026-10-16",
-        "status": "stale"
+        "observation_time": "2026-10-23",
+        "status": "fresh"
       }
     ],
     "monitoring": {

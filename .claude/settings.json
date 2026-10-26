@@ -5,11 +5,26 @@
       "Read",
       "Bash(git status *)",
       "Bash(git diff *)",
-      "Bash(git log *)"
+      "Bash(git log *)",
+      "Bash",
+      "PowerShell",
+      "Edit",
+      "Write",
+      "Glob",
+      "Grep",
+      "WebFetch",
+      "WebSearch",
+      "mcp__ccd_turn",
+      "mcp__ccd_pr"
     ],
     "deny": [
-      "Edit(calibration/ledger.csv)"
-    ]
+      "Edit(calibration/ledger.csv)",
+      "Write(calibration/ledger.csv)",
+      "Edit(calibration/benchmark_ledger.csv)",
+      "Write(calibration/benchmark_ledger.csv)",
+      "Edit(forecasts/2026/**)"
+    ],
+    "defaultMode": "acceptEdits"
   },
   "hooks": {
     "PreToolUse": [
