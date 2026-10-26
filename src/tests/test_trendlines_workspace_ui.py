@@ -276,7 +276,7 @@ window.openFullWorkspace=(scale='linear')=>{
 window.inspectChart=()=>{
   const {m,bars}=host._trendNavigation;
   return {factor:state.factor,x:state.xRange?.slice()||[m.first,m.end],y:(state.yRange||m.range).slice(),first:m.first,end:m.end,
-    bars:bars.map(bar=>bar.session_index),plotHeight:(m.H-m.T-m.B)/m.H*host.querySelector('svg').getBoundingClientRect().height,
+    bars:bars.map(bar=>bar.session_index),axisWidth:m.R,plotHeight:(m.H-m.T-m.B)/m.H*host.querySelector('svg').getBoundingClientRect().height,
     finite:[m.first,m.end,...m.range,...(state.xRange||[]),...(state.yRange||[])].every(Number.isFinite),
     unchanged:original===JSON.stringify({baseBars,analysis,manual}),cursor:getComputedStyle(host.querySelector('svg')).cursor,
     selection:getSelection().toString(),active:host.hasAttribute('data-trend-gesture'),pending:frames.size,
@@ -291,15 +291,18 @@ window.anchorAt=(rx,ry)=>{
   const {m}=host._trendNavigation,t=m.range[1]-ry*(m.range[1]-m.range[0]);
   return {...chartPoint(rx,ry),index:m.first+rx*(m.end-m.first),price:axis==='log'?Math.exp(t):t};
 };
-window.anchorError=anchor=>{
+window.anchorError=(anchor,target=anchor)=>{
   const {m}=host._trendNavigation,box=host.querySelector('svg').getBoundingClientRect();
-  return {x:Math.abs(box.left+m.x(anchor.index)/m.W*box.width-anchor.x),y:Math.abs(box.top+m.y(anchor.price)/m.H*box.height-anchor.y)};
+  return {x:Math.abs(box.left+m.x(anchor.index)/m.W*box.width-target.x),y:Math.abs(box.top+m.y(anchor.price)/m.H*box.height-target.y)};
 };
 window.wheelAt=({rx=.5,ry=.5,dy=-80,dx=0,mode=0,shift=false,priceAxis=false,target='svg'}={})=>{
   const point=chartPoint(rx,ry,priceAxis),event=new WheelEvent('wheel',{bubbles:true,cancelable:true,clientX:point.x,clientY:point.y,deltaY:dy,deltaX:dx,deltaMode:mode,shiftKey:shift});
   host.querySelector(target).dispatchEvent(event);return event.defaultPrevented;
 };
 host.addEventListener('pointerdown',event=>{window.lastPointer=event.pointerId;});
+window.nativeTouchPositions=new Map();
+for(const type of ['pointerdown','pointermove'])document.addEventListener(type,event=>{if(event.pointerType==='touch')nativeTouchPositions.set(event.pointerId,{x:event.clientX,y:event.clientY});},true);
+for(const type of ['pointerup','pointercancel'])document.addEventListener(type,event=>nativeTouchPositions.delete(event.pointerId),true);
 resetChart();
 '''
     options = getattr(request, 'param', {'viewport': {'width': 1280, 'height': 900}})
@@ -512,7 +515,7 @@ def prepare_mobile_gesture(page, scale='linear'):
 def dispatch_native_touch(session, kind, points=()):
     session.send('Input.dispatchTouchEvent', {
         'type': kind,
-        'touchPoints': [{'id': i + 1, 'x': point['x'], 'y': point['y']} for i, point in enumerate(points)],
+        'touchPoints': [{'id': point.get('id', i + 1), 'x': point['x'], 'y': point['y']} for i, point in enumerate(points)],
     })
 
 
@@ -611,3 +614,226 @@ def test_workspace_genuine_mouse_double_click_still_resets_after_touch(workspace
     page.evaluate('flushFrames()')
     assert page.evaluate('touchResetCount') == 1
     assert page.evaluate('inspectChart().bars') == initial['home']['bars']
+
+
+PINCH_WORKSPACES = pytest.mark.parametrize('workspace_chart', [
+    {'viewport': {'width': width, 'height': height}, 'is_mobile': True, 'has_touch': True}
+    for width, height in [(390, 844), (768, 1024)]
+], indirect=True, ids=['phone-390', 'tablet-768'])
+
+
+def native_pinch_points(midpoint, ratio=1, dx=0, dy=0, angle=0):
+    return [{
+        'id': i + 1,
+        'x': midpoint['x'] + dx + direction * 28 * ratio * math.cos(angle),
+        'y': midpoint['y'] + dy + direction * 28 * ratio * math.sin(angle),
+    } for i, direction in enumerate([-1, 1])]
+
+
+def move_native_touches(page, session, points):
+    dispatch_native_touch(session, 'touchMove', points)
+    # Chrome can deliver the two pointermoves from one CDP command separately.
+    try:
+        page.wait_for_function('''points=>nativeTouchPositions.size===points.length&&points.every(point=>
+          [...nativeTouchPositions.values()].some(actual=>Math.hypot(actual.x-point.x,actual.y-point.y)<.05))''',
+                               arg=points, polling=10, timeout=3000)
+    except Exception as error:
+        raise AssertionError(f'native touch delivery: wanted {points}, observed {page.evaluate("[...nativeTouchPositions.entries()]")}') from error
+
+
+@PINCH_WORKSPACES
+@pytest.mark.parametrize('scale', ['linear', 'log'])
+@pytest.mark.parametrize('motion,ratio,dx,dy', [('expand', 1.35, 0, 0), ('contract', .75, 0, 0), ('translate', 1, 22, -18)])
+def test_workspace_native_pinch_keeps_starting_data_under_moving_midpoint(workspace_chart, scale, motion, ratio, dx, dy):
+    page = workspace_chart
+    initial = prepare_mobile_gesture(page, scale)
+    anchor = page.evaluate('anchorAt(.27,.35)')
+    target = {'x': anchor['x'] + dx, 'y': anchor['y'] + dy}
+    session = page.context.new_cdp_session(page)
+    try:
+        dispatch_native_touch(session, 'touchStart', native_pinch_points(anchor))
+        move_native_touches(page, session, native_pinch_points(anchor, ratio, dx, dy, .35))
+        page.evaluate('flushFrames()')
+        after = page.evaluate('inspectChart()')
+        error = page.evaluate('({anchor,target})=>anchorError(anchor,target)', {'anchor': anchor, 'target': target})
+        assert error['x'] < 1 and error['y'] < 1
+        assert after['factor'] == pytest.approx(initial['changed']['factor'] * ratio, rel=1e-5)
+        for key in ('x', 'y'):
+            before_range, after_range = initial['changed'][key], after[key]
+            assert after_range[1] - after_range[0] == pytest.approx((before_range[1] - before_range[0]) / ratio, rel=1e-5)
+        assert after['finite'] and len(after['bars']) >= 20
+        assert page.evaluate('touchResetCount') == 0
+        assert page.evaluate('touchSource===JSON.stringify({baseBars,analysis,lines:manual.lines})')
+        dispatch_native_touch(session, 'touchEnd')
+    finally:
+        session.detach()
+
+
+@PINCH_WORKSPACES
+@pytest.mark.parametrize('scale', ['linear', 'log'])
+def test_workspace_native_pinch_is_frame_independent_and_reversible_across_axis_width_change(workspace_chart, scale):
+    page = workspace_chart
+    prepare_mobile_gesture(page, scale)
+    results = []
+    session = page.context.new_cdp_session(page)
+    try:
+        for separate_frames in (False, True):
+            before = page.evaluate('''scale=>{
+              ws.resetView();state.yRange=scale==='log'?[Math.log(50),Math.log(1005)]:[50,1005];ws.render();return inspectChart();
+            }''', scale)
+            anchor = page.evaluate('anchorAt(.28,.25)')
+            start = native_pinch_points(anchor)
+            dispatch_native_touch(session, 'touchStart', start)
+            for ratio, dx, dy, angle in [(1.6, 0, 0, .2), (.95, 8, -8, .4), (1.35, 18, -12, .3)]:
+                move_native_touches(page, session, native_pinch_points(anchor, ratio, dx, dy, angle))
+                if separate_frames:
+                    page.evaluate('flushFrames()')
+            pending = page.evaluate('inspectChart().pending')
+            page.evaluate('flushFrames()')
+            final = page.evaluate('inspectChart()')
+            error = page.evaluate('({anchor,target})=>anchorError(anchor,target)', {
+                'anchor': anchor, 'target': {'x': anchor['x'] + 18, 'y': anchor['y'] - 12},
+            })
+            assert error['x'] < 1 and error['y'] < 1
+            assert before['axisWidth'] != final['axisWidth'], 'fixture must exercise a changing price label width'
+            assert pending == (0 if separate_frames else 1)
+            move_native_touches(page, session, start)
+            page.evaluate('flushFrames()')
+            reversed_view = page.evaluate('inspectChart()')
+            for key in ('factor', 'x', 'y'):
+                assert reversed_view[key] == pytest.approx(before[key], rel=1e-5)
+            dispatch_native_touch(session, 'touchEnd')
+            results.append(final)
+        for key in ('factor', 'x', 'y', 'bars'):
+            assert results[0][key] == pytest.approx(results[1][key], rel=1e-5)
+        assert page.evaluate('touchSource===JSON.stringify({baseBars,analysis,lines:manual.lines})')
+    finally:
+        session.detach()
+
+
+@PINCH_WORKSPACES
+@pytest.mark.parametrize('scale', ['linear', 'log'])
+def test_workspace_native_pinch_limits_keep_finite_domains_and_original_rows(workspace_chart, scale):
+    page = workspace_chart
+    prepare_mobile_gesture(page, scale)
+    session = page.context.new_cdp_session(page)
+    try:
+        for ratio, expected in [(4, 8), (.1, 1)]:
+            page.evaluate('''()=>{ws.resetView();state.maxFactor=8;state.factor=4;state.offset=0;state.heldCount=125;state.yRange=null;ws.render();}''')
+            anchor = page.evaluate('anchorAt(.1,.3)')
+            dispatch_native_touch(session, 'touchStart', native_pinch_points(anchor))
+            move_native_touches(page, session, native_pinch_points(anchor, ratio, 60, -5))
+            page.evaluate('flushFrames()')
+            after = page.evaluate('inspectChart()')
+            assert after['factor'] == pytest.approx(expected)
+            assert after['finite'] and 0 <= after['x'][0] < after['x'][1] <= 500
+            assert after['y'][0] < after['y'][1] and len(after['bars']) >= 20
+            assert after['bars'] == list(range(after['bars'][0], after['bars'][-1] + 1))
+            move_native_touches(page, session, native_pinch_points(anchor, ratio, 60, 15))
+            page.evaluate('flushFrames()')
+            translated = page.evaluate('inspectChart()')
+            assert translated['factor'] == pytest.approx(expected)
+            assert translated['y'] != after['y'], 'midpoint translation must keep working at a zoom limit'
+            assert translated['y'][1] - translated['y'][0] == pytest.approx(after['y'][1] - after['y'][0])
+            dispatch_native_touch(session, 'touchEnd')
+        assert page.evaluate('touchSource===JSON.stringify({baseBars,analysis,lines:manual.lines})')
+    finally:
+        session.detach()
+
+
+@PINCH_WORKSPACES
+@pytest.mark.parametrize('ending', ['one_finger', 'cancel'])
+def test_workspace_native_pinch_release_then_double_tap_restores_home(workspace_chart, ending):
+    page = workspace_chart
+    initial = prepare_mobile_gesture(page)
+    anchor = page.evaluate('anchorAt(.3,.4)')
+    session = page.context.new_cdp_session(page)
+    try:
+        dispatch_native_touch(session, 'touchStart', native_pinch_points(anchor))
+        moved = native_pinch_points(anchor, 1.3, 12, -8)
+        move_native_touches(page, session, moved)
+        page.evaluate('flushFrames()')
+        before_release = page.evaluate('inspectChart()')
+        if ending == 'one_finger':
+            dispatch_native_touch(session, 'touchEnd', [moved[1]])
+            remaining = page.evaluate('[...nativeTouchPositions.values()]')
+            assert len(remaining) == 1, remaining
+            move_native_touches(page, session, [{**moved[0], 'x': moved[0]['x'] + 20}])
+            page.evaluate('flushFrames()')
+            for key in ('factor', 'x', 'y'):
+                assert page.evaluate('inspectChart()')[key] == before_release[key]
+            dispatch_native_touch(session, 'touchEnd')
+        else:
+            dispatch_native_touch(session, 'touchCancel')
+        assert not page.evaluate('inspectChart().active')
+        point = page.evaluate('chartPoint(.4,.5)')
+        page.touchscreen.tap(point['x'], point['y'])
+        assert page.evaluate('touchResetCount') == 0
+        page.touchscreen.tap(point['x'], point['y'])
+        page.evaluate('flushFrames()')
+        assert page.evaluate('touchResetCount') == 1
+        for key in ('factor', 'x', 'y', 'bars'):
+            assert page.evaluate('inspectChart()')[key] == pytest.approx(initial['home'][key])
+    finally:
+        session.detach()
+
+
+@MOBILE_WORKSPACE
+@pytest.mark.parametrize('third_target', ['chart', 'consumed_control'])
+def test_workspace_third_native_touch_ends_pinch_even_when_control_consumes_event(workspace_chart, third_target):
+    page = workspace_chart
+    prepare_mobile_gesture(page)
+    anchor = page.evaluate('anchorAt(.3,.4)')
+    session = page.context.new_cdp_session(page)
+    try:
+        dispatch_native_touch(session, 'touchStart', native_pinch_points(anchor))
+        moved = native_pinch_points(anchor, 1.2, 8, -6)
+        move_native_touches(page, session, moved)
+        page.evaluate('flushFrames()')
+        before = page.evaluate('inspectChart()')
+        if third_target == 'chart':
+            third = page.evaluate('chartPoint(.8,.65)')
+        else:
+            page.evaluate("host.querySelector('#editable').addEventListener('pointerdown',event=>event.stopPropagation())")
+            box = page.locator('[data-trend-zoom] #editable').bounding_box()
+            assert box
+            third = {'x': box['x'] + box['width'] / 2, 'y': box['y'] + box['height'] / 2}
+        third['id'] = 3
+        dispatch_native_touch(session, 'touchStart', [*moved, third])
+        move_native_touches(page, session, [*native_pinch_points(anchor, 1.5, 20, -15), third])
+        page.evaluate('flushFrames()')
+        for key in ('factor', 'x', 'y'):
+            assert page.evaluate('inspectChart()')[key] == before[key]
+        assert not page.evaluate('inspectChart().active')
+        dispatch_native_touch(session, 'touchEnd')
+    finally:
+        session.detach()
+
+
+@MOBILE_WORKSPACE
+def test_workspace_pinch_from_old_axis_cannot_change_new_axis_view(workspace_chart):
+    page = workspace_chart
+    prepare_mobile_gesture(page)
+    anchor = page.evaluate('anchorAt(.3,.4)')
+    session = page.context.new_cdp_session(page)
+    try:
+        dispatch_native_touch(session, 'touchStart', native_pinch_points(anchor))
+        move_native_touches(page, session, native_pinch_points(anchor, 1.2, 8, -6))
+        page.evaluate('flushFrames()')
+        page.keyboard.press('Alt+l')
+        assert page.evaluate('ws.scale') == 'log'
+        switched = page.evaluate('inspectChart()')
+        move_native_touches(page, session, native_pinch_points(anchor, 1.5, 20, -15))
+        page.evaluate('flushFrames()')
+        for key in ('factor', 'x', 'y'):
+            assert page.evaluate('inspectChart()')[key] == switched[key]
+        dispatch_native_touch(session, 'touchEnd')
+        fresh = page.evaluate('anchorAt(.4,.4)')
+        dispatch_native_touch(session, 'touchStart', native_pinch_points(fresh))
+        move_native_touches(page, session, native_pinch_points(fresh, 1.15))
+        page.evaluate('flushFrames()')
+        assert page.evaluate('inspectChart().factor') > switched['factor']
+        assert page.evaluate('touchSource===JSON.stringify({baseBars,analysis,lines:manual.lines})')
+        dispatch_native_touch(session, 'touchEnd')
+    finally:
+        session.detach()
