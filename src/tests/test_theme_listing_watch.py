@@ -183,3 +183,48 @@ def test_repository_reviews_and_watch_are_consistent_with_the_census() -> None:
     assert [row["status"] for row in reclassified] == [row["status"] for row in payload["listings"]]
     watched = {(row["venue"], row["code"]) for row in payload["listings"]}
     assert {(row["venue"], row["code"]) for row in reviews} <= watched, "검수 기록은 감시가 본 상장에만"
+
+
+def test_truncated_transfer_and_layout_change_only_stale_their_venue(tmp_path: Path) -> None:
+    """2026-10-26 실측: TPEx 응답 전송 끊김(IncompleteRead — OSError 가 아님)이 통계 갱신 전체를 멈췄다."""
+    import http.client
+
+    _seed(tmp_path)
+
+    def flaky(venue: str, *, since: str, today: date) -> list[dict]:
+        if venue == "tw_tpex":
+            raise http.client.IncompleteRead(b"x" * 10, 99)
+        if venue == "jp":
+            raise KeyError("layout changed")
+        return []
+
+    payload = refresh_theme_listing_watch(tmp_path, now=datetime(2026, 10, 26, tzinfo=timezone.utc), fetcher=flaky)
+    assert payload["venues"]["tw_tpex"]["status"] == "stale" and "IncompleteRead" in payload["venues"]["tw_tpex"]["error"]
+    assert payload["venues"]["jp"]["status"] == "stale"
+    assert payload["summary"]["venues_ok"] == len(VENUES) - 2
+
+
+def test_get_retries_a_truncated_transfer(monkeypatch: pytest.MonkeyPatch) -> None:
+    import http.client
+    import io
+
+    from ai_fc import theme_listing_watch as watch
+
+    calls = []
+
+    class Response(io.BytesIO):
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *exc):
+            return False
+
+    def urlopen(request, timeout):
+        calls.append(request.full_url)
+        if len(calls) == 1:
+            raise http.client.IncompleteRead(b"", 5)
+        return Response(b"ok")
+
+    monkeypatch.setattr(watch.urllib.request, "urlopen", urlopen)
+    monkeypatch.setattr(watch.time, "sleep", lambda seconds: None)
+    assert watch._get("https://example.org/x") == b"ok" and len(calls) == 2
