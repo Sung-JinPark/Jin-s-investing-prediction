@@ -22,9 +22,11 @@ from __future__ import annotations
 import csv
 import hashlib
 import html
+import http.client
 import http.cookiejar
 import json
 import re
+import time
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -264,10 +266,19 @@ def parse_tpex(raw: bytes, *, since: str) -> list[dict[str, Any]]:
 # ── 네트워크 ───────────────────────────────────────────────────────────────
 
 
-def _get(url: str, *, opener: urllib.request.OpenerDirector | None = None, data: bytes | None = None) -> bytes:
-    request = urllib.request.Request(url, data=data, headers={"User-Agent": USER_AGENT})
-    with (opener.open if opener else urllib.request.urlopen)(request, timeout=TIMEOUT_SECONDS) as response:
-        return response.read()
+def _get(url: str, *, opener: urllib.request.OpenerDirector | None = None, data: bytes | None = None,
+         attempts: int = 3) -> bytes:
+    """큰 응답(TPEx 상장사 표 ~1MB)이 전송 중 끊기는 일이 실측됐다(2026-10-26 IncompleteRead) — 짧게 재시도한다."""
+    for attempt in range(attempts):
+        request = urllib.request.Request(url, data=data, headers={"User-Agent": USER_AGENT})
+        try:
+            with (opener.open if opener else urllib.request.urlopen)(request, timeout=TIMEOUT_SECONDS) as response:
+                return response.read()
+        except (http.client.HTTPException, OSError):
+            if attempt + 1 == attempts:
+                raise
+            time.sleep(2 * (attempt + 1))
+    raise AssertionError("unreachable")
 
 
 def _fetch_kind(since: str, until: str) -> bytes:
@@ -306,7 +317,11 @@ def fetch_venue(venue: str, *, since: str, today: date) -> list[dict[str, Any]]:
     raise ThemeListingWatchError(f"unknown venue: {venue}")
 
 
-_FETCH_ERRORS = (OSError, urllib.error.URLError, TimeoutError, ValueError, json.JSONDecodeError)
+#: 시장 하나의 수집·파싱 실패는 그 시장만 stale 로 만든다 — 전송 끊김(HTTPException 은 OSError 가 아니다)과
+#: 페이지 구조 변경(KeyError·IndexError·TypeError)까지. 우리 파일(명단·검수 기록)의 규칙 위반은 여기서 잡지 않고
+#: 갱신을 멈춘다 — 그건 사람이 고칠 결함이다.
+_FETCH_ERRORS = (OSError, urllib.error.URLError, TimeoutError, ValueError, json.JSONDecodeError,
+                 http.client.HTTPException, KeyError, IndexError, TypeError)
 
 
 # ── 대조 ───────────────────────────────────────────────────────────────────
