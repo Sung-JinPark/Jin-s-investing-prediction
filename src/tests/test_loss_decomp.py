@@ -194,8 +194,17 @@ def test_the_new_nfp_question_moved_the_threshold_not_the_subject(registry) -> N
 
 
 def test_no_nfp_question_was_voided_or_reclassified(registry) -> None:
+    """void 되거나 다른 질문으로 갈아탄 NFP 질문이 없어야 한다.
+
+    해소는 시간이 지나면 늘어난다(2026-10-26 nfp-sep2026-negative 판정). 그래서 해소 집합을
+    고정값과 맞추지 않고, T04 의 두 질문이 계속 해소 상태이며 해소된 것은 전부 원장에
+    채점 행이 있는지 — 즉 '해소'가 상태 표기만 바꾼 재분류가 아닌지 — 를 본다.
+    """
     nfp = [q for q in registry["questions"] if q["id"].startswith("nfp-")]
     assert len(nfp) == 6
     assert not [q for q in nfp if q.get("status") == "void"], "NFP 질문이 void 되면 안 된다"
-    assert {q["id"] for q in nfp if q.get("status") == "resolved"} == {
-        "nfp-jul2026-below100k", "nfp-aug2026-below100k"}
+    resolved = {q["id"] for q in nfp if q.get("status") == "resolved"}
+    assert {"nfp-jul2026-below100k", "nfp-aug2026-below100k"} <= resolved
+    ledger = (ROOT / "calibration" / "ledger.csv").read_text(encoding="utf-8")
+    unscored = sorted(qid for qid in resolved if f",{qid}," not in ledger)
+    assert not unscored, f"원장 채점 없이 resolved 로 바뀐 NFP 질문: {unscored}"
