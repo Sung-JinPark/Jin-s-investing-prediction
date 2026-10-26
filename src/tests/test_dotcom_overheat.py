@@ -169,9 +169,13 @@ def test_daily_refresh_reaches_pages_and_failure_monitor() -> None:
     # IPO 월별 건수는 통계 빌드 전에 갱신되고, 그 표들이 커밋 대상이어야 한다.
     assert commands.index("python -m ai_fc ipo-monthly-counts") < commands.index(
         "python -m ai_fc statistics-refresh")
+    # 전수조사 이후 해외 테마 상장 — 감시표가 통계 빌드 전에 갱신돼 카드가 미검수 건수를 싣는다.
+    assert commands.index("python -m ai_fc theme-listing-watch") < commands.index(
+        "python -m ai_fc statistics-refresh")
     for path in ("data/statistics/ipo/ritter_ipoall_monthly.json",
                  "data/statistics/ipo/nasdaq_calendar_monthly.json",
-                 "data/statistics/ipo/monthly_counts_status.json"):
+                 "data/statistics/ipo/monthly_counts_status.json",
+                 "data/statistics/ipo/theme_listing_watch.json"):
         assert path in commands
     for name in ("pages", "ops-failure-alert"):
         doc = workflow(name)

@@ -1786,6 +1786,22 @@ def cmd_ipo_monthly_counts() -> None:
     )
 
 
+@app.command("theme-listing-watch")
+def cmd_theme_listing_watch() -> None:
+    """테마 기업 해외 상장 감시 — 거래소 신규상장 목록을 모아 전수 명단·검수 기록과 대조한다(판정은 사람)."""
+    from .theme_listing_watch import WATCH_RELATIVE, refresh_theme_listing_watch
+
+    payload = refresh_theme_listing_watch(config.ROOT)
+    summary = payload["summary"]
+    stale = [venue for venue, state in payload["venues"].items() if state["status"] != "current"]
+    typer.echo(
+        f"테마 상장 감시: {WATCH_RELATIVE.as_posix()} · 상장 {summary['listings']}건 · "
+        f"미검수 {summary['pending_review']}건(기한 초과 {summary['pending_overdue']}) · "
+        f"검수 완료 {summary['reviewed_through'] or '-'}까지 · 시장 {summary['venues_ok']}/{summary['venues_total']}"
+        + (f" · 지연: {', '.join(stale)}" if stale else "")
+    )
+
+
 @app.command("alert-notify")
 def cmd_alert_notify(
     body_out: str = typer.Option(

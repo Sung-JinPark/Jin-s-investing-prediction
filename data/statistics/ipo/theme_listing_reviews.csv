@@ -1,0 +1,17 @@
+venue,code,company,listing_date,decision,reason,source_url,reviewed_at
+kr,46867,브릴스,2026-10-01,unclear,"공장 자동화 로봇 SI(작년 매출 99%가 솔루션) — 공모자금으로 피지컬 AI 개발 계획은 있으나 AI로 사업을 규정한 로봇인지 불분명해 규칙대로 제외(v5 전수조사도 제외)",https://www.venturesquare.net/1117160/,2026-10-26
+tw_tpex,6604,儒億,2026-10-06,not_theme,"儒億科技 — TPEx 산업코드 05(電機機械)",https://www.tpex.org.tw/openapi/v1/mopsfin_t187ap03_O,2026-10-26
+cn_a,920157,宇特光电,2026-10-09,not_theme,"광연결 제품(광커넥터·부품) 설계·제조 — 광통신 부품은 반도체 정의(theme_rule) 밖",https://data.eastmoney.com/xg/xg/detail/920157.html,2026-10-26
+cn_a,301569,联亚药业,2026-10-15,not_theme,"복합 제제 의약품 연구·생산",https://data.eastmoney.com/xg/xg/detail/301569.html,2026-10-26
+cn_a,920162,莫森泰克,2026-10-15,not_theme,"자동차 선루프·윈도 레귤레이터 등 개폐 부품",https://data.eastmoney.com/xg/xg/detail/920162.html,2026-10-26
+hk_main,02636,"Shenzhen Transsion Holdings Co., Ltd. - H Shares",2026-10-15,not_first_listing,"STAR(688036) 기상장사의 H주 — 이중 상장(event_rule 제외), 휴대폰 제조라 테마도 아님",https://www2.hkexnews.hk/-/media/HKEXnews/Homepage/New-Listings/New-Listing-Information/New-Listing-Report/Main/NLR2026_Eng.xlsx,2026-10-26
+jp,648A,（株）ルクレ,2026-10-15,unclear,"주력은 공사 사진 관리 서비스 '蔵衛門'(JPX 개요: 디바이스×AI 클라우드 기록 DX 플랫폼) — AI가 제품인지 불분명해 규칙대로 제외",https://www.jpx.co.jp/listing/stocks/new/t13vrt000001xw9e-att/10LECRE-Outline.pdf,2026-10-26
+tw_tpex,7806,精華生醫,2026-10-15,not_theme,"精華生醫 — TPEx 산업코드 02(食品)",https://www.tpex.org.tw/openapi/v1/mopsfin_t187ap03_O,2026-10-26
+cn_a,920196,南方乳业,2026-10-16,not_theme,"유제품·유음료 제조",https://data.eastmoney.com/xg/xg/detail/920196.html,2026-10-26
+tw_twse,6467,泰合,2026-10-20,not_theme,"泰合生技藥品 — TWSE 산업코드 22(生技醫療)",https://openapi.twse.com.tw/v1/opendata/t187ap03_L,2026-10-26
+cn_a,920296,文峰光电,2026-10-21,not_theme,"특수 케이블·광전 부품",https://data.eastmoney.com/xg/xg/detail/920296.html,2026-10-26
+cn_a,301718,通则康威,2026-10-22,not_theme,"광대역 접속 단말(통신장비) 설계·생산 — 반도체 아님",https://data.eastmoney.com/xg/xg/detail/301718.html,2026-10-26
+kr,0013Y,엠에스바이오,2026-10-22,not_theme,"의료용 인체조직 이식재·생체재료 의료기기",https://kind.krx.co.kr/listinvstg/listingcompany.do?method=searchListingTypeMain,2026-10-26
+tw_tpex,2249,湧盛,2026-10-22,not_theme,"湧盛電機 — TPEx 산업코드 05(電機機械)",https://www.tpex.org.tw/openapi/v1/mopsfin_t187ap03_O,2026-10-26
+cn_a,920285,远大健科,2026-10-23,not_theme,"정수 필터·필터 카트리지(키워드 '芯'은 滤芯=필터 심재)",https://data.eastmoney.com/xg/xg/detail/920285.html,2026-10-26
+kr,0015M,디티에스,2026-10-23,not_theme,"산업용 공랭식 열교환기",https://kind.krx.co.kr/listinvstg/listingcompany.do?method=searchListingTypeMain,2026-10-26
