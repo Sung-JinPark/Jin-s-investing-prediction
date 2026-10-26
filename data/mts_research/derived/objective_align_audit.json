@@ -1,0 +1,100 @@
+{
+  "perturbation_harness_synthetic": {
+    "fits": {
+      "lag1_smallA": {
+        "alpha": 0.001,
+        "block": 10,
+        "diagnostics_keys": [
+          "block_10__ewma_0.94",
+          "block_10__ewma_0.97",
+          "block_21__ewma_0.94",
+          "block_21__ewma_0.97",
+          "block_5__ewma_0.94",
+          "block_5__ewma_0.97"
+        ],
+        "lag": 1,
+        "lambda": 0.97
+      },
+      "lag5_largeA": {
+        "alpha": 10.0,
+        "block": 10,
+        "diagnostics_keys": [
+          "block_10__ewma_0.94",
+          "block_10__ewma_0.97",
+          "block_21__ewma_0.94",
+          "block_21__ewma_0.97",
+          "block_5__ewma_0.94",
+          "block_5__ewma_0.97"
+        ],
+        "lag": 5,
+        "lambda": 0.94
+      }
+    },
+    "h21": {
+      "fhs_inputs": [
+        "training_returns",
+        "ewma_lambda",
+        "vol_projection",
+        "tilt(=0)"
+      ],
+      "lambda_selected_by_each_fit": {
+        "lag1_smallA": 0.97,
+        "lag5_largeA": 0.94
+      },
+      "lambda_switch_fhs_max_abs_quantile_diff": 0.0412319291469051,
+      "same_lambda_fhs_max_abs_diff": 0.0,
+      "varx_fit_in_fhs_signature": false
+    },
+    "h63": {
+      "fhs_inputs": [
+        "training_returns",
+        "ewma_lambda",
+        "vol_projection",
+        "tilt(=0)"
+      ],
+      "lambda_selected_by_each_fit": {
+        "lag1_smallA": 0.97,
+        "lag5_largeA": 0.94
+      },
+      "lambda_switch_fhs_max_abs_quantile_diff": 0.15420072618295677,
+      "same_lambda_fhs_max_abs_diff": 0.0,
+      "varx_fit_in_fhs_signature": false
+    },
+    "verdict": {
+      "lambda_h21_h63": "ACTIVE",
+      "varx_lag_alpha_h21_h63": "INDIRECT_VIA_LAMBDA"
+    }
+  },
+  "schema_version": 1,
+  "scope_note": "감사 전용 — inner objective 재튜닝 실험(OBJECTIVE_ALIGN 의 실행형)은 W7 등록·예산 충족 전 BLOCKED. dev 절단 실자료 하니스는 후속 범위.",
+  "static_trace": [
+    {
+      "evidence": "timeseries_v2/model.py:64-156 · timeseries_v8/model.py:429 · backtest.py FHS 대체",
+      "horizon": "h21/h63 최종 분포",
+      "parameter": "varx.lag / varx.alpha (1일 MSE 선택)",
+      "path": "residuals → select_distribution_parameters_v2 → λ 스위치 → FHS; PIT 이력 경유 재보정",
+      "verdict": "INDIRECT_VIA_LAMBDA"
+    },
+    {
+      "evidence": "timeseries_v8/backtest.py (FHS 비대상 지평)",
+      "horizon": "h1/h5 · first_touch",
+      "parameter": "varx.lag / varx.alpha",
+      "path": "엔진 경로 시뮬레이션이 VARX 적합을 직접 사용",
+      "verdict": "ACTIVE"
+    },
+    {
+      "evidence": "timeseries_v8/model.py:429-442 시그니처",
+      "horizon": "h21/h63 최종 분포",
+      "parameter": "distribution.block_length",
+      "path": "FHS 는 block_length 를 인자로 받지 않는다 (역사 중첩창 + EWMA 표준화)",
+      "verdict": "BYPASSED"
+    },
+    {
+      "evidence": "timeseries_v8/model.py:433",
+      "horizon": "h21/h63 최종 분포",
+      "parameter": "distribution.ewma_lambda",
+      "path": "FHS 표준화·재척도의 직접 인자",
+      "verdict": "ACTIVE"
+    }
+  ]
+}

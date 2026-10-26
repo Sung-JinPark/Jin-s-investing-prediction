@@ -1,0 +1,125 @@
+{
+  "collection_lag_recent": {
+    "DGS10": {
+      "median_days": 17.38,
+      "n_recent": 115,
+      "p90_days": 85.38
+    },
+    "DGS2": {
+      "median_days": 17.38,
+      "n_recent": 115,
+      "p90_days": 85.38
+    },
+    "DTWEXBGS": {
+      "median_days": 22.38,
+      "n_recent": 110,
+      "p90_days": 86.38
+    },
+    "FED_EBP": {
+      "median_days": 80.38,
+      "n_recent": 2,
+      "p90_days": 80.38
+    },
+    "NASDAQCOM": {
+      "median_days": 17.38,
+      "n_recent": 116,
+      "p90_days": 85.38
+    },
+    "VIX": {
+      "median_days": 20.38,
+      "n_recent": 120,
+      "p90_days": 86.38
+    },
+    "window_note": "관측일 >= 2026-05-11 행만 (운영기)"
+  },
+  "dollar_splice": {
+    "dtwexb_range": [
+      "1995-01-04",
+      "2019-12-31"
+    ],
+    "dtwexbgs_range": [
+      "2006-01-02",
+      "2026-10-16"
+    ],
+    "dtwexbgs_rows_observed_before_public_date": 3287,
+    "effective_transition": {
+      "effective_junction": "2006-01-02",
+      "note": "원고의 2019-01-02 는 FRED 계열 교체 시점; 현재 아카이브에선 backcast 로 BGS 가 2006 부터 우선한다. 1995~2005 만 DTWEXB return 사용.",
+      "rule": "log_change 계산 후 combine_first(DTWEXBGS 우선) — features.py:116-118"
+    },
+    "level_base_difference_at_junction": 0.9079079769100753,
+    "methodology_public_date": "2019-02-04",
+    "of_which_claimed_native_pit": 0,
+    "overlap_return_agreement": {
+      "max_abs_diff": 0.008453107929048803,
+      "median_abs_diff": 0.000166839605038711,
+      "n_common_days": 3513,
+      "p99_abs_diff": 0.0012536534390482773
+    },
+    "residual_caveat": "backcast 가 captured_forward 라 역사 재구성에서 pre-capture cutoff 에는 BGS 가 보이지 않는다 — 당시 정보집합 재구성은 DTWEXB 로 내려간다 (정상). 단 운영 '현재' 패널의 pre-2019 달러 return 은 신방법론 backcast 다 — 동결 V8 평가는 2026-08 아카이브 구축 후 실행이라 내적으로 일관.",
+    "status": "MEASURED",
+    "t12_verdict": "PASS — 공개일 이전 관측일 행이 native_pit(당시 가용) 등급을 주장하지 않는다",
+    "t13_verdict": "PASS — return-먼저-연결 구조라 다른 base level 직결의 인공 return 경로 없음"
+  },
+  "grade_summary": {
+    "DGS10": {
+      "captured_forward": 453,
+      "reconstructed_market_archive": 8756
+    },
+    "DGS2": {
+      "captured_forward": 453,
+      "reconstructed_market_archive": 8756
+    },
+    "DTWEXB": {
+      "captured_forward": 6328
+    },
+    "DTWEXBGS": {
+      "captured_forward": 5212
+    },
+    "FED_EBP": {
+      "captured_forward": 643
+    },
+    "NASDAQCOM": {
+      "captured_forward": 8007
+    },
+    "VIX": {
+      "captured_forward": 9301
+    }
+  },
+  "revision_summary": {
+    "DGS10": {
+      "revised_rows": 0,
+      "rows": 9209
+    },
+    "DGS2": {
+      "revised_rows": 0,
+      "rows": 9209
+    },
+    "DTWEXB": {
+      "revised_rows": 0,
+      "rows": 6328
+    },
+    "DTWEXBGS": {
+      "revised_rows": 0,
+      "rows": 5212
+    },
+    "FED_EBP": {
+      "revised_rows": 0,
+      "rows": 643
+    },
+    "NASDAQCOM": {
+      "revised_rows": 0,
+      "rows": 8007
+    },
+    "VIX": {
+      "revised_rows": 0,
+      "rows": 9301
+    }
+  },
+  "schema_version": 1,
+  "structural_findings": [
+    "captured_forward 행은 available_at=수집 시각 — 역사적 공개 증거가 없어 historical reconstruction 에서 과거 cutoff 에 보이지 않는다 (NASDAQCOM·VIX 백필 전체가 해당). 설계서 §6.2 의 '증거 없는 승격 금지' 를 저장소가 이미 지킨다.",
+    "reconstructed_market_archive 1판만 post-close 보수 상계를 갖는다 (DGS2·DGS10).",
+    "달러 주간 발표(H.10) 지연은 collection_lag_recent 의 DTWEXBGS 행에서 실측된다."
+  ]
+}
