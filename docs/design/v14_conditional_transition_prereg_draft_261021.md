@@ -1,6 +1,9 @@
 # V14 조건부 전이 트랙 — 사전등록 초안 (draft, 2026-10-21 KST)
 
 > **문서 지위: 사전등록 초안(draft prereg). 결정도 승인도 아니다.** 계약 초안
+> **[2026-10-22 개정 주]** 트랙이 열렸다(V14-D0 A2 영수증 `v14-approval:V14-D0:2026-10-22:r1`). 계약 파일은
+> `data/contracts/multivariate_timeseries_v14_conditional.yaml` 로 개명됐고(`.draft` 제거), 아래 본문은 초안 시점(2026-10-21) 기록이다.
+>
 > `data/contracts/multivariate_timeseries_v14_conditional.draft.yaml` 을 서술로 푼 것이며, 계약과 이 문서가
 > 어긋나면 계약이 정본이다. 개시는 사용자 결정(V14-D0)이고 **계약 자체가 승인이 아니다**.
 >

@@ -49,7 +49,16 @@ DASHBOARD_SCRIPT = DASHBOARD_PARTS / "dashboard.js"
 # snapshot was dropping the very content it exists to show.  1.5 MiB carries
 # one body per active question (992 KB at 29 questions) with 37% headroom, and
 # still holds at 50 active questions.
-DASHBOARD_RAW_BUDGET_BYTES = 1536 * 1024
+#
+# ADR-004, resolved 2026-10-22 (docs/DECISIONS.md): raised 1536 KiB -> 2048 KiB.
+# 실측 2026-10-21: origin/main 임베드가 상한의 99.5%(여유 8.4 KB)였고 표시 항목 추가
+# 10.5 KB 로 2.2 KB 초과했다. 렌더 필드 투영(EMBED_RENDERED_FIELDS 등)으로 화면이
+# 읽지 않는 전송 필드를 먼저 걷어내 1,559,564 B 까지 내렸으나(99.2%), 남은 성장분은
+# 등록 원장·영수증·트랙 수에 비례해 단조 증가하는 **내용**이다. 자기완결 임베드에서
+# 내용을 더 걷어내는 것은 삭제이므로(ADR-002 와 같은 논거) 가드를 올린다. 다음 상향은
+# 새 ADR 이 필요하며, 그 전에 투영(렌더되지 않는 필드 제거)이 소진됐음을 먼저 보여야 한다.
+# 계약 선언(data/contracts/dashboard_payload.yaml budgets.embed_html_max_bytes)과 같은 값.
+DASHBOARD_RAW_BUDGET_BYTES = 2048 * 1024
 FUTURE_PATHS_BUDGET_BYTES = 240_000
 FUTURE_PATHS_FILENAME = "future_paths.json"
 # Daily representative paths are a separate lazy route so the unchanged future

@@ -77,3 +77,28 @@ prohibitions:
 negative_control: 없음 — 판정이 없으므로 대조군도 없다. 표본 30 도달 뒤 쌍대 비교를 원하면 새 계약(결과 전 커밋)으로 등록한다.
 multiplicity: 해당 없음 (판정 없음)
 stopping: 없음 — 계속 축적. 계약 변경은 새 technique_id 로.
+
+# ── ML-A6 평가 범위 — 2026-10-22 (영수증 data/ml_reference/ledgers/approvals.jsonl ml-approval:ML-A6:2026-10-22:r1) ──
+evaluation_scope:
+  tsfm_scoring_window: live_forward_only
+  design_window_scoring: forbidden        # prohibitions 2항과 같은 방향을 TSFM 에 명시 — 과거 run 재실행·설계창 채점 없음
+  holdout_sealed_scoring: forbidden
+  rationale: >
+    사전학습 TSFM(Chronos 계열)의 학습 코퍼스는 공개 시계열이며 설계창·홀드아웃 구간을 포함할 수 있다. 과거 창 채점은
+    오염 여부를 판별할 수 없으므로 측정값이 실력인지 암기인지 구분이 안 된다. 라이브 전진(run_ts >= 등록일)만이 무오염 표본이다.
+  approval_receipt: ml-approval:ML-A6:2026-10-22:r1
+
+# ── U9 실행 환경 — 2026-10-22 (영수증 ml-approval:U9:2026-10-22:r1) ──
+runtime:
+  environment: local_desktop_scheduled_task       # DECISIONS 2026-09-11 'weekly-forecast-3' 와 같은 형태
+  task_id: weekly-ml-reference
+  cadence: 토 11:00 KST — weekly-forecast-3(11:30) 전. 갓 갱신된 참조 확률·ml_auto.md 로 회차가 돈다
+  commands:
+    - python -m ai_fc ml                              # 추론 전용 → data/ml_history append + data/base_rates/ml_auto.md
+    - python -m ai_fc ml-reference-resolve            # 성숙 run 만 채점 → data/ml_reference/ledgers/reference_scores.jsonl
+    - python -m ai_fc scenario-v5-2-build --force     # data/ml_history 는 V5.2 PROTECTED_PATHS — investing-refresh 와 같은 재구축
+    - python -m ai_fc scenario-v5-2-verify --replay
+  why_not_ci: HF 캐시 ~820MB·45분 timeout 을 매주 CI 에 싣지 않는다. 로컬에 torch·chronos·3모델 캐시가 이미 있어 의존성 설치 0 이다
+  weakness: 머신이 켜져 있어야 한다 — 놓친 주는 다음 실행에서 run 이 생긴다. 소급 run 은 만들지 않는다(라이브 전진만, ML-A6)
+  first_local_run: '2026-10-22'                     # run_ts 는 data/ml_history/2026.jsonl 의 kind=ml 행
+  approval_receipt: ml-approval:U9:2026-10-22:r1
