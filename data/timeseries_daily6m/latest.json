@@ -1,72 +1,11 @@
 {
-  "anchor_date": "2026-10-14",
-  "as_of": "2026-10-15T03:19:02.582313+00:00",
-  "combined_with_existing_models": false,
-  "content_hash": "218c4f1d6eaaf4148ec8aae7cdc8d7e38d096a092abb25393f0d9a82897ca5ba",
-  "evidence": {
-    "origin_age_sessions": 3,
-    "predictive_validation": "not_established",
-    "research_only": true,
-    "source_freshness": [
-      {
-        "available_at": "2026-10-16T03:59:59+00:00",
-        "group": "NASDAQCOM",
-        "limit_hours": 48,
-        "observation_time": "2026-10-15",
-        "series_id": "NASDAQCOM",
-        "status": "stale"
-      },
-      {
-        "available_at": "2026-10-17T03:59:59+00:00",
-        "group": "VIX",
-        "limit_hours": 48,
-        "observation_time": "2026-10-16",
-        "series_id": "VIXCLS",
-        "status": "stale"
-      },
-      {
-        "available_at": "2026-10-19T23:14:39.577316+00:00",
-        "group": "DGS2",
-        "limit_hours": 48,
-        "observation_time": "2026-10-19",
-        "series_id": "DGS2",
-        "status": "fresh"
-      },
-      {
-        "available_at": "2026-10-17T03:59:59+00:00",
-        "group": "curve",
-        "limit_hours": 48,
-        "observation_time": "2026-10-16",
-        "series_id": "T10Y2Y",
-        "status": "stale"
-      },
-      {
-        "available_at": "2026-10-14T03:59:59+00:00",
-        "group": "dollar",
-        "limit_hours": 216,
-        "observation_time": "2026-10-09",
-        "series_id": "DTWEXBGS",
-        "status": "stale"
-      }
-    ],
-    "strict_historical_pit": "not_established"
-  },
-  "footnote": "연구 미리보기 · 일별 예측 확률의 예측력은 아직 검증되지 않았습니다 · 참고 의견이며 매매 신호가 아닙니다.",
-  "gate": {
-    "pass": false,
-    "reasons": [
-      "required source NASDAQCOM stale",
-      "required source VIX stale",
-      "required source curve stale",
-      "required source dollar stale"
-    ]
-  },
+  "as_of": "2026-10-24T05:14:46.516007+00:00",
+  "content_hash": "c705aafa215cfc683c2e42a703410467fd69ef41aa16fc753ec3acd87a90376d",
   "model_id": "research.nasdaq_daily6m_varx_v1",
-  "model_version": 1,
-  "numbers_visible": false,
-  "probability_space": "research_timeseries_daily6m_conditional",
-  "probability_unit": "fraction",
-  "run_id": "daily6m-0625a1726d4a8bfef038a585",
+  "numbers_visible": true,
+  "run_content_hash": "b8aadf0ae40f2d3f993c5c4e907b6bdad87fd3e1e6c840b03b6ab7ce61477bfa",
+  "run_id": "daily6m-0075abc8719839273ed1fcf6",
+  "run_path": "data/timeseries_daily6m/runs/daily6m-0075abc8719839273ed1fcf6.json",
   "schema_version": 1,
-  "status": "hold"
+  "status": "research_preview"
 }

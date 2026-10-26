@@ -33,7 +33,9 @@ concurrency:
   # A skipped completion must not cancel a valid main deployment before its
   # job-level guard is evaluated. Eligible runs still share the normal group.
   group: ${{ github.event_name == 'workflow_run' && (github.event.workflow_run.conclusion != 'success' || github.event.workflow_run.head_branch != 'main') && format('pages-skipped-{0}', github.run_id) || 'pages' }}
-  cancel-in-progress: true
+  # Finish the active replay/build/deploy; newer refreshes replace only the
+  # pending request so frequent data updates cannot starve publication.
+  cancel-in-progress: false
 
 jobs:
   build:

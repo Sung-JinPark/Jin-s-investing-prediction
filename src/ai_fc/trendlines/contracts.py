@@ -6,6 +6,7 @@ import hashlib
 import json
 import math
 import re
+from copy import deepcopy
 from datetime import date, datetime, timedelta, timezone
 from functools import lru_cache
 from pathlib import Path
@@ -17,7 +18,7 @@ import yaml
 CONTRACT_RELATIVE = Path("data/contracts/trendlines_v1.yaml")
 ASSET_REGISTRY_RELATIVE = Path("data/trendlines/asset_registry.yaml")
 SOURCE_POLICY_RELATIVE = Path("data/trendlines/source_policy.yaml")
-ASSET_IDS = ("sk-hynix", "soxx", "nasdaq", "sp500", "bitcoin", "dow", "mag7")
+ASSET_IDS = ("sk-hynix", "soxx", "nasdaq", "sp500", "bitcoin", "dow", "kospi", "samsung", "nvidia", "micron", "mag7")
 ENGINE_VERSION = "trendlines-v1.0"
 SHA256 = re.compile(r"[0-9a-f]{64}\Z")
 RESEARCH_SOURCE_ID = "yahoo_public_history_html"
@@ -30,6 +31,10 @@ RESEARCH_IDENTITIES = {
     "sp500": ("^GSPC", "SP500_PRICE_INDEX", "USD", "index_points", "XNYS", "America/New_York", "index", "exchange_close"),
     "bitcoin": ("BTC-USD", "BTC_USD_SPOT_SOURCE_MUST_BE_DECLARED", "USD", "USD_per_BTC", "24/7", "UTC", "crypto", "UTC_00_00_next_day"),
     "dow": ("^DJI", "DOW_JONES_INDUSTRIAL_AVERAGE_PRICE_INDEX", "USD", "index_points", "XNYS", "America/New_York", "index", "exchange_close"),
+    "kospi": ("^KS11", "KRX_KOSPI_PRICE_INDEX", "KRW", "index_points", "XKRX", "Asia/Seoul", "index", "exchange_close"),
+    "samsung": ("005930.KS", "KRX:005930", "KRW", "KRW_per_share", "XKRX", "Asia/Seoul", "equity", "exchange_close"),
+    "nvidia": ("NVDA", "NASDAQ:NVDA", "USD", "USD_per_share", "XNAS", "America/New_York", "equity", "exchange_close"),
+    "micron": ("MU", "NASDAQ:MU", "USD", "USD_per_share", "XNAS", "America/New_York", "equity", "exchange_close"),
 }
 
 
@@ -52,9 +57,16 @@ def aware_time(value: str | datetime) -> datetime:
     return result.astimezone(timezone.utc)
 
 
+@lru_cache(maxsize=32)
+def _parse_yaml(text: str) -> Any:
+    return yaml.safe_load(text)
+
+
 def _yaml(root: Path, relative: Path) -> dict[str, Any]:
+    # The file is reread on every call; only the parse of identical text is
+    # shared, and callers receive their own copy.
     try:
-        value = yaml.safe_load((root / relative).read_text(encoding="utf-8"))
+        value = deepcopy(_parse_yaml((root / relative).read_text(encoding="utf-8")))
     except (OSError, yaml.YAMLError) as exc:
         raise TrendlinesError(f"cannot read {relative.as_posix()}") from exc
     if not isinstance(value, dict) or value.get("schema_version") != 1:
@@ -72,7 +84,7 @@ def load_asset_registry(root: Path) -> dict[str, dict[str, Any]]:
     value = _yaml(root, ASSET_REGISTRY_RELATIVE)
     assets = value.get("assets")
     if not isinstance(assets, dict) or tuple(assets) != ASSET_IDS:
-        raise TrendlinesError("registry must declare the seven exact instruments in canonical order")
+        raise TrendlinesError("registry must declare the exact instruments in canonical order")
     for asset_id, asset in assets.items():
         if not isinstance(asset, dict) or asset.get("asset_id") != asset_id:
             raise TrendlinesError("asset registry identity mismatch")
@@ -230,6 +242,36 @@ def session_schedule(calendar_id: str, start: str, end: str) -> tuple[tuple[str,
                  for day, row in schedule.iterrows())
 
 
+@lru_cache(maxsize=16)
+def _default_session_index(calendar_id: str):
+    try:
+        import exchange_calendars as xcals
+        calendar = xcals.get_calendar(calendar_id)
+        first, last = str(calendar.first_session.date()), str(calendar.last_session.date())
+    except (ImportError, KeyError, ValueError, TypeError) as exc:
+        raise TrendlinesError(f"calendar unavailable: {calendar_id}") from exc
+    return calendar, first, last, {row[0]: row for row in session_schedule(calendar_id, first, last)}
+
+
+def _session_on(calendar_id: str, day: str) -> tuple[tuple[str, datetime, datetime], ...]:
+    """Exactly ``session_schedule(calendar_id, day, day)``, indexed per calendar.
+
+    A per-bar range query misses the small range cache on every distinct day.
+    Days inside the same default calendar are read from its one schedule; any
+    other day or calendar instance takes the original query.
+    """
+    calendar, first, last, sessions = _default_session_index(calendar_id)
+    try:
+        import exchange_calendars as xcals
+        current = xcals.get_calendar(calendar_id)
+    except (ImportError, KeyError, ValueError, TypeError) as exc:
+        raise TrendlinesError(f"calendar unavailable: {calendar_id}") from exc
+    if current is not calendar or not first <= day <= last:
+        return session_schedule(calendar_id, day, day)
+    row = sessions.get(day)
+    return () if row is None else (row,)
+
+
 def latest_completed_session(asset: dict[str, Any], as_of: str | datetime, *, buffer_minutes: int = 15,
                              source_policy: dict[str, Any] | None = None) -> str | None:
     current = aware_time(as_of)
@@ -280,7 +322,7 @@ def validate_bar(bar: dict[str, Any], asset: dict[str, Any], as_of: str | dateti
         revision > 1 and (not isinstance(prior, str) or not prior)):
         raise TrendlinesError("invalid supersedes_bar_id")
     available, fetched, finalized = (aware_time(bar[field]) for field in ("available_at", "fetched_at", "finalized_at"))
-    schedule = session_schedule(asset["calendar_id"], day.isoformat(), day.isoformat())
+    schedule = _session_on(asset["calendar_id"], day.isoformat())
     if len(schedule) != 1 or schedule[0][0] != day.isoformat():
         raise TrendlinesError("nontrading session bar")
     if (finalized < schedule[0][2] or available < finalized or fetched < available

@@ -34,7 +34,7 @@ on:
 
 permissions:
   contents: write
-  actions: read
+  actions: write
 
 concurrency:
   group: timeseries-v2-refresh-${{ github.event.pull_request.number || github.ref }}
@@ -67,7 +67,9 @@ jobs:
       - name: Append official reconstructed market archives
         run: python -m ai_fc timeseries-v2-refresh
       - name: Checkpoint raw receipts and append-only observations before models
+        id: checkpoint
         run: |
+          echo "committed=false" >> "$GITHUB_OUTPUT"
           python -m ai_fc inventory
           git add data/timeseries data/timeseries_v2 docs/generated/inventory.generated.md
           unexpected="$(git diff --cached --name-only | grep -Ev '^(data/timeseries/.*|data/timeseries_v2/.*|docs/generated/inventory.generated.md)$' || true)"
@@ -81,6 +83,21 @@ jobs:
             git commit -m "data: append V2 PIT and market archive observations"
             git pull --rebase origin main
             git push
+            echo "committed=true" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Refresh displays after verified source checkpoint independently of model work
+        if: ${{ github.ref == 'refs/heads/main' && github.event_name != 'pull_request' && steps.checkpoint.outputs.committed == 'true' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          dispatch_failed=false
+          for workflow in timeseries-v13-vol-live.yml timeseries-v8-daily.yml; do
+            gh workflow run "$workflow" --repo "$GITHUB_REPOSITORY" --ref main || dispatch_failed=true
+          done
+          gh workflow run timeseries-v8-shadow.yml --repo "$GITHUB_REPOSITORY" --ref main -f resolve_only=true || dispatch_failed=true
+          if [ "$dispatch_failed" = "true" ]; then
+            echo "A source consumer dispatch failed; every consumer was attempted."
+            exit 1
           fi
       - name: Prepare origin-specific DFM caches before verification
         # Daily macro appends can register a new evaluation cutoff at any

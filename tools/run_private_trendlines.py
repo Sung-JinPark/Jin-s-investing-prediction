@@ -38,6 +38,9 @@ def run(options) -> None:
             raise
         logger.info("Private refresh %s", json.dumps({key: report.get(key) for key in
                     ("asset_id", "changed", "snapshot_id", "observation_through", "bars")}, ensure_ascii=False))
+        # Either count reaching max_entries means later captures are checked cold.
+        logger.info("Private replay cache %s", json.dumps({"proofs": replay_cache.entry_count,
+                    "evidence": replay_cache.evidence_count, "max_entries": replay_cache.max_entries}))
         if report.get("full_history", {}).get("status") == "unavailable":
             logger.warning("Full-series refresh unavailable for %s: %s", asset_id,
                            report["full_history"].get("error", "full_refresh_failed"))

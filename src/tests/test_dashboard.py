@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import inspect
+import hashlib
 import json
 import re
 import shutil
@@ -177,15 +178,56 @@ def test_embed_compaction_archives_band_calibration_rows_without_mutating_pages_
     assert "rows" not in archived
     assert archived["observations"] == 2
     assert archived["gate_pass"] is False
-    assert archived["rows_archived"] == {
+    metadata = archived["rows_archived"]
+    assert {key: metadata[key] for key in (
+        "archived", "row_count", "reason", "source_path", "full_payload", "url",
+    )} == {
         "archived": True,
         "row_count": 2,
         "reason": "embed_size_budget",
         "source_path": "data/scenarios/band_calibration.csv",
-        "full_payload": "data.json",
+        "full_payload": "band_calibration.json",
+        "url": "band_calibration.json",
     }
     # Pages/data.json 경로가 쓰는 원본 모델은 무수정.
     assert len(model["band_calibration"]["rows"]) == 2
+
+
+def test_embed_projects_nested_trust_lists_receipts_and_unrendered_method_rows() -> None:
+    """2026-10-21 임베드 예산 소진 대응 — 화면이 읽지 않는 열·행만 전송에서 뺀다(정보 무변경, data.json 은 전부 보존)."""
+    model = {
+        "trust": {
+            "status": "ok",
+            "ledgers": [{"id": "l1", "path": "data/x.jsonl", "kind": "jsonl", "cadence": "daily", "status": "ok",
+                         "file_count": 1, "row_count": 3, "latest_date": "2026-10-20", "missing_trading_days": 0,
+                         "growth_last_30d": 3, "criticality": "high", "immutable_changes": 0, "schema_errors": 0,
+                         "duplicate_rows": 0, "reversed_timestamps": 0}],
+            "sources": [{"source_id": "s", "name": "n", "status": "ok", "asof": "2026-10-20", "fallback_used": False,
+                         "quarantine_count": 0}],
+        },
+        "receipts": [{"receipt_id": "r", "label": "L", "model": "m", "dataset": "d", "source": "s", "method": "x",
+                      "limitation": "lim", "commit": "abc", "lineage": {"a": 1}, "requests": [{"url": "u"}]}],
+        "method_changes": [
+            {"kind": "method", "date": "2026-10-21", "title": "t", "reason": "r", "snapshot_id": "s", "report": ""},
+            {"kind": "correction", "date": "2026-10-21", "title": "c", "reason": "r", "snapshot_id": "s", "report": ""},
+        ],
+    }
+    projected = dashboard._project_embed_rows(model)
+    assert set(projected["trust"]["ledgers"][0]) == {
+        "id", "path", "kind", "cadence", "status", "file_count", "row_count", "latest_date",
+        "missing_trading_days", "growth_last_30d"}
+    assert "fallback_used" not in projected["trust"]["sources"][0]
+    assert projected["trust"]["status"] == "ok"
+    assert set(projected["receipts"][0]) == {"label", "model", "dataset", "source", "method", "limitation", "commit"}
+    assert [row["kind"] for row in projected["method_changes"]] == ["method"]
+    sections = projected["embed_field_projection"]["sections"]
+    assert sections["trust.ledgers"]["dropped_fields"] == [
+        "criticality", "duplicate_rows", "immutable_changes", "reversed_timestamps", "schema_errors"]
+    assert sections["receipts"]["dropped_fields"] == ["lineage", "receipt_id", "requests"]
+    assert sections["method_changes"]["dropped_rows"] == 1 and sections["method_changes"]["row_count"] == 1
+    # 원본 모델은 무수정 — Pages data.json 경로가 쓴다.
+    assert model["receipts"][0]["requests"] and model["trust"]["ledgers"][0]["criticality"] == "high"
+    assert len(model["method_changes"]) == 2
 
 
 def test_embed_projects_append_only_sections_to_rendered_fields() -> None:
@@ -363,7 +405,7 @@ def test_ui_contract() -> None:
     html = dashboard.load_template()
     assert "<h1" in html, "대형 H1 없음"
     # U1a의 4개 핵심 목적지. 보조 화면은 문맥 탭/빠른 이동에서 제공한다.
-    for v in ("today", "future", "timeseries", "records"):
+    for v in ("today", "future", "statistics", "records"):
         assert f'href="#{v}"' in html, f"nav 실제 링크 누락: {v}"
     assert 'aria-current' in html, "aria-current 처리 없음"
     assert "prefers-reduced-motion" in html
@@ -397,7 +439,7 @@ def test_ui_contract() -> None:
     assert "--display:'Wanted Sans Variable','Wanted Sans'" in html
     assert "--sans:'Wanted Sans Variable','Wanted Sans'" in html
     assert "font-variant-numeric:tabular-nums" in html
-    assert "font-size:clamp(31px,2.55vw,36px)" in html
+    assert "#app .page-header h1{" in html and "font-size:32px" in html
     assert "letter-spacing:-.055em" in html
     assert 'class="command-layer"' in html and 'role="dialog"' in html
     assert 'aria-modal="true"' in html and "setCommand" in html
@@ -413,7 +455,7 @@ def test_ui_contract() -> None:
     assert "function drawCrossAssetHistory" in html
     assert "function drawCrossAsset(host" not in html
     assert "조건 4개" in html
-    assert "모두 2001-03~2006-03 실측" in html
+    assert "모두 2001-03~2006-03 실측" not in html
     assert "config.valueMode==='return_from_100'?signedDelta(value-100,0,'%')" in html
     assert "rates_stay_high_support" in html
     # 핵심 확률 대형 타이포 (72px+ clamp)
@@ -432,7 +474,7 @@ def test_ui_contract() -> None:
     assert '<span>R${q.n_rounds}</span>' not in html
 
 
-def test_u1a_five_section_information_architecture_contract() -> None:
+def test_five_section_information_architecture_contract() -> None:
     html = dashboard.load_template()
     shell = dashboard.TEMPLATE.read_text(encoding="utf-8")
     script = dashboard.DASHBOARD_SCRIPT.read_text(encoding="utf-8")
@@ -441,8 +483,7 @@ def test_u1a_five_section_information_architecture_contract() -> None:
     for route, label in (
         ("today", "오늘"),
         ("future", "미래 탐색"),
-        ("statistics", "통계 비교"),
-        ("timeseries", "시계열 예측"),
+        ("statistics", "통계"),
         ("records", "기록"),
     ):
         assert html.count(f'href="#{route}"') >= 3
@@ -450,13 +491,15 @@ def test_u1a_five_section_information_architecture_contract() -> None:
     rail_order = [
         'href="#today" data-v="today"',
         'href="#future" data-v="future"',
+        'href="#trendlines/sk-hynix" data-v="trendlines"',
         'href="#statistics" data-v="statistics"',
-        'href="#timeseries" data-v="timeseries"',
         'href="#records" data-v="records"',
     ]
     assert [shell.index(item) for item in rail_order] == sorted(shell.index(item) for item in rail_order)
-    assert '<span class="rail-num">04</span><span class="rail-label">시계열 예측</span>' in shell
+    assert 'data-v="timeseries"' not in shell
     assert '<span class="rail-num">05</span><span class="rail-label">기록</span>' in shell
+    assert shell.count('data-v="trendlines"') == 3
+    assert '<span class="rail-num">03</span><span class="rail-label">상·하방 추세선</span>' in shell
     # 데이터와 신뢰는 기록의 '데이터' 탭으로 합쳐졌다 — 독립 대분류 링크가 남으면 안 된다
     assert 'href="#trust"' not in shell
     assert "데이터와 신뢰" not in html and "기록과 검증" not in html
@@ -494,7 +537,7 @@ def test_u1a_five_section_information_architecture_contract() -> None:
     assert "numbers_visible===true" in script
     assert "기존 미래전망으로 자동 전환하지 않습니다" in script
     assert ".timeseries-horizons{display:grid;grid-template-columns:repeat(4" in css
-    assert "grid-template-columns:repeat(6" in css
+    assert "grid-template-columns:repeat(5,1fr)" in css
 
 
 def test_u1a_route_and_home_render_evidence() -> None:
@@ -574,8 +617,8 @@ def test_u1c_split_surfaces_event_summary_and_glossary_contract() -> None:
         "path_realism", "hazard", "regime", "coverage", "blocked", "vintage", "PIT", "reconstructed",
     ):
         assert f"{term}:" in script or f"'{term}':" in script
-    assert "plainTerm('scenario_conditional')" in script
-    assert "plainTerm('reference_only')" in script
+    assert "predictionSectionNav('graph')" in script
+    assert "renderStatisticsStudy(initialState" in script
 
 
 def test_workspace_utility_contract() -> None:
@@ -694,9 +737,9 @@ def test_workspace_utility_contract() -> None:
     assert "overlay.addEventListener('pointermove'" in html
     assert "event.key==='ArrowLeft'" in html
     assert "peek-title" not in html and "peek-metric" not in html
-    assert 'role="tablist" aria-label="시장 지도 분석 공간"' in html
+    assert 'class="section-tabs" aria-label="미래 탐색 분류"' in html
     assert "REFERENCE ONLY · 확률 아님" not in html
-    assert "유사 구간 이후 흐름" in html
+    assert "analog-case-list" not in html
     assert "forward n&lt;20" not in html and "median emphasis disabled" not in html
     assert "DB-CONDITIONED PATH · MONTHLY RISK WINDOW" in html
     assert "상승·회복 사이의 조정을 역사 DB로 복원했습니다" in html
@@ -710,9 +753,9 @@ def test_workspace_utility_contract() -> None:
     assert "overlay_start ${esc(dotcomAnchor.overlay_start)}" not in html
     assert "model_anchor ${esc(dotcomAnchor.model_anchor)}" not in html
     assert "DATA.era_analog" in html
-    assert "drawOverlay(analogHost,overlay._overlay" in html
+    assert "drawOverlay(host,panel._overlay,panel._eras" in html
     assert "data-flow-focus=\"ANALOG\"" in html
-    assert "DATA.cross_asset" in html and "data-lab-tab=\"cross-asset\"" in html
+    assert "DATA.cross_asset" in html and "hash:'#statistics/cross-asset'" in html
     assert "교차자산 비교" in html
     assert "NASDAQ·리츠·주택주" in html
     assert "닷컴 조정 뒤 5년 · NASDAQ · Bitcoin" not in html
@@ -740,7 +783,7 @@ def test_workspace_utility_contract() -> None:
     assert "resolveEndpointLabels" in html
     assert "aria-live','polite" in html and "function bindCrossAsset(panel)" in html
     assert "model.history.period" in html and "label.endsWith('-06')" in html
-    assert 'data-lab-tab="ai-regime"' not in html and 'data-lab-tab="liquidity"' in html
+    assert 'data-lab-tab="ai-regime"' not in html and "hash:'#statistics/market-liquidity'" in html
     assert "aiRegime.id='lab-ai-regime'" in html and 'href="#future/ai-regime">상태 상세' in html
     assert "Scenario Tracker" in html and "가중 합산 없음" in html
     assert "이 체크리스트는 사전 등록된 방향 규칙이며 확률이 아닙니다" in html
@@ -795,8 +838,8 @@ def test_future_default_uses_three_scenarios_without_legacy_fallback() -> None:
     assert "renderScenarioV52(candidate52,initialState);" in html
     # champion·조회 경로도 future_paths.json을 받는다(계약 fetch_failure의 champion_route 배너가 도달
     # 가능해야 한다) — 연구 후보 렌더 여부만 modelView/lookup으로 분기한다(검수 2차).
-    assert "const futurePathsRequested=v==='flow';" in html
-    assert "const researchPathsRequested=futurePathsRequested&&arg?.futureGraph!=='original'&&arg?.modelView!=='champion'" in html
+    assert "const futurePathsRequested=v==='flow'||statisticsStudyRequested;" in html
+    assert "const researchPathsRequested=v==='flow'&&arg?.futureGraph!=='original'&&arg?.modelView!=='champion'" in html
     assert "const candidate52Requested=initialState.modelView!=='champion'" in html
     # 소유자 승인 B안 (DECISIONS.md 2026-09-02): eligible 외에 stale_last_valid
     # (게이트 닫힘 + 봉인 산출물 온전)도 같은 V5.2 차트를 명시 공시와 함께 렌더.
@@ -814,7 +857,7 @@ def test_future_default_uses_three_scenarios_without_legacy_fallback() -> None:
     assert "let sc=officialScenario,shadowActive=false" in html
     assert "shadowActive?shadowScenario:officialScenario" in html
     assert "let sc=scenarioV5FlowModel(officialScenario,v5)" not in html
-    assert "root.appendChild(labTabs)" in html and "mount(root);" in html
+    assert "root.append(predictionSectionNav('graph'),outlook);mount(root);" in html
     assert "return renderScenarioV52(candidate52)" not in html
 
 
@@ -836,7 +879,7 @@ def test_future_graph_subcategory_restores_original_single_scenario_chart() -> N
         assert required in html, required
     assert "if(parts[1]==='original')return {section:'future',view:'flow',arg:{futureGraph:'original'}}" in html
     assert "const futureGraphHash=()=>graphKey==='original'?'#future/original':'#future'" in html
-    assert "button.dataset.labTab==='future'?futureGraphHash():" in html
+    assert "if(sync)syncMidHash(futureGraphHash());" in html
     assert "paintFutureGraph(initialState.futureGraph==='original'?'original':'unified',false)" in html
     assert "단일 시나리오 · 챔피언 GBM · 참고 의견" in html
     # 2026-09-16: 긴 설명 문단·오차율 박스·도착점 박스는 소유자 지시로 제거됐다 —
@@ -1023,11 +1066,12 @@ def test_single_scenario_chart_draws_only_the_upside_path() -> None:
 
 
 def test_mid_navigation_strips_are_compact() -> None:
-    """중분류 탭이 통계 필터와 같은 조밀한 한 줄이어야 한다."""
+    """주메뉴 탭은 같은 간격과 선택 상태를 쓰고 하위 차트 조절기는 유지한다."""
     css = dashboard.DASHBOARD_STYLES.read_text(encoding="utf-8")
-    assert ".lab-tabs{margin:16px 0 12px;display:flex;flex-wrap:wrap" in css
-    assert ".lab-tabs button{min-width:112px;min-height:44px" in css
-    assert ".lab-tabs button>small{display:none}" in css, "부제는 한 줄에 들어가지 않는다"
+    assert "#app .page-tabs{display:flex;flex-wrap:wrap;gap:6px" in css
+    assert "#app .page-tabs>:is(a,button){" in css and "min-height:44px" in css
+    assert "[aria-current=\"page\"],[aria-selected=\"true\"]" in css
+    assert "box-shadow:inset 0 -2px var(--orange)" in css
     assert "grid-template-columns:repeat(3,minmax(0,1fr));gap:1px;border:1px solid var(--line-strong)" not in css
     # 기준 요약 스트립도 축소
     assert ".scenario-v52-overview>div{padding:9px 13px" in css
@@ -1044,7 +1088,7 @@ def test_mid_category_registry_drives_rail_hierarchy() -> None:
     assert "const SECTION_TITLES={today:'오늘',future:'미래 탐색'" in html
     assert "function midCategories(section,forRail)" in html
     # 통계의 "전체"는 본문 필터 줄에만 남기고 레일에서는 뺀다
-    assert "railHidden:true" in html
+    assert "statisticsSectionNav('dotcom')" in html
     assert "midCategories(navView,true)" in html
     assert "function currentMidCategory(section,rawHash)" in html
 
@@ -1061,9 +1105,9 @@ def test_mid_category_registry_drives_rail_hierarchy() -> None:
     assert "function syncMidHash(hash)" in html
     assert "paintRailSubNav(document.body.dataset.view||'today',hash);" in html
     for wired in (
-        "if(sync)syncMidHash(active==='all'?'#statistics':'#statistics/'+active);",
+        "if(sync)syncMidHash(active==='all'?'#statistics':'#statistics/dotcom/'+active);",
         "if(sync)syncMidHash(futureGraphHash());",
-        "if(sync)syncMidHash(next==='summary'?'#timeseries':'#timeseries/'+next);",
+        "if(sync)syncMidHash(next==='summary'?'#future/timeseries':'#future/timeseries/'+next);",
     ):
         assert wired in html, wired
 
@@ -1083,26 +1127,11 @@ def _mid_category_keys(html: str, section: str) -> list[tuple[str, bool]]:
     ]
 
 
-def test_statistics_rail_numbers_run_from_01_to_06() -> None:
-    """통계 비교 중분류가 01 IPO·상장에서 06 신용까지 이어져야 한다.
-
-    레일에서 빠지는 '전체'(railHidden)가 01을 먹어 02~07로 밀려 있었다.
-    """
-    html = dashboard.load_template()
-    rows = _mid_category_keys(html, "statistics")
-
-    assert [key for key, _ in rows] == [
-        "all", "ipo", "liquidity", "rates", "economy", "valuation", "credit",
-    ]
-    rail = [key for key, hidden in rows if not hidden]
-    numbers = [f"{index:02d}" for index in range(1, len(rail) + 1)]
-
-    assert list(zip(rail, numbers)) == [
-        ("ipo", "01"), ("liquidity", "02"), ("rates", "03"),
-        ("economy", "04"), ("valuation", "05"), ("credit", "06"),
-    ]
-    assert numbers[0] == "01" and numbers[-1] == "06"
-    assert "07" not in numbers, "07이 남으면 걸러질 항목이 아직 번호를 먹고 있다"
+def test_statistics_rail_has_five_research_categories_in_requested_order() -> None:
+    rows = _mid_category_keys(dashboard.load_template(), "statistics")
+    assert rows == [(key, False) for key in (
+        "dotcom", "history", "market-liquidity", "cross-asset", "fear-greed")]
+    assert [f"{i:02d}" for i, _ in enumerate(rows, 1)] == ["01", "02", "03", "04", "05"]
 
 
 def test_mid_category_numbers_are_derived_after_filtering_not_hardcoded() -> None:
@@ -1119,7 +1148,7 @@ def test_mid_category_numbers_are_derived_after_filtering_not_hardcoded() -> Non
     assert not re.search(r"code:'\d\d'", registry), "중분류 번호는 리터럴로 두지 않는다"
     # 번호는 표시용일 뿐 — 필터 키와 라우트는 그대로다
     for key in ("ipo", "liquidity", "rates", "economy", "valuation", "credit"):
-        assert f"hash:'#statistics/{key}'" in html
+        assert "hash:'#statistics/dotcom/'+key" in html
 
 
 def test_original_daily_chart_selects_member_and_preserves_labelled_baseline() -> None:
@@ -1156,16 +1185,16 @@ def test_three_tier_information_architecture_midlevel_navigation() -> None:
     # 서브패스를 허용하는 대분류: future / statistics / timeseries / records
     assert "statistics(?:\\/|$)|timeseries(?:\\/|$)|records(?:\\/|$))/" in script
     # 대분류는 5개 — 데이터와 신뢰는 기록의 데이터 탭으로 합쳐졌다
-    for kept in ("#today", "#future", "#statistics", "#timeseries", "#records"):
+    for kept in ("#today", "#future", "#statistics", "#records"):
         assert f'href="{kept}"' in html, kept
 
     # 02 미래 탐색: 중분류 4개 유지 + 전망 그래프의 소분류 2개
-    for lab in ("future", "history", "cross-asset", "liquidity"):
-        assert f'data-lab-tab="{lab}"' in html, lab
+    assert _mid_category_keys(html,"future") == [("graph",False),("timeseries",False)]
+    assert "predictionSectionNav('graph')" in html
     assert 'data-future-graph="original"' in html
 
     # 03 통계 비교: 카테고리 중분류 딥링크
-    assert "if(parts[0]==='statistics')return {section:'statistics',view:'statistics',arg:{category:parts[1]||null}}" in html
+    assert "category:parts[1]==='dotcom'?parts[2]||null:parts[1]||null" in html
     assert "const requestedCategory=typeof initialState==='string'?initialState:initialState?.category" in html
     assert "applyStatCategory(requestedCategory||'all',false)" in html
     # 카테고리 딥링크는 필터 목록 리터럴에 id가 있어야 라우팅된다 — 예전 단언은 `or True`로
@@ -1189,9 +1218,9 @@ def test_three_tier_information_architecture_midlevel_navigation() -> None:
     assert "data-trust-tab" not in html and "trustTabs" not in html
 
     # 04 시계열 예측도 중분류를 갖는다. 게이트 통과 전에는 탭을 노출하되 비활성으로 둔다.
-    assert "const TS_TABS=[['summary','전망 요약','01']" in html
+    assert "const TS_TABS=[['summary','전망 요약']" in html
     assert "const enabled=visible?TS_TABS.map(([key])=>key):['summary']" in html
-    assert "if(parts[0]==='timeseries')return {section:'timeseries',view:'timeseries',arg:{tsTab:parts[1]||null}}" in html
+    assert "if(parts[0]==='timeseries')return {section:'future',view:'timeseries',arg:{tsTab:parts[1]||null}}" in html
     assert "numbers_visible===true" in html
 
 
@@ -1248,9 +1277,9 @@ def test_v5_2_future_view_uses_one_log_scale_and_restores_research_panels() -> N
         "분석 방법과 세부 통계",
         "모두 보정되지 않은 모의 경로 비율입니다",
         "닷컴 조정 뒤 5년 · NASDAQ · Realty Income · D.R. Horton",
-        "유동성이 늘고 줄어든 구간",
-        "bindCrossAsset(crossAsset)",
-        "bindLiquidity(liquidity)",
+        "시장 자금 흐름",
+        "bindCrossAsset(panel,initialState.scenario)",
+        "bindLiquidity(panel)",
     ):
         assert required in html
     assert "scenarioCustomerViewNav" not in html
@@ -1426,10 +1455,11 @@ def test_decision_journal_share_and_contrast_contract() -> None:
 def test_round2_cross_asset_explanations_and_method_event_contract() -> None:
     html = dashboard.load_template()
     for required in (
-        "realtyContext.condition_summary", "모두 2001-03~2006-03 실측",
+        "realtyContext.condition_summary",
         "gate 경계(n=156)", "DATA.method_changes", "public_repository_url",
     ):
         assert required in html
+    assert "모두 2001-03~2006-03 실측" not in html
     changes = (dashboard.config.ROOT / "data/method_changes.jsonl").read_text(encoding="utf-8")
     assert "교차자산 경로 추적 원장 v2 전환" in changes
 
@@ -1580,7 +1610,7 @@ def test_home_full_schedule_link_points_at_the_calendar_not_the_changelog() -> N
     assert "#records/journal" not in home
 
 
-def test_pages_payload_stays_within_budget_on_the_real_repository() -> None:
+def test_pages_payload_stays_within_budget_on_the_real_repository(tmp_path) -> None:
     """실제 누적 원장으로 Pages 첫 화면 payload 가 예산 안에 있는지 본다.
 
     2026-09-15 배포가 깨진 자리다. embed 예산을 재는 시험은 있었지만 **data.json**
@@ -1588,14 +1618,27 @@ def test_pages_payload_stays_within_budget_on_the_real_repository() -> None:
     main 에서 깨졌다 — 그 사이 main 이 데이터 커밋으로 자라 있었기 때문이다.
     숫자를 박지 않고 성질(예산 이내)만 단언한다: 예측이 쌓이면 값은 매일 달라진다.
     """
-    conn = ingest.connect(dashboard.config.ROOT / "db" / "index.db")
+    # Copy through SQLite's backup API so a WAL is included without touching
+    # the durable index. A fresh CI checkout starts with an empty disposable DB.
+    import sqlite3
+    source = dashboard.config.ROOT / "db" / "index.db"
+    target = tmp_path / "dashboard-budget.sqlite"
+    if source.exists():
+        with sqlite3.connect(source.as_uri() + "?mode=ro", uri=True) as original:
+            with sqlite3.connect(target) as copied:
+                original.backup(copied)
+    conn = ingest.connect(target)
     try:
         model = dashboard.build_read_model(conn, dashboard.config.ROOT)
     finally:
         conn.close()
     base, _ = dashboard.split_statistics_data(model)
+    base, _ = dashboard.split_daily_flow(base)
     base, _ = dashboard.split_future_paths(base)
     base, bodies = dashboard.split_forecast_bodies(base)
+    base, _ = dashboard.split_timeseries_daily_data(base)
+    base, _ = dashboard.split_trendlines_data(base)
+    base, _ = dashboard.split_band_calibration_rows(base)
     encode = lambda payload: len(json.dumps(  # noqa: E731
         payload, ensure_ascii=False, default=str, separators=(",", ":"),
     ).encode("utf-8"))
@@ -1680,6 +1723,7 @@ def test_future_paths_are_split_with_semantic_identity_and_fixed_budgets(tmp_pat
         "loaded": False,
         "url": "statistics.json",
         "failure_mode": "summary_with_explicit_error",
+        "payload_sha256": hashlib.sha256(json.dumps(statistics_data, ensure_ascii=False, default=str, separators=(",", ":")).encode("utf-8")).hexdigest(),
     }
     assert "statistics_lab" not in future["data"]
     assert len(json.dumps(statistics_data, ensure_ascii=False, default=str,
@@ -1694,6 +1738,8 @@ def test_future_paths_are_split_with_semantic_identity_and_fixed_budgets(tmp_pat
         "required": True,
         "loaded": False,
         "url": "future_paths.json",
+        "model_content_sha256": future["data"]["scenario_v5_2"]["model_content_sha256"],
+        "payload_sha256": __import__("hashlib").sha256(json.dumps(future, ensure_ascii=False, default=str, separators=(",", ":")).encode("utf-8")).hexdigest(),
         "failure_mode": "summary_with_explicit_banner",
     }
     assert base["scenario_v5_2"]["path_checkpoints"]
@@ -1929,18 +1975,20 @@ def test_mobile_market_strip_uses_three_non_overlapping_cells() -> None:
     assert ".market-strip strong{min-width:0;display:block;overflow:hidden" in css
 
 
-def test_all_page_primary_headings_are_scaled_to_seventy_percent() -> None:
+def test_all_page_primary_headings_use_shared_page_chrome() -> None:
     css = dashboard.DASHBOARD_STYLES.read_text(encoding="utf-8")
     for required in (
-        ".page-heading h1{max-width:900px;color:#11110f;font-size:clamp(29px,3.5vw,48px)",
-        ".overview-copy h1{font-size:clamp(31px,2.55vw,36px)}",
-        ".detail-hero h1{font-size:clamp(21px,2.52vw,38px)",
-        ".today-hero h1{max-width:870px;margin:0;font-size:clamp(18px,2.1vw,31px)",
-        ".today-hero h1{font-size:21px}",
-        ".page-heading h1{font-size:clamp(24px,7vw,29px)",
-        ".page-heading h1{font-size:22px}",
+        "#app .page-header{display:block",
+        "padding:22px 24px", "background-image:none",
+        "#app .page-header::before,#app .page-header::after{display:none;content:none",
+        "#app .page-header h1{", "font-size:32px", "font-weight:700;line-height:1.18",
+        "#app .page-header{min-height:88px;padding:18px 16px}",
+        "#app .page-header h1{font-size:26px}",
     ):
         assert required in css
+    script = dashboard.DASHBOARD_SCRIPT.read_text(encoding="utf-8")
+    mount = script[script.index("function mount("):script.index("function bindDynamicMotion(")]
+    assert "normalizePageChrome(root);" in mount
 
 
 def test_v8_card_returns_use_two_decimal_precision() -> None:
@@ -1955,18 +2003,13 @@ def test_v8_card_returns_use_two_decimal_precision() -> None:
     assert "*100).toFixed(1)}% · p10–p90" not in v8, "히어로 수익률도 2자리"
 
 
-def test_v8_card_gate_widget_band_chart_and_hold_reasons_are_wired() -> None:
-    """UI/UX 설계 260902 PR-U1/U2/U3 — 마크업 계약."""
+def test_v8_chart_and_hold_reasons_remain_without_header_status_widgets() -> None:
     html = dashboard.load_template()
     v8 = html[html.index("function timeseriesV8BandSvg"):html.index("const VIEWS")]
     assert "const enabled=['summary','path','drivers','backtest']" in v8, "v8 4탭 활성 (재설계 260903: 입력 신선도·봉인 지표로 채움)"
-    # 히어로 칩은 out-of-sample 봉인창(2019+) 판정을 말한다 — 개발기간이 섞인 전체창
-    # 원점을 'PASS'로 단정하면 과대 신뢰가 된다(사이트 검수 260904).
-    assert "봉인창(2019+) ${gateWinPass?'통과':'보류'}" in v8, "게이트 칩은 봉인창 판정 분기"
-    assert "gateWin.gate_pass===true" in v8, "칩 상태는 봉인창 gate_pass에 연동"
-    assert "운영 신선도 OK" in v8, "신선도 칩"
+    for removed in ("봉인창(2019+)", "운영 신선도 OK", "원점 경과", "${gateStrip}", "선형 보간(참고용)"):
+        assert removed not in v8, removed
     assert "봉인 평가 PASS" not in v8, "PASS 단정 문자열 제거"
-    assert "선형 보간(참고용)" in v8, "보간 정직성 캡션"
     assert "ts-node-dot" in v8, "실측 노드 마커"
     assert "timeseries-hold-reasons" in v8, "HOLD 사유 노출"
     assert "p10_p90_hint" in html and "crps_hint" in html, "UI_TERMS 확장"
@@ -2027,16 +2070,17 @@ def test_home_cards_link_to_their_detail_pages() -> None:
     css = dashboard.DASHBOARD_STYLES.read_text(encoding="utf-8")
     overview = script[script.index("function renderOverview()"):script.index("function eventForecastValue(")]
     assert "'#future/original','몬테카를로 예측 상세 보기'" in overview
-    assert "'#timeseries','시계열 예측 상세 보기'" in overview
+    assert "'#future/timeseries','시계열 예측 상세 보기'" in overview
     assert "'#statistics','닷컴 대비 과열도 상세 보기'" in overview
     assert '<a class="card-link" href="${esc(href)}" aria-label="${esc(aria)}"></a>' in overview
     mood = script[script.index("function withCardLink("):script.index("function renderMarketMood()") + 600]
     assert "withCardLink(renderVixCard(mood.vix),vixDetailHref(),'VIX 상세 보기')" in mood
     assert "'#statistics/fear-greed','공포·탐욕 상세 보기'" in mood
-    assert "?'#timeseries/volatility':'#timeseries'" in mood
+    assert "?'#future/timeseries/volatility':'#future/timeseries'" in mood
     # #statistics/fear-greed 는 전체를 보이고 공포·탐욕 절로 내린다.
     stats = script[script.index("function renderStatistics("):script.index("function timeseriesFeatureLabel(")]
-    assert "requestedCategory==='fear-greed'" in stats and "lab.scrollIntoView" in stats
+    assert "renderStatisticsStudy(initialState);return;" in stats
+    assert "if(page==='fear-greed')" in script
     assert 'class="fng-lab" id="fear-greed"' in script
     assert ".has-card-link{position:relative" in css and ".card-link{position:absolute;inset:0" in css
     assert ".has-card-link:hover" in css and ".has-card-link:focus-within" in css
@@ -2051,3 +2095,13 @@ def test_event_board_merges_same_week_earnings_of_one_category() -> None:
     assert "evWeekStart(item.date)===evWeekStart(row.date)" in html
     # 여러 날에 걸친 묶음 카드는 한 회사의 시각 대신 날짜들을 보인다
     assert "(item.clusterDates||[]).length>1" in html
+
+
+def test_embed_budget_constant_matches_payload_contract_adr_004() -> None:
+    """ADR-004(2026-10-22): 코드 상수와 계약 선언은 한 값이다 — 둘이 어긋나면 ADR-002 때처럼 선언만 낡는다."""
+    import yaml
+    contract = yaml.safe_load((Path(__file__).resolve().parents[2] / "data/contracts/dashboard_payload.yaml").read_text(encoding="utf-8"))
+    budgets = contract["budgets"]
+    assert dashboard.DASHBOARD_RAW_BUDGET_BYTES == 2048 * 1024
+    assert budgets["embed_html_max_bytes"] == dashboard.DASHBOARD_RAW_BUDGET_BYTES
+    assert budgets["embed_html_max_kib"] * 1024 == budgets["embed_html_max_bytes"]

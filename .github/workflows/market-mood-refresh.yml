@@ -27,6 +27,7 @@ on:
 
 permissions:
   contents: write
+  actions: write
 
 # 기다리는 잡은 쓰기 잠금을 대략 17:30~21:30 UTC 동안 쥔다. 그 창에 예약된 다른
 # investing-data-writer 워크플로는 없다(2026-10-07 확인 — ipo-edgar-watch 금 23:40 UTC 가 가장
@@ -37,6 +38,7 @@ concurrency:
 
 jobs:
   refresh:
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 360
     env:
@@ -79,11 +81,20 @@ jobs:
         if: ${{ always() }}
         continue-on-error: true
         run: cd src && python -m ai_fc consensus
+      # Independent of the headline/VIX/NASDAQ already-recorded gate. A retry
+      # must still recover the seven indicators when those three are current.
+      - name: Refresh all seven fear and greed components
+        id: components
+        if: ${{ always() }}
+        continue-on-error: true
+        run: cd src && python -m ai_fc fear-greed-components-refresh
       - name: Commit refreshed mood surfaces
+        id: commit
         shell: bash
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          echo "committed=false" >> "$GITHUB_OUTPUT"
           # 공포탐욕·NASDAQ 종가 원장은 append-only(하루/세션 1행), VIX 투영은 재생성본이다.
           for optional_dir in data/fear_greed data/vix data/market_quotes data/calendar; do
             if [ -d "$optional_dir" ]; then
@@ -99,11 +110,18 @@ jobs:
           # 체크아웃과 푸시 사이에 main 은 늘 움직인다 — 추가·재생성형 산출물이라 재생은 안전하다.
           git pull --rebase origin main
           git push
+          echo "committed=true" >> "$GITHUB_OUTPUT"
+      - name: Publish verified committed mood updates
+        if: ${{ steps.commit.outputs.committed == 'true' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run pages.yml --repo "$GITHUB_REPOSITORY" --ref main
       - name: Report refresh failure
-        if: ${{ always() && (steps.mood.outcome == 'failure' || steps.consensus.outcome == 'failure') }}
+        if: ${{ always() && (steps.mood.outcome == 'failure' || steps.consensus.outcome == 'failure' || steps.components.outcome == 'failure') }}
         shell: bash
         run: |
           echo "signals=${{ steps.mood.outcome }}"
           echo "consensus=${{ steps.consensus.outcome }}"
+          echo "components=${{ steps.components.outcome }}"
           echo "A market or event source failed; valid results were preserved and the failure requires retry."
           exit 1

@@ -2196,3 +2196,204 @@ EPS만 예상 대비 상회·하회를 색으로 표시하고, 경제지표는 �
 **운영.** `timeseries-v8-daily` 워크플로(market-mood-refresh·timeseries-v2-refresh 완료 직후 +
 예비 예약 09:40·23:40 UTC). 계산 잡은 잠금 없이, 커밋 잡만 `investing-data-writer`. pages·verify·
 ops-failure-alert 에 등록. 계약 `daily_display_policy` 는 frozen_coordinates 밖. 지위: 참고 의견.
+
+## 2026-10-21 — MTS 고도화 v2.1: 라이브 전진 무결성 · rung-7/8 공공영역 정보집합(측정된 영) · ML 참조층 채점 가능화 · V14 초안 (사용자 지시 + 자율 집행분)
+
+**지시 원문**(approvals.jsonl `V13-D11`): "지금 다변량 시계열 예측이 잘 진행되어가고 있는지 검증 결과 토대로 더 고도화하거나 … 머신러닝 고도화를 진행할 방향을
+전면적으로 검토하고 예측률을 높이기 위한 설계를 진행해서 수정 보완사항들을 정밀하게 짜서 시행해봐. 모든 외부 db 오픈소스를 더 기반으로layer를 쌓아도되니까 진행해."
+설계 정본 `docs/design/mts_advancement_design_261021.md`(v2.1 — 4렌즈 적대 검토 + 심판 반영), 사전등록 `docs/design/v13_rung7_prereg_261021.md`.
+
+**판정 요지.** "모델을 하나 더"로 예측률을 올릴 근거는 없다(81검정 채택 1·퇴화, |효과| 중앙값 0.003 < MDE 0.005). 그래서 ① 유일한 무오염 증거인 라이브 전진
+표본의 무결성을 고치고 ② 81검정이 시험한 적 없는 세 정보 클래스(전향 달력·선물 포지셔닝·국면기억)를 연방 공공영역 데이터로 사전등록해 시험했으며 ③ 오픈웨이트
+참조층을 채점 가능하게 만들고 ④ 기준선의 자명성을 깨는 V14 조건부 전이 트랙을 초안했다.
+
+**결정 1 — 라이브 전진 표본은 원점을 한 번만 센다(6a940fa1, 계약 키 `live_forward_verdict_report.dedupe_rule`).** 2026-09-04 원점이 재동결 전후 두 계수 sha 로
+채점돼 해상 원장에 6셀×2행이 있었고 행 수로 세면 60 게이트를 원점 하나 먼저 넘었다. (cell, origin) distinct·핀된 sha 우선·없으면 knowledge_cutoff 최신 행. 원장 무수정.
+실측 성숙 원점 h5 25 · h21 11 · h63 0(행 수 기준 26/12 는 과다).
+
+**결정 2 — 판정 산술 verb 를 결과(60 도달) 전에 만들고 등록했다(`timeseries-v13-vol-live-verdict`).** 읽기 전용·쓰기 0·강등 적용 0. status 는 계약 산술
+(demotion_rule·negative_control)만으로 정하고, 반창(≈1000원점) 가드 임계 20/5 는 n=60 에 옮길 수 없으므로(기후 기저율에서도 5/9 셀 사건<20, h21/h63 은 국면 5 불가)
+**판정을 보류하지 않고 플래그로 병기**한다. 해상도(ℓ=13 에서 n=60 ≈4.6 블록·순열 공간 120)를 셀별 인쇄. 재판정 주기 +20 원점(인쇄 전용) 등록. 라이브 창 '판정 보류형'
+퇴화 규정은 강등·종결을 느슨하게 하는 방향이라(P0 결정 1·T7 금지 조항) V13 에 두지 않는다 — 제한-추가형 라벨 등록 여부는 사용자 결정(V13-D13, 마감 2026-12-10).
+
+**결정 3 — rung-7/8 사전등록·집행(94a89b57 → 8a02a0cc → 집행).** 적재: Fed Board FOMC 역사 일정(정례 64·비예정 18 제외), BLS 발표일 색인(고용·CPI 각 96,
+curl 403 이라 내장 브라우저 DOM 추출·영수증에 방법 명기, 2013 셧다운 4건 원래 예정일 병기), CFTC TFF VIX 선물·NQ mini(`available_at = 보고일+7달력일` 보수,
+2013-10 백로그 11-08 고정). 규칙(클래스당 1블록·primary·대체 순서·R1 |ρ|>0.85·R2 커버리지<0.80·R3 최빈값≥0.90·비세션 이월)은 라벨 미접촉 진단 전에 고정.
+rung-8 집행 조건은 rung-7 결과 전에 고정·충족. **결과: rung-7 {E1,P1,D1} 24검정 채택 0, family 1.0 — 측정된 영. rung-8 {E2,P3,D2} 23검정 채택 3(전부
+episode_thin, 국면 4·3·1), family 0.105 — 발견 아님.** 예산 8/8 소진 — V13 설계창 개발 종료, 재개는 사용자 결정. 캠페인 누계 128검정·비퇴화 채택 0.
+판정서 `docs/review/V13_VOL_RUNG7_PUBLIC_VERDICT_20261021.md`·`…RUNG8…`. 양의 지식: 설계창에서 전향 달력·포지셔닝·국면기억도 당일 수준에 흡수된다.
+
+**결정 4 — ML 참조층(추론 전용).** `resolver._ml_ref_before` 에 신선도 상한(`ML_REF_MAX_AGE_DAYS`=7) — 2026-10-31 해소 예정 질문이 42일 묵은 run 과 짝지어
+append-only 원장에 들어가는 것을 결과 전에 막는다. 참조 채점 원장은 **보호 루트 밖** `data/ml_reference/`(data/ml_history 는 V5.2 PROTECTED_PATHS) + 사전등록 계약
+`ml_technique_m4_reference_scoring.yaml`(layer L3·gate none·ml_dl 관할·C5 분모 기여 0·run_ts ≥ 등록일만 primary). 매핑은 표현 가능 활성 질문만 확장.
+Chronos-2 꼬리 분위수는 `prob_tail_c2` 병기 필드(교체는 4주 병기 뒤 별도 결정). 재가동 실행 환경은 사용자 결정(U9). TSFM 과거 창 채점은 미규정 → 라이브 전진만(ML-A6 대기).
+
+**결정 5 — V14 조건부 전이 트랙 초안**(`multivariate_timeseries_v14_conditional.draft.yaml`, track_open false·armed false, 검정 0회). 개시는 V14-D0.
+
+**정정.** KNOWN_LIMITS A.36(V8 섀도 정체)은 API 레인으로 해소됐고 현 포인터는 `shadow_live`·DTWEXBGS fresh — 설계 v2 초안이 문서를 베껴 틀렸던 것을 v2.1 에서 고쳤다.
+설계 v2 의 성공 확률 숫자(25%/15%)는 근거가 없어 삭제했다.
+
+**사용자 결정 묶음(마감순)**: V13-D12 원점 백필(계약 pit `late_capture` 등급) · U9 ML 실행 환경 · V13-D13 제한-추가형 라벨(12-10) · V14-D0 · ML-A6. 원문 템플릿은 설계 §7.
+
+**하지 않은 것.** 홀드아웃·봉인 열람 0 · 동결 계수·게이트 산술·60·T7 무변경 · 의존성 설치 0 · 메일 0 · 구매 0 · `forecasts/`·`calibration/ledger.csv`·V8·V2·`data/ml_history/` 무수정.
+
+**추가(같은 날) — 임베드 예산(ADR-002, 1536 KiB) 소진 대응.** origin/main 이 이미 상한의 99.5%(여유 8.4 KB)였고 이 변경(+10.5 KB: 표시 항목·method_changes 2행·레지스트리)으로 2.2 KB 초과했다.
+ADR-002 의 '렌더 필드 투영' 패턴을 전송 전용으로 확장했다 — 화면(dashboard.js)이 한 번도 읽지 않는 것만 임베드에서 뺀다: `receipts.requests/lineage/receipt_id`(6.4 KB),
+`trust.ledgers` 의 criticality·immutable_changes·schema_errors·duplicate_rows·reversed_timestamps(1 KB), `trust.sources.fallback_used`, `method_changes` 의 kind≠method 행(저널이 kind==='method' 만 렌더),
+V13 라이브 표의 `trail`(스파크라인 미사용). 생략 사실은 `embed_field_projection` 에 공시되고 Pages `data.json`·`/api/data` 는 전부 보존한다. 결과 1,559,564 B(여유 13.3 KB).
+**구조적 경보**: 상한 여유가 일 단위 데이터 성장(예측 이력·방법론 변경·달력)으로 곧 다시 소진된다 — 상한 상향(ADR) 또는 추가 분리는 사용자 결정 사항으로 남긴다.
+
+### 2026-10-22 — 통계 무료 원발표처 대체 경로 (사용자 승인)
+
+FRED API 장애 또는 원발표처의 최신 관측일이 앞설 때 닷컴 통계의 M2SL·FEDFUNDS·GS10·BOGZ1LM153064475Q·BOGZ1LM893064105Q만 연준 원발표처에서 자동 취득할 수 있다. 매번 전체 중첩값·단위·정의·기간 완전성을 검수한 경우에 한한다. 원본 ZIP·영수증·별도 source ID·실제 취득 시각을 보존하며 과거 FRED 원장과 ALFRED PIT를 대체하지 않는다. 나머지는 원래 관측일과 미갱신 상태를 유지하고 API를 다음 배치에서 다시 확인한다. Nasdaq·Coinbase·NFCI·신용 스프레드의 미검증 대체는 활성화하지 않는다. 근거와 한계: [원천 검수](STATISTICS_NATIVE_FALLBACK_20261022.md), 계약 statistics_native_fallback_v1.yaml. 12-6의 FRED 공식 API 전용 원칙은 유지한다.
+
+## 2026-10-22 — MTS 고도화 v2.2 (라운드 2): 결정 묶음 전부 집행 — V13-D12 백필 · V13-D13 제한 라벨 · V14 개시·rung-1 · ML-A6/U9 · ADR-004 (사용자 지시)
+
+**지시 원문**(영수증 14행 공통 `approval_text`): "더 고도화 할 포인트나 너가 말한 남은결정부분 다 보강해서 진행해봐" (2026-10-22, 수신 상한 16:19:53 KST = 워크트리 생성 시각).
+'남은결정부분' 은 이렇게 읽었다: ① 직전 항목 말미 "사용자 결정 묶음(마감순)"(V13-D12 · U9 · V13-D13 · V14-D0 · ML-A6 — 권고안은 설계 v2.1 §7) ② 같은 날 '추가' 블록·설계 §6 에서
+넘친 임베드 예산 질문(권고 없음) ③ V14-D0 가 효력을 가지려면 함께 필요한 V14 초안의 D1..D9(권고는 V14 설계도 §6). 영수증 14행 중 9행이 ③이다. U8′ 는 §10 에서 불필요로 닫혔다.
+커밋: 사전등록 `a93801cf`(결과 전) → 해시 기입 `590c72b1` → V14 rung-1 집행(2026-10-23 06:54:57 UTC) → 결과 커밋(이 항목과 함께).
+
+**영수증 형식의 공시(가장 먼저 적는다).** 14행(V13 2 · ML 2 · V14 10)의 approval_text 는 **리터럴 템플릿이 아니라 위임형 지시 원문**이다. V14 계약 `approvals.approval_text_rule` 은
+"부분 일치·의역·요약은 승인이 아니다" 라고 못박고 있고, 이 영수증들은 그 규칙을 **위반한 채로 숨기지 않은 기록**이다 — 각 행에 `literal_template_match: false`,
+`approval_form: delegated_bundle_instruction`, `template_text`(받았어야 할 원문)를 넣었다. V14 계약 `approvals.receipt_form_2026_10_22` 는 그중 V14 10행을 공시하고,
+V13 2행·ML 2행은 계약 공시 없이 행 필드와 이 항목·KNOWN_LIMITS D.39(14행 전부)로 공시된다.
+규칙 자체는 개정하지 않았다(규칙을 고쳐 맞추는 것이 바로 규칙이 막는 행위다). 효력 판단은 사용자 몫이며, 철회 시 같은 원장에 r2(철회) 행을 append 하고 계약을 되돌린다 —
+이미 소모된 비가역 자원(V14 평가 단위 1)은 되돌리지 않고 공시한다. 시각은 합성하지 않고 수신 상한(첫 도구 호출)을 적었다(블루프린트 §8.4).
+
+**결정 1 — V13-D12 원점 백필(앞으로만, `late_capture` 등급). 계약 키 `origin_backfill`(effective_from 2026-10-22).** 결손은 실측이었다: 09-04~10-20 32 거래일 중 3일(09-23·09-24·10-16, 9.4% — 설계 v2.1 §1.3 실측)이
+publish_latest 가 패널 마지막 날짜 1개만 기록하는 구조 때문에 영원히 행이 없다. 백필 행은 읽기 cutoff(행 필드 `backfill_cutoff_used` — VIX·NASDAQCOM 계열별 원점 관측 최초 빈티지 available_at 의 최댓값)로 **되감고 패널을 원점에서
+절단(end=origin)** 해 계산하므로(행의 knowledge_cutoff 필드는 발행 시각 그대로) p 는 원점 시점 정보집합만의 함수다(data_policy.pit 완화 아님 — 쓰는 시각이 늦을 뿐 아는 것은 같다). 절단은 적대 검토가 잡은 결함의 수정이다:
+captured_forward 행은 영수증 수집 시각을 available_at 으로 공유하므로 되감기만 하면 같은 영수증의 이후 세션이 패널 끝을 밀어 **실측 유실 3일 중 2일이 다시 채울 수 없게** 된다.
+기계적·무조건(어떤 계수 sha 로도 행이 없는 원점 전부 — 재동결 뒤 옛 sha 행은 결손이 아니다)이며 verify 가 재계산·**완전성**을 검사한다. 예외는 포인터 `backfill.unfillable` 에
+기록된 원점뿐이고 verify 가 그 원점을 다시 되감아 **재현**될 때만 공시로 통과시킨다(재현되지 않으면 — 즉 채울 수 있는 원점이면 — 'unfillable not reproducible' 로 실패). 포인터 블록은 매 실행 같은 값만 담는다(빈 실행이 커밋을
+만들지 않게). 이미 유실된 3일은 소급하지 않는다. 라이브 게이트·T7·dedupe 바이트 무수정.
+
+**결정 2 — V13-D13 판정불가(제한) 라벨. 계약 키 `live_claim_restriction`(사건<20 ∨ 국면<5 → pass·BSS·배선·표시 승격 주장 불가, 강등·T7 그대로).** 10-21 결정 2 가 판정 보류형 퇴화 규정은
+강등·종결을 느슨하게 하는 방향이라 V13 에 두지 않는다고 한 자리에(의역), 방향이 반대인(긍정 주장만 막는) 라벨을 얹었다. 기대 사건 표(동결 기후×60: vix25_h5 18.5 · vix30_h5 10.7 · vix30_h21 15.1 이
+20 미만)와 T7 도달성(h5 만 60 원점에서 국면 5 가능, h21 ≥109 · h63 ≥319 원점)을 계약 원문으로 공시했다. 산출: live_scoreboard `claim_blocked/claim_block_reasons/episodes`,
+verdict verb `positive_claim_allowed`(status 산술 무변경), 배선 자격(`vol_base_rate_wiring`)에서 claim_blocked 셀 제외(성적표를 못 읽으면 전부 제외 — 페일클로즈), 화면 칩 '판정불가(제한)'.
+2026-10-22 실측: 9셀 전부 제한(h5/h21 사건<20·국면<5, h63 성숙 0) — 그래서 배선 자격 셀은 현재 0(rv_h5·rv_h21 은 계약 자격은 있으나 라벨로 차단).
+
+**결정 3 — V14 조건부 전이 트랙 개시(V14-D0 A2 … V14-D9 J1, 10행 분리 영수증) + rung-1 집행.** 계약 파일 `.draft` 제거(`multivariate_timeseries_v14_conditional.yaml` 개명 — 판정 관련 값은 보존하고 같은 커밋에서 전환 필드·P0 실측·rung-1 사전등록 블록·실제 bootstrap
+경로 공시를 추가했다),
+status prereg · track_open true · 원장 4개 생성(레지스트리 등록) · **gates.armed false 유지**. D3(봉인창)는 독립 결정이라 별도 행(열지 않음). 표적·창·게이트 형·seed·후보 풀·금지 조항은
+초안 값 그대로 효력을 얻었다(값 변경 0).
+- **P0**(평가 예산 0): 조건부 부분집합 vix early 297/1008 · late 812/1006, rv early 312 · late 706. 라벨 미접촉 R1~R4 로 E1(FOMC)·P1(VIX 선물 포지셔닝) 등록, 국면기억은 vix 부분집합
+  early 커버리지 0.525 로 R2 미달 → 공석(R4). 가드: ok crv_h5·crv_h21 · episode_thin cvix25_h21 · untestable cvix25_h5·cvix25_h63·crv_h63. **하드룰 셀 cvix25_h5 는 설계창에서 검정 불가**
+  (반창 사건 6·5 < 20) — 초안 honest_expectation 이 경고한 얇아짐의 부분형이다(예고한 최악은 판정 자격 0 셀, 실제는 3셀 — cvix25_h21 은 episode_thin).
+- **적대 검토(5렌즈 · 발견 35 · 3표 반박 → 확정 24) 전부 사전등록 커밋 전에 반영.** 주요: G0·MDE 6셀 전수(제외 셀 포함 정보용), 예산을 계약 카운터가 아니라 원장 행과 대사·evaluation_index
+  일치, rung 키 불확실성 좌표·공유 구현 상수 대조, 분모(planned_tests·제외 집합)를 쓰기 전에 검사, Murphy 신뢰도·log score 보고, P0 산출물 덮어쓰기 거부·계약 해시 키 핀, 라벨 미접촉
+  구간을 함수로 분리해 라벨 함수를 터뜨려도 등록이 같음을 시험, 실제 bootstrap 경로(tools/v13_vol_run, 귀무는 고속 근사 b=400) 계약 공시.
+- **rung-1 결과(1회, 예산 1/4): 6검정 채택 0, family P=1.0 — 측정된 영.** 방향 수준 |효과| 중앙값 0.00254 < MDE 0.00324, 양(+) 유의 방향 0, 후보가 조건부 PB 보다 유의하게 나쁜 방향 4
+  (cvix25_h21 FOMC 양방향 등). **G0: 조건부 PB 가 조건부 기후를 양방향·귀무 0.000 으로 이김 — crv_h5(BSS +0.318/+0.260)·cvix25_h21(+0.151/+0.108, 국면 얇음)**, crv_h21 은 단방향 → HOLD.
+  "평온 안에서 지속성이 자명성을 잃는다" 는 V14 출발 가설은 판정 자격 셀 crv_h5 에서 반증됐고(cvix25_h21 은 같은 방향이나 episode_thin), 외부 블록이 당일 수준에
+  흡수되는 양식은 rung-7·8 에 이어 세 번째로 관측됐다(같은 E1·P1 을 같은 설계창 부분집합에서 다시 본 것이라 독립 재현은 아니다).
+  판정서 `docs/review/V14_COND_RUNG1_VERDICT_20261023.md`. champion_rule 은 기록만(crv_h5·cvix25_h21 = b) — 승격·라이브 verb 없음.
+- **남은 사용자 결정**: V14-D10(라이브 포인터 champion·verb — 판정서 권고 후보는 판정 자격 셀 crv_h5 조건부 PB. 규칙 b 인 cvix25_h21 은 episode_thin 이라
+  권고에서 뺐고, 함께 올릴지는 사용자 결정. 계약 D10 은 recommended null 그대로) · V14-D11(rung-2 집행 여부, 권고 K2 보류 — negative_result_protocol 이 rung-2 전 보고를 요구).
+
+**결정 4 — ML-A6 라이브 전진만 · U9 로컬 예약.** 계약 `evaluation_scope`(TSFM 과거 창 채점 금지 — 사전학습 코퍼스 오염 판별 불가) · `runtime`(Claude 데스크톱 예약 작업
+`weekly-ml-reference`, 토 11:00 KST, weekly-forecast-3 11:30 전; 패키지 설치 0 — torch 2.13·chronos 2.3.1 기존 설치, HF 캐시에 Chronos 3모델 실재; 단 FinBERT 는 리비전 핀이 없어 첫 run(16:50~16:51 KST)에서 새 리비전 `0bc2ac10` 가중치를
+내려받았다(KNOWN_LIMITS D.41); data/ml_history 쓰기 뒤 V5.2 재구축은
+investing-refresh 와 같은 순서). U9 런타임 아래 첫 run 은 세션 수동 실행 2026-10-22 16:53 KST(예약 작업은 아직 미발화 — 2026-07-20 이후 첫 kind=ml run, 질문 확률 30행·시리즈 밴드 3종) · 참조 채점 2행(둘 다 등록 전 run 이라 pre_registration — primary 0) ·
+V5.2 재구축 replay verify ok. 약점은 2026-09-11 선례와 같다 — 머신이 켜져 있어야 한다. 영수증은 보호 루트 밖 새 원장 `data/ml_reference/ledgers/approvals.jsonl`.
+참조 채점 원장 cadence 는 event — 성숙 기반 채점이라 행의 run_ts 는 지평 이상 지난 run 이다(첫 2행은 채점 시점 대비 약 13.5·14.1주 전). ledger_audit 가 jsonl 신선도를
+run_ts 로 읽으므로 weekly 면 첫 행부터 stalled 로 읽힌다.
+
+**결정 5 — ADR-004 임베드 예산 1536 → 2048 KiB.** (id 정정: 초안의 'ADR-003' 은 10-3 행이 이미 쓰는 id 라 ADR-004 로 바꿨다.) 실측: 10-21 투영 직후 1,559,564 B(옛 상한의 99.2%, 여유 13.3 KB), 이 변경 뒤 10-22 1,547,772 B(98.4%, 여유 25 KB), 새 상한 대비 73.8%.
+**지금 당장 넘친 것은 아니다** — 여유가 1% 안팎이고, 남은 성장분은 등록 원장·영수증·트랙 수에 비례하는 내용이라 다음 표시 항목 하나가 다시
+배포를 깬다. 자기완결 임베드에서 내용을 걷어내는 것은 삭제(ADR-002 논거)이므로 가드를 올렸다. 코드 상수·계약 선언(`dashboard_payload.yaml`)을 같은 값으로 두고 테스트가 동치를 고정한다.
+다음 상향은 새 ADR 이 필요하고 그 전에 투영 소진을 먼저 보여야 한다.
+
+**도구.** `tools/roadmap_status.py` 에 V14 블록(status·예산·원장 행·남은 결정)과 late_capture 원점 수를 파생 인쇄. `vol-wiring-status` 가 판정불가(제한) 차단 셀과 사유를 인쇄.
+
+**하지 않은 것.** 홀드아웃·봉인 열람 0 · V13 동결 계수·게이트 산술·60·T7 무변경 · V14 결과 후 블록·임계·조건 문턱·셀 변경 0 · rung-2 미집행 · gates.armed 무장 0 · V14 라이브 verb·워크플로·패키지 0 ·
+의존성 설치 0 · 메일 0 · 구매 0 · `forecasts/`·`calibration/ledger.csv`·V8·V2 무수정 · data/ml_history 는 append 만.
+
+## 2026-10-23 — 닷컴 대비 과열도 v4: IPO 건수에 해외 대형 테마 상장 가산(상장지 불문) · 상장 대기 표시 전용 · 자료월 표시 (사용자 결정)
+
+**지시 (사용자, 2026-10-23).** "닷컴대비과열도 매일 수치가 같은데 매번 갱신하고 있는거지 — 모든 수치를
+최종점검. DeepSeek IPO 하는 것도 IPO 에 추가. 저런 대형 타국가의 IPO 까지 넣어, 유럽이든 다."
+
+**점검 결과 — 갱신은 매일 되고 있다.** 지수는 대시보드 빌드 때 통계 스냅샷에서 다시 계산되며
+라이브 `data.json` 의 `dotcom_overheat.as_of` 는 2026-10-22(생성 2026-10-23 00:45 UTC)다. 최근 40개
+스냅샷을 같은 계약으로 재계산하면 대표값은 61(09-01) → 59(09-18, Z.1 2026Q2) → 63(10-01, GDP 2026Q2)
+→ 54(10-06, IPO 부문 편입) 로 움직였고 10-06 이후 **54 로 고정**이다. 이유는 집계 구조다: 대표값은
+부문 중앙값 6개의 중앙값 = (credit 44.7 + valuation 62.7)/2 ≈ 53.7 이고, 그 두 부문의 입력은 전부
+Z.1·GDP 분기 계열이라 다음 발표(2026Q3, 12월) 전까지 그대로다. 그 사이 금리 부문은 NFCI·스프레드로
+67.2 → 67.8 → 68.2 로 움직였지만 중앙값에 닿지 않는다. 입력 14종의 원천 최신 관측은 모두 FRED
+게시분과 일치(UNRATE 2026-09, NFCI 2026-10-16, Z.1 2026-04-01, Ritter 2025-12). 한 가지 원천 측 지연:
+가계 원리금 부담은 Z.1 계열 `BOGZ1FL010000346Q` 를 쓰는데 FRED 자체가 2026Q1 까지만 싣고 있다
+(`TDSP` 는 2026Q2 게시) — 계열 교체는 정의 변경이라 하지 않고 KNOWN_LIMITS 37 에 남긴다.
+**화면 수정**: 지표마다 자료 기준월(`current_date`)을 내보내 패널 행에 `자료 YYYY-MM` 으로, 하단에
+자료월 범위로 표시한다 — "매일 갱신인데 왜 같은가" 가 화면에서 설명되게.
+
+**DeepSeek — 아직 상장 전이라 세지 않는다.** Bloomberg 2026-07-14·TechNode 2026-09-09: 상하이 STAR 상장
+준비(CITIC 등 주관사 선정, 첫 CFO 선임), 2026 말 신청·2027 상장 예상, 공모 규모 미정. 완료되지 않은
+IPO 를 건수에 넣으면 그것은 데이터가 아니라 기대다. 그래서 **상장 대기 목록**
+(`data/statistics/ipo/theme_listing_pipeline.csv`: DeepSeek · Kunlunxin · CCSH/YMTC · Zhaoxin · Unisoc —
+정식 신청·주관사 선정 단계만, 소문 단계 제외)을 두고 차트 결론에 "상장 대기 N건 — 미집계" 로 표시만
+한다. 상장이 완료되면 additions 로 옮긴다.
+
+**해외 대형 테마 상장 — 상장지 불문으로 더한다 (v3 의 CXMT 제외 규칙을 대체).** 범위 `foreign_primary`:
+시대 핵심 테마(닷컴 반도체·인터넷 / 현재 반도체·AI) 기업의 **미국 밖 거래소 첫 상장**, 총공모(명목 USD)
+**닷컴 $2.5억 / 현재 $5억 이상**(조사 전에 사전지정, 대략 CPI 2배 차이). 2차·이중 상장(A+H)·SPAC 제외.
+Ritter 도 Nasdaq 캘린더도 이들을 세지 않으므로 **확정월·잠정월 모두** 더한다(ADR 은 종전대로 확정월만).
+- 현재(17, 2023-05~2026-09): Nexchip·SMEC 2023-05(STAR) · Kokusai Electric 2023-10(도쿄) · Horizon Robotics
+  2024-10(홍콩) · Kioxia 2024-12(도쿄) · JX Advanced Metals 2025-03(도쿄) · Tekscend Photomask·ESWIN 2025-10 ·
+  Moore Threads·MetaX 2025-12(STAR) · Biren·Zhipu·MiniMax 2026-01(홍콩) · SJ Semiconductor 2026-04(STAR) ·
+  Momenta 2026-07(홍콩) · CXMT 2026-07(STAR, $86억) · Enflame 2026-09(STAR). 행마다 출처·현지통화·환산.
+- 유럽: 창 안에 임계를 넘는 반도체·AI IPO 가 **없다**(Raspberry Pi ≈ £1.7억, Mistral 미상장).
+  한국·대만·인도도 없음(LG CNS 는 IT 서비스, SK hynix 는 Nasdaq ADS 로 이미 가산).
+- 닷컴(0): 1995~99 미국 밖 반도체·인터넷 IPO 중 $2.5억 이상은 확인되지 않았다. 가장 가까운
+  LG반도체 1996-11·현대전자 1996-12(각 공모 2,000억원 ≈ $240M, 우리사주분 포함 시 넘을 수 있음 [미검증])
+  는 임계 아래로 제외. ASML 1995 ≈ $170M, Tiscali 1999 ≈ $148M, freenet 1999 ≈ $103M, 대만 6사 금액 미확인.
+  Infineon·T-Online·World Online 은 2000년 — 창 밖. **따라서 이 가산은 현재 쪽만 늘리는 비대칭**이다.
+  SPAC 때는 같은 비대칭을 이유로 뺐지만, 이번에는 사용자가 비대칭을 알고 포함을 지시했고 caveat 에 공시한다.
+- 임계 바로 아래 기각: Iluvatar CoreX 2026-01 홍콩 ≈ $476M, Axera 2026-02 ≈ $379M, Innoscience·Black Sesame.
+
+**영향 (같은 스냅샷).** 현재 확정 12개월 합 2025-12 **90 → 95**(+JX 2025-03, Tekscend·ESWIN 2025-10,
+Moore Threads·MetaX 2025-12), 잠정 2026-09 **141 → 152**(+Biren·Zhipu·MiniMax 2026-01, SJ 2026-04, Momenta·CXMT 2026-07, Enflame 2026-09). 닷컴 범위 258~712 불변.
+IPO 위치 −37.0% → **−35.9%**, 대표값 **54% 그대로**(IPO 부문은 최저 부문이라 중앙값에 닿지 않음).
+
+**기록.** `data/contracts/dotcom_overheat_index_v4.yaml`(신규, v1~v3 보존), `theme_adr_additions.csv` →
+`theme_listing_additions.csv`(열 추가: market_country·listing_scope·proceeds_usd_m), `ipo_monthly_counts.py`
+(`load_theme_listing_additions`·`load_theme_listing_pipeline`·잠정월 가산), `statistics_lab.py`(차트 제목·caveat·
+가산 목록·대기 목록·규칙 공시), `dotcom_overheat.py`(`current_date`), 대시보드 패널(자료월), 통계 스냅샷
+오프라인 재구축(IPO 차트만 교체). 지위: reference_only · 참고 의견.
+
+## 2026-10-23 — 닷컴 대비 과열도 v5: 중소 테마 IPO 전수 포함(규모 하한 폐지) · DeepSeek 상장 시 확정 편입 (사용자 결정)
+
+**지시 (사용자, 2026-10-23).** "IPO 카운트에 딥시크 넣는 건 확정이고 유사한 AI 기업들도 다 넣어. IPO 가 너무 중요해졌다.
+닷컴 때도 중소 IPO 가 많아지다가 결국 나락 간 것처럼 중소 AI IPO 도 포함하는 방향으로 전환하고 정밀하게 조사해."
+
+**규칙 — 조사 전에 고정 (2026-10-23T02:44:50Z).** v4 의 대형 임계(닷컴 $2.5억·현재 $5억)를 없애고 **두 시대 모두**
+테마 기업의 첫 상장을 규모와 상장지에 관계없이 센다(닷컴: 인터넷·반도체 / 현재: AI·반도체). 초소형 발행인 전용 시장
+(인도 SME·KONEX·興櫃·新三板·OTC BB)만 제외, 한 회사는 시대마다 한 번, 미국은 ADR 만(보통주는 Ritter net 이 셈).
+규칙 전문: 계약 `dotcom_overheat_index_v5.yaml` 의 theme/size/venue/event/pipeline_rule.
+
+**DeepSeek — '확정' 을 상장 달 편입으로 구현했다.** 2026-10-23 현재 DeepSeek 은 상하이 STAR 상장을 준비(CITIC 주관,
+2026 말 신청·2027 상장 보도, 약 1,000억 위안 사모 라운드 마감 임박)할 뿐 신청서도 내지 않았다. 아직 일어나지 않은
+상장을 지금 건수에 넣으면 존재하지 않는 사건을 기록하게 된다(AGENTS.md 시점 무결성). 그래서 대기 목록에
+`decision=committed` 로 두고 **상장하는 달에 규모와 무관하게 additions 로 옮겨 센다**. 상장된 회사가 대기 목록에 남아
+있으면 로더가 거부한다. 같은 대기 목록: Moonshot AI(홍콩 비공개 신청 보도 2026-09) · Kunlunxin · CCSH/YMTC · Zhaoxin ·
+Unisoc · Anthropic(미국 비공개 S-1 2026-06) · OpenAI. 미국 보통주 상장은 Ritter net·Nasdaq 잠정이 센다.
+
+**전수조사.** 시대·지역 10개 조각 병렬 + 공백 보충 5건 + 독립 검증 1건. 시장×연도마다 공식 총계와 항목별 목록을 구해
+목록 전체를 분류했다(중국 A주 Eastmoney 347건·STAR 연도표, 홍콩 HKEX NLR 전 행, 한국 KIND, 일본 JPX, 대만 TWSE/MOPS,
+Neuer Markt 1997-99 185건, 닷컴 KRX 969코드·일본 2,671사 연혁 등). 결과 **402건**(닷컴 117: 인터넷 53·반도체 64 /
+현재 285: AI 81·반도체 204). 층화 무작위 65행 독립 검증: 월·첫 상장·테마·공모액 **틀림 0**, 확인 불가 10·7·4·6.
+상세·공백·경계 사례: `data/statistics/ipo/theme_listing_census_v5.md`.
+
+**큐레이션.** 해외 IPO 와 동시에 미국 보통주를 상장한 STMicro·ASML·Besi·Cybernet 은 Ritter net 이중 계상을 막으려 제외
+(ADS 였던 ARM·Freeserve·QXL·ebookers·Chartered 는 한 번만 셈). 검증이 지적한 IQE(합병 상장 의심)·musicmusicmusic(테마
+의심) 제외, 디스플레이용 포토마스크 주력 路维光电 제외.
+
+**영향 (같은 스냅샷).** 닷컴 12개월 합 범위 258~712 → **275~721**, 같은 35개월차 474 → 490. 현재 확정 2025-12
+**95 → 137**, 잠정 2026-09 **152 → 218**. IPO 위치 −35.9% → **−30.9%**. 대표값 **54% 그대로**(IPO 는 여전히 최저 부문).
+현재 쪽 증가는 주로 중국 STAR(2022-23 반도체 소부장 상장 붐)·한국 KOSDAQ·대만·홍콩 18C AI 상장이다.
+
+**한계.** 미국 쪽은 전 업종, 가산 쪽은 테마만 — 혼합 척도. 닷컴 쪽은 Nouveau Marché 1999·영국 AIM 소형·홍콩 1994-98이,
+현재 쪽은 동남아·TASE·북유럽 소형이 덜 덮였다(KNOWN_LIMITS 37). 지위: reference_only · 참고 의견.
+

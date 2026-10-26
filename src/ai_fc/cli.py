@@ -718,13 +718,20 @@ def cmd_timeseries_v8_verify() -> None:
 def cmd_timeseries_daily6m_forecast(
     as_of: str | None = typer.Option(None, "--as-of", help="시간대가 있는 발행 시각"),
     supersedes: str | None = typer.Option(None, "--supersedes", help="정정할 기존 연구 forecast ID"),
+    refresh_latest: bool = typer.Option(False, "--refresh-latest", help="최신 완료 세션은 이력을 보존한 새 revision으로 반영"),
 ) -> None:
     """주간 6개월 공동 일별 경로를 별도 연구 원장에 추가한다 (기존 모델 불변)."""
     from .timeseries_daily6m.pipeline import forecast_timeseries_daily6m
 
-    result = _timeseries_exit(forecast_timeseries_daily6m, config.ROOT, as_of=as_of, supersedes=supersedes)
+    if refresh_latest:
+        if supersedes is not None:
+            raise typer.BadParameter("--refresh-latest와 --supersedes는 함께 사용할 수 없습니다")
+        from .timeseries_daily6m.refresh import refresh_timeseries_daily6m
+        result = _timeseries_exit(refresh_timeseries_daily6m, config.ROOT, as_of=as_of)
+    else:
+        result = _timeseries_exit(forecast_timeseries_daily6m, config.ROOT, as_of=as_of, supersedes=supersedes)
     typer.echo(json.dumps({key: result.get(key) for key in (
-        "status", "run_id", "forecast_id", "as_of", "anchor_date", "forecast_end_date", "skipped", "gate",
+        "status", "run_id", "forecast_id", "as_of", "anchor_date", "forecast_end_date", "skipped", "supersedes", "refresh_policy", "gate",
     )}, ensure_ascii=False, indent=2))
 
 
@@ -779,6 +786,22 @@ def cmd_timeseries_v13_vol_resolve() -> None:
 
     result = _timeseries_exit(resolve_live_timeseries_v13_vol, config.ROOT)
     typer.echo(json.dumps(result, ensure_ascii=False, indent=2))
+
+
+@app.command("timeseries-v13-vol-live-verdict")
+def cmd_timeseries_v13_vol_live_verdict(
+    draws: int = typer.Option(120, "--draws", help="y-block 귀무 추출 수 (holdout 과 동일 기본 120)"),
+    as_json: bool = typer.Option(False, "--json", help="표 대신 JSON 전체를 출력"),
+) -> None:
+    """V13-VOL 라이브 전진 판정 **산술만** 인쇄한다 (읽기 전용 — 원장·포인터·계약 무수정, 강등 적용 없음).
+
+    셀당 성숙 원점 60 미만이면 '표본 부족'만, 60 이상이면 계약 live_forward_gate 의 쌍대 손실차 CI90·
+    y-block 귀무·degeneracy_guard·T7 집계를 그대로 계산한다. 결과 전에 만든 판정 코드다.
+    """
+    from .timeseries_v13.live_verdict import live_verdict, main_json, render_table
+
+    result = _timeseries_exit(live_verdict, config.ROOT, draws=draws)
+    typer.echo(main_json(result) if as_json else render_table(result))
 
 
 @app.command("timeseries-v13-vol-holdout")
@@ -1635,6 +1658,15 @@ def cmd_signals(
         raise typer.Exit(code=1)
 
 
+@app.command("fear-greed-components-refresh")
+def cmd_fear_greed_components_refresh() -> None:
+    """무료 공개 API의 구성요소 7종을 수집·검증한다(표시 전용)."""
+    from .fear_greed_components import refresh
+
+    pointer = refresh(config.ROOT)
+    typer.echo(f"구성요소 7종 · {pointer['source_as_of']} · {pointer['snapshot_id']}")
+
+
 @app.command("wait-for-close")
 def cmd_wait_for_close(
     deadline_utc: str = typer.Option("23:30", "--deadline-utc", help="이 시각(UTC)까지만 기다린다"),
@@ -2392,7 +2424,13 @@ def cmd_vol_wiring_status() -> None:
     from .vol_base_rate_wiring import wiring_status
 
     status = wiring_status(config.ROOT)
-    typer.echo(f"자격 셀(홀드아웃 통과 ∧ 국면 가드 통과): {', '.join(status['eligible_cells']) or '(없음)'}")
+    typer.echo(f"자격 셀(홀드아웃 통과 ∧ 국면 가드 통과 ∧ 라이브 판정불가(제한) 아님): {', '.join(status['eligible_cells']) or '(없음)'}")
+    blocked = status.get("blocked_by_claim_restriction") or []
+    if blocked:  # V13-D13 — 계약 자격은 있으나 라이브 라벨(사건<20·국면<5)로 막힌 셀
+        reasons = status.get("claim_block_reasons") or {}
+        typer.echo("판정불가(제한) 차단: " + ", ".join(f"{c}[{'·'.join(reasons.get(c, []))}]" for c in blocked))
+    if status.get("scoreboard_error"):
+        typer.echo(f"라이브 성적표 읽기 실패(페일클로즈): {status['scoreboard_error']}")
     typer.echo(f"매핑된 셀: {', '.join(status['mapped_cells']) or '(없음)'}")
     typer.echo(f"배선 대상: {status['targets']}건 · 페일클로즈 {status['fail_closed']}")
     typer.echo(f"사유: {status['reason']}")
@@ -2405,6 +2443,25 @@ def cmd_notify(test: bool = typer.Option(False, "--test")) -> None:
     from .notify import send_message
     ok = send_message("ai-fc 알림 테스트 ✅" if test else "ai-fc")
     typer.echo("발송 성공" if ok else "발송 실패 (토큰/챗ID 확인)")
+
+
+@app.command("ml-reference-resolve")
+def cmd_ml_reference_resolve(
+    dry_run: bool = typer.Option(False, "--dry-run", help="원장 append 없이 후보 행만 인쇄"),
+) -> None:
+    """ML 참조 채점 원장 append — ML_M4_REFERENCE_SCORING (라이브 전진만 · 기록·표시만 · 게이트 무관)."""
+    from .ml.reference_scoring import render_resolve, resolve_reference
+
+    result = resolve_reference(config.ROOT, dry_run=dry_run)
+    typer.echo(render_resolve(result))
+
+
+@app.command("ml-reference-status")
+def cmd_ml_reference_status() -> None:
+    """ML 참조 채점 요약 — pre_registration 행 제외 n·평균 Brier·커버리지 (판정 없음)."""
+    from .ml.reference_scoring import render_status, summarize
+
+    typer.echo(render_status(summarize(config.ROOT)))
 
 
 def main() -> None:

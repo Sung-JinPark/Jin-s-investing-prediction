@@ -1032,8 +1032,69 @@ console.log(JSON.stringify({results:checks.map(item=>buildOriginalDailyFlowModel
     assert "일간 대표 경로 보류 · 기존 주간 기준선 표시" in source
     assert "S1 시나리오 비중" in source and "최빈군 대표 경로" in source
     assert "horizon='six_months'" in source
-    css = (Path(__file__).parents[1] / "ai_fc" / "dashboard_parts" / "dashboard.css").read_text(encoding="utf-8")
-    assert ".daily-flow-readout{display:grid" in css, "모바일도 선택 거래일·값을 그림 밖에서 읽어야 한다"
+    assert 'class="daily-flow-readout"' not in source
+    assert 'class="sr-only" role="status" aria-live="polite" data-daily-flow-readout' in source
+
+
+def test_original_daily_details_remain_available_on_touch_and_keyboard() -> None:
+    source = _dashboard_source()
+    renderer = re.search(r"function drawOriginalDailyFlow\([\s\S]+?\n}\n", source)
+    placement = re.search(r"function tsPlaceTip\([\s\S]+?\n}\n", source)
+    assert renderer and placement
+    program = r"""
+class Node {
+  constructor(tag,html=''){this.tag=tag;this.html=html;this.attrs={};this.style={};this.children=[];this.events={};this.dataset={};this.innerHTML='';}
+  setAttribute(key,value){this.attrs[key]=String(value);}
+  appendChild(node){this.children.push(node);return node;}
+  append(...nodes){this.children.push(...nodes);}
+  replaceChildren(...nodes){this.children=nodes;}
+  addEventListener(key,handler){this.events[key]=handler;}
+  getBoundingClientRect(){return {left:16,top:120,width:358,height:185};}
+  focus(){this.focused=true;}
+}
+let fine=false;
+const tip=new Node('tip');tip.style.display='none';tip.offsetWidth=300;tip.offsetHeight=110;
+const document={createElementNS:(_,tag)=>new Node(tag),getElementById:()=>tip};
+const window={innerWidth:390,innerHeight:844,matchMedia:()=>({matches:fine})};
+const el=html=>new Node('div',html),esc=String,num=String,CHART_COL={S1:'#123'},CHART_LABEL_COL=CHART_COL;
+const trackDay=day=>Date.parse(day),flowEventLayout=()=>[],flowAxisTickIndexes=()=>[0,1,2];
+const resolveEndpointLabels=rows=>rows.map(row=>({...row,labelY:row.y}));
+const model={dates:['2026-10-09','2026-10-12','2026-10-13'],values:[100,105,103],
+ conditionalBands:{p10:[95,96,97],p25:[98,99,100],p50:[100,101,102],p75:[104,105,106],p90:[108,109,110]},
+ actual:[],events:[],riskValues:[0,.1,.2],riskLevels:['저','저','중'],calendarEnd:'2026-10-13',
+ scenario:'S1',scenarioProbability:.92,memberPathIndex:7,anchor:100,startDay:Date.parse('2026-10-09'),endDay:Date.parse('2026-10-13')};
+const sc={asof:'2026-10-09',ath:120,corr10:90},before=JSON.stringify(model);
+""" + placement.group(0) + renderer.group(0) + r"""
+const host=new Node('host');drawOriginalDailyFlow(host,sc,model);
+const [svg,live]=host.children,hit=svg.children.at(-1),initiallyHidden=tip.style.display==='none';
+const touch={clientX:385,clientY:830,pointerType:'touch'};
+hit.events.pointerdown(touch);hit.events.pointerleave(touch);
+const touchVisible=tip.style.display==='block'&&tip.innerHTML.includes('2026-10-13');
+const inViewport=parseFloat(tip.style.left)>=4&&parseFloat(tip.style.left)+tip.offsetWidth<=window.innerWidth&&parseFloat(tip.style.top)+tip.offsetHeight<=window.innerHeight;
+svg.events.keydown({key:'Home',preventDefault(){}});
+const home=svg.attrs['data-cursor-date'];
+svg.events.keydown({key:'ArrowRight',preventDefault(){}});
+const right=svg.attrs['data-cursor-date'],keyboardVisible=tip.style.display==='block'&&tip.innerHTML.includes(right);
+svg.events.keydown({key:'End',preventDefault(){}});
+const end=svg.attrs['data-cursor-date'];
+fine=true;const mouseHost=new Node('host');tip.style.display='none';drawOriginalDailyFlow(mouseHost,sc,model);
+const mouseHit=mouseHost.children[0].children.at(-1);
+mouseHit.events.pointermove({clientX:180,clientY:200,pointerType:'mouse'});
+const hoverVisible=tip.style.display==='block';mouseHit.events.pointerleave({pointerType:'mouse'});
+console.log(JSON.stringify({initiallyHidden,touchVisible,inViewport,home,right,end,keyboardVisible,hoverVisible,
+ mouseLeaveHides:tip.style.display==='none',focused:svg.focused,live:live.html,
+ noVisibleSummary:host.children.every(node=>!node.html.includes('class="daily-flow-readout"')),
+ liveUpdated:live.innerHTML.includes('2026-10-13'),unchanged:before===JSON.stringify(model)}));
+"""
+    result = _run_js_file(program)
+    for flag in ("initiallyHidden", "touchVisible", "inViewport", "keyboardVisible",
+                 "hoverVisible", "mouseLeaveHides", "focused", "noVisibleSummary",
+                 "liveUpdated", "unchanged"):
+        assert result[flag], flag
+    assert 'class="sr-only"' in result["live"] and 'aria-live="polite"' in result["live"]
+    assert [result["home"], result["right"], result["end"]] == [
+        "2026-10-09", "2026-10-12", "2026-10-13",
+    ]
 
 
 def test_daily_flow_fetch_rejects_mixed_artifact_identity_before_assigning() -> None:

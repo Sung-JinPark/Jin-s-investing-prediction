@@ -1,0 +1,136 @@
+{
+  "as_of": "2026-10-16",
+  "content_hash": "4ad46374740b15b73c288635196ef3436328231888e68a3f28702495f9f38616",
+  "contract_hash": "0ca655293c7b91812a3e6e68393a66667281864f81936a014e7382c4d68b776d",
+  "factor_parameter_pit": {
+    "mode": "single_training_cutoff_filtered_history",
+    "origin_specific": false
+  },
+  "knowledge_cutoff": "2026-10-24T07:39:20+00:00",
+  "model_id": "shadow.mf_dfm_ridge_varx_v1",
+  "model_version": 1,
+  "reasons": [
+    "PIT common sample has fewer than 800 completed sessions"
+  ],
+  "run_id": "ts-fit-hold-cef990be80770d11431a5375",
+  "schema_version": 1,
+  "source_hash": "ce3e99ccefe0e3cb1ef0fd5b3f231849f6715b6650bbc95210c67f396247d240",
+  "source_snapshot": {
+    "recorded_at": "2026-10-24T07:40:13+00:00",
+    "row_count": 1519027,
+    "schema_version": 1,
+    "series": {
+      "BAMLH0A0HYM2": {
+        "count": 832,
+        "merkle_root": "0aaf88576da829c97b17e0c3fd183d6fbdca79f16eb7ad8777aa8a5dc70f4508"
+      },
+      "CPIAUCSL": {
+        "count": 1924,
+        "merkle_root": "e515944ce2ec55e3de60d8ce2d42ec416ee1b9bc1dd01a01631548d32c8d57a4"
+      },
+      "CPILFESL": {
+        "count": 1781,
+        "merkle_root": "3b23decb7670785109d02e3f9576d7157757e9b0c33c74642cef509a929fe038"
+      },
+      "DFF": {
+        "count": 9453,
+        "merkle_root": "0166a9d2fe2c6d528f185ef270f33db6c461fb1857becf04bd139927f1aca592"
+      },
+      "DGS2": {
+        "count": 5340,
+        "merkle_root": "440fdffd12416cde97ab99b3a622011466c38c59e3f4ec31910d438f745ca6f5"
+      },
+      "DTWEXB": {
+        "count": 28690,
+        "merkle_root": "3347deef974d238cc2e9bf480468effe1bffac9b45ca259b1f0f30754954e417"
+      },
+      "DTWEXBGS": {
+        "count": 18473,
+        "merkle_root": "f30da99af0d2c99c35c6438bc8c99f47a6fba71a2b978324e6795e028be31b2d"
+      },
+      "GDPC1": {
+        "count": 3853,
+        "merkle_root": "e5e9b1e72afe879c0177b09580d82f3d8c02ba09f435f82599c35b3f0ec91b56"
+      },
+      "HOUST": {
+        "count": 2170,
+        "merkle_root": "2acda4196959a781e9624395b265acdd71315b196327c137febd74175ee9aab3"
+      },
+      "INDPRO": {
+        "count": 31430,
+        "merkle_root": "99c158afe725c0b8ec1a23130c6644d9620b783fe9ec06b824f6e81e3e379a3c"
+      },
+      "M2SL": {
+        "count": 22979,
+        "merkle_root": "56a47f4a0ba62c8eec04e25da8f823e5677ea1a7f45a25a63938136187077a9f"
+      },
+      "NASDAQCOM": {
+        "count": 4800,
+        "merkle_root": "0b6da885ca32b601a750ca5595c1ec4483077774b35ebed0eaf39e04c5e83e4d"
+      },
+      "NFCI": {
+        "count": 929536,
+        "merkle_root": "03017c11ff9ef4bfc54f696134f6570239b8bc198e66ad934dc24538b3d4fafd"
+      },
+      "PAYEMS": {
+        "count": 7621,
+        "merkle_root": "1a8597e6fd6cea2c7057d96789951bc30cb2da461c4de95730ae0b6ef3748a8e"
+      },
+      "PCEPI": {
+        "count": 7666,
+        "merkle_root": "1b721899aa543db3e8e64753ab743d479b0f9b5e6b4a00d10e9efd2774bbd106"
+      },
+      "PCEPILFE": {
+        "count": 7706,
+        "merkle_root": "4d55cd32c5e0cdd003e80ae7d98df86db6082dc5910d9c26c584c597a9a55adc"
+      },
+      "RRPONTSYD": {
+        "count": 3791,
+        "merkle_root": "7b34d7417c16d24ae70f30548889aba034472f7521e4bc91d11c9de5614d1d42"
+      },
+      "RSAFS": {
+        "count": 5453,
+        "merkle_root": "d22206093fefaac2061350a2422c165996ebbf1832b65a2c93ea17eb870c9c24"
+      },
+      "T10Y2Y": {
+        "count": 3191,
+        "merkle_root": "5e1d688d2bda515b882f0ab0f27c8b337d198f6485eb8f2b3006c0c7aabd8dc8"
+      },
+      "TOTCI": {
+        "count": 166773,
+        "merkle_root": "8040d2be43e4c1ba2241793940cbc8846bbcbcfb175dc784dd303ed0ba5b2126"
+      },
+      "TOTLL": {
+        "count": 191548,
+        "merkle_root": "8c5134afe7420f40237d0748d0646ef86c217ed68f96fa23d809a97f73d43466"
+      },
+      "UNRATE": {
+        "count": 754,
+        "merkle_root": "c028562dfcd7408cac6db5b6988e8a5888f259fe61361735857e5b96c0d2b3fe"
+      },
+      "VIXCLS": {
+        "count": 4056,
+        "merkle_root": "e27e9d4473d1ba888deb2b2e6191fd7c44916ef0f796da2a91ec81eda120e022"
+      },
+      "WALCL": {
+        "count": 1337,
+        "merkle_root": "ccfb320f104758328394a940ed346f98a7aded7efac5e8453bdc5e0f432d0d73"
+      },
+      "WRMFNS": {
+        "count": 55681,
+        "merkle_root": "359c314c1efd76c8698d45117ca548a9670e2a340b75911d83f8d7145fd37d43"
+      },
+      "WTREGEN": {
+        "count": 2189,
+        "merkle_root": "ef4015b28e77f54e387d8834760e0db1ebef8ca87bf87f8a4ff80f84889476ad"
+      }
+    }
+  },
+  "status": "validation_hold",
+  "training": {
+    "end": "2026-10-16",
+    "missing_features": [],
+    "sessions": 783,
+    "start": "2023-08-24"
+  }
+}

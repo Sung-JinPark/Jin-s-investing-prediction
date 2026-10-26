@@ -5,10 +5,15 @@
   "probability_space": "reference_only",
   "model_use": false,
   "official_forecast_input": false,
-  "generated_at": "2026-10-19T13:18:18+00:00",
-  "knowledge_cutoff": "2026-10-19T13:18:18+00:00",
-  "observation_through": "2026-10-18",
-  "as_of": "2026-10-18",
+  "generated_at": "2026-10-25T10:59:34+00:00",
+  "knowledge_cutoff": "2026-10-25T10:59:34+00:00",
+  "observation_through": "2026-10-24",
+  "as_of": "2026-10-24",
+  "source_refresh": {
+    "state": "current",
+    "waiting_series": [],
+    "native_series": []
+  },
   "cycle_alignment": {
     "dotcom_start": "1995-01-01",
     "dotcom_end": "1999-12-31",
@@ -111,11 +116,11 @@
     },
     {
       "id": "ipo_count_operating_12m",
-      "title": "미국 IPO 건수: 최근 12개월",
+      "title": "IPO 건수: 최근 12개월",
       "category": "ipo",
       "unit": "count",
       "description": "운영기업 IPO 12개월 합계, 닷컴과 같은 경과월 비교.",
-      "caveat": "점선 잠정치는 거래소 캘린더 근사라 확정치보다 많이 세며 과열도 지수에 쓰지 않습니다. 확정치는 Ritter 순(net) 건수로 SPAC·펀드·REIT·유닛·ADR·공모가 $5 미만·은행·LP를 빼며 연 1회 개정됩니다. 단 시대 핵심 외국기업의 미국 ADR 상장(닷컴: 반도체·인터넷, 현재: 반도체·AI)은 출처를 단 목록만 다시 더합니다. SPAC은 닷컴기(1995~99) 7건뿐인 소형 장외 블랭크체크라 비교 계열이 없어 계속 뺍니다. 잠정 근사 필터 대 확정치 실측: 2023 87건 vs 54건 · 2024 103건 vs 72건 · 2025 116건 vs 90건.",
+      "caveat": "점선 잠정치는 거래소 캘린더 근사라 확정치보다 많이 세며 과열도 지수에 쓰지 않습니다. 확정치는 Ritter 순(net) 미국 운영기업 IPO(전 업종, SPAC·펀드·REIT·유닛·ADR·공모가 $5 미만·은행·LP 제외)에 테마 기업 상장을 규모와 상장지에 관계없이 더한 값입니다 — 닷컴: 인터넷·반도체, 현재: AI·반도체, 미국 ADR과 미국 밖 거래소 첫 상장(중소형 포함, 초소형 전용 시장 제외). 출처를 단 회사 단위 목록: 닷컴 117건 · 현재 285건. 미국 쪽은 전 업종, 해외 쪽은 테마만 세므로 혼합 척도입니다. 상장 대기 기업(DeepSeek 등)은 상장한 달부터 셉니다. SPAC은 닷컴기 7건뿐인 소형 장외 블랭크체크라 비교 계열이 없어 계속 뺍니다. 잠정 근사 필터 대 확정치 실측: 2023 87건 vs 54건 · 2024 103건 vs 72건 · 2025 116건 vs 90건.",
       "series": [
         {
           "label": "닷컴",
@@ -125,302 +130,302 @@
             {
               "period": 0,
               "date": "1995-01-01",
-              "value": 391.0
+              "value": 395.0
             },
             {
               "period": 1,
               "date": "1995-02-01",
-              "value": 367.0
+              "value": 371.0
             },
             {
               "period": 2,
               "date": "1995-03-01",
-              "value": 347.0
+              "value": 352.0
             },
             {
               "period": 3,
               "date": "1995-04-01",
-              "value": 337.0
+              "value": 343.0
             },
             {
               "period": 4,
               "date": "1995-05-01",
-              "value": 317.0
+              "value": 324.0
             },
             {
               "period": 5,
               "date": "1995-06-01",
-              "value": 327.0
+              "value": 334.0
             },
             {
               "period": 6,
               "date": "1995-07-01",
-              "value": 348.0
+              "value": 355.0
             },
             {
               "period": 7,
               "date": "1995-08-01",
-              "value": 356.0
+              "value": 363.0
             },
             {
               "period": 8,
               "date": "1995-09-01",
-              "value": 360.0
+              "value": 367.0
             },
             {
               "period": 9,
               "date": "1995-10-01",
-              "value": 379.0
+              "value": 386.0
             },
             {
               "period": 10,
               "date": "1995-11-01",
-              "value": 418.0
+              "value": 425.0
             },
             {
               "period": 11,
               "date": "1995-12-01",
-              "value": 457.0
+              "value": 465.0
             },
             {
               "period": 12,
               "date": "1996-01-01",
-              "value": 469.0
+              "value": 477.0
             },
             {
               "period": 13,
               "date": "1996-02-01",
-              "value": 502.0
+              "value": 510.0
             },
             {
               "period": 14,
               "date": "1996-03-01",
-              "value": 537.0
+              "value": 546.0
             },
             {
               "period": 15,
               "date": "1996-04-01",
-              "value": 566.0
+              "value": 575.0
             },
             {
               "period": 16,
               "date": "1996-05-01",
-              "value": 614.0
+              "value": 622.0
             },
             {
               "period": 17,
               "date": "1996-06-01",
-              "value": 638.0
+              "value": 646.0
             },
             {
               "period": 18,
               "date": "1996-07-01",
-              "value": 644.0
+              "value": 653.0
             },
             {
               "period": 19,
               "date": "1996-08-01",
-              "value": 658.0
+              "value": 667.0
             },
             {
               "period": 20,
               "date": "1996-09-01",
-              "value": 672.0
+              "value": 683.0
             },
             {
               "period": 21,
               "date": "1996-10-01",
-              "value": 712.0
+              "value": 721.0
             },
             {
               "period": 22,
               "date": "1996-11-01",
-              "value": 703.0
+              "value": 713.0
             },
             {
               "period": 23,
               "date": "1996-12-01",
-              "value": 676.0
+              "value": 686.0
             },
             {
               "period": 24,
               "date": "1997-01-01",
-              "value": 680.0
+              "value": 692.0
             },
             {
               "period": 25,
               "date": "1997-02-01",
-              "value": 670.0
+              "value": 682.0
             },
             {
               "period": 26,
               "date": "1997-03-01",
-              "value": 638.0
+              "value": 649.0
             },
             {
               "period": 27,
               "date": "1997-04-01",
-              "value": 607.0
+              "value": 617.0
             },
             {
               "period": 28,
               "date": "1997-05-01",
-              "value": 558.0
+              "value": 569.0
             },
             {
               "period": 29,
               "date": "1997-06-01",
-              "value": 538.0
+              "value": 549.0
             },
             {
               "period": 30,
               "date": "1997-07-01",
-              "value": 533.0
+              "value": 544.0
             },
             {
               "period": 31,
               "date": "1997-08-01",
-              "value": 517.0
+              "value": 530.0
             },
             {
               "period": 32,
               "date": "1997-09-01",
-              "value": 510.0
+              "value": 523.0
             },
             {
               "period": 33,
               "date": "1997-10-01",
-              "value": 476.0
+              "value": 489.0
             },
             {
               "period": 34,
               "date": "1997-11-01",
-              "value": 480.0
+              "value": 496.0
             },
             {
               "period": 35,
               "date": "1997-12-01",
-              "value": 474.0
+              "value": 490.0
             },
             {
               "period": 36,
               "date": "1998-01-01",
-              "value": 461.0
+              "value": 475.0
             },
             {
               "period": 37,
               "date": "1998-02-01",
-              "value": 453.0
+              "value": 468.0
             },
             {
               "period": 38,
               "date": "1998-03-01",
-              "value": 453.0
+              "value": 470.0
             },
             {
               "period": 39,
               "date": "1998-04-01",
-              "value": 466.0
+              "value": 483.0
             },
             {
               "period": 40,
               "date": "1998-05-01",
-              "value": 475.0
+              "value": 492.0
             },
             {
               "period": 41,
               "date": "1998-06-01",
-              "value": 469.0
+              "value": 487.0
             },
             {
               "period": 42,
               "date": "1998-07-01",
-              "value": 463.0
+              "value": 482.0
             },
             {
               "period": 43,
               "date": "1998-08-01",
-              "value": 445.0
+              "value": 464.0
             },
             {
               "period": 44,
               "date": "1998-09-01",
-              "value": 407.0
+              "value": 425.0
             },
             {
               "period": 45,
               "date": "1998-10-01",
-              "value": 353.0
+              "value": 373.0
             },
             {
               "period": 46,
               "date": "1998-11-01",
-              "value": 300.0
+              "value": 316.0
             },
             {
               "period": 47,
               "date": "1998-12-01",
-              "value": 284.0
+              "value": 299.0
             },
             {
               "period": 48,
               "date": "1999-01-01",
-              "value": 280.0
+              "value": 295.0
             },
             {
               "period": 49,
               "date": "1999-02-01",
-              "value": 270.0
+              "value": 286.0
             },
             {
               "period": 50,
               "date": "1999-03-01",
-              "value": 260.0
+              "value": 276.0
             },
             {
               "period": 51,
               "date": "1999-04-01",
-              "value": 258.0
+              "value": 275.0
             },
             {
               "period": 52,
               "date": "1999-05-01",
-              "value": 270.0
+              "value": 288.0
             },
             {
               "period": 53,
               "date": "1999-06-01",
-              "value": 275.0
+              "value": 299.0
             },
             {
               "period": 54,
               "date": "1999-07-01",
-              "value": 298.0
+              "value": 325.0
             },
             {
               "period": 55,
               "date": "1999-08-01",
-              "value": 319.0
+              "value": 349.0
             },
             {
               "period": 56,
               "date": "1999-09-01",
-              "value": 358.0
+              "value": 390.0
             },
             {
               "period": 57,
               "date": "1999-10-01",
-              "value": 415.0
+              "value": 452.0
             },
             {
               "period": 58,
               "date": "1999-11-01",
-              "value": 456.0
+              "value": 499.0
             },
             {
               "period": 59,
               "date": "1999-12-01",
-              "value": 481.0
+              "value": 537.0
             }
           ]
         },
@@ -432,182 +437,182 @@
             {
               "period": 0,
               "date": "2023-01-01",
-              "value": 38.0
+              "value": 118.0
             },
             {
               "period": 1,
               "date": "2023-02-01",
-              "value": 35.0
+              "value": 114.0
             },
             {
               "period": 2,
               "date": "2023-03-01",
-              "value": 37.0
+              "value": 116.0
             },
             {
               "period": 3,
               "date": "2023-04-01",
-              "value": 36.0
+              "value": 114.0
             },
             {
               "period": 4,
               "date": "2023-05-01",
-              "value": 36.0
+              "value": 115.0
             },
             {
               "period": 5,
               "date": "2023-06-01",
-              "value": 40.0
+              "value": 116.0
             },
             {
               "period": 6,
               "date": "2023-07-01",
-              "value": 43.0
+              "value": 112.0
             },
             {
               "period": 7,
               "date": "2023-08-01",
-              "value": 44.0
+              "value": 112.0
             },
             {
               "period": 8,
               "date": "2023-09-01",
-              "value": 48.0
+              "value": 118.0
             },
             {
               "period": 9,
               "date": "2023-10-01",
-              "value": 50.0
+              "value": 116.0
             },
             {
               "period": 10,
               "date": "2023-11-01",
-              "value": 56.0
+              "value": 120.0
             },
             {
               "period": 11,
               "date": "2023-12-01",
-              "value": 55.0
+              "value": 118.0
             },
             {
               "period": 12,
               "date": "2024-01-01",
-              "value": 55.0
+              "value": 115.0
             },
             {
               "period": 13,
               "date": "2024-02-01",
-              "value": 61.0
+              "value": 122.0
             },
             {
               "period": 14,
               "date": "2024-03-01",
-              "value": 64.0
+              "value": 120.0
             },
             {
               "period": 15,
               "date": "2024-04-01",
-              "value": 68.0
+              "value": 118.0
             },
             {
               "period": 16,
               "date": "2024-05-01",
-              "value": 70.0
+              "value": 115.0
             },
             {
               "period": 17,
               "date": "2024-06-01",
-              "value": 69.0
+              "value": 112.0
             },
             {
               "period": 18,
               "date": "2024-07-01",
-              "value": 69.0
+              "value": 109.0
             },
             {
               "period": 19,
               "date": "2024-08-01",
-              "value": 66.0
+              "value": 102.0
             },
             {
               "period": 20,
               "date": "2024-09-01",
-              "value": 67.0
+              "value": 99.0
             },
             {
               "period": 21,
               "date": "2024-10-01",
-              "value": 74.0
+              "value": 107.0
             },
             {
               "period": 22,
               "date": "2024-11-01",
-              "value": 71.0
+              "value": 102.0
             },
             {
               "period": 23,
               "date": "2024-12-01",
-              "value": 74.0
+              "value": 111.0
             },
             {
               "period": 24,
               "date": "2025-01-01",
-              "value": 76.0
+              "value": 116.0
             },
             {
               "period": 25,
               "date": "2025-02-01",
-              "value": 75.0
+              "value": 116.0
             },
             {
               "period": 26,
               "date": "2025-03-01",
-              "value": 74.0
+              "value": 117.0
             },
             {
               "period": 27,
               "date": "2025-04-01",
-              "value": 67.0
+              "value": 108.0
             },
             {
               "period": 28,
               "date": "2025-05-01",
-              "value": 69.0
+              "value": 109.0
             },
             {
               "period": 29,
               "date": "2025-06-01",
-              "value": 75.0
+              "value": 116.0
             },
             {
               "period": 30,
               "date": "2025-07-01",
-              "value": 80.0
+              "value": 126.0
             },
             {
               "period": 31,
               "date": "2025-08-01",
-              "value": 84.0
+              "value": 130.0
             },
             {
               "period": 32,
               "date": "2025-09-01",
-              "value": 87.0
+              "value": 131.0
             },
             {
               "period": 33,
               "date": "2025-10-01",
-              "value": 85.0
+              "value": 126.0
             },
             {
               "period": 34,
               "date": "2025-11-01",
-              "value": 86.0
+              "value": 129.0
             },
             {
               "period": 35,
               "date": "2025-12-01",
-              "value": 90.0
+              "value": 137.0
             }
           ]
         },
@@ -619,52 +624,52 @@
             {
               "period": 35,
               "date": "2025-12-01",
-              "value": 90.0
+              "value": 137.0
             },
             {
               "period": 36,
               "date": "2026-01-01",
-              "value": 93.0
+              "value": 143.0
             },
             {
               "period": 37,
               "date": "2026-02-01",
-              "value": 103.0
+              "value": 152.0
             },
             {
               "period": 38,
               "date": "2026-03-01",
-              "value": 104.0
+              "value": 153.0
             },
             {
               "period": 39,
               "date": "2026-04-01",
-              "value": 118.0
+              "value": 174.0
             },
             {
               "period": 40,
               "date": "2026-05-01",
-              "value": 131.0
+              "value": 194.0
             },
             {
               "period": 41,
               "date": "2026-06-01",
-              "value": 137.0
+              "value": 202.0
             },
             {
               "period": 42,
               "date": "2026-07-01",
-              "value": 142.0
+              "value": 210.0
             },
             {
               "period": 43,
               "date": "2026-08-01",
-              "value": 146.0
+              "value": 217.0
             },
             {
               "period": 44,
               "date": "2026-09-01",
-              "value": 141.0
+              "value": 218.0
             }
           ],
           "provisional": true,
@@ -675,12 +680,12 @@
         "RITTER_IPOALL_MONTHLY"
       ],
       "range": {
-        "minimum": 35.0,
-        "maximum": 712.0
+        "minimum": 99.0,
+        "maximum": 721.0
       },
-      "scope_note": "*미국 운영기업 IPO + 시대 핵심 ADR 기준",
+      "scope_note": "*미국 운영기업 IPO + 테마 기업 해외·ADR 상장(규모 무관) 기준",
       "insight": "운영기업 IPO 12개월 합계, 닷컴과 같은 경과월 비교.",
-      "conclusion": "최근 12개월 90건(2025-12 확정) — 닷컴 같은 35개월차 474건, 닷컴 최대 712건. 잠정 141건(2026-09까지).",
+      "conclusion": "최근 12개월 137건(2025-12 확정) — 닷컴 같은 35개월차 490건, 닷컴 최대 721건. 잠정 218건(2026-09까지). 상장 대기 8건(DeepSeek · Moonshot AI (Kimi) 등) — 상장 달부터 집계.",
       "metric_source_ids": [
         "RITTER_IPOALL_MONTHLY"
       ],
@@ -689,128 +694,318 @@
       "line_markers": false,
       "projection_max_points": 24,
       "observed_end_label": "최신",
-      "definition": "ritter_net_plus_theme_adr_ipos_trailing_12_month_sum",
-      "theme_adr_additions": [
-        {
-          "month": "1996-05",
-          "era": "dotcom",
-          "theme": "semiconductor",
-          "company": "Macronix International",
-          "ticker": "",
-          "exchange": "Nasdaq",
-          "source_url": "https://www.sec.gov/Archives/edgar/data/0001009680/000114554906001020/h00650e20vf.htm"
+      "definition": "ritter_net_plus_theme_listings_trailing_12_month_sum",
+      "theme_listing_source": {
+        "path": "data/statistics/ipo/theme_listing_additions.csv",
+        "rows": 402,
+        "sha256": "9e1d5577a686304b2adc2eff3f9a227dfcad201eee0882291f805d36db9a225f"
+      },
+      "theme_listing_summary": {
+        "ai": {
+          "count": 285,
+          "by_theme": {
+            "ai": 81,
+            "semiconductor": 204
+          },
+          "by_scope": {
+            "foreign_primary": 278,
+            "us_adr": 7
+          },
+          "by_country": {
+            "AE": 2,
+            "AU": 2,
+            "CN": 102,
+            "FR": 2,
+            "GB": 3,
+            "HK": 38,
+            "IL": 1,
+            "IN": 1,
+            "IT": 1,
+            "JP": 22,
+            "KR": 53,
+            "MY": 6,
+            "SE": 2,
+            "TW": 43,
+            "US": 7
+          },
+          "by_year": {
+            "2022": 77,
+            "2023": 64,
+            "2024": 39,
+            "2025": 47,
+            "2026": 58
+          },
+          "with_proceeds": 230
         },
+        "dotcom": {
+          "count": 117,
+          "by_theme": {
+            "internet": 53,
+            "semiconductor": 64
+          },
+          "by_scope": {
+            "foreign_primary": 113,
+            "us_adr": 4
+          },
+          "by_country": {
+            "AU": 2,
+            "BE": 1,
+            "CA": 2,
+            "CN": 2,
+            "DE": 24,
+            "ES": 1,
+            "FR": 5,
+            "GB": 5,
+            "HK": 1,
+            "IT": 1,
+            "JP": 15,
+            "KR": 23,
+            "MY": 2,
+            "NO": 1,
+            "SE": 3,
+            "SG": 4,
+            "TW": 21,
+            "US": 4
+          },
+          "by_year": {
+            "1994": 4,
+            "1995": 8,
+            "1996": 11,
+            "1997": 17,
+            "1998": 16,
+            "1999": 61
+          },
+          "with_proceeds": 35
+        }
+      },
+      "theme_added_to_confirmed": {
+        "1994-04": 1,
+        "1994-09": 1,
+        "1994-10": 2,
+        "1995-03": 1,
+        "1995-04": 2,
+        "1995-05": 1,
+        "1995-09": 1,
+        "1995-10": 2,
+        "1995-12": 1,
+        "1996-03": 2,
+        "1996-04": 2,
+        "1996-05": 1,
+        "1996-07": 1,
+        "1996-09": 3,
+        "1996-11": 1,
+        "1996-12": 1,
+        "1997-01": 2,
+        "1997-03": 1,
+        "1997-04": 1,
+        "1997-05": 1,
+        "1997-07": 1,
+        "1997-08": 2,
+        "1997-09": 3,
+        "1997-10": 1,
+        "1997-11": 4,
+        "1997-12": 1,
+        "1998-02": 1,
+        "1998-03": 3,
+        "1998-04": 2,
+        "1998-05": 1,
+        "1998-06": 1,
+        "1998-07": 2,
+        "1998-08": 2,
+        "1998-09": 2,
+        "1998-10": 2,
+        "1999-02": 2,
+        "1999-03": 3,
+        "1999-04": 2,
+        "1999-05": 2,
+        "1999-06": 7,
+        "1999-07": 6,
+        "1999-08": 5,
+        "1999-09": 4,
+        "1999-10": 10,
+        "1999-11": 7,
+        "1999-12": 13,
+        "2022-02": 3,
+        "2022-03": 7,
+        "2022-04": 9,
+        "2022-05": 6,
+        "2022-06": 7,
+        "2022-07": 10,
+        "2022-08": 8,
+        "2022-09": 4,
+        "2022-10": 10,
+        "2022-11": 7,
+        "2022-12": 6,
+        "2023-01": 3,
+        "2023-02": 2,
+        "2023-03": 7,
+        "2023-04": 8,
+        "2023-05": 7,
+        "2023-06": 4,
+        "2023-07": 3,
+        "2023-08": 7,
+        "2023-09": 7,
+        "2023-10": 6,
+        "2023-11": 5,
+        "2023-12": 5,
+        "2024-02": 3,
+        "2024-03": 2,
+        "2024-04": 2,
+        "2024-05": 2,
+        "2024-06": 2,
+        "2024-08": 3,
+        "2024-09": 2,
+        "2024-10": 8,
+        "2024-11": 4,
+        "2024-12": 11,
+        "2025-01": 3,
+        "2025-02": 4,
+        "2025-03": 4,
+        "2025-05": 1,
+        "2025-06": 3,
+        "2025-07": 5,
+        "2025-08": 3,
+        "2025-10": 4,
+        "2025-11": 5,
+        "2025-12": 15
+      },
+      "theme_added_to_provisional": {
+        "2026-01": 6,
+        "2026-02": 3,
+        "2026-03": 4,
+        "2026-04": 7,
+        "2026-05": 8,
+        "2026-06": 5,
+        "2026-07": 8,
+        "2026-08": 6,
+        "2026-09": 6
+      },
+      "theme_added_skipped": [
         {
-          "month": "1997-10",
-          "era": "dotcom",
-          "theme": "semiconductor",
-          "company": "Taiwan Semiconductor Manufacturing",
-          "ticker": "TSM",
-          "exchange": "NYSE",
-          "source_url": "https://pr.tsmc.com/english/news/2085"
-        },
-        {
-          "month": "1998-04",
-          "era": "dotcom",
-          "theme": "semiconductor",
-          "company": "ARM Holdings",
-          "ticker": "ARMHY",
-          "exchange": "Nasdaq",
-          "source_url": "http://media.corporate-ir.net/media_files/irol/19/197211/ar/ar98.pdf"
-        },
-        {
-          "month": "1999-07",
-          "era": "dotcom",
-          "theme": "internet",
-          "company": "Freeserve",
-          "ticker": "",
-          "exchange": "Nasdaq",
-          "source_url": "https://www.bloomberg.com/news/articles/1999-07-25/freeserve-will-test-appetite-for-u-k-internet-stocks-repeat"
-        },
-        {
-          "month": "1999-10",
-          "era": "dotcom",
-          "theme": "internet",
-          "company": "QXL.com",
-          "ticker": "",
-          "exchange": "Nasdaq",
-          "source_url": "https://money.cnn.com/1999/10/07/europe/qxl/"
-        },
-        {
-          "month": "1999-10",
-          "era": "dotcom",
-          "theme": "internet",
-          "company": "Satyam Infoway",
-          "ticker": "SIFY",
-          "exchange": "Nasdaq",
-          "source_url": "https://www.sec.gov/Archives/edgar/data/0001094324/000101287099003688/0001012870-99-003688.txt"
-        },
-        {
-          "month": "1999-10",
-          "era": "dotcom",
-          "theme": "semiconductor",
-          "company": "Chartered Semiconductor Manufacturing",
-          "ticker": "CHRT",
-          "exchange": "Nasdaq",
-          "source_url": "https://www.sec.gov/Archives/edgar/data/0001095270/000095015099001186/0000950150-99-001186.txt"
-        },
-        {
-          "month": "1999-11",
-          "era": "dotcom",
-          "theme": "internet",
-          "company": "Terra Networks",
-          "ticker": "TRRA",
-          "exchange": "Nasdaq",
-          "source_url": "https://money.cnn.com/1999/11/17/europe/terra/"
-        },
-        {
-          "month": "2023-09",
-          "era": "ai",
-          "theme": "semiconductor",
-          "company": "Arm Holdings",
-          "ticker": "ARM",
-          "exchange": "Nasdaq",
-          "source_url": "https://www.sec.gov/Archives/edgar/data/1973239/000119312523235320/d550931d424b4.htm"
-        },
-        {
-          "month": "2024-10",
-          "era": "ai",
-          "theme": "ai",
-          "company": "WeRide",
-          "ticker": "WRD",
-          "exchange": "Nasdaq",
-          "source_url": "https://ir.weride.ai/news-releases/news-release-details/weride-inc-announces-pricing-initial-public-offering"
-        },
-        {
-          "month": "2024-11",
-          "era": "ai",
-          "theme": "ai",
-          "company": "Pony AI",
-          "ticker": "PONY",
-          "exchange": "Nasdaq",
-          "source_url": "https://ir.pony.ai/news-releases/news-release-details/pony-ai-inc-announces-pricing-initial-public-offering"
-        },
-        {
-          "month": "2026-07",
-          "era": "ai",
-          "theme": "semiconductor",
-          "company": "SK hynix",
-          "ticker": "SKHY",
-          "exchange": "Nasdaq",
-          "source_url": "https://www.sec.gov/Archives/edgar/data/0002120882/000119312526299963/d32785d424b4.htm"
+          "month": "2026-10",
+          "count": 4,
+          "reason": "Nasdaq 잠정 달 없음·미완결"
         }
       ],
-      "theme_adr_added_to_confirmed": {
-        "1996-05": 1,
-        "1997-10": 1,
-        "1998-04": 1,
-        "1999-07": 1,
-        "1999-10": 3,
-        "1999-11": 1,
-        "2023-09": 1,
-        "2024-10": 1,
-        "2024-11": 1
+      "theme_listing_rule": {
+        "themes": {
+          "dotcom": [
+            "internet",
+            "semiconductor"
+          ],
+          "ai": [
+            "ai",
+            "semiconductor"
+          ]
+        },
+        "scopes": {
+          "us_adr": "confirmed_months_only",
+          "foreign_primary": "confirmed_and_provisional_months"
+        },
+        "min_gross_proceeds_usd_m": null,
+        "windows": {
+          "dotcom": [
+            "1994-02",
+            "1999-12"
+          ],
+          "ai": [
+            "2022-02",
+            "9999-12"
+          ]
+        },
+        "excluded_boards": "micro_issuer_platforms (India SME, KONEX, Emerging Stock Board, NEEQ, OTC BB)",
+        "one_event_per_company_per_era": true
       },
+      "theme_listing_pipeline": [
+        {
+          "company": "DeepSeek",
+          "era": "ai",
+          "theme": "ai",
+          "decision": "committed",
+          "status": "preparing STAR filing with CITIC Securities; no application submitted as of 2026-10-23",
+          "expected_venue": "Shanghai STAR",
+          "expected_timing": "filing late 2026 / listing 2027 (reported)",
+          "source_url": "https://technode.com/2026/09/09/deepseek-citic-securities-shanghai-star-market-ipo/",
+          "source_date": "2026-09-09"
+        },
+        {
+          "company": "Moonshot AI (Kimi)",
+          "era": "ai",
+          "theme": "ai",
+          "decision": "rule_eligible",
+          "status": "confidential HKEX A1 application reported",
+          "expected_venue": "HKEX",
+          "expected_timing": "2026-2027 (unconfirmed)",
+          "source_url": "https://technode.com/2026/09/03/moonshot-ai-reportedly-submits-confidential-hong-kong-ipo-filing/",
+          "source_date": "2026-09-03"
+        },
+        {
+          "company": "Kunlunxin (Baidu)",
+          "era": "ai",
+          "theme": "semiconductor",
+          "decision": "rule_eligible",
+          "status": "HKEX A1 filed (carve-out from Baidu)",
+          "expected_venue": "HKEX",
+          "expected_timing": "2026-2027 (unconfirmed)",
+          "source_url": "https://www.cnbc.com/2026/01/02/baidus-semiconductor-kunlunxin-hong-kong-ipo-ai-chips-listing-china.html",
+          "source_date": "2026-01-02"
+        },
+        {
+          "company": "CCSH / YMTC",
+          "era": "ai",
+          "theme": "semiconductor",
+          "decision": "rule_eligible",
+          "status": "STAR application accepted 2026-08-21; under inquiry",
+          "expected_venue": "Shanghai STAR",
+          "expected_timing": "H1 2027 (reported)",
+          "source_url": "https://www.dealstreetasia.com/stories/ymtc-parent-ipo-492883",
+          "source_date": "2026-08"
+        },
+        {
+          "company": "Zhaoxin",
+          "era": "ai",
+          "theme": "semiconductor",
+          "decision": "rule_eligible",
+          "status": "STAR application filed",
+          "expected_venue": "Shanghai STAR",
+          "expected_timing": "unknown",
+          "source_url": "https://apps.digitimes.com/news/a20250618PD238/shanghai-ipo-cpu-x86-expansion.html",
+          "source_date": "2025-06-18"
+        },
+        {
+          "company": "Unisoc",
+          "era": "ai",
+          "theme": "semiconductor",
+          "decision": "rule_eligible",
+          "status": "IPO tutoring filed 2025-06-25",
+          "expected_venue": "Shanghai STAR",
+          "expected_timing": "unknown",
+          "source_url": "https://apps.digitimes.com/news/a20250702PD228/unisoc-ipo-shanghai-chips-2025.html",
+          "source_date": "2025-07-02"
+        },
+        {
+          "company": "Anthropic",
+          "era": "ai",
+          "theme": "ai",
+          "decision": "rule_eligible",
+          "status": "confidential draft S-1 submitted 2026-06-01; no public S-1 as of mid-October",
+          "expected_venue": "NYSE/Nasdaq",
+          "expected_timing": "late 2026 (reported, unconfirmed)",
+          "source_url": "https://finance.yahoo.com/markets/stocks/articles/anthropic-files-confidential-1-joins-161008569.html",
+          "source_date": "2026-06"
+        },
+        {
+          "company": "OpenAI",
+          "era": "ai",
+          "theme": "ai",
+          "decision": "rule_eligible",
+          "status": "confidential draft reported; listing reportedly leaning to 2027",
+          "expected_venue": "NYSE/Nasdaq",
+          "expected_timing": "2027 (reported)",
+          "source_url": "https://www.indmoney.com/blog/us-stocks/anthropic-openai-ipo-date-valuation-risks",
+          "source_date": "2026-10"
+        }
+      ],
       "confirmed_through": "2025-12",
       "index_input_series": [
         "닷컴",
@@ -1702,7 +1897,7 @@
             {
               "period": 45,
               "date": "2026-10-01",
-              "value": 230.59186589034533
+              "value": 224.05134424729488
             }
           ]
         },
@@ -1944,7 +2139,7 @@
       },
       "scope_note": "*미국 통화·NASDAQ 기준",
       "insight": "주가와 통화량의 누적 속도를 같은 시작점에서 비교합니다.",
-      "conclusion": "현재 NASDAQ은 2023년 대비 131% 오르고 M2는 10% 늘었습니다. 닷컴 같은 시점에는 NASDAQ 45개월차 135%·M2 43개월차 21%였고(두 계열은 발표 주기가 달라 경과월이 한 달 어긋납니다), 닷컴 말기에는 NASDAQ이 439%까지 벌어졌습니다.",
+      "conclusion": "현재 NASDAQ은 2023년 대비 124% 오르고 M2는 10% 늘었습니다. 닷컴 같은 시점에는 NASDAQ 45개월차 135%·M2 43개월차 21%였고(두 계열은 발표 주기가 달라 경과월이 한 달 어긋납니다), 닷컴 말기에는 NASDAQ이 439%까지 벌어졌습니다.",
       "metric_source_ids": [
         "NASDAQCOM",
         "M2SL"
@@ -1955,8 +2150,8 @@
         "kind": "dotcom_peak",
         "boundary_label": "닷컴 비교창 최대(1999-12까지)",
         "boundary_value": 538.84,
-        "current_value": 230.59,
-        "proximity_percent": 42.8,
+        "current_value": 224.05,
+        "proximity_percent": 41.6,
         "status": "ok",
         "status_label": "여유",
         "thresholds": {
@@ -2779,18 +2974,18 @@
           "points": [
             {
               "period": 0,
-              "date": "2026-10-16",
-              "value": 15.54320590972791
+              "date": "2026-10-21",
+              "value": 15.171000764622477
             },
             {
               "period": 1,
-              "date": "2026-10-15",
-              "value": 17.83385854835977
+              "date": "2026-10-23",
+              "value": 13.13558657123679
             },
             {
               "period": 2,
-              "date": "2026-10-18",
-              "value": -24.567391488779855
+              "date": "2026-10-24",
+              "value": -27.747668699421247
             },
             {
               "period": 3,
@@ -2839,7 +3034,7 @@
         "IQ12260"
       ],
       "range": {
-        "minimum": -24.567391488779855,
+        "minimum": -27.747668699421247,
         "maximum": 22.824183705342584
       },
       "scope_note": "*미국 기준 · 금은 공식 가격지수",
@@ -2914,18 +3109,18 @@
           "metrics": [
             {
               "label": "S&P 500",
-              "value": 15.54320590972791,
-              "display_value": "+15.5%"
+              "value": 15.171000764622477,
+              "display_value": "+15.2%"
             },
             {
               "label": "NASDAQ",
-              "value": 17.83385854835977,
-              "display_value": "+17.8%"
+              "value": 13.13558657123679,
+              "display_value": "+13.1%"
             },
             {
               "label": "비트코인",
-              "value": -24.567391488779855,
-              "display_value": "-24.6%"
+              "value": -27.747668699421247,
+              "display_value": "-27.7%"
             },
             {
               "label": "금 가격지수",
@@ -5046,7 +5241,7 @@
             {
               "period": 45,
               "date": "2026-10-01",
-              "value": 0.4318181818181818
+              "value": 0.4
             }
           ]
         },
@@ -5590,7 +5785,7 @@
             {
               "period": 45,
               "date": "2026-10-01",
-              "value": 0.9872727272727272
+              "value": 0.9375
             }
           ]
         }
@@ -5605,7 +5800,7 @@
       },
       "scope_note": "*미국 국채 기준",
       "insight": "금리차가 음수면 역전입니다. 침체 예측 연구와 Fed 확률 모델의 표준은 10년−3개월 스프레드이고, 10년−2년은 시장 관행입니다.",
-      "conclusion": "10년−2년 금리차는 현재 +0.43%p, 침체 연구의 표준인 10년−3개월은 +0.99%p입니다. 둘 다 양수로 정상화됐지만 역전 해소 직후에는 성장 둔화가 뒤따를 수 있어 경기 경계는 아직 남아 있습니다.",
+      "conclusion": "10년−2년 금리차는 현재 +0.40%p, 침체 연구의 표준인 10년−3개월은 +0.94%p입니다. 둘 다 양수로 정상화됐지만 역전 해소 직후에는 성장 둔화가 뒤따를 수 있어 경기 경계는 아직 남아 있습니다.",
       "metric_source_ids": [
         "T10Y2Y",
         "T10Y3M"
@@ -8998,197 +9193,197 @@
             {
               "period": 0,
               "date": "1995-01-01",
-              "value": -0.45675
+              "value": -0.456
             },
             {
               "period": 1,
               "date": "1995-02-01",
-              "value": -0.5842499999999999
+              "value": -0.58325
             },
             {
               "period": 2,
               "date": "1995-03-01",
-              "value": -0.6378
+              "value": -0.6362
             },
             {
               "period": 3,
               "date": "1995-04-01",
-              "value": -0.655
+              "value": -0.6525000000000001
             },
             {
               "period": 4,
               "date": "1995-05-01",
-              "value": -0.701
+              "value": -0.6975
             },
             {
               "period": 5,
               "date": "1995-06-01",
-              "value": -0.6904
+              "value": -0.686
             },
             {
               "period": 6,
               "date": "1995-07-01",
-              "value": -0.6715
+              "value": -0.6677500000000001
             },
             {
               "period": 7,
               "date": "1995-08-01",
-              "value": -0.701
+              "value": -0.6972499999999999
             },
             {
               "period": 8,
               "date": "1995-09-01",
-              "value": -0.7058
+              "value": -0.7011999999999999
             },
             {
               "period": 9,
               "date": "1995-10-01",
-              "value": -0.70275
+              "value": -0.69875
             },
             {
               "period": 10,
               "date": "1995-11-01",
-              "value": -0.73975
+              "value": -0.7355
             },
             {
               "period": 11,
               "date": "1995-12-01",
-              "value": -0.7478
+              "value": -0.7428
             },
             {
               "period": 12,
               "date": "1996-01-01",
-              "value": -0.76925
+              "value": -0.76525
             },
             {
               "period": 13,
               "date": "1996-02-01",
-              "value": -0.818
+              "value": -0.8142499999999999
             },
             {
               "period": 14,
               "date": "1996-03-01",
-              "value": -0.7628
+              "value": -0.7598
             },
             {
               "period": 15,
               "date": "1996-04-01",
-              "value": -0.68975
+              "value": -0.6865
             },
             {
               "period": 16,
               "date": "1996-05-01",
-              "value": -0.7055999999999999
+              "value": -0.7024
             },
             {
               "period": 17,
               "date": "1996-06-01",
-              "value": -0.7072499999999999
+              "value": -0.7044999999999999
             },
             {
               "period": 18,
               "date": "1996-07-01",
-              "value": -0.7024999999999999
+              "value": -0.69975
             },
             {
               "period": 19,
               "date": "1996-08-01",
-              "value": -0.7356
+              "value": -0.7323999999999999
             },
             {
               "period": 20,
               "date": "1996-09-01",
-              "value": -0.73475
+              "value": -0.73175
             },
             {
               "period": 21,
               "date": "1996-10-01",
-              "value": -0.7484999999999999
+              "value": -0.745
             },
             {
               "period": 22,
               "date": "1996-11-01",
-              "value": -0.7786000000000001
+              "value": -0.775
             },
             {
               "period": 23,
               "date": "1996-12-01",
-              "value": -0.7295
+              "value": -0.72525
             },
             {
               "period": 24,
               "date": "1997-01-01",
-              "value": -0.6973999999999999
+              "value": -0.6938
             },
             {
               "period": 25,
               "date": "1997-02-01",
-              "value": -0.72875
+              "value": -0.72575
             },
             {
               "period": 26,
               "date": "1997-03-01",
-              "value": -0.71075
+              "value": -0.70775
             },
             {
               "period": 27,
               "date": "1997-04-01",
-              "value": -0.65475
+              "value": -0.65175
             },
             {
               "period": 28,
               "date": "1997-05-01",
-              "value": -0.6284
+              "value": -0.6248
             },
             {
               "period": 29,
               "date": "1997-06-01",
-              "value": -0.63425
+              "value": -0.63125
             },
             {
               "period": 30,
               "date": "1997-07-01",
-              "value": -0.651
+              "value": -0.64875
             },
             {
               "period": 31,
               "date": "1997-08-01",
-              "value": -0.6536000000000001
+              "value": -0.6518
             },
             {
               "period": 32,
               "date": "1997-09-01",
-              "value": -0.628
+              "value": -0.62575
             },
             {
               "period": 33,
               "date": "1997-10-01",
-              "value": -0.5554
+              "value": -0.5528000000000001
             },
             {
               "period": 34,
               "date": "1997-11-01",
-              "value": -0.47975
+              "value": -0.47675
             },
             {
               "period": 35,
               "date": "1997-12-01",
-              "value": -0.493
+              "value": -0.49024999999999996
             },
             {
               "period": 36,
               "date": "1998-01-01",
-              "value": -0.5636
+              "value": -0.562
             },
             {
               "period": 37,
               "date": "1998-02-01",
-              "value": -0.62675
+              "value": -0.6265000000000001
             },
             {
               "period": 38,
               "date": "1998-03-01",
-              "value": -0.63125
+              "value": -0.6315
             },
             {
               "period": 39,
@@ -9198,102 +9393,102 @@
             {
               "period": 40,
               "date": "1998-05-01",
-              "value": -0.5835999999999999
+              "value": -0.5828
             },
             {
               "period": 41,
               "date": "1998-06-01",
-              "value": -0.55825
+              "value": -0.5575
             },
             {
               "period": 42,
               "date": "1998-07-01",
-              "value": -0.5382
+              "value": -0.5376000000000001
             },
             {
               "period": 43,
               "date": "1998-08-01",
-              "value": -0.39925
+              "value": -0.39575
             },
             {
               "period": 44,
               "date": "1998-09-01",
-              "value": -0.1555
+              "value": -0.14725
             },
             {
               "period": 45,
               "date": "1998-10-01",
-              "value": 0.0007999999999999998
+              "value": 0.011800000000000001
             },
             {
               "period": 46,
               "date": "1998-11-01",
-              "value": -0.07225
+              "value": -0.06425
             },
             {
               "period": 47,
               "date": "1998-12-01",
-              "value": -0.16225
+              "value": -0.1565
             },
             {
               "period": 48,
               "date": "1999-01-01",
-              "value": -0.2374
+              "value": -0.23399999999999999
             },
             {
               "period": 49,
               "date": "1999-02-01",
-              "value": -0.322
+              "value": -0.32
             },
             {
               "period": 50,
               "date": "1999-03-01",
-              "value": -0.387
+              "value": -0.386
             },
             {
               "period": 51,
               "date": "1999-04-01",
-              "value": -0.41739999999999994
+              "value": -0.4164
             },
             {
               "period": 52,
               "date": "1999-05-01",
-              "value": -0.4135
+              "value": -0.41175
             },
             {
               "period": 53,
               "date": "1999-06-01",
-              "value": -0.35775
+              "value": -0.35475
             },
             {
               "period": 54,
               "date": "1999-07-01",
-              "value": -0.2592
+              "value": -0.2556
             },
             {
               "period": 55,
               "date": "1999-08-01",
-              "value": -0.16699999999999998
+              "value": -0.16325
             },
             {
               "period": 56,
               "date": "1999-09-01",
-              "value": -0.11800000000000001
+              "value": -0.1125
             },
             {
               "period": 57,
               "date": "1999-10-01",
-              "value": -0.093
+              "value": -0.086
             },
             {
               "period": 58,
               "date": "1999-11-01",
-              "value": -0.14925
+              "value": -0.14225
             },
             {
               "period": 59,
               "date": "1999-12-01",
-              "value": -0.16860000000000003
+              "value": -0.1622
             }
           ]
         },
@@ -9305,57 +9500,57 @@
             {
               "period": 0,
               "date": "2023-01-01",
-              "value": -0.27749999999999997
+              "value": -0.27449999999999997
             },
             {
               "period": 1,
               "date": "2023-02-01",
-              "value": -0.29725
+              "value": -0.29425
             },
             {
               "period": 2,
               "date": "2023-03-01",
-              "value": -0.186
+              "value": -0.18080000000000002
             },
             {
               "period": 3,
               "date": "2023-04-01",
-              "value": -0.17225000000000001
+              "value": -0.16725
             },
             {
               "period": 4,
               "date": "2023-05-01",
-              "value": -0.20725
+              "value": -0.20425
             },
             {
               "period": 5,
               "date": "2023-06-01",
-              "value": -0.2198
+              "value": -0.2186
             },
             {
               "period": 6,
               "date": "2023-07-01",
-              "value": -0.25725
+              "value": -0.2565
             },
             {
               "period": 7,
               "date": "2023-08-01",
-              "value": -0.31725000000000003
+              "value": -0.31625000000000003
             },
             {
               "period": 8,
               "date": "2023-09-01",
-              "value": -0.33
+              "value": -0.328
             },
             {
               "period": 9,
               "date": "2023-10-01",
-              "value": -0.29125
+              "value": -0.28825
             },
             {
               "period": 10,
               "date": "2023-11-01",
-              "value": -0.3045
+              "value": -0.30225
             },
             {
               "period": 11,
@@ -9365,82 +9560,82 @@
             {
               "period": 12,
               "date": "2024-01-01",
-              "value": -0.385
+              "value": -0.38525
             },
             {
               "period": 13,
               "date": "2024-02-01",
-              "value": -0.4135
+              "value": -0.4145
             },
             {
               "period": 14,
               "date": "2024-03-01",
-              "value": -0.4342
+              "value": -0.4356
             },
             {
               "period": 15,
               "date": "2024-04-01",
-              "value": -0.4175
+              "value": -0.419
             },
             {
               "period": 16,
               "date": "2024-05-01",
-              "value": -0.41
+              "value": -0.41159999999999997
             },
             {
               "period": 17,
               "date": "2024-06-01",
-              "value": -0.38975000000000004
+              "value": -0.39075000000000004
             },
             {
               "period": 18,
               "date": "2024-07-01",
-              "value": -0.36524999999999996
+              "value": -0.36575
             },
             {
               "period": 19,
               "date": "2024-08-01",
-              "value": -0.37
+              "value": -0.37039999999999995
             },
             {
               "period": 20,
               "date": "2024-09-01",
-              "value": -0.4135
+              "value": -0.4145
             },
             {
               "period": 21,
               "date": "2024-10-01",
-              "value": -0.43625
+              "value": -0.43775
             },
             {
               "period": 22,
               "date": "2024-11-01",
-              "value": -0.4628
+              "value": -0.465
             },
             {
               "period": 23,
               "date": "2024-12-01",
-              "value": -0.47875
+              "value": -0.481
             },
             {
               "period": 24,
               "date": "2025-01-01",
-              "value": -0.49800000000000005
+              "value": -0.49939999999999996
             },
             {
               "period": 25,
               "date": "2025-02-01",
-              "value": -0.49424999999999997
+              "value": -0.49575
             },
             {
               "period": 26,
               "date": "2025-03-01",
-              "value": -0.43425
+              "value": -0.43474999999999997
             },
             {
               "period": 27,
               "date": "2025-04-01",
-              "value": -0.38675000000000004
+              "value": -0.38575000000000004
             },
             {
               "period": 28,
@@ -9450,87 +9645,87 @@
             {
               "period": 29,
               "date": "2025-06-01",
-              "value": -0.48424999999999996
+              "value": -0.48575
             },
             {
               "period": 30,
               "date": "2025-07-01",
-              "value": -0.509
+              "value": -0.51075
             },
             {
               "period": 31,
               "date": "2025-08-01",
-              "value": -0.5224
+              "value": -0.5244
             },
             {
               "period": 32,
               "date": "2025-09-01",
-              "value": -0.5245
+              "value": -0.527
             },
             {
               "period": 33,
               "date": "2025-10-01",
-              "value": -0.5174000000000001
+              "value": -0.5198
             },
             {
               "period": 34,
               "date": "2025-11-01",
-              "value": -0.5065
+              "value": -0.5095000000000001
             },
             {
               "period": 35,
               "date": "2025-12-01",
-              "value": -0.521
+              "value": -0.5245
             },
             {
               "period": 36,
               "date": "2026-01-01",
-              "value": -0.5596
+              "value": -0.564
             },
             {
               "period": 37,
               "date": "2026-02-01",
-              "value": -0.5315000000000001
+              "value": -0.53525
             },
             {
               "period": 38,
               "date": "2026-03-01",
-              "value": -0.47025
+              "value": -0.472
             },
             {
               "period": 39,
               "date": "2026-04-01",
-              "value": -0.4795
+              "value": -0.481
             },
             {
               "period": 40,
               "date": "2026-05-01",
-              "value": -0.506
+              "value": -0.5092000000000001
             },
             {
               "period": 41,
               "date": "2026-06-01",
-              "value": -0.50625
+              "value": -0.51025
             },
             {
               "period": 42,
               "date": "2026-07-01",
-              "value": -0.5278
+              "value": -0.5314
             },
             {
               "period": 43,
               "date": "2026-08-01",
-              "value": -0.5467500000000001
+              "value": -0.54925
             },
             {
               "period": 44,
               "date": "2026-09-01",
-              "value": -0.53075
+              "value": -0.5317500000000001
             },
             {
               "period": 45,
               "date": "2026-10-01",
-              "value": -0.503
+              "value": -0.502
             }
           ]
         }
@@ -9539,8 +9734,8 @@
         "NFCI"
       ],
       "range": {
-        "minimum": -0.818,
-        "maximum": 0.0007999999999999998
+        "minimum": -0.8142499999999999,
+        "maximum": 0.011800000000000001
       },
       "scope_note": "*미국 금융시장 기준",
       "insight": "0 위는 역사 평균보다 긴축적, 0 아래는 완화적인 금융환경입니다.",
@@ -11852,7 +12047,7 @@
             {
               "period": 45,
               "date": "2026-10-01",
-              "value": 61.515287232771996
+              "value": 64.16905529678729
             }
           ]
         },
@@ -12099,7 +12294,7 @@
       },
       "scope_note": "*미국 원자재 기준",
       "insight": "유가와 구리가 함께 오르면 두 달 뒤 물가의 상방 위험을 추가 점검합니다.",
-      "conclusion": "유가 +61.5%와 구리 +30.8%가 함께 올라 물가 재가속 위험을 점검할 구간입니다. 원자재의 물가 선행성은 시기에 따라 약해지는 것으로 연구돼 있어 두 달 정렬은 참고용 배치일 뿐 예측 규칙이 아닙니다.",
+      "conclusion": "유가 +64.2%와 구리 +30.8%가 함께 올라 물가 재가속 위험을 점검할 구간입니다. 원자재의 물가 선행성은 시기에 따라 약해지는 것으로 연구돼 있어 두 달 정렬은 참고용 배치일 뿐 예측 규칙이 아닙니다.",
       "metric_source_ids": [
         "DCOILWTICO",
         "WPU10260314"
@@ -12579,7 +12774,7 @@
             {
               "period": 45,
               "date": "2026-10-01",
-              "value": 396.3565053115759
+              "value": 368.9170134705946
             }
           ]
         }
@@ -12594,7 +12789,7 @@
       },
       "scope_note": "*한국·미국 시장 기준",
       "insight": "2023년을 100으로 맞춰 한국 주가와 미국 반도체 지수의 실제 월별 속도를 봅니다.",
-      "conclusion": "2023년 대비 한국 주가지수는 190%, 같은 44개월차 미국 반도체는 332% 상승했습니다(미국 반도체 최신치는 296%). 한국 지수는 OECD 월간 집계라 미국 반도체보다 늦게 갱신되므로, 같은 경과월끼리 비교해야 두 시장의 상대 위치가 뒤집히지 않습니다.",
+      "conclusion": "2023년 대비 한국 주가지수는 190%, 같은 44개월차 미국 반도체는 332% 상승했습니다(미국 반도체 최신치는 269%). 한국 지수는 OECD 월간 집계라 미국 반도체보다 늦게 갱신되므로, 같은 경과월끼리 비교해야 두 시장의 상대 위치가 뒤집히지 않습니다.",
       "metric_source_ids": [
         "SPASTT01KRM661N",
         "NASDAQSOX"
@@ -15472,12 +15667,17 @@
             {
               "period": 42,
               "date": "2026-07-01",
-              "value": -8.589385474860334
+              "value": -4.399441340782118
             },
             {
               "period": 43,
               "date": "2026-08-01",
-              "value": -1.2393493415956636
+              "value": -0.23237800154918276
+            },
+            {
+              "period": 44,
+              "date": "2026-09-01",
+              "value": -7.429871114480669
             }
           ]
         },
@@ -15729,7 +15929,7 @@
       },
       "scope_note": "*미국 주택착공 · 필라델피아 연준 관할(제3연준구) 제조업 서베이",
       "insight": "주택착공 증가율(%)과 제조업 확산지수(0 중심 지수)가 함께 약해지면 경기 냉각 신호가 강해집니다. 두 계열은 단위가 다릅니다.",
-      "conclusion": "주택착공은 -1.2%로 약하지만 제조업지수는 최근 3개월 평균 +35.4(최신 단월 +20.9)로 확장 쪽입니다. 현재 침체 신호는 한 방향으로 모이지 않은 혼합 상태이며, 제조업 계열은 전국이 아니라 필라델피아 연준 관할 지역 서베이입니다.",
+      "conclusion": "주택착공은 -7.4%로 약하지만 제조업지수는 최근 3개월 평균 +35.4(최신 단월 +20.9)로 확장 쪽입니다. 현재 침체 신호는 한 방향으로 모이지 않은 혼합 상태이며, 제조업 계열은 전국이 아니라 필라델피아 연준 관할 지역 서베이입니다.",
       "metric_source_ids": [
         "HOUST",
         "GACDFSA066MSFRBPHI"
@@ -17097,12 +17297,13 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-10-19T13:18:18+00:00",
+      "available_at": "2026-10-25T10:59:34+00:00",
       "latest_observation": "2026-08-01",
       "row_count": 380,
       "raw_sha256": "28d8293a228a0a10f973b820fc3c456438e365cc8931c56b9134e1da40218b7d",
       "raw_path": "data/statistics/official_store/raw/fred_market_signals/28d8293a228a0a10f973b820fc3c456438e365cc8931c56b9134e1da40218b7d.bin",
-      "vintage": "current_release_reconstructed"
+      "vintage": "current_release_reconstructed",
+      "refresh_status": "current_fred"
     },
     {
       "series_id": "MMMFFAQ027S",
@@ -17117,12 +17318,13 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-10-19T13:18:18+00:00",
+      "available_at": "2026-10-25T10:59:34+00:00",
       "latest_observation": "2026-04-01",
       "row_count": 126,
       "raw_sha256": "d335ffcb6c5e92dd59fed845f5650d62124a7bd4522fbf755355ab015a41957b",
       "raw_path": "data/statistics/official_store/raw/fred_market_signals/d335ffcb6c5e92dd59fed845f5650d62124a7bd4522fbf755355ab015a41957b.bin",
-      "vintage": "current_release_reconstructed"
+      "vintage": "current_release_reconstructed",
+      "refresh_status": "current_fred"
     },
     {
       "series_id": "CDCABSHNO",
@@ -17137,12 +17339,13 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-10-19T13:18:18+00:00",
+      "available_at": "2026-10-25T10:59:34+00:00",
       "latest_observation": "2026-04-01",
       "row_count": 126,
       "raw_sha256": "c41624b65b3de00f361cb75dc8c917f3dd4f5f29903a757b3bb81eb429c95214",
       "raw_path": "data/statistics/official_store/raw/fred_market_signals/c41624b65b3de00f361cb75dc8c917f3dd4f5f29903a757b3bb81eb429c95214.bin",
-      "vintage": "current_release_reconstructed"
+      "vintage": "current_release_reconstructed",
+      "refresh_status": "current_fred"
     },
     {
       "series_id": "TSDABSHNO",
@@ -17157,12 +17360,13 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-10-19T13:18:18+00:00",
+      "available_at": "2026-10-25T10:59:34+00:00",
       "latest_observation": "2026-04-01",
       "row_count": 126,
       "raw_sha256": "820c4fd496881fb3adef393c6541bc7765c7ccae9393dee80c2d98dca2bc9630",
       "raw_path": "data/statistics/official_store/raw/fred_market_signals/820c4fd496881fb3adef393c6541bc7765c7ccae9393dee80c2d98dca2bc9630.bin",
-      "vintage": "current_release_reconstructed"
+      "vintage": "current_release_reconstructed",
+      "refresh_status": "current_fred"
     },
     {
       "series_id": "FGDSLAQ027S",
@@ -17177,12 +17381,13 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-10-19T13:18:18+00:00",
+      "available_at": "2026-10-25T10:59:34+00:00",
       "latest_observation": "2026-04-01",
       "row_count": 126,
       "raw_sha256": "c8bf5626bae11f9ec3ba53dba822486869b4283001001c5bec832e14ee7308f5",
       "raw_path": "data/statistics/official_store/raw/fred_market_signals/c8bf5626bae11f9ec3ba53dba822486869b4283001001c5bec832e14ee7308f5.bin",
-      "vintage": "current_release_reconstructed"
+      "vintage": "current_release_reconstructed",
+      "refresh_status": "current_fred"
     },
     {
       "series_id": "BOGZ1FL153064235Q",
@@ -17197,12 +17402,13 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-10-19T13:18:18+00:00",
+      "available_at": "2026-10-25T10:59:34+00:00",
       "latest_observation": "2026-04-01",
       "row_count": 126,
       "raw_sha256": "57e0c19c7263e86e49aa0a17e589081eccc44a69e68af7785d0201d07c02cf1d",
       "raw_path": "data/statistics/official_store/raw/fred_market_signals/57e0c19c7263e86e49aa0a17e589081eccc44a69e68af7785d0201d07c02cf1d.bin",
-      "vintage": "current_release_reconstructed"
+      "vintage": "current_release_reconstructed",
+      "refresh_status": "current_fred"
     },
     {
       "series_id": "IQ12260",
@@ -17217,12 +17423,13 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-10-19T13:18:18+00:00",
+      "available_at": "2026-10-25T10:59:34+00:00",
       "latest_observation": "2026-09-01",
       "row_count": 381,
       "raw_sha256": "7cc834800712c927c73b457b45a4bd64e97e9bf62100e59edfd9ce75b392bd05",
       "raw_path": "data/statistics/official_store/raw/fred_market_signals/7cc834800712c927c73b457b45a4bd64e97e9bf62100e59edfd9ce75b392bd05.bin",
-      "vintage": "current_release_reconstructed"
+      "vintage": "current_release_reconstructed",
+      "refresh_status": "current_fred"
     },
     {
       "series_id": "DABSHNO",
@@ -17237,12 +17444,13 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-10-19T13:18:18+00:00",
+      "available_at": "2026-10-25T10:59:34+00:00",
       "latest_observation": "2026-04-01",
       "row_count": 126,
       "raw_sha256": "db46a88ef69316d8b923ecc52f531b185f7b22816b5b8223843eccdc167589c9",
       "raw_path": "data/statistics/official_store/raw/fred_market_signals/db46a88ef69316d8b923ecc52f531b185f7b22816b5b8223843eccdc167589c9.bin",
-      "vintage": "current_release_reconstructed"
+      "vintage": "current_release_reconstructed",
+      "refresh_status": "current_fred"
     },
     {
       "series_id": "BOGZ1LM153064475Q",
@@ -17257,12 +17465,13 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-10-19T13:18:18+00:00",
+      "available_at": "2026-10-25T10:59:34+00:00",
       "latest_observation": "2026-04-01",
       "row_count": 126,
       "raw_sha256": "75ff74f8f1e14f3066f8f5b0b3cd865404b82b8eea230a04cb20ffa81b1793ab",
       "raw_path": "data/statistics/official_store/raw/fred_market_signals/75ff74f8f1e14f3066f8f5b0b3cd865404b82b8eea230a04cb20ffa81b1793ab.bin",
-      "vintage": "current_release_reconstructed"
+      "vintage": "current_release_reconstructed",
+      "refresh_status": "current_fred"
     },
     {
       "series_id": "BOGZ1FL154022375A",
@@ -17277,12 +17486,13 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-10-19T13:18:18+00:00",
+      "available_at": "2026-10-25T10:59:34+00:00",
       "latest_observation": "2025-01-01",
       "row_count": 31,
       "raw_sha256": "7d58e253925702f5205712a0e286c5bfb8441ce9e00845c032364b496c0d7bc9",
       "raw_path": "data/statistics/official_store/raw/fred_market_signals/7d58e253925702f5205712a0e286c5bfb8441ce9e00845c032364b496c0d7bc9.bin",
-      "vintage": "current_release_reconstructed"
+      "vintage": "current_release_reconstructed",
+      "refresh_status": "current_fred"
     },
     {
       "series_id": "NASDAQCOM",
@@ -17298,12 +17508,13 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-10-19T13:18:18+00:00",
-      "latest_observation": "2026-10-15",
-      "row_count": 10529,
-      "raw_sha256": "cd9e15379aafc7d6405e7e0442ab25de7fca939a1fedffc019d74cd035315884",
-      "raw_path": "data/statistics/official_store/raw/fred_market_signals/cd9e15379aafc7d6405e7e0442ab25de7fca939a1fedffc019d74cd035315884.bin",
-      "vintage": "current_release_reconstructed"
+      "available_at": "2026-10-25T10:59:34+00:00",
+      "latest_observation": "2026-10-23",
+      "row_count": 10535,
+      "raw_sha256": "23d50b789f5f46979e7ede796b8cef00d3e095db68f2c827ea79d0d8d888b830",
+      "raw_path": "data/statistics/official_store/raw/fred_market_signals/23d50b789f5f46979e7ede796b8cef00d3e095db68f2c827ea79d0d8d888b830.bin",
+      "vintage": "current_release_reconstructed",
+      "refresh_status": "current_fred"
     },
     {
       "series_id": "T10Y2Y",
@@ -17318,12 +17529,13 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-10-19T13:18:18+00:00",
-      "latest_observation": "2026-10-16",
-      "row_count": 7954,
-      "raw_sha256": "63e81ad7391a8f6c8b45617e77861307333742e5296933737105c5b086cdd0b9",
-      "raw_path": "data/statistics/official_store/raw/fred_market_signals/63e81ad7391a8f6c8b45617e77861307333742e5296933737105c5b086cdd0b9.bin",
-      "vintage": "current_release_reconstructed"
+      "available_at": "2026-10-25T10:59:34+00:00",
+      "latest_observation": "2026-10-23",
+      "row_count": 7959,
+      "raw_sha256": "3dd759d76430d2f0a01ef4efc95c32b37d1ad99e0867adf3a81eb28e0c2aba1c",
+      "raw_path": "data/statistics/official_store/raw/fred_market_signals/3dd759d76430d2f0a01ef4efc95c32b37d1ad99e0867adf3a81eb28e0c2aba1c.bin",
+      "vintage": "current_release_reconstructed",
+      "refresh_status": "current_fred"
     },
     {
       "series_id": "T10Y3M",
@@ -17338,12 +17550,13 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-10-19T13:18:18+00:00",
-      "latest_observation": "2026-10-16",
-      "row_count": 7954,
-      "raw_sha256": "c55864e3cf81fc4b4d6fb00361f8858ba49cc96e5e12dba620b9d216a7d3d645",
-      "raw_path": "data/statistics/official_store/raw/fred_market_signals/c55864e3cf81fc4b4d6fb00361f8858ba49cc96e5e12dba620b9d216a7d3d645.bin",
-      "vintage": "current_release_reconstructed"
+      "available_at": "2026-10-25T10:59:34+00:00",
+      "latest_observation": "2026-10-23",
+      "row_count": 7959,
+      "raw_sha256": "76fd8a90beed034065ae0e102205c048f14fe8315e2e5d1064512ed04aab85ff",
+      "raw_path": "data/statistics/official_store/raw/fred_market_signals/76fd8a90beed034065ae0e102205c048f14fe8315e2e5d1064512ed04aab85ff.bin",
+      "vintage": "current_release_reconstructed",
+      "refresh_status": "current_fred"
     },
     {
       "series_id": "FEDFUNDS",
@@ -17358,12 +17571,13 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-10-19T13:18:18+00:00",
+      "available_at": "2026-10-25T10:59:34+00:00",
       "latest_observation": "2026-09-01",
       "row_count": 381,
       "raw_sha256": "e1935f11db469dfb9f03d0064243f1018de9d4661c9ed56f5ab9096f10461a8e",
       "raw_path": "data/statistics/official_store/raw/fred_market_signals/e1935f11db469dfb9f03d0064243f1018de9d4661c9ed56f5ab9096f10461a8e.bin",
-      "vintage": "current_release_reconstructed"
+      "vintage": "current_release_reconstructed",
+      "refresh_status": "current_fred"
     },
     {
       "series_id": "TOTALSL",
@@ -17378,12 +17592,13 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-10-19T13:18:18+00:00",
+      "available_at": "2026-10-25T10:59:34+00:00",
       "latest_observation": "2026-08-01",
       "row_count": 380,
       "raw_sha256": "71832a3c352328a943b41d88c7ba5f10b82fb885e94cfbd368212ebffb0d2867",
       "raw_path": "data/statistics/official_store/raw/fred_market_signals/71832a3c352328a943b41d88c7ba5f10b82fb885e94cfbd368212ebffb0d2867.bin",
-      "vintage": "current_release_reconstructed"
+      "vintage": "current_release_reconstructed",
+      "refresh_status": "current_fred"
     },
     {
       "series_id": "TDSP",
@@ -17398,12 +17613,13 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-10-19T13:18:18+00:00",
+      "available_at": "2026-10-25T10:59:34+00:00",
       "latest_observation": "2026-04-01",
       "row_count": 86,
       "raw_sha256": "d823f31ec373375d0936996a4f3d80e2b5f54a1d83567f8be766b32bc2a65dad",
       "raw_path": "data/statistics/official_store/raw/fred_market_signals/d823f31ec373375d0936996a4f3d80e2b5f54a1d83567f8be766b32bc2a65dad.bin",
-      "vintage": "current_release_reconstructed"
+      "vintage": "current_release_reconstructed",
+      "refresh_status": "current_fred"
     },
     {
       "series_id": "BOGZ1FL010000346Q",
@@ -17418,12 +17634,13 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-10-19T13:18:18+00:00",
+      "available_at": "2026-10-25T10:59:34+00:00",
       "latest_observation": "2026-01-01",
       "row_count": 125,
       "raw_sha256": "076c941b2c8cf02a70c37dc498e13670102f938a8ad5a946ea94bde034604a86",
       "raw_path": "data/statistics/official_store/raw/fred_market_signals/076c941b2c8cf02a70c37dc498e13670102f938a8ad5a946ea94bde034604a86.bin",
-      "vintage": "current_release_reconstructed"
+      "vintage": "current_release_reconstructed",
+      "refresh_status": "current_fred"
     },
     {
       "series_id": "DRTSCILM",
@@ -17438,12 +17655,13 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-10-19T13:18:18+00:00",
+      "available_at": "2026-10-25T10:59:34+00:00",
       "latest_observation": "2026-07-01",
       "row_count": 127,
-      "raw_sha256": "47292361660c78acc82f6f2231ffc86c28e5831de234ab784b3f2d7750919a20",
-      "raw_path": "data/statistics/official_store/raw/fred_market_signals/47292361660c78acc82f6f2231ffc86c28e5831de234ab784b3f2d7750919a20.bin",
-      "vintage": "current_release_reconstructed"
+      "raw_sha256": "2d9f6b5e7930a1810e277c726cd88c404603d72893adf128c5e8cf3e920228be",
+      "raw_path": "data/statistics/official_store/raw/fred_market_signals/2d9f6b5e7930a1810e277c726cd88c404603d72893adf128c5e8cf3e920228be.bin",
+      "vintage": "current_release_reconstructed",
+      "refresh_status": "current_fred"
     },
     {
       "series_id": "NCBEILQ027S",
@@ -17458,12 +17676,13 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-10-19T13:18:18+00:00",
+      "available_at": "2026-10-25T10:59:34+00:00",
       "latest_observation": "2026-04-01",
       "row_count": 126,
       "raw_sha256": "ec285bef5e2e93ec02a5dbb4888afbbb6a1fa69e5c57e5fb5065c4b05096d257",
       "raw_path": "data/statistics/official_store/raw/fred_market_signals/ec285bef5e2e93ec02a5dbb4888afbbb6a1fa69e5c57e5fb5065c4b05096d257.bin",
-      "vintage": "current_release_reconstructed"
+      "vintage": "current_release_reconstructed",
+      "refresh_status": "current_fred"
     },
     {
       "series_id": "CPATAX",
@@ -17478,12 +17697,13 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-10-19T13:18:18+00:00",
+      "available_at": "2026-10-25T10:59:34+00:00",
       "latest_observation": "2026-04-01",
       "row_count": 126,
       "raw_sha256": "36f18a0f9ed66fbcc73c97c59e58b547112aef04a7f38a4f989511f82026d88f",
       "raw_path": "data/statistics/official_store/raw/fred_market_signals/36f18a0f9ed66fbcc73c97c59e58b547112aef04a7f38a4f989511f82026d88f.bin",
-      "vintage": "current_release_reconstructed"
+      "vintage": "current_release_reconstructed",
+      "refresh_status": "current_fred"
     },
     {
       "series_id": "W328RC1Q027SBEA",
@@ -17498,12 +17718,13 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-10-19T13:18:18+00:00",
+      "available_at": "2026-10-25T10:59:34+00:00",
       "latest_observation": "2026-04-01",
       "row_count": 126,
       "raw_sha256": "e0d1a194ffb701e611c7e0960f53c5b29d399d07533f2012d9be45fecc90f6da",
       "raw_path": "data/statistics/official_store/raw/fred_market_signals/e0d1a194ffb701e611c7e0960f53c5b29d399d07533f2012d9be45fecc90f6da.bin",
-      "vintage": "current_release_reconstructed"
+      "vintage": "current_release_reconstructed",
+      "refresh_status": "current_fred"
     },
     {
       "series_id": "UNRATE",
@@ -17518,12 +17739,13 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-10-19T13:18:18+00:00",
+      "available_at": "2026-10-25T10:59:34+00:00",
       "latest_observation": "2026-09-01",
       "row_count": 380,
       "raw_sha256": "3cfd38a124c11dce914b2f922098b5f9d08c5dfebf76e32d4e7a68394e670fc7",
       "raw_path": "data/statistics/official_store/raw/fred_market_signals/3cfd38a124c11dce914b2f922098b5f9d08c5dfebf76e32d4e7a68394e670fc7.bin",
-      "vintage": "current_release_reconstructed"
+      "vintage": "current_release_reconstructed",
+      "refresh_status": "current_fred"
     },
     {
       "series_id": "CPIAUCSL",
@@ -17538,12 +17760,13 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-10-19T13:18:18+00:00",
+      "available_at": "2026-10-25T10:59:34+00:00",
       "latest_observation": "2026-09-01",
       "row_count": 380,
       "raw_sha256": "c7515abff452af49fac6f48e6c576631f8687a907a4ef2627b26452b9f11f0ae",
       "raw_path": "data/statistics/official_store/raw/fred_market_signals/c7515abff452af49fac6f48e6c576631f8687a907a4ef2627b26452b9f11f0ae.bin",
-      "vintage": "current_release_reconstructed"
+      "vintage": "current_release_reconstructed",
+      "refresh_status": "current_fred"
     },
     {
       "series_id": "NFCI",
@@ -17558,12 +17781,13 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-10-19T13:18:18+00:00",
-      "latest_observation": "2026-10-09",
-      "row_count": 1658,
-      "raw_sha256": "026229879eab4529cefae9657fd9966f5873281ca8798d5c731f82b663aa9376",
-      "raw_path": "data/statistics/official_store/raw/fred_market_signals/026229879eab4529cefae9657fd9966f5873281ca8798d5c731f82b663aa9376.bin",
-      "vintage": "current_release_reconstructed"
+      "available_at": "2026-10-25T10:59:34+00:00",
+      "latest_observation": "2026-10-16",
+      "row_count": 1659,
+      "raw_sha256": "3ad4a926a6d388b0aafb931140c0e9035e8685b4e623285420b410951b31daf7",
+      "raw_path": "data/statistics/official_store/raw/fred_market_signals/3ad4a926a6d388b0aafb931140c0e9035e8685b4e623285420b410951b31daf7.bin",
+      "vintage": "current_release_reconstructed",
+      "refresh_status": "current_fred"
     },
     {
       "series_id": "BOGZ1LM893064105Q",
@@ -17578,12 +17802,13 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-10-19T13:18:18+00:00",
+      "available_at": "2026-10-25T10:59:34+00:00",
       "latest_observation": "2026-04-01",
       "row_count": 126,
       "raw_sha256": "db53d750408c3dad226327e965fb099205b58d533e8328a5c3bc70a49e41cfc6",
       "raw_path": "data/statistics/official_store/raw/fred_market_signals/db53d750408c3dad226327e965fb099205b58d533e8328a5c3bc70a49e41cfc6.bin",
-      "vintage": "current_release_reconstructed"
+      "vintage": "current_release_reconstructed",
+      "refresh_status": "current_fred"
     },
     {
       "series_id": "HQMCB10YR",
@@ -17598,12 +17823,13 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-10-19T13:18:18+00:00",
+      "available_at": "2026-10-25T10:59:34+00:00",
       "latest_observation": "2026-09-01",
       "row_count": 381,
       "raw_sha256": "6f88d5e44b02a3f97c158976d4fcd77a2b907eff4f3d8e24545edd581f30bfe0",
       "raw_path": "data/statistics/official_store/raw/fred_market_signals/6f88d5e44b02a3f97c158976d4fcd77a2b907eff4f3d8e24545edd581f30bfe0.bin",
-      "vintage": "current_release_reconstructed"
+      "vintage": "current_release_reconstructed",
+      "refresh_status": "current_fred"
     },
     {
       "series_id": "GS10",
@@ -17618,12 +17844,13 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-10-19T13:18:18+00:00",
+      "available_at": "2026-10-25T10:59:34+00:00",
       "latest_observation": "2026-09-01",
       "row_count": 381,
       "raw_sha256": "be681ac7f9152e3ae14f1c12d5b777ccd5a87ffc1bfeb67a76c4711e16c6895e",
       "raw_path": "data/statistics/official_store/raw/fred_market_signals/be681ac7f9152e3ae14f1c12d5b777ccd5a87ffc1bfeb67a76c4711e16c6895e.bin",
-      "vintage": "current_release_reconstructed"
+      "vintage": "current_release_reconstructed",
+      "refresh_status": "current_fred"
     },
     {
       "series_id": "DCOILWTICO",
@@ -17638,12 +17865,653 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-10-19T13:18:18+00:00",
-      "latest_observation": "2026-10-14",
-      "row_count": 7975,
-      "raw_sha256": "c36ea855ad04dd2624c9f5fa705951fc0884e94c32b2fd58c3fe9ea5791cd2c4",
-      "raw_path": "data/statistics/official_store/raw/fred_market_signals/c36ea855ad04dd2624c9f5fa705951fc0884e94c32b2fd58c3fe9ea5791cd2c4.bin",
-      "vintage": "current_release_reconstructed"
+      "available_at": "2026-10-25T10:59:34+00:00",
+      "latest_observation": "2026-10-20",
+      "row_count": 7979,
+      "raw_sha256": "8688eeb0c4807836deb9afc28917c6ab7be099f1df491dce4e7c0e351b7f4942",
+      "raw_path": "data/statistics/official_store/raw/fred_market_signals/8688eeb0c4807836deb9afc28917c6ab7be099f1df491dce4e7c0e351b7f4942.bin",
+      "vintage": "current_release_reconstructed",
+      "refresh_status": "current_fred",
+      "history_coverage": {
+        "policy": "wti-reviewed-history-v1",
+        "manifest_sha256": "a9d30d16c94bdb22edcd0100f0dc8e0312da456f5af96f396563db46b40de9cf",
+        "manifest_path": "data/statistics/reference/wti_reviewed_history_v1.json",
+        "archive_raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a",
+        "archived_dates": [
+          "1995-01-06",
+          "1995-01-09",
+          "1995-01-11",
+          "1995-01-13",
+          "1995-01-19",
+          "1995-01-27",
+          "1995-02-24",
+          "1995-03-02",
+          "1995-03-08",
+          "1995-03-14",
+          "1995-04-12",
+          "1995-05-10",
+          "1995-05-12",
+          "1995-05-22",
+          "1995-05-30",
+          "1995-05-31",
+          "1995-06-05",
+          "1995-07-13",
+          "1995-07-21",
+          "1995-07-27",
+          "1995-08-18",
+          "1995-09-05",
+          "1995-09-12",
+          "1995-10-04",
+          "1995-10-06",
+          "1995-10-31",
+          "1995-11-14",
+          "1995-12-26",
+          "1996-01-12",
+          "1996-01-24",
+          "1996-01-31",
+          "1996-02-05",
+          "1996-02-28",
+          "1996-03-01",
+          "1996-03-05",
+          "1996-03-06",
+          "1996-04-01",
+          "1996-04-25",
+          "1996-06-24",
+          "1996-06-26",
+          "1996-07-08",
+          "1996-07-23",
+          "1996-07-26",
+          "1996-07-29",
+          "1996-07-30",
+          "1996-07-31",
+          "1996-08-06",
+          "1996-08-08",
+          "1996-08-12",
+          "1996-08-16",
+          "1996-08-20",
+          "1996-08-21",
+          "1996-08-30",
+          "1996-09-03",
+          "1996-09-10",
+          "1996-09-11",
+          "1996-09-16",
+          "1996-09-26",
+          "1996-10-04",
+          "1996-10-08",
+          "1996-10-09",
+          "1996-10-11",
+          "1996-10-15",
+          "1996-10-18",
+          "1996-10-21",
+          "1996-10-22",
+          "1996-10-24",
+          "1996-10-29",
+          "1996-10-30",
+          "1996-10-31",
+          "1996-11-04",
+          "1996-11-07",
+          "1996-11-08",
+          "1996-11-15",
+          "1996-11-18",
+          "1996-11-21",
+          "1996-11-29",
+          "1996-12-04",
+          "1996-12-06",
+          "1996-12-09",
+          "1996-12-10",
+          "1996-12-16",
+          "1996-12-24",
+          "1996-12-27",
+          "1997-01-02",
+          "1997-01-20",
+          "1997-01-27",
+          "1997-01-29",
+          "1997-02-06",
+          "1997-02-12",
+          "1997-02-13",
+          "1997-02-14",
+          "1997-02-20",
+          "1997-02-21",
+          "1997-02-27",
+          "1997-03-17",
+          "1997-03-19",
+          "1997-03-21",
+          "1997-04-07",
+          "1997-04-09",
+          "1997-04-17",
+          "1997-04-18",
+          "1997-05-01",
+          "1997-05-05",
+          "1997-05-08",
+          "1997-05-15",
+          "1997-05-22",
+          "1997-05-27",
+          "1997-05-28",
+          "1997-05-29",
+          "1997-06-02",
+          "1997-06-04",
+          "1997-06-09",
+          "1997-06-12",
+          "1997-06-30",
+          "1997-07-22",
+          "1997-07-31",
+          "1997-08-04",
+          "1997-08-19",
+          "1997-08-20",
+          "1997-09-03",
+          "1997-09-25",
+          "1997-10-01",
+          "1997-10-02",
+          "1997-10-10",
+          "1997-10-15",
+          "1997-10-28",
+          "1997-10-31",
+          "1997-11-06",
+          "1997-11-07",
+          "1997-11-12",
+          "1997-11-19",
+          "1997-11-26",
+          "1998-01-02",
+          "1998-01-05",
+          "1998-01-13",
+          "1998-01-14",
+          "1998-02-12",
+          "1998-02-20",
+          "1998-03-06",
+          "1998-05-06",
+          "1998-05-18",
+          "1998-05-27",
+          "1998-07-14",
+          "1998-07-28",
+          "1998-07-29",
+          "1998-07-31",
+          "1998-09-04",
+          "1998-09-09",
+          "1998-11-04",
+          "1998-11-18",
+          "1998-11-19",
+          "1998-12-03",
+          "1998-12-08",
+          "1998-12-23",
+          "1998-12-30",
+          "1999-02-09",
+          "1999-03-23",
+          "1999-03-25",
+          "1999-03-26",
+          "1999-03-29",
+          "1999-03-30",
+          "1999-03-31",
+          "1999-04-01",
+          "1999-04-12",
+          "1999-04-13",
+          "1999-04-14",
+          "1999-04-20",
+          "1999-04-22",
+          "1999-05-03",
+          "1999-05-04",
+          "1999-05-07",
+          "1999-05-11",
+          "1999-05-17",
+          "1999-05-18",
+          "1999-05-20",
+          "1999-05-21",
+          "1999-05-25",
+          "1999-05-27",
+          "1999-05-28",
+          "1999-06-02",
+          "1999-06-04",
+          "1999-06-21",
+          "1999-06-22",
+          "1999-06-24",
+          "1999-06-25",
+          "1999-06-28",
+          "1999-06-29",
+          "1999-07-01",
+          "1999-07-06",
+          "1999-07-07",
+          "1999-07-08",
+          "1999-07-09",
+          "1999-07-12",
+          "1999-07-14",
+          "1999-07-15",
+          "1999-07-19",
+          "1999-07-20",
+          "1999-07-23",
+          "1999-07-26",
+          "1999-07-27",
+          "1999-07-28",
+          "1999-08-06",
+          "1999-08-09",
+          "1999-08-10",
+          "1999-08-11",
+          "1999-08-16",
+          "1999-08-20",
+          "1999-08-26",
+          "1999-08-27",
+          "1999-08-30",
+          "1999-08-31",
+          "1999-09-02",
+          "1999-09-03",
+          "1999-09-07",
+          "1999-09-08",
+          "1999-09-09",
+          "1999-09-10",
+          "1999-09-13",
+          "1999-09-14",
+          "1999-09-16",
+          "1999-09-24",
+          "1999-09-27",
+          "1999-09-28",
+          "1999-10-04",
+          "1999-10-05",
+          "1999-10-06",
+          "1999-10-07",
+          "1999-10-12",
+          "1999-10-13",
+          "1999-10-18",
+          "1999-10-20",
+          "1999-10-22",
+          "1999-10-25",
+          "1999-10-27",
+          "1999-10-28",
+          "1999-11-01",
+          "1999-11-03",
+          "1999-11-11",
+          "1999-12-14",
+          "1999-12-21",
+          "1999-12-23",
+          "2000-01-13",
+          "2000-01-26",
+          "2000-02-07",
+          "2000-03-28",
+          "2000-03-29",
+          "2000-03-31",
+          "2000-04-03",
+          "2000-04-05",
+          "2000-05-03",
+          "2000-06-14",
+          "2000-07-05",
+          "2000-07-11",
+          "2000-07-14",
+          "2000-07-24",
+          "2000-07-26",
+          "2000-07-31",
+          "2000-08-16",
+          "2000-09-25",
+          "2000-09-27",
+          "2000-10-02",
+          "2000-10-05",
+          "2000-10-10",
+          "2000-10-12",
+          "2000-10-19",
+          "2000-10-23",
+          "2000-10-30",
+          "2000-11-24",
+          "2000-12-13",
+          "2000-12-22",
+          "2000-12-26",
+          "2001-01-26",
+          "2001-01-29",
+          "2001-04-02",
+          "2001-04-20",
+          "2001-04-26",
+          "2001-05-04",
+          "2001-05-07",
+          "2001-06-01",
+          "2001-06-05",
+          "2001-07-17",
+          "2001-07-19",
+          "2001-07-25",
+          "2001-09-21",
+          "2001-09-26",
+          "2001-10-08",
+          "2001-10-10",
+          "2001-11-07",
+          "2001-11-14",
+          "2001-11-20",
+          "2001-11-29",
+          "2001-12-12",
+          "2001-12-14",
+          "2002-01-03",
+          "2002-01-08",
+          "2002-01-14",
+          "2002-01-28",
+          "2002-02-04",
+          "2002-02-05",
+          "2002-02-26",
+          "2002-03-04",
+          "2002-03-06",
+          "2002-03-12",
+          "2002-04-29",
+          "2002-05-29",
+          "2002-06-06",
+          "2002-06-18",
+          "2002-06-19",
+          "2002-06-20",
+          "2002-06-24",
+          "2002-07-17",
+          "2002-11-13",
+          "2002-12-09",
+          "2002-12-20",
+          "2003-01-14",
+          "2003-01-28",
+          "2003-01-30",
+          "2003-02-03",
+          "2003-02-06",
+          "2003-02-12",
+          "2003-02-14",
+          "2003-02-19",
+          "2003-02-25",
+          "2003-02-27",
+          "2003-03-03",
+          "2003-03-04",
+          "2003-03-10",
+          "2003-03-13",
+          "2003-03-14",
+          "2003-03-17",
+          "2003-03-18",
+          "2003-03-20",
+          "2003-03-26",
+          "2003-03-27",
+          "2003-03-28",
+          "2003-04-02",
+          "2003-04-03",
+          "2003-04-04",
+          "2003-04-07",
+          "2003-04-09",
+          "2003-04-11",
+          "2003-04-14",
+          "2003-04-21",
+          "2003-04-22",
+          "2003-04-28",
+          "2003-04-30",
+          "2003-05-02",
+          "2003-05-05",
+          "2003-05-06",
+          "2003-05-07",
+          "2003-05-09",
+          "2003-05-12",
+          "2003-05-14",
+          "2003-05-15",
+          "2003-05-19",
+          "2003-05-23",
+          "2003-05-27",
+          "2003-05-30",
+          "2003-06-02",
+          "2003-06-03",
+          "2003-06-04",
+          "2003-06-05",
+          "2003-06-11",
+          "2003-06-12",
+          "2003-06-13",
+          "2003-06-16",
+          "2003-06-18",
+          "2003-06-27",
+          "2003-07-02",
+          "2003-07-03",
+          "2003-07-08",
+          "2003-07-09",
+          "2003-07-11",
+          "2003-07-14",
+          "2003-07-18",
+          "2003-07-22",
+          "2003-07-30",
+          "2003-07-31",
+          "2003-08-01",
+          "2003-08-05",
+          "2003-08-12",
+          "2003-08-14",
+          "2003-08-18",
+          "2003-08-20",
+          "2003-08-27",
+          "2003-08-28",
+          "2003-09-03",
+          "2003-09-04",
+          "2003-09-09",
+          "2003-09-15",
+          "2003-09-18",
+          "2003-09-19",
+          "2003-09-22",
+          "2003-09-26",
+          "2003-09-30",
+          "2003-10-02",
+          "2003-10-03",
+          "2003-10-06",
+          "2003-10-07",
+          "2003-10-08",
+          "2003-10-14",
+          "2003-10-15",
+          "2003-10-17",
+          "2003-10-20",
+          "2003-10-21",
+          "2003-10-27",
+          "2003-10-30",
+          "2003-11-03",
+          "2003-11-04",
+          "2003-11-05",
+          "2003-11-06",
+          "2003-11-12",
+          "2003-11-13",
+          "2003-11-17",
+          "2003-11-18",
+          "2003-11-19",
+          "2003-11-20",
+          "2003-12-01",
+          "2003-12-02",
+          "2003-12-05",
+          "2003-12-08",
+          "2003-12-15",
+          "2003-12-17",
+          "2003-12-18",
+          "2003-12-31",
+          "2004-01-05",
+          "2004-01-07",
+          "2004-01-08",
+          "2004-01-09",
+          "2004-01-12",
+          "2004-01-13",
+          "2004-01-16",
+          "2004-01-20",
+          "2004-01-27",
+          "2004-01-29",
+          "2004-01-30",
+          "2004-02-10",
+          "2004-02-11",
+          "2004-02-12",
+          "2004-02-17",
+          "2004-02-19",
+          "2004-02-25",
+          "2004-02-26",
+          "2004-03-01",
+          "2004-03-03",
+          "2004-03-04",
+          "2004-03-09",
+          "2004-03-10",
+          "2004-03-16",
+          "2004-03-19",
+          "2004-03-26",
+          "2004-03-29",
+          "2004-03-31",
+          "2004-04-01",
+          "2004-04-02",
+          "2004-04-06",
+          "2004-04-07",
+          "2004-04-12",
+          "2004-04-13",
+          "2004-04-16",
+          "2004-04-19",
+          "2004-04-28",
+          "2004-04-30",
+          "2004-05-03",
+          "2004-05-04",
+          "2004-05-12",
+          "2004-05-13",
+          "2004-05-19",
+          "2004-05-20",
+          "2004-06-04",
+          "2004-06-18",
+          "2004-06-25",
+          "2004-06-28",
+          "2004-07-09",
+          "2004-07-15",
+          "2004-07-27",
+          "2004-08-02",
+          "2004-08-04",
+          "2004-08-27",
+          "2004-09-03",
+          "2004-09-08",
+          "2004-09-10",
+          "2004-09-17",
+          "2004-09-21",
+          "2004-10-01",
+          "2004-10-14",
+          "2004-10-20",
+          "2004-10-22",
+          "2004-11-15",
+          "2005-01-12",
+          "2005-02-14",
+          "2005-02-17",
+          "2005-02-22",
+          "2005-02-28",
+          "2005-03-15",
+          "2005-03-16",
+          "2005-03-24",
+          "2005-04-01",
+          "2005-04-04",
+          "2005-04-11",
+          "2005-04-15",
+          "2005-04-19",
+          "2005-05-06",
+          "2005-05-13",
+          "2005-05-17",
+          "2005-05-20",
+          "2005-06-03",
+          "2005-06-10",
+          "2005-06-20",
+          "2005-06-21",
+          "2005-07-08",
+          "2005-07-15",
+          "2005-07-25",
+          "2005-07-29",
+          "2005-08-12",
+          "2005-08-19",
+          "2005-08-30",
+          "2005-09-02",
+          "2005-09-09",
+          "2005-09-20",
+          "2005-09-29",
+          "2005-10-05",
+          "2005-10-10",
+          "2005-10-14",
+          "2005-10-20",
+          "2005-10-21",
+          "2005-11-02",
+          "2005-11-10",
+          "2005-11-15",
+          "2005-11-28",
+          "2005-12-05",
+          "2005-12-07",
+          "2005-12-08",
+          "2005-12-22",
+          "2005-12-27",
+          "2005-12-30",
+          "2006-01-06",
+          "2006-01-12",
+          "2006-02-17",
+          "2006-02-27",
+          "2006-03-02",
+          "2006-03-03",
+          "2006-03-14",
+          "2006-03-31",
+          "2006-04-13",
+          "2006-04-20",
+          "2006-05-04",
+          "2006-05-09",
+          "2006-06-27",
+          "2006-07-12",
+          "2006-07-13",
+          "2006-07-14",
+          "2006-08-29",
+          "2006-09-18",
+          "2006-09-20",
+          "2006-09-27",
+          "2006-11-02",
+          "2006-11-08",
+          "2006-11-14",
+          "2007-01-29",
+          "2007-02-14",
+          "2007-02-27",
+          "2007-04-12",
+          "2009-02-27",
+          "2009-07-21",
+          "2011-03-28",
+          "2011-04-08",
+          "2011-04-12",
+          "2011-04-14",
+          "2011-04-19",
+          "2011-04-20",
+          "2011-04-21",
+          "2011-04-29",
+          "2011-05-04",
+          "2011-05-05",
+          "2011-05-06",
+          "2011-05-09",
+          "2011-05-12",
+          "2011-05-13",
+          "2011-05-16",
+          "2011-05-19",
+          "2011-05-20",
+          "2011-05-24",
+          "2011-05-25",
+          "2011-05-26",
+          "2011-05-27",
+          "2011-06-02",
+          "2011-06-06",
+          "2011-06-07",
+          "2011-06-09",
+          "2011-06-14",
+          "2011-06-15",
+          "2011-06-16",
+          "2011-06-17",
+          "2011-06-20",
+          "2011-06-22",
+          "2011-06-24",
+          "2011-06-27",
+          "2011-06-29",
+          "2011-07-05",
+          "2011-07-06",
+          "2011-07-11",
+          "2011-07-12",
+          "2011-07-13",
+          "2011-07-22",
+          "2013-05-07",
+          "2013-12-10",
+          "2014-10-14",
+          "2014-10-27",
+          "2014-12-03",
+          "2014-12-24",
+          "2015-01-08",
+          "2015-01-22",
+          "2015-01-26",
+          "2015-01-27",
+          "2015-01-28",
+          "2015-01-29",
+          "2015-02-02",
+          "2015-02-04"
+        ],
+        "archived_count": 620,
+        "archived_first": "1995-01-06",
+        "archived_last": "2015-02-04",
+        "archived_dates_sha256": "8775db39a9a2e45a8510db872b8d872600f7a22e9987b8c77448625212c30baf",
+        "archived_available_at": [
+          "2026-08-18T08:26:51+00:00"
+        ],
+        "semantics": "archived_observations_unavailable_in_current_release_not_current_release_values",
+        "current_release_count": 7359,
+        "current_release_endpoint": "2026-10-20",
+        "current_release_raw_sha256": "8688eeb0c4807836deb9afc28917c6ab7be099f1df491dce4e7c0e351b7f4942",
+        "archive_rebound_to_current_receipt": false
+      }
     },
     {
       "series_id": "WPU10260314",
@@ -17658,12 +18526,13 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-10-19T13:18:18+00:00",
+      "available_at": "2026-10-25T10:59:34+00:00",
       "latest_observation": "2026-09-01",
       "row_count": 380,
       "raw_sha256": "71e6e674c8e849788d21bbea8251c03e6d506962fe7e53c8bcafd064fbdbe223",
       "raw_path": "data/statistics/official_store/raw/fred_market_signals/71e6e674c8e849788d21bbea8251c03e6d506962fe7e53c8bcafd064fbdbe223.bin",
-      "vintage": "current_release_reconstructed"
+      "vintage": "current_release_reconstructed",
+      "refresh_status": "current_fred"
     },
     {
       "series_id": "GACDFSA066MSFRBPHI",
@@ -17678,12 +18547,13 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-10-19T13:18:18+00:00",
+      "available_at": "2026-10-25T10:59:34+00:00",
       "latest_observation": "2026-10-01",
       "row_count": 382,
       "raw_sha256": "f14eb8871abd7dfee6d1fd7a18aef6f4a045b823d56643e73c87409560fc92bc",
       "raw_path": "data/statistics/official_store/raw/fred_market_signals/f14eb8871abd7dfee6d1fd7a18aef6f4a045b823d56643e73c87409560fc92bc.bin",
-      "vintage": "current_release_reconstructed"
+      "vintage": "current_release_reconstructed",
+      "refresh_status": "current_fred"
     },
     {
       "series_id": "SP500",
@@ -17699,12 +18569,13 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-10-19T13:18:18+00:00",
-      "latest_observation": "2026-10-16",
-      "row_count": 951,
-      "raw_sha256": "c6d77f671eee84df27395312a4e01c24b8aacdd07dd0d4566e5beabad148b052",
-      "raw_path": "data/statistics/official_store/raw/fred_market_signals/c6d77f671eee84df27395312a4e01c24b8aacdd07dd0d4566e5beabad148b052.bin",
-      "vintage": "current_release_reconstructed"
+      "available_at": "2026-10-25T10:59:34+00:00",
+      "latest_observation": "2026-10-21",
+      "row_count": 954,
+      "raw_sha256": "1e9be4c5ec0ed183d56f321f1530610ab01665718df0df63608008a379435958",
+      "raw_path": "data/statistics/official_store/raw/fred_market_signals/1e9be4c5ec0ed183d56f321f1530610ab01665718df0df63608008a379435958.bin",
+      "vintage": "current_release_reconstructed",
+      "refresh_status": "current_fred"
     },
     {
       "series_id": "CBBTCUSD",
@@ -17720,12 +18591,13 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-10-19T13:18:18+00:00",
-      "latest_observation": "2026-10-18",
-      "row_count": 1387,
-      "raw_sha256": "edb245583ebb4ea234dd4858f54e36eaa0e207283e225b4706ca650ac6502f8f",
-      "raw_path": "data/statistics/official_store/raw/fred_market_signals/edb245583ebb4ea234dd4858f54e36eaa0e207283e225b4706ca650ac6502f8f.bin",
-      "vintage": "current_release_reconstructed"
+      "available_at": "2026-10-25T10:59:34+00:00",
+      "latest_observation": "2026-10-24",
+      "row_count": 1393,
+      "raw_sha256": "bccbfd76cede979d6287a9f818f3db7bfd00be757c3007e8c19dd79d40621516",
+      "raw_path": "data/statistics/official_store/raw/fred_market_signals/bccbfd76cede979d6287a9f818f3db7bfd00be757c3007e8c19dd79d40621516.bin",
+      "vintage": "current_release_reconstructed",
+      "refresh_status": "current_fred"
     },
     {
       "series_id": "NASDAQSOX",
@@ -17741,12 +18613,13 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-10-19T13:18:18+00:00",
-      "latest_observation": "2026-10-15",
-      "row_count": 1706,
-      "raw_sha256": "d1dd05c73d1853c7b5f651628cebe94d34d50a384c60fa7ef769f577cb3476db",
-      "raw_path": "data/statistics/official_store/raw/fred_market_signals/d1dd05c73d1853c7b5f651628cebe94d34d50a384c60fa7ef769f577cb3476db.bin",
-      "vintage": "current_release_reconstructed"
+      "available_at": "2026-10-25T10:59:34+00:00",
+      "latest_observation": "2026-10-23",
+      "row_count": 1712,
+      "raw_sha256": "16e543a679eb8f84e2005aacd807d68911922611e73d86f4b10589de5818b104",
+      "raw_path": "data/statistics/official_store/raw/fred_market_signals/16e543a679eb8f84e2005aacd807d68911922611e73d86f4b10589de5818b104.bin",
+      "vintage": "current_release_reconstructed",
+      "refresh_status": "current_fred"
     },
     {
       "series_id": "SPASTT01KRM661N",
@@ -17762,12 +18635,13 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-10-19T13:18:18+00:00",
+      "available_at": "2026-10-25T10:59:34+00:00",
       "latest_observation": "2026-09-01",
       "row_count": 81,
       "raw_sha256": "efcc3424ed907635f5b1118fc4cbd69627bf0329b4434281ca9e511c255db091",
       "raw_path": "data/statistics/official_store/raw/fred_market_signals/efcc3424ed907635f5b1118fc4cbd69627bf0329b4434281ca9e511c255db091.bin",
-      "vintage": "current_release_reconstructed"
+      "vintage": "current_release_reconstructed",
+      "refresh_status": "current_fred"
     },
     {
       "series_id": "SPASTT01USM661N",
@@ -17783,12 +18657,13 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-10-19T13:18:18+00:00",
+      "available_at": "2026-10-25T10:59:34+00:00",
       "latest_observation": "2026-09-01",
       "row_count": 729,
       "raw_sha256": "684d5416515f99829370854a74a617c57e4340dcd509b2a3f5a3beb96339e8c6",
       "raw_path": "data/statistics/official_store/raw/fred_market_signals/684d5416515f99829370854a74a617c57e4340dcd509b2a3f5a3beb96339e8c6.bin",
-      "vintage": "current_release_reconstructed"
+      "vintage": "current_release_reconstructed",
+      "refresh_status": "current_fred"
     },
     {
       "series_id": "GFDEBTN",
@@ -17804,12 +18679,13 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-10-19T13:18:18+00:00",
+      "available_at": "2026-10-25T10:59:34+00:00",
       "latest_observation": "2026-04-01",
       "row_count": 242,
       "raw_sha256": "668cfc7020db17069cccb95a2975c5fe9db791beeabe2dd30876abfc9dcd6074",
       "raw_path": "data/statistics/official_store/raw/fred_market_signals/668cfc7020db17069cccb95a2975c5fe9db791beeabe2dd30876abfc9dcd6074.bin",
-      "vintage": "current_release_reconstructed"
+      "vintage": "current_release_reconstructed",
+      "refresh_status": "current_fred"
     },
     {
       "series_id": "HOUST",
@@ -17824,12 +18700,13 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-10-19T13:18:18+00:00",
-      "latest_observation": "2026-08-01",
-      "row_count": 380,
-      "raw_sha256": "f9e42f79d37d7e928cf0d34123c4541ab3191b84779f38bc3ca23d813eeafbba",
-      "raw_path": "data/statistics/official_store/raw/fred_market_signals/f9e42f79d37d7e928cf0d34123c4541ab3191b84779f38bc3ca23d813eeafbba.bin",
-      "vintage": "current_release_reconstructed"
+      "available_at": "2026-10-25T10:59:34+00:00",
+      "latest_observation": "2026-09-01",
+      "row_count": 381,
+      "raw_sha256": "36dce216168ee7c438ff44de0f7e6afbfc4f8a6aa57c56b9bb3c9a6e701fec87",
+      "raw_path": "data/statistics/official_store/raw/fred_market_signals/36dce216168ee7c438ff44de0f7e6afbfc4f8a6aa57c56b9bb3c9a6e701fec87.bin",
+      "vintage": "current_release_reconstructed",
+      "refresh_status": "current_fred"
     },
     {
       "series_id": "GDP",
@@ -17844,12 +18721,13 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-10-19T13:18:18+00:00",
+      "available_at": "2026-10-25T10:59:34+00:00",
       "latest_observation": "2026-04-01",
       "row_count": 126,
       "raw_sha256": "b8de167e9d96779d7545b6fb3c2dc99f17ba04d07eb14f173507389ba9ca3f7e",
       "raw_path": "data/statistics/official_store/raw/fred_market_signals/b8de167e9d96779d7545b6fb3c2dc99f17ba04d07eb14f173507389ba9ca3f7e.bin",
-      "vintage": "current_release_reconstructed"
+      "vintage": "current_release_reconstructed",
+      "refresh_status": "current_fred"
     },
     {
       "series_id": "Y034RC1Q027SBEA",
@@ -17864,12 +18742,13 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-10-19T13:18:18+00:00",
+      "available_at": "2026-10-25T10:59:34+00:00",
       "latest_observation": "2026-04-01",
       "row_count": 126,
       "raw_sha256": "603f431ac814fbccc6c9b3112e80afe80a6a22725dff720f9ffcfa840c00cc54",
       "raw_path": "data/statistics/official_store/raw/fred_market_signals/603f431ac814fbccc6c9b3112e80afe80a6a22725dff720f9ffcfa840c00cc54.bin",
-      "vintage": "current_release_reconstructed"
+      "vintage": "current_release_reconstructed",
+      "refresh_status": "current_fred"
     },
     {
       "series_id": "Y001RC1Q027SBEA",
@@ -17884,12 +18763,13 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-10-19T13:18:18+00:00",
+      "available_at": "2026-10-25T10:59:34+00:00",
       "latest_observation": "2026-04-01",
       "row_count": 126,
       "raw_sha256": "971220711ed8cb3dd53fdc0a74cf999583159f94388712f99caa181f48ac729c",
       "raw_path": "data/statistics/official_store/raw/fred_market_signals/971220711ed8cb3dd53fdc0a74cf999583159f94388712f99caa181f48ac729c.bin",
-      "vintage": "current_release_reconstructed"
+      "vintage": "current_release_reconstructed",
+      "refresh_status": "current_fred"
     },
     {
       "series_id": "SEC_IPO_QUARTERLY",
@@ -17903,7 +18783,7 @@
       "policy_source_id": "sec_edgar",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-10-19T13:18:18+00:00",
+      "available_at": "2026-10-25T10:59:34+00:00",
       "latest_observation": "2026-06-01",
       "row_count": 106,
       "raw_sha256": "8499e48223bb72d93cd5919a4f3b2f84776d020b120e3133d992841da5ba5450",
@@ -17922,7 +18802,7 @@
       "policy_source_id": "federal_reserve_board",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-10-19T13:18:18+00:00",
+      "available_at": "2026-10-25T10:59:34+00:00",
       "latest_observation": "2026-04-01",
       "row_count": 126,
       "raw_sha256": "b63af9755437df0fb88b7cf346f8f9eaeb22bf1aa2b5df1709334135c43de4b6",
@@ -17943,7 +18823,7 @@
       "policy_source_id": "federal_reserve_board",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-10-19T13:18:18+00:00",
+      "available_at": "2026-10-25T10:59:34+00:00",
       "latest_observation": "2026-04-01",
       "row_count": 126,
       "raw_sha256": "b63af9755437df0fb88b7cf346f8f9eaeb22bf1aa2b5df1709334135c43de4b6",
@@ -17962,7 +18842,7 @@
       "policy_source_id": "federal_reserve_board",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-10-19T13:18:18+00:00",
+      "available_at": "2026-10-25T10:59:34+00:00",
       "latest_observation": "2026-04-01",
       "row_count": 126,
       "raw_sha256": "b63af9755437df0fb88b7cf346f8f9eaeb22bf1aa2b5df1709334135c43de4b6",
@@ -17981,7 +18861,7 @@
       "policy_source_id": "census",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-10-19T13:18:18+00:00",
+      "available_at": "2026-10-25T10:59:34+00:00",
       "latest_observation": "2026-08-01",
       "row_count": 404,
       "raw_sha256": "ff77dfdd4617c2a21b8446a06fc80cfb86ef5888a47e8bad85852767c7c911b8",
@@ -18000,7 +18880,7 @@
       "policy_source_id": "census",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-10-19T13:18:18+00:00",
+      "available_at": "2026-10-25T10:59:34+00:00",
       "latest_observation": "2026-08-01",
       "row_count": 404,
       "raw_sha256": "ff77dfdd4617c2a21b8446a06fc80cfb86ef5888a47e8bad85852767c7c911b8",
@@ -18019,7 +18899,7 @@
       "policy_source_id": "census",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-10-19T13:18:18+00:00",
+      "available_at": "2026-10-25T10:59:34+00:00",
       "latest_observation": "2026-08-01",
       "row_count": 404,
       "raw_sha256": "ff77dfdd4617c2a21b8446a06fc80cfb86ef5888a47e8bad85852767c7c911b8",
@@ -18038,7 +18918,7 @@
       "policy_source_id": "census",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-10-19T13:18:18+00:00",
+      "available_at": "2026-10-25T10:59:34+00:00",
       "latest_observation": "2026-08-01",
       "row_count": 404,
       "raw_sha256": "ff77dfdd4617c2a21b8446a06fc80cfb86ef5888a47e8bad85852767c7c911b8",
@@ -18057,7 +18937,7 @@
       "policy_source_id": "census",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-10-19T13:18:18+00:00",
+      "available_at": "2026-10-25T10:59:34+00:00",
       "latest_observation": "2026-08-01",
       "row_count": 152,
       "raw_sha256": "ff77dfdd4617c2a21b8446a06fc80cfb86ef5888a47e8bad85852767c7c911b8",
@@ -18120,50 +19000,59 @@
         {
           "month": "2026-01",
           "operating_approx": 10,
-          "priced_total": 35
+          "priced_total": 35,
+          "theme_foreign_added": 6
         },
         {
           "month": "2026-02",
           "operating_approx": 18,
-          "priced_total": 45
+          "priced_total": 45,
+          "theme_foreign_added": 3
         },
         {
           "month": "2026-03",
           "operating_approx": 6,
-          "priced_total": 17
+          "priced_total": 17,
+          "theme_foreign_added": 4
         },
         {
           "month": "2026-04",
           "operating_approx": 15,
-          "priced_total": 32
+          "priced_total": 32,
+          "theme_foreign_added": 7
         },
         {
           "month": "2026-05",
           "operating_approx": 20,
-          "priced_total": 41
+          "priced_total": 41,
+          "theme_foreign_added": 8
         },
         {
           "month": "2026-06",
           "operating_approx": 18,
-          "priced_total": 36
+          "priced_total": 36,
+          "theme_foreign_added": 5
         },
         {
           "month": "2026-07",
           "operating_approx": 15,
-          "priced_total": 32
+          "priced_total": 32,
+          "theme_foreign_added": 8
         },
         {
           "month": "2026-08",
           "operating_approx": 11,
-          "priced_total": 23
+          "priced_total": 23,
+          "theme_foreign_added": 6
         },
         {
           "month": "2026-09",
           "operating_approx": 6,
-          "priced_total": 11
+          "priced_total": 11,
+          "theme_foreign_added": 6
         }
       ],
-      "available_at": "2026-10-19T13:18:12+00:00"
+      "available_at": "2026-10-25T10:59:07+00:00"
     }
   ],
   "reference_statistics": {

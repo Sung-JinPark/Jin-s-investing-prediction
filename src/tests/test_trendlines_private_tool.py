@@ -221,15 +221,22 @@ def test_three_representative_refresh_runs_after_legacy_models_without_changing_
     monkeypatch.setattr(tool.V, "refresh", lambda root, asset, **_kwargs: calls.append(("representative", root, asset)) or
                         {"status": "ready", "changed": True, "snapshot_id": "representative-fixture"})
     monkeypatch.setattr(tool.B, "refresh", lambda root, asset, **_kwargs: calls.append(("long_boundaries", root, asset)) or {"status":"ready"})
+    def publish(root, asset, envelope):
+        assert envelope == R.export_private_import(root, asset)
+        calls.append(("delivery", root, asset))
+        return {"snapshot_id": "delivery-fixture"}
+    monkeypatch.setattr(tool.D, "publish", publish)
     result = tool.run(request)
-    assert [c[0] for c in calls] == ["full", "critical", "representative", "long_boundaries"]
+    assert [c[0] for c in calls] == ["full", "critical", "representative", "long_boundaries", "delivery"]
     assert all(c[1:] == (request.out.resolve(), "bitcoin") for c in calls)
     assert result["representative"]["status"] == "ready" and result["independent_replay"]["ok"]
+    assert result["delivery_committed"] is True and result["delivery"]["snapshot_id"] == "delivery-fixture"
     assert result["public_prices_published"] is False and source_bytes(tool.PROJECT) == before
 
 
 def test_long_boundaries_failure_preserves_existing_three_and_export(tool,tmp_path,monkeypatch):
     request=options(tool,tmp_path)
+    monkeypatch.setattr(tool.D,'publish',lambda *_a,**_k:pytest.fail('Incomplete cohort was published'))
     for name in ('F','K','V'):
         monkeypatch.setattr(getattr(tool,name),'refresh',lambda *_a,**_k:{'status':'ready'})
     def failed(*_a,**_k):raise C.TrendlinesError('supplement fixture mismatch')
@@ -237,6 +244,7 @@ def test_long_boundaries_failure_preserves_existing_three_and_export(tool,tmp_pa
     result=tool.run(request)
     assert result['long_boundaries']['status']=='unavailable' and result['representative']['status']=='ready'
     assert result['independent_replay']['ok'] and Path(result['browser_import_file']).is_file()
+    assert result['delivery_committed'] is False and result['delivery'] is None
 
 
 def test_representative_failure_preserves_current_and_legacy_models(tool, tmp_path, monkeypatch):
@@ -264,3 +272,56 @@ def test_original_corruption_during_representative_work_blocks_delivery(tool, tm
     with pytest.raises(C.TrendlinesError, match="original-to-chart replay failed"):
         tool.run(request)
     assert not (request.out / "bitcoin.trendlines.json").exists()
+
+
+def test_private_registry_gains_instruments_but_never_redefines_captured_ones(tool, tmp_path):
+    import yaml
+    output = tool.PROJECT / "outputs/private"
+    target = output / C.ASSET_REGISTRY_RELATIVE
+    registry = yaml.safe_load((REPOSITORY / C.ASSET_REGISTRY_RELATIVE).read_text(encoding="utf-8"))
+    earlier = {key: value for key, value in registry.items() if key != "assets"}
+    earlier["assets"] = {key: value for key, value in registry["assets"].items() if key not in {"kospi", "samsung", "nvidia", "micron"}}
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_text(yaml.safe_dump(earlier, allow_unicode=True, sort_keys=False), encoding="utf-8")
+    tool.private_root(output)
+    assert tuple(C.load_asset_registry(output)) == C.ASSET_IDS
+    assert target.read_bytes() == (REPOSITORY / C.ASSET_REGISTRY_RELATIVE).read_bytes()
+    redefined = yaml.safe_load(target.read_text(encoding="utf-8"))
+    redefined["assets"]["sk-hynix"]["currency"] = "USD"
+    target.write_text(yaml.safe_dump(redefined, allow_unicode=True, sort_keys=False), encoding="utf-8")
+    before = target.read_bytes()
+    with pytest.raises(C.TrendlinesError, match="existing definitions are immutable"):
+        tool.private_root(output)
+    assert target.read_bytes() == before
+
+
+def test_public_page_requests_a_rolling_window_without_a_fixed_start(tool, monkeypatch):
+    from datetime import datetime, timezone
+    now = datetime(2026, 10, 22, 8, tzinfo=timezone.utc)
+    equity = tool.capture_window({"kind": "equity"}, now)
+    crypto = tool.capture_window({"kind": "crypto"}, now)
+    assert equity[1] == crypto[1] == now
+    assert (now - equity[0]).days == 3652 and (now - crypto[0]).days == 2192
+    assert tool.capture_window(None, now) == equity
+
+    class Response:
+        status = 200
+        def __init__(self, url): self.url = url
+        def __enter__(self): return self
+        def __exit__(self, *_): return False
+        def read(self, _limit): return b"<html></html>"
+        def geturl(self): return self.url
+    seen = {}
+    def fake_urlopen(request, timeout):
+        seen["url"] = request.full_url
+        return Response(request.full_url)
+    monkeypatch.setattr(tool, "urlopen", fake_urlopen)
+    before = datetime.now(timezone.utc)
+    raw, receipt = tool.public_page("bitcoin")
+    query = dict(part.split("=") for part in seen["url"].split("?", 1)[1].split("&"))
+    span = (int(query["period2"]) - int(query["period1"])) / 86400
+    assert raw == b"<html></html>" and receipt["url"] == seen["url"] and 2191 <= span <= 2193
+    assert int(query["period2"]) >= int(before.timestamp()) and "2022" not in query["period1"]
+    raw, _ = tool.public_page("sk-hynix")
+    query = dict(part.split("=") for part in seen["url"].split("?", 1)[1].split("&"))
+    assert 3652 <= (int(query["period2"]) - int(query["period1"])) / 86400 <= 3654

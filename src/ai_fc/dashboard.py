@@ -49,7 +49,16 @@ DASHBOARD_SCRIPT = DASHBOARD_PARTS / "dashboard.js"
 # snapshot was dropping the very content it exists to show.  1.5 MiB carries
 # one body per active question (992 KB at 29 questions) with 37% headroom, and
 # still holds at 50 active questions.
-DASHBOARD_RAW_BUDGET_BYTES = 1536 * 1024
+#
+# ADR-004, resolved 2026-10-22 (docs/DECISIONS.md): raised 1536 KiB -> 2048 KiB.
+# 실측 2026-10-21: origin/main 임베드가 상한의 99.5%(여유 8.4 KB)였고 표시 항목 추가
+# 10.5 KB 로 2.2 KB 초과했다. 렌더 필드 투영(EMBED_RENDERED_FIELDS 등)으로 화면이
+# 읽지 않는 전송 필드를 먼저 걷어내 1,559,564 B 까지 내렸으나(99.2%), 남은 성장분은
+# 등록 원장·영수증·트랙 수에 비례해 단조 증가하는 **내용**이다. 자기완결 임베드에서
+# 내용을 더 걷어내는 것은 삭제이므로(ADR-002 와 같은 논거) 가드를 올린다. 다음 상향은
+# 새 ADR 이 필요하며, 그 전에 투영(렌더되지 않는 필드 제거)이 소진됐음을 먼저 보여야 한다.
+# 계약 선언(data/contracts/dashboard_payload.yaml budgets.embed_html_max_bytes)과 같은 값.
+DASHBOARD_RAW_BUDGET_BYTES = 2048 * 1024
 FUTURE_PATHS_BUDGET_BYTES = 240_000
 FUTURE_PATHS_FILENAME = "future_paths.json"
 # Daily representative paths are a separate lazy route so the unchanged future
@@ -72,6 +81,10 @@ STATISTICS_DATA_FILENAME = "statistics.json"
 # 쪼개기는 내용을 옮기는 게 아니라 지우는 것이다(ADR-002).
 FORECAST_BODIES_BUDGET_BYTES = 900_000
 FORECAST_BODIES_FILENAME = "forecast_bodies.json"
+# Raw calibration rows are an audit archive, not first-paint chart inputs.
+# Preserve them losslessly in a separately bounded file as the ledger grows.
+BAND_CALIBRATION_BUDGET_BYTES = 900_000
+BAND_CALIBRATION_FILENAME = "band_calibration.json"
 # 첫 화면을 막는 payload는 예산 없이 자라면 안 된다 — 실측 633KB에서 시작한다.
 DATA_JSON_BUDGET_BYTES = 900_000
 # 가드에 닿기 전에 보이도록 소프트 경고 임계(예산의 90%)를 둔다.
@@ -84,7 +97,7 @@ TIMESERIES_DAILY_BUDGET_BYTES = 128 * 1024
 TIMESERIES_DAILY_FILENAME = "timeseries_daily.json"
 TRENDLINES_SUMMARY_BUDGET_BYTES = 16 * 1024
 TRENDLINES_ASSET_BUDGET_BYTES = 256 * 1024
-TRENDLINES_ASSET_IDS = ("sk-hynix", "soxx", "nasdaq", "sp500", "bitcoin", "dow", "mag7")
+TRENDLINES_ASSET_IDS = ("sk-hynix", "soxx", "nasdaq", "sp500", "bitcoin", "dow", "kospi", "samsung", "nvidia", "micron", "mag7")
 WANTED_SANS_CSS = (
     "https://cdn.jsdelivr.net/gh/wanteddev/wanted-sans@v1.0.3/"
     "packages/wanted-sans/fonts/webfonts/variable/split/"
@@ -917,6 +930,10 @@ def build_read_model(
         market_mood["freshness"] = {"status": "unavailable"}
     from .timeseries_daily6m.display import load_projection as load_timeseries_daily_projection
     timeseries_daily = load_timeseries_daily_projection(root, now=now)
+    # 일별 전망 전진 성적(표시 전용) — 해소 원장 요약. 발행본 projection 의 identity(content_hash·
+    # projection_hash)를 건드리지 않도록 별도 키로 싣는다. 해소 행이 없으면 숫자 대신 None(화면 '—').
+    from .timeseries_daily6m.display import load_forward_record as load_timeseries_daily_record
+    timeseries_daily_record = load_timeseries_daily_record(root)
     from .trendlines.display import load_projection as load_trendlines_projection
     trendlines = load_trendlines_projection(root)
     ai_regime = load_ai_regime(root)
@@ -1124,6 +1141,7 @@ def build_read_model(
         "timeseries_v13_vol": timeseries_v13_vol,
         "market_mood": market_mood,
         "timeseries_daily": timeseries_daily,
+        "timeseries_daily_record": timeseries_daily_record,
         "trendlines": trendlines,
         "multi_year_stress": multi_year_stress,
         "ai_regime": ai_regime,
@@ -1339,6 +1357,7 @@ def split_future_paths(read_model: dict) -> tuple[dict, dict | None]:
                 "required": True,
                 "loaded": False,
                 "url": FUTURE_PATHS_FILENAME,
+                "model_content_sha256": candidate.get("model_content_sha256"),
                 "failure_mode": "summary_with_explicit_banner",
             },
         }
@@ -1358,9 +1377,12 @@ def split_future_paths(read_model: dict) -> tuple[dict, dict | None]:
         "semantic_reference": candidate.get("semantic_reference"),
         "data": deferred,
     }
-    payload_size = len(json.dumps(
+    payload_bytes = json.dumps(
         payload, ensure_ascii=False, default=str, separators=(",", ":")
-    ).encode("utf-8"))
+    ).encode("utf-8")
+    payload_size = len(payload_bytes)
+    if candidate_has_paths:
+        base["scenario_v5_2"]["deferred_paths"]["payload_sha256"] = hashlib.sha256(payload_bytes).hexdigest()
     if payload_size > FUTURE_PATHS_BUDGET_BYTES:
         raise ValueError(
             f"future paths budget exceeded: {payload_size} > {FUTURE_PATHS_BUDGET_BYTES}"
@@ -1487,9 +1509,11 @@ def split_statistics_data(read_model: dict) -> tuple[dict, dict | None]:
         "contract_id": "statistics_route_v1",
         "data": {"statistics_lab": statistics_lab},
     }
-    payload_size = len(json.dumps(
+    payload_bytes = json.dumps(
         payload, ensure_ascii=False, default=str, separators=(",", ":")
-    ).encode("utf-8"))
+    ).encode("utf-8")
+    payload_size = len(payload_bytes)
+    base["statistics_lab"]["deferred_data"]["payload_sha256"] = hashlib.sha256(payload_bytes).hexdigest()
     if payload_size > STATISTICS_DATA_BUDGET_BYTES:
         raise ValueError(
             f"statistics data budget exceeded: {payload_size} > {STATISTICS_DATA_BUDGET_BYTES}"
@@ -1551,7 +1575,7 @@ def split_trendlines_data(read_model: dict) -> tuple[dict, dict[str, dict]]:
             sidecars[asset_id] = payload
         assets.append(asset)
     if seen != set(TRENDLINES_ASSET_IDS):
-        raise ValueError("trendlines summary must contain all seven assets")
+        raise ValueError("trendlines summary must contain every registered asset")
     summary["assets"] = assets
     raw_summary = json.dumps(summary, ensure_ascii=False, default=str, separators=(",", ":"), allow_nan=False).encode("utf-8")
     if len(raw_summary) > TRENDLINES_SUMMARY_BUDGET_BYTES:
@@ -1576,7 +1600,7 @@ def _trendlines_output_path(output: Path, relative: str) -> Path:
 
 
 def _write_trendlines_sidecars(sidecars: dict[str, dict], output: Path) -> None:
-    # These seven files are replaceable public outputs. Source receipts, engine
+    # These per-asset files are replaceable public outputs. Source receipts, engine
     # archives and ledgers are never deleted when current permission is closed.
     for asset_id in TRENDLINES_ASSET_IDS:
         if asset_id not in sidecars:
@@ -1671,29 +1695,71 @@ def _compact_embed_forecast_history(read_model: dict) -> dict:
     return compacted
 
 
-def _compact_embed_band_calibration(read_model: dict) -> dict:
-    """Archive raw band-calibration rows out of the standalone snapshot.
+def split_band_calibration_rows(
+    read_model: dict, *, reason: str = "data_json_size_budget",
+) -> tuple[dict, dict | None]:
+    """Keep calibration gates inline and preserve every raw row in an archive.
 
-    The dashboard UI renders only the aggregate promotion-gate counters
-    (status/observations/gate_pass), never the per-day rows, so the embed
-    keeps every rendered figure while the row-level ledger stays published
-    unchanged in the Pages ``data.json`` payload, the ``/api/data`` route and
-    the immutable source CSV referenced by ``source_path``.  This mirrors the
-    resolved-forecast-body archival: transport changes, information does not.
+    No browser renderer consumes these rows. The archive retains all columns,
+    row order and original values, including the summary and source metadata.
+    The read model, API response and immutable CSV are never modified.
     """
     band = read_model.get("band_calibration")
     if not isinstance(band, dict) or "rows" not in band:
-        return read_model
+        return read_model, None
+    if not isinstance(band["rows"], list):
+        raise ValueError("band calibration rows must be a list")
+    payload = {
+        "schema_version": 1,
+        "contract_id": "band_calibration_archive_v1",
+        "data": {"band_calibration": band},
+    }
+    raw = json.dumps(
+        payload, ensure_ascii=False, default=str, separators=(",", ":"),
+        allow_nan=False,
+    ).encode("utf-8")
+    if len(raw) > BAND_CALIBRATION_BUDGET_BYTES:
+        raise ValueError(
+            f"band calibration archive budget exceeded: {len(raw)} > "
+            f"{BAND_CALIBRATION_BUDGET_BYTES}"
+        )
+    if len(raw) > BAND_CALIBRATION_BUDGET_BYTES * PAYLOAD_WARN_RATIO:
+        print(
+            f"warning: {BAND_CALIBRATION_FILENAME} {len(raw)}B is "
+            f"{len(raw) / BAND_CALIBRATION_BUDGET_BYTES:.1%} of its budget"
+        )
     compacted = dict(read_model)
     archived = {key: value for key, value in band.items() if key != "rows"}
     archived["rows_archived"] = {
         "archived": True,
-        "row_count": len(band.get("rows") or []),
-        "reason": "embed_size_budget",
+        "row_count": len(band["rows"]),
+        "reason": reason,
         "source_path": band.get("source_path"),
-        "full_payload": "data.json",
+        "full_payload": BAND_CALIBRATION_FILENAME,
+        "url": BAND_CALIBRATION_FILENAME,
+        "contract_id": payload["contract_id"],
+        "payload_sha256": hashlib.sha256(raw).hexdigest(),
+        "payload_bytes": len(raw),
     }
     compacted["band_calibration"] = archived
+    return compacted, payload
+
+
+def _write_band_calibration_sidecar(payload: dict | None, output: Path) -> None:
+    target = output / BAND_CALIBRATION_FILENAME
+    if payload is None:
+        # This is a replaceable public output, never a source ledger.
+        target.unlink(missing_ok=True)
+        return
+    target.write_bytes(json.dumps(
+        payload, ensure_ascii=False, default=str, separators=(",", ":"),
+        allow_nan=False,
+    ).encode("utf-8"))
+
+
+def _compact_embed_band_calibration(read_model: dict) -> dict:
+    """Link unrendered rows to the lossless archive written beside the embed."""
+    compacted, _ = split_band_calibration_rows(read_model, reason="embed_size_budget")
     return compacted
 
 
@@ -1713,41 +1779,88 @@ EMBED_RENDERED_FIELDS = {
         "event_id", "source_id", "source_url", "title", "date",
         "status", "kind", "time_et", "ticker",
     ),
+    # dashboard.js records page: receipt.commit/dataset/limitation/model/source (+label·method).
+    # `requests`(cross_asset 수집 영수증 목록, ~6 KB)·`lineage`·`receipt_id` 는 화면이 읽지 않는다.
+    "receipts": ("label", "model", "dataset", "source", "method", "limitation", "commit"),
+}
+# Nested list sections under a dict parent — same rule, same disclosure (2026-10-21, 임베드 예산 소진 대응).
+# dashboard.js trust page reads ledgers: id·path·kind·cadence·status·file_count·row_count·latest_date·
+# missing_trading_days·growth_last_30d; sources: source_id·name·status·state_label·asof·license_status·
+# vintage_capability·freshness_sla_hours·provider·contract·quarantine_count.
+EMBED_RENDERED_NESTED_FIELDS = {
+    "trust": {
+        "ledgers": ("id", "path", "kind", "cadence", "status", "file_count", "row_count",
+                    "latest_date", "missing_trading_days", "growth_last_30d"),
+        "sources": ("source_id", "name", "provider", "status", "state_label", "asof",
+                    "freshness_sla_hours", "vintage_capability", "license_status", "contract",
+                    "quarantine_count"),
+    },
+}
+# Rows the embed never renders: dashboard.js decisionJournal() filters method_changes on kind === "method".
+EMBED_ROW_FILTERS = {
+    "method_changes": lambda row: row.get("kind") == "method",
 }
 
 
 def _project_embed_rows(read_model: dict) -> dict:
-    """Carry only rendered columns for append-only list sections in the embed.
+    """Carry only rendered columns (and rendered rows) for append-only list sections in the embed.
 
     Mirrors the resolved-forecast-body and band-calibration archival: transport
-    changes, information does not.  The dropped column names are disclosed in
-    ``embed_field_projection`` so a reader of the standalone snapshot can see
-    what was omitted and where the complete payload lives.  The input model is
-    never mutated.
+    changes, information does not.  The dropped column names (and dropped row
+    counts) are disclosed in ``embed_field_projection`` so a reader of the
+    standalone snapshot can see what was omitted and where the complete payload
+    lives.  The input model is never mutated.
     """
     projected = dict(read_model)
     sections: dict[str, dict] = {}
+
+    def _project(rows: list, allowed: tuple, keep_row=None) -> tuple[list, dict | None]:
+        kept_rows = [row for row in rows if keep_row is None or not isinstance(row, dict) or keep_row(row)]
+        dropped = sorted({
+            field
+            for row in kept_rows if isinstance(row, dict)
+            for field in row if field not in allowed
+        })
+        dropped_rows = len(rows) - len(kept_rows)
+        if not dropped and not dropped_rows:
+            return rows, None
+        out = [
+            {field: value for field, value in row.items() if field in allowed}
+            if isinstance(row, dict) else row
+            for row in kept_rows
+        ]
+        info = {"row_count": len(kept_rows), "kept_fields": list(allowed), "dropped_fields": dropped}
+        if dropped_rows:
+            info["dropped_rows"] = dropped_rows
+        return out, info
+
     for key, allowed in EMBED_RENDERED_FIELDS.items():
         rows = read_model.get(key)
         if not isinstance(rows, list) or not rows:
             continue
-        dropped = sorted({
-            field
-            for row in rows if isinstance(row, dict)
-            for field in row if field not in allowed
-        })
-        if not dropped:
+        out, info = _project(rows, allowed, EMBED_ROW_FILTERS.get(key))
+        if info is None:
             continue
-        projected[key] = [
-            {field: value for field, value in row.items() if field in allowed}
-            if isinstance(row, dict) else row
-            for row in rows
-        ]
-        sections[key] = {
-            "row_count": len(rows),
-            "kept_fields": list(allowed),
-            "dropped_fields": dropped,
-        }
+        projected[key] = out
+        sections[key] = info
+    for parent, children in EMBED_RENDERED_NESTED_FIELDS.items():
+        parent_value = read_model.get(parent)
+        if not isinstance(parent_value, dict):
+            continue
+        new_parent = None
+        for child, allowed in children.items():
+            rows = parent_value.get(child)
+            if not isinstance(rows, list) or not rows:
+                continue
+            out, info = _project(rows, allowed)
+            if info is None:
+                continue
+            if new_parent is None:
+                new_parent = dict(parent_value)
+            new_parent[child] = out
+            sections[f"{parent}.{child}"] = info
+        if new_parent is not None:
+            projected[parent] = new_parent
     if sections:
         projected["embed_field_projection"] = {
             "projected": True,
@@ -2081,10 +2194,12 @@ def write_dashboard(conn: sqlite3.Connection, root: Path) -> Path:
     base, future_paths = split_future_paths(base)
     base, timeseries_daily = split_timeseries_daily_data(base)
     base, trendlines_assets = split_trendlines_data(base)
+    base, band_calibration = split_band_calibration_rows(base, reason="embed_size_budget")
     out = root / "reports" / "dashboard.html"
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(render_html(base, mode="embed"), encoding="utf-8")
     _write_trendlines_sidecars(trendlines_assets, out.parent)
+    _write_band_calibration_sidecar(band_calibration, out.parent)
     if daily_flow is not None:
         (out.parent / DAILY_FLOW_FILENAME).write_text(
             json.dumps(daily_flow, ensure_ascii=False, default=str, separators=(",", ":")),
@@ -2180,6 +2295,7 @@ def write_pages(conn: sqlite3.Connection, out_dir: Path, root: Path) -> Path:
     base, forecast_bodies = split_forecast_bodies(base)
     base, timeseries_daily = split_timeseries_daily_data(base)
     base, trendlines_assets = split_trendlines_data(base)
+    base, band_calibration = split_band_calibration_rows(base)
     out_dir.mkdir(parents=True, exist_ok=True)
     index = out_dir / "index.html"
     index.write_text(render_html(model, mode="pages"), encoding="utf-8")
@@ -2196,6 +2312,7 @@ def write_pages(conn: sqlite3.Connection, out_dir: Path, root: Path) -> Path:
             f"{base_size / DATA_JSON_BUDGET_BYTES:.1%} of its budget"
         )
     (out_dir / "data.json").write_text(base_json, encoding="utf-8")
+    _write_band_calibration_sidecar(band_calibration, out_dir)
     _write_trendlines_sidecars(trendlines_assets, out_dir)
     if daily_flow is not None:
         (out_dir / DAILY_FLOW_FILENAME).write_text(

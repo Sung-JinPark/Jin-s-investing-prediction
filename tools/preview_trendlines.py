@@ -95,7 +95,8 @@ def fixture_projection(*, engine_fit=False):
     detail["content_hash"] = hashlib.sha256(json.dumps(detail, sort_keys=True).encode()).hexdigest()
     assets = []
     for asset_id, label in (("sk-hynix", "SK하이닉스"), ("soxx", "SOXX"), ("nasdaq", "나스닥 종합"),
-                            ("sp500", "S&P 500"), ("bitcoin", "비트코인"), ("dow", "다우존스"), ("mag7", "빅테크 7")):
+                            ("sp500", "S&P 500"), ("bitcoin", "비트코인"), ("dow", "다우존스"), ("kospi", "코스피"),
+                            ("samsung", "삼성전자"), ("nvidia", "엔비디아"), ("micron", "마이크론"), ("mag7", "빅테크 7")):
         assets.append({"asset_id": asset_id, "label": label, "currency": "KRW" if asset_id == "sk-hynix" else "USD",
                        "price_unit": "KRW" if asset_id == "sk-hynix" else "points",
                        "status": "ready" if asset_id == "sk-hynix" else "hold", "reason_codes": [] if asset_id == "sk-hynix" else ["missing_approved_ohlc"],
@@ -113,7 +114,7 @@ def build_preview(output: Path):
     base, sidecars = dashboard.split_trendlines_data(model)
     output.mkdir(parents=True, exist_ok=True)
     html = dashboard.render_html(base, mode="embed")
-    html = html.replace("</head>", '<script>if(!location.hash)location.hash="#future/trendlines/sk-hynix";</script></head>')
+    html = html.replace("</head>", '<script>if(!location.hash)location.hash="#trendlines/sk-hynix";</script></head>')
     (output / "index.html").write_text(html, encoding="utf-8")
     dashboard._write_trendlines_sidecars(sidecars, output)
     (output / "fixture_manifest.json").write_text(json.dumps({"fixture_only": True, "sidecar_bytes": (output / "trendlines/sk-hynix.json").stat().st_size,
@@ -136,7 +137,7 @@ def build_research_preview(research_root: Path, output: Path):
     base, sidecars = dashboard.split_trendlines_data(model)
     output.mkdir(parents=True, exist_ok=True)
     html = dashboard.render_html(base, mode="embed")
-    html = html.replace("</head>", '<meta name="robots" content="noindex,nofollow"><script>if(!location.hash)location.hash="#future/trendlines/sk-hynix";</script></head>')
+    html = html.replace("</head>", '<meta name="robots" content="noindex,nofollow"><script>if(!location.hash)location.hash="#trendlines/sk-hynix";</script></head>')
     (output / "index.html").write_text(html, encoding="utf-8")
     (output / "data.json").write_text(json.dumps(base, ensure_ascii=False, separators=(',', ':'), allow_nan=False), encoding="utf-8")
     dashboard._write_trendlines_sidecars(sidecars, output)
@@ -169,7 +170,7 @@ def build_local_service_preview(research_root: Path, output: Path):
         raise ValueError("local service shell must not embed private research candles")
     output.mkdir(parents=True, exist_ok=True)
     html = dashboard.render_html(base, mode='embed')
-    html = html.replace('</head>', '<meta name="robots" content="noindex,nofollow"><script>if(!location.hash)location.hash="#future/trendlines/sk-hynix";</script></head>')
+    html = html.replace('</head>', '<meta name="robots" content="noindex,nofollow"><script>if(!location.hash)location.hash="#trendlines/sk-hynix";</script></head>')
     # Replace each bounded file atomically. A stale HTML/script generation pair
     # is rejected by the existing bundle SHA check and can be retried safely.
     for suffix in ('js', 'css'):

@@ -1,13 +1,13 @@
 {
-  "as_of": "2026-10-09",
-  "content_hash": "c1cb0c2fccbabc25d6d434d109fdb599f47929b24f77711fe437a65d960e9232",
+  "as_of": "2026-10-16",
+  "content_hash": "9973eec4072e66cefda43ddca6682a8bb227196eaf78c4e9cc2043e367c68877",
   "data_summary": {
     "candidate": "C1",
     "data_grades": [
       "captured_forward",
       "reconstructed_market_archive"
     ],
-    "dfm_cache_count": 2071,
+    "dfm_cache_count": 2074,
     "missing_features": [],
     "operational_monitoring": {
       "coverage_p10_p90": {
@@ -21,42 +21,42 @@
     "required_market_freshness": {
       "groups": [
         {
-          "age_hours": 36.42111111111111,
-          "available_at": "2026-10-16T06:26:09.382213+00:00",
+          "age_hours": 24.598055555555554,
+          "available_at": "2026-10-24T05:06:32.110859+00:00",
           "group": "NASDAQCOM",
-          "observation_time": "2026-10-15",
+          "observation_time": "2026-10-23",
           "selected_series": "NASDAQCOM",
           "status": "fresh"
         },
         {
-          "age_hours": 12.421111111111111,
-          "available_at": "2026-10-17T05:02:12.635390+00:00",
+          "age_hours": 24.598055555555554,
+          "available_at": "2026-10-24T05:06:31.183171+00:00",
           "group": "VIX",
-          "observation_time": "2026-10-16",
+          "observation_time": "2026-10-23",
           "selected_series": "VIX",
           "status": "fresh"
         },
         {
-          "age_hours": 14.1944156025,
-          "available_at": "2026-10-16T22:13:35.103831+00:00",
+          "age_hours": 26.341915358333335,
+          "available_at": "2026-10-23T22:15:21.104710+00:00",
           "group": "DGS2",
-          "observation_time": "2026-10-16",
+          "observation_time": "2026-10-23",
           "selected_series": "DGS2",
           "status": "fresh"
         },
         {
-          "age_hours": 14.1944156025,
-          "available_at": "2026-10-16T22:13:35.103831+00:00",
+          "age_hours": 26.341915358333335,
+          "available_at": "2026-10-23T22:15:21.104710+00:00",
           "group": "DGS10",
-          "observation_time": "2026-10-16",
+          "observation_time": "2026-10-23",
           "selected_series": "DGS10",
           "status": "fresh"
         },
         {
-          "age_hours": 180.42111111111112,
-          "available_at": "2026-10-13T21:52:18.322357+00:00",
+          "age_hours": 192.59805555555556,
+          "available_at": "2026-10-19T21:46:11.603652+00:00",
           "group": "DTWEXBGS_or_DTWEXB",
-          "observation_time": "2026-10-09",
+          "observation_time": "2026-10-16",
           "selected_series": "DTWEXBGS",
           "status": "stale"
         }
@@ -67,7 +67,7 @@
         "DTWEXBGS_or_DTWEXB"
       ]
     },
-    "sessions": 7170,
+    "sessions": 7174,
     "start": "1997-02-19"
   },
   "display_state": "validation_pending",
@@ -86,7 +86,7 @@
       "필수 시장 입력 48시간 SLA 초과: DTWEXBGS_or_DTWEXB"
     ]
   },
-  "knowledge_cutoff": "2026-10-17T12:25:15+00:00",
+  "knowledge_cutoff": "2026-10-25T00:35:52+00:00",
   "model_id": "shadow.mf_dfm_ridge_varx_v2",
   "model_version": 2,
   "probability_space": "research_timeseries_v2_conditional",

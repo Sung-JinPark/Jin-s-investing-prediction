@@ -7,15 +7,18 @@ known only at its recorded capture time, including every retrospective anchor.
 
 from __future__ import annotations
 
+import functools
 import hashlib
 import json
 import os
 import threading
-from collections import OrderedDict
+from collections import OrderedDict, deque
+from concurrent.futures import ThreadPoolExecutor
 from contextlib import contextmanager
 from contextvars import ContextVar
 from copy import deepcopy
 from datetime import datetime, timedelta
+from itertools import islice
 from pathlib import Path
 from typing import Any
 from urllib.parse import parse_qsl, unquote, urlsplit
@@ -28,7 +31,8 @@ CONTEXT = "user_authorized_public_html_research"
 RIGHTS = "uncertified_research_source"
 SOURCE = "yahoo_public_history_html"
 SYMBOLS = {"sk-hynix": "000660.KS", "soxx": "SOXX", "nasdaq": "^IXIC",
-           "sp500": "^GSPC", "bitcoin": "BTC-USD", "dow": "^DJI"}
+           "sp500": "^GSPC", "bitcoin": "BTC-USD", "dow": "^DJI",
+           "kospi": "^KS11", "samsung": "005930.KS", "nvidia": "NVDA", "micron": "MU"}
 MAX_RAW_BYTES = 20 * 1024 * 1024
 MAX_PRIVATE_PAYLOAD_BYTES = 256 * 1024
 MAX_PRIVATE_ENVELOPE_BYTES = 512 * 1024
@@ -37,6 +41,10 @@ PRIVATE_BAR_ID_PREFIX = "research-bar-"
 REJECTABLE_OHLC_ERRORS = {"OHLC must be finite positive numbers; close fallback forbidden", "OHLC containment violation"}
 _ACTIVE_REPLAY_CACHE: ContextVar[VerifiedReplayCache | None] = ContextVar("private_verified_replay_cache", default=None)
 _ACTIVE_REPLAY_ASSET: ContextVar[str | None] = ContextVar("private_replay_asset", default=None)
+_AUDIT: ContextVar[_AuditRecord | None] = ContextVar("private_audit_record", default=None)
+# Files read ahead per audit loop. Reads and SHA256 release the GIL; four
+# threads read the whole 1.0 GB store about three times faster than one.
+AUDIT_READ_AHEAD = 4
 
 
 @contextmanager
@@ -74,22 +82,43 @@ def _scope_report(report):
     return report
 
 
+# Successful audits an entry may go unused before a full store may replace it.
+# A worker refresh runs about 13 audits, so ten assets use every live entry
+# within about 130; this leaves about 16 cycles for a slow or failing asset.
+REPLAY_CACHE_IDLE_AUDITS = 2048
+
+
 class VerifiedReplayCache:
     """Bounded, process-local proofs populated only by a successful full audit.
 
     There is no persisted proof, caller-supplied verified flag, or preloaded
     entry API. Scoped metadata proofs use a distinct namespace and can never
-    satisfy a numerical replay. Each hit still requires fresh raw and receipt hashes, canonical
-    archives, current identity checks, revision chains and latest bindings.
+    satisfy a numerical replay. Each hit still requires fresh raw and receipt hashes,
+    current identity checks, revision chains and latest bindings.
+
+    A separate evidence memo holds the bindings decoded from archive bytes whose
+    canonical form a successful audit checked. It is keyed by the SHA256 of the
+    exact bytes read and hashed in each later audit, so changed bytes are decoded
+    and checked again; it never stands in for hashing a file.
+
+    Each store holds at most ``max_entries``. A full store does not evict by
+    recency: every worker pass walks the whole store, and each asset's own
+    proofs are used once per ten-asset cycle, so LRU dropped exactly the entries
+    the next refresh needed. It keeps what it holds and replaces only an entry
+    no successful audit has used in REPLAY_CACHE_IDLE_AUDITS audits; otherwise
+    the new entry is not kept and is checked in full again next time.
     """
 
-    __slots__ = ("__limit", "__entries", "__lock")
+    __slots__ = ("__limit", "__entries", "__evidence", "__audits", "__shared", "__lock")
 
-    def __init__(self, *, max_entries: int = 16384):
-        if type(max_entries) is not int or not 1 <= max_entries <= 65536:
+    def __init__(self, *, max_entries: int = 262144):
+        if type(max_entries) is not int or not 1 <= max_entries <= 1048576:
             raise C.TrendlinesError("private_replay_cache_capacity_invalid")
         self.__limit = max_entries
         self.__entries = OrderedDict()
+        self.__evidence = OrderedDict()
+        self.__audits = 0
+        self.__shared = {}
         self.__lock = threading.Lock()
 
     @property
@@ -101,23 +130,63 @@ class VerifiedReplayCache:
         with self.__lock:
             return len(self.__entries)
 
+    @property
+    def evidence_count(self) -> int:
+        with self.__lock:
+            return len(self.__evidence)
+
+    @staticmethod
+    def _same(prior, functions) -> bool:
+        return len(prior) == len(functions) and all(a is b for a, b in zip(prior, functions))
+
     def _contains(self, key, functions) -> bool:
         with self.__lock:
             prior = self.__entries.get(key)
-            if prior is None or len(prior) != len(functions) or any(a is not b for a, b in zip(prior, functions)):
+            if prior is None or not self._same(prior[0], functions):
                 return False
+            prior[-1] = self.__audits
             self.__entries.move_to_end(key)
             return True
 
-    def _remember(self, keys) -> None:
+    def _recall(self, key, functions):
+        with self.__lock:
+            prior = self.__evidence.get(key)
+            if prior is None or not self._same(prior[0], functions):
+                return None
+            prior[-1] = self.__audits
+            self.__evidence.move_to_end(key)
+            return deepcopy(prior[1])
+
+    def _remember(self, keys, evidence=None) -> None:
         # Retain function objects as well as their IDs, so object-ID reuse cannot
         # revive a proof for a different validator after a monkeypatch or reload.
         with self.__lock:
+            self.__audits += 1
             for key, functions in keys.items():
-                self.__entries[key] = functions
-                self.__entries.move_to_end(key)
-                while len(self.__entries) > self.__limit:
-                    self.__entries.popitem(last=False)
+                # A full replay of the same bytes subsumes the metadata-only check.
+                self.__entries.pop(("research_metadata", *key), None)
+                if self.__room(self.__entries, key):
+                    self.__entries[self.__compact(key)] = [functions, self.__audits]
+                    self.__entries.move_to_end(key)
+            for key, (functions, value) in (evidence or {}).items():
+                if self.__room(self.__evidence, key):
+                    self.__evidence[self.__compact(key)] = [functions, deepcopy(value), self.__audits]
+                    self.__evidence.move_to_end(key)
+
+    def __room(self, store, key) -> bool:
+        if key in store or len(store) < self.__limit:
+            return True
+        oldest = next(iter(store))
+        if store[oldest][-1] > self.__audits - REPLAY_CACHE_IDLE_AUDITS:
+            return False
+        del store[oldest]
+        return True
+
+    def __compact(self, key):
+        # Keys repeat the tuple of checking-function IDs; hold one equal copy.
+        if len(self.__shared) > 256:
+            self.__shared.clear()
+        return tuple(self.__shared.setdefault(part, part) if type(part) is tuple else part for part in key)
 
 
 @contextmanager
@@ -135,16 +204,172 @@ def use_verified_replay_cache(cache: VerifiedReplayCache):
 def _replay_functions():
     from .research_html import parse_yahoo_history
 
-    return (verify, _prepare, _replay_includes, E.verify_research_asset_snapshot, parse_yahoo_history,
+    return (verify, _prepare, _replay_includes, _checked_bytes, _archive_identity, _archive_bindings,
+            asset_definition, research_source_policy, _row_policy, E.verify_research_asset_snapshot, parse_yahoo_history,
             C.validate_bar, C.validate_config, C.validate_research_source, C.session_schedule,
             C.latest_completed_session, C._finite_number, C.canonical_hash)
+
+
+def _source_replayed(root: Path, archive: dict[str, Any], archive_sha256: str) -> bool:
+    """Whether this worker's successful audit already reparsed exactly this archive.
+
+    The caller must have just hashed the archive, receipt and raw files to the
+    digests used here. Outside an opted-in worker there is never a proof.
+    """
+    cache = _ACTIVE_REPLAY_CACHE.get()
+    if cache is None:
+        return False
+    functions = _replay_functions()
+    key = (str(Path(root).resolve()), archive["content_hash"], archive_sha256, archive["receipt_sha256"],
+           archive["receipt_sha256"], archive["raw_sha256"], C.ENGINE_VERSION, tuple(id(f) for f in functions))
+    return cache._contains(key, functions) or cache._contains(("research_metadata", *key), functions)
+
+
+class _AuditRecord:
+    """What the current audit has read: file digests, its roots' resolution and the registry."""
+
+    __slots__ = ("files", "roots", "registries")
+
+    def __init__(self):
+        self.files: dict[str, tuple[str, int]] = {}
+        self.roots: dict[str, Any] = {}
+        self.registries: dict[str, dict[str, Any]] = {}
+
+
+@contextmanager
+def _audit_files():
+    """The record of what the current audit has read, shared with the audits nested in it.
+
+    Only the outermost verify opens a record, and it is discarded when that
+    verify returns, so every audit still reads and hashes each file it checks.
+    Within it, a nested audit or a later check of the same file compares the
+    digest of the bytes this audit already read instead of reading them again;
+    the audited root is resolved and the asset registry read once. Nothing is
+    persisted or accepted from a caller.
+    """
+    if _AUDIT.get() is not None:
+        yield
+        return
+    token = _AUDIT.set(_AuditRecord())
+    try:
+        yield
+    finally:
+        _AUDIT.reset(token)
+
+
+def _audited(verify):
+    """Run an audit inside the record of the outermost audit that encloses it."""
+    @functools.wraps(verify)
+    def audited(*args, **kwargs):
+        with _audit_files():
+            return verify(*args, **kwargs)
+    return audited
+
+
+def _read_hash(path: Path) -> tuple[bytes, str]:
+    data = path.read_bytes()
+    return data, hashlib.sha256(data).hexdigest()
+
+
+def _audit_read(path: Path) -> tuple[bytes, str]:
+    """Read and hash a file, recording its digest for the rest of the current audit."""
+    data, digest = _read_hash(path)
+    record = _AUDIT.get()
+    if record is not None:
+        record.files[str(path)] = (digest, len(data))
+    return data, digest
+
+
+def _audit_reads(paths):
+    """(path, bytes, SHA256) of each path in order, read and hashed a few files ahead on threads.
+
+    The same files are read and hashed as by _audit_read() in a loop, and each
+    digest is of the bytes yielded with it. A failed read is raised when its
+    path is reached, after the checks of every earlier file. At most
+    AUDIT_READ_AHEAD + 1 files are held at once.
+    """
+    paths = iter(paths)
+    record = _AUDIT.get()
+    with ThreadPoolExecutor(AUDIT_READ_AHEAD) as pool:
+        pending = deque((path, pool.submit(_read_hash, path)) for path in islice(paths, AUDIT_READ_AHEAD))
+        try:
+            while pending:
+                path, future = pending.popleft()
+                data, digest = future.result()
+                pending.extend((path_, pool.submit(_read_hash, path_)) for path_ in islice(paths, 1))
+                if record is not None:
+                    record.files[str(path)] = (digest, len(data))
+                yield path, data, digest
+        finally:
+            for _path, future in pending:
+                future.cancel()
+
+
+def _audit_digest(path: Path) -> tuple[str, int]:
+    """SHA256 and length of the bytes the current audit read at exactly this path, read now if none."""
+    record = _AUDIT.get()
+    if record is not None and str(path) in record.files:
+        return record.files[str(path)]
+    data, digest = _audit_read(path)
+    return digest, len(data)
+
+
+def _audit_path(root: Path, relative: str) -> Path:
+    """storage.safe_path(), with the audited root resolved once per audit."""
+    record = _AUDIT.get()
+    if record is None:
+        return S.safe_path(Path(root), relative)
+    resolver = record.roots.get(str(root))
+    if resolver is None:
+        resolver = record.roots[str(root)] = S.root_resolver(Path(root))
+    return resolver(relative)
+
+
+def _asset_registry(root: Path) -> dict[str, dict[str, Any]]:
+    """The asset registry, read once per audit; callers copy what they keep."""
+    record = _AUDIT.get()
+    if record is None:
+        return C.load_asset_registry(Path(root))
+    registry = record.registries.get(str(root))
+    if registry is None:
+        registry = record.registries[str(root)] = C.load_asset_registry(Path(root))
+    return registry
+
+
+def _evidence_recall(root: Path, key, functions) -> dict[str, Any] | None:
+    """Bindings from a successful audit, only while every file they name hashes the same.
+
+    Each recalled file's digest comes from the current audit: read and hashed
+    now, unless this audit already read that exact path. Each instrument is
+    compared with today's registry. Any difference returns None, so the caller
+    repeats its complete check and reports that check's own error.
+    """
+    cache = _ACTIVE_REPLAY_CACHE.get()
+    return _evidence_current(root, cache._recall(key, functions) if cache is not None else None)
+
+
+def _evidence_current(root: Path, bound: dict[str, Any] | None) -> dict[str, Any] | None:
+    """The second half of _evidence_recall(), for bindings the caller recalled itself."""
+    if bound is None:
+        return None
+    try:
+        if any(_audit_digest(_audit_path(root, relative))[0] != digest
+               for relative, digest in bound["files"].items()):
+            return None
+        if any(C.canonical_hash(asset_definition(root, asset_id)) != digest for asset_id, digest in bound["assets"].items()):
+            return None
+        if "contract" in bound and C.canonical_hash(C.load_contract(Path(root))) != bound["contract"]:
+            return None
+    except (OSError, ValueError):
+        return None
+    return bound
 
 
 def asset_definition(root: Path, asset_id: str) -> dict[str, Any]:
     """Declare an exact research instrument without enabling official sources."""
     if asset_id not in SYMBOLS:
         raise C.TrendlinesError("research_source_instrument_unavailable")
-    asset = deepcopy(C.load_asset_registry(Path(root))[asset_id])
+    asset = deepcopy(_asset_registry(root)[asset_id])
     asset.update({"provider_symbol": SYMBOLS[asset_id], "source_id": SOURCE, "enabled": True,
                   "price_basis": "provider_reported_ohlc_current_vintage", "source_context": CONTEXT,
                   "verified_source": False, "rights_status": RIGHTS})
@@ -173,8 +398,28 @@ def _checked(path: Path) -> dict[str, Any]:
     return value
 
 
+def _checked_bytes(data: bytes, name: str) -> dict[str, Any]:
+    """_checked() of bytes already read once, so a hash and its decode agree."""
+    try:
+        value = json.loads(data.decode("utf-8"))
+    except ValueError as exc:
+        raise S.TrendlinesStorageError("invalid JSON artifact: " + name) from exc
+    if not isinstance(value, dict):
+        raise S.TrendlinesStorageError("JSON artifact must be an object: " + name)
+    if value != _hash(value):
+        raise C.TrendlinesError("research_artifact_content_hash_mismatch")
+    return value
+
+
 def _receipt(raw: bytes, receipt: dict[str, Any], asset: dict[str, Any], as_of: str) -> dict[str, Any]:
     if not isinstance(raw, bytes) or not 0 < len(raw) <= MAX_RAW_BYTES:
+        raise C.TrendlinesError("research_raw_size_or_type_invalid")
+    return _receipt_of(hashlib.sha256(raw).hexdigest(), len(raw), receipt, asset, as_of)
+
+
+def _receipt_of(sha: str, length: int, receipt: dict[str, Any], asset: dict[str, Any], as_of: str) -> dict[str, Any]:
+    """_receipt() from the SHA256 and length of raw bytes the caller read and hashed."""
+    if not 0 < length <= MAX_RAW_BYTES:
         raise C.TrendlinesError("research_raw_size_or_type_invalid")
     if not isinstance(receipt, dict):
         raise C.TrendlinesError("research_receipt_required")
@@ -188,10 +433,9 @@ def _receipt(raw: bytes, receipt: dict[str, Any], asset: dict[str, Any], as_of: 
         raise C.TrendlinesError("research_source_url_identity_or_safety_violation")
     if any(key.lower() in S.SECRET_KEYS for key, _value in parse_qsl(parts.query, keep_blank_values=True)):
         raise C.TrendlinesError("research_source_url_credential_rejected")
-    sha = hashlib.sha256(raw).hexdigest()
     stated_sha = receipt.get("sha256", receipt.get("raw_sha256"))
     stated_length = receipt.get("bytes", receipt.get("byte_count"))
-    if stated_sha != sha or isinstance(stated_length, bool) or stated_length != len(raw):
+    if stated_sha != sha or isinstance(stated_length, bool) or stated_length != length:
         raise C.TrendlinesError("research_raw_receipt_sha_or_length_mismatch")
     fetched = S.aware_time(receipt.get("retrieved_at", receipt.get("fetched_at"))).isoformat()
     if not receipt.get("retrieved_at", receipt.get("fetched_at")) or S.aware_time(fetched) > S.aware_time(as_of):
@@ -205,7 +449,7 @@ def _receipt(raw: bytes, receipt: dict[str, Any], asset: dict[str, Any], as_of: 
             "asset_id": asset["asset_id"], "identity": asset["identity"], "symbol": asset["provider_symbol"],
             "source_id": SOURCE, "source_context": CONTEXT, "rights_status": RIGHTS,
             "verified_source": False, "official_forecast_write": False,
-            "url": url, "raw_sha256": sha, "byte_count": len(raw), "fetched_at": fetched,
+            "url": url, "raw_sha256": sha, "byte_count": length, "fetched_at": fetched,
             "available_at": fetched, "http_status": status, "media_type": "text/html",
             "parser_id": "yahoo_history_html_v1", "raw_path": (ROOT / "raw" / (sha + ".bin")).as_posix()}
     body["receipt_id"] = "research-receipt-" + C.canonical_hash(body)
@@ -388,70 +632,102 @@ def capture_html(root: Path, asset_id: str, raw: bytes, receipt: dict[str, Any],
             raise
 
 
+def _archive_identity(archive: dict[str, Any], asset: dict[str, Any], name: str) -> None:
+    identity = {key: item for key, item in archive.items() if key not in {"snapshot_id", "content_hash"}}
+    if (archive["snapshot_id"] != "research-snapshot-" + C.canonical_hash(identity) or name != archive["snapshot_id"] + ".json"
+            or archive.get("contract_id") != "trendlines_research_snapshot_v1" or archive.get("schema_version") != 1
+            or archive.get("asset") != asset or archive.get("source_context") != CONTEXT
+            or archive.get("rights_status") != RIGHTS or archive.get("verified_source") is not False
+            or archive.get("official_forecast_write") is not False
+            or archive.get("publication_scope", "private_only") != "private_only"
+            or archive.get("source_policy") != research_source_policy(asset)
+            or archive.get("row_validation_policy") != _row_policy(
+                archive.get("row_validation_policy", {}).get("allow_rejected_rows"))):
+        raise C.TrendlinesError("research_snapshot_identity_or_contract_invalid")
+    if archive["engine_snapshot"].get("knowledge_cutoff") != archive["capture_asof"]:
+        raise C.TrendlinesError("research_snapshot_cutoff_binding_invalid")
+
+
+def _archive_bindings(archive: dict[str, Any]) -> dict[str, Any]:
+    """The fields later cross-checks read, plus the identity they were checked against."""
+    return {**{key: archive[key] for key in ("snapshot_id", "asset_id", "receipt_id", "receipt_path", "receipt_sha256",
+                                             "raw_sha256", "capture_asof", "content_hash")},
+            "supersedes_snapshot_id": archive.get("supersedes_snapshot_id"),
+            "asset_sha256": C.canonical_hash(archive["asset"])}
+
+
+@_audited
 def verify(root: Path, *, replay: bool = True) -> dict[str, Any]:
     """Reparse immutable HTML and replay every research archive, never official DBs."""
     root = Path(root)
+    resolved = str(root.resolve())
+    # Paths under the resolved root name files as safe_path() does, so nested
+    # audits find these digests under the same names.
+    store = Path(resolved)
     errors, snapshots = [], {}
     cache = _ACTIVE_REPLAY_CACHE.get() if replay is True else None
-    pending = OrderedDict()
+    pending, decoded = OrderedDict(), OrderedDict()
     functions = _replay_functions() if cache is not None else ()
     try:
         pointer = _latest(root)
-        for path in sorted((root / ROOT / "raw").glob("*.bin")):
-            if path.stem != hashlib.sha256(path.read_bytes()).hexdigest():
+        for path, _data, digest in _audit_reads(sorted((store / ROOT / "raw").glob("*.bin"))):
+            if path.stem != digest:
                 raise C.TrendlinesError("research_original_raw_sha_mismatch")
         receipts, receipt_file_hashes = {}, {}
-        for path in sorted((root / ROOT / "receipts").glob("*.json")):
-            receipt = _checked(path)
+        for path, data, receipt_sha in _audit_reads(sorted((store / ROOT / "receipts").glob("*.json"))):
+            receipt = _checked_bytes(data, path.name)
             asset = asset_definition(root, receipt["asset_id"])
             raw_path = ROOT / "raw" / (receipt["raw_sha256"] + ".bin")
             if receipt.get("raw_path") != raw_path.as_posix():
                 raise C.TrendlinesError("research_raw_path_binding_invalid")
-            raw = S.safe_path(root, receipt["raw_path"]).read_bytes()
-            rebuilt = _receipt(raw, {"url": receipt["url"], "retrieved_at": receipt["fetched_at"],
-                                    "sha256": receipt["raw_sha256"], "bytes": receipt["byte_count"],
-                                    "http_status": receipt["http_status"]}, asset, receipt["fetched_at"])
+            # The digest of the original as the loop above read it in this audit.
+            raw_sha, raw_length = _audit_digest(_audit_path(root, receipt["raw_path"]))
+            rebuilt = _receipt_of(raw_sha, raw_length, {"url": receipt["url"], "retrieved_at": receipt["fetched_at"],
+                                  "sha256": receipt["raw_sha256"], "bytes": receipt["byte_count"],
+                                  "http_status": receipt["http_status"]}, asset, receipt["fetched_at"])
             if receipt != rebuilt or path.name != receipt["receipt_id"] + ".json":
                 raise C.TrendlinesError("research_receipt_binding_invalid")
             receipts[receipt["receipt_id"]] = receipt
-            if cache is not None:
-                receipt_file_hashes[receipt["receipt_id"]] = hashlib.sha256(path.read_bytes()).hexdigest()
-        for path in sorted((root / ROOT / "snapshots").glob("*.json")):
-            archive = _checked(path)
-            sid = archive["snapshot_id"]
-            identity = {key: item for key, item in archive.items() if key not in {"snapshot_id", "content_hash"}}
-            asset = asset_definition(root, archive["asset_id"])
-            if (sid != "research-snapshot-" + C.canonical_hash(identity) or path.name != sid + ".json"
-                    or archive.get("contract_id") != "trendlines_research_snapshot_v1" or archive.get("schema_version") != 1
-                    or archive.get("asset") != asset or archive.get("source_context") != CONTEXT
-                    or archive.get("rights_status") != RIGHTS or archive.get("verified_source") is not False
-                    or archive.get("official_forecast_write") is not False
-                    or archive.get("publication_scope", "private_only") != "private_only"
-                    or archive.get("source_policy") != research_source_policy(asset)
-                    or archive.get("row_validation_policy") != _row_policy(
-                        archive.get("row_validation_policy", {}).get("allow_rejected_rows"))):
-                raise C.TrendlinesError("research_snapshot_identity_or_contract_invalid")
-            receipt = receipts[archive["receipt_id"]]
+            receipt_file_hashes[receipt["receipt_id"]] = receipt_sha
+        for path, data, file_sha in _audit_reads(sorted((store / ROOT / "snapshots").glob("*.json"))):
+            evidence_key = ("research_archive", resolved, file_sha, CONTEXT, RIGHTS,
+                            tuple(id(function) for function in functions)) if cache is not None else None
+            bindings = cache._recall(evidence_key, functions) if cache is not None else None
+            archive = None
+            if bindings is None:
+                archive = _checked_bytes(data, path.name)
+                asset = asset_definition(root, archive["asset_id"])
+                _archive_identity(archive, asset, path.name)
+                bindings = _archive_bindings(archive)
+                if cache is not None:
+                    decoded[evidence_key] = (functions, bindings)
+            else:
+                # Identical bytes passed the canonical checks above in a successful
+                # audit; the registry and file name are still today's.
+                asset = asset_definition(root, bindings["asset_id"])
+                if C.canonical_hash(asset) != bindings["asset_sha256"] or path.name != bindings["snapshot_id"] + ".json":
+                    raise C.TrendlinesError("research_snapshot_identity_or_contract_invalid")
+            sid = bindings["snapshot_id"]
+            receipt = receipts[bindings["receipt_id"]]
             expected_receipt_path = ROOT / "receipts" / (receipt["receipt_id"] + ".json")
-            if (archive["receipt_path"] != expected_receipt_path.as_posix()
-                    or archive["receipt_sha256"] != hashlib.sha256(S.encode(receipt)).hexdigest()
-                    or archive["raw_sha256"] != receipt["raw_sha256"] or receipt["asset_id"] != archive["asset_id"]):
+            if (bindings["receipt_path"] != expected_receipt_path.as_posix()
+                    or bindings["receipt_sha256"] != hashlib.sha256(S.encode(receipt)).hexdigest()
+                    or bindings["raw_sha256"] != receipt["raw_sha256"] or receipt["asset_id"] != bindings["asset_id"]):
                 raise C.TrendlinesError("research_snapshot_receipt_binding_invalid")
-            raw = S.safe_path(root, receipt["raw_path"]).read_bytes()
-            actual_raw_sha = hashlib.sha256(raw).hexdigest()
-            if actual_raw_sha != receipt["raw_sha256"]:
-                raise C.TrendlinesError("research_original_raw_sha_mismatch")
-            if archive["engine_snapshot"].get("knowledge_cutoff") != archive["capture_asof"]:
-                raise C.TrendlinesError("research_snapshot_cutoff_binding_invalid")
-            key = (str(root.resolve()), archive["content_hash"], hashlib.sha256(path.read_bytes()).hexdigest(),
-                   archive["receipt_sha256"], receipt_file_hashes[archive["receipt_id"]], actual_raw_sha, C.ENGINE_VERSION,
+            # The receipt loop above hashed this original during this audit.
+            key = (resolved, bindings["content_hash"], file_sha,
+                   bindings["receipt_sha256"], receipt_file_hashes[bindings["receipt_id"]], receipt["raw_sha256"], C.ENGINE_VERSION,
                    tuple(id(function) for function in functions)) if cache is not None else None
-            numeric_replay = replay and _replay_includes(archive["asset_id"])
+            numeric_replay = replay and _replay_includes(bindings["asset_id"])
             metadata_key = (("research_metadata", *key) if cache is not None and not numeric_replay
                             and _ACTIVE_REPLAY_ASSET.get() is not None else None)
             full_hit = cache is not None and cache._contains(key, functions)
             metadata_hit = metadata_key is not None and cache._contains(metadata_key, functions)
             if not full_hit and not metadata_hit:
+                raw = S.safe_path(root, receipt["raw_path"]).read_bytes()
+                if hashlib.sha256(raw).hexdigest() != receipt["raw_sha256"]:
+                    raise C.TrendlinesError("research_original_raw_sha_mismatch")
+                archive = archive or _checked_bytes(data, path.name)
                 bars, meta, gaps = _prepare(raw, receipt, asset, archive["capture_asof"], config=archive["config"],
                                             allow_rejected_rows=archive["row_validation_policy"]["allow_rejected_rows"])
                 if bars != archive["bars"] or meta != archive["metadata"] or gaps != archive["gaps"]:
@@ -464,7 +740,10 @@ def verify(root: Path, *, replay: bool = True) -> dict[str, Any]:
                     pending[key if numeric_replay else metadata_key] = functions
                     while len(pending) > cache.max_entries:
                         pending.popitem(last=False)
-            snapshots[sid] = archive
+            # All hashes, originals and numerical checks above still run. Only the
+            # small bindings are kept after this archive is checked; retaining
+            # every OHLC/candidate graph exhausts long-running workers.
+            snapshots[sid] = bindings
         for sid, archive in snapshots.items():
             prior = archive.get("supersedes_snapshot_id")
             if prior is not None and (prior not in snapshots or snapshots[prior]["asset_id"] != archive["asset_id"]
@@ -476,7 +755,7 @@ def verify(root: Path, *, replay: bool = True) -> dict[str, Any]:
             expected = ROOT / "snapshots" / (row["snapshot_id"] + ".json")
             if (row["snapshot_path"] != expected.as_posix() or row["snapshot_id"] not in snapshots
                     or snapshots[row["snapshot_id"]]["asset_id"] != asset_id
-                    or row["snapshot_sha256"] != hashlib.sha256((root / expected).read_bytes()).hexdigest()):
+                    or row["snapshot_sha256"] != _audit_digest(store / expected)[0]):
                 raise C.TrendlinesError("research_latest_snapshot_binding_invalid")
         for path in sorted((root / ROOT / "failures").glob("*.json")):
             failure = _checked(path)
@@ -492,7 +771,7 @@ def verify(root: Path, *, replay: bool = True) -> dict[str, Any]:
     except (OSError, ValueError, KeyError, TypeError) as exc:
         errors.append(str(exc))
     if not errors and cache is not None:
-        cache._remember(pending)
+        cache._remember(pending, decoded)
     return _scope_report({"ok": not errors, "errors": errors, "snapshots": len(snapshots), "replay": replay})
 
 

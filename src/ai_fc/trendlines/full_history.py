@@ -507,6 +507,19 @@ def _source_evidence(root, source):
     return receipt
 
 
+def _evidence(root, snapshot, source, manifest, chunks):
+    """What a successful snapshot check was bound to: each file's digest and the instrument."""
+    export_root = ROOT / "exports" / snapshot["snapshot_id"]
+    files = {snapshot["source_snapshot_path"]: snapshot["source_archive_sha256"],
+             source["receipt_path"]: source["receipt_sha256"],
+             (R.ROOT / "raw" / (source["raw_sha256"] + ".bin")).as_posix(): source["raw_sha256"],
+             (export_root / "manifest.json").as_posix(): _sha(S.encode(manifest)),
+             **{(export_root / f"bars-{i:04d}.json").as_posix(): _sha(S.encode(chunk)) for i, chunk in enumerate(chunks)}}
+    return {"snapshot_id": snapshot["snapshot_id"], "asset_id": snapshot["asset_id"], "content_hash": snapshot["content_hash"],
+            "source_archive_sha256": snapshot["source_archive_sha256"], "capture_asof": source["capture_asof"],
+            "files": files, "assets": {source["asset_id"]: C.canonical_hash(R.asset_definition(root, source["asset_id"]))}}
+
+
 def _display_metadata(archive, receipt, archive_path, archive_sha):
     """Frozen capture-time provenance, independent of a newer latest pointer."""
     detail = D.compact_snapshot(archive["engine_snapshot"])
@@ -541,55 +554,74 @@ def _display_metadata(archive, receipt, archive_path, archive_sha):
             {"content_hash", "bars", "analyses", "audit_lines", "input_bar_ids", "selection_changes"}}
 
 
+@R._audited
 def verify(root: Path, *, asset_id: str | None = None, replay: bool = True, now=None) -> dict[str, Any]:
     """Replay every supplemental snapshot and retain old pinned source vintages."""
     root = Path(root)
+    resolved = str(root.resolve())
     errors, count = [], 0
     source_audit = R.verify(root, replay=replay)
     if not source_audit["ok"]:
         return {"ok": False, "errors": source_audit["errors"], "snapshots": 0, "replay": replay}
-    pending = {}
+    pending, decoded = {}, {}
     cache = R._ACTIVE_REPLAY_CACHE.get() if replay is True else None
     functions = (_calculate, _normalize, _config, _scalar_verify, _scalar_price,
                  E._analyze, E._make_line, E._pivots, E._atr, E._value, E._epsilon,
                  E._formation, E._contiguous, E._rank, E._project, E._completed, E._select_rows,
                  C.validate_config, C.validate_research_source, C.validate_bar,
                  C.session_schedule, C.latest_completed_session)
+    evidence_functions = functions + (verify, _read_snapshot, _source_evidence, _display_metadata, _exports, _evidence,
+                                      R._checked, R._receipt, R._receipt_of, R.asset_definition, R.research_source_policy,
+                                      D.compact_snapshot)
     try:
         pointer = _latest(root)
         snapshots = {}
-        for path in sorted(_path(root, ROOT / "snapshots").glob("*.json")):
-            snapshot, source = _read_snapshot(root, path.stem)
-            key = ("full_history", str(root.resolve()), snapshot["content_hash"], _sha(path.read_bytes()),
-                   snapshot["source_archive_sha256"], tuple(id(f) for f in functions))
-            if replay and R._replay_includes(snapshot["asset_id"]) and (cache is None or not cache._contains(key, functions)):
+        for path, data, digest in R._audit_reads(sorted(_path(root, ROOT / "snapshots").glob("*.json"))):
+            evidence_key = ("full_history_evidence", resolved, path.name, digest,
+                            tuple(id(f) for f in evidence_functions))
+            bound = R._evidence_recall(root, evidence_key, evidence_functions) if cache is not None else None
+            snapshot = source = None
+            if bound is None:
+                snapshot, source = _read_snapshot(root, path.stem)
+                if S.encode(snapshot) != data:
+                    raise C.TrendlinesError("full_history_snapshot_identity_invalid")
+                manifest, chunks = _exports(snapshot)
+                export_root = ROOT / "exports" / snapshot["snapshot_id"]
+                if _path(root, export_root / "manifest.json").read_bytes() != S.encode(manifest):
+                    raise C.TrendlinesError("full_history_manifest_binding_invalid")
+                for i, chunk in enumerate(chunks):
+                    if _path(root, export_root / f"bars-{i:04d}.json").read_bytes() != S.encode(chunk):
+                        raise C.TrendlinesError("full_history_chunk_binding_invalid")
+                bound = _evidence(root, snapshot, source, manifest, chunks)
+                if cache is not None:
+                    decoded[evidence_key] = (evidence_functions, bound)
+            key = ("full_history", resolved, bound["content_hash"], digest,
+                   bound["source_archive_sha256"], tuple(id(f) for f in functions))
+            if replay and R._replay_includes(bound["asset_id"]) and (cache is None or not cache._contains(key, functions)):
+                if source is None:
+                    snapshot, source = _read_snapshot(root, path.stem)
+                    if S.encode(snapshot) != data:
+                        raise C.TrendlinesError("full_history_snapshot_identity_invalid")
                 expected = _calculate(source)
                 if any(snapshot.get(field) != value for field, value in expected.items()):
                     raise C.TrendlinesError("full_history_replay_differs_from_source_geometry")
                 if cache is not None:
                     pending[key] = functions
-            manifest, chunks = _exports(snapshot)
-            export_root = ROOT / "exports" / snapshot["snapshot_id"]
-            if _path(root, export_root / "manifest.json").read_bytes() != S.encode(manifest):
-                raise C.TrendlinesError("full_history_manifest_binding_invalid")
-            for i, chunk in enumerate(chunks):
-                if _path(root, export_root / f"bars-{i:04d}.json").read_bytes() != S.encode(chunk):
-                    raise C.TrendlinesError("full_history_chunk_binding_invalid")
-            snapshots[snapshot["snapshot_id"]] = snapshot
+            snapshots[bound["snapshot_id"]] = bound
             count += 1
         for aid, row in pointer["assets"].items():
             snapshot = snapshots[row["snapshot_id"]]
             expected_path = ROOT / "snapshots" / (snapshot["snapshot_id"] + ".json")
             manifest_path = ROOT / "exports" / snapshot["snapshot_id"] / "manifest.json"
             if (snapshot["asset_id"] != aid or row["snapshot_path"] != expected_path.as_posix()
-                    or row["snapshot_sha256"] != _sha(_path(root, expected_path).read_bytes())
+                    or row["snapshot_sha256"] != R._audit_digest(_path(root, expected_path))[0]
                     or row["manifest_path"] != manifest_path.as_posix()
-                    or row["manifest_sha256"] != _sha(_path(root, manifest_path).read_bytes())):
+                    or row["manifest_sha256"] != R._audit_digest(_path(root, manifest_path))[0]):
                 raise C.TrendlinesError("full_history_latest_snapshot_binding_invalid")
     except (OSError, ValueError, KeyError, TypeError) as exc:
         errors.append(str(exc))
     if not errors and cache is not None:
-        cache._remember(pending)
+        cache._remember(pending, decoded)
     return R._scope_report({"ok": not errors, "errors": errors, "snapshots": count, "replay": replay})
 
 

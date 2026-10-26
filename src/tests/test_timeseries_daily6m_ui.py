@@ -230,8 +230,7 @@ let DATA={timeseries:{model_id:'shadow.mf_dfm_varx_calibrated_v8',status:'shadow
 const before=JSON.stringify(DATA);
 const TS_TABS=[['summary'],['path'],['drivers'],['backtest']];
 const el=html=>({html}),mount=root=>{captured=root.html;};
-const tsDailyCta=()=>'<a href="#timeseries/daily">향후 6개월을 하루씩 보기</a>';
-const tsFootnote=()=>'',timeseriesTabsMarkup=()=>'',timeseriesSpecCard=()=>'';
+const timeseriesTabsMarkup=()=>'',timeseriesSpecCard=()=>'';
 const timeseriesV13TabEnabled=()=>false,renderTimeseriesV13VolPanel=()=>'';
 const bindTimeseriesV13VolInteractions=()=>{},bindTimeseriesTabs=()=>{};
 """ + render + """
@@ -248,7 +247,7 @@ process.stdout.write(JSON.stringify({v8,legacy,unchanged}));
     assert 'title="2026-10-13T00:58:05+00:00"' in out["v8"]
     assert "워크포워드와 구간 적중률 검사가 끝나기 전" not in out["v8"]
     assert "워크포워드와 구간 적중률 검사가 끝나기 전" in out["legacy"]
-    assert '#timeseries/daily' in out["v8"]
+    assert '향후 6개월을 하루씩 보기' not in out["v8"]
     for hidden in ("987654", "123456", "654321", "<svg"):
         assert hidden not in out["v8"]
     assert out["unchanged"]
@@ -330,7 +329,8 @@ process.stdout.write(JSON.stringify({
   exactSamplePoint:points[4]===`${m.x(m.origin+4).toFixed(2)},${m.y(ts.sample_paths[0].values[3]).toFixed(2)}`,
   ticks:m.tickIndices.map(index=>m.x(index)),width:m.W,
   noPathTouchProbability:!sampled.includes('누적 터치확률'),
-  disclosure:plain.includes('80%/50%')&&plain.includes('2026-07-30')
+  accessible:plain.includes('role="img"')&&plain.includes('2026-07-30'),
+  noCaption:!plain.includes('timeseries-band-caption')
 }));
 """)
     assert out["defaultSamples"] == 0 and out["displayedSamples"] == 4
@@ -338,7 +338,7 @@ process.stdout.write(JSON.stringify({
     assert out["primaryPoints"] == out["memberPoints"]
     assert out["exactPrimaryPoints"] and out["samePrimaryWhenSamplesEnabled"] and out["noDuplicatedPrimary"]
     assert out["probabilityPoints"] == len(_projection()["records"])
-    assert out["exactSamplePoint"] and out["noPathTouchProbability"] and out["disclosure"]
+    assert out["exactSamplePoint"] and out["noPathTouchProbability"] and out["accessible"] and out["noCaption"]
     assert all(0 <= tick <= out["width"] for tick in out["ticks"])
     assert all(right - left >= 82 for left, right in zip(out["ticks"], out["ticks"][1:]))
 
@@ -389,22 +389,32 @@ process.stdout.write(JSON.stringify({
 
 def test_keyboard_and_touch_link_both_charts_to_the_same_real_daily_row(tmp_path: Path) -> None:
     source = _source()
-    binder = source[source.index("function bindTsHover"):source.index("function tsRangeModel")]
-    out = _run(tmp_path, binder + "\nconst ts=" + json.dumps(_projection()) + r""";
+    binder = source[source.index("function tsTipMarkup"):source.index("function tsRangeModel")]
+    document_stub = "const docListeners={};globalThis.document={addEventListener(k,fn){docListeners[k]=fn;}};\n"
+    out = _run(tmp_path, document_stub + binder + "\nconst ts=" + json.dumps(_projection()) + r""";
 const m=tsDailyChartModel(ts);
 const node=()=>({attrs:{},listeners:{},setAttribute(k,v){this.attrs[k]=String(v);},addEventListener(k,v){this.listeners[k]=v;}});
 const svg=node(),overlay=node(),cross=node(),price=node(),prob=node(),readout={textContent:''};
 svg.hasAttribute=()=>true;svg.getBoundingClientRect=()=>({left:0,top:0,width:m.W,height:m.H});
 const chart={nextElementSibling:null,querySelector(s){return ({svg,'[data-ts-overlay]':overlay,'.ts-cross':cross,'[data-daily-price-dot]':price,'[data-daily-prob-dot]':prob,'.ts-readout':readout})[s];}};
 const host={querySelector:()=>chart};
-globalThis.document={getElementById:()=>null};globalThis.window={matchMedia:()=>({matches:false})};
+const tip={style:{},innerHTML:'',offsetWidth:180,offsetHeight:80};
+document.getElementById=id=>id==='tip'?tip:null;globalThis.window={matchMedia:()=>({matches:false}),innerWidth:390,innerHeight:844};
 bindTimeseriesDailyChart(host,ts,m);
 svg.listeners.focus();const historicalHidden=prob.attrs.opacity==='0';
 const key={key:'ArrowRight',preventDefault(){}};
 for(let i=0;i<=m.origin;i++)svg.listeners.keydown(key);
 const first={cross:cross.attrs.x1,priceX:price.attrs.cx,priceY:price.attrs.cy,probX:prob.attrs.cx,probY:prob.attrs.cy,text:readout.textContent};
+const keyboardTip=tip.style.display==='block'&&tip.innerHTML.includes(ts.records[0].date)&&tip.innerHTML.includes('55.0%');
 const touchIndex=m.origin+10;
-overlay.listeners.pointerdown({clientX:m.x(touchIndex),clientY:m.py(0.5)});
+overlay.listeners.pointerdown({pointerType:'touch',clientX:m.x(touchIndex),clientY:m.py(0.5)});
+const touchDate=readout.textContent.includes(ts.records[9].date),touchX=Number(prob.attrs.cx)===m.x(touchIndex);
+const touchTip=tip.style.display==='block'&&tip.innerHTML.includes(ts.records[9].date);
+overlay.listeners.pointerleave({pointerType:'touch'});const touchTipPersists=tip.style.display==='block';
+svg.listeners.keydown({key:'Escape'});const escapeHidesTip=tip.style.display==='none';
+overlay.listeners.pointermove({pointerType:'mouse',clientX:m.x(m.origin+1),clientY:m.py(0.5)});
+const mouseTip=tip.style.display==='block'&&tip.innerHTML.includes(ts.records[0].date);
+docListeners.pointerdown({target:{closest:()=>null}});const outsideTapHidesTip=tip.style.display==='none';
 process.stdout.write(JSON.stringify({
   historicalHidden,
   sameX:first.cross===first.priceX&&first.priceX===first.probX,
@@ -412,8 +422,7 @@ process.stdout.write(JSON.stringify({
   primaryIsSource:Number(first.priceY)===m.y(ts.sample_paths[2].values[0]),
   bothValues:first.text.includes('대표 시나리오')&&first.text.includes('날짜별 중앙값'),
   firstDate:first.text.includes(ts.records[0].date),
-  touchDate:readout.textContent.includes(ts.records[9].date),
-  touchX:Number(prob.attrs.cx)===m.x(touchIndex)
+  touchDate,touchX,keyboardTip,touchTip,touchTipPersists,escapeHidesTip,mouseTip,outsideTapHidesTip
 }));
 """)
     assert all(out.values())
@@ -533,6 +542,7 @@ process.stdout.write(JSON.stringify({rejected,unchanged:DATA.timeseries_daily===
 
 def test_route_change_during_fetch_does_not_render_the_old_daily_screen(tmp_path: Path) -> None:
     source = _source()
+    navigation = source[source.index("function privateDashboardDestination("):source.index("let ROUTE_EPOCH=")]
     route = source[source.index("async function route()"):source.index("window.addEventListener('hashchange',route)")]
     program = r"""
 let ROUTE_EPOCH=0,TIMESERIES_DAILY_RESIZE=null,release;
@@ -546,7 +556,7 @@ const legacyRouteRedirect=hash=>hash,parseCanonicalRoute=hash=>({view:'timeserie
 const renderTimeseriesDaily=(_data,state)=>loading.push(state.loading?'loading':'failed');
 const ensureTimeseriesDaily=()=>new Promise(resolve=>{release=resolve;});
 const VIEWS={timeseries:arg=>rendered.push(arg.tsTab||'summary')},renderOverview=noop,requestAnimationFrame=noop,app=noop;
-""" + route + r"""
+""" + navigation + route + r"""
 (async()=>{const pending=route();location.hash='#timeseries';await route();release(true);await pending;
 process.stdout.write(JSON.stringify({onlyNewScreen:JSON.stringify(rendered)==='["summary"]',onlyInitialLoading:JSON.stringify(loading)==='["loading"]',epoch:ROUTE_EPOCH}));})().catch(e=>{console.error(e);process.exit(1);});
 """
@@ -554,15 +564,17 @@ process.stdout.write(JSON.stringify({onlyNewScreen:JSON.stringify(rendered)==='[
     assert out["onlyNewScreen"] and out["onlyInitialLoading"] and out["epoch"] == 2
 
 
-def test_daily_route_is_independent_of_v8_hold_and_discloses_validation_limits() -> None:
+def test_daily_route_is_independent_of_v8_hold_and_has_no_promotional_or_repeated_copy() -> None:
     source = _source()
     render = source[source.index("function renderTimeseries(initialState)"):source.index("const GC_API=")]
     assert render.index("if(dailyRequested==='daily')") < render.index("if(ts.model_id===")
-    assert render.count("${tsDailyCta()}") == 2, "Legacy and HOLD summaries both expose the daily route"
-    assert "${tsBrief}${tsDailyCta()}" in source
+    assert "tsDailyCta" not in source
+    assert "향후 6개월을 하루씩 보기" not in source
     assert "const on=key==='daily'||enabled.includes(key)" in source
     daily = source[source.index("function renderTimeseriesDaily("):source.index("function bindTimeseriesTabs")]
-    for label in ("전진 검증 전", "이 모델의 성적이 아닙니다", "마지막 알려진 값", "같은 모의 경로", "다시 불러오기", "페이지 새로고침"):
+    for label in ("전진 검증 전", "이 모델의 성적이 아닙니다", "연구 프리뷰", "전진 성능: 미검증", "ts-daily-reading", "ts-daily-validation"):
+        assert label not in daily
+    for label in ("다시 불러오기", "페이지 새로고침"):
         assert label in daily
     assert "TIMESERIES_DAILY_RESIZE.disconnect()" in source
     assert "enhanceChartZoom(host)" in daily
@@ -616,3 +628,62 @@ process.stdout.write(JSON.stringify({literal,nested,regex:pattern.test('`'),slas
     original = _run(tmp_path, source, helpers=False)
     compressed = _run(tmp_path, body, helpers=False)
     assert compressed == original
+
+
+def test_forward_record_summarizes_resolutions_without_claiming_validation() -> None:
+    """A9(2026-10-21): 해소 원장 요약은 채점·판정이 아니다 — 정정은 최신 개정만, 행 0이면 None."""
+    from ai_fc.timeseries_daily6m.display import forward_record
+
+    rows = [
+        {"resolution_id": "a:2026-10-15", "forecast_id": "a", "date": "2026-10-15", "brier": 0.14, "inside_p10_p90": True},
+        {"resolution_id": "a:2026-10-16", "forecast_id": "a", "date": "2026-10-16", "brier": 0.28, "inside_p10_p90": False},
+        {"resolution_id": "b:2026-10-16", "forecast_id": "b", "date": "2026-10-16", "brier": 0.18, "inside_p10_p90": True},
+        {"resolution_id": "b:2026-10-16:fix", "forecast_id": "b", "date": "2026-10-16", "brier": 0.10,
+         "inside_p10_p90": True, "supersedes": "b:2026-10-16", "resolution_kind": "correction"},
+        {"resolution_id": "broken", "forecast_id": "c", "date": "2026-10-17", "brier": None},
+    ]
+    record = forward_record(rows)
+    assert (record["resolved_rows"], record["forecasts"], record["resolved_dates"]) == (3, 2, 2)
+    assert record["mean_brier"] == round((0.14 + 0.28 + 0.10) / 3, 4)
+    assert record["covered_p10_p90_rows"] == 2 and record["no_information_brier"] == 0.25
+    assert record["nominal_interval_coverage"] == 0.8 and record["independent_rows"] is False
+    assert record["predictive_validation"] == "not_established" and record["display_only"] is True
+    assert (record["first_date"], record["last_date"]) == ("2026-10-15", "2026-10-16")
+    empty = forward_record([])
+    assert empty["resolved_rows"] == 0 and empty["mean_brier"] is None and empty["covered_p10_p90_rows"] is None
+    assert empty["predictive_validation"] == "not_established"
+
+
+def test_forward_record_loader_fails_closed_without_a_ledger(tmp_path: Path) -> None:
+    from ai_fc.timeseries_daily6m import contracts as C
+    from ai_fc.timeseries_daily6m.display import load_forward_record
+
+    assert load_forward_record(tmp_path)["resolved_rows"] == 0
+    path = tmp_path / C.RESOLUTION_LEDGER
+    path.parent.mkdir(parents=True)
+    path.write_text("{not json", encoding="utf-8")
+    broken = load_forward_record(tmp_path)
+    assert broken["resolved_rows"] == 0 and broken["mean_brier"] is None and "ledger_error" in broken
+
+
+def test_daily_record_markup_shows_dash_without_resolutions(tmp_path: Path) -> None:
+    program = """
+const withRows=tsDailyRecordMarkup({resolved_rows:5,forecasts:2,resolved_dates:4,mean_brier:0.2284,no_information_brier:0.25,covered_p10_p90_rows:4,first_date:'2026-10-15',last_date:'2026-10-20',predictive_validation:'not_established'});
+const empty=tsDailyRecordMarkup({resolved_rows:0,mean_brier:null,covered_p10_p90_rows:null,predictive_validation:'not_established'});
+const absent=tsDailyRecordMarkup({});
+process.stdout.write(JSON.stringify({withRows,empty,absent}));
+"""
+    out = _run(tmp_path, program)
+    full = out["withRows"]
+    assert "0.228" in full and "4/5" in full and "2 / 4" in full and "검증 전" in full
+    assert "무정보 0.25" in full and "predictive_validation=not_established" in full
+    for markup in (out["empty"], out["absent"]):
+        assert markup.count("—") >= 3 and "검증 전" in markup and "not_established" in markup
+    for markup in out.values():
+        assert "전진 검증 전" not in markup and "연구 프리뷰" not in markup
+    source = _source()
+    daily = source[source.index("function renderTimeseriesDaily("):source.index("function bindTimeseriesTabs")]
+    assert "tsDailyRecordMarkup(DATA.timeseries_daily_record||{})" in daily
+    from ai_fc import dashboard
+    wiring = Path(dashboard.__file__).read_text(encoding="utf-8")
+    assert '"timeseries_daily_record": timeseries_daily_record' in wiring

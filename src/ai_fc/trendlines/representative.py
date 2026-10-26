@@ -724,11 +724,14 @@ def _bind_full(root, full_id, now=None, *, reparse=False):
         coordinates = {day: i for i, (day, _, _) in enumerate(calendar)}
         if any(row["session_index"] != coordinates.get(row["session_date"]) for row in rows):
             raise C.TrendlinesError("representative_full_calendar_coordinate_binding_invalid")
-        raw = S.safe_path(root, receipt["raw_path"]).read_bytes()
-        bars, metadata, gaps = R._prepare(raw, receipt, source["asset"], source["capture_asof"], config=source["config"],
-                                          allow_rejected_rows=source["row_validation_policy"]["allow_rejected_rows"])
-        if bars != source["bars"] or metadata != source["metadata"] or gaps != source["gaps"]:
-            raise C.TrendlinesError("representative_source_differs_from_original_html")
+        # F._read_snapshot and _source_evidence just hashed this archive, its
+        # receipt and raw original; reuse only this worker's proof for those bytes.
+        if not R._source_replayed(root, source, full["source_archive_sha256"]):
+            raw = S.safe_path(root, receipt["raw_path"]).read_bytes()
+            bars, metadata, gaps = R._prepare(raw, receipt, source["asset"], source["capture_asof"], config=source["config"],
+                                              allow_rejected_rows=source["row_validation_policy"]["allow_rejected_rows"])
+            if bars != source["bars"] or metadata != source["metadata"] or gaps != source["gaps"]:
+                raise C.TrendlinesError("representative_source_differs_from_original_html")
     return source, full, manifest
 
 
@@ -792,6 +795,26 @@ def _verify_shadow(root, shadow, asset_id):
             or _sha(path.read_bytes()) != shadow["strict_snapshot_sha256"]
             or selected != shadow["strict_selected_ids"] or snapshot["source_snapshot_id"] != shadow["strict_source_snapshot_id"]):
         raise C.TrendlinesError("representative_shadow_strict_selection_changed")
+
+
+def _evidence(root, snapshot, source, full):
+    """What a successful snapshot check was bound to: each file's digest, instrument and contract."""
+    files = {(F.ROOT / "snapshots" / (full["snapshot_id"] + ".json")).as_posix(): _sha(S.encode(full)),
+             full["source_snapshot_path"]: full["source_archive_sha256"],
+             source["receipt_path"]: source["receipt_sha256"],
+             (R.ROOT / "raw" / (source["raw_sha256"] + ".bin")).as_posix(): source["raw_sha256"],
+             (F.ROOT / "exports" / full["snapshot_id"] / "manifest.json").as_posix(): _sha(S.encode(F._exports(full)[0])),
+             (ROOT / "exports" / snapshot["snapshot_id"] / "detail.json").as_posix(): _sha(S.encode(_export(snapshot)))}
+    shadow = snapshot["shadow"]
+    if shadow["strict_available"]:
+        strict = Path("data/trendlines_research_critical/snapshots") / (shadow["strict_snapshot_id"] + ".json")
+        files[strict.as_posix()] = shadow["strict_snapshot_sha256"]
+    return {"snapshot_id": snapshot["snapshot_id"], "asset_id": snapshot["asset_id"], "content_hash": snapshot["content_hash"],
+            "source_content_hash": source["content_hash"], "source_archive_sha256": snapshot["source_archive_sha256"],
+            "raw_sha256": source["raw_sha256"], "receipt_sha256": source["receipt_sha256"],
+            "full_content_hash": full["content_hash"], "full_manifest_payload_sha256": snapshot["full_manifest_payload_sha256"],
+            "capture_asof": source["capture_asof"], "files": files, "contract": C.canonical_hash(source["config"]),
+            "assets": {source["asset_id"]: C.canonical_hash(R.asset_definition(root, source["asset_id"]))}}
 
 
 def _latest(root):
@@ -949,34 +972,59 @@ def decode_envelope(envelope, expected_contract=None):
         raise C.TrendlinesError("representative_transport_json_invalid") from exc
 
 
+@R._audited
 def verify(root, *, asset_id=None, replay=True, now=None):
     root = Path(root)
+    resolved = str(root.resolve())
     count = 0
     cache = R._ACTIVE_REPLAY_CACHE.get() if replay else None
     functions = (_calculate, _ols, _pivots, _current, _major, _geometry, _pivot_line, _state,
                  _prominent, _independent, _direction, _future, _scalar_verify, _scalar_selection_verify,
                  _scalar_state, _scalar_value, _scalar_atr, _scalar_pivots, R._prepare,
                  E._atr, E._value, E._epsilon, E._pivots, C.session_schedule)
-    pending = {}
+    evidence_functions = functions + (verify, _read_snapshot, _bind_full, _verify_shadow, _export, _evidence, decode_envelope,
+                                      F._read_snapshot, F._source_evidence, F._display_metadata, F._exports,
+                                      R._checked, R._receipt, R._receipt_of, R._source_replayed, R.asset_definition,
+                                      R.research_source_policy)
+    pending, decoded = {}, {}
     try:
         policy, pointer, snapshots = load_policy(root), _latest(root), {}
-        for path in sorted(_path(root, ROOT / "snapshots").glob("*.json")):
-            if asset_id is not None and R._checked(path).get("asset_id") != asset_id:
+        for path, data, digest in R._audit_reads(sorted(_path(root, ROOT / "snapshots").glob("*.json"))):
+            evidence_key = ("representative_evidence", resolved, path.name, digest,
+                            tuple(id(f) for f in evidence_functions))
+            recalled = cache._recall(evidence_key, evidence_functions) if cache is not None else None
+            # Another asset's snapshot is skipped whatever its dependencies hold,
+            # so it is identified before they are reread.
+            if asset_id is not None and (recalled or R._checked_bytes(data, path.name)).get("asset_id") != asset_id:
                 continue
-            snapshot, source, full = _read_snapshot(root, path.stem, now, reparse=replay)
-            key = ("representative", str(root.resolve()), snapshot["content_hash"], _sha(path.read_bytes()),
-                   source["content_hash"], snapshot["source_archive_sha256"], source["raw_sha256"], source["receipt_sha256"],
-                   full["content_hash"], snapshot["full_manifest_payload_sha256"], C.canonical_hash(policy), tuple(id(f) for f in functions))
+            bound = R._evidence_current(root, recalled)
+            if bound is not None and S.aware_time(bound["capture_asof"]) > S.aware_time(now):
+                bound = None
+            snapshot = source = full = None
+            if bound is None:
+                snapshot, source, full = _read_snapshot(root, path.stem, now, reparse=replay)
+                if S.encode(snapshot) != data:
+                    raise C.TrendlinesError("representative_snapshot_identity_or_policy_invalid")
+                export_path = _path(root, ROOT / "exports" / snapshot["snapshot_id"] / "detail.json")
+                if export_path.read_bytes() != S.encode(_export(snapshot)):
+                    raise C.TrendlinesError("representative_export_binding_invalid")
+                decode_envelope(S.read_json(export_path))
+                bound = _evidence(root, snapshot, source, full)
+                if cache is not None:
+                    decoded[evidence_key] = (evidence_functions, bound)
+            key = ("representative", resolved, bound["content_hash"], digest,
+                   bound["source_content_hash"], bound["source_archive_sha256"], bound["raw_sha256"], bound["receipt_sha256"],
+                   bound["full_content_hash"], bound["full_manifest_payload_sha256"], C.canonical_hash(policy), tuple(id(f) for f in functions))
             if replay and (cache is None or not cache._contains(key, functions)):
+                if source is None:
+                    snapshot, source, full = _read_snapshot(root, path.stem, now, reparse=replay)
+                    if S.encode(snapshot) != data:
+                        raise C.TrendlinesError("representative_snapshot_identity_or_policy_invalid")
                 actual = _calculate(source, full, policy)
                 if any(snapshot.get(k) != value for k, value in actual.items()):
                     raise C.TrendlinesError("representative_replay_differs")
                 pending[key] = functions
-            export_path = _path(root, ROOT / "exports" / snapshot["snapshot_id"] / "detail.json")
-            if export_path.read_bytes() != S.encode(_export(snapshot)):
-                raise C.TrendlinesError("representative_export_binding_invalid")
-            decode_envelope(S.read_json(export_path))
-            snapshots[snapshot["snapshot_id"]] = snapshot
+            snapshots[bound["snapshot_id"]] = bound
             count += 1
         for asset, row in pointer["assets"].items():
             if asset_id is not None and asset != asset_id:
@@ -985,10 +1033,11 @@ def verify(root, *, asset_id=None, replay=True, now=None):
             sp = ROOT / "snapshots" / (snapshot["snapshot_id"] + ".json")
             ep = ROOT / "exports" / snapshot["snapshot_id"] / "detail.json"
             if (snapshot["asset_id"] != asset or row["snapshot_path"] != sp.as_posix() or row["detail_path"] != ep.as_posix()
-                    or row["snapshot_sha256"] != _sha(_path(root, sp).read_bytes()) or row["detail_sha256"] != _sha(_path(root, ep).read_bytes())):
+                    or row["snapshot_sha256"] != R._audit_digest(_path(root, sp))[0]
+                    or row["detail_sha256"] != R._audit_digest(_path(root, ep))[0]):
                 raise C.TrendlinesError("representative_latest_snapshot_binding_invalid")
         if cache is not None:
-            cache._remember(pending)
+            cache._remember(pending, decoded)
         return {"ok": True, "errors": [], "snapshots": count, "replay": replay}
     except (OSError, ValueError, KeyError, TypeError, IndexError) as exc:
         return {"ok": False, "errors": [str(exc)], "snapshots": count, "replay": replay}

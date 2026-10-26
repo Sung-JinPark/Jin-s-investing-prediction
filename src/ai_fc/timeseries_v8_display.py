@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import json
 import math
+from datetime import date
 from pathlib import Path
 from typing import Any
 
@@ -26,6 +27,10 @@ LATEST_RELATIVE = Path("data/timeseries_v8/multivariate_v8_latest.json")
 DAILY_LATEST_RELATIVE = Path("data/timeseries_v8/daily_display_latest.json")
 SEALED_LEDGER_RELATIVE = Path("data/timeseries_v8/ledgers/sealed_evaluations.jsonl")
 FORWARD_LEDGER_RELATIVE = Path("data/timeseries_v8/ledgers/shadow_resolutions.jsonl")
+# 섀도 진행률(표시 전용): 승격 계약의 단위는 '세션'이라 첫 섀도 원점 **다음** XNYS 세션부터
+# NYSE 휴장 계약(data/contracts/nyse_holidays.yaml)으로 결정론적으로 센다. 첫 h63 성숙 =
+# 첫 원점 + 63 세션. 계약이 요구 세션 수를 말하지 않으면 진행률도 싣지 않는다(지어내지 않는다).
+SHADOW_MATURITY_SESSIONS = 63
 # 실측 순위 칸 = 이미 공개된 5개 절단점이 수직선을 6칸으로 나눈 것.
 # 완전 보정 시 기대 비율은 10/15/25/25/15/10% (JS 상수와 같은 순서).
 RANK_CUTS = ("p10", "p25", "median", "p75", "p90")
@@ -264,6 +269,9 @@ def _sealed_disclosure(
     score = score100(disclosure)
     if score is not None:
         disclosure["score100"] = score
+        bounds = score100_bounds(score)
+        if bounds is not None:
+            disclosure["score100_bounds"] = bounds
     return disclosure
 
 
@@ -383,6 +391,88 @@ def score100(disclosure: dict[str, Any]) -> dict[str, Any] | None:
     return {
         "total": total, "grade": grade, "label": label,
         "pillars": pillars, "method": "display_only_fixed_rule_v1",
+    }
+
+
+def _score100_grade(total: float) -> str:
+    return next(grade for floor, grade, _ in SCORE100_GRADES if total >= floor)
+
+
+def score100_bounds(score: dict[str, Any] | None) -> dict[str, Any] | None:
+    """현 산식에서 총점이 움직일 수 있는 범위 — 표시 전용 공시, 새 산식이 아니다.
+
+    봉인 4축(정확도·확실성·약속 지킴·위기 대응)은 1회 봉인 평가의 값이라 불변이고,
+    실전 축만 라이브 원장이 쌓이며 0~가중(15)점 사이를 오르내린다(가상 10행 수축은
+    표본이 늘수록 풀린다). 하한·상한은 score100 과 같은 반올림 규칙으로 계산한다:
+    round(Σ round(score,1)·w/100) 에 실전 축 0점·만점을 각각 넣은 값.
+    """
+    if not score or not isinstance(score.get("pillars"), dict):
+        return None
+    pillars = score["pillars"]
+    fixed = 0.0
+    for key, weight in SCORE100_WEIGHTS.items():
+        if key == "live":
+            continue
+        pillar = pillars.get(key)
+        if not isinstance(pillar, dict) or pillar.get("score") is None:
+            return None
+        fixed += float(pillar["score"]) * weight / 100.0
+    live = pillars.get("live") if isinstance(pillars.get("live"), dict) else {}
+    live_weight = SCORE100_WEIGHTS["live"]
+    floor_total = round(fixed)
+    ceiling_total = round(fixed + live_weight)
+    floor_grade, ceiling_grade = _score100_grade(floor_total), _score100_grade(ceiling_total)
+    return {
+        "fixed_pillars": [key for key in SCORE100_WEIGHTS if key != "live"],
+        "fixed_points": round(fixed, 1),
+        "variable_pillar": "live",
+        "variable_weight": live_weight,
+        "live_points": None if live.get("points") is None else float(live["points"]),
+        "floor_total": floor_total,
+        "ceiling_total": ceiling_total,
+        "floor_grade": floor_grade,
+        "ceiling_grade": ceiling_grade,
+        "grade_locked": floor_grade == ceiling_grade,
+        "method": "display_only_fixed_rule_v1",
+    }
+
+
+def shadow_progress(
+    origins: list[str], *, as_of_session: str, calendar: dict[str, Any],
+    required_sessions: int, maturity_sessions: int = SHADOW_MATURITY_SESSIONS,
+) -> dict[str, Any] | None:
+    """섀도 진행률 — 첫 섀도 원점 다음 NYSE 세션부터 센다(표시 전용 순수 함수).
+
+    세션은 거래일 달력(ai_fc.scenario.future_trading_days · NYSE 휴장 계약)으로 결정론적으로
+    만든다. 원점이 하나도 없거나 요구 세션 수가 없으면 None — 진행률을 지어내지 않는다.
+    승격은 계약(automatic_champion=false · explicit_owner_approval)대로 사람이 결정한다;
+    126 도달은 '표본이 찼다'는 뜻이지 승격·판정이 아니다.
+    """
+    from .scenario import future_trading_days
+
+    known = sorted({str(origin) for origin in origins if origin})
+    required = int(required_sessions or 0)
+    maturity = int(maturity_sessions or 0)
+    if not known or required <= 0 or maturity <= 0:
+        return None
+    start = date.fromisoformat(known[0])
+    cutoff = date.fromisoformat(str(as_of_session)[:10])
+    sessions = future_trading_days(start, max(required, maturity), calendar)
+    elapsed = sum(1 for session in sessions if session <= cutoff)
+    return {
+        "first_origin": known[0],
+        "latest_origin": known[-1],
+        "origins": len(known),
+        "as_of_session": cutoff.isoformat(),
+        "calendar": str(calendar.get("calendar") or "NYSE"),
+        "sessions_elapsed": elapsed,
+        "required_sessions": required,
+        "sessions_remaining": max(0, required - elapsed),
+        "required_session_date": sessions[required - 1].isoformat(),
+        "maturity_sessions": maturity,
+        "first_h63_maturity_date": sessions[maturity - 1].isoformat(),
+        "first_h63_matured": elapsed >= maturity,
+        "promotion_automatic": False,
     }
 
 
@@ -616,6 +706,60 @@ def _origin_age_policy(root: Path) -> dict[str, Any]:
     return dict(policy) if isinstance(policy, dict) else {}
 
 
+def _promotion_policy(root: Path) -> dict[str, Any]:
+    """Read the contract's promotion block (minimum_shadow_sessions 등); absent means no label.
+
+    origin_age_policy 와 같은 읽기 전용 접근 — 계약 전체 검증은 파이프라인 몫이고 표시 계층은
+    이 블록만 읽는다. 블록이 없으면 진행률 자체를 싣지 않는다(fail-closed).
+    """
+    import yaml
+
+    from .timeseries_v8.contracts import CONTRACT_RELATIVE
+
+    path = root / CONTRACT_RELATIVE
+    if not path.is_file():
+        return {}
+    try:
+        payload = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+    except (OSError, yaml.YAMLError):
+        return {}
+    policy = payload.get("promotion") if isinstance(payload, dict) else None
+    return dict(policy) if isinstance(policy, dict) else {}
+
+
+def _shadow_progress_block(
+    root: Path, latest: dict[str, Any], sealed_metrics: dict[str, Any],
+) -> dict[str, Any] | None:
+    """섀도 진행률 블록 — 첫 원점은 전진 해소 원장(이미 계보 등록)에서, 세션은 NYSE 달력에서.
+
+    달력·계약·원점 중 하나라도 없으면 None 을 돌려주고 표면은 그대로 뜬다 — 사이트 빌드를
+    세우지 않고 숫자도 지어내지 않는다.
+    """
+    from .scenario import ScenarioError, load_calendar_contract
+
+    required = (_promotion_policy(root) or {}).get("minimum_shadow_sessions")
+    origins = [str(origin) for origin in ((sealed_metrics.get("forward") or {}).get("origins") or [])]
+    if required is None or not origins:
+        return None
+    try:
+        calendar = load_calendar_contract(root)
+    except (ScenarioError, OSError):
+        return None
+    # 경과 세션의 기준일 = 포인터가 아는 마지막 NASDAQ 관측 세션(없으면 원점 as_of).
+    observed = [
+        str(row.get("observation_time"))[:10]
+        for row in ((latest.get("operational") or {}).get("freshness") or [])
+        if str(row.get("group") or "").startswith(TARGET_SERIES) and row.get("observation_time")
+    ]
+    as_of_session = max([str(latest.get("as_of") or "")[:10], *observed])
+    try:
+        return shadow_progress(
+            origins, as_of_session=as_of_session, calendar=calendar,
+            required_sessions=int(required))
+    except (ValueError, TypeError, ScenarioError):
+        return None
+
+
 def _daily_anchor_and_history(
     root: Path, origin: str, knowledge_cutoff: str, anchor_value: float, *, sessions: int = 63,
 ) -> dict[str, list[Any]]:
@@ -738,6 +882,10 @@ def load_projection(root: Path) -> dict[str, Any] | None:
     # 표시 주기: 화면 원점은 매일, 채점·성적은 주간 원점(weekly_as_of)이다.
     projection["cadence"] = "daily" if use_daily else "weekly"
     projection["weekly_as_of"] = None if weekly is None else weekly.get("as_of")
+    # 섀도 진행률(표시 전용) — 성적 블록과 같은 자리(sealed_metrics)에 싣는다.
+    progress = _shadow_progress_block(root, latest, projection.get("sealed_metrics") or {})
+    if progress is not None:
+        projection["sealed_metrics"]["shadow_progress"] = progress
     if use_daily:
         info = latest.get("daily") or {}
         projection["input_state"] = str(info.get("input_state") or "")

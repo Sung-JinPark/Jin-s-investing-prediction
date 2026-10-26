@@ -905,7 +905,7 @@ def test_dashboard_statistics_route_and_daily_workflow_are_wired() -> None:
     assert "${referenceCharts.length}개 비교" in script
     assert "referenceSection.hidden=active!=='all'&&active!=='ipo'" in script
     assert "const applyStatCategory=(key,sync)=>{" in script
-    assert "syncMidHash(active==='all'?'#statistics':'#statistics/'+active)" in script
+    assert "syncMidHash(active==='all'?'#statistics':'#statistics/dotcom/'+active)" in script
     assert ".statistics-reference>header h2" in styles
     assert "function statisticsLiquidityBars" in script
     assert "is-diverging" in script

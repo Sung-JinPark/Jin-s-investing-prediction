@@ -9,16 +9,19 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import os
 import shutil
 import sys
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from urllib.parse import quote
 from urllib.request import Request, urlopen
 
+import yaml
+
 PROJECT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(PROJECT / "src"))
-from ai_fc.trendlines import contracts as C, research as R, storage as S, full_history as F, critical as K, representative as V, long_boundaries as B
+from ai_fc.trendlines import contracts as C, research as R, storage as S, full_history as F, critical as K, representative as V, long_boundaries as B, delivery as D
 
 
 def private_root(output: Path) -> Path:
@@ -35,6 +38,7 @@ def private_root(output: Path) -> Path:
                     K.ROOT, K.ROOT / "snapshots", K.ROOT / "exports", K.ROOT / "latest.json",
                     V.ROOT, V.ROOT / "snapshots", V.ROOT / "exports", V.ROOT / "latest.json",
                     B.ROOT, B.ROOT / "snapshots", B.ROOT / "exports", B.ROOT / "latest.json",
+                    D.ROOT, D.ROOT / "snapshots", D.ROOT / "selected",
                     Path("outputs/trendlines/.writer.lock")]
     if any(not (output / path).resolve().is_relative_to(output) for path in destinations):
         raise C.TrendlinesError("private chart output contains a redirected data path")
@@ -43,13 +47,47 @@ def private_root(output: Path) -> Path:
         target.parent.mkdir(parents=True, exist_ok=True)
         if not target.is_file():
             shutil.copyfile(PROJECT / relative, target)
+        elif relative == C.ASSET_REGISTRY_RELATIVE:
+            extend_private_registry(PROJECT / relative, target)
     return output
+
+
+def extend_private_registry(source: Path, target: Path) -> None:
+    """Admit newly registered instruments; captured instruments keep their definitions."""
+    if source.read_bytes() == target.read_bytes():
+        return
+    current, incoming = (yaml.safe_load(path.read_text(encoding="utf-8")) for path in (target, source))
+    old, new = (value.get("assets") if isinstance(value, dict) else None for value in (current, incoming))
+    header = lambda value: {key: item for key, item in value.items() if key != "assets"}
+    if (not isinstance(old, dict) or not isinstance(new, dict) or header(current) != header(incoming)
+            or any(new.get(asset_id) != asset for asset_id, asset in old.items())):
+        raise C.TrendlinesError("private asset registry may only gain instruments; existing definitions are immutable")
+    temporary = target.with_name(target.name + ".tmp")
+    shutil.copyfile(source, temporary)
+    os.replace(temporary, target)
+    C.load_asset_registry(target.parents[2])
+
+
+# Rolling capture window (2026-10-22). Yahoo's own KRX history carries a
+# 2015-08-14 row (a temporary market holiday) that the calendar gate rejects as a
+# whole capture, and the full-geometry replay grows with the square of the pivot
+# count (measured: 1,047 bars 10.8 s, 2,520 bars 57.7 s, 2,920 bars 204 s,
+# 2,192 bars 110 s). Ten exchange years (~2,520 sessions) and six crypto years
+# (~2,192 days) stay clear of both and of F.MAX_BARS without truncation; older
+# sessions roll off as new ones arrive.
+CAPTURE_WINDOW_YEARS = {"crypto": 6}
+DEFAULT_CAPTURE_WINDOW_YEARS = 10
+
+
+def capture_window(asset: dict | None, now: datetime | None = None) -> tuple[datetime, datetime]:
+    end = now or datetime.now(timezone.utc)
+    years = CAPTURE_WINDOW_YEARS.get((asset or {}).get("kind"), DEFAULT_CAPTURE_WINDOW_YEARS)
+    return end - timedelta(days=round(years * 365.25)), end
 
 
 def public_page(asset_id: str) -> tuple[bytes, dict]:
     symbol = R.SYMBOLS[asset_id]
-    end = datetime.now(timezone.utc)
-    start = datetime(2022, 7, 1, tzinfo=timezone.utc)
+    start, end = capture_window(R.asset_definition(PROJECT, asset_id))
     url = ("https://finance.yahoo.com/quote/" + quote(symbol, safe="")
            + "/history/?period1=" + str(int(start.timestamp())) + "&period2=" + str(int(end.timestamp())))
     request = Request(url, headers={"User-Agent": "Mozilla/5.0", "Accept": "text/html"})
@@ -83,6 +121,10 @@ def _run(options) -> dict:
         raw = options.raw.read_bytes()
         receipt = json.loads(options.receipt.read_text(encoding="utf-8"))
     acquired = receipt.get("retrieved_at", receipt.get("fetched_at"))
+    before_selection = R.verify(root, replay=True)
+    if not before_selection['ok']:
+        raise C.TrendlinesError('private_source_integrity_failed_before_selection: '+ '; '.join(before_selection['errors']))
+    D.freeze_previous(root, options.asset)
     result = R.capture_html(root, options.asset, raw, receipt, as_of=acquired,
                             allow_rejected_rows=options.allow_rejected_rows)
     audit = R.verify(root, replay=True)
@@ -117,11 +159,14 @@ def _run(options) -> dict:
     if not audit["ok"]:
         raise C.TrendlinesError("private original-to-chart replay failed: " + "; ".join(audit["errors"]))
     destination = root / (options.asset + ".trendlines.json")
+    ready = all(item.get('status') != 'unavailable' for item in (full, critical, representative, long_boundaries))
     S.atomic_json(destination, exported)
+    delivery = D.publish(root, options.asset, exported) if ready else None
     return {**result, "publication_scope": "private_only", "public_prices_published": False,
             "independent_replay": audit, "browser_import_file": str(destination),
             "import_file_bytes": destination.stat().st_size, "full_history": full, "critical": critical,
-            "representative": representative, "long_boundaries": long_boundaries}
+            "representative": representative, "long_boundaries": long_boundaries, "delivery": delivery,
+            "delivery_committed": ready}
 
 
 def main() -> None:
