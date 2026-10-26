@@ -26,8 +26,8 @@
 | 9/29~10/5 | **9/29 MU** | TSMC/ASML r1 (10/7 마감 — 이번 주 선행 권장) lite×2 | — | $3 |
 | 10/6~12 | — | — | — | $0 |
 | 10/13~19 | **10/14 ASML+CPI-sep · 10/15 TSMC** | 빅테크 5종 r1 (10/21 마감) lite×5 · **GDP r1 (10/22 마감)** lite | fomc-10-28 D-14 standard | $12 ⚠집중주 |
-| 10/20~26 | — | — | fomc-10-28 D-7 standard · corr10 최종 standard | $6 |
-| 10/27~11/2 | **10/28 FOMC·MSFT·GOOGL·META · 10/29 AMZN·AAPL·GDP · 10/31 corr10** ★divergence 3자 첫 판정 | NFP-oct r1 (10/30 마감) lite | fomc-10-28 D-2 standard | $4.5 |
+| 10/20~26 | **10/21 META** (IR 확정 — 추정 10/28 보다 7일 앞섬, 2026-10-26 판정 NO) | — | ✅ 10/26 실행: fomc-10-28 r3 · gdp r2 · corr10 r4 · MSFT·GOOGL·AMZN r2(D-3, IR 확정) · AAPL r3 | $6 → 실적 $14.89 |
+| 10/27~11/2 | **10/28 FOMC·MSFT·GOOGL · 10/29 AMZN·GDP · 10/31 corr10 · 11/2 AAPL**(IR 확정 — 마감 10/29 이후, 실제 발표로 판정) ★divergence 3자 첫 판정 | NFP-oct r1 (10/30 마감) lite | — (D-3 회차 10/26 완료) | $1.5 |
 | 11/3~9 | **11/6 NFP-oct** | CPI-oct r1 (11/3 마감) lite | — | $1.5 |
 | 11/10~16 | **11/10 CPI-oct** | NVDA-nov r1 (11/11 마감, 발표일 재확인 후) lite | — | $1.5 |
 | 11/17~23 | **11/18 NVDA Q3 FY27** (추정) | — | vix 롤링 재예측 standard | $3 |
@@ -55,3 +55,5 @@
 - 체크포인트: 8/31 · 10/31(corr10 = divergence 3자 첫 승패) · 12/31
 
 > 참고 의견 (P3 게이트 전). 발표일 추정 항목(10월 하순 빅테크·NVDA-nov)은 공식화 시 이 표를 갱신.
+> 2026-10-26 갱신: 10월 하순 빅테크 5종 공식 IR 확인 완료(MSFT·GOOGL 10/28, AMZN 10/29 일치 · META 10/21 선행 · AAPL 11/2 후행).
+> 교훈: WSH INFERRED 추정일이 ±1주 빗나갔다 — "10월 초순 재확인" 메모가 실행되지 않으면 무인 배치가 D-3 에서 막힌다.

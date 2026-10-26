@@ -518,12 +518,14 @@ questions:
   domain: earnings
   cadence: r1 + D-3
   action_link: AI capex 최대 증액 주체 감시 + 캘리브레이션 표본
-  status: active
+  status: resolved
   created: 2026-07-20
   notes: '등록필터: (a) beat율 5년 78%, META 최근 4분기 4/4 비트. 발표일 추정(WSH INFERRED) — 10월 초순 재확인.
     2026-10-26 확인: Meta IR 2026-10-12 공지 "after market close on Wednesday, October 21st, 2026" — 실적은 이미 공개됨
     (https://investor.atmeta.com/investor-news/press-release-details/2026/Meta-to-Announce-Third-Quarter-2026-Results/default.aspx).
-    추정 마감(10-28)보다 7일 앞섬 → 신규 회차 금지(결과 기지), /resolve 대상. deadline_estimated 는 무인 배치 차단용으로 유지.'
+    추정 마감(10-28)보다 7일 앞섬 → 신규 회차 금지(결과 기지), /resolve 대상. deadline_estimated 는 무인 배치 차단용으로 유지.
+    RESOLVED 2026-10-26 NO: GAAP 희석 EPS $3.83 < r1 스냅샷 컨센 $6.76 (SEC 8-K EX-99.1 2026-10-21). r1 68% → Brier 0.4624.
+    AG 합의 충당금 제외 가정치 $7.40 은 발표 EPS 가 아니라 미채택 (Q2 2026 GAAP 미스 처리 선례와 동일 기준).'
   tier: lite
   schedule:
   - once: true
@@ -568,7 +570,10 @@ questions:
   notes: '등록필터: (a) beat율 5년 78%, AAPL 최근 4분기 4/4 비트. 발표일 추정(WSH INFERRED) — 10월 초순 재확인.
     2026-10-26 확인: Apple IR 이벤트 페이지 — FY26 Q4 실적 콜 2026-11-02 14:00 PT
     (https://investor.apple.com/investor-relations/event-details/2026/FY-26-Fourth-Quarter-Results/default.aspx).
-    실제 발표가 deadline(10-29) 이후 → deadline 은 판정기준이라 정정 불가. void + 새 질문 여부는 사용자 결정 대기.
+    실제 발표가 deadline(10-29) 이후. 2026-10-26 결정: void 하지 않는다 — resolution 문언(발표 EPS > 마지막 예측 파일
+    스냅샷 컨센)은 발표일을 참조하지 않고 본문 날짜는 "(장후 추정)" 표기이므로, **2026-11-02 실제 FQ4 발표로 판정**한다.
+    void 하면 r1·r2 가 채점 표본에서 사라져 "예측 소모 후 void 0건" 불변식이 깨진다. deadline 필드는 무변경
+    (10-29 이후 신규 회차는 기존 마감 가드가 막는다). 판정은 11-02 장후 발표 확인 뒤에만 — 그 전 /resolve 금지.
     deadline_estimated 는 무인 배치 차단용으로 유지.'
   tier: lite
   schedule:
