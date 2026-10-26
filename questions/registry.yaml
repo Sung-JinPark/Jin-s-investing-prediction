@@ -42,7 +42,7 @@ questions:
   domain: earnings
   cadence: 실적 D-30부터 주 2회
   action_link: 메모리 마진 반전 EXIT 트리거 (조기경보)
-  status: active
+  status: resolved
   created: 2026-07-08
   schedule:
   - per_week: 1
@@ -428,7 +428,7 @@ questions:
   domain: earnings
   cadence: r1 + D-3
   action_link: 장비 사이클 선행 감시 (9월 DRAM 스팟 연계) + 캘리브레이션 표본
-  status: active
+  status: resolved
   created: 2026-07-20
   notes: '등록필터: (a) beat율 5년 78%, ASML 최근 4분기 3/4 비트. 발표일 준확정(복수 벤더 일치, 회사 캘린더 직접 확인은 실패) — D-30 재확인.
     10/14 = 9월분 CPI 동일 발표일 (이벤트 밀집 주의).'
@@ -449,7 +449,7 @@ questions:
   domain: earnings
   cadence: r1 + D-3
   action_link: 파운드리 = AI capex 실물 검증 + 캘리브레이션 표본
-  status: active
+  status: resolved
   created: 2026-07-20
   notes: '등록필터: (a) beat율 5년 78%, TSMC 최근 4분기 4/4 비트. 발표일 추정 (공식 캘린더 3Q26 미게재 — NOT FOUND, 과거 패턴 10월 중순)
     — D-30 재확인 필수.'
@@ -1050,7 +1050,7 @@ questions:
   domain: macro
   cadence: r1 + D-3
   action_link: 고용 급랭 신호 — 기존 nfp-*-below100k 시리즈보다 극단 임계
-  status: active
+  status: resolved
   created: '2026-09-09'
   notes: '등록필터: (a) base rate 강함 — 최근 12개월 평균 +31,000으로 추세가 0 근처이고 7월 초판이 -23,000이었다(단 +21,000으로 상향 개정).
     임계가 0이라 판정이 부호 하나로 결정된다. 기존 below100k 시리즈와 임계가 달라 중복이 아니며 같은 발표에서 독립적으로 채점된다. [C5 Q3 · 사전등록 C5_PORTFOLIO_V1
@@ -1071,7 +1071,7 @@ questions:
   domain: macro
   cadence: r1 + D-3
   action_link: 근원 재가속 = 인상 시나리오의 촉매
-  status: active
+  status: resolved
   created: '2026-09-09'
   notes: '등록필터: (a) base rate 강함 — 근원 YoY가 2.6%(6월)→2.5%(7월)로 둔화 중이라 두 눈금 상방 반전은 드문 사건이다. 임계가 절대 수치라 8월분
     결과와 무관하게 사전 고정되며 사후 이동이 불가능하다. [C5 Q3 · 사전등록 C5_PORTFOLIO_V1 · 분류 macro_threshold · 예상확률 18% (첫 예측
@@ -1391,7 +1391,7 @@ questions:
   domain: macro
   cadence: r1 + D-3
   action_link: 위원회 분열도 = fed-path 불확실성의 선행 지표
-  status: active
+  status: resolved
   created: '2026-09-09'
   notes: '등록필터: (a) base rate 강함 — 현 위원회 실측으로 최근 13회 중 10회(77%), 2026년 5회 중 4회(80%)에 반대표가 있었다. 2026-07
     은 9-3(Hammack·Kashkari·Logan 이 인상 선호), 세 사람 모두 2026년 순환 투표권자로 9월에도 투표권을 유지한다. **폐기된 fomc-2026-09-16-dissent
@@ -1415,7 +1415,7 @@ questions:
   domain: macro
   cadence: r1 + D-3
   action_link: 긴축 후 완화 경로를 위원회가 여전히 그리는가 — 경로의 모양을 묻는다
-  status: active
+  status: resolved
   created: '2026-09-09'
   notes: '등록필터: (a) base rate 강함 — 2026-06 SEP 는 2026년말 3.750 / 2027년말 3.625 로 이미 YES 형태였고, 2028년말 3.375
     · longer run 3.125 로 하향 경사가 일관된다. 점도표가 장기 중립으로 수렴하는 형태는 SEP 의 구조적 성질이라 base rate 가 높다. **폐기된 fomc-sep-2026ye-dot-above-375
@@ -1439,7 +1439,7 @@ questions:
   domain: macro
   cadence: r1 + D-3
   action_link: 엔 캐리 청산은 사용자 EXIT 트리거의 외생 충격원 — 2024년 전례
-  status: active
+  status: resolved
   created: '2026-09-09'
   notes: '등록필터: (b) 정보 우위 논거 — 회합 전 OIS 내재확률과 총재·심의위원 발언, Reuters/Bloomberg 소식통 보도로 추적 가능하고 2026-06-16
     이미 +25bp 를 실행한 정상화 경로다. 판정은 결정문 한 줄이라 재량이 없다. **폐기된 boj-hike-2026-09-17 의 대체** — 원 질문은 결정 발표일(09-18)이
