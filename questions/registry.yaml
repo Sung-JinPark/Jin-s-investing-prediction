@@ -465,6 +465,7 @@ questions:
   question: Microsoft가 2026-10-28(장후 추정) 발표하는 FY2027 Q1 실적에서 EPS가 발표 직전 컨센서스를 상회할 확률은?
   deadline: 2026-10-28
   deadline_estimated: false
+  deadline_confirmed_by: https://news.microsoft.com/source/2026/10/07/microsoft-announces-quarterly-earnings-release-date-69/
   resolution: YES = 발표 EPS > 발표 전 마지막 예측 파일 스냅샷 컨센. 동률 NO.
   resolution_source: Microsoft IR + 컨센 스냅샷 (D-3 회차)
   domain: earnings
@@ -488,6 +489,7 @@ questions:
   question: Alphabet이 2026-10-28(장후 추정) 발표하는 Q3 2026 실적에서 EPS가 발표 직전 컨센서스를 상회할 확률은?
   deadline: 2026-10-28
   deadline_estimated: false
+  deadline_confirmed_by: https://abc.xyz/investor/news/news-details/2026/Alphabet-Announces-Date-of-Third-Quarter-2026-Financial-Results-Conference-Call-2026-8tpGZsLS6v/default.aspx
   resolution: YES = 발표 EPS > 발표 전 마지막 예측 파일 스냅샷 컨센. 동률 NO.
   resolution_source: Alphabet IR + 컨센 스냅샷 (D-3 회차)
   domain: earnings
@@ -534,6 +536,7 @@ questions:
   question: Amazon이 2026-10-29(장후 추정) 발표하는 Q3 2026 실적에서 EPS가 발표 직전 컨센서스를 상회할 확률은?
   deadline: 2026-10-29
   deadline_estimated: false
+  deadline_confirmed_by: https://ir.aboutamazon.com/news-release/news-release-details/2026/Amazon-com-to-Webcast-Third-Quarter-2026-Financial-Results-Conference-Call/default.aspx
   resolution: YES = 발표 EPS > 발표 전 마지막 예측 파일 스냅샷 컨센. 동률 NO.
   resolution_source: Amazon IR + 컨센 스냅샷 (D-3 회차)
   domain: earnings
