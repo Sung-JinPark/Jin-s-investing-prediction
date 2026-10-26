@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "compatibility_id": "daily6m-calendar-gate-compatibility-v1",
+  "legacy_model_code_hash": "b7a5038fb7060a168065ee947865ef9a3843c3e12bdfceaf20656923ff642f8a",
+  "contract_hash": "53f023f79829778c37bfc460698ff5e2224894b9ec7ecfd03f2d18fddeeb83dc",
+  "change": "source_freshness_and_legacy_run_reader_only",
+  "unchanged_files": {
+    "src/ai_fc/timeseries_daily6m/contracts.py": "9f1549ad90bfa032abb99402f5e0ba23d628209ab13c08a488666169be47a6c2",
+    "src/ai_fc/timeseries_daily6m/model.py": "93781d50b848391a8e7497f00b496e311e06dfb2103a44a7842482e93b61c418",
+    "src/ai_fc/timeseries_daily6m/live_tail.py": "ecba77ac28bfdff26545c73ca72ea04c84fe3fae77de736bfd4aa4a2fbf690f6",
+    "src/ai_fc/daily6m_sources.py": "47df4adfd929fc55478e2d85aa4a86369843f18be5cd8527232d991a06125ef7",
+    "data/contracts/daily6m_official_sources_v1.yaml": "cf8ee2c73d363afa5b5614438c8b268fcb58e461e6c6404cb7edb6153733a406",
+    "src/ai_fc/timeseries/ledger.py": "b3c5baeb9c2d4e1450c1d0fe0305a25d64e0142a70399378ac5f835fe12f0046",
+    "src/ai_fc/timeseries/model.py": "84893827cedae402518ae9355ba799fed7e72f35d7ce17f9cfd60d2a6e1935b3",
+    "src/ai_fc/timeseries/backtest.py": "e2a232b7f794b5141968ff672b173ee8195772040a60bc6607c4fdff67118001",
+    "src/ai_fc/timeseries_v2/model.py": "0e8a7d5c87fe4b6f36577b6f758a2f42d609e06df7452bb60297cad2b2594497",
+    "src/ai_fc/timeseries_v2/contracts.py": "cc89dbbb61e0dab7b562b64a922858b5e7bed574e651930c11cd708d167c9660",
+    "src/ai_fc/timeseries_v2/dfm_cache.py": "c0faae0b28aad64b8b9fb5d4769cbebaacf7cd3b19eebdcb1ff98e03a87d0b3e",
+    "src/ai_fc/timeseries_v2/market_archive.py": "f188dc47e8aa55910e86fe8bf3c227360a730eca30d240f3b1253f5321943915",
+    "data/contracts/multivariate_timeseries_v2.yaml": "998f408271ecbec8df08b54579bbc5ffb093cfd78fdb443652b113f99a634b60",
+    "src/ai_fc/timeseries_v8/model.py": "4914af6c991188f17b202730654993ddcf66baa5f51ee75b836584fa39538386"
+  },
+  "unchanged_ast": {
+    "src/ai_fc/timeseries_daily6m/features.py": {
+      "excluded_function": "source_freshness",
+      "ast_sha256": "cb48914b1a31e2a13b47615effd2d163e26c065cd0a073f041e216a887808287"
+    },
+    "src/ai_fc/timeseries_daily6m/pipeline.py": {
+      "excluded_function": "load_run",
+      "ast_sha256": "6748d908d0f79fe1111675a9f3154b58a7ae0667fb3856514f0eee1e5f6ed95c"
+    }
+  }
+}

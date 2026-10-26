@@ -1685,6 +1685,7 @@ function timeseriesFreshnessList(ts){
   const rows=ts.freshness_summary||[];
   if(!rows.length)return '<p class="admin-empty">신선도 요약이 아직 없습니다.</p>';
   return `<ul class="admin-list ts-fresh" data-ts-chart="fresh" tabindex="0" aria-label="입력 신호 신선도">${rows.map(row=>{const age=Number(row.age_hours||0),limit=Number(row.limit_hours||0),ratio=limit?Math.min(100,Math.round(age/limit*100)):0,ok=String(row.status||'')==='fresh';
+    if(row.policy_id&&row.expected_observation)return `<li><i>${esc(row.group)}</i><em>${esc(TS_INPUT_LABELS[row.group]||row.group)}</em><span class="admin-share-bar"><b class="${ok?'':'is-warn'}" style="width:${ok?100:50}%"></b></span><strong>${esc(String(row.observation_time||'—').slice(5))}</strong><small>공표 기준 ${esc(String(row.expected_observation).slice(5))} · ${ok?'정상':'지연'}</small></li>`;
     return `<li><i>${esc(row.group)}</i><em>${esc(TS_INPUT_LABELS[row.group]||row.group)}</em><span class="admin-share-bar"><b class="${ok?'':'is-warn'}" style="width:${Math.max(2,ratio)}%"></b></span><strong>${Math.round(age)}h</strong><small>/${Math.round(limit)}h · ${ok?'정상':'경고'}</small></li>`;}).join('')}</ul>${tsReadout()}`;
 }
 function timeseriesInputBundle(){
@@ -1959,6 +1960,7 @@ function bindTimeseriesV8Interactions(root,ts){
   const fresh=root.querySelector('[data-ts-chart="fresh"]');
   if(fresh){const items=[...fresh.querySelectorAll('li')],list=ts.freshness_summary||[];
     bindTsHover(fresh,{stopEls:items,describe:i=>{const row=list[i]||{},label=TS_INPUT_LABELS[row.group]||row.group||'',ok=String(row.status||'')==='fresh',age=Math.round(Number(row.age_hours||0)),limit=Math.round(Number(row.limit_hours||0));
+      if(row.policy_id&&row.expected_observation)return {head:`${label} (${row.group||''})`,rows:[{color:TS_Q_COLORS.up,name:'실제 관측일',value:row.observation_time||'—'},{color:TS_Q_COLORS.inner,name:'공표 기한이 지난 관측일',value:row.expected_observation},{color:TS_Q_COLORS.median,name:'상태',value:ok?'정상':'지연'}],speak:`${label}: 실제 관측 ${row.observation_time}, 공표 기준 ${row.expected_observation}, ${ok?'정상':'지연'}`};
       return {head:`${label} (${row.group||''})`,rows:[{color:TS_Q_COLORS.up,name:'마지막 관측 경과',value:`${age}h`},{color:TS_Q_COLORS.inner,name:'허용 한도',value:`${limit}h`},{color:TS_Q_COLORS.median,name:'상태',value:ok?'정상':'경고'}],speak:`${label}: 마지막 관측 ${age}시간 전, 한도 ${limit}시간, ${ok?'정상':'경고'}`};}});}
   const kpis=root.querySelector('[data-ts-chart="kpis"]');
   if(kpis){const items=[...kpis.querySelectorAll('article')],hints=['oos_window_hint','full_period_hint','loss_ci_hint','forward_track_hint'];
@@ -2408,7 +2410,7 @@ function renderTimeseriesV8(ts,initialState){
     +`${timeseriesSpecCard(ts)}</div>`;
   const pathPanel=`<div class="ts-panel"><section class="timeseries-path-panel"><header><div><span>LOG SCALE · 63 + 63 SESSIONS</span><h2>최근 실적과 분위수 대역</h2></div><p>검은 선=예측 전 실제 · 붉은 선=예측 중앙 · 회색 굵은 선=예측 뒤 실제</p></header>${timeseriesV8BandSvg(ts)}${timeseriesLadderTable(ts)}</section></div>`;
   const driversPanel=`<div class="ts-panel">`
-    +`<section class="ts-card"><div class="admin-card-head"><h2>입력 신호 신선도</h2><span>재료가 오래되면 예측을 멈춥니다 · 경과시간/한도</span></div>${timeseriesFreshnessList(ts)}</section>`
+    +`<section class="ts-card"><div class="admin-card-head"><h2>입력 신호 신선도</h2><span>휴장·공표주기 반영 · 실제 관측일 / 공표 기준일</span></div>${timeseriesFreshnessList(ts)}</section>`
     +`<section class="ts-card"><div class="admin-card-head"><h2>모델이 함께 보는 입력 요인</h2><span>값·부호 표시 없음</span></div>${timeseriesInputBundle()}</section></div>`;
   const sealedMetrics=ts.sealed_metrics||{},sealedWin=sealedMetrics.sealed_window||{},fullBacktest=sealedMetrics.full_backtest||{};
   const skillGuide=chartGuide([[GUIDE_BAND(TS_Q_COLORS.up),'채운 막대',`봉인창 ${Number(sealedWin.origin_count||0).toLocaleString()}개 원점 (2019년 이후, 모델을 고른 뒤의 구간)`],[GUIDE_SOLID('#85827b'),'속빈 마름모',`전체 기간 ${Number(fullBacktest.origin_count||0).toLocaleString()}개 원점 — 개발기간(모델을 고른 구간)이 섞여 있어 참고용`],[GUIDE_DASH('#9b2c0b'),'빗금 막대','우연으로 설명될 여지가 남는 기간 (p ≥ 0.05)']],'개선율은 각 기간의 최선 기준선 대비입니다. 기준선은 기간마다 다를 수 있습니다.');

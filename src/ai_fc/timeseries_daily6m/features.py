@@ -202,18 +202,8 @@ def last_completed_session(now: str | datetime) -> str:
 
 
 def source_freshness(frame: pd.DataFrame, as_of: str | datetime) -> tuple[dict[str, Any], ...]:
-    cutoff = aware_time(as_of)
-    reports = []
-    for group, alternatives, limit in (("NASDAQCOM", ("NASDAQCOM",), 48), ("VIX", ("VIXCLS",), 48), ("DGS2", ("DGS2",), 48), ("curve", ("T10Y2Y",), 48), ("dollar", ("DTWEXBGS", "DTWEXB"), 216)):
-        selected = frame[frame["series_id"].isin(alternatives)]
-        if selected.empty:
-            reports.append({"group": group, "status": "missing", "limit_hours": limit, "observation_time": None, "age_hours": None})
-            continue
-        row = selected.sort_values(["day", "available_at_utc"]).iloc[-1]
-        observed = datetime.combine(datetime.fromisoformat(str(row["day"])).date(), time(23, 59, 59), tzinfo=timezone.utc)
-        age = max(0.0, (cutoff - observed).total_seconds() / 3600)
-        reports.append({"group": group, "series_id": str(row["series_id"]), "observation_time": str(row["day"]), "available_at": str(row["available_at"]), "age_hours": round(age, 6), "limit_hours": limit, "status": "fresh" if age <= limit else "stale"})
-    return tuple(reports)
+    from ai_fc.forecast_source_freshness import frame_freshness
+    return frame_freshness(frame, aware_time(as_of))
 
 
 def origin_age(origin_session: str, now: str | datetime) -> int:

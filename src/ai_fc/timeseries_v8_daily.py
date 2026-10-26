@@ -24,8 +24,8 @@ FRED/H.15 post the US session's VIX·DGS2·DGS10 only the next US afternoon, but
 the original publishers have them the same evening.  Missing required sessions
 are filled **in memory only** from those publishers, each tagged
 ``{source, provisional: true}``; nothing is written to the market archive.  The
-weekly-published dollar index is carried as-of from the archive within its
-216h operational SLA (tagged ``carried_forward``, not provisional).  When the
+weekly-published dollar index is carried as-of from the archive until the next
+H.10 publication deadline (tagged ``carried_forward``, not provisional). When the
 archive later confirms the session, a ``confirmed`` row for the same origin is
 appended with an explicit ``supersedes`` link.  If a required series is still
 unavailable, the origin is the latest session where every required series
@@ -301,13 +301,10 @@ def collect_inputs(
     ))
     fills.extend(nasdaq_fills(root, pending["NASDAQCOM"], fetcher=fetcher, retrieved_at=retrieved))
     carried: list[dict[str, Any]] = []
-    operational = contract["operational_gate"]
-    limit = float((operational.get("per_group_max_age_hours_override") or {}).get(
-        "DTWEXBGS_or_DTWEXB", operational["required_market_max_age_hours"]))
     if CARRY_SERIES in last:
         source_row = last[CARRY_SERIES]
-        age = _age_hours(source_row.observation_time, now)
-        if age <= limit:
+        from .forecast_source_freshness import source_freshness
+        if source_freshness(CARRY_SERIES, source_row.observation_time, now)["status"] == "fresh":
             carried.extend(
                 {
                     "series_id": CARRY_SERIES, "observation_time": day,
@@ -629,7 +626,7 @@ def _age_hours(observation_time: str, now: datetime) -> float:
     return max(0.0, (now - end).total_seconds() / 3600.0)
 
 
-def publish_daily_display_latest(root: Path, *, now: datetime | None = None) -> dict[str, Any]:
+def publish_daily_display_latest(root: Path, *, now: datetime | None = None, persist: bool = True) -> dict[str, Any]:
     """Write the fail-closed daily display pointer (same schema as the weekly pointer).
 
     Gates mirror ``publish_latest_timeseries_v8``: the disclosed sealed gate,
@@ -666,11 +663,6 @@ def publish_daily_display_latest(root: Path, *, now: datetime | None = None) -> 
     if row is not None and row.get("contract_hash") != frozen_hash(contract):
         reasons.append("daily row의 contract_hash가 동결 계약과 다름")
     operational = contract["operational_gate"]
-    default_limit = float(operational["required_market_max_age_hours"])
-    overrides = {
-        str(key): float(value)
-        for key, value in (operational.get("per_group_max_age_hours_override") or {}).items()
-    }
     market = read_market_observations(root, knowledge_cutoff=cutoff)
     used = [] if row is None else list(row.get("provisional_inputs") or [])
     freshness = []
@@ -688,12 +680,12 @@ def publish_daily_display_latest(root: Path, *, now: datetime | None = None) -> 
             reasons.append(f"필수 시장 입력 누락: {label}")
             continue
         observation, origin_kind = max(candidates)
-        age = _age_hours(observation, now)
-        limit = overrides.get(label, default_limit)
-        status = "fresh" if age <= limit else "stale"
+        from .forecast_source_freshness import source_freshness
+        # Preserve the real observation date; a fresh fetch cannot reset age.
+        report = source_freshness(alternatives[0], observation, now)
+        status = report["status"]
         freshness.append({
-            "group": label, "observation_time": observation, "age_hours": age,
-            "limit_hours": limit, "status": status, "provisional": origin_kind == "provisional",
+            **report, "group": label, "provisional": origin_kind == "provisional",
         })
         if status != "fresh":
             reasons.append(f"필수 시장 입력 신선도 초과: {label}")
@@ -769,7 +761,8 @@ def publish_daily_display_latest(root: Path, *, now: datetime | None = None) -> 
             for horizon, values in row["horizons"].items()
         }
     payload["content_hash"] = canonical_hash(payload)
-    _atomic_json(root / DAILY_LATEST_RELATIVE, payload)
+    if persist:
+        _atomic_json(root / DAILY_LATEST_RELATIVE, payload)
     return payload
 
 
