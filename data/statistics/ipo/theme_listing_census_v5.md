@@ -67,3 +67,18 @@ IPO 에 더하는 **테마 기업 상장 402건**(닷컴 117 · 현재 285)을 �
 
 DeepSeek(사용자 확정 — 상장하는 달에 규모와 무관하게 편입) · Moonshot AI · Kunlunxin · CCSH/YMTC · Zhaoxin · Unisoc ·
 Anthropic · OpenAI. 미국 보통주로 상장하면 Ritter net·Nasdaq 잠정이 센다.
+
+## 조사 이후 유지 — 상장 감시 (2026-10-26)
+
+전수조사는 2026-10-22 상장분까지다. 그 뒤의 상장은 `python -m ai_fc theme-listing-watch`(매일 statistics-refresh 단계)가
+거래소 공식 신규상장 목록에서 모은다 — Eastmoney 신주 표(A주 전 시장), HKEX Main Board New Listing Report, KRX KIND
+신규상장, JPX 신규상장, TWSE 최근 상장, TPEx 상장사 기본자료. 결과는 `theme_listing_watch.json`.
+
+- 각 상장은 `counted`(이 CSV 에 있음) · `reviewed`(`theme_listing_reviews.csv` 에 출처·이유와 함께 안 센다고 기록) ·
+  `auto_excluded`(계약 event_rule 로 기계 판정: SPAC·공모 없는 상장·시장 이전·2차 상장·KONEX) · `pending_review` 중 하나다.
+- **테마 판정은 사람이 한다.** 감시는 키워드 힌트(`theme_hint`)와 상장 대기 회사 일치(`pipeline_match`)를 우선순위로만 붙인다.
+- 판정 절차: 테마면 이 CSV 에 출처를 단 행을 추가, 아니면 reviews 에 결정·이유·출처를 남긴다. 둘 다 하면 로더가 거부한다.
+- 감시 창은 2026-10-01 부터 — 조사 마지막 주와 겹쳐 대조 규칙을 확인했다(10월 26건: counted 4 · auto_excluded 6 · 검수 16,
+  조사가 놓친 테마 상장 0).
+- 7일 넘게 미검수이거나 3일 넘게 못 읽은 시장이 있으면 ops 백로그 이슈가 열린다. 미포함 시장(홍콩 GEM·동남아·인도 본시장·
+  유럽·TSX·ASX·TASE·미국 ADR)은 위 '알려진 공백'처럼 수동이다.

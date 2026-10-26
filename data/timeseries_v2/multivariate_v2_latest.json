@@ -1,6 +1,6 @@
 {
   "as_of": "2026-10-16",
-  "content_hash": "9973eec4072e66cefda43ddca6682a8bb227196eaf78c4e9cc2043e367c68877",
+  "content_hash": "c31bf0a3efe4c3be3d307e7dc6dd3e1313e178319d07c8f9f252c17ed4a47db9",
   "data_summary": {
     "candidate": "C1",
     "data_grades": [
@@ -21,39 +21,39 @@
     "required_market_freshness": {
       "groups": [
         {
-          "age_hours": 24.598055555555554,
+          "age_hours": 49.566944444444445,
           "available_at": "2026-10-24T05:06:32.110859+00:00",
           "group": "NASDAQCOM",
           "observation_time": "2026-10-23",
           "selected_series": "NASDAQCOM",
-          "status": "fresh"
+          "status": "stale"
         },
         {
-          "age_hours": 24.598055555555554,
+          "age_hours": 49.566944444444445,
           "available_at": "2026-10-24T05:06:31.183171+00:00",
           "group": "VIX",
           "observation_time": "2026-10-23",
           "selected_series": "VIX",
-          "status": "fresh"
+          "status": "stale"
         },
         {
-          "age_hours": 26.341915358333335,
+          "age_hours": 51.310804247222215,
           "available_at": "2026-10-23T22:15:21.104710+00:00",
           "group": "DGS2",
           "observation_time": "2026-10-23",
           "selected_series": "DGS2",
-          "status": "fresh"
+          "status": "stale"
         },
         {
-          "age_hours": 26.341915358333335,
+          "age_hours": 51.310804247222215,
           "available_at": "2026-10-23T22:15:21.104710+00:00",
           "group": "DGS10",
           "observation_time": "2026-10-23",
           "selected_series": "DGS10",
-          "status": "fresh"
+          "status": "stale"
         },
         {
-          "age_hours": 192.59805555555556,
+          "age_hours": 217.56694444444443,
           "available_at": "2026-10-19T21:46:11.603652+00:00",
           "group": "DTWEXBGS_or_DTWEXB",
           "observation_time": "2026-10-16",
@@ -64,6 +64,10 @@
       "maximum_age_hours": 48.0,
       "ok": false,
       "stale_groups": [
+        "NASDAQCOM",
+        "VIX",
+        "DGS2",
+        "DGS10",
         "DTWEXBGS_or_DTWEXB"
       ]
     },
@@ -83,10 +87,14 @@
       "최근 26개 원점 CRPS가 기준선보다 5% 이상 악화",
       "최근 21일 p10-p90 적중률이 계약 범위를 이탈",
       "최근 63일 p10-p90 적중률이 계약 범위를 이탈",
+      "필수 시장 입력 48시간 SLA 초과: NASDAQCOM",
+      "필수 시장 입력 48시간 SLA 초과: VIX",
+      "필수 시장 입력 48시간 SLA 초과: DGS2",
+      "필수 시장 입력 48시간 SLA 초과: DGS10",
       "필수 시장 입력 48시간 SLA 초과: DTWEXBGS_or_DTWEXB"
     ]
   },
-  "knowledge_cutoff": "2026-10-25T00:35:52+00:00",
+  "knowledge_cutoff": "2026-10-26T01:34:00+00:00",
   "model_id": "shadow.mf_dfm_ridge_varx_v2",
   "model_version": 2,
   "probability_space": "research_timeseries_v2_conditional",

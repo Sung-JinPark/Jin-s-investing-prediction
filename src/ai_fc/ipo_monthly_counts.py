@@ -655,8 +655,11 @@ def load_ipo_monthly_tables(root: Path) -> dict[str, Any] | None:
     listings = load_theme_listing_additions(root)
     pipeline = load_theme_listing_pipeline(root)
     check_pipeline_not_listed(listings, pipeline)
+    from .theme_listing_watch import load_watch_summary
+
     return {"ritter": ritter, "nasdaq": _read_json(root / NASDAQ_TABLE_RELATIVE),
-            "theme_listings": listings, "theme_pipeline": pipeline}
+            "theme_listings": listings, "theme_pipeline": pipeline,
+            "theme_watch": load_watch_summary(root)}
 
 
 def month_start(month: str) -> str:

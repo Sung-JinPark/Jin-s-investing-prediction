@@ -2021,6 +2021,18 @@ def _build_ipo_count_chart(
     if theme_pipeline:
         names = [row["company"] for row in theme_pipeline[:2]]
         conclusion += f" 상장 대기 {len(theme_pipeline)}건({' · '.join(names)} 등) — 상장 달부터 집계."
+    # 전수조사 이후 상장은 감시가 모으고 사람이 판정한다 — 판정 전 건수는 아직 어느 합계에도 없다.
+    theme_watch = ipo_monthly.get("theme_watch")
+    if theme_watch:
+        chart["theme_listing_watch"] = theme_watch
+        watch_summary = theme_watch.get("summary") or {}
+        pending = int(watch_summary.get("pending_review") or 0)
+        if pending:
+            conclusion += (f" 해외 테마 상장 미검수 {pending}건"
+                           f"({watch_summary.get('oldest_pending_listing') or '-'}~) — 검수 후 반영.")
+        stale = int(watch_summary.get("venues_total") or 0) - int(watch_summary.get("venues_ok") or 0)
+        if stale > 0:
+            conclusion += f" 상장 감시 지연 시장 {stale}곳."
     chart["conclusion"] = conclusion
     source_meta = {
         "series_id": IPO_COUNT_SERIES_ID,

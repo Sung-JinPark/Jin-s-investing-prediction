@@ -232,6 +232,9 @@ customer_chart_contract:
     measure: ritter_net_plus_theme_listings_trailing_12_month_sum
     theme_listing_additions: data/statistics/ipo/theme_listing_additions.csv (company-level census v5, any size; us_adr confirmed months only, foreign_primary all months; chart carries summary + sha256 only)
     theme_listing_pipeline: data/statistics/ipo/theme_listing_pipeline.csv (display only, never counted)
+    # 2026-10-26: 전수조사 이후 상장의 자동 수집 경로. 판정은 사람(테마=주력 사업) — 감시는 대조·검수 대기만 만든다.
+    theme_listing_watch: data/statistics/ipo/theme_listing_watch.json (daily statistics-refresh step; venues cn_a·hk_main·kr·jp·tw_twse·tw_tpex; review_queue_only_not_index_input; chart carries summary only)
+    theme_listing_reviews: data/statistics/ipo/theme_listing_reviews.csv (one sourced decision per watched listing not counted; counted listings live only in theme_listing_additions.csv)
     series: {dotcom: 닷컴, current_confirmed: 현재, current_provisional: 현재 잠정}
     provisional: dashed_labelled_display_only_never_index_input_superseded_by_confirmed_months
     cross_check: ritter_gross_vs_SEC_IPO_QUARTERLY_total_count_annual_tolerance_20_percent
