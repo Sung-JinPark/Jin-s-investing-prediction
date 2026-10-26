@@ -208,7 +208,8 @@ const UI_TERMS={
   business_day_hint:'미국 거래일 기준. 5영업일≈1주 · 21영업일≈1개월 · 63영업일≈3개월(≈90달력일)',
   band80_coef_hint:'계수 불확실성(블록 부트스트랩) 기준 80% 대역 — 보정 대역이 아닙니다',
   v13_weak_hint:'설계창에서 신뢰도 오차(rel≈0.08)가 커 오보정 — 대역과 ▲ 표시 없이 읽지 마세요',
-  v13_thin_hint:'이 셀의 설계창 근거가 독립적인 변동성 국면 4개 이하에 얹혀 있습니다(일부는 2011년 한 국면). 사건 일수는 100일이 넘어도 국면이 하나면 사실상 한 번 본 것입니다 — 숫자를 좁게 읽지 마세요'
+  v13_thin_hint:'이 셀의 설계창 근거가 독립적인 변동성 국면 4개 이하에 얹혀 있습니다(일부는 2011년 한 국면). 사건 일수는 100일이 넘어도 국면이 하나면 사실상 한 번 본 것입니다 — 숫자를 좁게 읽지 마세요',
+  v13_claim_hint:'사건 20 미만 또는 국면 5 미만 — 통과·개선·배선·표시 승격을 주장할 수 없습니다(V13-D13). 강등 판정은 그대로 적용됩니다'
 };
 const plainTerm=value=>UI_TERMS[value]||value;
 const firstSentenceOf=text=>{const s=String(text||'');const cut=s.indexOf('다.');return cut>0&&cut+2<s.length?s.slice(0,cut+2):s;};
@@ -2112,7 +2113,8 @@ const v13Pct=p=>(p==null?'—':`${Math.round(Number(p)*100)}%`);
 /* ── V13 라이브 전진 누적 (2026-09-15) ───────────────────────────
    홀드아웃은 **1회 소모된 과거 표본**이고 이쪽은 **앞으로 쌓이는 표본**이다. 같은 칸에
    나란히 놓으면 둘을 평균내고 싶어지므로 절을 나눈다. 계약이 셀당 60 전에는 판정을
-   막으므로 여기서도 통과·실패를 쓰지 않는다 — 진행과 누적 손실만 보여 준다. */
+   막으므로 여기서도 통과·실패를 쓰지 않는다 — 진행과 누적 손실만 보여 준다.
+   판정불가(제한) 칩(V13-D13 live_claim_restriction)은 긍정 주장만 막는 라벨이다 — 강등 판정은 그대로다. */
 function renderV13LiveForward(lf,failCells){
   if(!lf||lf.status==='unavailable')return '';
   const fail=new Set(failCells||[]);
@@ -2124,16 +2126,19 @@ function renderV13LiveForward(lf,failCells){
     const hasEvents=hasNumeric(c.events);
     const degenerate=hasEvents&&c.events===0;
     const expected=hasNumeric(c.expected_events_model)&&hasNumeric(c.expected_events_climatology)?`<small>기대 ${c.expected_events_model.toFixed(1)} · 기후 ${c.expected_events_climatology.toFixed(1)}</small>`:'';
-    return `<tr${degenerate?' class="is-degenerate"':''}><th scope="row">${esc(c.cell)}</th><td class="v13-lf-progress"><span><i style="width:${pct}%"></i></span><b>${num(c.matured)}/${num(c.minimum)}</b></td><td class="v13-lf-events">${hasEvents?`<b>${num(c.events)}</b>${expected}`:'—'}</td><td>${hasScore?c.brier_model.toFixed(4):'—'}</td><td>${hasScore?c.brier_climatology.toFixed(4):'—'}</td><td class="${hasNumeric(c.bss)&&c.bss>0?'edge-pos':hasNumeric(c.bss)&&c.bss<0?'edge-neg':''}">${bss}${degenerate?'<small>사건 0</small>':''}</td></tr>`;}).join('');
+    const blocked=c.claim_blocked===true;
+    const rowClass=[degenerate?'is-degenerate':'',blocked?'is-claim-blocked':''].filter(Boolean).join(' ');
+    return `<tr${rowClass?` class="${rowClass}"`:''}><th scope="row">${esc(c.cell)}${blocked?`<small class="v13-lf-claim" title="${esc(plainTerm('v13_claim_hint'))}">판정불가(제한)</small>`:''}</th><td class="v13-lf-progress"><span><i style="width:${pct}%"></i></span><b>${num(c.matured)}/${num(c.minimum)}</b></td><td class="v13-lf-events">${hasEvents?`<b>${num(c.events)}</b>${expected}`:'—'}</td><td>${hasScore?c.brier_model.toFixed(4):'—'}</td><td>${hasScore?c.brier_climatology.toFixed(4):'—'}</td><td class="${hasNumeric(c.bss)&&c.bss>0?'edge-pos':hasNumeric(c.bss)&&c.bss<0?'edge-neg':''}">${bss}${degenerate?'<small>사건 0</small>':''}</td></tr>`;}).join('');
   const total=num(lf.matured_total),origins=num(lf.origins_recorded);
   const empty=lf.status==='empty';
   const eventsTotal=hasNumeric(lf.events_total)?lf.events_total:null;
   const degenerateLead=eventsTotal===0?` 지금까지 <b>사건 0건</b> — 개선율은 평온기에 고정 기후(2007~2014 빈도)가 자명하게 지는 몫이지 실력의 증거가 아닙니다.`:'';
+  const claimLead=cells.every(c=>c.claim_blocked===true)?' 전 셀 <b>판정불가(제한)</b>.':'';
   return `<section class="v13-live-forward" aria-labelledby="v13-lf-head">
     <div class="today-section-head"><h3 id="v13-lf-head">라이브 전진 누적</h3><span class="v13-lf-chip">판정 없음 · 누적 중</span></div>
     <p class="ts-lead v13-lf-lead">${empty
       ?`원점 <b>${origins}개</b>가 쌓였고 성숙한 것은 아직 없습니다 — 가장 짧은 지평이 5거래일이라 첫 성숙이 도착하는 중입니다.`
-      :`성숙 <b>${total}건</b> · 원점 ${origins}개 · 셀당 ${num(lf.minimum)} 전에는 판정 없음(누적 현황).${degenerateLead}`}</p>
+      :`성숙 <b>${total}건</b> · 원점 ${origins}개 · 셀당 ${num(lf.minimum)} 전에는 판정 없음(누적 현황).${degenerateLead}${claimLead}`}</p>
     <div class="v13-lf-table-wrap" role="region" tabindex="0" aria-label="라이브 전진 누적 표"><table class="v13-lf-table"><thead><tr><th scope="col">셀</th><th scope="col">성숙</th><th scope="col">사건</th><th scope="col">Brier</th><th scope="col">기후</th><th scope="col">개선</th></tr></thead><tbody>${rows}</tbody></table></div>
   </section>`;
 }
