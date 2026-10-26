@@ -25,6 +25,8 @@ RESOLUTIONS = ROOT / "data/timeseries_v13/ledgers/vol_live_resolutions.jsonl"
 HOLDOUT = ROOT / "data/timeseries_v13/ledgers/holdout_scorings.jsonl"
 APPROVALS = ROOT / "data/timeseries_v13/ledgers/approvals.jsonl"
 EXPERIMENTS = ROOT / "data/timeseries_v13/ledgers/vol_experiments.jsonl"
+V14_CONTRACT = ROOT / "data/contracts/multivariate_timeseries_v14_conditional.yaml"
+V14_LEDGERS = ROOT / "data/timeseries_v14/ledgers"
 LIMITS = ROOT / "docs/KNOWN_LIMITS.md"
 LICENSES = ROOT / "docs/generated/licenses.generated.md"
 
@@ -267,7 +269,35 @@ def main() -> int:
           f" · 라이브 원점 {len({r.get('as_of') for r in _rows(LIVE)})} · 해상 {len(_rows(RESOLUTIONS))}행")
     publication = contract.get("publication") or {}
     print(f"          표시 tier {publication.get('display_tier')} · 홀드아웃 {publication.get('holdout_status')}")
+    late = len({r.get("as_of") for r in _rows(LIVE) if r.get("pit_grade") == "late_capture"})
+    print(f"          late_capture 백필 원점 {late} (V13-D12, effective_from {(contract.get('origin_backfill') or {}).get('effective_from')})")
+    _print_v14()
     return 0
+
+
+def _print_v14() -> None:
+    """V14 조건부 전이 트랙 — 계약·원장에서 파생. 트랙이 없으면 한 줄로 끝낸다(페일클로즈)."""
+    print("\nV14 조건부 전이:")
+    if not V14_CONTRACT.is_file():
+        print("          계약 없음 — 트랙 미개설")
+        return
+    v14 = yaml.safe_load(V14_CONTRACT.read_text(encoding="utf-8")) or {}
+    protocol = v14.get("development_protocol") or {}
+    gates = v14.get("gates") or {}
+    experiments = _rows(V14_LEDGERS / "v14_experiments.jsonl")
+    live = _rows(V14_LEDGERS / "v14_live.jsonl")
+    resolutions = _rows(V14_LEDGERS / "v14_live_resolutions.jsonl")
+    approvals = _rows(V14_LEDGERS / "approvals.jsonl")
+    print(f"          status {v14.get('status')} · track_open {protocol.get('track_open')} · armed {gates.get('armed')}"
+          f" · prereg_commit {((v14.get('metadata') or {}).get('prereg_commit'))}")
+    print(f"          개발 예산 {protocol.get('evaluations_spent')}/{protocol.get('maximum_development_evaluations')}"
+          f" · 실험 원장 {len(experiments)}행 · 라이브 원점 {len({r.get('as_of') for r in live})} · 해상 {len(resolutions)}행"
+          f" · 승인 영수증 {len(approvals)}행")
+    pending = list((v14.get("decisions_pending") or {}).keys())
+    print(f"          남은 결정 {pending if pending else '없음'} · 라이브 verb {((v14.get('live_forward_gate') or {}).get('execution_path'))}")
+    for row in experiments[-3:]:
+        print(f"          {row.get('experiment_label')}: 검정 {row.get('tests_run')} · 채택 {row.get('k_obs_adopted')}"
+              f" · family P {row.get('family_p_binomial')}")
 
 
 if __name__ == "__main__":

@@ -7,6 +7,7 @@
 """
 from __future__ import annotations
 
+import json
 import math
 from pathlib import Path
 
@@ -176,14 +177,80 @@ def test_sigma_is_not_an_anchor_in_the_wording() -> None:
 
 # ── V13 base rate 배선 — 페일클로즈 ──────────────────────────────────
 
+#: 계약 CELL_ORDER 와 같은 아홉 셀 — 합성 스코어보드의 항목 순서.
+_V13_CELLS = ("vix25_h5", "vix25_h21", "vix25_h63", "vix30_h5", "vix30_h21", "vix30_h63",
+              "rv_h5", "rv_h21", "rv_h63")
+_V13_CONTRACT_RELATIVE = Path("data/contracts/multivariate_timeseries_v13_vol.yaml")
+_V13_RESOLUTIONS_RELATIVE = Path("data/timeseries_v13/ledgers/vol_live_resolutions.jsonl")
+
+
+def _board(blocked: dict[str, list[str]], *, cells: tuple[str, ...] = _V13_CELLS) -> dict:
+    """`live_scoreboard.projection` 모양의 합성 스코어보드 — `blocked` 에 든 셀만 claim_blocked."""
+    return {"cells": [{"cell": c, "matured": 0, "claim_blocked": c in blocked,
+                       "claim_block_reasons": list(blocked.get(c, []))} for c in cells],
+            "claim_restriction": {"min_events": 20, "min_episodes": 5}}
+
+
+def _patch_board(monkeypatch: pytest.MonkeyPatch, board: dict) -> None:
+    from ai_fc.timeseries_v13 import live_scoreboard
+    monkeypatch.setattr(live_scoreboard, "projection", lambda root, **kw: board)
+
+
+def _v13_root(tmp_path: Path) -> Path:
+    """실제 V13 계약을 그대로 복사한 임시 저장소 — 원장·레지스트리·산출은 테스트가 채운다."""
+    dst = tmp_path / _V13_CONTRACT_RELATIVE
+    dst.parent.mkdir(parents=True, exist_ok=True)
+    dst.write_bytes((ROOT / _V13_CONTRACT_RELATIVE).read_bytes())
+    return tmp_path
+
+
+def _resolution_rows(cell: str, pattern: list[float], *, base: float = 0.42) -> list[dict]:
+    """라벨 패턴 순서대로 고유 원점을 찍은 해상 행 — resolved_session 은 origin 과 같아 순서가 보존된다."""
+    rows = []
+    for d, label in enumerate(pattern):
+        origin = f"2026-{1 + d // 28:02d}-{1 + d % 28:02d}"
+        p = 0.8 if label == 1.0 else 0.1
+        rows.append({"schema_version": 1, "resolution_id": f"v13vol-{origin}-test-{cell}",
+                     "run_id": f"v13vol-{origin}-test", "cell": cell, "origin": origin,
+                     "horizon_sessions": 5, "resolved_session": origin, "probability": p, "label": label,
+                     "brier_model": round((p - label) ** 2, 8), "brier_climatology": round((base - label) ** 2, 8),
+                     "climatology_base_rate": base, "coefficients_sha256": "c" * 64,
+                     "finalist_id": "V13VOL_champion_aec80c65038b", "holdout_status_at_forecast": "partial",
+                     "knowledge_cutoff": "2026-10-01T00:00:00+00:00"})
+    return rows
+
+
+def _write_jsonl(path: Path, rows: list[dict]) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("w", encoding="utf-8", newline="\n") as fh:
+        for row in rows:
+            fh.write(json.dumps(row, ensure_ascii=False) + "\n")
+
+
+def _write_latest(root: Path, cells: dict[str, dict]) -> None:
+    """셀 산출 JSON — 이 파일이 없으면 `wiring_targets` 는 자격 검사에 닿기 전에 빈 목록을 낸다."""
+    from ai_fc.vol_base_rate_wiring import LATEST_RELATIVE
+    latest = root / LATEST_RELATIVE
+    latest.parent.mkdir(parents=True, exist_ok=True)
+    latest.write_text(json.dumps({"as_of": "2026-10-22", "cells": cells}), encoding="utf-8")
+
+
 def test_wiring_is_fail_closed_with_zero_targets() -> None:
-    """자격 셀은 있으나 대응 질문이 없다 — 아무것도 표시하지 않는다."""
-    from ai_fc.vol_base_rate_wiring import eligible_cells, wiring_status, wiring_targets
-    assert set(eligible_cells(ROOT)) == {"rv_h5", "rv_h21"}, "계약의 배선 자격 셀이 바뀌었다"
+    """자격 셀은 있으나 대응 질문이 없다(또는 라이브 라벨로 차단) — 아무것도 표시하지 않는다."""
+    from ai_fc.vol_base_rate_wiring import contract_eligible_cells, eligible_cells, wiring_status, wiring_targets
+    assert set(contract_eligible_cells(ROOT)) == {"rv_h5", "rv_h21"}, "계약의 배선 자격 셀이 바뀌었다"
     assert wiring_targets(ROOT) == []
     status = wiring_status(ROOT)
+    assert status["scoreboard_error"] is None, "실제 저장소의 라이브 스코어보드는 읽혀야 한다"
+    # 라이브 라벨은 집계 시점의 누적값이라 날마다 바뀐다 — 두 셀의 행방은 항등식으로만 고정한다
+    assert set(status["eligible_cells"]) | set(status["blocked_by_claim_restriction"]) == {"rv_h5", "rv_h21"}
+    assert set(status["eligible_cells"]).isdisjoint(status["blocked_by_claim_restriction"])
+    assert tuple(status["eligible_cells"]) == eligible_cells(ROOT)
     assert status["targets"] == 0 and status["fail_closed"] is True
-    assert "대응 등록 질문이 없다" in status["reason"]
+    if status["eligible_cells"]:
+        assert "대응 등록 질문이 없다" in status["reason"]
+    else:
+        assert "판정불가(제한)" in status["reason"]
 
 
 def test_unverified_cell_cannot_be_wired() -> None:
@@ -195,11 +262,96 @@ def test_unverified_cell_cannot_be_wired() -> None:
         assert "배선 자격이 없다" in str(exc.value)
 
 
-def test_wiring_refuses_a_question_that_is_not_registered() -> None:
+def test_wiring_refuses_a_question_that_is_not_registered(monkeypatch: pytest.MonkeyPatch) -> None:
+    """레지스트리 검사는 자격 검사 뒤에 온다 — 2026-10-22 현재 전 셀이 라이브 차단이라 라벨을 걷어내야 닿는다."""
     from ai_fc.vol_base_rate_wiring import VolWiringError, wiring_targets
+    _patch_board(monkeypatch, _board({}))
     with pytest.raises(VolWiringError) as exc:
         wiring_targets(ROOT, cell_question_map={"rv_h5": "no-such-question"})
     assert "레지스트리에 없다" in str(exc.value)
+
+
+def test_claim_blocked_cell_loses_wiring_eligibility_and_an_unblocked_one_keeps_it(tmp_path: Path) -> None:
+    """V13-D13 `live_claim_restriction` scope 4항 — 계약 자격이 있어도 판정불가(제한) 셀은 배선 자격이 없다.
+
+    합성 해상 원장으로 실제 `live_scoreboard.projection` 을 통과시킨다: rv_h5 는 사건 0·국면 1 로 차단,
+    rv_h21 은 사건 30·국면 6/6 으로 라벨이 없다.
+    """
+    from ai_fc.vol_base_rate_wiring import (VolWiringError, contract_eligible_cells, eligibility,
+                                            eligible_cells, wiring_status, wiring_targets)
+    root = _v13_root(tmp_path)
+    assert set(contract_eligible_cells(root)) == {"rv_h5", "rv_h21"}
+    _write_jsonl(root / _V13_RESOLUTIONS_RELATIVE,
+                 _resolution_rows("rv_h5", [0.0] * 25) + _resolution_rows("rv_h21", ([1.0] * 5 + [0.0] * 5) * 6))
+    _write_latest(root, {"rv_h5": {"clim_base_rate": 0.3, "theta": 0.1694, "h": 5, "target": "rv_exceedance"},
+                         "rv_h21": {"clim_base_rate": 0.4, "theta": 0.1694, "h": 21, "target": "rv_exceedance",
+                                    "p": 0.9}})
+
+    assert eligible_cells(root) == ("rv_h21",)
+    info = eligibility(root)
+    assert info["contract_eligible_cells"] == ["rv_h21", "rv_h5"]
+    assert info["blocked_by_claim_restriction"] == ["rv_h5"]
+    assert info["claim_block_reasons"] == {"rv_h5": ["events<20", "episodes<5"]}
+    assert info["scoreboard_error"] is None
+
+    # 차단 셀을 지도에 넣으면 거부되고, 스코어보드 사유가 메시지에 그대로 실린다
+    with pytest.raises(VolWiringError) as exc:
+        wiring_targets(root, cell_question_map={"rv_h5": "rv-test-q"})
+    assert "배선 자격이 없다" in str(exc.value)
+    assert "판정불가(제한): events<20, episodes<5" in str(exc.value)
+
+    # 라벨 없는 셀은 끝까지 배선된다 — 나가는 것은 기후 기저율뿐, 모델 p 는 실리지 않는다
+    (root / "questions").mkdir()
+    (root / "questions/registry.yaml").write_text("version: 1\nquestions:\n- id: rv-test-q\n", encoding="utf-8")
+    targets = wiring_targets(root, cell_question_map={"rv_h21": "rv-test-q"})
+    assert [t.cell for t in targets] == ["rv_h21"]
+    assert targets[0].climatological_base_rate == 0.4 and targets[0].horizon_business_days == 21
+
+    status = wiring_status(root)
+    assert status["eligible_cells"] == ["rv_h21"] and status["blocked_by_claim_restriction"] == ["rv_h5"]
+    assert status["claim_block_reasons"]["rv_h5"] == ["events<20", "episodes<5"]
+    assert "대응 등록 질문이 없다" in status["reason"], "CELL_QUESTION_MAP 이 비어 있으니 자격 셀이 있어도 0건"
+
+
+def test_unreadable_scoreboard_blocks_every_cell_with_a_reason(tmp_path: Path) -> None:
+    """라벨을 모르면 자격도 없다 — 스코어보드 판독 실패는 전 셀 차단(페일클로즈)이고 사유가 남는다."""
+    from ai_fc.vol_base_rate_wiring import VolWiringError, eligible_cells, wiring_status, wiring_targets
+    root = _v13_root(tmp_path)
+    ledger = root / _V13_RESOLUTIONS_RELATIVE
+    ledger.parent.mkdir(parents=True, exist_ok=True)
+    ledger.write_text("{this is not json\n", encoding="utf-8")
+    _write_latest(root, {"rv_h21": {"clim_base_rate": 0.4, "theta": 0.1694, "h": 21, "target": "rv_exceedance"}})
+
+    assert eligible_cells(root) == ()
+    status = wiring_status(root)
+    assert status["contract_eligible_cells"] == ["rv_h21", "rv_h5"], "계약 자격은 스코어보드와 무관하게 읽힌다"
+    assert status["eligible_cells"] == []
+    assert status["blocked_by_claim_restriction"] == ["rv_h21", "rv_h5"]
+    assert status["scoreboard_error"] and "JSONDecodeError" in status["scoreboard_error"]
+    for cell in ("rv_h21", "rv_h5"):
+        assert status["claim_block_reasons"][cell][0].startswith("scoreboard_unreadable: JSONDecodeError")
+    assert status["fail_closed"] is True and "스코어보드를 읽지 못해" in status["reason"]
+    with pytest.raises(VolWiringError) as exc:
+        wiring_targets(root, cell_question_map={"rv_h21": "rv-test-q"})
+    assert "scoreboard_unreadable" in str(exc.value)
+
+
+def test_malformed_or_partial_scoreboard_is_fail_closed(monkeypatch: pytest.MonkeyPatch) -> None:
+    """항목에 claim_blocked 불리언이 없으면 해석 실패(전 셀 차단), 셀 항목이 빠지면 그 셀만 라벨 불명으로 차단."""
+    from ai_fc.vol_base_rate_wiring import eligibility, eligible_cells
+
+    _patch_board(monkeypatch, _board({}))
+    assert set(eligible_cells(ROOT)) == {"rv_h5", "rv_h21"}, "라벨이 전혀 없으면 계약 자격이 그대로 자격이다"
+
+    _patch_board(monkeypatch, {"cells": [{"cell": c} for c in _V13_CELLS]})
+    info = eligibility(ROOT)
+    assert info["eligible_cells"] == [] and info["blocked_by_claim_restriction"] == ["rv_h21", "rv_h5"]
+    assert "claim_blocked" in (info["scoreboard_error"] or "")
+
+    _patch_board(monkeypatch, _board({}, cells=tuple(c for c in _V13_CELLS if c != "rv_h21")))
+    info = eligibility(ROOT)
+    assert info["eligible_cells"] == ["rv_h5"] and info["scoreboard_error"] is None
+    assert info["claim_block_reasons"] == {"rv_h21": ["scoreboard_missing_cell"]}
 
 
 def test_wiring_exports_climatology_never_the_model_probability() -> None:

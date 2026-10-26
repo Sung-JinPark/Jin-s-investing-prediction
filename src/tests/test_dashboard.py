@@ -2095,3 +2095,13 @@ def test_event_board_merges_same_week_earnings_of_one_category() -> None:
     assert "evWeekStart(item.date)===evWeekStart(row.date)" in html
     # 여러 날에 걸친 묶음 카드는 한 회사의 시각 대신 날짜들을 보인다
     assert "(item.clusterDates||[]).length>1" in html
+
+
+def test_embed_budget_constant_matches_payload_contract_adr_004() -> None:
+    """ADR-004(2026-10-22): 코드 상수와 계약 선언은 한 값이다 — 둘이 어긋나면 ADR-002 때처럼 선언만 낡는다."""
+    import yaml
+    contract = yaml.safe_load((Path(__file__).resolve().parents[2] / "data/contracts/dashboard_payload.yaml").read_text(encoding="utf-8"))
+    budgets = contract["budgets"]
+    assert dashboard.DASHBOARD_RAW_BUDGET_BYTES == 2048 * 1024
+    assert budgets["embed_html_max_bytes"] == dashboard.DASHBOARD_RAW_BUDGET_BYTES
+    assert budgets["embed_html_max_kib"] * 1024 == budgets["embed_html_max_bytes"]

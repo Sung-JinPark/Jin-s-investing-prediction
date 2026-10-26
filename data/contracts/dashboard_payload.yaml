@@ -5,8 +5,10 @@ status: active
 budgets:
   # ADR-002(2026-08-31)로 코드 상수는 1536 KiB로 올렸는데 계약 선언만 900 KiB에
   # 머물러 있었다(실제 산출물 1,025,465 B는 이미 옛 선언을 넘김). 선언을 실측·코드와 맞춘다.
-  embed_html_max_bytes: 1572864
-  embed_html_max_kib: 1536
+  # ADR-004(2026-10-22): 1536 → 2048 KiB. 투영으로 걷어낼 전송 필드가 소진된 뒤의 상향
+  # (실측 99.2%). 코드 상수 DASHBOARD_RAW_BUDGET_BYTES 와 같은 값 — 테스트가 동치를 고정.
+  embed_html_max_bytes: 2097152
+  embed_html_max_kib: 2048
   data_json_max_bytes: 900000
   future_paths_json_max_bytes: 240000
   # 통계 라우트 사이드카 — 코드 상수(STATISTICS_DATA_BUDGET_BYTES)와 맞춘 선언.

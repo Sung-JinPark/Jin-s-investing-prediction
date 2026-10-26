@@ -2440,7 +2440,13 @@ def cmd_vol_wiring_status() -> None:
     from .vol_base_rate_wiring import wiring_status
 
     status = wiring_status(config.ROOT)
-    typer.echo(f"자격 셀(홀드아웃 통과 ∧ 국면 가드 통과): {', '.join(status['eligible_cells']) or '(없음)'}")
+    typer.echo(f"자격 셀(홀드아웃 통과 ∧ 국면 가드 통과 ∧ 라이브 판정불가(제한) 아님): {', '.join(status['eligible_cells']) or '(없음)'}")
+    blocked = status.get("blocked_by_claim_restriction") or []
+    if blocked:  # V13-D13 — 계약 자격은 있으나 라이브 라벨(사건<20·국면<5)로 막힌 셀
+        reasons = status.get("claim_block_reasons") or {}
+        typer.echo("판정불가(제한) 차단: " + ", ".join(f"{c}[{'·'.join(reasons.get(c, []))}]" for c in blocked))
+    if status.get("scoreboard_error"):
+        typer.echo(f"라이브 성적표 읽기 실패(페일클로즈): {status['scoreboard_error']}")
     typer.echo(f"매핑된 셀: {', '.join(status['mapped_cells']) or '(없음)'}")
     typer.echo(f"배선 대상: {status['targets']}건 · 페일클로즈 {status['fail_closed']}")
     typer.echo(f"사유: {status['reason']}")
