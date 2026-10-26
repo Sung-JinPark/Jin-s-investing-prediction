@@ -308,6 +308,38 @@ def test_no_forecast_pointer_preserves_real_stale_preflight_reasons(tmp_path, mo
     assert D.load_projection(tmp_path)["gate"]["reasons"] == stale["gate"]["reasons"]
 
 
+def test_source_hold_pointer_recovers_over_closed_weekend_without_forecast_write(published):
+    root, run, _ = published
+    held = P.hold_payload(["required source NASDAQCOM stale"], as_of=run["as_of"])
+    held.pop("content_hash")
+    held.update(run_id=run["run_id"], anchor_date=run["anchor_date"])
+    held["content_hash"] = C.canonical_hash(held)
+    P._atomic(root / C.LATEST_RELATIVE, held)
+    before = (root / C.FORECAST_LEDGER).read_bytes()
+    pointer = (root / C.LATEST_RELATIVE).read_bytes()
+    result = D.load_projection(root, now=F.aware_time("2026-09-14T05:00:00+00:00"))
+    assert result["numbers_visible"] is True and result["records"] == run["records"]
+    assert result["content_hash"] == run["content_hash"]
+    assert (root / C.FORECAST_LEDGER).read_bytes() == before
+    assert (root / C.LATEST_RELATIVE).read_bytes() == pointer
+    # Real subsequent missing sessions still hide numbers; refetch time is irrelevant.
+    result = D.load_projection(root, now=F.aware_time("2026-09-17T12:00:00+00:00"))
+    assert result["numbers_visible"] is False
+    assert "required source NASDAQCOM stale" in result["gate"]["reasons"]
+
+
+def test_other_hold_and_superseded_forecast_are_not_reopened(published):
+    root, run, _ = published
+    for reason, run_id in [("artifact signature invalid", run["run_id"]),
+                           ("required source NASDAQCOM stale", "superseded-unknown-run")]:
+        held = P.hold_payload([reason], as_of=run["as_of"])
+        held.pop("content_hash")
+        held.update(run_id=run_id)
+        held["content_hash"] = C.canonical_hash(held)
+        P._atomic(root / C.LATEST_RELATIVE, held)
+        assert D.load_projection(root, now=F.aware_time(ISSUED))["numbers_visible"] is False
+
+
 def _pin_native_resolution_facts(root, frame):
     path = root / "data/timeseries/ledgers/observations.jsonl"
     path.parent.mkdir(parents=True, exist_ok=True)

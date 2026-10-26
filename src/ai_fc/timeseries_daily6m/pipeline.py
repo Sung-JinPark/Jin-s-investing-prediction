@@ -231,7 +231,10 @@ def load_run(root: Path, row: dict[str, Any]) -> dict[str, Any]:
     validate_run(run)
     if run["content_hash"] != row.get("run_content_hash") or run["run_id"] != row.get("forecast_id"):
         raise Daily6mPipelineError("forecast ledger/run identity mismatch")
-    if run.get("contract_hash") != C.frozen_hash(C.load_contract(root)) or run.get("model_code_hash") != C.model_code_hash(root):
+    from ai_fc.daily6m_calendar_compatibility import legacy_run_compatible
+    if (run.get("contract_hash") != C.frozen_hash(C.load_contract(root))
+            or (run.get("model_code_hash") != C.model_code_hash(root)
+                and not legacy_run_compatible(root, run))):
         raise Daily6mPipelineError("forecast contract or numerical dependency identity changed")
     return run
 

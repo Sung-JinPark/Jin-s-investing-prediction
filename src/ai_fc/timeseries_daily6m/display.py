@@ -91,6 +91,8 @@ def project_run(root: Path, run: dict[str, Any], *, now: datetime | None = None)
     actual = frame[(frame["series_id"] == "NASDAQCOM") & (frame["day"] > run["anchor_date"]) & frame["day"].isin(run["dates"])].sort_values("day")
     lineage = run.get("source_lineage") or {}
     body = {key: value for key, value in run.items() if key not in {"source_lineage", "joint_path_artifact", "content_hash"}}
+    body["operational_source_freshness"] = [
+        {key: value for key, value in row.items() if key != "age_hours"} for row in freshness]
     body.update({"content_hash": run["content_hash"], "source_lineage": {**{key: value for key, value in lineage.items() if key not in {"market_rows", "factor_rows", "initial_missing_daily_inputs"}}, "initial_missing_daily_inputs_count": len(lineage.get("initial_missing_daily_inputs") or [])}, "gate": {"pass": True, "reasons": [], "origin_age_sessions": age}, "realized": {"dates": actual["day"].tolist(), "index": [float(value) for value in actual["value"]]}})
     # Freshness ages are used for the gate but not reserialized: identical
     # source data and gate state produce the same sidecar identity.
@@ -109,6 +111,15 @@ def load_projection(root: Path, *, now: datetime | None = None) -> dict[str, Any
         if pointer.get("numbers_visible") is not True:
             if pointer.get("records") or pointer.get("dates") or pointer.get("sample_paths"):
                 raise Daily6mPipelineError("HOLD pointer contains numerical forecast arrays")
+            # A stored operational source HOLD must be reevaluated at read time:
+            # it is not a new forecast and cannot select a superseded issue.
+            reasons = pointer.get("gate", {}).get("reasons") or []
+            if (pointer.get("run_id") and reasons
+                    and all(str(reason).startswith("required source ") for reason in reasons)):
+                from .pipeline import _active, read_chain
+                active = _active(read_chain(root, C.FORECAST_LEDGER))
+                if active and active[-1]["forecast_id"] == pointer["run_id"]:
+                    return project_run(root, load_run(root, active[-1]), now=now)
             return pointer
         row = {"forecast_id": pointer["run_id"], "run_path": pointer["run_path"], "run_content_hash": pointer["run_content_hash"]}
         return project_run(root, load_run(root, row), now=now)

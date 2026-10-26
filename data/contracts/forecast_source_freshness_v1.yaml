@@ -1,0 +1,36 @@
+schema_version: 1
+contract_id: forecast-source-freshness-v1
+scope: operational_source_gate_only
+timezone: America/New_York
+numerical_model_change: false
+availability: preserve_actual_available_at_and_point_in_time_filter
+missing_or_invalid: hold
+daily_prices:
+  series: [NASDAQCOM, VIX, VIXCLS]
+  calendar: XNAS
+  deadline: actual_session_close_plus_18_hours
+  grace_hours: 18
+daily_rates:
+  series: [DGS2, DGS10, T10Y2Y]
+  calendar: US_FED_BOARD
+  observation_lag_business_days: 1
+  release_time: '16:15'
+  distribution_grace_hours: 2
+weekly_dollar:
+  series: [DTWEXBGS, DTWEXB]
+  observation_frequency: daily
+  publication_frequency: weekly
+  calendar: US_FED_BOARD
+  release: monday_or_next_board_business_day
+  release_time: '16:15'
+  observation_period: previous_monday_through_friday
+  distribution_grace_hours: 2
+sources:
+  h10: https://www.federalreserve.gov/releases/h10/
+  h15: https://www.federalreserve.gov/releases/h15/
+  board_holidays: https://www.federalreserve.gov/aboutthefed/k8.htm
+notes:
+  - Deadlines are operational waiting limits, never synthetic available_at timestamps.
+  - A successful refetch cannot make an old observation current.
+  - Once a publication deadline passes, the required observation must be present.
+  - Interior gaps, invalid receipts, revisions and origin-age gates remain independent blockers.

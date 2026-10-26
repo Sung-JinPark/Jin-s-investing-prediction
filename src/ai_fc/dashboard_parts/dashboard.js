@@ -1685,6 +1685,7 @@ function timeseriesFreshnessList(ts){
   const rows=ts.freshness_summary||[];
   if(!rows.length)return '<p class="admin-empty">신선도 요약이 아직 없습니다.</p>';
   return `<ul class="admin-list ts-fresh" data-ts-chart="fresh" tabindex="0" aria-label="입력 신호 신선도">${rows.map(row=>{const age=Number(row.age_hours||0),limit=Number(row.limit_hours||0),ratio=limit?Math.min(100,Math.round(age/limit*100)):0,ok=String(row.status||'')==='fresh';
+    if(row.policy_id&&row.expected_observation)return `<li><i>${esc(row.group)}</i><em>${esc(TS_INPUT_LABELS[row.group]||row.group)}</em><span class="admin-share-bar"><b class="${ok?'':'is-warn'}" style="width:${ok?100:50}%"></b></span><strong>${esc(String(row.observation_time||'—').slice(5))}</strong><small>공표 기준 ${esc(String(row.expected_observation).slice(5))} · ${ok?'정상':'지연'}</small></li>`;
     return `<li><i>${esc(row.group)}</i><em>${esc(TS_INPUT_LABELS[row.group]||row.group)}</em><span class="admin-share-bar"><b class="${ok?'':'is-warn'}" style="width:${Math.max(2,ratio)}%"></b></span><strong>${Math.round(age)}h</strong><small>/${Math.round(limit)}h · ${ok?'정상':'경고'}</small></li>`;}).join('')}</ul>${tsReadout()}`;
 }
 function timeseriesInputBundle(){
@@ -1959,6 +1960,7 @@ function bindTimeseriesV8Interactions(root,ts){
   const fresh=root.querySelector('[data-ts-chart="fresh"]');
   if(fresh){const items=[...fresh.querySelectorAll('li')],list=ts.freshness_summary||[];
     bindTsHover(fresh,{stopEls:items,describe:i=>{const row=list[i]||{},label=TS_INPUT_LABELS[row.group]||row.group||'',ok=String(row.status||'')==='fresh',age=Math.round(Number(row.age_hours||0)),limit=Math.round(Number(row.limit_hours||0));
+      if(row.policy_id&&row.expected_observation)return {head:`${label} (${row.group||''})`,rows:[{color:TS_Q_COLORS.up,name:'실제 관측일',value:row.observation_time||'—'},{color:TS_Q_COLORS.inner,name:'공표 기한이 지난 관측일',value:row.expected_observation},{color:TS_Q_COLORS.median,name:'상태',value:ok?'정상':'지연'}],speak:`${label}: 실제 관측 ${row.observation_time}, 공표 기준 ${row.expected_observation}, ${ok?'정상':'지연'}`};
       return {head:`${label} (${row.group||''})`,rows:[{color:TS_Q_COLORS.up,name:'마지막 관측 경과',value:`${age}h`},{color:TS_Q_COLORS.inner,name:'허용 한도',value:`${limit}h`},{color:TS_Q_COLORS.median,name:'상태',value:ok?'정상':'경고'}],speak:`${label}: 마지막 관측 ${age}시간 전, 한도 ${limit}시간, ${ok?'정상':'경고'}`};}});}
   const kpis=root.querySelector('[data-ts-chart="kpis"]');
   if(kpis){const items=[...kpis.querySelectorAll('article')],hints=['oos_window_hint','full_period_hint','loss_ci_hint','forward_track_hint'];
