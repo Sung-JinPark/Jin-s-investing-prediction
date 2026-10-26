@@ -75,7 +75,7 @@ def test_jpx_technical_listing_is_machine_excluded() -> None:
            + block("2026/10/01", "NOK Group（株） *", "641A", "プライム")).encode()
     rows = parse_jpx(raw)
     assert [(row["code"], row["company"], row["board"], row["auto_exclusion"]) for row in rows] == [
-        ("648A", "（株）ルクレ", "グロース", None), ("641A", "NOK Group（株）", "プライム", "no_offering")]
+        ("648A", "（株）ルクレ", "Growth", None), ("641A", "NOK Group（株）", "Prime", "no_offering")]
 
 
 def test_taiwan_market_transfer_is_not_a_first_listing() -> None:
@@ -137,17 +137,19 @@ def test_refresh_keeps_last_listings_of_a_failed_venue_and_counts_overdue(tmp_pa
         assert since == WATCH_START
         return first.get(venue, [])
 
-    payload = refresh_theme_listing_watch(tmp_path, now=datetime(2026, 10, 26, tzinfo=timezone.utc), fetcher=ok)
+    payload = refresh_theme_listing_watch(tmp_path, now=datetime(2026, 10, 26, tzinfo=timezone.utc), fetcher=ok,
+                                          review_get=None)
     assert {row["code"] for row in payload["listings"]} == {"0158S", "0015M"}, "상장일이 오지 않은 행은 아직 없다"
     assert payload["summary"]["pending_review"] == 1 and payload["summary"]["pending_overdue"] == 0
-    assert payload["role"] == "review_queue_only_not_index_input" and payload["decides_theme"] is False
+    assert payload["role"] == "listing_watch_with_auto_review" and payload["auto_review"] is None
 
     def broken(venue: str, *, since: str, today: date) -> list[dict]:
         if venue == "kr":
             raise OSError("KIND down")
         return []
 
-    later = refresh_theme_listing_watch(tmp_path, now=datetime(2026, 11, 5, tzinfo=timezone.utc), fetcher=broken)
+    later = refresh_theme_listing_watch(tmp_path, now=datetime(2026, 11, 5, tzinfo=timezone.utc), fetcher=broken,
+                                        review_get=None)
     assert later["venues"]["kr"]["status"] == "stale" and "KIND down" in later["venues"]["kr"]["error"]
     assert later["venues"]["kr"]["last_ok_at"].startswith("2026-10-26"), "마지막 성공 시각을 보존한다"
     assert {row["code"] for row in later["listings"]} == {"0158S", "0015M"}, "실패한 시장의 이전 목록을 지우지 않는다"
@@ -157,11 +159,12 @@ def test_refresh_keeps_last_listings_of_a_failed_venue_and_counts_overdue(tmp_pa
 
 
 def test_reviews_need_a_known_decision_reason_and_source(tmp_path: Path) -> None:
-    good = "kr,0015M,디티에스,2026-10-23,not_theme,열교환기,https://example.org,2026-10-26\n"
+    good = "kr,0015M,디티에스,2026-10-23,not_theme,열교환기,https://example.org,2026-10-26,manual\n"
     _seed(tmp_path, good)
     assert load_reviews(tmp_path)[0]["decision"] == "not_theme"
     for bad in [good.replace("not_theme", "counted"), good.replace("https://example.org", ""),
-                good.replace(",열교환기,", ",,"), good.replace("kr,", "us,", 1), good + good]:
+                good.replace(",열교환기,", ",,"), good.replace("kr,", "us,", 1), good + good,
+                good.replace(",manual", ",")]:
         (tmp_path / REVIEWS_RELATIVE).write_text(",".join(REVIEW_FIELDS) + "\n" + bad, encoding="utf-8")
         with pytest.raises(ThemeListingWatchError):
             load_reviews(tmp_path)
@@ -175,7 +178,7 @@ def test_repository_reviews_and_watch_are_consistent_with_the_census() -> None:
     if not path.is_file():
         pytest.skip("watch table not generated yet")
     payload = json.loads(path.read_text(encoding="utf-8"))
-    assert payload["role"] == "review_queue_only_not_index_input"
+    assert payload["role"] == "listing_watch_with_auto_review"
     listings = [{key: row[key] for key in ("venue", "country", "exchange", "board", "code", "company",
                                            "listing_date", "industry", "business", "offer", "auto_exclusion",
                                            "source_url")} for row in payload["listings"]]
@@ -198,7 +201,8 @@ def test_truncated_transfer_and_layout_change_only_stale_their_venue(tmp_path: P
             raise KeyError("layout changed")
         return []
 
-    payload = refresh_theme_listing_watch(tmp_path, now=datetime(2026, 10, 26, tzinfo=timezone.utc), fetcher=flaky)
+    payload = refresh_theme_listing_watch(tmp_path, now=datetime(2026, 10, 26, tzinfo=timezone.utc), fetcher=flaky,
+                                          review_get=None)
     assert payload["venues"]["tw_tpex"]["status"] == "stale" and "IncompleteRead" in payload["venues"]["tw_tpex"]["error"]
     assert payload["venues"]["jp"]["status"] == "stale"
     assert payload["summary"]["venues_ok"] == len(VENUES) - 2

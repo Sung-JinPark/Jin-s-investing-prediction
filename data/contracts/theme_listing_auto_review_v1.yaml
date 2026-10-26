@@ -1,0 +1,208 @@
+version: 2026-10-26.v1
+contract_id: theme_listing_auto_review_v1
+status: preregistered_before_agreement_measurement
+decided_by: user                      # 2026-10-26 "새 상장 검수도 자동화해서 업데이트"
+rules_fixed_at: "2026-10-26T02:27:14Z" # 판정 규칙을 전수조사 라벨과의 일치도 측정 전에 고정했다
+scope: dotcom_overheat_index_v5 indicator ipo_count_operating_12m — theme listings after the v5 census
+probability_space: reference_only
+fitting: none                         # 가중치·임계 학습 없음. 일치도는 측정해 공시만 한다
+
+# 무엇을 자동화하나
+# 전수조사(v5, 2026-10-22 상장분까지) 이후 감시(theme_listing_watch)가 모은 상장마다 아래 절차를 결정론으로
+# 적용해 판정을 기록한다 — 테마면 theme_listing_additions.csv 에 행 추가, 아니면 theme_listing_reviews.csv 에
+# 결정·이유·출처. 자동 판정 행은 reviewer=auto_rule_v1 로 사람 판정과 구분된다. 사람이 이미 남긴 판정은
+# 덮어쓰지 않는다. 판정 근거 텍스트는 거래소·공시 원천의 사업 설명만 쓴다(회사명은 보조).
+#
+# 왜 LLM 이 아니라 규칙인가
+# 새 상장사는 모델 학습 시점 이후라 모델이 회사를 모른다 — 결국 같은 사업 설명 텍스트를 읽어야 하고, 그러면
+# 고정 규칙이 재현 가능하고 비용이 없다. 무인 예약 실행에서 LLM 판정은 매 실행 결과가 달라질 수 있다.
+
+text_sources:
+  cn_a: [eastmoney_ipo.MAIN_BUSINESS, eastmoney_ipo.INDUSTRY_NAME, eastmoney_f10.EM2016, eastmoney_f10.MAIN_BUSINESS]
+  hk_main: [eastmoney_hk_f10.BELONG_INDUSTRY, eastmoney_hk_f10.MAIN_BUSINESS, eastmoney_hk_f10.ORG_PROFILE]
+  kr: [kind.industry, kind.main_products]
+  jp: [jpx_outline_en.business]
+  tw_twse: [mops_t05st03.industryCategory, mops_t05st03.mainBusiness]
+  tw_tpex: [mops_t05st03.industryCategory, mops_t05st03.mainBusiness]
+
+procedure:                            # 위에서부터 처음 걸리는 단계가 판정이다
+  - step: event_rule
+    rule: 감시가 이미 기계 제외한 상장(SPAC·공모 없음·시장 이전·2차 상장·KONEX)은 그대로 둔다
+  - step: second_listing
+    rule: >-
+      홍콩 H주인데 같은 법인(정식 명칭)이 그 전에 A주에 상장돼 있으면, A주인데 같은 법인이 그 전에 홍콩에
+      상장돼 있으면 not_first_listing. 일본 개요의 Current Listed Market 이 N/A 가 아니면 not_first_listing.
+      대만 이름에 投控·投資控股(지주사 전환 상장)가 있으면 no_offering.
+  - step: pipeline
+    rule: 상장 대기 목록(theme_listing_pipeline.csv)의 회사와 이름이 맞으면 counted(대기 목록이 이미 출처 있는 테마 판정)
+    then: 대기 목록에서 그 행을 지운다(상장된 회사가 대기에 남으면 로더가 거부한다)
+  - step: text_required
+    rule: 사업 설명을 하나도 못 얻으면 판정하지 않고 다음 실행에 다시 시도한다(pending, 사유 no_text)
+  - step: semiconductor
+    rule: >-
+      industry_semiconductor 가 맞거나, semiconductor_terms 가 사업 설명에 있으면 semiconductor.
+      단 semiconductor_exclusions 가 있고 semiconductor_core 가 없으면 not_theme(디스플레이·PCB·수동부품·
+      태양광·커넥터·케이블·광모듈 — 계약 theme_rule 의 반도체 아님).
+  - step: ai
+    rule: >-
+      ai_terms 가 사업 설명에 있으면 ai. 단 응용처를 나열하는 절(application_markers 가 있는 절)에 나온 AI 는
+      세지 않는다 — "AI 서버에 쓰이는 전원" 처럼 AI 가 제품이 아니라 고객 산업인 경우.
+  - step: default
+    rule: not_theme
+
+industry_semiconductor:               # 거래소·공시가 붙인 산업 분류(부분 일치)
+  - 半導體業
+  - 半导体
+  - 반도체 제조업
+
+semiconductor_core:
+  - 半导体
+  - 半導體
+  - 반도체
+  - semiconductor
+  - 集成电路
+  - 積體電路
+  - integrated circuit
+  - 晶圆代工
+  - 晶圓代工
+  - foundry
+  - 파운드리
+  - 팹리스
+  - fabless
+  - 芯片设计
+  - chip design
+
+semiconductor_terms:                  # core 포함. 영문 약어는 단어 경계로 찾는다
+  - 芯片
+  - 晶片
+  - 晶圆
+  - 晶圓
+  - 硅片
+  - 矽晶圓
+  - wafer
+  - 웨이퍼
+  - 封装测试
+  - 封測
+  - 패키징
+  - 光刻
+  - lithography
+  - 刻蚀
+  - 식각
+  - 薄膜沉积
+  - 증착
+  - 光掩模
+  - 掩膜版
+  - 光罩
+  - photomask
+  - 포토마스크
+  - 靶材
+  - sputtering target
+  - 碳化硅
+  - 氮化镓
+  - 功率器件
+  - 전력반도체
+  - 探针卡
+  - probe card
+  - 프로브카드
+  - 存储芯片
+  - 闪存
+  - DRAM
+  - NAND
+  - EDA
+  - SoC
+  - MCU
+  - FPGA
+  - ASIC
+  - GPU
+  - NPU
+  - MEMS
+  - IC
+  - chip
+  - chips
+
+semiconductor_exclusions:
+  - 显示面板
+  - 显示屏
+  - 液晶
+  - 디스플레이
+  - display panel
+  - PCB
+  - 印制电路板
+  - 印刷电路板
+  - 인쇄회로기판
+  - printed circuit
+  - 被动元件
+  - 电容器
+  - 电阻器
+  - MLCC
+  - 수동부품
+  - passive component
+  - LED照明
+  - LED lighting
+  - 光伏
+  - 태양광
+  - solar
+  - 连接器
+  - 커넥터
+  - connector
+  - 线缆
+  - 케이블
+  - cable
+  - 光模块
+  - optical module
+  - transceiver
+  - IC卡
+
+ai_terms:
+  - 人工智能
+  - AI
+  - 인공지능
+  - artificial intelligence
+  - 人工知能
+  - 机器学习
+  - machine learning
+  - 머신러닝
+  - 深度学习
+  - deep learning
+  - 딥러닝
+  - 大模型
+  - 大语言模型
+  - large language model
+  - LLM
+  - foundation model
+  - 生成式
+  - 생성형
+  - generative AI
+  - 智能驾驶
+  - 自动驾驶
+  - 自動駕駛
+  - 자율주행
+  - autonomous driving
+  - 具身智能
+  - embodied AI
+  - 人形机器人
+  - humanoid
+  - 휴머노이드
+  - 算力
+  - 智算
+  - AI data center
+  - GPU cloud
+
+application_markers:                  # 이 표지가 있는 절의 AI 는 고객 산업이다
+  - 应用于
+  - 应用领域
+  - 广泛应用
+  - 下游
+  - 用于
+  - 服务于
+  - 應用於
+  - 적용
+  - applications
+  - applied to
+  - used in
+  - for use in
+
+known_limits:
+  - 사업 설명이 짧은 시장(KIND 주요제품은 제품명만 나오기도 한다)에서는 AI 회사를 놓칠 수 있다 — 일치도 측정에 시장별로 공시.
+  - 규칙은 '사업 설명에 무엇이 쓰였나' 를 본다. 전수조사의 '주력 사업' 판단과 같지 않다 — 경계 사례는 규칙이 정한다.
+  - 미포함 시장(홍콩 GEM·동남아·인도 본시장·유럽·TSX·ASX·TASE·미국 ADR)은 감시 원천이 없어 이 절차 밖이다.

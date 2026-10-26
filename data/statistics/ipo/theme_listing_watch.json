@@ -1,19 +1,34 @@
 {
   "schema_version": 1,
   "dataset_id": "theme_listing_watch_v1",
-  "checked_at": "2026-10-26T02:06:53+00:00",
+  "checked_at": "2026-10-26T03:22:02+00:00",
   "watch_start": "2026-10-01",
   "census_through": "2026-10-22",
-  "role": "review_queue_only_not_index_input",
-  "decides_theme": false,
+  "role": "listing_watch_with_auto_review",
+  "decides_theme": "auto_rule_v1 (data/contracts/theme_listing_auto_review_v1.yaml); manual decisions are kept",
+  "auto_review": null,
+  "auto_rule": {
+    "contract": "data/contracts/theme_listing_auto_review_v2.yaml",
+    "reviewer": "auto_rule_v2",
+    "rules_fixed_at": "2026-10-26T03:19:15Z",
+    "auto_counted": 0,
+    "auto_not_counted": 0,
+    "holdout": {
+      "n": 811,
+      "recall": 0.872,
+      "precision": 0.766,
+      "agreement": 0.954,
+      "count_ratio": 1.138
+    }
+  },
   "review_grace_days": 7,
   "additions_sha256": "084c369f28941c7fc98bc277a4e627da1495120a776181a79d26fbcbfb0e7e85",
   "venues": {
     "cn_a": {
       "status": "current",
       "error": null,
-      "checked_at": "2026-10-26T02:06:53+00:00",
-      "last_ok_at": "2026-10-26T02:06:53+00:00",
+      "checked_at": "2026-10-26T03:22:02+00:00",
+      "last_ok_at": "2026-10-26T03:22:02+00:00",
       "rows": 8,
       "label": "중국 A주(상해·심천·북경)",
       "source_url": "https://data.eastmoney.com/xg/xg/"
@@ -21,8 +36,8 @@
     "hk_main": {
       "status": "current",
       "error": null,
-      "checked_at": "2026-10-26T02:06:53+00:00",
-      "last_ok_at": "2026-10-26T02:06:53+00:00",
+      "checked_at": "2026-10-26T03:22:02+00:00",
+      "last_ok_at": "2026-10-26T03:22:02+00:00",
       "rows": 2,
       "label": "홍콩 Main Board",
       "source_url": "https://www2.hkexnews.hk/New-Listings/New-Listing-Information/Main-Board"
@@ -30,8 +45,8 @@
     "kr": {
       "status": "current",
       "error": null,
-      "checked_at": "2026-10-26T02:06:53+00:00",
-      "last_ok_at": "2026-10-26T02:06:53+00:00",
+      "checked_at": "2026-10-26T03:22:02+00:00",
+      "last_ok_at": "2026-10-26T03:22:02+00:00",
       "rows": 7,
       "label": "한국 KOSPI·KOSDAQ",
       "source_url": "https://kind.krx.co.kr/listinvstg/listingcompany.do?method=searchListingTypeMain"
@@ -39,8 +54,8 @@
     "jp": {
       "status": "current",
       "error": null,
-      "checked_at": "2026-10-26T02:06:53+00:00",
-      "last_ok_at": "2026-10-26T02:06:53+00:00",
+      "checked_at": "2026-10-26T03:22:02+00:00",
+      "last_ok_at": "2026-10-26T03:22:02+00:00",
       "rows": 4,
       "label": "일본 JPX",
       "source_url": "https://www.jpx.co.jp/listing/stocks/new/index.html"
@@ -48,8 +63,8 @@
     "tw_twse": {
       "status": "current",
       "error": null,
-      "checked_at": "2026-10-26T02:06:53+00:00",
-      "last_ok_at": "2026-10-26T02:06:53+00:00",
+      "checked_at": "2026-10-26T03:22:02+00:00",
+      "last_ok_at": "2026-10-26T03:22:02+00:00",
       "rows": 2,
       "label": "대만 TWSE",
       "source_url": "https://www.twse.com.tw/zh/listed/listed-company/newlisting.html"
@@ -57,8 +72,8 @@
     "tw_tpex": {
       "status": "current",
       "error": null,
-      "checked_at": "2026-10-26T02:06:53+00:00",
-      "last_ok_at": "2026-10-26T02:06:53+00:00",
+      "checked_at": "2026-10-26T03:22:02+00:00",
+      "last_ok_at": "2026-10-26T03:22:02+00:00",
       "rows": 3,
       "label": "대만 TPEx",
       "source_url": "https://www.tpex.org.tw/openapi/v1/mopsfin_t187ap03_O"
@@ -96,7 +111,7 @@
       "venue": "jp",
       "country": "JP",
       "exchange": "TSE",
-      "board": "グロース",
+      "board": "Growth",
       "code": "640A",
       "company": "（株）ASNOVA Companies",
       "listing_date": "2026-10-01",
@@ -115,7 +130,7 @@
       "venue": "jp",
       "country": "JP",
       "exchange": "TSE",
-      "board": "プライム",
+      "board": "Prime",
       "code": "641A",
       "company": "NOK Group（株）",
       "listing_date": "2026-10-01",
@@ -134,7 +149,7 @@
       "venue": "jp",
       "country": "JP",
       "exchange": "TSE",
-      "board": "プライム",
+      "board": "Prime",
       "code": "642A",
       "company": "キューデンホールディングス（株）",
       "listing_date": "2026-10-01",
@@ -305,7 +320,7 @@
       "venue": "jp",
       "country": "JP",
       "exchange": "TSE",
-      "board": "グロース",
+      "board": "Growth",
       "code": "648A",
       "company": "（株）ルクレ",
       "listing_date": "2026-10-15",

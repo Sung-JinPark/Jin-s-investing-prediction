@@ -160,15 +160,17 @@ statistics:
       charts: [ipo_count_operating_12m]
       payload_key: provisional_sources
       gate: provisional_series_labelled_dashed_and_excluded_from_source_ids_and_overheat_index
-  # Review queue for theme listings after the v5 census. Exchange new-listing feeds are matched
-  # against the sourced census; nothing here is counted until a sourced additions row exists.
+  # Theme listings after the v5 census. Exchange new-listing feeds are matched against the sourced
+  # census and judged by the preregistered auto-review rules; a listing counts only through a sourced
+  # additions row (auto rows carry an auto_rule_v1 note).
   review_queues:
     THEME_LISTING_WATCH:
       table: data/statistics/ipo/theme_listing_watch.json
       reviews: data/statistics/ipo/theme_listing_reviews.csv
       charts: [ipo_count_operating_12m]
       payload_key: theme_listing_watch
-      gate: summary_only_never_index_input_theme_judged_by_reviewer
+      rules: data/contracts/theme_listing_auto_review_v1.yaml
+      gate: summary_only_in_payload_counts_flow_through_additions_rows
 
 reference_statistics:
   publication_status: separated_reference_only

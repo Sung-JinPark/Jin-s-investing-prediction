@@ -175,7 +175,11 @@ def test_daily_refresh_reaches_pages_and_failure_monitor() -> None:
     for path in ("data/statistics/ipo/ritter_ipoall_monthly.json",
                  "data/statistics/ipo/nasdaq_calendar_monthly.json",
                  "data/statistics/ipo/monthly_counts_status.json",
-                 "data/statistics/ipo/theme_listing_watch.json"):
+                 "data/statistics/ipo/theme_listing_watch.json",
+                 # 자동 검수(2026-10-26)가 쓰는 명단·검수 기록·대기 목록도 커밋 대상이어야 한다.
+                 "data/statistics/ipo/theme_listing_additions.csv",
+                 "data/statistics/ipo/theme_listing_reviews.csv",
+                 "data/statistics/ipo/theme_listing_pipeline.csv"):
         assert path in commands
     for name in ("pages", "ops-failure-alert"):
         doc = workflow(name)
