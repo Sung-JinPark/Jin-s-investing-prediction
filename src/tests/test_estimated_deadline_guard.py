@@ -19,6 +19,7 @@ from datetime import date
 from pathlib import Path
 
 import pytest
+import yaml
 
 from ai_fc.models import Question
 from ai_fc.registry import (ESTIMATED_DEADLINE_WINDOW_DAYS, estimated_deadline_block,
@@ -71,7 +72,13 @@ def test_every_estimated_announcement_date_carries_the_flag() -> None:
     이 테스트가 없으면 다음 사람이 "(장후 추정)" 질문을 하나 더 등록하는 순간
     같은 구멍이 조용히 다시 열린다. 첫 괄호만 본다 — 뒤쪽 괄호의 '추정'은
     발표일이 아니라 방법론(예: 'advance estimate')을 가리키는 경우가 있다.
+
+    예외는 발표일을 공식 IR 로 확정한 질문 하나뿐이다(2026-10-26). 본문은 src_hash
+    (판정기준 해시)에 들어가 첫 예측 이후 "(장후 추정)"을 지울 수 없으므로, 플래그를
+    내릴 때 근거 URL 을 `deadline_confirmed_by` 에 남긴다. 근거 없는 해제는 여전히 걸린다.
     """
+    raw = {str(q["id"]): q for q in yaml.safe_load(
+        (ROOT / "questions" / "registry.yaml").read_text(encoding="utf-8"))["questions"]}
     missing = []
     for q in load_registry(ROOT / "questions" / "registry.yaml"):
         if q.status != "active" or q.domain != "earnings":
@@ -79,9 +86,21 @@ def test_every_estimated_announcement_date_carries_the_flag() -> None:
         first = re.search(r"\(([^)]*)\)", q.question or "")
         if not first:
             continue
+        confirmed = str(raw[q.question_id].get("deadline_confirmed_by") or "")
+        if confirmed.startswith("https://"):
+            continue
         if re.search(r"추정|예상", first.group(1)) and not q.deadline_estimated:
             missing.append(f"{q.question_id}: ({first.group(1)})")
     assert not missing, f"추정 발표일인데 deadline_estimated 미표기: {missing}"
+
+
+def test_a_confirmation_source_means_the_flag_is_down() -> None:
+    """확정 근거를 달아 놓고 플래그도 그대로 두면 둘 중 하나는 거짓이다."""
+    raw = yaml.safe_load(
+        (ROOT / "questions" / "registry.yaml").read_text(encoding="utf-8"))["questions"]
+    both = [q["id"] for q in raw
+            if q.get("deadline_confirmed_by") and q.get("deadline_estimated")]
+    assert not both, both
 
 
 def test_the_flag_is_not_sprayed_on_confirmed_dates() -> None:
