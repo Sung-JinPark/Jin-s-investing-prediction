@@ -1,6 +1,6 @@
 {
   "environment_lock_hash": "13781dc2e360d92948252dbe976de46244e6fb854cc7a95ec855251841cab1b3",
-  "generated_at": "2026-10-26T09:38:56.853412+00:00",
+  "generated_at": "2026-10-26T10:50:41.220928+00:00",
   "pb_live": {
     "failures": [],
     "hash_only_old_sha": 1,
@@ -56,8 +56,15 @@
     }
   ],
   "v8_tier2": {
-    "note": "별도 감독 실행 (고가 — 전체 walk-forward)",
-    "status": "NOT_RUN"
+    "forecast_id": "tsv8-shadow-d7278b2400139e5ad30e3777",
+    "matured_origins_at_emit_recomputed": 1020,
+    "mismatches": [
+      "h1.quantile_grid (max|Δ|=2.42861286636753e-17)",
+      "h5.quantile_grid (max|Δ|=1.97758476261356e-16)"
+    ],
+    "origin": "2026-10-16",
+    "status": "MISMATCH",
+    "wall_seconds": 5456.2
   },
   "verdict": {
     "pb_identity": true,

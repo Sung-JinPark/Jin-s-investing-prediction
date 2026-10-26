@@ -17,9 +17,8 @@
 
 ## 진행 중 / 대기
 
-- V8 tier-2 replay 1회 감독 실행 (백그라운드) → 완료 시
-  `cd src && python -m ai_fc.mts_research.cli replay-baseline` 재실행으로
-  baseline_identity.json 의 v8_tier2 갱신.
+- 없음 — tier-2 완료(5,456s): h21/h63 bit 동일·h1/h5 max|Δ|≤2e-16(strict MISMATCH 기록,
+  기계 엡실론 수준 병기). baseline_identity.json 갱신 완료.
 
 ## P10 결과 (2026-10-26)
 

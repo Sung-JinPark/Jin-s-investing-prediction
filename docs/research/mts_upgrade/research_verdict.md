@@ -45,8 +45,12 @@
 
 ## 미확인 / 판단 불가 (정직한 한계)
 
-- V8 tier-2 전체 모델 재계산: 1회 감독 실행 — `data/mts_research/derived/v8_tier2_replay.json`
-  참조(장시간 실행; 미완이면 NOT_RUN). bit identity 는 동일 환경 한정 (§19.2).
+- V8 tier-2 전체 모델 재계산(1회, 원점 2026-10-16, 5,456s): **h21/h63(FHS) quantile_grid
+  200개 전부 bit 동일**, ensemble_weights·blend·PIT 상태·p_up 등 전 필드 동일.
+  h1/h5 grid 만 max|Δ| ≤ 2.0e-16 — 부동소수 재결합(BLAS/배열 정렬) 수준.
+  §19.2 대로 허용오차를 넓히지 않아 strict 판정은 MISMATCH 로 기록하되, 크기가
+  기계 엡실론 1~2 ulp 임을 병기한다 (원 행은 주간 잡 산출 — 실행 환경 비동일 가능,
+  행에 BLAS/CPU 기록 없음). `data/mts_research/derived/v8_tier2_replay.json`.
 - DFM smoothed-state 유입·원점 지연(ASOF_AGE) 가설: 미확인 — 후속 감사.
 - window-mechanics baseline 의 PB 대비 증분: **주장하지 않음** — 사전등록된 비교가 아님.
 - 새 후보(hazard 실측·옵션/일중 블록)의 예측력: 증거 없음 — 실험 미실행이 정상 결과.
