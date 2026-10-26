@@ -4,14 +4,14 @@
 조사한 전수 명단이라, 조사가 끝난 날 이후의 상장은 누가 다시 보지 않으면 영영 빠진다. 2026-10-26 검수에서
 과열도 입력 14종 중 이 목록만 자동 갱신 경로가 없음을 확인했다.
 
-판정(상장 시점 주력 사업이 AI·반도체인가)은 이 모듈이 하지 않는다 — 계약의 theme_rule 은 투자설명서·거래소
-프로필을 읽는 판단이고, 이름·업종 키워드로 자동 편입하면 과열 쪽으로 기우는 오탐이 섞인다. 이 모듈은 결정론
-수집·대조만 한다.
+이 모듈은 수집·대조를 하고, 판정(상장 시점 주력 사업이 AI·반도체인가)은 ``theme_listing_review`` 가 사전등록
+규칙(``theme_listing_auto_review_v2``)으로 자동 기록한다(2026-10-26 사용자 결정).
 
 * 거래소 목록의 새 첫 상장을 누적한다(``theme_listing_watch.json``).
 * additions 에 있는 회사 → ``counted``. 검수 기록(``theme_listing_reviews.csv``)이 있으면 → ``reviewed``.
 * 계약 event_rule 로 기계 판정되는 것(SPAC·공모 없는 상장·시장 이전·2차 상장) → ``auto_excluded``.
-* 나머지 → ``pending_review``. 통계 카드와 ops 백로그 이슈가 이 건수를 보인다.
+* 나머지 → ``pending_review`` → 같은 실행 안에서 자동 판정. 사업 설명을 못 얻은 것만 남아 다음 실행에 재시도하고,
+  통계 카드와 ops 백로그 이슈(7일+)가 그 건수를 보인다.
 
 원천은 모두 공개 페이지이며 저장소 기본 UA 를 쓴다(브라우저형 UA 는 Nasdaq 한 곳만 승인돼 있다).
 한 시장이 실패해도 나머지는 갱신하고, 실패한 시장은 이전 목록을 유지한 채 ``stale`` 로 표시한다.
@@ -41,7 +41,8 @@ from .ipo_monthly_counts import (
 
 WATCH_RELATIVE = Path("data/statistics/ipo/theme_listing_watch.json")
 REVIEWS_RELATIVE = Path("data/statistics/ipo/theme_listing_reviews.csv")
-REVIEW_FIELDS = ["venue", "code", "company", "listing_date", "decision", "reason", "source_url", "reviewed_at"]
+REVIEW_FIELDS = ["venue", "code", "company", "listing_date", "decision", "reason", "source_url", "reviewed_at",
+                 "reviewer"]
 #: counted 는 검수 기록이 아니라 additions 행으로만 생긴다 — 센 회사는 출처를 단 additions 행이 근거다.
 REVIEW_DECISIONS = {"not_theme", "not_first_listing", "no_offering", "excluded_board", "spac", "unclear"}
 #: 감시 시작일 — 전수조사 마지막 주(10월)와 겹치게 잡아 대조 규칙이 조사 결과를 재현하는지 확인한다.
@@ -194,6 +195,11 @@ def parse_kind(raw: bytes) -> list[dict[str, Any]]:
     return listings
 
 
+#: JPX 시장 구분 → 명단(전수조사)이 쓰는 영문 이름
+_JPX_BOARDS = {"グロース": "Growth", "スタンダード": "Standard", "プライム": "Prime",
+               "TOKYO PRO Market": "TOKYO PRO Market"}
+
+
 def parse_jpx(raw: bytes) -> list[dict[str, Any]]:
     """JPX 신규상장 표 — 상장일(승인일)·회사명·코드·시장. 이름 뒤 ``*`` 는 테크니컬 상장(공모 없음)."""
     text = raw.decode("utf-8", errors="replace")
@@ -209,7 +215,8 @@ def parse_jpx(raw: bytes) -> list[dict[str, Any]]:
         technical = name.endswith("*")
         listings.append(_listing(
             "jp", code=code, company=name.rstrip("* ").strip(), listing_date=f"{year}-{month}-{day}",
-            exchange="TSE", board=_clean(market), auto_exclusion="no_offering" if technical else None,
+            exchange="TSE", board=_JPX_BOARDS.get(_clean(market), _clean(market)),
+            auto_exclusion="no_offering" if technical else None,
         ))
     return listings
 
@@ -267,10 +274,11 @@ def parse_tpex(raw: bytes, *, since: str) -> list[dict[str, Any]]:
 
 
 def _get(url: str, *, opener: urllib.request.OpenerDirector | None = None, data: bytes | None = None,
-         attempts: int = 3) -> bytes:
+         attempts: int = 3, content_type: str | None = None) -> bytes:
     """큰 응답(TPEx 상장사 표 ~1MB)이 전송 중 끊기는 일이 실측됐다(2026-10-26 IncompleteRead) — 짧게 재시도한다."""
     for attempt in range(attempts):
-        request = urllib.request.Request(url, data=data, headers={"User-Agent": USER_AGENT})
+        headers = {"User-Agent": USER_AGENT, **({"Content-Type": content_type} if content_type else {})}
+        request = urllib.request.Request(url, data=data, headers=headers)
         try:
             with (opener.open if opener else urllib.request.urlopen)(request, timeout=TIMEOUT_SECONDS) as response:
                 return response.read()
@@ -361,8 +369,8 @@ def load_reviews(root: Path) -> list[dict[str, str]]:
             raise ThemeListingWatchError(f"review decision invalid: {key} {row['decision']!r}")
         if not row["reason"].strip() or not row["source_url"].startswith(("https://", "http://")):
             raise ThemeListingWatchError(f"review needs a reason and a source: {key}")
-        if not re.fullmatch(r"\d{4}-\d{2}-\d{2}", row["reviewed_at"]):
-            raise ThemeListingWatchError(f"review date invalid: {key}")
+        if not re.fullmatch(r"\d{4}-\d{2}-\d{2}", row["reviewed_at"]) or not (row.get("reviewer") or "").strip():
+            raise ThemeListingWatchError(f"review date or reviewer invalid: {key}")
         seen.add(key)
     return rows
 
@@ -439,8 +447,12 @@ def summarize(listings: list[dict[str, Any]], venues: dict[str, dict[str, Any]],
 def refresh_theme_listing_watch(
     root: Path, *, now: datetime | None = None,
     fetcher: Callable[..., list[dict[str, Any]]] = fetch_venue,
+    review_get: Callable[..., bytes] | None = _get,
 ) -> dict[str, Any]:
-    """시장별로 새 상장을 읽어 누적 목록을 갱신한다. 시장 하나의 실패가 나머지를 막지 않는다."""
+    """시장별로 새 상장을 읽어 누적 목록을 갱신하고, 미검수 상장을 자동 판정(theme_listing_auto_review_v1)한다.
+
+    시장 하나의 실패가 나머지를 막지 않는다. ``review_get=None`` 이면 자동 판정을 건너뛴다(시험용).
+    """
     now = now or datetime.now(timezone.utc)
     checked_at = now.isoformat(timespec="seconds")
     today = now.date()
@@ -477,10 +489,27 @@ def refresh_theme_listing_watch(
     for venue, state in venues.items():
         state.setdefault("label", VENUES[venue]["label"])
         state.setdefault("source_url", VENUES[venue]["source_url"])
-    listings = classify(
-        sorted(gathered.values(), key=lambda row: (row["listing_date"], row["venue"], row["code"])),
-        load_theme_listing_additions(root), load_reviews(root), load_theme_listing_pipeline(root),
-    )
+    ordered = sorted(gathered.values(), key=lambda row: (row["listing_date"], row["venue"], row["code"]))
+    listings = classify(ordered, load_theme_listing_additions(root), load_reviews(root),
+                        load_theme_listing_pipeline(root))
+    auto_review: dict[str, Any] | None = None
+    if review_get is not None and any(row["status"] == "pending_review" for row in listings):
+        from .theme_listing_review import JPX_EN_URL, apply_auto_review, jpx_outline_links
+
+        jpx_links: dict[str, str] = {}
+        if any(row["status"] == "pending_review" and row["venue"] == "jp" for row in listings):
+            try:
+                jpx_links = jpx_outline_links(review_get(JPX_EN_URL).decode("utf-8", errors="replace"))
+            except _FETCH_ERRORS:
+                jpx_links = {}
+        auto_review = apply_auto_review(root, listings, get=review_get, reviewed_at=today.isoformat(),
+                                        jpx_links=jpx_links)
+        verdicts = {(row["venue"], row["code"]): row.get("auto_review") for row in listings}
+        listings = classify(ordered, load_theme_listing_additions(root), load_reviews(root),
+                            load_theme_listing_pipeline(root))
+        for row in listings:
+            if verdicts.get((row["venue"], row["code"])):
+                row["auto_review"] = verdicts[(row["venue"], row["code"])]
     additions_sha = hashlib.sha256((root / THEME_LISTING_RELATIVE).read_bytes()).hexdigest() \
         if (root / THEME_LISTING_RELATIVE).is_file() else None
     payload = {
@@ -489,8 +518,10 @@ def refresh_theme_listing_watch(
         "checked_at": checked_at,
         "watch_start": WATCH_START,
         "census_through": CENSUS_THROUGH,
-        "role": "review_queue_only_not_index_input",
-        "decides_theme": False,
+        "role": "listing_watch_with_auto_review",
+        "decides_theme": "auto_rule_v1 (data/contracts/theme_listing_auto_review_v1.yaml); manual decisions are kept",
+        "auto_review": auto_review,
+        "auto_rule": _auto_rule_disclosure(root),
         "review_grace_days": REVIEW_GRACE_DAYS,
         "additions_sha256": additions_sha,
         "venues": venues,
@@ -500,6 +531,27 @@ def refresh_theme_listing_watch(
     }
     _write_json(root / WATCH_RELATIVE, payload)
     return payload
+
+
+def _auto_rule_disclosure(root: Path) -> dict[str, Any] | None:
+    """자동 판정이 명단에 넣은 건수와 규칙의 홀드아웃 일치도 — 화면이 둘을 함께 보여야 자동분의 무게를 읽는다."""
+    from .theme_listing_review import NOTE_PREFIX, REVIEWER, RULES_RELATIVE, load_rules
+
+    try:
+        rules = load_rules(root)
+    except (OSError, ValueError):
+        return None
+    adopted = next((entry for entry in reversed(rules.get("change_log") or []) if entry.get("holdout")), {})
+    holdout = adopted.get("holdout") or {}
+    additions = load_theme_listing_additions(root)
+    return {
+        "contract": RULES_RELATIVE.as_posix(),
+        "reviewer": REVIEWER,
+        "rules_fixed_at": rules.get("rules_fixed_at"),
+        "auto_counted": sum(1 for row in additions if row["note"].startswith(NOTE_PREFIX)),
+        "auto_not_counted": sum(1 for row in load_reviews(root) if row.get("reviewer") == REVIEWER),
+        "holdout": {key: holdout.get(key) for key in ("n", "recall", "precision", "agreement", "count_ratio")},
+    }
 
 
 def load_watch_summary(root: Path) -> dict[str, Any] | None:
@@ -516,4 +568,5 @@ def load_watch_summary(root: Path) -> dict[str, Any] | None:
         "venues": {venue: {"status": state.get("status"), "label": state.get("label")}
                    for venue, state in (payload.get("venues") or {}).items()},
         "uncovered_venues": payload.get("uncovered_venues") or [],
+        "auto_rule": payload.get("auto_rule"),
     }

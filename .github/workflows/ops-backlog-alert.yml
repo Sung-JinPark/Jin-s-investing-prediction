@@ -120,7 +120,8 @@ jobs:
               print("파생 실패 (tools/c5_status.py 로 확인)")
           PY
           )
-          # 해외 테마 상장 감시 (2026-10-26) — 전수조사 이후 상장은 사람이 판정해야 IPO 지표에 들어간다.
+          # 해외 테마 상장 감시 (2026-10-26) — 자동 판정은 사업 설명을 얻어야 돌아간다. 7일 넘게 못 얻은 상장은
+          # 원천 장애이지 판정 문제가 아니다.
           # 7일 넘게 미검수인 상장과, 3일 넘게 못 읽은 거래소를 센다. 파일이 없으면 0.
           theme=$(python - <<'PY'
           import datetime, json, pathlib
@@ -168,7 +169,7 @@ jobs:
           if [ "$TOTAL" -eq 0 ]; then
             if [ -n "$number" ]; then
               gh issue close "$number" --repo "$GITHUB_REPOSITORY" \
-                --comment "백로그 해소 — 판정 대기 0 · 마감 경과 미예측 0 · 14일+ 대기 정정 0 · 테마 상장 미검수 0. 자동 종료합니다."
+                --comment "백로그 해소 — 판정 대기 0 · 마감 경과 미예측 0 · 14일+ 대기 정정 0 · 테마 상장 판정 대기 0. 자동 종료합니다."
             fi
             echo "백로그 없음"
             exit 0
@@ -182,7 +183,7 @@ jobs:
           | 판정 대기 | ${RESOLVE} | 해소 표본이 P3 게이트(50건)의 병목입니다 |
           | **마감 경과 미예측** | **${LAPSED}** | **가장 치명적** — 결과를 안 뒤 예측을 넣는 것은 소급 삽입이라 영구히 채점 불가(void)합니다 |
           | 14일+ 대기 정정 | ${CORR} | 격리된 값이 집계에서 계속 빠집니다 |
-          | 해외 테마 상장 미검수(7일+)·감시 지연 거래소(3일+) | ${THEME} | 과열도 IPO 지표가 그 상장을 아직 세지 않습니다 — \`data/statistics/ipo/theme_listing_watch.json\` 의 pending_review 를 판정해 additions 또는 reviews 에 기록 |
+          | 해외 테마 상장 판정 대기(7일+)·감시 지연 거래소(3일+) | ${THEME} | 사업 설명 원천(Eastmoney·MOPS·JPX·KIND)을 못 읽어 자동 판정이 멈춘 상장입니다 — \`data/statistics/ipo/theme_listing_watch.json\` 의 auto_review·venues 오류 확인 |
           | (참고) 재예측 기한 도래 | ${FORECAST} | |
           | (참고) stale | ${STALE} | |
 
