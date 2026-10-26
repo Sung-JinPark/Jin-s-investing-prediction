@@ -40,7 +40,7 @@ jobs:
       - name: Refresh monthly IPO counts (Ritter confirmed + Nasdaq provisional)
         # Fail-soft by design: a failed fetch keeps the stored tables and records the reason.
         run: python -m ai_fc ipo-monthly-counts
-      - name: Watch foreign theme listings after the census and auto-review them (theme_listing_auto_review_v1)
+      - name: Watch foreign theme listings after the census and auto-review them (theme_listing_auto_review_v2)
         # Fail-soft per venue and per listing: a failed exchange keeps its last listings and is marked stale;
         # a listing whose business description cannot be fetched stays pending and is retried next run.
         run: python -m ai_fc theme-listing-watch
