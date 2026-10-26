@@ -1322,16 +1322,17 @@ function drawTrendWorkspace(host,detail,analysis,baseBars,bars,asset,scale,versi
     state.xRange=boundedWindow(anchor-nextRatio*span,span);state.factor=target;state.heldCount=null;
     if(nextRange!==range)state.yRange=nextRange;ws.range=null;repaint();
   };
-  const pinchOrigin=point=>{
-    const current=windowRange(),range=state.yRange||m.range,frame=priceFrame(range),clamp=value=>Math.max(0,Math.min(1,value));
+  const pinchOrigin=(point,pan=false)=>{
+    const current=windowRange(),range=state.yRange||m.range,frame=priceFrame(range),clamp=value=>pan?value:Math.max(0,Math.min(1,value));
     const rx=clamp((point.x-frame.L)/(frame.W-frame.L-frame.R)),ry=clamp((point.y-frame.T)/(frame.H-frame.T-frame.B));
-    return {state,scale,baseBars,factor:state.factor,width:current[1]-current[0],range:range.slice(),index:current[0]+rx*(current[1]-current[0]),price:range[1]-ry*(range[1]-range[0])};
+    return {state,scale,baseBars,pan,factor:state.factor,width:current[1]-current[0],range:range.slice(),index:current[0]+rx*(current[1]-current[0]),price:range[1]-ry*(range[1]-range[0])};
   };
+  const isCurrentOrigin=origin=>origin?.state===state&&origin?.scale===scale&&origin?.baseBars===baseBars;
   const pinch=(origin,factor,point)=>{
-    if(origin.state!==state||origin.scale!==scale||origin.baseBars!==baseBars)return;
+    if(!isCurrentOrigin(origin))return;
     const target=Math.max(1,Math.min(maximum,factor));if(!Number.isFinite(target))return;
     // Always use the gesture's starting data point, even between redraws or at a zoom limit.
-    const step=target/origin.factor,frame=priceFrame(origin.range),clamp=value=>Math.max(0,Math.min(1,value)),ry=clamp((point.y-frame.T)/(frame.H-frame.T-frame.B));
+    const step=target/origin.factor,frame=priceFrame(origin.range),clamp=value=>origin.pan?value:Math.max(0,Math.min(1,value)),ry=clamp((point.y-frame.T)/(frame.H-frame.T-frame.B));
     const height=(origin.range[1]-origin.range[0])/step,range=[origin.price-(1-ry)*height,origin.price+ry*height];if(!validRange(range))return;
     const nextFrame=priceFrame(range),rx=clamp((point.x-nextFrame.L)/(nextFrame.W-nextFrame.L-nextFrame.R)),width=target===1?domain[1]-domain[0]:origin.width/step;
     const next=boundedWindow(origin.index-rx*width,width),current=windowRange(),previous=state.yRange||m.range;
@@ -1345,7 +1346,7 @@ function drawTrendWorkspace(host,detail,analysis,baseBars,bars,asset,scale,versi
   const scalePrice=(factor,ratio=.5)=>{const [low,high]=state.yRange||m.range,anchor=low+ratio*(high-low),span=(high-low)*factor;setRange([anchor-ratio*span,anchor+(1-ratio)*span]);};
   const preset=label=>{const row=TREND_RANGE_PRESETS.find(item=>item[0]===label);if(!row)return;const crypto=detail.asset?.kind==='crypto'||detail.asset_id==='bitcoin',count=row[1]===null?baseBars.length:Math.min(baseBars.length,Math.max(20,crypto?row[2]:row[1]));state.heldCount=count;state.factor=baseBars.length/count;state.offset=null;state.yRange=null;state.xRange=null;ws.range=label;repaint();};
   const goto=value=>{if(!trendManualDate(value))return;let position=baseBars.findIndex(bar=>date(bar)>=value);if(position<0)position=baseBars.length-1;state.heldCount=bars.length;state.offset=clampOffset(position-Math.floor(bars.length/2));state.xRange=null;ws.range=null;repaint();};
-  host._trendNavigation={m,zoom,pinchOrigin,pinch,pan,panTo,panWindow,setRange,scalePrice,preset,goto,repaint,state,baseBars,bars};
+  host._trendNavigation={m,zoom,pinchOrigin,isCurrentOrigin,pinch,pan,panTo,panWindow,setRange,scalePrice,preset,goto,repaint,state,baseBars,bars};
   host.querySelectorAll?.('[data-trend-tool]').forEach(button=>{const action=button.dataset.trendTool;button.disabled=action==='in'&&state.factor>=maximum||action==='out'&&(state.factor<=1||(state.xRange?state.xRange[1]-state.xRange[0]>=domain[1]-domain[0]-1e-9:bars.length>=baseBars.length))||action==='left'&&(state.xRange?state.xRange[0]<=domain[0]+1e-9:state.offset<=0)||action==='right'&&(state.xRange?state.xRange[1]>=domain[1]-1e-9:state.offset>=limit());if(action==='range')button.setAttribute('aria-pressed',String(ws.range===button.dataset.trendRange));button.onclick=()=>{if(action==='range'){preset(button.dataset.trendRange);return;}if(action==='in'||action==='out'){zoom(state.factor*(action==='in'?1.5:1/1.5));return;}if(action==='reset'){ws.resetView();return;}pan(Math.round(bars.length*.4)*(action==='left'?-1:1));};});
   const span=host.querySelector('[data-trend-ws-span]');if(span)span.textContent=`${date(bars[0])} — ${date(bars.at(-1))} · ${bars.length.toLocaleString('ko-KR')}봉`;
   const auto=host.querySelector('[data-trend-ws-action="auto"]');auto?.setAttribute('aria-pressed',String(!state.yRange));
@@ -1368,18 +1369,31 @@ function drawTrendWorkspace(host,detail,analysis,baseBars,bars,asset,scale,versi
     // Suppress native text selection before the SVG is repainted during panning.
     event.preventDefault();event.target.closest('svg[data-trend-plot]')?.focus?.({preventScroll:true});
     if(event.pointerType==='touch'&&!pointers.size)touchPress={id:event.pointerId,x:event.clientX,y:event.clientY,at:event.timeStamp,previous:tapSeed?.id===event.pointerId?tapSeed.previous:null};else clearTaps();tapSeed=null;
-    pointers.set(event.pointerId,{x:event.clientX,y:event.clientY});if(event.isTrusted)host.setPointerCapture?.(event.pointerId);
+    pointers.set(event.pointerId,{x:event.clientX,y:event.clientY,type:event.pointerType});if(event.isTrusted)host.setPointerCapture?.(event.pointerId);
     if(pointers.size>2){clearGesture();return;}
     if(pointers.size===2){const values=[...pointers.values()],midpoint=local({clientX:(values[0].x+values[1].x)/2,clientY:(values[0].y+values[1].y)/2});gesture={kind:'pinch',distance:Math.max(1,Math.hypot(values[0].x-values[1].x,values[0].y-values[1].y)),origin:nav.pinchOrigin(midpoint)};host.dataset.trendGesture='plot';return;}
     gesture={kind:p.x>plot.W-plot.R?'price':p.y>plot.H-plot.B?'time':'plot',id:event.pointerId,x:event.clientX,y:event.clientY,offset:nav.state.offset,factor:nav.state.factor,range:(nav.state.yRange||plot.range).slice(),plotWidth:Math.max(1,(plot.W-plot.L-plot.R)/plot.W*p.bounds.width),plotHeight:Math.max(1,(plot.H-plot.T-plot.B)/plot.H*p.bounds.height),count:nav.bars.length,first:plot.first,span:plot.end-plot.first,moved:false};host.dataset.trendGesture=gesture.kind;});
-  host.addEventListener('pointermove',event=>{if(!pointers.has(event.pointerId))return;if(touchPress?.id===event.pointerId&&Math.hypot(event.clientX-touchPress.x,event.clientY-touchPress.y)>=5)clearTaps();pointers.set(event.pointerId,{x:event.clientX,y:event.clientY});const nav=host._trendNavigation;if(!gesture||!nav?.zoom)return;
+  host.addEventListener('pointermove',event=>{if(!pointers.has(event.pointerId))return;if(touchPress?.id===event.pointerId&&Math.hypot(event.clientX-touchPress.x,event.clientY-touchPress.y)>=5)clearTaps();pointers.set(event.pointerId,{x:event.clientX,y:event.clientY,type:event.pointerType});const nav=host._trendNavigation;if(!gesture||!nav?.zoom)return;
     if(gesture.kind==='pinch'){if(pointers.size===2){const values=[...pointers.values()],midpoint=local({clientX:(values[0].x+values[1].x)/2,clientY:(values[0].y+values[1].y)/2});if(!midpoint)return;event.preventDefault();nav.pinch(gesture.origin,gesture.origin.factor*Math.hypot(values[0].x-values[1].x,values[0].y-values[1].y)/gesture.distance,midpoint);}return;}
-    if(gesture.id!==event.pointerId)return;const dx=event.clientX-gesture.x,dy=event.clientY-gesture.y;if(!gesture.moved&&Math.hypot(dx,dy)<5)return;gesture.moved=true;event.preventDefault();
+    if(gesture.id!==event.pointerId)return;
+    if(gesture.origin){const point=local(event);if(point){event.preventDefault();nav.pinch(gesture.origin,gesture.origin.factor,point);}return;}
+    const dx=event.clientX-gesture.x,dy=event.clientY-gesture.y;if(!gesture.moved&&Math.hypot(dx,dy)<5)return;gesture.moved=true;event.preventDefault();
     const [low,high]=gesture.range;
     if(gesture.kind==='price'){const half=(high-low)/2*Math.exp(dy*.006),mid=(low+high)/2;nav.setRange([mid-half,mid+half]);return;}
     if(gesture.kind==='time'){nav.zoom(gesture.factor*Math.exp(-dx*.006),1);return;}
     const shift=dy/gesture.plotHeight*(high-low),range=nav.state.yRange||Math.abs(dy)>12?[low+shift,high+shift]:null;if(nav.state.xRange)nav.panWindow(gesture.first-dx/gesture.plotWidth*gesture.span,range);else nav.panTo(gesture.offset-dx/gesture.plotWidth*gesture.count,range);});
-  const release=event=>{if(!pointers.delete(event.pointerId))return;if(gesture?.kind==='pinch'&&pointers.size<2||gesture?.id===event.pointerId)clearGesture();if(host.hasPointerCapture?.(event.pointerId))host.releasePointerCapture(event.pointerId);};
+  const release=(event,continuePan=false)=>{
+    if(!pointers.delete(event.pointerId))return;
+    if(gesture?.kind==='pinch'&&pointers.size<2||gesture?.id===event.pointerId){
+      const nav=host._trendNavigation,remaining=pointers.size===1?[...pointers.entries()][0]:null;
+      const point=continuePan&&event.pointerType==='touch'&&gesture.kind==='pinch'&&remaining?.[1].type==='touch'&&nav?.isCurrentOrigin(gesture.origin)?local({clientX:remaining[1].x,clientY:remaining[1].y}):null;
+      if(point){
+        // Keep the current viewport and rebase at the remaining finger, even before its redraw.
+        clearTaps();gesture={kind:'plot',id:remaining[0],origin:nav.pinchOrigin(point,true),moved:true};host.dataset.trendGesture='plot';
+      }else clearGesture();
+    }
+    if(host.hasPointerCapture?.(event.pointerId))host.releasePointerCapture(event.pointerId);
+  };
   const cancel=()=>{clearTaps();for(const id of [...pointers.keys()])release({pointerId:id});clearGesture();};
   window.addEventListener('blur',cancel);host._trendWsDisposeNavigation=()=>{cancel();window.removeEventListener('blur',cancel);};
   const canResetFromChart=event=>{
@@ -1394,7 +1408,7 @@ function drawTrendWorkspace(host,detail,analysis,baseBars,bars,asset,scale,versi
     host._trendWorkspace?.resetView();
   };
   host.addEventListener('pointerup',event=>{
-    const press=touchPress;touchPress=null;tapSeed=null;release(event);
+    const press=touchPress;touchPress=null;tapSeed=null;release(event,true);
     if(event.pointerType!=='touch')return;lastTouchAt=event.timeStamp;
     if(!press||press.id!==event.pointerId||pointers.size||event.timeStamp-press.at>250||Math.hypot(event.clientX-press.x,event.clientY-press.y)>=5||!canResetFromChart(event)){clearTaps();return;}
     const previous=press.previous,tap={x:event.clientX,y:event.clientY,at:event.timeStamp};
