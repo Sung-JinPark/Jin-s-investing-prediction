@@ -20,8 +20,16 @@
 - V8 tier-2 replay 1회 감독 실행 (백그라운드) → 완료 시
   `cd src && python -m ai_fc.mts_research.cli replay-baseline` 재실행으로
   baseline_identity.json 의 v8_tier2 갱신.
-- P10: 전체 스위트 회귀(`cd src && python -m pytest tests -q`, 8~11분) + inventory 재생성
-  (`cd src && python -m ai_fc inventory`) + 최종 커밋.
+
+## P10 결과 (2026-10-26)
+
+- 전체 스위트 회귀: **3,632 passed / 1 failed / 20 skipped (24:46)**.
+  실패 1건 = `test_trendlines_local_service.py::test_http_never_runs_refresh_or_writes`
+  — 재실행 시 실패 파라미터가 PUT→POST 로 바뀌는 Windows socket flake
+  (ConnectionAbortedError). 본 브랜치는 trendlines 코드·테스트 무변경 — 환경 요인,
+  코드 결함 아님 (저장소의 알려진 Windows 전용 실패 패턴과 동류).
+- `python -m ai_fc inventory --check` 통과 · `audit-ledgers --check` violation 0
+  (planned 8 = mts 6종 포함) — 커밋 cd1e3c25.
 
 ## 남은 조건 (BLOCKED — implementation_handoff.md 표 참조)
 
