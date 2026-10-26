@@ -13,6 +13,9 @@ daily_prices:
 daily_rates:
   series: [DGS2, DGS10, T10Y2Y]
   calendar: US_FED_BOARD
+  observation_calendar: US_TREASURY_QUOTES
+  good_friday: closed_except_registered_quote_days
+  good_friday_quote_days: ['2026-04-03']
   observation_lag_business_days: 1
   release_time: '16:15'
   distribution_grace_hours: 2
@@ -29,6 +32,8 @@ sources:
   h10: https://www.federalreserve.gov/releases/h10/
   h15: https://www.federalreserve.gov/releases/h15/
   board_holidays: https://www.federalreserve.gov/aboutthefed/k8.htm
+  treasury_holidays: https://www.sifma.org/resources/general/holiday-schedule
+  good_friday_2026: https://www.sifma.org/news/press-releases/sifma-fixed-income-market-close-recommendations-in-the-u-s-the-u-k-and-japan-for-good-friday-easter-monday-holidays-2026
 notes:
   - Deadlines are operational waiting limits, never synthetic available_at timestamps.
   - A successful refetch cannot make an old observation current.

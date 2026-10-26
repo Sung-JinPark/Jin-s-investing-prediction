@@ -23,6 +23,8 @@ def policy() -> dict:
         raise ValueError("forecast publication policy identity invalid")
     if (body["daily_prices"]["calendar"] != "XNAS"
             or body["daily_rates"]["calendar"] != "US_FED_BOARD"
+            or body["daily_rates"]["observation_calendar"] != "US_TREASURY_QUOTES"
+            or body["daily_rates"]["good_friday"] != "closed_except_registered_quote_days"
             or body["daily_rates"]["observation_lag_business_days"] != 1
             or body["weekly_dollar"]["calendar"] != "US_FED_BOARD"
             or body["weekly_dollar"]["release"] != "monday_or_next_board_business_day"
@@ -46,9 +48,13 @@ def board_business_day(day: date) -> bool:
     return day.weekday() < 5 and day not in _board_holidays(day.year)
 
 
-def _previous_board_day(day: date) -> date:
+def _previous_rate_observation(day: date, section: dict) -> date:
+    from pandas.tseries.holiday import GoodFriday
+    closures = {stamp.date() for stamp in GoodFriday.dates(
+        f"{day.year - 1}-01-01", f"{day.year}-12-31")}
+    quote_days = {date.fromisoformat(value) for value in section["good_friday_quote_days"]}
     cursor = day - timedelta(days=1)
-    while not board_business_day(cursor):
+    while not board_business_day(cursor) or (cursor in closures and cursor not in quote_days):
         cursor -= timedelta(days=1)
     return cursor
 
@@ -97,7 +103,7 @@ def source_freshness(series_id: str, observed: str, now: datetime) -> dict:
         for offset in range(-60, 8):
             release = local_day + timedelta(days=offset)
             if board_business_day(release):
-                deadlines.append((_previous_board_day(release), _release_at(release, section)))
+                deadlines.append((_previous_rate_observation(release, section), _release_at(release, section)))
         invalid = day > local_day or not board_business_day(day)
     elif series_id in rules["weekly_dollar"]["series"]:
         section = rules["weekly_dollar"]

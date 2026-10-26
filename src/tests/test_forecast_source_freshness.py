@@ -76,6 +76,24 @@ def test_h15_missing_after_next_board_release_and_federal_holiday():
     assert report("DGS2", "2026-07-02", "2026-07-06T05:00:00+00:00")["status"] == "fresh"
 
 
+@pytest.mark.parametrize("sid", ["DGS2", "DGS10", "T10Y2Y"])
+def test_h15_release_day_and_treasury_quote_day_are_distinct(sid):
+    # Board open, bonds fully closed; no Friday quote is due on Monday.
+    for observed, stamp in [("2025-04-17", "2025-04-21T22:15:00+00:00"),
+                            ("2027-03-25", "2027-03-29T22:15:00+00:00")]:
+        x = report(sid, observed, stamp)
+        assert x["status"] == "fresh" and x["expected_observation"] == observed
+    # Employment-report exception: April 3, 2026 is an actual quote day.
+    x = report(sid, "2026-04-02", "2026-04-06T22:15:00+00:00")
+    assert x["status"] == "stale" and x["expected_observation"] == "2026-04-03"
+    assert report(sid, "2026-04-03", "2026-04-06T22:15:00+00:00")["status"] == "fresh"
+
+
+def test_h10_fx_does_not_inherit_bond_good_friday_closure():
+    x = report("DTWEXBGS", "2025-04-17", "2025-04-21T22:15:00+00:00")
+    assert x["status"] == "stale" and x["expected_observation"] == "2025-04-18"
+
+
 def test_legacy_compatibility_pins_all_numerics_and_rejects_other_old_hashes(tmp_path):
     rel = Path("data/contracts/daily6m_calendar_gate_compatibility_v1.json")
     policy = json.loads((ROOT / rel).read_text())
