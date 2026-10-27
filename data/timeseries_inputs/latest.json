@@ -1,45 +1,45 @@
 {
-  "bundle_id": "ts-inputs-20986089e7f4707bed4677ba",
-  "capture_completed_at": "2026-10-26T23:55:06.362927+00:00",
+  "bundle_id": "ts-inputs-7524f643d3f677f166c9bcb5",
+  "capture_completed_at": "2026-10-27T05:07:17.316570+00:00",
   "changed": true,
-  "checked_at": "2026-10-26T23:56:06.814201+00:00",
-  "content_hash": "a9fbe6f1494a93379a2b5dffa49a19c85530274d28e40755dc071fbbdbd92f19",
+  "checked_at": "2026-10-27T05:08:29.949649+00:00",
+  "content_hash": "0b87731b379628d207d9d9a64f2b5f8680a4cbeadef04bce9c4041702030e4c3",
   "contract_id": "timeseries_inputs_refresh_v1",
   "eligibility_changed": true,
-  "eligibility_hash": "ffeaeecf68aa7dea5d4d3ff269c6dac77268a72b4aafe8a24526b95abf131912",
+  "eligibility_hash": "1ba2d814e07d39c511080e0b290cb352dce0576dab84ad1da75b7bbdd7e64e52",
   "eligibility_status": "hold",
   "eligible_native_latest": {
     "DGS2": {
-      "available_at": "2026-10-24T03:59:59+00:00",
-      "observation_time": "2026-10-22",
+      "available_at": "2026-10-27T03:59:59+00:00",
+      "observation_time": "2026-10-23",
       "series_id": "DGS2",
-      "source_hash": "2138fe2e800f27f42d8ce46ae875b9b367e5bc1033892b3fcc26705ac675d455",
-      "value": 4.65,
-      "vintage_start": "2026-10-24T03:59:59+00:00"
+      "source_hash": "5e7e8b80091c4c8c8fc6112576fa7cec5250ea85139a916c5ac99c47e7ff796d",
+      "value": 4.69,
+      "vintage_start": "2026-10-27T03:59:59+00:00"
     },
     "DTWEXBGS": {
-      "available_at": "2026-10-20T03:59:59+00:00",
-      "observation_time": "2026-10-16",
+      "available_at": "2026-10-27T03:59:59+00:00",
+      "observation_time": "2026-10-23",
       "series_id": "DTWEXBGS",
-      "source_hash": "b233dd031bc2bf003478d2426984f393f74b1686d2d8181e2598fcd3a172e7fe",
-      "value": 121.4048,
-      "vintage_start": "2026-10-20T03:59:59+00:00"
+      "source_hash": "d84fa09aa2b090b014f8d4ffe922146868d6ec6697f66426fcbd7f72643287fb",
+      "value": 121.3202,
+      "vintage_start": "2026-10-27T03:59:59+00:00"
     },
     "NASDAQCOM": {
-      "available_at": "2026-10-24T03:59:59+00:00",
-      "observation_time": "2026-10-23",
+      "available_at": "2026-10-27T03:59:59+00:00",
+      "observation_time": "2026-10-26",
       "series_id": "NASDAQCOM",
-      "source_hash": "c84f58989c1d4555ca1681634fc66eda95d2ed958472681bdbb85486b9ac0d9b",
-      "value": 25955.34,
-      "vintage_start": "2026-10-24T03:59:59+00:00"
+      "source_hash": "c24f575e4770743df1b56c1de4db803a4b96221d5a334fb6ddaab0470678a3e5",
+      "value": 26169.38,
+      "vintage_start": "2026-10-27T03:59:59+00:00"
     },
     "T10Y2Y": {
-      "available_at": "2026-10-24T03:59:59+00:00",
-      "observation_time": "2026-10-23",
+      "available_at": "2026-10-27T03:59:59+00:00",
+      "observation_time": "2026-10-26",
       "series_id": "T10Y2Y",
-      "source_hash": "8fbb244203eae792bc2bbb81e6db2c9b9f9fd52103b719632bbb58c7a22f0a80",
-      "value": 0.31,
-      "vintage_start": "2026-10-24T03:59:59+00:00"
+      "source_hash": "df145ffffce75296ce5560072ec5c1d1751a4d0b411866d0fc873fa813920fdf",
+      "value": 0.32,
+      "vintage_start": "2026-10-27T03:59:59+00:00"
     },
     "VIXCLS": {
       "available_at": "2026-10-24T03:59:59+00:00",
@@ -52,20 +52,20 @@
   },
   "expected_session": "2026-10-26",
   "native_watermarks": {
-    "DGS2": "2026-10-26T23:55:03.783742+00:00",
-    "DTWEXBGS": "2026-10-26T23:55:04.903047+00:00",
-    "NASDAQCOM": "2026-10-26T23:55:02.331632+00:00",
-    "T10Y2Y": "2026-10-26T23:55:04.198287+00:00",
-    "VIXCLS": "2026-10-26T23:55:03.291339+00:00"
+    "DGS2": "2026-10-27T05:07:14.581410+00:00",
+    "DTWEXBGS": "2026-10-27T05:07:15.878438+00:00",
+    "NASDAQCOM": "2026-10-27T05:07:12.925031+00:00",
+    "T10Y2Y": "2026-10-27T05:07:15.274785+00:00",
+    "VIXCLS": "2026-10-27T05:07:13.814796+00:00"
   },
   "publication_allowed": true,
   "schema_version": 1,
-  "semantic_changed": false,
+  "semantic_changed": true,
   "source_failures": [],
   "source_status": [
     {
       "series_id": "NASDAQCOM",
-      "status": "stale"
+      "status": "fresh"
     },
     {
       "series_id": "VIXCLS",
@@ -77,11 +77,11 @@
     },
     {
       "series_id": "T10Y2Y",
-      "status": "stale"
+      "status": "fresh"
     },
     {
       "series_id": "DTWEXBGS",
-      "status": "stale"
+      "status": "fresh"
     }
   ],
   "status": "ready"
