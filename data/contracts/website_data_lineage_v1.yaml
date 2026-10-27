@@ -169,7 +169,7 @@ statistics:
       reviews: data/statistics/ipo/theme_listing_reviews.csv
       charts: [ipo_count_operating_12m]
       payload_key: theme_listing_watch
-      rules: data/contracts/theme_listing_auto_review_v1.yaml
+      rules: data/contracts/theme_listing_auto_review_v3.yaml
       gate: summary_only_in_payload_counts_flow_through_additions_rows
 
 reference_statistics:

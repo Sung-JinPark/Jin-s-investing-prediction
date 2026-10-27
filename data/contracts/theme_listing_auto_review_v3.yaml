@@ -1,0 +1,459 @@
+version: 2026-10-27.v3
+contract_id: theme_listing_auto_review_v3
+supersedes: theme_listing_auto_review_v2   # v1·v2 파일은 기록으로 그대로 둔다
+status: preregistered_before_new_validation_segment
+decided_by: user                      # 2026-10-27 "수기로 하지 않고 규칙이자 새버전 새 검증 구간 만들어서 자동업데이트"
+rules_fixed_at: "2026-10-27T09:34:42Z" # 새 검증 구간(아래 validation) 측정 전에 고정
+scope: dotcom_overheat_index_v5 indicator ipo_count_operating_12m — theme listings after the v5 census
+probability_space: reference_only
+fitting: none                         # 가중치·임계 학습 없음. 용어 목록과 절차는 사람이 정한 고정 규칙이다
+
+validation:
+  segment: new_venues_census_period   # v1·v2 가 한 번도 보지 않은 시장 — 이번 확장으로 처음 감시하는 곳
+  venues: [euronext, lse, us_adr]
+  window: ["2022-02-01", "2026-10-22"] # v5 전수조사 라벨이 있는 구간
+  labels: theme_listing_additions.csv (v5 전수조사, 사람 판정)
+  measured_once: true                 # 이 구간 결과로 v3 규칙(용어·절차)을 고치지 않는다 — 고치려면 v4 + 새 구간
+  regression_report: 기존 6개 시장(이미 v2 홀드아웃으로 본 구간)은 v3 변경의 영향만 함께 공시
+  first_measurement:                  # 2026-10-27T10:2xZ — 독립 측정(이 구간을 처음 봤다)
+    {n: 754, TP: 6, FN: 7, FP: 2, TN: 682, no_text: 57, recall: 0.462, precision: 0.750, agreement: 0.987, count_ratio: 0.615}
+  implementation_fixes_after_first_measurement:   # 규칙(용어·절차)이 아니라 계약을 코드가 못 따른 결함만 고쳤다
+    - ADS 표지 문구 변형('initial public offering, or the offering, of … ADSs'·'price of the ADSs is …'·'no public market for the ADSs or our shares')을 못 읽음
+    - 투자설명서 요약 첫 문장 추출이 앞 문장 꼬리를 붙임('…General Motors. WeRide is …')
+    - 계약 text_sources 가 Euronext·LSE 는 회사명도 근거라고 했는데 코드가 이름만 있는 행을 no_text 로 멈춤
+    - 공모가 '51.00.'(문장 끝 마침표) 숫자 변환 실패, 같은 티커의 IPO·후속 공모 424B4 가 한 키로 겹침
+  result:                             # 구현 수정 후 같은 구간 재측정 — 독립 검증이 아니다(공시용 운영 수치)
+    n: 754
+    TP: 9
+    FN: 6
+    FP: 3
+    TN: 734
+    no_text: 2
+    recall: 0.600
+    precision: 0.750
+    agreement: 0.988
+    count_ratio: 0.800                # 새 시장은 전수조사보다 덜 센다 — 업종 분류·회사명만으로는 AI 회사를 놓친다
+    basis: after_implementation_fix_same_segment_not_independent
+    sample_note: 양성 15건뿐이라 시장별 수치는 불안정하다
+  regression_on_old_venues:           # v2 홀드아웃 구간(이미 본 구간) — v3 용어 추가(robotaxi 등)의 영향
+    {holdout_v2: {precision: 0.766, count_ratio: 1.138}, holdout_v3: {precision: 0.759, count_ratio: 1.149}}
+
+change_log:
+  - version: v1
+    measured_at: "2026-10-26T02:45Z"
+    measured_on: census listings 2022-02 ~ 2026-10-22 (CN·HK·KR·TW 전 구간, JP 2026 영문 개요만), n=2,363
+    result: {recall: 0.871, precision: 0.592, agreement: 0.926, TP: 209, FN: 31, FP: 144, TN: 1970}
+    verdict: rejected — FP 가 FN 의 4.6배라 자동 판정이 전수조사보다 건수를 약 1.6배로 부풀린다(과열 쪽 편향)
+    causes_seen_on_development_split_only:   # 2022-02 ~ 2024-12 오류만 봤다. 2025-01 이후는 보지 않았다
+      - 두 번째 상장 판정 버그 — Eastmoney 가 신청만 한 회사에 주는 임시 코드(H2491.HK·A18091.SH)와 빈 상장일을
+        '먼저 상장' 으로 읽었다(FN 9건). 코드 수정
+      - 홍콩 F10 소개문이 현재 전체 사업을 길게 서술해 부수 언급된 AI 를 셌다 → 사업 설명의 첫 문장만 본다
+      - AI 가 사물인터넷·빅데이터·클라우드와 나란히 '쓰는 기술' 로 나열된 문장 → 기반 기술 동시 언급 절 제외
+      - 부업으로 나온 반도체(다이캐스팅 부품 '以及' 반도체 정밀부품) → 부차 표지(以及·此外…) 뒤는 보지 않는다
+      - 반도체 고객사 서비스(클린룸 시공·장비 세정·배관)·유통·수동부품(칩 저항·인덕터)·OLED 마스크 → 제외 업종 확장
+      - AI 서버 하드웨어(서버·방열·전원) → AI 제품 아님(계약 theme_rule: AI 칩·AI 소프트웨어·GPU 클라우드는 AI, 서버 조립은 아님)
+      - 반도체 공정 장비·소재의 영역 용어(EUV·테스트 소켓·번인·전자특수가스·결정 성장) 보강
+    known_unfixable_on_development_split:
+      - 원천 사업 설명은 '현재' 기준이다 — 상장 후 업종을 바꾼 회사(태양광→반도체 장비 등)는 검증에서 오류로 잡히지만
+        새 상장은 상장 시점에 판정하므로 실제 운용에는 생기지 않는다
+      - 한국 KIND 주요제품은 제품명만 나오기도 한다(예 'Lunit INSIGHT') — AI 회사를 놓친다
+  - version: v2-draft (rules_fixed_at 2026-10-26T02:54:49Z)
+    measured_on: development split only (2022-02 ~ 2024-12, n=1,552)
+    result: {recall: 0.932, precision: 0.743, agreement: 0.963, TP: 136, FN: 10, FP: 47, TN: 1359, count_ratio: 1.253}
+    verdict: revised — 여전히 건수 1.25배(과열 쪽). 개발 구간 오류만 보고 아래를 고쳤다
+    causes_seen_on_development_split_only:
+      - 여러 사업을 나열한 문장에서 테마가 둘째 이후 항목(모션제어 제품·파워칩, 골프카·반도체 장비, 영화·…·AI 드라마)
+        → 절마다 동사 연쇄(研发、生产和销售 등)를 지운 뒤 첫 항목에서만 찾는다(item_rule)
+      - 반도체 고객 대상 서비스(클린룸 시공·장비 세정·배관·유통)는 core 용어가 있어도 반도체가 아니다 → service_exclusions 분리
+      - AI 기반 신약개발, 통신·측위·AI 등 기술 응용 처럼 AI 가 수단인 문장 → enabling_tech 에 기반·驱动·赋能·等技术 추가
+      - 번체 AI 용어(人工智慧·機器學習) 누락, 태양광(太陽能)·PCB(印制线路板) 표기 누락 보강
+      - EDA 소프트웨어처럼 '반도체용 소프트웨어·도구' 도 공급망 → supply_nouns 에 软件·工具 추가
+      - 한국어 '및' 은 부차 표지가 아니다(그냥 '그리고') — secondary_markers 에서 뺐다(EUV 장비 행을 잘라 FN)
+  - version: v2-draft2 (rules_fixed_at 2026-10-26T03:17:00Z)
+    measured_on: development split only
+    result: {recall: 0.890, precision: 0.833, agreement: 0.9729, TP: 130, FN: 16, FP: 26, TN: 1380, count_ratio: 1.068}
+    verdict: revised — '基于·기반·based on' 을 기반 기술 표지로 넣자 한국 AI 소프트웨어('AI 기반 검색엔진')를 놓쳤다
+    variants_compared_on_development_split:   # 같은 개발 구간에서 4안 비교, 홀드아웃은 보지 않았다
+      - {variant: "항목 구분 、及和与 + 基于", recall: 0.890, precision: 0.833, agreement: 0.9729, count_ratio: 1.068}
+      - {variant: "항목 구분 、及和与, 基于 제외 (채택)", recall: 0.911, precision: 0.831, agreement: 0.9742, count_ratio: 1.096}
+      - {variant: "항목 구분 、만, 基于 제외", recall: 0.932, precision: 0.819, agreement: 0.9742, count_ratio: 1.137}
+      - {variant: "항목 규칙 없음, 基于 제외", recall: 0.938, precision: 0.783, agreement: 0.9697, count_ratio: 1.199}
+    choice: 일치도가 같으면 건수 비율이 1 에 가까운 쪽(과열 쪽 편향이 작은 쪽)을 고른다
+  - version: v2 (rules_fixed_at 2026-10-26T03:19:15Z, sha256 8be54f24… 고정 시점 파일)
+    measured_at: "2026-10-26T03:20Z"
+    development: {n: 1552, recall: 0.911, precision: 0.831, agreement: 0.974, TP: 133, FN: 13, FP: 27, TN: 1379, count_ratio: 1.096}
+    holdout:                          # 2025-01 ~ 2026-10-22, 규칙 고정 뒤 한 번만 봤다 — 이 결과로 규칙을 고치지 않는다
+      n: 811
+      recall: 0.872
+      precision: 0.766
+      agreement: 0.954
+      TP: 82
+      FN: 12
+      FP: 25
+      TN: 683
+      no_text: 9
+      count_ratio: 1.138             # 자동 판정이 전수조사보다 약 14% 더 센다(과열 쪽)
+      by_venue: {cn_a: "P0.92 R0.92", hk_main: "P0.71 R0.83", kr: "P0.67 R0.78", tw_tpex: "P0.80 R1.00",
+                 tw_twse: "P0.89 R0.89", jp: "양성 0건·FP 2·no_text 7(영문 개요는 최근 상장만 제공)"}
+    holdout_error_types_disclosed:    # 공시만 한다 — 규칙 수정은 새 버전과 새 홀드아웃이 있을 때만
+      - 미국에 먼저 상장한 회사의 홍콩 상장(예 Pony AI) — 두 번째 상장 판정이 A·H 쌍만 본다
+      - 로봇 제조사(AI 를 내세운 산업용·서비스 로봇) — 전수조사는 대부분 AI 로 세지 않았다
+      - AI 를 기능으로 내세운 마케팅·보안·비전 솔루션 — 전수조사와 판단이 갈린다
+      - 한국 KIND 주요제품이 제품명뿐인 AI 회사(Typecast·Neurophet) — 놓친다
+    verdict: adopted for automated review (사용자 결정) — 화면에 자동 판정 건수와 이 일치도를 함께 공시한다
+  - version: v3
+    rules_fixed_at: "2026-10-27T09:34:42Z"
+    why: 사용자 지시 — 유럽 등 전수조사가 손으로 찾던 시장, 미국 ADR, 상장 대기 회사(DeepSeek 등)도 수기 없이 자동 갱신
+    changes:
+      - 감시 시장 추가 — Euronext(IPO showcase + 상세 ICB·IPO 유형), 런던 LSE(New issues and IPOs 월간 엑셀),
+        미국 ADS 첫 공모(SEC 424B4 표지 고정 문구 + 요약 첫 문장 + SEC SIC), 미국 보통주(상장 대기 회사 일치 건만)
+      - 상장 대기 회사 현지 법인명 별칭(pipeline_aliases) — 중국 STAR·홍콩 상장 시 한자 이름으로도 맞춘다
+      - 산업 분류 반도체 표지에 ICB/FTSE 'Semiconductors'·'Production Technology Equipment', SEC SIC
+        'Semiconductors & Related Devices' 추가 — 새 시장의 업종 분류가 영문이다
+      - AI 용어에 robotaxi·autonomous mobility 추가(자율주행 스택 — 계약 theme_rule 의 AI 정의 안)
+      - 새 시장의 상장 유형 규칙(event_rules_new_venues) — 기술적 상장·시장 이전·도입·역합병은 첫 공모가 아니다
+
+text_sources:
+  cn_a: [eastmoney_ipo.MAIN_BUSINESS, eastmoney_ipo.INDUSTRY_NAME, eastmoney_f10.EM2016, eastmoney_f10.MAIN_BUSINESS]
+  hk_main: [eastmoney_hk_f10.BELONG_INDUSTRY, eastmoney_hk_f10.MAIN_BUSINESS, eastmoney_hk_f10.ORG_PROFILE]
+  kr: [kind.industry, kind.main_products]
+  jp: [jpx_outline_en.business]
+  tw_twse: [mops_t05st03.industryCategory, mops_t05st03.mainBusiness]
+  tw_tpex: [mops_t05st03.industryCategory, mops_t05st03.mainBusiness]
+  euronext: [euronext_detail.icb, company_name]          # 사업 설명 문장 없음 — 업종 분류와 회사명만
+  lse: [lse_new_issues.ftse_industry_sector_subsector, company_name]
+  us_adr: [sec_424b4.prospectus_summary_first_sentence, sec_submissions.sicDescription]
+  us_ipo: [nasdaq_calendar.company_name]                  # 상장 대기 회사 일치에만 쓴다
+
+procedure:                            # 위에서부터 처음 걸리는 단계가 판정이다
+  - step: event_rule
+    rule: 감시가 이미 기계 제외한 상장(SPAC·공모 없음·시장 이전·2차 상장·KONEX)은 그대로 둔다
+  - step: second_listing
+    rule: >-
+      홍콩 H주인데 같은 법인(정식 명칭)이 그 전에 A주에 상장돼 있으면, A주인데 같은 법인이 그 전에 홍콩에
+      상장돼 있으면 not_first_listing(실제 숫자 코드와 상장일이 있는 상장만). 일본 개요의 Current Listed Market 이
+      N/A 가 아니면 not_first_listing. 대만 이름에 投控·投資控股(지주사 전환 상장)가 있으면 no_offering.
+  - step: event_rules_new_venues
+    rule: >-
+      Euronext — IPO 유형이 technical·transfer·direct listing·admission 이면 첫 공모 아님, 시장이 Euronext Access 면
+      초소형 시장 제외. LSE — 'LSE IPO' 가 IPO 가 아니면 발행 유형(Introduction=공모 없음, Transfer·Reverse takeover=
+      첫 상장 아님), 펀드 시장(SFM) 제외. 미국 ADS — 표지에 'This is an initial public offering of American depositary
+      shares' 와 'Prior to this offering, there has been no public market for the ADSs' 가 둘 다 있어야 첫 공모,
+      공모가 $5 미만이면 below_price_floor. 미국 보통주(us_ipo) — 상장 대기 회사 일치만 보고, 일치하면
+      us_ordinary_ritter(명단에 더하지 않고 대기 목록에서 지운다 — Ritter net·Nasdaq 잠정이 센다).
+  - step: pipeline
+    rule: 상장 대기 목록(theme_listing_pipeline.csv)의 회사와 이름이 맞으면 counted(대기 목록이 이미 출처 있는 테마 판정)
+    then: 대기 목록에서 그 행을 지운다(상장된 회사가 대기에 남으면 로더가 거부한다)
+  - step: text_required
+    rule: 사업 설명을 하나도 못 얻으면 판정하지 않고 다음 실행에 다시 시도한다(pending, 사유 no_text)
+  - step: lead_text
+    rule: >-
+      사업 설명 필드마다 첫 문장만 쓴다(문장 경계 sentence_breaks). 그 문장에서 secondary_markers 뒤는 버린다.
+      남은 글을 절(clause_breaks)로 나눈다.
+  - step: item_rule
+    rule: >-
+      각 절에서 verb_chain(동사가 둘 이상 이어진 '研发、生产和销售' 류)을 지우고 item_breaks 로 항목을 나눠 첫 항목만
+      아래 용어 검사에 쓴다 — 나열의 뒤쪽 항목은 부업이다.
+  - step: semiconductor
+    rule: >-
+      lead_text 나 산업 분류에 service_exclusions 가 있으면 not_theme(반도체 고객 대상 서비스·유통).
+      industry_semiconductor 가 맞거나 어떤 절의 첫 항목에 semiconductor_terms 가 있으면 semiconductor 후보. 그 절에
+      application_markers 가 있으면 semiconductor_supply_nouns 가 함께 있을 때만 인정(반도체 고객에 장비·소재·부품·
+      소프트웨어를 대는 공급망은 반도체, 그 밖의 고객 산업 언급은 아님). 후보가 있어도 lead_text 에
+      semiconductor_exclusions 가 있고 semiconductor_core 가 없으면 not_theme.
+  - step: ai
+    rule: >-
+      어떤 절의 첫 항목에 ai_terms 가 있고, 그 절에 application_markers·enabling_tech·ai_hardware_exclusions 가 없으면 ai.
+  - step: default
+    rule: not_theme
+
+sentence_breaks: ["。", "；", ";", "！", "\n", "2.", "2、", ". "]
+clause_breaks: ["，", ",", "：", ":"]
+secondary_markers: ["以及", "此外", "另外", "同时", "并且", "並且", "as well as", "또한"]
+item_breaks: ["、", "及", "和", "与", "與"]
+verb_chain_terms: ["研发", "研究", "开发", "開發", "设计", "設計", "生产", "生產", "制造", "製造", "销售", "銷售",
+                   "研製", "运营", "運營", "服务", "服務", "研發"]
+
+industry_semiconductor:               # 거래소·공시가 붙인 산업 분류(부분 일치)
+  - 半導體業
+  - 半导体
+  - 반도체 제조업
+  - Semiconductors                    # ICB/FTSE 10102010
+  - Production Technology Equipment   # ICB/FTSE 10102030 — 반도체 장비
+  - Semiconductors & Related Devices  # SEC SIC 3674
+
+semiconductor_core:
+  - 半导体
+  - 半導體
+  - 반도체
+  - semiconductor
+  - 集成电路
+  - 積體電路
+  - integrated circuit
+  - 晶圆代工
+  - 晶圓代工
+  - foundry
+  - 파운드리
+  - 팹리스
+  - fabless
+  - 芯片设计
+  - chip design
+
+semiconductor_terms:                  # core 포함. 영문 약어는 단어 경계로 찾는다
+  - 芯片
+  - 晶片
+  - 晶圆
+  - 晶圓
+  - 硅片
+  - 矽晶圓
+  - wafer
+  - 웨이퍼
+  - 封装测试
+  - 封測
+  - 패키징
+  - 光刻
+  - lithography
+  - 刻蚀
+  - 식각
+  - 薄膜沉积
+  - 증착
+  - 光掩模
+  - 掩膜版
+  - 光罩
+  - photomask
+  - 포토마스크
+  - 靶材
+  - sputtering target
+  - 碳化硅
+  - 氮化镓
+  - 功率器件
+  - 전력반도체
+  - 探针卡
+  - probe card
+  - 프로브카드
+  - 存储芯片
+  - 闪存
+  - DRAM
+  - NAND
+  - EDA
+  - SoC
+  - MCU
+  - FPGA
+  - ASIC
+  - GPU
+  - NPU
+  - MEMS
+  - IC
+  - chip
+  - chips
+  - EUV
+  - 테스트 소켓
+  - test socket
+  - 번인
+  - burn-in
+  - 电子特气
+  - 电子特种气体
+  - 电子大宗气体
+  - 電子特氣
+  - 晶体生长
+
+semiconductor_supply_nouns:
+  - 设备
+  - 装备
+  - 材料
+  - 零部件
+  - 部件
+  - 耗材
+  - 設備
+  - 零組件
+  - 장비
+  - 소재
+  - 부품
+  - equipment
+  - material
+  - materials
+  - parts
+  - components
+  - 软件
+  - 軟體
+  - 工具
+  - software
+  - tools
+
+semiconductor_exclusions:
+  - 显示面板
+  - 显示屏
+  - 液晶
+  - 디스플레이
+  - display panel
+  - OLED
+  - PCB
+  - 印制电路板
+  - 印刷电路板
+  - 인쇄회로기판
+  - printed circuit
+  - 被动元件
+  - 电容器
+  - 电阻
+  - 電阻
+  - 电感
+  - 電感
+  - 变压器
+  - 變壓器
+  - 磁性元件
+  - MLCC
+  - 수동부품
+  - passive component
+  - resistor
+  - inductor
+  - transformer
+  - LED照明
+  - LED lighting
+  - 光伏
+  - 태양광
+  - solar
+  - 连接器
+  - 커넥터
+  - connector
+  - 线缆
+  - 케이블
+  - cable
+  - 光模块
+  - optical module
+  - transceiver
+  - IC卡
+  - 太阳能
+  - 太陽能
+  - 印制线路板
+  - 线路板
+  - 電路板
+
+service_exclusions:                   # 반도체 고객 대상 서비스·유통 — core 용어가 있어도 반도체 기업이 아니다
+  - 分销
+  - 经销
+  - 經銷
+  - 代理销售
+  - 도매
+  - distributor
+  - distribution
+  - 洁净
+  - 潔淨
+  - 洗净
+  - 洗淨
+  - 施工
+  - 配管
+  - 厂务
+  - 廠務
+  - 建厂
+  - cleanroom
+
+ai_terms:
+  - 人工智能
+  - AI
+  - 인공지능
+  - artificial intelligence
+  - 人工知能
+  - 机器学习
+  - machine learning
+  - 머신러닝
+  - 深度学习
+  - deep learning
+  - 딥러닝
+  - 大模型
+  - 大语言模型
+  - large language model
+  - LLM
+  - foundation model
+  - 生成式
+  - 생성형
+  - generative AI
+  - 智能驾驶
+  - 自动驾驶
+  - 自動駕駛
+  - 자율주행
+  - autonomous driving
+  - 具身智能
+  - embodied AI
+  - 人形机器人
+  - humanoid
+  - 휴머노이드
+  - 算力
+  - 智算
+  - AI data center
+  - GPU cloud
+  - robotaxi
+  - autonomous mobility
+  - 人工智慧
+  - 機器學習
+  - 深度學習
+  - 大語言模型
+
+enabling_tech:                        # 이 기술들과 한 절에 나열된 AI 는 '쓰는 기술' 이지 제품이 아니다
+  - 物联网
+  - 物聯網
+  - 大数据
+  - 大數據
+  - 云计算
+  - 雲端運算
+  - 区块链
+  - 區塊鏈
+  - 5G
+  - 移动互联
+  - IoT
+  - big data
+  - cloud computing
+  - blockchain
+  - 빅데이터
+  - 사물인터넷
+  - 블록체인
+  - 等技术                            # 'AI 등 기술 응용' — AI 가 쓰는 수단
+  - 技术应用
+  - 前沿技术
+  - 新一代信息技术
+  - 驱动
+  - 驅動
+  - 赋能
+  - 賦能
+  - driven
+  - powered
+
+ai_hardware_exclusions:               # AI 서버 하드웨어는 AI 제품이 아니다(계약 theme_rule)
+  - 服务器
+  - 伺服器
+  - server
+  - servers
+  - 서버
+  - 散热
+  - 散熱
+  - 电源
+  - 電源
+  - 液冷
+
+application_markers:                  # 이 표지가 있는 절의 AI 는 고객 산업이다
+  - 应用于
+  - 应用领域
+  - 广泛应用
+  - 下游
+  - 用于
+  - 服务于
+  - 應用於
+  - 적용
+  - applications
+  - applied to
+  - used in
+  - for use in
+
+known_limits:
+  - 사업 설명이 짧은 시장(KIND 주요제품은 제품명만 나오기도 한다)에서는 AI 회사를 놓칠 수 있다 — 일치도 측정에 시장별로 공시.
+  - 규칙은 '사업 설명 첫 문장에 무엇이 쓰였나' 를 본다. 전수조사의 '주력 사업' 판단과 같지 않다 — 경계 사례는 규칙이 정한다.
+  - 미포함 시장(홍콩 GEM·동남아·인도 본시장·유럽·TSX·ASX·TASE·미국 ADR)은 감시 원천이 없어 이 절차 밖이다.
+
+pipeline_aliases:                     # 상장 대기 회사의 현지 법인명·약칭 — 상장 시 거래소 표기로 맞춘다
+  DeepSeek: [深度求索, 杭州深度求索, DeepSeek AI]
+  Moonshot AI (Kimi): [月之暗面, 北京月之暗面, Moonshot AI]
+  Kunlunxin (Baidu): [昆仑芯, 昆仑芯科技, Kunlunxin]
+  CCSH / YMTC: [长江存储, 长存集团, 长江存储控股, Yangtze Memory, YMTC]
+  Zhaoxin: [兆芯, 上海兆芯, Zhaoxin]
+  Unisoc: [紫光展锐, 展锐, Unisoc]
+  Anthropic: [Anthropic]
+  OpenAI: [OpenAI]

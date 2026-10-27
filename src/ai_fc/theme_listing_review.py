@@ -1,11 +1,11 @@
-"""테마 상장 자동 검수 — 감시가 모은 새 상장을 사전등록 규칙(theme_listing_auto_review_v2)으로 판정해 기록한다.
+"""테마 상장 자동 검수 — 감시가 모은 새 상장을 사전등록 규칙(theme_listing_auto_review_v3)으로 판정해 기록한다.
 
 2026-10-26 사용자 결정: 새 상장 검수도 자동화한다. 판정 근거는 거래소·공시 원천의 사업 설명 텍스트이고,
-규칙은 ``data/contracts/theme_listing_auto_review_v2.yaml`` 에 있다. v1 은 전수조사 라벨 대비 정밀도 0.59 로
+규칙은 ``data/contracts/theme_listing_auto_review_v3.yaml`` 에 있다(v3 = v2 + 유럽·미국 ADR·대기 회사 별칭). v1 은 정밀도 0.59 로
 건수를 부풀려 기각했고, v2 는 개발 구간(2022-02~2024-12) 오류만 보고 고친 뒤 홀드아웃(2025-01~) 전에 고정했다.
 
-* 테마로 판정 → ``theme_listing_additions.csv`` 에 출처를 단 행을 추가(note 가 ``auto_rule_v2:`` 로 시작).
-* 테마 아님·첫 상장 아님 → ``theme_listing_reviews.csv`` 에 결정·이유·출처(reviewer=auto_rule_v2).
+* 테마로 판정 → ``theme_listing_additions.csv`` 에 출처를 단 행을 추가(note 가 ``auto_rule_v3:`` 로 시작).
+* 테마 아님·첫 상장 아님 → ``theme_listing_reviews.csv`` 에 결정·이유·출처(reviewer=auto_rule_v3).
 * 상장 대기 회사가 상장 → additions 로 옮기고 대기 목록에서 지운다.
 * 사업 설명을 못 얻으면 판정하지 않는다(다음 실행에 재시도, ops 백로그가 7일 넘으면 알린다).
 
@@ -29,9 +29,9 @@ from .ipo_monthly_counts import (
     load_theme_listing_additions, load_theme_listing_pipeline,
 )
 
-RULES_RELATIVE = Path("data/contracts/theme_listing_auto_review_v2.yaml")
-REVIEWER = "auto_rule_v2"
-NOTE_PREFIX = "auto_rule_v2:"
+RULES_RELATIVE = Path("data/contracts/theme_listing_auto_review_v3.yaml")
+REVIEWER = "auto_rule_v3"
+NOTE_PREFIX = "auto_rule_v3:"
 
 EM_A_F10_URL = ("https://datacenter.eastmoney.com/securities/api/data/v1/get?reportName=RPT_F10_BASIC_ORGINFO"
                 "&columns=SECUCODE,SECURITY_NAME_ABBR,ORG_NAME,LISTING_DATE,EM2016,MAIN_BUSINESS"
@@ -53,7 +53,7 @@ class ThemeListingReviewError(ValueError):
 
 def load_rules(root: Path) -> dict[str, Any]:
     rules = yaml.safe_load((root / RULES_RELATIVE).read_text(encoding="utf-8"))
-    if rules.get("contract_id") != "theme_listing_auto_review_v2" or rules.get("fitting") != "none":
+    if rules.get("contract_id") != "theme_listing_auto_review_v3" or rules.get("fitting") != "none":
         raise ThemeListingReviewError("auto review rules contract mismatch")
     return rules
 
@@ -268,6 +268,35 @@ def enrich(row: dict[str, Any], *, get: Callable[..., bytes], jpx_links: dict[st
             out["text_source"] = link
             market = outline["current_listed_market"]
             out["prior_listing"] = market if market and market.upper() not in {"N/A", "NA", "-"} else None
+    elif venue == "euronext":
+        from .theme_listing_global import parse_euronext_detail
+
+        detail = parse_euronext_detail(get(row["source_url"]))
+        out["industry"] = " ".join(filter(None, [detail["icb_code"], detail["icb_name"]]))
+        out["text_source"] = row["source_url"]
+        out["listing_type"] = detail["ipo_type"]
+        kind = detail["ipo_type"].lower()
+        if re.search(r"technical|transfer|direct listing|admission|dual|secondary", kind):
+            out["event_exclusion"] = "not_first_listing" if re.search(r"transfer|dual|secondary", kind) else "no_offering"
+    elif venue == "lse":
+        out["industry"] = row.get("industry") or ""
+        out["text_source"] = row.get("source_url")
+    elif venue == "us_adr":
+        from .ipo_edgar_watch import _filing_text
+        from .theme_listing_global import parse_ads_prospectus, sec_industry
+
+        facts = parse_ads_prospectus(_filing_text(get(row["source_url"])))
+        out["text_source"] = row["source_url"]
+        out["venue_detail"] = facts["venue"]
+        if not facts["ads_ipo"]:
+            out["event_exclusion"] = "not_first_listing"  # 후속 공모·기상장 ADS
+        elif facts["price_usd"] is not None and facts["price_usd"] < 5:
+            out["event_exclusion"] = "below_price_floor"  # 계약: 공모가 $5 이상 ADS 만
+        else:
+            out["fields"] = [facts["business"]] if facts["business"] else []
+            out["industry"] = sec_industry(get, row["cik"]) if row.get("cik") else ""
+    elif venue == "us_ipo":
+        out["text_source"] = row.get("source_url")
     out["text"] = " ".join(out["fields"])
     return out
 
@@ -275,19 +304,30 @@ def enrich(row: dict[str, Any], *, get: Callable[..., bytes], jpx_links: dict[st
 # ── 판정 기록 ────────────────────────────────────────────────────────────
 
 
-def _pipeline_match(row: dict[str, Any], pipeline: list[dict[str, str]]) -> dict[str, str] | None:
+def _pipeline_match(row: dict[str, Any], pipeline: list[dict[str, str]],
+                    rules: dict[str, Any] | None = None) -> dict[str, str] | None:
+    """상장 대기 회사 일치 — 대기 목록 이름 + 계약의 현지 법인명 별칭(pipeline_aliases). 한자 2자·라틴 4자 이상만."""
     from .theme_listing_watch import _name_keys
 
     names = _name_keys(row["company"]) | (_name_keys(row["company_en"]) if row.get("company_en") else set())
+    aliases = (rules or {}).get("pipeline_aliases") or {}
     for item in pipeline:
-        keys = {key for key in _name_keys(item["company"])
-                if len(key) >= (2 if re.search(r"[㐀-鿿]", key) else 5)}
+        keys = set(_name_keys(item["company"]))
+        for alias in aliases.get(item["company"], []):
+            keys |= _name_keys(alias)
+        keys = {key for key in keys if len(key) >= (2 if re.search(r"[\u3400-\u9fff]", key) else 4)}
         if any(key in name for key in keys for name in names):
             return item
     return None
 
 
+def pipeline_match_any(root: Path, row: dict[str, Any], pipeline: list[dict[str, str]]) -> bool:
+    return _pipeline_match(row, pipeline, load_rules(root)) is not None
+
+
 def _ticker(row: dict[str, Any]) -> str:
+    if row["venue"] == "us_adr":
+        return str(row.get("ticker") or "")  # 코드는 접수번호다
     if row["venue"] == "hk_main":
         return f"{row['code']}.HK"
     if row["venue"] == "kr" and len(row["code"]) == 5:
@@ -298,15 +338,29 @@ def _ticker(row: dict[str, Any]) -> str:
 def plan_decision(row: dict[str, Any], enriched: dict[str, Any], rules: dict[str, Any],
                   pipeline: list[dict[str, str]]) -> dict[str, Any]:
     """절차 2~7단계 — 기록하지 않고 판정만 돌려준다(시험·일치도 측정이 같은 함수를 쓴다)."""
+    if enriched.get("event_exclusion"):
+        return {"decision": enriched["event_exclusion"], "theme": None,
+                "evidence": f"상장 유형 {enriched.get('listing_type') or enriched['event_exclusion']}"}
+    if row["venue"] == "us_ipo":
+        matched = _pipeline_match(row, pipeline, rules)
+        if matched:
+            # 미국 보통주는 Ritter net·Nasdaq 잠정이 센다 — 명단에 더하지 않고 대기 목록에서만 지운다.
+            return {"decision": "us_ordinary_ritter", "theme": None,
+                    "evidence": f"상장 대기 목록 {matched['company']} — 미국 보통주(Ritter 가 셈)",
+                    "pipeline": matched["company"]}
+        return {"decision": "not_theme", "theme": None, "evidence": "대기 목록 밖 미국 보통주(감시 대상 아님)"}
     if enriched.get("prior_listing"):
         return {"decision": "not_first_listing", "theme": None, "evidence": f"먼저 상장: {enriched['prior_listing']}"}
     if row["venue"] in {"tw_twse", "tw_tpex"} and re.search(r"投控|投資控股", row["company"]):
         return {"decision": "no_offering", "theme": None, "evidence": "지주사 전환 상장(投控)"}
-    matched = _pipeline_match({**row, "company_en": enriched.get("company_en", "")}, pipeline)
+    matched = _pipeline_match({**row, "company_en": enriched.get("company_en", "")}, pipeline, rules)
     if matched:
         return {"decision": "counted", "theme": matched["theme"], "evidence": f"상장 대기 목록 {matched['company']}",
                 "pipeline": matched["company"]}
-    if not str(enriched.get("text") or "").strip() and not str(enriched.get("industry") or "").strip():
+    # 계약 text_sources — Euronext·LSE 는 사업 설명이 없어 업종 분류와 회사명으로 판정한다(이름도 근거 텍스트).
+    name_is_text = row["venue"] in {"euronext", "lse"}
+    if (not name_is_text and not str(enriched.get("text") or "").strip()
+            and not str(enriched.get("industry") or "").strip()):
         return {"decision": "no_text", "theme": None, "evidence": "사업 설명을 얻지 못함"}
     names = [name for name in (row["company"], enriched.get("company_en")) if name]
     return decide([*names, *(enriched.get("fields") or [])], str(enriched.get("industry") or ""), rules)
@@ -359,16 +413,24 @@ def apply_auto_review(root: Path, listings: list[dict[str, Any]], *, get: Callab
                                     "source_url": source, "reviewed_at": reviewed_at, "reviewer": REVIEWER})
                 continue
             taken.add(key)
+            adr = row["venue"] == "us_adr"
+            us_venue = str(enriched.get("venue_detail") or "")
             new_additions.append({
                 "month": row["listing_date"][:7], "era": "ai", "theme": verdict["theme"], "subtheme": "auto",
-                "company": company, "ticker": _ticker(row), "exchange": row["exchange"], "board": row["board"],
-                "market_country": row["country"], "instrument": "ordinary", "listing_scope": "foreign_primary",
+                "company": company, "ticker": _ticker(row),
+                "exchange": ("NYSE" if "NYSE" in us_venue or "New York" in us_venue else "Nasdaq") if adr
+                else row["exchange"],
+                "board": us_venue if adr else row["board"],
+                "market_country": row["country"], "instrument": "ADS" if adr else "ordinary",
+                "listing_scope": "us_adr" if adr else "foreign_primary",
                 "proceeds_usd_m": "", "source_url": source,
                 "note": f"{NOTE_PREFIX} {verdict['evidence']}; listed {row['listing_date']}",
             })
             if verdict.get("pipeline"):
                 removed_pipeline.append(verdict["pipeline"])
         elif verdict["decision"] != "no_text":
+            if verdict.get("pipeline"):
+                removed_pipeline.append(verdict["pipeline"])  # 미국 보통주로 상장한 대기 회사
             new_reviews.append({"venue": row["venue"], "code": row["code"], "company": row["company"],
                                 "listing_date": row["listing_date"], "decision": verdict["decision"],
                                 "reason": f"{NOTE_PREFIX} {verdict['evidence']}"[:300], "source_url": source,

@@ -233,7 +233,7 @@ customer_chart_contract:
     theme_listing_additions: data/statistics/ipo/theme_listing_additions.csv (company-level census v5, any size; us_adr confirmed months only, foreign_primary all months; chart carries summary + sha256 only)
     theme_listing_pipeline: data/statistics/ipo/theme_listing_pipeline.csv (display only, never counted)
     # 2026-10-26: 전수조사 이후 상장의 자동 수집·자동 판정 경로(사용자 결정 — 판정 규칙은 theme_listing_auto_review_v1 에 사전등록).
-    theme_listing_watch: data/statistics/ipo/theme_listing_watch.json (daily statistics-refresh step; venues cn_a·hk_main·kr·jp·tw_twse·tw_tpex; auto_review theme_listing_auto_review_v1 writes additions/reviews/pipeline; chart carries summary only)
+    theme_listing_watch: data/statistics/ipo/theme_listing_watch.json (daily statistics-refresh step; venues cn_a·hk_main·kr·jp·tw_twse·tw_tpex·euronext·lse·us_adr·us_ipo(pipeline only); auto_review theme_listing_auto_review_v3 writes additions/reviews/pipeline; chart carries summary only)
     theme_listing_reviews: data/statistics/ipo/theme_listing_reviews.csv (one sourced decision per watched listing not counted, reviewer=manual|auto_rule_v1; counted listings live only in theme_listing_additions.csv)
     series: {dotcom: 닷컴, current_confirmed: 현재, current_provisional: 현재 잠정}
     provisional: dashed_labelled_display_only_never_index_input_superseded_by_confirmed_months

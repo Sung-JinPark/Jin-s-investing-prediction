@@ -89,3 +89,7 @@ Anthropic · OpenAI. 미국 보통주로 상장하면 Ritter net·Nasdaq 잠정�
   조사가 놓친 테마 상장 0). 같은 16건에 자동 규칙을 돌리면 15건 일치, Lucre(도쿄 그로스) 1건만 자동은 AI 로 센다.
 - 사업 설명을 7일 넘게 못 얻었거나 3일 넘게 못 읽은 시장이 있으면 ops 백로그 이슈가 열린다. 미포함 시장(홍콩 GEM·동남아·
   인도 본시장·유럽·TSX·ASX·TASE·미국 ADR)은 기계 판독 가능한 공식 목록이 없어 감시 밖이다.
+- **v3(2026-10-27)**: 감시 시장에 Euronext(IPO showcase)·런던 LSE(New issues and IPOs)·미국 ADS 첫 공모(SEC 424B4)·미국 보통주
+  (상장 대기 회사 일치 건만)를 더했다. 상장 대기 회사는 현지 법인명 별칭으로 맞춰 상장 시 자동으로 이 CSV 로 옮긴다
+  (미국 보통주 상장은 Ritter 가 세므로 대기 목록에서만 지운다). 규칙 `theme_listing_auto_review_v3.yaml`, 새 시장 검증 결과는
+  계약 `validation`(건수 0.80배 — 새 시장은 덜 센다). 감시 밖 시장은 KNOWN_LIMITS 37.
