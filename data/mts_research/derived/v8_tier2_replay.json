@@ -1,0 +1,11 @@
+{
+  "status": "MISMATCH",
+  "forecast_id": "tsv8-shadow-d7278b2400139e5ad30e3777",
+  "origin": "2026-10-16",
+  "matured_origins_at_emit_recomputed": 1020,
+  "mismatches": [
+    "h1.quantile_grid (max|Δ|=2.42861286636753e-17)",
+    "h5.quantile_grid (max|Δ|=1.97758476261356e-16)"
+  ],
+  "wall_seconds": 5456.2
+}

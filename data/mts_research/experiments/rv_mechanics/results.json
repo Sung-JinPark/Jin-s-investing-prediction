@@ -1,0 +1,3005 @@
+{
+  "per_origin": [
+    {
+      "h21": {
+        "label": false,
+        "max_floor": 0.090812,
+        "mechanically_determined": false,
+        "wm_probability": {
+          "ewma_rescaled_resample": 0.0025,
+          "iid_resample_2520": 0.985
+        }
+      },
+      "h5": {
+        "label": false,
+        "max_floor": 0.090812,
+        "mechanically_determined": false,
+        "wm_probability": {
+          "ewma_rescaled_resample": 0.0025,
+          "iid_resample_2520": 0.305
+        }
+      },
+      "h63": {
+        "label": true,
+        "max_floor": 0.090812,
+        "mechanically_determined": false,
+        "wm_probability": {
+          "ewma_rescaled_resample": 0.06,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "origin": "2007-01-03",
+      "rv_now": 0.09481309640674161
+    },
+    {
+      "h21": {
+        "label": true,
+        "max_floor": 0.115489,
+        "mechanically_determined": false,
+        "wm_probability": {
+          "ewma_rescaled_resample": 0.025,
+          "iid_resample_2520": 0.9875
+        }
+      },
+      "h5": {
+        "label": false,
+        "max_floor": 0.115489,
+        "mechanically_determined": false,
+        "wm_probability": {
+          "ewma_rescaled_resample": 0.0075,
+          "iid_resample_2520": 0.44
+        }
+      },
+      "h63": {
+        "label": true,
+        "max_floor": 0.115489,
+        "mechanically_determined": false,
+        "wm_probability": {
+          "ewma_rescaled_resample": 0.12,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "origin": "2007-02-02",
+      "rv_now": 0.12269498979262017
+    },
+    {
+      "h21": {
+        "label": true,
+        "max_floor": 0.184498,
+        "mechanically_determined": true,
+        "wm_probability": {
+          "ewma_rescaled_resample": 1.0,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "h5": {
+        "label": true,
+        "max_floor": 0.184498,
+        "mechanically_determined": true,
+        "wm_probability": {
+          "ewma_rescaled_resample": 1.0,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "h63": {
+        "label": true,
+        "max_floor": 0.184498,
+        "mechanically_determined": true,
+        "wm_probability": {
+          "ewma_rescaled_resample": 1.0,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "origin": "2007-03-06",
+      "rv_now": 0.18450215116773702
+    },
+    {
+      "h21": {
+        "label": false,
+        "max_floor": 0.131001,
+        "mechanically_determined": false,
+        "wm_probability": {
+          "ewma_rescaled_resample": 0.2025,
+          "iid_resample_2520": 0.98
+        }
+      },
+      "h5": {
+        "label": false,
+        "max_floor": 0.131001,
+        "mechanically_determined": false,
+        "wm_probability": {
+          "ewma_rescaled_resample": 0.0575,
+          "iid_resample_2520": 0.5075
+        }
+      },
+      "h63": {
+        "label": false,
+        "max_floor": 0.131001,
+        "mechanically_determined": false,
+        "wm_probability": {
+          "ewma_rescaled_resample": 0.5575,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "origin": "2007-04-04",
+      "rv_now": 0.13272292200529717
+    },
+    {
+      "h21": {
+        "label": false,
+        "max_floor": 0.090934,
+        "mechanically_determined": false,
+        "wm_probability": {
+          "ewma_rescaled_resample": 0.0275,
+          "iid_resample_2520": 0.975
+        }
+      },
+      "h5": {
+        "label": false,
+        "max_floor": 0.090934,
+        "mechanically_determined": false,
+        "wm_probability": {
+          "ewma_rescaled_resample": 0.0025,
+          "iid_resample_2520": 0.295
+        }
+      },
+      "h63": {
+        "label": true,
+        "max_floor": 0.090934,
+        "mechanically_determined": false,
+        "wm_probability": {
+          "ewma_rescaled_resample": 0.1325,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "origin": "2007-05-04",
+      "rv_now": 0.09157903753652179
+    },
+    {
+      "h21": {
+        "label": false,
+        "max_floor": 0.121404,
+        "mechanically_determined": false,
+        "wm_probability": {
+          "ewma_rescaled_resample": 0.025,
+          "iid_resample_2520": 0.9875
+        }
+      },
+      "h5": {
+        "label": false,
+        "max_floor": 0.121404,
+        "mechanically_determined": false,
+        "wm_probability": {
+          "ewma_rescaled_resample": 0.01,
+          "iid_resample_2520": 0.3675
+        }
+      },
+      "h63": {
+        "label": true,
+        "max_floor": 0.121404,
+        "mechanically_determined": false,
+        "wm_probability": {
+          "ewma_rescaled_resample": 0.1225,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "origin": "2007-06-05",
+      "rv_now": 0.12148019321430532
+    },
+    {
+      "h21": {
+        "label": true,
+        "max_floor": 0.134424,
+        "mechanically_determined": false,
+        "wm_probability": {
+          "ewma_rescaled_resample": 0.0575,
+          "iid_resample_2520": 0.985
+        }
+      },
+      "h5": {
+        "label": false,
+        "max_floor": 0.134424,
+        "mechanically_determined": false,
+        "wm_probability": {
+          "ewma_rescaled_resample": 0.0175,
+          "iid_resample_2520": 0.3925
+        }
+      },
+      "h63": {
+        "label": true,
+        "max_floor": 0.134424,
+        "mechanically_determined": false,
+        "wm_probability": {
+          "ewma_rescaled_resample": 0.2325,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "origin": "2007-07-05",
+      "rv_now": 0.1393287392986428
+    },
+    {
+      "h21": {
+        "label": true,
+        "max_floor": 0.178585,
+        "mechanically_determined": true,
+        "wm_probability": {
+          "ewma_rescaled_resample": 1.0,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "h5": {
+        "label": true,
+        "max_floor": 0.178585,
+        "mechanically_determined": true,
+        "wm_probability": {
+          "ewma_rescaled_resample": 1.0,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "h63": {
+        "label": true,
+        "max_floor": 0.178585,
+        "mechanically_determined": true,
+        "wm_probability": {
+          "ewma_rescaled_resample": 1.0,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "origin": "2007-08-03",
+      "rv_now": 0.1800889390934857
+    },
+    {
+      "h21": {
+        "label": true,
+        "max_floor": 0.219834,
+        "mechanically_determined": true,
+        "wm_probability": {
+          "ewma_rescaled_resample": 1.0,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "h5": {
+        "label": true,
+        "max_floor": 0.219834,
+        "mechanically_determined": true,
+        "wm_probability": {
+          "ewma_rescaled_resample": 1.0,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "h63": {
+        "label": true,
+        "max_floor": 0.219834,
+        "mechanically_determined": true,
+        "wm_probability": {
+          "ewma_rescaled_resample": 1.0,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "origin": "2007-09-04",
+      "rv_now": 0.22416858673402598
+    },
+    {
+      "h21": {
+        "label": true,
+        "max_floor": 0.147254,
+        "mechanically_determined": false,
+        "wm_probability": {
+          "ewma_rescaled_resample": 0.4425,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "h5": {
+        "label": false,
+        "max_floor": 0.147254,
+        "mechanically_determined": false,
+        "wm_probability": {
+          "ewma_rescaled_resample": 0.1525,
+          "iid_resample_2520": 0.635
+        }
+      },
+      "h63": {
+        "label": true,
+        "max_floor": 0.147254,
+        "mechanically_determined": false,
+        "wm_probability": {
+          "ewma_rescaled_resample": 0.855,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "origin": "2007-10-03",
+      "rv_now": 0.1526317612351594
+    },
+    {
+      "h21": {
+        "label": true,
+        "max_floor": 0.202902,
+        "mechanically_determined": true,
+        "wm_probability": {
+          "ewma_rescaled_resample": 1.0,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "h5": {
+        "label": true,
+        "max_floor": 0.202902,
+        "mechanically_determined": true,
+        "wm_probability": {
+          "ewma_rescaled_resample": 1.0,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "h63": {
+        "label": true,
+        "max_floor": 0.202902,
+        "mechanically_determined": true,
+        "wm_probability": {
+          "ewma_rescaled_resample": 1.0,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "origin": "2007-11-01",
+      "rv_now": 0.20290712976909414
+    },
+    {
+      "h21": {
+        "label": true,
+        "max_floor": 0.271697,
+        "mechanically_determined": true,
+        "wm_probability": {
+          "ewma_rescaled_resample": 1.0,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "h5": {
+        "label": true,
+        "max_floor": 0.271697,
+        "mechanically_determined": true,
+        "wm_probability": {
+          "ewma_rescaled_resample": 1.0,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "h63": {
+        "label": true,
+        "max_floor": 0.271697,
+        "mechanically_determined": true,
+        "wm_probability": {
+          "ewma_rescaled_resample": 1.0,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "origin": "2007-12-03",
+      "rv_now": 0.2733743112494286
+    },
+    {
+      "h21": {
+        "label": true,
+        "max_floor": 0.205681,
+        "mechanically_determined": true,
+        "wm_probability": {
+          "ewma_rescaled_resample": 1.0,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "h5": {
+        "label": true,
+        "max_floor": 0.205681,
+        "mechanically_determined": true,
+        "wm_probability": {
+          "ewma_rescaled_resample": 1.0,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "h63": {
+        "label": true,
+        "max_floor": 0.205681,
+        "mechanically_determined": true,
+        "wm_probability": {
+          "ewma_rescaled_resample": 1.0,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "origin": "2008-01-03",
+      "rv_now": 0.20681873802590423
+    },
+    {
+      "h21": {
+        "label": true,
+        "max_floor": 0.230762,
+        "mechanically_determined": true,
+        "wm_probability": {
+          "ewma_rescaled_resample": 1.0,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "h5": {
+        "label": true,
+        "max_floor": 0.230762,
+        "mechanically_determined": true,
+        "wm_probability": {
+          "ewma_rescaled_resample": 1.0,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "h63": {
+        "label": true,
+        "max_floor": 0.230762,
+        "mechanically_determined": true,
+        "wm_probability": {
+          "ewma_rescaled_resample": 1.0,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "origin": "2008-02-04",
+      "rv_now": 0.26213907846381357
+    },
+    {
+      "h21": {
+        "label": true,
+        "max_floor": 0.174506,
+        "mechanically_determined": true,
+        "wm_probability": {
+          "ewma_rescaled_resample": 1.0,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "h5": {
+        "label": true,
+        "max_floor": 0.174506,
+        "mechanically_determined": true,
+        "wm_probability": {
+          "ewma_rescaled_resample": 1.0,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "h63": {
+        "label": true,
+        "max_floor": 0.174506,
+        "mechanically_determined": true,
+        "wm_probability": {
+          "ewma_rescaled_resample": 1.0,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "origin": "2008-03-05",
+      "rv_now": 0.20387925194651527
+    },
+    {
+      "h21": {
+        "label": true,
+        "max_floor": 0.321808,
+        "mechanically_determined": true,
+        "wm_probability": {
+          "ewma_rescaled_resample": 1.0,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "h5": {
+        "label": true,
+        "max_floor": 0.321808,
+        "mechanically_determined": true,
+        "wm_probability": {
+          "ewma_rescaled_resample": 1.0,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "h63": {
+        "label": true,
+        "max_floor": 0.321808,
+        "mechanically_determined": true,
+        "wm_probability": {
+          "ewma_rescaled_resample": 1.0,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "origin": "2008-04-04",
+      "rv_now": 0.33470508790280634
+    },
+    {
+      "h21": {
+        "label": true,
+        "max_floor": 0.215937,
+        "mechanically_determined": true,
+        "wm_probability": {
+          "ewma_rescaled_resample": 1.0,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "h5": {
+        "label": true,
+        "max_floor": 0.215937,
+        "mechanically_determined": true,
+        "wm_probability": {
+          "ewma_rescaled_resample": 1.0,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "h63": {
+        "label": true,
+        "max_floor": 0.215937,
+        "mechanically_determined": true,
+        "wm_probability": {
+          "ewma_rescaled_resample": 1.0,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "origin": "2008-05-05",
+      "rv_now": 0.2165375864487822
+    },
+    {
+      "h21": {
+        "label": true,
+        "max_floor": 0.159738,
+        "mechanically_determined": false,
+        "wm_probability": {
+          "ewma_rescaled_resample": 0.68,
+          "iid_resample_2520": 0.9925
+        }
+      },
+      "h5": {
+        "label": true,
+        "max_floor": 0.159738,
+        "mechanically_determined": false,
+        "wm_probability": {
+          "ewma_rescaled_resample": 0.2925,
+          "iid_resample_2520": 0.7125
+        }
+      },
+      "h63": {
+        "label": true,
+        "max_floor": 0.159738,
+        "mechanically_determined": false,
+        "wm_probability": {
+          "ewma_rescaled_resample": 0.9525,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "origin": "2008-06-04",
+      "rv_now": 0.16176010774369504
+    },
+    {
+      "h21": {
+        "label": true,
+        "max_floor": 0.23028,
+        "mechanically_determined": true,
+        "wm_probability": {
+          "ewma_rescaled_resample": 1.0,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "h5": {
+        "label": true,
+        "max_floor": 0.23028,
+        "mechanically_determined": true,
+        "wm_probability": {
+          "ewma_rescaled_resample": 1.0,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "h63": {
+        "label": true,
+        "max_floor": 0.23028,
+        "mechanically_determined": true,
+        "wm_probability": {
+          "ewma_rescaled_resample": 1.0,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "origin": "2008-07-03",
+      "rv_now": 0.24588416291203058
+    },
+    {
+      "h21": {
+        "label": true,
+        "max_floor": 0.243409,
+        "mechanically_determined": true,
+        "wm_probability": {
+          "ewma_rescaled_resample": 1.0,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "h5": {
+        "label": true,
+        "max_floor": 0.243409,
+        "mechanically_determined": true,
+        "wm_probability": {
+          "ewma_rescaled_resample": 1.0,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "h63": {
+        "label": true,
+        "max_floor": 0.243409,
+        "mechanically_determined": true,
+        "wm_probability": {
+          "ewma_rescaled_resample": 1.0,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "origin": "2008-08-04",
+      "rv_now": 0.2434937489211605
+    },
+    {
+      "h21": {
+        "label": true,
+        "max_floor": 0.187179,
+        "mechanically_determined": true,
+        "wm_probability": {
+          "ewma_rescaled_resample": 1.0,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "h5": {
+        "label": true,
+        "max_floor": 0.187179,
+        "mechanically_determined": true,
+        "wm_probability": {
+          "ewma_rescaled_resample": 1.0,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "h63": {
+        "label": true,
+        "max_floor": 0.187179,
+        "mechanically_determined": true,
+        "wm_probability": {
+          "ewma_rescaled_resample": 1.0,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "origin": "2008-09-03",
+      "rv_now": 0.21093852631165363
+    },
+    {
+      "h21": {
+        "label": true,
+        "max_floor": 0.548418,
+        "mechanically_determined": true,
+        "wm_probability": {
+          "ewma_rescaled_resample": 1.0,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "h5": {
+        "label": true,
+        "max_floor": 0.548418,
+        "mechanically_determined": true,
+        "wm_probability": {
+          "ewma_rescaled_resample": 1.0,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "h63": {
+        "label": true,
+        "max_floor": 0.548418,
+        "mechanically_determined": true,
+        "wm_probability": {
+          "ewma_rescaled_resample": 1.0,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "origin": "2008-10-02",
+      "rv_now": 0.5556818821292718
+    },
+    {
+      "h21": {
+        "label": true,
+        "max_floor": 0.785141,
+        "mechanically_determined": true,
+        "wm_probability": {
+          "ewma_rescaled_resample": 1.0,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "h5": {
+        "label": true,
+        "max_floor": 0.785141,
+        "mechanically_determined": true,
+        "wm_probability": {
+          "ewma_rescaled_resample": 1.0,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "h63": {
+        "label": true,
+        "max_floor": 0.785141,
+        "mechanically_determined": true,
+        "wm_probability": {
+          "ewma_rescaled_resample": 1.0,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "origin": "2008-10-31",
+      "rv_now": 0.7857278535312852
+    },
+    {
+      "h21": {
+        "label": true,
+        "max_floor": 0.72541,
+        "mechanically_determined": true,
+        "wm_probability": {
+          "ewma_rescaled_resample": 1.0,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "h5": {
+        "label": true,
+        "max_floor": 0.72541,
+        "mechanically_determined": true,
+        "wm_probability": {
+          "ewma_rescaled_resample": 1.0,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "h63": {
+        "label": true,
+        "max_floor": 0.72541,
+        "mechanically_determined": true,
+        "wm_probability": {
+          "ewma_rescaled_resample": 1.0,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "origin": "2008-12-02",
+      "rv_now": 0.7265705064978756
+    },
+    {
+      "h21": {
+        "label": true,
+        "max_floor": 0.401928,
+        "mechanically_determined": true,
+        "wm_probability": {
+          "ewma_rescaled_resample": 1.0,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "h5": {
+        "label": true,
+        "max_floor": 0.401928,
+        "mechanically_determined": true,
+        "wm_probability": {
+          "ewma_rescaled_resample": 1.0,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "h63": {
+        "label": true,
+        "max_floor": 0.401928,
+        "mechanically_determined": true,
+        "wm_probability": {
+          "ewma_rescaled_resample": 1.0,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "origin": "2009-01-02",
+      "rv_now": 0.4107678164393661
+    },
+    {
+      "h21": {
+        "label": true,
+        "max_floor": 0.418443,
+        "mechanically_determined": true,
+        "wm_probability": {
+          "ewma_rescaled_resample": 1.0,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "h5": {
+        "label": true,
+        "max_floor": 0.418443,
+        "mechanically_determined": true,
+        "wm_probability": {
+          "ewma_rescaled_resample": 1.0,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "h63": {
+        "label": true,
+        "max_floor": 0.418443,
+        "mechanically_determined": true,
+        "wm_probability": {
+          "ewma_rescaled_resample": 1.0,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "origin": "2009-02-03",
+      "rv_now": 0.41845708690722117
+    },
+    {
+      "h21": {
+        "label": true,
+        "max_floor": 0.384615,
+        "mechanically_determined": true,
+        "wm_probability": {
+          "ewma_rescaled_resample": 1.0,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "h5": {
+        "label": true,
+        "max_floor": 0.384615,
+        "mechanically_determined": true,
+        "wm_probability": {
+          "ewma_rescaled_resample": 1.0,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "h63": {
+        "label": true,
+        "max_floor": 0.384615,
+        "mechanically_determined": true,
+        "wm_probability": {
+          "ewma_rescaled_resample": 1.0,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "origin": "2009-03-05",
+      "rv_now": 0.3853454426594054
+    },
+    {
+      "h21": {
+        "label": true,
+        "max_floor": 0.4561,
+        "mechanically_determined": true,
+        "wm_probability": {
+          "ewma_rescaled_resample": 1.0,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "h5": {
+        "label": true,
+        "max_floor": 0.4561,
+        "mechanically_determined": true,
+        "wm_probability": {
+          "ewma_rescaled_resample": 1.0,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "h63": {
+        "label": true,
+        "max_floor": 0.4561,
+        "mechanically_determined": true,
+        "wm_probability": {
+          "ewma_rescaled_resample": 1.0,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "origin": "2009-04-03",
+      "rv_now": 0.45934156470396365
+    },
+    {
+      "h21": {
+        "label": true,
+        "max_floor": 0.300898,
+        "mechanically_determined": true,
+        "wm_probability": {
+          "ewma_rescaled_resample": 1.0,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "h5": {
+        "label": true,
+        "max_floor": 0.300898,
+        "mechanically_determined": true,
+        "wm_probability": {
+          "ewma_rescaled_resample": 1.0,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "h63": {
+        "label": true,
+        "max_floor": 0.300898,
+        "mechanically_determined": true,
+        "wm_probability": {
+          "ewma_rescaled_resample": 1.0,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "origin": "2009-05-05",
+      "rv_now": 0.3046606374977861
+    },
+    {
+      "h21": {
+        "label": true,
+        "max_floor": 0.2745,
+        "mechanically_determined": true,
+        "wm_probability": {
+          "ewma_rescaled_resample": 1.0,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "h5": {
+        "label": true,
+        "max_floor": 0.2745,
+        "mechanically_determined": true,
+        "wm_probability": {
+          "ewma_rescaled_resample": 1.0,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "h63": {
+        "label": true,
+        "max_floor": 0.2745,
+        "mechanically_determined": true,
+        "wm_probability": {
+          "ewma_rescaled_resample": 1.0,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "origin": "2009-06-04",
+      "rv_now": 0.2745025940732215
+    },
+    {
+      "h21": {
+        "label": true,
+        "max_floor": 0.212395,
+        "mechanically_determined": true,
+        "wm_probability": {
+          "ewma_rescaled_resample": 1.0,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "h5": {
+        "label": true,
+        "max_floor": 0.212395,
+        "mechanically_determined": true,
+        "wm_probability": {
+          "ewma_rescaled_resample": 1.0,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "h63": {
+        "label": true,
+        "max_floor": 0.212395,
+        "mechanically_determined": true,
+        "wm_probability": {
+          "ewma_rescaled_resample": 1.0,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "origin": "2009-07-06",
+      "rv_now": 0.21244880974332384
+    },
+    {
+      "h21": {
+        "label": true,
+        "max_floor": 0.155631,
+        "mechanically_determined": false,
+        "wm_probability": {
+          "ewma_rescaled_resample": 0.865,
+          "iid_resample_2520": 0.99
+        }
+      },
+      "h5": {
+        "label": true,
+        "max_floor": 0.155631,
+        "mechanically_determined": false,
+        "wm_probability": {
+          "ewma_rescaled_resample": 0.675,
+          "iid_resample_2520": 0.87
+        }
+      },
+      "h63": {
+        "label": true,
+        "max_floor": 0.155631,
+        "mechanically_determined": false,
+        "wm_probability": {
+          "ewma_rescaled_resample": 0.9975,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "origin": "2009-08-04",
+      "rv_now": 0.18792222934384684
+    },
+    {
+      "h21": {
+        "label": true,
+        "max_floor": 0.18341,
+        "mechanically_determined": true,
+        "wm_probability": {
+          "ewma_rescaled_resample": 1.0,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "h5": {
+        "label": true,
+        "max_floor": 0.18341,
+        "mechanically_determined": true,
+        "wm_probability": {
+          "ewma_rescaled_resample": 1.0,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "h63": {
+        "label": true,
+        "max_floor": 0.18341,
+        "mechanically_determined": true,
+        "wm_probability": {
+          "ewma_rescaled_resample": 1.0,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "origin": "2009-09-02",
+      "rv_now": 0.18573849566451087
+    },
+    {
+      "h21": {
+        "label": true,
+        "max_floor": 0.177354,
+        "mechanically_determined": true,
+        "wm_probability": {
+          "ewma_rescaled_resample": 1.0,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "h5": {
+        "label": true,
+        "max_floor": 0.177354,
+        "mechanically_determined": true,
+        "wm_probability": {
+          "ewma_rescaled_resample": 1.0,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "h63": {
+        "label": true,
+        "max_floor": 0.177354,
+        "mechanically_determined": true,
+        "wm_probability": {
+          "ewma_rescaled_resample": 1.0,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "origin": "2009-10-02",
+      "rv_now": 0.17880234006258144
+    },
+    {
+      "h21": {
+        "label": true,
+        "max_floor": 0.187281,
+        "mechanically_determined": true,
+        "wm_probability": {
+          "ewma_rescaled_resample": 1.0,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "h5": {
+        "label": true,
+        "max_floor": 0.187281,
+        "mechanically_determined": true,
+        "wm_probability": {
+          "ewma_rescaled_resample": 1.0,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "h63": {
+        "label": true,
+        "max_floor": 0.187281,
+        "mechanically_determined": true,
+        "wm_probability": {
+          "ewma_rescaled_resample": 1.0,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "origin": "2009-11-02",
+      "rv_now": 0.1905835202548671
+    },
+    {
+      "h21": {
+        "label": true,
+        "max_floor": 0.168726,
+        "mechanically_determined": false,
+        "wm_probability": {
+          "ewma_rescaled_resample": 0.9125,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "h5": {
+        "label": true,
+        "max_floor": 0.168726,
+        "mechanically_determined": false,
+        "wm_probability": {
+          "ewma_rescaled_resample": 0.85,
+          "iid_resample_2520": 0.9525
+        }
+      },
+      "h63": {
+        "label": true,
+        "max_floor": 0.168726,
+        "mechanically_determined": false,
+        "wm_probability": {
+          "ewma_rescaled_resample": 0.9875,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "origin": "2009-12-02",
+      "rv_now": 0.1687577631843487
+    },
+    {
+      "h21": {
+        "label": true,
+        "max_floor": 0.122011,
+        "mechanically_determined": false,
+        "wm_probability": {
+          "ewma_rescaled_resample": 0.315,
+          "iid_resample_2520": 0.9875
+        }
+      },
+      "h5": {
+        "label": false,
+        "max_floor": 0.122011,
+        "mechanically_determined": false,
+        "wm_probability": {
+          "ewma_rescaled_resample": 0.0575,
+          "iid_resample_2520": 0.4925
+        }
+      },
+      "h63": {
+        "label": true,
+        "max_floor": 0.122011,
+        "mechanically_determined": false,
+        "wm_probability": {
+          "ewma_rescaled_resample": 0.6725,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "origin": "2010-01-04",
+      "rv_now": 0.12549386862409026
+    },
+    {
+      "h21": {
+        "label": true,
+        "max_floor": 0.176645,
+        "mechanically_determined": true,
+        "wm_probability": {
+          "ewma_rescaled_resample": 1.0,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "h5": {
+        "label": true,
+        "max_floor": 0.176645,
+        "mechanically_determined": true,
+        "wm_probability": {
+          "ewma_rescaled_resample": 1.0,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "h63": {
+        "label": true,
+        "max_floor": 0.176645,
+        "mechanically_determined": true,
+        "wm_probability": {
+          "ewma_rescaled_resample": 1.0,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "origin": "2010-02-03",
+      "rv_now": 0.17690016933878083
+    },
+    {
+      "h21": {
+        "label": false,
+        "max_floor": 0.116069,
+        "mechanically_determined": false,
+        "wm_probability": {
+          "ewma_rescaled_resample": 0.3875,
+          "iid_resample_2520": 0.9825
+        }
+      },
+      "h5": {
+        "label": false,
+        "max_floor": 0.116069,
+        "mechanically_determined": false,
+        "wm_probability": {
+          "ewma_rescaled_resample": 0.0625,
+          "iid_resample_2520": 0.425
+        }
+      },
+      "h63": {
+        "label": true,
+        "max_floor": 0.116069,
+        "mechanically_determined": false,
+        "wm_probability": {
+          "ewma_rescaled_resample": 0.8225,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "origin": "2010-03-05",
+      "rv_now": 0.16749325532356404
+    },
+    {
+      "h21": {
+        "label": true,
+        "max_floor": 0.079086,
+        "mechanically_determined": false,
+        "wm_probability": {
+          "ewma_rescaled_resample": 0.0375,
+          "iid_resample_2520": 0.9725
+        }
+      },
+      "h5": {
+        "label": false,
+        "max_floor": 0.079086,
+        "mechanically_determined": false,
+        "wm_probability": {
+          "ewma_rescaled_resample": 0.0,
+          "iid_resample_2520": 0.2525
+        }
+      },
+      "h63": {
+        "label": true,
+        "max_floor": 0.079086,
+        "mechanically_determined": false,
+        "wm_probability": {
+          "ewma_rescaled_resample": 0.095,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "origin": "2010-04-06",
+      "rv_now": 0.07909387297806454
+    },
+    {
+      "h21": {
+        "label": true,
+        "max_floor": 0.193555,
+        "mechanically_determined": true,
+        "wm_probability": {
+          "ewma_rescaled_resample": 1.0,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "h5": {
+        "label": true,
+        "max_floor": 0.193555,
+        "mechanically_determined": true,
+        "wm_probability": {
+          "ewma_rescaled_resample": 1.0,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "h63": {
+        "label": true,
+        "max_floor": 0.193555,
+        "mechanically_determined": true,
+        "wm_probability": {
+          "ewma_rescaled_resample": 1.0,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "origin": "2010-05-05",
+      "rv_now": 0.1936469294530067
+    },
+    {
+      "h21": {
+        "label": true,
+        "max_floor": 0.350979,
+        "mechanically_determined": true,
+        "wm_probability": {
+          "ewma_rescaled_resample": 1.0,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "h5": {
+        "label": true,
+        "max_floor": 0.350979,
+        "mechanically_determined": true,
+        "wm_probability": {
+          "ewma_rescaled_resample": 1.0,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "h63": {
+        "label": true,
+        "max_floor": 0.350979,
+        "mechanically_determined": true,
+        "wm_probability": {
+          "ewma_rescaled_resample": 1.0,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "origin": "2010-06-04",
+      "rv_now": 0.3689082992100305
+    },
+    {
+      "h21": {
+        "label": true,
+        "max_floor": 0.219346,
+        "mechanically_determined": true,
+        "wm_probability": {
+          "ewma_rescaled_resample": 1.0,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "h5": {
+        "label": true,
+        "max_floor": 0.219346,
+        "mechanically_determined": true,
+        "wm_probability": {
+          "ewma_rescaled_resample": 1.0,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "h63": {
+        "label": true,
+        "max_floor": 0.219346,
+        "mechanically_determined": true,
+        "wm_probability": {
+          "ewma_rescaled_resample": 1.0,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "origin": "2010-07-06",
+      "rv_now": 0.22874578087994876
+    },
+    {
+      "h21": {
+        "label": true,
+        "max_floor": 0.204363,
+        "mechanically_determined": true,
+        "wm_probability": {
+          "ewma_rescaled_resample": 1.0,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "h5": {
+        "label": true,
+        "max_floor": 0.204363,
+        "mechanically_determined": true,
+        "wm_probability": {
+          "ewma_rescaled_resample": 1.0,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "h63": {
+        "label": true,
+        "max_floor": 0.204363,
+        "mechanically_determined": true,
+        "wm_probability": {
+          "ewma_rescaled_resample": 1.0,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "origin": "2010-08-04",
+      "rv_now": 0.2256431384037119
+    },
+    {
+      "h21": {
+        "label": true,
+        "max_floor": 0.215819,
+        "mechanically_determined": true,
+        "wm_probability": {
+          "ewma_rescaled_resample": 1.0,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "h5": {
+        "label": true,
+        "max_floor": 0.215819,
+        "mechanically_determined": true,
+        "wm_probability": {
+          "ewma_rescaled_resample": 1.0,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "h63": {
+        "label": true,
+        "max_floor": 0.215819,
+        "mechanically_determined": true,
+        "wm_probability": {
+          "ewma_rescaled_resample": 1.0,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "origin": "2010-09-02",
+      "rv_now": 0.21599307918498925
+    },
+    {
+      "h21": {
+        "label": false,
+        "max_floor": 0.141598,
+        "mechanically_determined": false,
+        "wm_probability": {
+          "ewma_rescaled_resample": 0.5325,
+          "iid_resample_2520": 0.9825
+        }
+      },
+      "h5": {
+        "label": false,
+        "max_floor": 0.141598,
+        "mechanically_determined": false,
+        "wm_probability": {
+          "ewma_rescaled_resample": 0.17,
+          "iid_resample_2520": 0.58
+        }
+      },
+      "h63": {
+        "label": true,
+        "max_floor": 0.141598,
+        "mechanically_determined": false,
+        "wm_probability": {
+          "ewma_rescaled_resample": 0.91,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "origin": "2010-10-04",
+      "rv_now": 0.14837806164201797
+    },
+    {
+      "h21": {
+        "label": true,
+        "max_floor": 0.108986,
+        "mechanically_determined": false,
+        "wm_probability": {
+          "ewma_rescaled_resample": 0.195,
+          "iid_resample_2520": 0.9725
+        }
+      },
+      "h5": {
+        "label": false,
+        "max_floor": 0.108986,
+        "mechanically_determined": false,
+        "wm_probability": {
+          "ewma_rescaled_resample": 0.04,
+          "iid_resample_2520": 0.375
+        }
+      },
+      "h63": {
+        "label": true,
+        "max_floor": 0.108986,
+        "mechanically_determined": false,
+        "wm_probability": {
+          "ewma_rescaled_resample": 0.5,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "origin": "2010-11-02",
+      "rv_now": 0.13028257396503856
+    },
+    {
+      "h21": {
+        "label": true,
+        "max_floor": 0.175356,
+        "mechanically_determined": true,
+        "wm_probability": {
+          "ewma_rescaled_resample": 1.0,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "h5": {
+        "label": true,
+        "max_floor": 0.175356,
+        "mechanically_determined": true,
+        "wm_probability": {
+          "ewma_rescaled_resample": 1.0,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "h63": {
+        "label": true,
+        "max_floor": 0.175356,
+        "mechanically_determined": true,
+        "wm_probability": {
+          "ewma_rescaled_resample": 1.0,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "origin": "2010-12-02",
+      "rv_now": 0.17547888299096095
+    },
+    {
+      "h21": {
+        "label": false,
+        "max_floor": 0.072216,
+        "mechanically_determined": false,
+        "wm_probability": {
+          "ewma_rescaled_resample": 0.0675,
+          "iid_resample_2520": 0.965
+        }
+      },
+      "h5": {
+        "label": false,
+        "max_floor": 0.072216,
+        "mechanically_determined": false,
+        "wm_probability": {
+          "ewma_rescaled_resample": 0.0,
+          "iid_resample_2520": 0.205
+        }
+      },
+      "h63": {
+        "label": true,
+        "max_floor": 0.072216,
+        "mechanically_determined": false,
+        "wm_probability": {
+          "ewma_rescaled_resample": 0.16,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "origin": "2011-01-03",
+      "rv_now": 0.07285950379561307
+    },
+    {
+      "h21": {
+        "label": true,
+        "max_floor": 0.146059,
+        "mechanically_determined": false,
+        "wm_probability": {
+          "ewma_rescaled_resample": 0.625,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "h5": {
+        "label": false,
+        "max_floor": 0.146059,
+        "mechanically_determined": false,
+        "wm_probability": {
+          "ewma_rescaled_resample": 0.195,
+          "iid_resample_2520": 0.6375
+        }
+      },
+      "h63": {
+        "label": true,
+        "max_floor": 0.146059,
+        "mechanically_determined": false,
+        "wm_probability": {
+          "ewma_rescaled_resample": 0.8225,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "origin": "2011-02-02",
+      "rv_now": 0.1471156165774477
+    },
+    {
+      "h21": {
+        "label": true,
+        "max_floor": 0.160761,
+        "mechanically_determined": false,
+        "wm_probability": {
+          "ewma_rescaled_resample": 0.9125,
+          "iid_resample_2520": 0.9975
+        }
+      },
+      "h5": {
+        "label": true,
+        "max_floor": 0.160761,
+        "mechanically_determined": false,
+        "wm_probability": {
+          "ewma_rescaled_resample": 0.5575,
+          "iid_resample_2520": 0.8675
+        }
+      },
+      "h63": {
+        "label": true,
+        "max_floor": 0.160761,
+        "mechanically_determined": false,
+        "wm_probability": {
+          "ewma_rescaled_resample": 0.98,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "origin": "2011-03-04",
+      "rv_now": 0.16079923586686268
+    },
+    {
+      "h21": {
+        "label": false,
+        "max_floor": 0.150639,
+        "mechanically_determined": false,
+        "wm_probability": {
+          "ewma_rescaled_resample": 0.3025,
+          "iid_resample_2520": 0.9525
+        }
+      },
+      "h5": {
+        "label": false,
+        "max_floor": 0.150639,
+        "mechanically_determined": false,
+        "wm_probability": {
+          "ewma_rescaled_resample": 0.145,
+          "iid_resample_2520": 0.545
+        }
+      },
+      "h63": {
+        "label": true,
+        "max_floor": 0.150639,
+        "mechanically_determined": false,
+        "wm_probability": {
+          "ewma_rescaled_resample": 0.6825,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "origin": "2011-04-04",
+      "rv_now": 0.15924326157504906
+    },
+    {
+      "h21": {
+        "label": false,
+        "max_floor": 0.111867,
+        "mechanically_determined": false,
+        "wm_probability": {
+          "ewma_rescaled_resample": 0.0525,
+          "iid_resample_2520": 0.93
+        }
+      },
+      "h5": {
+        "label": false,
+        "max_floor": 0.111867,
+        "mechanically_determined": false,
+        "wm_probability": {
+          "ewma_rescaled_resample": 0.015,
+          "iid_resample_2520": 0.2975
+        }
+      },
+      "h63": {
+        "label": true,
+        "max_floor": 0.111867,
+        "mechanically_determined": false,
+        "wm_probability": {
+          "ewma_rescaled_resample": 0.285,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "origin": "2011-05-04",
+      "rv_now": 0.11186680927720823
+    },
+    {
+      "h21": {
+        "label": true,
+        "max_floor": 0.166375,
+        "mechanically_determined": false,
+        "wm_probability": {
+          "ewma_rescaled_resample": 0.8225,
+          "iid_resample_2520": 0.9975
+        }
+      },
+      "h5": {
+        "label": true,
+        "max_floor": 0.166375,
+        "mechanically_determined": false,
+        "wm_probability": {
+          "ewma_rescaled_resample": 0.67,
+          "iid_resample_2520": 0.8775
+        }
+      },
+      "h63": {
+        "label": true,
+        "max_floor": 0.166375,
+        "mechanically_determined": false,
+        "wm_probability": {
+          "ewma_rescaled_resample": 0.9525,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "origin": "2011-06-03",
+      "rv_now": 0.16676963209583406
+    },
+    {
+      "h21": {
+        "label": true,
+        "max_floor": 0.172083,
+        "mechanically_determined": true,
+        "wm_probability": {
+          "ewma_rescaled_resample": 1.0,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "h5": {
+        "label": true,
+        "max_floor": 0.172083,
+        "mechanically_determined": true,
+        "wm_probability": {
+          "ewma_rescaled_resample": 1.0,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "h63": {
+        "label": true,
+        "max_floor": 0.172083,
+        "mechanically_determined": true,
+        "wm_probability": {
+          "ewma_rescaled_resample": 1.0,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "origin": "2011-07-05",
+      "rv_now": 0.17818737944976215
+    },
+    {
+      "h21": {
+        "label": true,
+        "max_floor": 0.199406,
+        "mechanically_determined": true,
+        "wm_probability": {
+          "ewma_rescaled_resample": 1.0,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "h5": {
+        "label": true,
+        "max_floor": 0.199406,
+        "mechanically_determined": true,
+        "wm_probability": {
+          "ewma_rescaled_resample": 1.0,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "h63": {
+        "label": true,
+        "max_floor": 0.199406,
+        "mechanically_determined": true,
+        "wm_probability": {
+          "ewma_rescaled_resample": 1.0,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "origin": "2011-08-03",
+      "rv_now": 0.20030294308750285
+    },
+    {
+      "h21": {
+        "label": true,
+        "max_floor": 0.495791,
+        "mechanically_determined": true,
+        "wm_probability": {
+          "ewma_rescaled_resample": 1.0,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "h5": {
+        "label": true,
+        "max_floor": 0.495791,
+        "mechanically_determined": true,
+        "wm_probability": {
+          "ewma_rescaled_resample": 1.0,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "h63": {
+        "label": true,
+        "max_floor": 0.495791,
+        "mechanically_determined": true,
+        "wm_probability": {
+          "ewma_rescaled_resample": 1.0,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "origin": "2011-09-01",
+      "rv_now": 0.5273617155397876
+    },
+    {
+      "h21": {
+        "label": true,
+        "max_floor": 0.287355,
+        "mechanically_determined": true,
+        "wm_probability": {
+          "ewma_rescaled_resample": 1.0,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "h5": {
+        "label": true,
+        "max_floor": 0.287355,
+        "mechanically_determined": true,
+        "wm_probability": {
+          "ewma_rescaled_resample": 1.0,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "h63": {
+        "label": true,
+        "max_floor": 0.287355,
+        "mechanically_determined": true,
+        "wm_probability": {
+          "ewma_rescaled_resample": 1.0,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "origin": "2011-10-03",
+      "rv_now": 0.29833214931484797
+    },
+    {
+      "h21": {
+        "label": true,
+        "max_floor": 0.297097,
+        "mechanically_determined": true,
+        "wm_probability": {
+          "ewma_rescaled_resample": 1.0,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "h5": {
+        "label": true,
+        "max_floor": 0.297097,
+        "mechanically_determined": true,
+        "wm_probability": {
+          "ewma_rescaled_resample": 1.0,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "h63": {
+        "label": true,
+        "max_floor": 0.297097,
+        "mechanically_determined": true,
+        "wm_probability": {
+          "ewma_rescaled_resample": 1.0,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "origin": "2011-11-01",
+      "rv_now": 0.309531640762682
+    },
+    {
+      "h21": {
+        "label": true,
+        "max_floor": 0.306576,
+        "mechanically_determined": true,
+        "wm_probability": {
+          "ewma_rescaled_resample": 1.0,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "h5": {
+        "label": true,
+        "max_floor": 0.306576,
+        "mechanically_determined": true,
+        "wm_probability": {
+          "ewma_rescaled_resample": 1.0,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "h63": {
+        "label": true,
+        "max_floor": 0.306576,
+        "mechanically_determined": true,
+        "wm_probability": {
+          "ewma_rescaled_resample": 1.0,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "origin": "2011-12-01",
+      "rv_now": 0.30978978123508993
+    },
+    {
+      "h21": {
+        "label": true,
+        "max_floor": 0.208104,
+        "mechanically_determined": true,
+        "wm_probability": {
+          "ewma_rescaled_resample": 1.0,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "h5": {
+        "label": true,
+        "max_floor": 0.208104,
+        "mechanically_determined": true,
+        "wm_probability": {
+          "ewma_rescaled_resample": 1.0,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "h63": {
+        "label": true,
+        "max_floor": 0.208104,
+        "mechanically_determined": true,
+        "wm_probability": {
+          "ewma_rescaled_resample": 1.0,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "origin": "2012-01-03",
+      "rv_now": 0.20810424678651937
+    },
+    {
+      "h21": {
+        "label": false,
+        "max_floor": 0.085406,
+        "mechanically_determined": false,
+        "wm_probability": {
+          "ewma_rescaled_resample": 0.2775,
+          "iid_resample_2520": 0.9225
+        }
+      },
+      "h5": {
+        "label": false,
+        "max_floor": 0.085406,
+        "mechanically_determined": false,
+        "wm_probability": {
+          "ewma_rescaled_resample": 0.0375,
+          "iid_resample_2520": 0.2675
+        }
+      },
+      "h63": {
+        "label": true,
+        "max_floor": 0.085406,
+        "mechanically_determined": false,
+        "wm_probability": {
+          "ewma_rescaled_resample": 0.6775,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "origin": "2012-02-02",
+      "rv_now": 0.08650875670062666
+    },
+    {
+      "h21": {
+        "label": false,
+        "max_floor": 0.098999,
+        "mechanically_determined": false,
+        "wm_probability": {
+          "ewma_rescaled_resample": 0.0525,
+          "iid_resample_2520": 0.915
+        }
+      },
+      "h5": {
+        "label": false,
+        "max_floor": 0.098999,
+        "mechanically_determined": false,
+        "wm_probability": {
+          "ewma_rescaled_resample": 0.005,
+          "iid_resample_2520": 0.195
+        }
+      },
+      "h63": {
+        "label": true,
+        "max_floor": 0.098999,
+        "mechanically_determined": false,
+        "wm_probability": {
+          "ewma_rescaled_resample": 0.2475,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "origin": "2012-03-05",
+      "rv_now": 0.11210743069967528
+    },
+    {
+      "h21": {
+        "label": true,
+        "max_floor": 0.107032,
+        "mechanically_determined": false,
+        "wm_probability": {
+          "ewma_rescaled_resample": 0.0325,
+          "iid_resample_2520": 0.875
+        }
+      },
+      "h5": {
+        "label": false,
+        "max_floor": 0.107032,
+        "mechanically_determined": false,
+        "wm_probability": {
+          "ewma_rescaled_resample": 0.02,
+          "iid_resample_2520": 0.2075
+        }
+      },
+      "h63": {
+        "label": true,
+        "max_floor": 0.107032,
+        "mechanically_determined": false,
+        "wm_probability": {
+          "ewma_rescaled_resample": 0.2225,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "origin": "2012-04-03",
+      "rv_now": 0.12229717041166621
+    },
+    {
+      "h21": {
+        "label": true,
+        "max_floor": 0.1701,
+        "mechanically_determined": true,
+        "wm_probability": {
+          "ewma_rescaled_resample": 1.0,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "h5": {
+        "label": true,
+        "max_floor": 0.1701,
+        "mechanically_determined": true,
+        "wm_probability": {
+          "ewma_rescaled_resample": 1.0,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "h63": {
+        "label": true,
+        "max_floor": 0.1701,
+        "mechanically_determined": true,
+        "wm_probability": {
+          "ewma_rescaled_resample": 1.0,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "origin": "2012-05-03",
+      "rv_now": 0.17687462091276468
+    },
+    {
+      "h21": {
+        "label": true,
+        "max_floor": 0.171402,
+        "mechanically_determined": true,
+        "wm_probability": {
+          "ewma_rescaled_resample": 1.0,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "h5": {
+        "label": true,
+        "max_floor": 0.171402,
+        "mechanically_determined": true,
+        "wm_probability": {
+          "ewma_rescaled_resample": 1.0,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "h63": {
+        "label": true,
+        "max_floor": 0.171402,
+        "mechanically_determined": true,
+        "wm_probability": {
+          "ewma_rescaled_resample": 1.0,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "origin": "2012-06-04",
+      "rv_now": 0.18396960118218078
+    },
+    {
+      "h21": {
+        "label": true,
+        "max_floor": 0.213942,
+        "mechanically_determined": true,
+        "wm_probability": {
+          "ewma_rescaled_resample": 1.0,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "h5": {
+        "label": true,
+        "max_floor": 0.213942,
+        "mechanically_determined": true,
+        "wm_probability": {
+          "ewma_rescaled_resample": 1.0,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "h63": {
+        "label": true,
+        "max_floor": 0.213942,
+        "mechanically_determined": true,
+        "wm_probability": {
+          "ewma_rescaled_resample": 1.0,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "origin": "2012-07-03",
+      "rv_now": 0.21421059052879823
+    },
+    {
+      "h21": {
+        "label": true,
+        "max_floor": 0.157095,
+        "mechanically_determined": false,
+        "wm_probability": {
+          "ewma_rescaled_resample": 0.665,
+          "iid_resample_2520": 0.945
+        }
+      },
+      "h5": {
+        "label": true,
+        "max_floor": 0.157095,
+        "mechanically_determined": false,
+        "wm_probability": {
+          "ewma_rescaled_resample": 0.3675,
+          "iid_resample_2520": 0.6525
+        }
+      },
+      "h63": {
+        "label": true,
+        "max_floor": 0.157095,
+        "mechanically_determined": false,
+        "wm_probability": {
+          "ewma_rescaled_resample": 0.95,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "origin": "2012-08-02",
+      "rv_now": 0.15714481703322508
+    },
+    {
+      "h21": {
+        "label": false,
+        "max_floor": 0.077369,
+        "mechanically_determined": false,
+        "wm_probability": {
+          "ewma_rescaled_resample": 0.0775,
+          "iid_resample_2520": 0.8875
+        }
+      },
+      "h5": {
+        "label": false,
+        "max_floor": 0.077369,
+        "mechanically_determined": false,
+        "wm_probability": {
+          "ewma_rescaled_resample": 0.01,
+          "iid_resample_2520": 0.1
+        }
+      },
+      "h63": {
+        "label": true,
+        "max_floor": 0.077369,
+        "mechanically_determined": false,
+        "wm_probability": {
+          "ewma_rescaled_resample": 0.2325,
+          "iid_resample_2520": 0.9975
+        }
+      },
+      "origin": "2012-08-31",
+      "rv_now": 0.09967042022897919
+    },
+    {
+      "h21": {
+        "label": false,
+        "max_floor": 0.130796,
+        "mechanically_determined": false,
+        "wm_probability": {
+          "ewma_rescaled_resample": 0.1025,
+          "iid_resample_2520": 0.905
+        }
+      },
+      "h5": {
+        "label": false,
+        "max_floor": 0.130796,
+        "mechanically_determined": false,
+        "wm_probability": {
+          "ewma_rescaled_resample": 0.01,
+          "iid_resample_2520": 0.2425
+        }
+      },
+      "h63": {
+        "label": true,
+        "max_floor": 0.130796,
+        "mechanically_determined": false,
+        "wm_probability": {
+          "ewma_rescaled_resample": 0.2475,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "origin": "2012-10-02",
+      "rv_now": 0.1309637100831807
+    },
+    {
+      "h21": {
+        "label": true,
+        "max_floor": 0.136945,
+        "mechanically_determined": false,
+        "wm_probability": {
+          "ewma_rescaled_resample": 0.24,
+          "iid_resample_2520": 0.9275
+        }
+      },
+      "h5": {
+        "label": false,
+        "max_floor": 0.136945,
+        "mechanically_determined": false,
+        "wm_probability": {
+          "ewma_rescaled_resample": 0.06,
+          "iid_resample_2520": 0.37
+        }
+      },
+      "h63": {
+        "label": true,
+        "max_floor": 0.136945,
+        "mechanically_determined": false,
+        "wm_probability": {
+          "ewma_rescaled_resample": 0.52,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "origin": "2012-11-02",
+      "rv_now": 0.13929808470217958
+    },
+    {
+      "h21": {
+        "label": false,
+        "max_floor": 0.156296,
+        "mechanically_determined": false,
+        "wm_probability": {
+          "ewma_rescaled_resample": 0.215,
+          "iid_resample_2520": 0.8775
+        }
+      },
+      "h5": {
+        "label": false,
+        "max_floor": 0.156296,
+        "mechanically_determined": false,
+        "wm_probability": {
+          "ewma_rescaled_resample": 0.1,
+          "iid_resample_2520": 0.44
+        }
+      },
+      "h63": {
+        "label": false,
+        "max_floor": 0.156296,
+        "mechanically_determined": false,
+        "wm_probability": {
+          "ewma_rescaled_resample": 0.47,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "origin": "2012-12-04",
+      "rv_now": 0.15763105507404804
+    },
+    {
+      "h21": {
+        "label": false,
+        "max_floor": 0.165016,
+        "mechanically_determined": false,
+        "wm_probability": {
+          "ewma_rescaled_resample": 0.93,
+          "iid_resample_2520": 0.985
+        }
+      },
+      "h5": {
+        "label": false,
+        "max_floor": 0.165016,
+        "mechanically_determined": false,
+        "wm_probability": {
+          "ewma_rescaled_resample": 0.77,
+          "iid_resample_2520": 0.885
+        }
+      },
+      "h63": {
+        "label": false,
+        "max_floor": 0.165016,
+        "mechanically_determined": false,
+        "wm_probability": {
+          "ewma_rescaled_resample": 0.99,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "origin": "2013-01-04",
+      "rv_now": 0.16847779183291992
+    },
+    {
+      "h21": {
+        "label": false,
+        "max_floor": 0.096297,
+        "mechanically_determined": false,
+        "wm_probability": {
+          "ewma_rescaled_resample": 0.1725,
+          "iid_resample_2520": 0.8575
+        }
+      },
+      "h5": {
+        "label": false,
+        "max_floor": 0.096297,
+        "mechanically_determined": false,
+        "wm_probability": {
+          "ewma_rescaled_resample": 0.0225,
+          "iid_resample_2520": 0.145
+        }
+      },
+      "h63": {
+        "label": true,
+        "max_floor": 0.096297,
+        "mechanically_determined": false,
+        "wm_probability": {
+          "ewma_rescaled_resample": 0.4925,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "origin": "2013-02-05",
+      "rv_now": 0.09656614900453964
+    },
+    {
+      "h21": {
+        "label": false,
+        "max_floor": 0.118278,
+        "mechanically_determined": false,
+        "wm_probability": {
+          "ewma_rescaled_resample": 0.11,
+          "iid_resample_2520": 0.8425
+        }
+      },
+      "h5": {
+        "label": false,
+        "max_floor": 0.118278,
+        "mechanically_determined": false,
+        "wm_probability": {
+          "ewma_rescaled_resample": 0.0175,
+          "iid_resample_2520": 0.2375
+        }
+      },
+      "h63": {
+        "label": true,
+        "max_floor": 0.118278,
+        "mechanically_determined": false,
+        "wm_probability": {
+          "ewma_rescaled_resample": 0.3025,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "origin": "2013-03-07",
+      "rv_now": 0.11847507541571564
+    },
+    {
+      "h21": {
+        "label": true,
+        "max_floor": 0.088389,
+        "mechanically_determined": false,
+        "wm_probability": {
+          "ewma_rescaled_resample": 0.0325,
+          "iid_resample_2520": 0.81
+        }
+      },
+      "h5": {
+        "label": false,
+        "max_floor": 0.088389,
+        "mechanically_determined": false,
+        "wm_probability": {
+          "ewma_rescaled_resample": 0.0025,
+          "iid_resample_2520": 0.125
+        }
+      },
+      "h63": {
+        "label": true,
+        "max_floor": 0.088389,
+        "mechanically_determined": false,
+        "wm_probability": {
+          "ewma_rescaled_resample": 0.0975,
+          "iid_resample_2520": 0.995
+        }
+      },
+      "origin": "2013-04-08",
+      "rv_now": 0.08954192037160946
+    },
+    {
+      "h21": {
+        "label": true,
+        "max_floor": 0.174068,
+        "mechanically_determined": true,
+        "wm_probability": {
+          "ewma_rescaled_resample": 1.0,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "h5": {
+        "label": true,
+        "max_floor": 0.174068,
+        "mechanically_determined": true,
+        "wm_probability": {
+          "ewma_rescaled_resample": 1.0,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "h63": {
+        "label": true,
+        "max_floor": 0.174068,
+        "mechanically_determined": true,
+        "wm_probability": {
+          "ewma_rescaled_resample": 1.0,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "origin": "2013-05-07",
+      "rv_now": 0.17427340807832153
+    },
+    {
+      "h21": {
+        "label": false,
+        "max_floor": 0.103855,
+        "mechanically_determined": false,
+        "wm_probability": {
+          "ewma_rescaled_resample": 0.0775,
+          "iid_resample_2520": 0.845
+        }
+      },
+      "h5": {
+        "label": false,
+        "max_floor": 0.103855,
+        "mechanically_determined": false,
+        "wm_probability": {
+          "ewma_rescaled_resample": 0.0075,
+          "iid_resample_2520": 0.155
+        }
+      },
+      "h63": {
+        "label": false,
+        "max_floor": 0.103855,
+        "mechanically_determined": false,
+        "wm_probability": {
+          "ewma_rescaled_resample": 0.275,
+          "iid_resample_2520": 0.9975
+        }
+      },
+      "origin": "2013-06-06",
+      "rv_now": 0.1051393432362809
+    },
+    {
+      "h21": {
+        "label": false,
+        "max_floor": 0.149131,
+        "mechanically_determined": false,
+        "wm_probability": {
+          "ewma_rescaled_resample": 0.1925,
+          "iid_resample_2520": 0.835
+        }
+      },
+      "h5": {
+        "label": false,
+        "max_floor": 0.149131,
+        "mechanically_determined": false,
+        "wm_probability": {
+          "ewma_rescaled_resample": 0.09,
+          "iid_resample_2520": 0.38
+        }
+      },
+      "h63": {
+        "label": false,
+        "max_floor": 0.149131,
+        "mechanically_determined": false,
+        "wm_probability": {
+          "ewma_rescaled_resample": 0.4975,
+          "iid_resample_2520": 0.9975
+        }
+      },
+      "origin": "2013-07-08",
+      "rv_now": 0.15566409880116502
+    },
+    {
+      "h21": {
+        "label": false,
+        "max_floor": 0.092911,
+        "mechanically_determined": false,
+        "wm_probability": {
+          "ewma_rescaled_resample": 0.05,
+          "iid_resample_2520": 0.8225
+        }
+      },
+      "h5": {
+        "label": false,
+        "max_floor": 0.092911,
+        "mechanically_determined": false,
+        "wm_probability": {
+          "ewma_rescaled_resample": 0.005,
+          "iid_resample_2520": 0.125
+        }
+      },
+      "h63": {
+        "label": false,
+        "max_floor": 0.092911,
+        "mechanically_determined": false,
+        "wm_probability": {
+          "ewma_rescaled_resample": 0.1525,
+          "iid_resample_2520": 0.9975
+        }
+      },
+      "origin": "2013-08-06",
+      "rv_now": 0.09361477416574988
+    },
+    {
+      "h21": {
+        "label": false,
+        "max_floor": 0.13055,
+        "mechanically_determined": false,
+        "wm_probability": {
+          "ewma_rescaled_resample": 0.155,
+          "iid_resample_2520": 0.845
+        }
+      },
+      "h5": {
+        "label": false,
+        "max_floor": 0.13055,
+        "mechanically_determined": false,
+        "wm_probability": {
+          "ewma_rescaled_resample": 0.04,
+          "iid_resample_2520": 0.2925
+        }
+      },
+      "h63": {
+        "label": false,
+        "max_floor": 0.13055,
+        "mechanically_determined": false,
+        "wm_probability": {
+          "ewma_rescaled_resample": 0.365,
+          "iid_resample_2520": 0.995
+        }
+      },
+      "origin": "2013-09-05",
+      "rv_now": 0.13104309720926696
+    },
+    {
+      "h21": {
+        "label": false,
+        "max_floor": 0.094878,
+        "mechanically_determined": false,
+        "wm_probability": {
+          "ewma_rescaled_resample": 0.0375,
+          "iid_resample_2520": 0.7675
+        }
+      },
+      "h5": {
+        "label": false,
+        "max_floor": 0.094878,
+        "mechanically_determined": false,
+        "wm_probability": {
+          "ewma_rescaled_resample": 0.0075,
+          "iid_resample_2520": 0.1325
+        }
+      },
+      "h63": {
+        "label": false,
+        "max_floor": 0.094878,
+        "mechanically_determined": false,
+        "wm_probability": {
+          "ewma_rescaled_resample": 0.1375,
+          "iid_resample_2520": 0.995
+        }
+      },
+      "origin": "2013-10-04",
+      "rv_now": 0.09504822953169566
+    },
+    {
+      "h21": {
+        "label": false,
+        "max_floor": 0.136243,
+        "mechanically_determined": false,
+        "wm_probability": {
+          "ewma_rescaled_resample": 0.06,
+          "iid_resample_2520": 0.7675
+        }
+      },
+      "h5": {
+        "label": false,
+        "max_floor": 0.136243,
+        "mechanically_determined": false,
+        "wm_probability": {
+          "ewma_rescaled_resample": 0.0075,
+          "iid_resample_2520": 0.14
+        }
+      },
+      "h63": {
+        "label": true,
+        "max_floor": 0.136243,
+        "mechanically_determined": false,
+        "wm_probability": {
+          "ewma_rescaled_resample": 0.2225,
+          "iid_resample_2520": 0.9925
+        }
+      },
+      "origin": "2013-11-04",
+      "rv_now": 0.1424638478191902
+    },
+    {
+      "h21": {
+        "label": false,
+        "max_floor": 0.120114,
+        "mechanically_determined": false,
+        "wm_probability": {
+          "ewma_rescaled_resample": 0.045,
+          "iid_resample_2520": 0.74
+        }
+      },
+      "h5": {
+        "label": false,
+        "max_floor": 0.120114,
+        "mechanically_determined": false,
+        "wm_probability": {
+          "ewma_rescaled_resample": 0.015,
+          "iid_resample_2520": 0.1175
+        }
+      },
+      "h63": {
+        "label": true,
+        "max_floor": 0.120114,
+        "mechanically_determined": false,
+        "wm_probability": {
+          "ewma_rescaled_resample": 0.1475,
+          "iid_resample_2520": 0.99
+        }
+      },
+      "origin": "2013-12-04",
+      "rv_now": 0.12012194462281132
+    },
+    {
+      "h21": {
+        "label": true,
+        "max_floor": 0.101326,
+        "mechanically_determined": false,
+        "wm_probability": {
+          "ewma_rescaled_resample": 0.0325,
+          "iid_resample_2520": 0.7575
+        }
+      },
+      "h5": {
+        "label": false,
+        "max_floor": 0.101326,
+        "mechanically_determined": false,
+        "wm_probability": {
+          "ewma_rescaled_resample": 0.01,
+          "iid_resample_2520": 0.1675
+        }
+      },
+      "h63": {
+        "label": true,
+        "max_floor": 0.101326,
+        "mechanically_determined": false,
+        "wm_probability": {
+          "ewma_rescaled_resample": 0.125,
+          "iid_resample_2520": 0.9975
+        }
+      },
+      "origin": "2014-01-06",
+      "rv_now": 0.10160864790923595
+    },
+    {
+      "h21": {
+        "label": true,
+        "max_floor": 0.177867,
+        "mechanically_determined": true,
+        "wm_probability": {
+          "ewma_rescaled_resample": 1.0,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "h5": {
+        "label": true,
+        "max_floor": 0.177867,
+        "mechanically_determined": true,
+        "wm_probability": {
+          "ewma_rescaled_resample": 1.0,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "h63": {
+        "label": true,
+        "max_floor": 0.177867,
+        "mechanically_determined": true,
+        "wm_probability": {
+          "ewma_rescaled_resample": 1.0,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "origin": "2014-02-05",
+      "rv_now": 0.1821170423317993
+    },
+    {
+      "h21": {
+        "label": false,
+        "max_floor": 0.107383,
+        "mechanically_determined": false,
+        "wm_probability": {
+          "ewma_rescaled_resample": 0.1475,
+          "iid_resample_2520": 0.755
+        }
+      },
+      "h5": {
+        "label": false,
+        "max_floor": 0.107383,
+        "mechanically_determined": false,
+        "wm_probability": {
+          "ewma_rescaled_resample": 0.02,
+          "iid_resample_2520": 0.1475
+        }
+      },
+      "h63": {
+        "label": true,
+        "max_floor": 0.107383,
+        "mechanically_determined": false,
+        "wm_probability": {
+          "ewma_rescaled_resample": 0.42,
+          "iid_resample_2520": 0.9925
+        }
+      },
+      "origin": "2014-03-07",
+      "rv_now": 0.11087465389797835
+    },
+    {
+      "h21": {
+        "label": true,
+        "max_floor": 0.163755,
+        "mechanically_determined": false,
+        "wm_probability": {
+          "ewma_rescaled_resample": 0.8325,
+          "iid_resample_2520": 0.9525
+        }
+      },
+      "h5": {
+        "label": true,
+        "max_floor": 0.163755,
+        "mechanically_determined": false,
+        "wm_probability": {
+          "ewma_rescaled_resample": 0.625,
+          "iid_resample_2520": 0.7875
+        }
+      },
+      "h63": {
+        "label": true,
+        "max_floor": 0.163755,
+        "mechanically_determined": false,
+        "wm_probability": {
+          "ewma_rescaled_resample": 0.9475,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "origin": "2014-04-07",
+      "rv_now": 0.16400580509645352
+    },
+    {
+      "h21": {
+        "label": true,
+        "max_floor": 0.177457,
+        "mechanically_determined": true,
+        "wm_probability": {
+          "ewma_rescaled_resample": 1.0,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "h5": {
+        "label": true,
+        "max_floor": 0.177457,
+        "mechanically_determined": true,
+        "wm_probability": {
+          "ewma_rescaled_resample": 1.0,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "h63": {
+        "label": true,
+        "max_floor": 0.177457,
+        "mechanically_determined": true,
+        "wm_probability": {
+          "ewma_rescaled_resample": 1.0,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "origin": "2014-05-07",
+      "rv_now": 0.1799799600469037
+    },
+    {
+      "h21": {
+        "label": false,
+        "max_floor": 0.106688,
+        "mechanically_determined": false,
+        "wm_probability": {
+          "ewma_rescaled_resample": 0.0975,
+          "iid_resample_2520": 0.7625
+        }
+      },
+      "h5": {
+        "label": false,
+        "max_floor": 0.106688,
+        "mechanically_determined": false,
+        "wm_probability": {
+          "ewma_rescaled_resample": 0.0275,
+          "iid_resample_2520": 0.1425
+        }
+      },
+      "h63": {
+        "label": false,
+        "max_floor": 0.106688,
+        "mechanically_determined": false,
+        "wm_probability": {
+          "ewma_rescaled_resample": 0.33,
+          "iid_resample_2520": 0.9925
+        }
+      },
+      "origin": "2014-06-06",
+      "rv_now": 0.1095708551792748
+    },
+    {
+      "h21": {
+        "label": false,
+        "max_floor": 0.088794,
+        "mechanically_determined": false,
+        "wm_probability": {
+          "ewma_rescaled_resample": 0.065,
+          "iid_resample_2520": 0.7875
+        }
+      },
+      "h5": {
+        "label": false,
+        "max_floor": 0.088794,
+        "mechanically_determined": false,
+        "wm_probability": {
+          "ewma_rescaled_resample": 0.005,
+          "iid_resample_2520": 0.0975
+        }
+      },
+      "h63": {
+        "label": false,
+        "max_floor": 0.088794,
+        "mechanically_determined": false,
+        "wm_probability": {
+          "ewma_rescaled_resample": 0.1775,
+          "iid_resample_2520": 0.995
+        }
+      },
+      "origin": "2014-07-08",
+      "rv_now": 0.08932052804609233
+    },
+    {
+      "h21": {
+        "label": false,
+        "max_floor": 0.124268,
+        "mechanically_determined": false,
+        "wm_probability": {
+          "ewma_rescaled_resample": 0.1,
+          "iid_resample_2520": 0.7375
+        }
+      },
+      "h5": {
+        "label": false,
+        "max_floor": 0.124268,
+        "mechanically_determined": false,
+        "wm_probability": {
+          "ewma_rescaled_resample": 0.0275,
+          "iid_resample_2520": 0.2575
+        }
+      },
+      "h63": {
+        "label": true,
+        "max_floor": 0.124268,
+        "mechanically_determined": false,
+        "wm_probability": {
+          "ewma_rescaled_resample": 0.31,
+          "iid_resample_2520": 0.99
+        }
+      },
+      "origin": "2014-08-06",
+      "rv_now": 0.12660389030182995
+    },
+    {
+      "h21": {
+        "label": false,
+        "max_floor": 0.065618,
+        "mechanically_determined": false,
+        "wm_probability": {
+          "ewma_rescaled_resample": 0.02,
+          "iid_resample_2520": 0.705
+        }
+      },
+      "h5": {
+        "label": false,
+        "max_floor": 0.065618,
+        "mechanically_determined": false,
+        "wm_probability": {
+          "ewma_rescaled_resample": 0.0,
+          "iid_resample_2520": 0.1
+        }
+      },
+      "h63": {
+        "label": true,
+        "max_floor": 0.065618,
+        "mechanically_determined": false,
+        "wm_probability": {
+          "ewma_rescaled_resample": 0.055,
+          "iid_resample_2520": 0.9875
+        }
+      },
+      "origin": "2014-09-05",
+      "rv_now": 0.0704500131630874
+    },
+    {
+      "h21": {
+        "label": true,
+        "max_floor": 0.136642,
+        "mechanically_determined": false,
+        "wm_probability": {
+          "ewma_rescaled_resample": 0.2325,
+          "iid_resample_2520": 0.785
+        }
+      },
+      "h5": {
+        "label": true,
+        "max_floor": 0.136642,
+        "mechanically_determined": false,
+        "wm_probability": {
+          "ewma_rescaled_resample": 0.0525,
+          "iid_resample_2520": 0.265
+        }
+      },
+      "h63": {
+        "label": true,
+        "max_floor": 0.136642,
+        "mechanically_determined": false,
+        "wm_probability": {
+          "ewma_rescaled_resample": 0.465,
+          "iid_resample_2520": 0.9825
+        }
+      },
+      "origin": "2014-10-06",
+      "rv_now": 0.13719936808630687
+    },
+    {
+      "h21": {
+        "label": true,
+        "max_floor": 0.19962,
+        "mechanically_determined": true,
+        "wm_probability": {
+          "ewma_rescaled_resample": 1.0,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "h5": {
+        "label": true,
+        "max_floor": 0.19962,
+        "mechanically_determined": true,
+        "wm_probability": {
+          "ewma_rescaled_resample": 1.0,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "h63": {
+        "label": true,
+        "max_floor": 0.19962,
+        "mechanically_determined": true,
+        "wm_probability": {
+          "ewma_rescaled_resample": 1.0,
+          "iid_resample_2520": 1.0
+        }
+      },
+      "origin": "2014-11-04",
+      "rv_now": 0.20954273580521593
+    },
+    {
+      "h21": {
+        "label": true,
+        "max_floor": 0.077834,
+        "mechanically_determined": false,
+        "wm_probability": {
+          "ewma_rescaled_resample": 0.09,
+          "iid_resample_2520": 0.6925
+        }
+      },
+      "h5": {
+        "label": false,
+        "max_floor": 0.077834,
+        "mechanically_determined": false,
+        "wm_probability": {
+          "ewma_rescaled_resample": 0.015,
+          "iid_resample_2520": 0.12
+        }
+      },
+      "h63": {
+        "label": true,
+        "max_floor": 0.077834,
+        "mechanically_determined": false,
+        "wm_probability": {
+          "ewma_rescaled_resample": 0.225,
+          "iid_resample_2520": 0.9825
+        }
+      },
+      "origin": "2014-12-04",
+      "rv_now": 0.07821175671274753
+    }
+  ],
+  "summary": {
+    "h21": {
+      "base_rate": 0.6979,
+      "mean_wm_probability_ewma": 0.6212,
+      "mean_wm_probability_iid": 0.9472,
+      "positives": 67,
+      "positives_mechanically_determined": 47
+    },
+    "h5": {
+      "base_rate": 0.5729,
+      "mean_wm_probability_ewma": 0.5558,
+      "mean_wm_probability_iid": 0.6805,
+      "positives": 55,
+      "positives_mechanically_determined": 47
+    },
+    "h63": {
+      "base_rate": 0.8958,
+      "mean_wm_probability_ewma": 0.7209,
+      "mean_wm_probability_iid": 0.9987,
+      "positives": 86,
+      "positives_mechanically_determined": 47
+    },
+    "n_origins": 96,
+    "prereg_content_hash": "c87deb1721ee2422baad8084eda4d942b2bd175dace6293724761fdc88358664"
+  }
+}

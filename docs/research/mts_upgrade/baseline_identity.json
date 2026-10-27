@@ -1,0 +1,73 @@
+{
+  "environment_lock_hash": "13781dc2e360d92948252dbe976de46244e6fb854cc7a95ec855251841cab1b3",
+  "generated_at": "2026-10-26T10:50:41.220928+00:00",
+  "pb_live": {
+    "failures": [],
+    "hash_only_old_sha": 1,
+    "ledger": "data/timeseries_v13/ledgers/vol_live.jsonl",
+    "pass": 32,
+    "precondition_drift": 0,
+    "rows": 33
+  },
+  "pb_resolutions": {
+    "failures": [],
+    "ledger": "data/timeseries_v13/ledgers/vol_live_resolutions.jsonl",
+    "pass": 123,
+    "precondition_drift": 0,
+    "rows": 123
+  },
+  "run_id": "replay-baseline-2026-10-26",
+  "schema_version": 1,
+  "v8_tier1": {
+    "chain_errors": [],
+    "contract_hash": "7c56ee4eaa5697823c71c504e524354a70d643d20b555de69120f11ac55f785b",
+    "forecast_pass": 9,
+    "forecast_rows": 9,
+    "grid_skip_rows": 2,
+    "model_code_hash": "869418ccb6a7356761b489bd2e23262427b31b8446dcf2f2dcc17959a8206fde",
+    "ok": true,
+    "pointer": {
+      "pointer_status": "shadow_operational_hold",
+      "status": "HOLD_POINTER"
+    },
+    "resolution_pass": 19,
+    "resolution_rows": 19,
+    "sealed": [
+      {
+        "run_id": "tsv8-sealed-64345a816b4857171915d5b8",
+        "status": "PASS"
+      }
+    ]
+  },
+  "v8_tier1_nonpass_rows": [
+    {
+      "notes": [
+        "GRID_SKIP: bundle grid 가 주식 거래일 ['2026-10-12'] 를 제외 — 해당 일 수익이 라벨에서 빠짐 (동결 코드의 grid-종속 표적, 수정 아님)"
+      ],
+      "resolution_id": "tsv8-shadow-49a6fcddcf3c56f24cbdba38-h21",
+      "status": "PASS_WITH_GRID_SKIP"
+    },
+    {
+      "notes": [
+        "GRID_SKIP: bundle grid 가 주식 거래일 ['2026-10-12'] 를 제외 — 해당 일 수익이 라벨에서 빠짐 (동결 코드의 grid-종속 표적, 수정 아님)"
+      ],
+      "resolution_id": "tsv8-shadow-14b696d768901202077647a7-h1",
+      "status": "PASS_WITH_GRID_SKIP"
+    }
+  ],
+  "v8_tier2": {
+    "forecast_id": "tsv8-shadow-d7278b2400139e5ad30e3777",
+    "matured_origins_at_emit_recomputed": 1020,
+    "mismatches": [
+      "h1.quantile_grid (max|Δ|=2.42861286636753e-17)",
+      "h5.quantile_grid (max|Δ|=1.97758476261356e-16)"
+    ],
+    "origin": "2026-10-16",
+    "status": "MISMATCH",
+    "wall_seconds": 5456.2
+  },
+  "verdict": {
+    "pb_identity": true,
+    "v8_tier1_identity": true
+  }
+}

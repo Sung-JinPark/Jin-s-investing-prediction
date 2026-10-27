@@ -1,0 +1,96 @@
+# mts_research 연구 계약 초안 — 설계서 §18 그대로.
+# null 은 누락을 숨기는 기본값이 아니라 구현·등록 시 반드시 채울 항목이다.
+# state: draft 인 동안 run 은 거부된다 (validate/audit/dry-run 만 허용 — §18.1, T55).
+schema_version: mts_research_contract_proposal_v1
+state: draft
+purpose: probability_integrity_and_incremental_skill
+source_document: multivariate_timeseries_explainer_20261026.md
+actual_repository_revision: null
+environment_lock_hash: null
+
+inherit:
+  v8_contract: data/contracts/multivariate_timeseries_v8.yaml
+  v13_contract: data/contracts/multivariate_timeseries_v13_vol.yaml
+  v14_contract: data/contracts/multivariate_timeseries_v14_conditional.yaml
+  daily6m_contract: data/contracts/timeseries_daily6m_v1.yaml
+  frozen_price_champion: shadow.mf_dfm_varx_calibrated_v8
+  frozen_event_champion: persistence_pb
+  protected_manifest_hash: null
+
+execution:
+  namespace: mts_research
+  mode: audit_only
+  enabled_experiments: []
+  enabled_candidates: []
+  read_scope_receipt_id: null
+  allowed_input_manifest_hash: null
+  allowed_outcome_manifest_hash: null
+  experiment_budget_receipt_id: null
+  network_fetch_enabled: false
+  protected_holdout_read_enabled: false
+  auto_promote: false
+  production_publish_enabled: false
+
+time_and_targets:
+  replay_mode: null
+  availability_policy_hash: null
+  source_registry_hash: null
+  calendar_hash: null
+  target_spec_hash: null
+  eligibility_rule_hash: null
+  label_revision_policy_hash: null
+  maturity_policy: complete_horizon
+  partial_censoring_training_enabled: false
+  original_origin_grid_required: true
+
+models:
+  hazard:
+    enabled: false
+    family: penalized_discrete_time_logit
+    origin_features_only: true
+    proposed_time_bins_sessions:
+      - [1, 5]
+      - [6, 21]
+      - [22, 63]
+    penalty_grid_manifest_hash: null
+  calibration:
+    default: identity
+    candidate: intercept_only
+    oof_only: true
+    mature_labels_only: true
+    parameter_grid_manifest_hash: null
+  conformal_enabled: false
+  foundation_model_integration_enabled: false
+  learned_ensemble_enabled: false
+  new_source_blocks_enabled: []
+
+evaluation:
+  evidence_track: null
+  prospective_cohort_manifest_hash: null
+  candidate_failure_policy: hold_confirmatory_verdict
+  registered_fallback_policy_hash: null
+  primary_metric_spec_hash: null
+  primary_comparison_manifest_hash: null
+  minimum_practical_effect_in_score_units: null
+  noninferiority_margin_manifest_hash: null
+  family_manifest_hash: null
+  familywise_alpha: 0.05
+  inference_method: centered_paired_stationary_bootstrap
+  multiplicity_method: holm
+  studentized: false
+  original_grid_and_eligibility_mask_resampled_together: true
+  bootstrap_replicates: null
+  mean_block_length_in_origin_grid_rows: null
+  block_sensitivity_manifest_hash: null
+  random_seed_manifest_hash: null
+  degenerate_replicate_policy_hash: null
+  fixed_mature_cohort_look: true
+  sequential_evidence_enabled: false
+  legacy_gates_unchanged: true
+
+outputs:
+  root: data/mts_research/experiments
+  append_only: true
+  require_atomic_commit: true
+  require_baseline_identity_report: true
+  require_negative_result_record: true
