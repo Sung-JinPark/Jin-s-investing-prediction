@@ -26,3 +26,8 @@
 VARX (lag,α) 는 λ 이진 스위치·PIT 이력 경유로만 작용(INDIRECT_VIA_LAMBDA),
 block_length 는 BYPASSED, h1/h5·first_touch 는 ACTIVE. 선택 목적 재정렬 실험(ablation)은
 영향 경로가 밝혀진 파라미터에 한해 W7 등록 후에만 의미가 있다 — 지금은 실행하지 않는다.
+
+명시 (2026-10-27, 외부 리뷰 F12): **INDIRECT_VIA_LAMBDA 는 '영향 경로 있음'으로 분류한다**
+— 간접 영향의 존재는 h21/h63 (lag,α) 재정렬 실험을 무의미하게 만들지 않는다 (λ 선택이 실제로
+갈렸고 λ 분위 차 h21 0.0412·h63 0.1542 가 효과 상한이다). '설계 자체가 낭비' 판정은
+BYPASSED(block_length 의 h21/h63)에만 적용된다.

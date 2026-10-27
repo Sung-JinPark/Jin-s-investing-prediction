@@ -35,6 +35,68 @@ def _panel(n=60, *, sparse_eligibility=False, seed=1, shift=0.0):
     )
 
 
+def test_f10_registered_degenerate_thresholds_downgrade_to_insufficient():
+    """등록된 B_eff 하한·퇴화율 상한 미달이면 p 를 내지 않는다 (F10)."""
+    n = 12
+    rng = np.random.default_rng(7)
+    losses = np.stack([np.abs(rng.normal(1, 0.1, n)), np.abs(rng.normal(1, 0.1, n))], axis=1)[:, :, None]
+    eligibility = np.zeros((n, 1), dtype=bool)
+    eligibility[0, 0] = True  # eligible 원점 1개 — 그 원점을 안 뽑은 replicate 는 퇴화
+    panel = LossPanel(
+        origin_grid=tuple(f"2026-03-{i:02d}" for i in range(1, n + 1)),
+        models=("cand", "base"), cells=("cell",),
+        losses=losses, eligibility=eligibility,
+        missing_reason=np.zeros((n, 2, 1), dtype=int),
+    )
+    reps = joint_block_resample(panel, mean_block=3, replications=40, seed=9)
+    base = centered_paired_bootstrap_test(
+        panel, reps, candidate="cand", baseline="base", cell="cell",
+    )
+    assert base.degenerate_replicates > 0  # 전제: 퇴화가 실제로 발생
+    strict = centered_paired_bootstrap_test(
+        panel, reps, candidate="cand", baseline="base", cell="cell",
+        min_effective_replicates=(40 - base.degenerate_replicates) + 1,
+    )
+    assert strict.status == "EVIDENCE_INSUFFICIENT" and strict.p_raw is None
+    rate = centered_paired_bootstrap_test(
+        panel, reps, candidate="cand", baseline="base", cell="cell",
+        max_degenerate_rate=0.0,
+    )
+    assert rate.status == "EVIDENCE_INSUFFICIENT" and rate.p_raw is None
+
+
+def test_f02_candidate_failure_counted_and_policy_enforced():
+    """후보 실패는 세고(candidate_failure_count) 확증 판정을 HOLD 로 내린다 (F02)."""
+    from ai_fc.mts_research.gates import MtsGateError, enforce_candidate_failure_policy
+    from ai_fc.mts_research.resampling import MISSING_REASONS, candidate_failure_count
+
+    panel = _panel(n=10, seed=3)
+    losses = panel.losses.copy()
+    reason = panel.missing_reason.copy()
+    losses[4, 0, 0] = np.nan
+    reason[4, 0, 0] = MISSING_REASONS.index("CANDIDATE_FAILURE")
+    failed = LossPanel(
+        origin_grid=panel.origin_grid, models=panel.models, cells=panel.cells,
+        losses=losses, eligibility=panel.eligibility, missing_reason=reason,
+    )
+    assert candidate_failure_count(failed, candidate="cand", cell="cell") == 1
+    assert candidate_failure_count(failed, candidate="base", cell="cell") == 0
+
+    hold = enforce_candidate_failure_policy(
+        contract_hash="h", policy="hold_confirmatory_verdict", candidate_failure_count=1,
+    )
+    assert hold.status == "HOLD"
+    assert any("F02" in reason_code for reason_code in hold.reason_codes)
+    ok = enforce_candidate_failure_policy(
+        contract_hash="h", policy="hold_confirmatory_verdict", candidate_failure_count=0,
+    )
+    assert ok.status == "PASS"
+    with pytest.raises(MtsGateError):
+        enforce_candidate_failure_policy(
+            contract_hash="h", policy="drop_failures", candidate_failure_count=0,
+        )
+
+
 def test_t41_original_grid_and_mask_resampled_together():
     """희소 eligibility 라도 원 grid 전체를 재표집하고 mask 를 같은 인덱스로 끌고 간다 (T41)."""
     panel = _panel(sparse_eligibility=True)

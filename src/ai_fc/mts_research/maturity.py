@@ -65,6 +65,14 @@ class LabelEvent(BaseModel):
                 raise MtsMaturityError(f"{self.status} 는 label_available_at 필수")
             if self.label_revision_id is None:
                 raise MtsMaturityError(f"{self.status} 는 label_revision_id 필수 (T11)")
+            if self.outcome_snapshot_id is None:
+                # 외부 리뷰 F06 (2026-10-27): within-horizon·rolling 라벨은 경로 전체에
+                # 의존한다 — 단일 revision id 로는 재현이 안 되므로 전체 경로 판을 커밋한
+                # outcome snapshot 결박을 의무화한다.
+                raise MtsMaturityError(
+                    f"{self.status} 는 outcome_snapshot_id 필수 (F06 — 경로형 라벨의 "
+                    "전체 경로 revision 결박)"
+                )
         if self.status == "RESTATED" and self.supersedes_label_event_id is None:
             raise MtsMaturityError("RESTATED 는 이전 이벤트 참조 필수 (§6.3)")
         if self.status == "PENDING" and self.observed_value is not None:

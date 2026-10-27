@@ -149,6 +149,15 @@ class HazardFit:
     n_origins: int
     n_person_periods: int
     no_iid_ci: bool = True  # §9.5 — naive Hessian CI 금지 플래그
+    # 외부 리뷰 F11 (2026-10-27): optimizer 의 '수렴' 과 통계적 '식별가능' 은 다른 판정이다.
+    # 사건 0 bin 의 무벌점 절편은 유한 최적해가 없고(a_b→−∞), 전건 bin 은 반대 방향 발산.
+    non_identified_bins: tuple[int, ...] = ()
+    slope_divergence: bool = False
+
+    @property
+    def estimable(self) -> bool:
+        """전 bin 식별 + slope 비발산 — converged 와 별개의 판정 (F11)."""
+        return not self.non_identified_bins and not self.slope_divergence
 
 
 def _design(pp: PersonPeriods, mu: np.ndarray, sd: np.ndarray) -> np.ndarray:
@@ -183,8 +192,18 @@ def fit_hazard(
     sd = origin_features.std(axis=0).copy()
     sd[sd < 1e-9] = 1.0
 
-    design = _design(pp, mu, sd)
     n_bins = len(pp.bins)
+    # F11 — bin별 risk-set·사건 수 사전 점검: 행 0 bin(절편 정의 불능)·사건 0 bin(절편
+    # a_b→−∞ 발산)·전건 bin(반대 방향 발산)은 전부 '비식별' 로 기록한다. 적합 자체는
+    # 식별된 bin 들을 위해 진행하되, 비식별 bin 을 지나는 확률 산출은 거부된다.
+    bin_rows = np.bincount(pp.bin_index, minlength=n_bins)
+    bin_events = np.bincount(pp.bin_index, weights=pp.d.astype(float), minlength=n_bins)
+    non_identified = tuple(
+        i for i in range(n_bins)
+        if bin_rows[i] == 0 or bin_events[i] == 0 or bin_events[i] == bin_rows[i]
+    )
+
+    design = _design(pp, mu, sd)
     n_params = design.shape[1]
     theta = np.zeros(n_params)
     penalty = np.zeros(n_params)
@@ -223,6 +242,9 @@ def fit_hazard(
 
     intercepts = theta[:n_bins]
     beta = theta[n_bins:]
+    # F11 — 표준화 특징에서 |β| 가 선형 예측자 clip 경계(35)를 넘으면 사실상 분리:
+    # ridge=0 이면 유한 최적해가 없을 수 있고, optimizer 종료가 식별을 만들지 않는다.
+    slope_divergence = bool(beta.size and float(np.max(np.abs(beta))) > 35.0)
     return HazardFit(
         bins=pp.bins,
         intercepts=intercepts,
@@ -235,11 +257,30 @@ def fit_hazard(
         nll=negative_log_likelihood(pp, intercepts, beta, mu=mu, sd=sd, ridge=0.0),
         n_origins=pp.n_origins,
         n_person_periods=len(pp.k),
+        non_identified_bins=non_identified,
+        slope_divergence=slope_divergence,
     )
+
+
+def _assert_identified_through(fit: HazardFit, horizon: int) -> None:
+    """F11 — 요청 지평이 비식별 bin 을 지나면 확률 산출을 거부한다 (조용한 날조 차단)."""
+    if fit.slope_divergence:
+        raise MtsHazardError(
+            "slope 발산(사실상 분리) 적합 — 확률 산출 거부. 등록된 ridge/HOLD 정책으로만 (F11)"
+        )
+    touched = {_bin_of(k, fit.bins) for k in range(1, horizon + 1)}
+    bad = sorted(touched & set(fit.non_identified_bins))
+    if bad:
+        raise MtsHazardError(
+            f"비식별 bin {bad} (사건 0 또는 전건) 을 지나는 지평 {horizon} — "
+            "λ 추정치가 정의되지 않아 확률을 내지 않는다 (F11). "
+            "허용 fallback(HOLD·baseline·bin 통합)은 등록된 정책으로만"
+        )
 
 
 def hazard_curve(fit: HazardFit, z_row: np.ndarray, horizon: int) -> np.ndarray:
     """λ_k, k=1..horizon — 원점 특징 하나의 hazard 곡선."""
+    _assert_identified_through(fit, horizon)
     z_row = np.asarray(z_row, dtype=float)
     if z_row.ndim != 1 or z_row.shape[0] != fit.beta.shape[0]:
         raise MtsHazardError("z_row 모양 불일치 — 원점 특징만 (T24)")

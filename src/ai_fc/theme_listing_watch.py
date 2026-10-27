@@ -101,7 +101,7 @@ _THEME_HINT = re.compile(
     r"芯|晶圆|晶圓|集成电路|積體電路|微电子|微電子|算力|机器人|機器人|ロボット|人工知能|生成AI)",
     re.IGNORECASE,
 )
-_SPAC_NAME = re.compile(r"(스팩|SPAC|Acquisition Corp|特殊目的)", re.IGNORECASE)
+_SPAC_NAME = re.compile(r"(스팩|기업인수목적|SPAC|Acquisition Corp|特殊目的)", re.IGNORECASE)
 
 
 class ThemeListingWatchError(ValueError):

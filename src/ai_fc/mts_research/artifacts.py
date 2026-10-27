@@ -282,6 +282,88 @@ def fail_attempt(
     return event
 
 
+def verify_commit_preconditions(
+    root: Path,
+    draft: ForecastDraft,
+    *,
+    replay_mode: ReplayMode,
+    now: datetime,
+    max_issuance_latency_seconds: int | None = None,
+) -> dict[str, Any]:
+    """prospective 발행 전 시간·스냅숏 결박 검사 (외부 리뷰 F04·Q6·F14 잔여, 2026-10-27).
+
+    commit 이 문자열 input_snapshot_id 만 믿으면 조작·미영속 snapshot 과 자유 cutoff 가
+    ISSUED 로 흐른다. 여기서 검사하는 것:
+    ① input snapshot — 영속 manifest 실재 + snapshot_id 해시 재계산 일치 + kind=input +
+       replay_mode 일치 (Q6; 원장 접두 sha 의 바이트 재검증은 load 경계(T07)가 수행하며,
+       commit 단계 전체 재검은 W8 운영 배선에서).
+    ② 정보 마감 — spec.information_cutoff_at == sessions.information_cutoff_for(origin)
+       (F14 잔여: 함수가 아니라 spec 이 자유값이던 간극).
+    ③ prospective 가드 — now < 첫 대상 세션의 information cutoff
+       (maturity.assert_prospective_issue, F04 상한).
+    ④ 발행 지연 상한 — 등록돼 있으면 now <= cutoff + 상한 (F04 마감; 계약 등록 좌표).
+    """
+    from datetime import timedelta
+
+    from .maturity import assert_prospective_issue
+    from .sessions import information_cutoff_for, session_table
+    from .snapshots import SNAPSHOTS_RELATIVE
+
+    require_utc(now, field="now")
+    spec = draft.spec
+
+    manifest_path = root / SNAPSHOTS_RELATIVE / f"{spec.input_snapshot_id}.json"
+    if not manifest_path.is_file():
+        raise MtsArtifactError(
+            f"input snapshot manifest 미영속: {spec.input_snapshot_id} — "
+            "문자열 id 만으로 commit 할 수 없다 (Q6)"
+        )
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    body = {k: v for k, v in manifest.items() if k not in ("snapshot_id", "series_heads")}
+    expected_id = "mts-snap-" + canonical_hash(body)[:24]
+    if manifest.get("snapshot_id") != spec.input_snapshot_id or expected_id != spec.input_snapshot_id:
+        raise MtsArtifactError("input snapshot manifest 해시 불일치 (Q6)")
+    if manifest.get("kind") != "input":
+        raise MtsArtifactError("outcome snapshot 을 입력으로 commit 할 수 없다 (T14)")
+    if manifest.get("replay_mode") != replay_mode:
+        raise MtsArtifactError(
+            f"snapshot replay_mode({manifest.get('replay_mode')}) != commit replay_mode({replay_mode}) (Q6)"
+        )
+
+    expected_cutoff = information_cutoff_for(spec.origin_session)
+    if spec.information_cutoff_at != expected_cutoff:
+        raise MtsArtifactError(
+            "spec.information_cutoff_at 이 세션 정책과 다르다 (F14 잔여): "
+            f"{spec.information_cutoff_at.isoformat()} != {expected_cutoff.isoformat()}"
+        )
+
+    future = [
+        row for row in session_table(spec.origin_session, spec.origin_session + timedelta(days=14))
+        if row.session > spec.origin_session.isoformat()
+    ]
+    if not future:
+        raise MtsArtifactError("원점 이후 세션을 찾지 못했다 — 달력 범위 오류")
+    first_target_available_at = information_cutoff_for(
+        datetime.strptime(future[0].session, "%Y-%m-%d").date()
+    )
+    assert_prospective_issue(issued_at=now, first_target_available_at=first_target_available_at)
+
+    if max_issuance_latency_seconds is not None:
+        deadline = expected_cutoff + timedelta(seconds=max_issuance_latency_seconds)
+        if now > deadline:
+            raise MtsArtifactError(
+                f"발행 마감 초과 (F04): now {now.isoformat()} > 마감 {deadline.isoformat()} — "
+                "늦은 발행은 원래 원점의 정상 prospective 표본이 아니다"
+            )
+
+    return {
+        "input_snapshot_id": spec.input_snapshot_id,
+        "information_cutoff_at": expected_cutoff.isoformat(),
+        "first_target_available_at": first_target_available_at.isoformat(),
+        "issuance_deadline_checked": max_issuance_latency_seconds is not None,
+    }
+
+
 def commit_forecast(
     root: Path,
     draft: ForecastDraft,
@@ -296,11 +378,13 @@ def commit_forecast(
     issuance_policy_id: str,
     model_version: str,
     reconstruction_of_forecast_id: str | None = None,
+    max_issuance_latency_seconds: int | None = None,
 ) -> ForecastArtifact:
     """canonical commit — issued_at 은 여기서만 확정된다 (§17.3-11, T60).
 
     draft 가 READY 가 아니면 HOLD/NOT_ELIGIBLE artifact 로 발행한다 (payload 없음).
     commit 이전의 어떤 실패도 ISSUED 를 만들지 않는다.
+    evidence_track='prospective' 는 verify_commit_preconditions 를 통과해야 한다 (F04·Q6).
     """
     require_utc(now, field="now")
     rows = read_chain(root, ATTEMPT_LEDGER)
@@ -308,6 +392,11 @@ def commit_forecast(
         raise MtsArtifactError(f"attempt 이미 종결됨: {started.attempt_id}")
     if reconstruction_of_forecast_id is None and evidence_track == "legacy_reproduction":
         raise MtsArtifactError("legacy_reproduction artifact 는 원본 forecast 참조 필수 (T58)")
+    if evidence_track == "prospective":
+        verify_commit_preconditions(
+            root, draft, replay_mode=replay_mode, now=now,
+            max_issuance_latency_seconds=max_issuance_latency_seconds,
+        )
 
     status = {"READY": "ISSUED", "HOLD": "HOLD", "NOT_ELIGIBLE": "NOT_ELIGIBLE"}[draft.prediction_status]
     fid = artifact_id(

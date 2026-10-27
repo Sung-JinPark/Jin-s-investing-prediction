@@ -56,6 +56,54 @@ def _series_closes(root: Path) -> tuple[dict[str, float], set[str]]:
     return closes, treasury_days
 
 
+def verify_latest_pointer(
+    pointer: dict[str, Any], forecasts: list[dict[str, Any]]
+) -> dict[str, Any]:
+    """latest pointer 의 투영 재현 — hold 상태는 상태만, 숫자 상태는 grid 투영 대조.
+
+    원점 필드는 운영 포인터가 ``as_of`` 를 쓴다 (hold 전용 스키마만 보고 ``origin``
+    으로 짐작했던 결함을 2026-10-27 라이브 포인터 전환이 드러냄 — 외부 리뷰 F07/T49
+    해소 과정에서 수정). ``origin`` 이 있으면 그것을, 없으면 ``as_of`` 를 쓴다.
+    """
+    body = {k: v for k, v in pointer.items() if k != "content_hash"}
+    hash_ok = canonical_hash(body) == pointer.get("content_hash")
+    horizons = pointer.get("horizons") or {}
+    if not horizons:
+        return {
+            "status": "HOLD_POINTER" if hash_ok else "HASH_MISMATCH",
+            "pointer_status": pointer.get("status"),
+        }
+    issues = [] if hash_ok else ["pointer content_hash 불일치"]
+    pointer_origin = pointer.get("origin") or pointer.get("as_of")
+    match = [f for f in forecasts if f.get("origin") == pointer_origin]
+    if not match:
+        issues.append(f"pointer origin({pointer_origin}) 의 forecast 행 없음")
+    else:
+        forecast = match[-1]
+        levels = int(forecast["grid_levels_count"])
+        for horizon, cells in horizons.items():
+            grid = np.asarray(
+                forecast["horizons"][str(horizon)]["quantile_grid"], dtype=float
+            )
+            for quantile_name, level in (
+                ("p10", 0.10), ("p25", 0.25), ("p50", 0.50), ("p75", 0.75), ("p90", 0.90),
+            ):
+                if quantile_name in cells and abs(
+                    float(cells[quantile_name]) - float(grid[int(level * levels)])
+                ) > EXACT:
+                    issues.append(f"pointer h{horizon} {quantile_name} 투영 불일치")
+            if "probability_up" in cells and abs(
+                float(cells["probability_up"])
+                - float(forecast["horizons"][str(horizon)]["p_up"])
+            ) > EXACT:
+                issues.append(f"pointer h{horizon} probability_up 불일치")
+    return {
+        "status": "PASS" if not issues else "MISMATCH",
+        "pointer_origin": pointer_origin,
+        **({"issues": issues} if issues else {}),
+    }
+
+
 def tier1_replay(root: Path) -> dict[str, Any]:
     contract = load_contract_v8(root)
     current_code_hash = model_code_hash(root)
@@ -196,42 +244,7 @@ def tier1_replay(root: Path) -> dict[str, Any]:
     pointer_path = root / LATEST_RELATIVE
     if pointer_path.is_file():
         pointer = json.loads(pointer_path.read_text(encoding="utf-8"))
-        body = {k: v for k, v in pointer.items() if k != "content_hash"}
-        hash_ok = canonical_hash(body) == pointer.get("content_hash")
-        horizons = pointer.get("horizons") or {}
-        if not horizons:
-            pointer_result = {
-                "status": "HOLD_POINTER" if hash_ok else "HASH_MISMATCH",
-                "pointer_status": pointer.get("status"),
-            }
-        else:
-            issues = [] if hash_ok else ["pointer content_hash 불일치"]
-            match = [f for f in forecasts if f.get("origin") == pointer.get("origin")]
-            if not match:
-                issues.append("pointer origin 의 forecast 행 없음")
-            else:
-                forecast = match[-1]
-                levels = int(forecast["grid_levels_count"])
-                for horizon, cells in horizons.items():
-                    grid = np.asarray(
-                        forecast["horizons"][str(horizon)]["quantile_grid"], dtype=float
-                    )
-                    for quantile_name, level in (
-                        ("p10", 0.10), ("p25", 0.25), ("p50", 0.50), ("p75", 0.75), ("p90", 0.90),
-                    ):
-                        if quantile_name in cells and abs(
-                            float(cells[quantile_name]) - float(grid[int(level * levels)])
-                        ) > EXACT:
-                            issues.append(f"pointer h{horizon} {quantile_name} 투영 불일치")
-                    if "probability_up" in cells and abs(
-                        float(cells["probability_up"])
-                        - float(forecast["horizons"][str(horizon)]["p_up"])
-                    ) > EXACT:
-                        issues.append(f"pointer h{horizon} probability_up 불일치")
-            pointer_result = {
-                "status": "PASS" if not issues else "MISMATCH",
-                **({"issues": issues} if issues else {}),
-            }
+        pointer_result = verify_latest_pointer(pointer, forecasts)
 
     report.update({
         "forecast_rows": len(forecast_results),

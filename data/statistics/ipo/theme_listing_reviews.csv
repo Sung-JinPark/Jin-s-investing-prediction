@@ -15,8 +15,9 @@ kr,0013Y,엠에스바이오,2026-10-22,not_theme,"의료용 인체조직 이식�
 tw_tpex,2249,湧盛,2026-10-22,not_theme,"湧盛電機 — TPEx 산업코드 05(電機機械)",https://www.tpex.org.tw/openapi/v1/mopsfin_t187ap03_O,2026-10-26,manual
 cn_a,920285,远大健科,2026-10-23,not_theme,"정수 필터·필터 카트리지(키워드 '芯'은 滤芯=필터 심재)",https://data.eastmoney.com/xg/xg/detail/920285.html,2026-10-26,manual
 kr,0015M,디티에스,2026-10-23,not_theme,"산업용 공랭식 열교환기",https://kind.krx.co.kr/listinvstg/listingcompany.do?method=searchListingTypeMain,2026-10-26,manual
+tw_tpex,6898,程曦資訊,2026-10-23,not_theme,auto_rule_v2: 사업 설명 첫 문장에 AI·반도체 제품 없음,https://mops.twse.com.tw/mops/#/web/t05st03?companyId=6898,2026-10-27,auto_rule_v2
+kr,0205H,에스케이증권제14호기업인수목적,2026-10-27,not_theme,auto_rule_v2: 사업 설명 첫 문장에 AI·반도체 제품 없음,https://kind.krx.co.kr/listinvstg/listingcompany.do?method=searchListingTypeMain,2026-10-27,auto_rule_v2
+tw_twse,7710,東擎科技,2026-10-27,not_theme,auto_rule_v2: 사업 설명 첫 문장에 AI·반도체 제품 없음,https://mops.twse.com.tw/mops/#/web/t05st03?companyId=7710,2026-10-27,auto_rule_v2
 euronext,VLCC,Volare Shipping Ltd.,2026-10-05,not_theme,auto_rule_v3: 사업 설명 첫 문장에 AI·반도체 제품 없음,https://live.euronext.com/en/ipo-showcase/volare-shipping-ltd,2026-10-27,auto_rule_v3
 euronext,AJAXR,Ajax Resouces PLC,2026-10-26,not_theme,auto_rule_v3: 사업 설명 첫 문장에 AI·반도체 제품 없음,https://live.euronext.com/en/ipo-showcase/ajax-resouces-plc,2026-10-27,auto_rule_v3
 euronext,ALN4,N4 GROUP S.A,2026-10-26,not_theme,auto_rule_v3: 사업 설명 첫 문장에 AI·반도체 제품 없음,https://live.euronext.com/en/ipo-showcase/n4-group-sa,2026-10-27,auto_rule_v3
-kr,0205H,에스케이증권제14호기업인수목적,2026-10-27,not_theme,auto_rule_v3: 사업 설명 첫 문장에 AI·반도체 제품 없음,https://kind.krx.co.kr/listinvstg/listingcompany.do?method=searchListingTypeMain,2026-10-27,auto_rule_v3
-tw_twse,7710,東擎科技,2026-10-27,not_theme,auto_rule_v3: 사업 설명 첫 문장에 AI·반도체 제품 없음,https://mops.twse.com.tw/mops/#/web/t05st03?companyId=7710,2026-10-27,auto_rule_v3

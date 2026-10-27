@@ -2988,7 +2988,9 @@ def build_statistics_lab(
         "latest_observation": max(str(row["date"]) for row in sec_rows),
         "row_count": len(sec_rows), "raw_sha256": sec_receipt["raw_sha256"],
         "raw_path": sec_receipt.get("raw_path"),
-        "vintage": sec_receipt.get("vintage", "current_public_release_reconstructed"),
+        "vintage": sec_receipt.get("vintage") or "current_public_release_reconstructed",
+        **({"refresh_status": sec_receipt["refresh_status"], "refresh_reason": sec_receipt.get("refresh_reason")}
+           if sec_receipt.get("refresh_status") else {}),
     })
     for z1_series_id, z1_spec in Z1_SERIES.items():
         z1_rows = source_rows[z1_series_id]
@@ -3006,8 +3008,11 @@ def build_statistics_lab(
             "latest_observation": z1_rows[-1]["date"], "row_count": len(z1_rows),
             "raw_sha256": z1_receipt["raw_sha256"],
             "raw_path": z1_receipt.get("raw_path"),
-            "vintage": z1_receipt.get("vintage", "current_release_reconstructed"),
+            "vintage": z1_receipt.get("vintage") or "current_release_reconstructed",
         }
+        if z1_receipt.get("refresh_status"):
+            z1_meta["refresh_status"] = z1_receipt["refresh_status"]
+            z1_meta["refresh_reason"] = z1_receipt.get("refresh_reason")
         if z1_spec.get("proxy_warning"):
             z1_meta["proxy_warning"] = z1_spec["proxy_warning"]
         if z1_spec.get("derivation"):
@@ -3029,8 +3034,11 @@ def build_statistics_lab(
             "latest_observation": c30_rows[-1]["date"], "row_count": len(c30_rows),
             "raw_sha256": c30_receipt["raw_sha256"],
             "raw_path": c30_receipt.get("raw_path"),
-            "vintage": c30_receipt.get("vintage", "current_release_reconstructed"),
+            "vintage": c30_receipt.get("vintage") or "current_release_reconstructed",
         }
+        if c30_receipt.get("refresh_status"):
+            c30_meta["refresh_status"] = c30_receipt["refresh_status"]
+            c30_meta["refresh_reason"] = c30_receipt.get("refresh_reason")
         if c30_spec.get("history_note"):
             c30_meta["history_note"] = c30_spec["history_note"]
         source_meta.append(c30_meta)
@@ -3582,6 +3590,8 @@ def _persist_authoritative_inputs(
                 raw_sha256=receipt.raw_sha256,
             )
     for z1_series_id, z1_spec in Z1_SERIES.items():
+        if z1_series_id not in receipt_models:
+            continue  # 원천 대기 — 검증된 이전 관측 유지, 새 영수증·관측 없음
         z1_receipt = receipt_models[z1_series_id]
         for row in source_rows[z1_series_id]:
             add_candidate(
@@ -3590,6 +3600,8 @@ def _persist_authoritative_inputs(
                 raw_sha256=z1_receipt.raw_sha256,
             )
     for c30_series_id, c30_spec in CENSUS_C30_SERIES.items():
+        if c30_series_id not in receipt_models:
+            continue  # 원천 대기 — 검증된 이전 관측 유지, 새 영수증·관측 없음
         c30_receipt = receipt_models[c30_series_id]
         for row in source_rows[c30_series_id]:
             add_candidate(
@@ -3597,7 +3609,9 @@ def _persist_authoritative_inputs(
                 observed=str(row["date"]), value=row["value"], unit=c30_spec["unit"],
                 raw_sha256=c30_receipt.raw_sha256,
             )
-    sec_receipt = receipt_models["SEC_IPO_QUARTERLY"]
+    sec_receipt = receipt_models.get("SEC_IPO_QUARTERLY")
+    if sec_receipt is None:
+        return candidates  # 원천 대기 — 검증된 이전 관측 유지
     sec_units = {
         "total_count": "count", "us_count": "count", "non_us_count": "count",
         "corporate_count": "count", "spac_count": "count", "fund_count": "count",
@@ -3670,6 +3684,25 @@ def _load_authoritative_current_rows(root: Path, *, source_preferences: dict[str
     return rows
 
 
+def _waiting_receipts(root: Path, series_ids: Any, reason: str) -> dict[str, dict[str, Any]]:
+    """원천 장애 — 직전 스냅샷의 검증된 출처 메타를 그대로 쓰고 새 수집 영수증은 만들지 않는다.
+
+    관측치는 원장의 현재 뷰(이미 검증된 행)에서 온다. 이전 출처 메타가 없으면 숨기지 않고 실패한다.
+    """
+    previous = {row["series_id"]: row for row in (load_statistics_lab(root).get("sources") or [])}
+    out: dict[str, dict[str, Any]] = {}
+    for series_id in series_ids:
+        prior = previous.get(series_id)
+        if not prior or not prior.get("raw_sha256"):
+            raise StatisticsLabError(f"source unavailable and no verified previous observations: {series_id}")
+        out[series_id] = {
+            "raw_sha256": prior["raw_sha256"], "raw_path": prior.get("raw_path"),
+            "available_at": prior.get("available_at"), "vintage": prior.get("vintage"),
+            "refresh_status": "verified_cache_waiting_source", "refresh_reason": reason,
+        }
+    return out
+
+
 def refresh_statistics_lab(
     root: Path, *,
     fred_fetcher: Callable[[str], tuple[list[dict[str, Any]], bytes]] = _fetch_fred,
@@ -3706,7 +3739,12 @@ def refresh_statistics_lab(
             receipts[series_id] = {"raw_sha256": hashlib.sha256(raw).hexdigest()}
             raw_payloads[series_id] = raw
     for series_id in SUPPLEMENTAL_SOURCES:
-        fetched = supplemental_fetcher(series_id)
+        try:
+            fetched = supplemental_fetcher(series_id)
+        except StatisticsLabError:
+            # 교차검증 원천(SEC IPO 분기표) 장애가 갱신 전체를 멈추지 않게 — Z.1·C30 과 같은 규칙.
+            receipts.update(_waiting_receipts(root, [series_id], "supplemental_source_unavailable"))
+            continue
         if len(fetched) == 3:
             rows, raw, resolved_source_uri = fetched
             source_uris[series_id] = resolved_source_uri
@@ -3716,21 +3754,35 @@ def refresh_statistics_lab(
         receipts[series_id] = {"raw_sha256": hashlib.sha256(raw).hexdigest()}
         raw_payloads[series_id] = raw
     fetch_z1 = z1_fetcher or (lambda url: _request(url, timeout=60))
-    z1_raw = fetch_z1(Z1_ENDPOINT)
-    z1_digest = hashlib.sha256(z1_raw).hexdigest()
-    for z1_series_id in Z1_SERIES:
-        source_rows[z1_series_id] = _parse_z1(z1_raw, z1_series_id)
-        receipts[z1_series_id] = {"raw_sha256": z1_digest}
-    # One archive, one raw artifact: the receipt declares every series it covers,
-    # mirroring how the SEC IPO workbook declares its subseries.
-    raw_payloads[Z1_PRIMARY_SERIES] = z1_raw
+    try:
+        z1_raw: bytes | None = fetch_z1(Z1_ENDPOINT)
+    except StatisticsLabError:
+        z1_raw = None
+    if z1_raw is None:
+        receipts.update(_waiting_receipts(root, Z1_SERIES, "z1_archive_unavailable"))
+    else:
+        z1_digest = hashlib.sha256(z1_raw).hexdigest()
+        for z1_series_id in Z1_SERIES:
+            source_rows[z1_series_id] = _parse_z1(z1_raw, z1_series_id)
+            receipts[z1_series_id] = {"raw_sha256": z1_digest}
+        # One archive, one raw artifact: the receipt declares every series it covers,
+        # mirroring how the SEC IPO workbook declares its subseries.
+        raw_payloads[Z1_PRIMARY_SERIES] = z1_raw
     fetch_c30 = census_c30_fetcher or (lambda url: _request(url, timeout=90))
-    c30_raw = fetch_c30(CENSUS_C30_ENDPOINT)
-    c30_digest = hashlib.sha256(c30_raw).hexdigest()
-    for c30_series_id in CENSUS_C30_SERIES:
-        source_rows[c30_series_id] = _parse_census_c30(c30_raw, c30_series_id)
-        receipts[c30_series_id] = {"raw_sha256": c30_digest}
-    raw_payloads[CENSUS_C30_PRIMARY_SERIES] = c30_raw
+    try:
+        c30_raw: bytes | None = fetch_c30(CENSUS_C30_ENDPOINT)
+    except StatisticsLabError:
+        # 2026-10-27 실측: census.gov 응답 지연(TimeoutError)이 통계 갱신 전체를 멈춰 과열도 14종도 함께
+        # 갱신되지 못했다. FRED 경로와 같은 규칙 — 검증된 이전 관측을 그대로 두고 '원천 대기' 로 표시한다.
+        c30_raw = None
+    if c30_raw is None:
+        receipts.update(_waiting_receipts(root, CENSUS_C30_SERIES, "census_c30_unavailable"))
+    else:
+        c30_digest = hashlib.sha256(c30_raw).hexdigest()
+        for c30_series_id in CENSUS_C30_SERIES:
+            source_rows[c30_series_id] = _parse_census_c30(c30_raw, c30_series_id)
+            receipts[c30_series_id] = {"raw_sha256": c30_digest}
+        raw_payloads[CENSUS_C30_PRIMARY_SERIES] = c30_raw
     # The first historical acquisition cannot become available before the
     # download completes. Injected clocks remain deterministic in tests.
     generated_time = now or datetime.now(timezone.utc)

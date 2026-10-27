@@ -169,3 +169,28 @@ def test_brier_logloss_qlike_contracts():
         qlike(0.0, 1.0)
     with pytest.raises(MtsScoreError):
         brier_skill_denominator_guard(0.0)
+
+
+def test_f13_wis_rejects_rounding_collapsed_grid():
+    """round(q,12) 동치에서 붕괴하는 중복 키·중복 alpha 는 거부한다 (F13)."""
+    from ai_fc.mts_research.scores import GridMismatch, wis
+
+    collapsed = {0.05: 10.0, 0.05 + 1e-13: 12.0, 0.5: 20.0, 0.95: 30.0}
+    with pytest.raises(GridMismatch):
+        wis(collapsed, 15.0, alpha_grid=[0.1])
+    clean = {0.05: 10.0, 0.5: 20.0, 0.95: 30.0}
+    with pytest.raises(GridMismatch):
+        wis(clean, 15.0, alpha_grid=[0.1, 0.1 + 1e-13])
+    assert wis(clean, 15.0, alpha_grid=[0.1]) > 0.0
+
+
+def test_f13_variogram_uniform_bias_blind_is_documented_limit():
+    """variogram 은 균일 bias(X+c·1)에 불변 — 단독 사용 금지의 실측 근거 (F13)."""
+    from ai_fc.mts_research.scores import variogram_score
+
+    rng = np.random.default_rng(0)
+    samples = rng.normal(0.0, 1.0, (64, 3))
+    target = np.array([0.1, -0.2, 0.3])
+    unbiased = variogram_score(samples, None, target)
+    biased = variogram_score(samples + 5.0, None, target)
+    assert abs(unbiased - biased) < 1e-9

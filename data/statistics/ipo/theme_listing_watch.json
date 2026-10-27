@@ -1,40 +1,33 @@
 {
   "schema_version": 1,
   "dataset_id": "theme_listing_watch_v1",
-  "checked_at": "2026-10-27T10:02:21+00:00",
+  "checked_at": "2026-10-27T10:12:46+00:00",
   "watch_start": "2026-10-01",
   "census_through": "2026-10-22",
   "role": "listing_watch_with_auto_review",
-  "decides_theme": "auto_rule_v3 (data/contracts/theme_listing_auto_review_v3.yaml); manual decisions are kept",
+  "decides_theme": "auto_rule_v1 (data/contracts/theme_listing_auto_review_v1.yaml); manual decisions are kept",
   "auto_review": {
-    "rules": "data/contracts/theme_listing_auto_review_v3.yaml",
-    "reviewer": "auto_rule_v3",
+    "rules": "data/contracts/theme_listing_auto_review_v2.yaml",
+    "reviewer": "auto_rule_v2",
     "outcomes": {
-      "not_theme": 5
+      "not_theme": 3
     },
     "added": 0,
-    "reviewed": 5,
+    "reviewed": 3,
     "pipeline_moved": []
   },
   "auto_rule": {
-    "contract": "data/contracts/theme_listing_auto_review_v3.yaml",
-    "reviewer": "auto_rule_v3",
-    "rules_fixed_at": "2026-10-27T09:34:42Z",
+    "contract": "data/contracts/theme_listing_auto_review_v2.yaml",
+    "reviewer": "auto_rule_v2",
+    "rules_fixed_at": "2026-10-26T03:19:15Z",
     "auto_counted": 0,
-    "auto_not_counted": 5,
+    "auto_not_counted": 3,
     "holdout": {
       "n": 811,
       "recall": 0.872,
       "precision": 0.766,
       "agreement": 0.954,
       "count_ratio": 1.138
-    },
-    "new_venue_validation": {
-      "n": 754,
-      "recall": 0.6,
-      "precision": 0.75,
-      "agreement": 0.988,
-      "count_ratio": 0.8
     }
   },
   "review_grace_days": 7,
@@ -43,8 +36,8 @@
     "cn_a": {
       "status": "current",
       "error": null,
-      "checked_at": "2026-10-27T10:02:21+00:00",
-      "last_ok_at": "2026-10-27T10:02:21+00:00",
+      "checked_at": "2026-10-27T10:12:46+00:00",
+      "last_ok_at": "2026-10-27T10:12:46+00:00",
       "rows": 8,
       "label": "중국 A주(상해·심천·북경)",
       "source_url": "https://data.eastmoney.com/xg/xg/"
@@ -52,8 +45,8 @@
     "hk_main": {
       "status": "current",
       "error": null,
-      "checked_at": "2026-10-27T10:02:21+00:00",
-      "last_ok_at": "2026-10-27T10:02:21+00:00",
+      "checked_at": "2026-10-27T10:12:46+00:00",
+      "last_ok_at": "2026-10-27T10:12:46+00:00",
       "rows": 2,
       "label": "홍콩 Main Board",
       "source_url": "https://www2.hkexnews.hk/New-Listings/New-Listing-Information/Main-Board"
@@ -61,8 +54,8 @@
     "kr": {
       "status": "current",
       "error": null,
-      "checked_at": "2026-10-27T10:02:21+00:00",
-      "last_ok_at": "2026-10-27T10:02:21+00:00",
+      "checked_at": "2026-10-27T10:12:46+00:00",
+      "last_ok_at": "2026-10-27T10:12:46+00:00",
       "rows": 8,
       "label": "한국 KOSPI·KOSDAQ",
       "source_url": "https://kind.krx.co.kr/listinvstg/listingcompany.do?method=searchListingTypeMain"
@@ -70,8 +63,8 @@
     "jp": {
       "status": "current",
       "error": null,
-      "checked_at": "2026-10-27T10:02:21+00:00",
-      "last_ok_at": "2026-10-27T10:02:21+00:00",
+      "checked_at": "2026-10-27T10:12:46+00:00",
+      "last_ok_at": "2026-10-27T10:12:46+00:00",
       "rows": 4,
       "label": "일본 JPX",
       "source_url": "https://www.jpx.co.jp/listing/stocks/new/index.html"
@@ -79,8 +72,8 @@
     "tw_twse": {
       "status": "current",
       "error": null,
-      "checked_at": "2026-10-27T10:02:21+00:00",
-      "last_ok_at": "2026-10-27T10:02:21+00:00",
+      "checked_at": "2026-10-27T10:12:46+00:00",
+      "last_ok_at": "2026-10-27T10:12:46+00:00",
       "rows": 3,
       "label": "대만 TWSE",
       "source_url": "https://www.twse.com.tw/zh/listed/listed-company/newlisting.html"
@@ -88,67 +81,30 @@
     "tw_tpex": {
       "status": "current",
       "error": null,
-      "checked_at": "2026-10-27T10:02:21+00:00",
-      "last_ok_at": "2026-10-27T10:02:21+00:00",
-      "rows": 3,
+      "checked_at": "2026-10-27T10:12:46+00:00",
+      "last_ok_at": "2026-10-27T10:12:46+00:00",
+      "rows": 4,
       "label": "대만 TPEx",
       "source_url": "https://www.tpex.org.tw/openapi/v1/mopsfin_t187ap03_O"
-    },
-    "euronext": {
-      "status": "current",
-      "error": null,
-      "checked_at": "2026-10-27T10:02:21+00:00",
-      "last_ok_at": "2026-10-27T10:02:21+00:00",
-      "rows": 3,
-      "label": "Euronext(파리·밀라노·암스테르담·브뤼셀·오슬로·리스본·더블린)",
-      "source_url": "https://live.euronext.com/en/ipo-showcase"
-    },
-    "lse": {
-      "status": "current",
-      "error": null,
-      "checked_at": "2026-10-27T10:02:21+00:00",
-      "last_ok_at": "2026-10-27T10:02:21+00:00",
-      "rows": 0,
-      "label": "런던 LSE(Main·AIM)",
-      "source_url": "https://www.londonstockexchange.com/reports?tab=new-issues-and-ipos"
-    },
-    "us_adr": {
-      "status": "current",
-      "error": null,
-      "checked_at": "2026-10-27T10:02:21+00:00",
-      "last_ok_at": "2026-10-27T10:02:21+00:00",
-      "rows": 0,
-      "label": "미국 ADS 첫 공모(SEC 424B4)",
-      "source_url": "https://efts.sec.gov/LATEST/search-index"
-    },
-    "us_ipo": {
-      "status": "current",
-      "error": null,
-      "checked_at": "2026-10-27T10:02:21+00:00",
-      "last_ok_at": "2026-10-27T10:02:21+00:00",
-      "rows": 0,
-      "label": "미국 보통주(상장 대기 회사만)",
-      "source_url": "https://api.nasdaq.com/api/ipo/calendar"
     }
   },
   "uncovered_venues": [
     "홍콩 GEM",
     "싱가포르 SGX",
-    "말레이시아 Bursa(기본 UA 403)",
-    "인도 NSE·BSE(기본 UA 403)",
-    "이스라엘 TASE(기본 UA 403)",
-    "북유럽 Nasdaq Nordic",
-    "독일 Deutsche Börse",
+    "말레이시아 Bursa",
+    "인도 NSE·BSE 본시장",
+    "유럽·북유럽",
     "캐나다 TSX",
     "호주 ASX",
-    "아부다비 ADX"
+    "이스라엘 TASE",
+    "미국 ADR"
   ],
   "summary": {
-    "listings": 31,
+    "listings": 29,
     "by_status": {
       "auto_excluded": 6,
       "counted": 4,
-      "reviewed": 21
+      "reviewed": 19
     },
     "pending_review": 0,
     "pending_theme_hint": 0,
@@ -156,8 +112,8 @@
     "pending_overdue": 0,
     "oldest_pending_listing": null,
     "reviewed_through": "2026-10-27",
-    "venues_ok": 10,
-    "venues_total": 10
+    "venues_ok": 6,
+    "venues_total": 6
   },
   "listings": [
     {
@@ -235,34 +191,6 @@
       "reason": "unclear",
       "theme_hint": true,
       "pipeline_match": false
-    },
-    {
-      "isin": "SGXZ33616145",
-      "venue": "euronext",
-      "country": "NO",
-      "exchange": "Euronext Oslo",
-      "board": "Euronext Growth",
-      "code": "VLCC",
-      "company": "Volare Shipping Ltd.",
-      "listing_date": "2026-10-05",
-      "industry": "",
-      "business": "",
-      "offer": "",
-      "auto_exclusion": null,
-      "source_url": "https://live.euronext.com/en/ipo-showcase/volare-shipping-ltd",
-      "first_seen_at": "2026-10-27T10:02:21+00:00",
-      "status": "reviewed",
-      "reason": "not_theme",
-      "theme_hint": false,
-      "pipeline_match": false,
-      "auto_review": {
-        "decision": "not_theme",
-        "theme": null,
-        "evidence": "사업 설명 첫 문장에 AI·반도체 제품 없음",
-        "text": "",
-        "industry": "50206030 Marine Transportation",
-        "text_source": "https://live.euronext.com/en/ipo-showcase/volare-shipping-ltd"
-      }
     },
     {
       "venue": "tw_tpex",
@@ -664,20 +592,19 @@
       "pipeline_match": false
     },
     {
-      "isin": "GB00BLNBD412",
-      "venue": "euronext",
-      "country": "NO",
-      "exchange": "Euronext Oslo",
-      "board": "Euronext Growth",
-      "code": "AJAXR",
-      "company": "Ajax Resouces PLC",
-      "listing_date": "2026-10-26",
-      "industry": "",
+      "venue": "tw_tpex",
+      "country": "TW",
+      "exchange": "TPEx",
+      "board": "main",
+      "code": "6898",
+      "company": "程曦資訊",
+      "listing_date": "2026-10-23",
+      "industry": "industry_code=30",
       "business": "",
       "offer": "",
       "auto_exclusion": null,
-      "source_url": "https://live.euronext.com/en/ipo-showcase/ajax-resouces-plc",
-      "first_seen_at": "2026-10-27T10:02:21+00:00",
+      "source_url": "https://www.tpex.org.tw/openapi/v1/mopsfin_t187ap03_O",
+      "first_seen_at": "2026-10-27T10:12:46+00:00",
       "status": "reviewed",
       "reason": "not_theme",
       "theme_hint": false,
@@ -686,37 +613,9 @@
         "decision": "not_theme",
         "theme": null,
         "evidence": "사업 설명 첫 문장에 AI·반도체 제품 없음",
-        "text": "",
-        "industry": "55102000 General Mining",
-        "text_source": "https://live.euronext.com/en/ipo-showcase/ajax-resouces-plc"
-      }
-    },
-    {
-      "isin": "FR001401BD72",
-      "venue": "euronext",
-      "country": "FR",
-      "exchange": "Euronext Paris",
-      "board": "Euronext Growth",
-      "code": "ALN4",
-      "company": "N4 GROUP S.A",
-      "listing_date": "2026-10-26",
-      "industry": "",
-      "business": "",
-      "offer": "",
-      "auto_exclusion": null,
-      "source_url": "https://live.euronext.com/en/ipo-showcase/n4-group-sa",
-      "first_seen_at": "2026-10-27T10:02:21+00:00",
-      "status": "reviewed",
-      "reason": "not_theme",
-      "theme_hint": false,
-      "pipeline_match": false,
-      "auto_review": {
-        "decision": "not_theme",
-        "theme": null,
-        "evidence": "사업 설명 첫 문장에 AI·반도체 제품 없음",
-        "text": "",
-        "industry": "45102020 Food Products",
-        "text_source": "https://live.euronext.com/en/ipo-showcase/n4-group-sa"
+        "text": "服務委外、講習訓練、會員伴銷、顧客流程規劃、、系統租賃及數位行銷",
+        "industry": "資訊服務業",
+        "text_source": "https://mops.twse.com.tw/mops/#/web/t05st03?companyId=6898"
       }
     },
     {
@@ -751,7 +650,7 @@
       "offer": "2,000",
       "auto_exclusion": null,
       "source_url": "https://kind.krx.co.kr/listinvstg/listingcompany.do?method=searchListingTypeMain",
-      "first_seen_at": "2026-10-27T10:02:21+00:00",
+      "first_seen_at": "2026-10-27T10:12:46+00:00",
       "status": "reviewed",
       "reason": "not_theme",
       "theme_hint": false,
@@ -778,7 +677,7 @@
       "offer": "138.0",
       "auto_exclusion": null,
       "source_url": "https://www.twse.com.tw/zh/listed/listed-company/newlisting.html",
-      "first_seen_at": "2026-10-27T10:02:21+00:00",
+      "first_seen_at": "2026-10-27T10:12:46+00:00",
       "status": "reviewed",
       "reason": "not_theme",
       "theme_hint": false,

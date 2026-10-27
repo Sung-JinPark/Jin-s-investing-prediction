@@ -20,6 +20,7 @@ from ai_fc.authoritative_statistics import (
     read_raw_receipt_corrections,
 )
 from ai_fc.statistics_lab import (
+    CENSUS_C30_PRIMARY_SERIES,
     CENSUS_C30_SERIES,
     Z1_SERIES,
     FRED_SERIES,
@@ -884,6 +885,27 @@ def test_refresh_is_append_only_for_changed_weekly_snapshot(tmp_path: Path) -> N
     assert len(corrections) == 1
     loaded = load_statistics_lab(tmp_path)
     assert json.loads(path.read_text(encoding="utf-8"))["dataset_id"] == loaded["dataset_id"]
+
+    # 2026-10-27 실측: census.gov 응답 지연이 통계 갱신 전체(과열도 14종 포함)를 멈췄다.
+    # 아카이브 원천 하나가 죽어도 검증된 이전 관측으로 버티고 '원천 대기' 로 표시해야 한다.
+    def census_down(_url: str) -> bytes:
+        raise StatisticsLabError("public source request failed after 3 attempts")
+
+    _, waiting, _ = refresh_statistics_lab(
+        tmp_path, fred_fetcher=fred_fetcher,
+        supplemental_fetcher=census_down,
+        z1_fetcher=census_down,
+        census_c30_fetcher=census_down,
+        now=datetime(2027, 1, 8, tzinfo=timezone.utc),
+    )
+    waiting_ids = set(waiting["source_refresh"]["waiting_series"])
+    assert waiting["source_refresh"]["state"] == "partial"
+    assert set(CENSUS_C30_SERIES) | set(Z1_SERIES) | {"SEC_IPO_QUARTERLY"} <= waiting_ids
+    c30_meta = next(row for row in waiting["sources"] if row["series_id"] == CENSUS_C30_PRIMARY_SERIES)
+    assert c30_meta["refresh_reason"] == "census_c30_unavailable"
+    prior_meta = next(row for row in loaded["sources"] if row["series_id"] == CENSUS_C30_PRIMARY_SERIES)
+    assert c30_meta["raw_sha256"] == prior_meta["raw_sha256"], "새 수집 영수증을 만들지 않는다"
+    assert c30_meta["latest_observation"] == prior_meta["latest_observation"]
 
 
 def test_dashboard_statistics_route_and_daily_workflow_are_wired() -> None:

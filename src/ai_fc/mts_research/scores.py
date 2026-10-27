@@ -141,6 +141,9 @@ def wis(
 
     요구 격자: 중앙값 0.5 + 각 α 의 (α/2, 1−α/2).
     """
+    rounded_alphas = [round(float(a), 12) for a in alpha_grid]
+    if len(set(rounded_alphas)) != len(rounded_alphas):
+        raise GridMismatch("alpha 격자에 반올림(12자리) 중복 — 같은 구간 이중 가산 금지 (F13)")
     required: set[float] = {0.5}
     for alpha in alpha_grid:
         if not 0.0 < alpha < 1.0:
@@ -148,6 +151,11 @@ def wis(
         required.add(round(alpha / 2.0, 12))
         required.add(round(1.0 - alpha / 2.0, 12))
     provided = {round(float(q), 12) for q in quantiles}
+    if len(provided) != len(quantiles):
+        raise GridMismatch(
+            "분위수 키가 반올림(12자리)에서 붕괴 — 어느 값이 선택될지 삽입 순서에 "
+            "의존하므로 거부한다 (F13)"
+        )
     if provided != required:
         raise GridMismatch(
             f"분위수 격자 불일치 — 비교 전 공통 격자 요구 (T34): 필요 {sorted(required)}, 제공 {sorted(provided)}"
@@ -222,7 +230,13 @@ def variogram_score(
     p: float = 0.5,
     pair_weights: np.ndarray | None = None,
 ) -> float:
-    """Variogram score (A.5) — p>0, 비음수 a_ij 를 명시한다."""
+    """Variogram score (A.5) — p>0, 비음수 a_ij 를 명시한다.
+
+    주의 (F13, 2026-10-27): 쌍별 차 |Y_i−Y_j| 기반이라 **공통 수준 이동(균일 bias)에
+    불변** — X 와 X+c·1 이 같은 점수를 받는다 (strictly proper 아님). 단독 사용 금지:
+    수준을 보는 CRPS/Energy 와 병용해야 하며, 유한 기대점수 논의에는 사용 쌍의
+    E|Y_i−Y_j|^{2p} < ∞ 류 moment 조건이 필요하다.
+    """
     if not p > 0:
         raise MtsScoreError("p > 0 (A.5)")
     x = np.asarray(samples, dtype=float)
