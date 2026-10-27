@@ -62,6 +62,14 @@ def build_baseline_identity_report(
             "pb_identity": bool(not pb_live["failures"] and not pb_resolutions["failures"]),
             "v8_tier1_identity": bool(v8["ok"]),
         },
+        # F07 (2026-10-27): 불리언이 합치는 검증 수준의 명시 — 전체 모델 재계산은 tier-2 만
+        "verdict_scope": {
+            "pb_identity": "허용오차 재계산 (라이브 1e-9 / 해소 1e-8) — bit 아님",
+            "v8_tier1_identity": (
+                "발행물 무결성(해시체인·유도 필드) + 채점 경로 bit 재현(저장 grid·actual 기준) "
+                "+ 봉인 행 해시 재검 + 포인터 투영 — 예측 grid 자체의 모델 재계산은 tier-2"
+            ),
+        },
     }
     out = root / REPORT_RELATIVE
     out.parent.mkdir(parents=True, exist_ok=True)

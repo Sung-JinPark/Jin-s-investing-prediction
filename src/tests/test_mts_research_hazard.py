@@ -32,6 +32,65 @@ def _constant_hazard_cohort(lam: float, n: int, horizon: int, seed: int):
     return event, end, z
 
 
+def test_f11_zero_event_bin_flagged_and_probability_refused():
+    """사건 0 bin 은 비식별로 기록되고 그 bin 을 지나는 확률 산출은 거부된다 (F11).
+
+    무벌점 절편은 사건 0 bin 에서 유한 최적해가 없다(a_b→−∞) — optimizer 가
+    '수렴' 을 보고해도 식별이 아니다. estimable 이 그 구분이다.
+    """
+    rng = np.random.default_rng(11)
+    n = 40
+    # 사건은 전부 k<=21 (bin 0·1), bin 2(22..63) 는 risk 행만 있고 사건 0
+    event = np.where(rng.random(n) < 0.5, rng.integers(1, 22, n), 0)
+    end = np.full(n, 63, dtype=int)
+    z = rng.normal(0, 1, (n, 2))
+    pp = build_person_periods(event_k=event, observed_end_k=end, z=z, horizon=63)
+    fit = fit_hazard(pp, ridge=1.0)
+    assert 2 in fit.non_identified_bins
+    assert fit.estimable is False
+    with pytest.raises(MtsHazardError, match="비식별 bin"):
+        cumulative_event_probability(fit, z[0], horizons=(63,))
+    # 식별된 bin 만 지나는 지평은 허용 — 전부 거부가 아니라 비식별 구간만 거부
+    p = cumulative_event_probability(fit, z[0], horizons=(5, 21))
+    assert p.shape == (2,)
+
+
+def test_f11_empty_risk_set_bin_refuses_fabricated_probability():
+    """risk-set 행이 없는 bin 은 비식별 — 절편이 초기값(λ=0.5)에 머물러 p 를 날조하던
+    경로를 확률 산출 거부로 차단한다 (F11)."""
+    rng = np.random.default_rng(12)
+    n = 20
+    event = np.where(rng.random(n) < 0.5, rng.integers(1, 15, n), 0)
+    end = np.full(n, 21, dtype=int)  # bin 2(22..63) 행 자체가 없음
+    z = rng.normal(0, 1, (n, 1))
+    pp = build_person_periods(event_k=event, observed_end_k=end, z=z, horizon=63)
+    fit = fit_hazard(pp, ridge=1.0)
+    assert 2 in fit.non_identified_bins
+    assert fit.estimable is False
+    with pytest.raises(MtsHazardError, match="비식별 bin"):
+        cumulative_event_probability(fit, z[0], horizons=(63,))
+
+
+def test_f11_separation_with_zero_ridge_flagged():
+    """완전분리 + ridge=0 은 slope 발산 — estimable=False, 확률 산출 거부 (F11)."""
+    n = 30
+    z = np.linspace(-1, 1, n).reshape(-1, 1)
+    event = np.where(z[:, 0] > 0, 1, 0).astype(int)  # z>0 이면 k=1 사건: 완전분리
+    end = np.full(n, 5, dtype=int)
+    pp = build_person_periods(
+        event_k=event, observed_end_k=end, z=z, horizon=5, bins=((1, 5),),
+    )
+    diverged = fit_hazard(pp, ridge=0.0)
+    assert diverged.slope_divergence is True
+    assert diverged.estimable is False
+    with pytest.raises(MtsHazardError, match="slope 발산"):
+        hazard_curve(diverged, z[0], 5)
+    regularized = fit_hazard(pp, ridge=1.0)
+    assert regularized.slope_divergence is False
+    assert regularized.estimable is True
+    assert 0.0 < cumulative_event_probability(regularized, z[0], horizons=(5,))[0] < 1.0
+
+
 def test_t22_no_rows_after_first_event():
     event = np.array([3, 0])
     end = np.array([5, 5])

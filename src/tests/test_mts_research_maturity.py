@@ -21,6 +21,8 @@ def _event(event_id: str, *, status: str, origin: str = "2026-10-01",
            anchor: str | None = "anchor-r1") -> LabelEvent:
     if status in ("MATURE", "RESTATED") and revision is None:
         revision = f"{event_id}-rev"
+    # F06: 종결 라벨은 전체 경로 판을 커밋한 outcome snapshot 결박이 의무
+    snapshot = f"mts-snap-{event_id}" if status in ("MATURE", "RESTATED") else None
     return LabelEvent(
         label_event_id=event_id,
         target_spec_hash="target-1",
@@ -32,10 +34,30 @@ def _event(event_id: str, *, status: str, origin: str = "2026-10-01",
         label_available_at=available,
         label_revision_id=revision,
         recorded_at=recorded or utc(2026, 10, 25),
-        outcome_snapshot_id=None,
+        outcome_snapshot_id=snapshot,
         anchor_revision_id=anchor,
         supersedes_label_event_id=supersedes,
     )
+
+
+def test_f06_terminal_label_requires_outcome_snapshot():
+    """MATURE/RESTATED 는 outcome_snapshot_id 없이는 생성 불가 (F06)."""
+    with pytest.raises(MtsMaturityError, match="outcome_snapshot_id"):
+        LabelEvent(
+            label_event_id="e-nosnap",
+            target_spec_hash="target-1",
+            origin_session="2026-10-01",
+            status="MATURE",
+            observed_value=1.0,
+            first_touch_session=None,
+            early_event_observed_at=None,
+            label_available_at=utc(2026, 10, 10),
+            label_revision_id="r1",
+            recorded_at=utc(2026, 10, 10),
+            outcome_snapshot_id=None,
+            anchor_revision_id="anchor-r1",
+            supersedes_label_event_id=None,
+        )
 
 
 def test_t16_early_positive_excluded_until_mature():

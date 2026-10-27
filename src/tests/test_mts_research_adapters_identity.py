@@ -54,6 +54,62 @@ def test_t49_v8_tier1_full_replay():
             assert any("GRID_SKIP" in note for note in row["notes"])
 
 
+def _pointer(body: dict) -> dict:
+    from ai_fc.timeseries_v8.contracts import canonical_hash
+
+    return {**body, "content_hash": canonical_hash(body)}
+
+
+def _synthetic_forecast(origin: str = "2026-10-16") -> dict:
+    grid = [(-0.05 + 0.0005 * i) for i in range(200)]
+    p_up = sum(1 for g in grid if g > 0) / len(grid)
+    return {
+        "origin": origin,
+        "grid_levels_count": 200,
+        "horizons": {"1": {"quantile_grid": grid, "p_up": p_up}},
+    }
+
+
+def test_verify_latest_pointer_live_as_of_field():
+    """운영 포인터는 origin 이 아니라 as_of 를 쓴다 — 2026-10-27 실포인터가 드러낸
+    필드명 결함의 회귀 테스트 (hold 상태만으로는 이 경로가 실행되지 않았다)."""
+    from ai_fc.mts_research.adapters.v8 import verify_latest_pointer
+
+    forecast = _synthetic_forecast()
+    grid = forecast["horizons"]["1"]["quantile_grid"]
+    cells = {
+        "p10": grid[20], "p25": grid[50], "p50": grid[100],
+        "p75": grid[150], "p90": grid[180],
+        "probability_up": forecast["horizons"]["1"]["p_up"],
+    }
+    pointer = _pointer({"as_of": "2026-10-16", "status": "shadow_live", "horizons": {"1": cells}})
+    result = verify_latest_pointer(pointer, [forecast])
+    assert result["status"] == "PASS"
+    assert result["pointer_origin"] == "2026-10-16"
+
+    # 값 하나를 변조하면 MISMATCH — 투영 검사가 실제로 작동한다
+    tampered_cells = {**cells, "p50": cells["p50"] + 1e-6}
+    tampered = _pointer({"as_of": "2026-10-16", "status": "shadow_live", "horizons": {"1": tampered_cells}})
+    bad = verify_latest_pointer(tampered, [forecast])
+    assert bad["status"] == "MISMATCH"
+    assert any("p50" in issue for issue in bad["issues"])
+
+
+def test_verify_latest_pointer_hold_and_missing_forecast():
+    from ai_fc.mts_research.adapters.v8 import verify_latest_pointer
+
+    hold = _pointer({"status": "shadow_operational_hold"})
+    assert verify_latest_pointer(hold, [])["status"] == "HOLD_POINTER"
+
+    live = _pointer({
+        "as_of": "2026-10-23", "status": "shadow_live",
+        "horizons": {"1": {"p50": 0.0, "probability_up": 0.5}},
+    })
+    result = verify_latest_pointer(live, [_synthetic_forecast("2026-10-16")])
+    assert result["status"] == "MISMATCH"
+    assert any("forecast 행 없음" in issue for issue in result["issues"])
+
+
 @pytest.mark.skipif(not HAS_V8, reason="V8 원장 없음")
 def test_t49_identity_is_read_only():
     """identity replay 는 동결 원장을 변경하지 않는다 (보호 전제)."""
