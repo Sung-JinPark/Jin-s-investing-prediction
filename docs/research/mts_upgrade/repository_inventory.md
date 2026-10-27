@@ -118,5 +118,5 @@
 
 ## 9. 이번 작업의 증거 계층 선언
 
-- 본 작업의 모든 실자료 사용은 **legacy reproduction**(동결 출력 재현)과 **exposed historical research**(이미 공개된 원장·설계창 진단)에 한정된다. **prospective confirmation 생산 없음**, 홀드아웃·봉인 bytes 읽기 **0**.
+- 본 작업의 모든 실자료 사용은 **legacy reproduction**(동결 출력 재현)과 **exposed historical research**(이미 공개된 원장·설계창 진단)에 한정된다. **prospective confirmation 생산 없음**, 보호 창 guarded purpose(fit/평가) 읽기 **0** (정밀화 2026-10-27, F03: replay/audit 은 OPEN purpose 로 아카이브 전 기간을 읽고 exposures.jsonl 에 기록 — 계약의 '소모' 아님).
 - LLM 캘리브레이션(P3 게이트)과 무관 — 본 계층은 결정론 수치 모델 전용(CLAUDE.md 5-5 예외 범위), 산출물은 base rate 참조 지위.

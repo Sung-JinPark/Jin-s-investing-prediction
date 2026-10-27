@@ -38,10 +38,13 @@ time_and_targets:
   calendar_hash: null
   target_spec_hash: null
   eligibility_rule_hash: null
-  label_revision_policy_hash: null
+  # F06 (2026-10-27): 정책 정본 data/mts_research/contracts/label_revision_policy_v1.md 의 sha256
+  label_revision_policy_hash: 2648d7cb2ba69fb0eafc64fdd437a06eef20dc4b095d375dacfca038f7255fd9
   maturity_policy: complete_horizon
   partial_censoring_training_enabled: false
   original_origin_grid_required: true
+  # F04 (2026-10-27): 원점별 발행 마감 — cutoff 이후 허용 지연(초). 등록 시 필수 값.
+  max_issuance_latency_seconds: null
 
 models:
   hazard:

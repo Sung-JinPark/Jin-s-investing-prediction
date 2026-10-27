@@ -29,8 +29,11 @@ cd src && python -m ai_fc.mts_research.cli run-experiment --dry-run  # 예산 0�
 
 - 동결 파일(`model_code_hash` 범위·V13 계수·계약) 변경 0 — identity 테스트가 read-only 를 단언.
 - V5.2 보호 루트 아래 새 파일 0. `timeseries_v14` 문자열/패키지 추가 0 (cli.py 무수정).
-- 홀드아웃·봉인 bytes 읽기 0 — `read_scope_guard` 가 보호 창 fit/평가를 영수증 없이는 거부
-  (거부도 `data/mts_research/ledgers/exposures.jsonl` 에 감사 기록).
+- 보호 창 **guarded purpose(research_fit/evaluation) 읽기 0** — `read_scope_guard` 가 영수증
+  없는 fit/평가를 거부(거부도 exposures.jsonl 에 기록). 정밀화(2026-10-27, F03):
+  replay_identity/audit 은 OPEN purpose 로 시장 아카이브 전 기간(홀드아웃·봉인 구간 날짜
+  포함)을 읽는다 — 생산 경로와 동일한 읽기이고 계약의 '소모' 정의(finalist 채점·1회 공개)에
+  해당하지 않으며 전부 exposures.jsonl 에 기록된다.
 - 예산 소모 0: V13 8/8(기존)·V14 1/4(기존) 불변 — 본 계층은 어떤 실험 원장에도 쓰지 않았다.
 
 ## 남은 장애 (구체)
@@ -53,3 +56,10 @@ cd src && python -m ai_fc.mts_research.cli run-experiment --dry-run  # 예산 0�
 - V13 `labels_rv` 의 부분결측=0 처리와 mts UNRESOLVED 정책의 차이 — adapter 는 V13 정의,
   신규 표적은 mts 정책 (문서화 완료, V13 불변).
 - `forward_realized_variance`(알려진 성분 제거) 는 별도 연구 표적 후보로만 등록.
+- (Q8, 2026-10-27) 실원장 → LossPanel 빌더(W7)는 손실 행이 아니라 **표적의 예정 원점
+  달력에서 origin_grid 를 먼저 구성**하고 손실 행을 투영해, 결측 원점에
+  missing_reason(UNRESOLVED/NOT_ISSUED/HOLD)을 부여한다 — 해소 성공 행만으로 패널을
+  만들면 분모가 사라진다. 확증 판정 전 `gates.enforce_candidate_failure_policy` 필수.
+- (Q13, 2026-10-27) OBJECTIVE_ALIGN 후속 감사 경로: 과거 λ 선택 이력 경유, 잔차/표준화
+  이력의 분포 파라미터 전달, lag 변경의 이력 길이·캐시 키 영향, ensemble/재보정 단계 재유입
+  — raw FHS/혼합 전후/PIT 보정 전후를 분리 측정.

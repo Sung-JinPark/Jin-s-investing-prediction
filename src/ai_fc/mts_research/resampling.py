@@ -165,6 +165,20 @@ def eligible_paired_mean(
     return PairedAggregate(mean_difference=float(d.mean()), n_paired=n, status="OK")
 
 
+def candidate_failure_count(panel: LossPanel, *, candidate: str, cell: str) -> int:
+    """eligible 원점 중 후보가 CANDIDATE_FAILURE 로 결측인 수 (F02).
+
+    `eligible_paired_mean` 은 둘 다 유효한 원점만 평균하므로(성공 조건부), 실패 건수는
+    이 함수로 세어 **확증 판정 게이트**(gates.enforce_candidate_failure_policy)에
+    공급해야 한다 — 기록만 하고 소비하지 않으면 성공 교집합 편향이 판정에 남는다.
+    """
+    ci = panel.model_index(candidate)
+    cj = panel.cell_index(cell)
+    mask = panel.eligibility[:, cj].astype(bool)
+    failure_code = MISSING_REASONS.index("CANDIDATE_FAILURE")
+    return int(np.sum(mask & (panel.missing_reason[:, ci, cj] == failure_code)))
+
+
 @dataclass(frozen=True)
 class InferenceResult:
     comparison_id: str
@@ -191,10 +205,17 @@ def centered_paired_bootstrap_test(
     delta: float = 0.0,
     degenerate_policy: DegeneratePolicy = "count_and_exclude",
     min_paired: int = 1,
+    min_effective_replicates: int | None = None,
+    max_degenerate_rate: float | None = None,
 ) -> InferenceResult:
     """§13.5.1 — H0: E[d] >= -δ vs H1: E[d] < -δ (낮을수록 좋은 손실).
 
     δ 는 해당 손실의 **단위**다 — 상대 skill 임계를 그대로 대입하지 않는다.
+    외부 리뷰 F10 (2026-10-27): count_and_exclude 는 유효 replicate 조건부 분포로
+    바꾸므로, 등록 실험은 ``min_effective_replicates``(B_eff 하한)와
+    ``max_degenerate_rate``(퇴화율 상한)를 **반드시 등록**해 넘겨야 한다
+    (계약 degenerate_replicate_policy_hash 좌표). 미달이면 p 를 내지 않고
+    EVIDENCE_INSUFFICIENT 로 내린다. None(기본)은 합성 진단 전용이다.
     """
     if delta < 0:
         raise MtsResamplingError("δ >= 0 (손실 단위의 최소 실질 개선)")
@@ -224,13 +245,25 @@ def centered_paired_bootstrap_test(
             continue  # 사전 고정 정책: 집계 제외·카운트 (다시 뽑지 않는다, T43)
         null_stats.append(replicate.mean_difference - observed.mean_difference)
     effective_b = len(null_stats)
+    total_b = len(replicates.indices)
+    insufficient_reason: str | None = None
     if effective_b == 0:
+        insufficient_reason = "모든 replicate 퇴화"
+    elif min_effective_replicates is not None and effective_b < min_effective_replicates:
+        insufficient_reason = (
+            f"유효 replicate {effective_b} < 등록 하한 {min_effective_replicates} (F10)"
+        )
+    elif max_degenerate_rate is not None and degenerate / total_b > max_degenerate_rate:
+        insufficient_reason = (
+            f"퇴화율 {degenerate}/{total_b} > 등록 상한 {max_degenerate_rate} (F10)"
+        )
+    if insufficient_reason is not None:
         return InferenceResult(
             comparison_id=comparison_id, candidate=candidate, baseline=baseline, cell=cell,
             observed_mean_difference=observed.mean_difference, delta=delta, p_raw=None,
-            n_paired=observed.n_paired, replications=len(replicates.indices),
+            n_paired=observed.n_paired, replications=total_b,
             degenerate_replicates=degenerate, status="EVIDENCE_INSUFFICIENT",
-            reason="모든 replicate 퇴화",
+            reason=insufficient_reason,
         )
     count = sum(1 for stat in null_stats if stat <= observed_stat)
     p_raw = (1 + count) / (effective_b + 1)
