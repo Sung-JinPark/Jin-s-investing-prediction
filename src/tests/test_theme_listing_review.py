@@ -22,12 +22,16 @@ ROOT = Path(__file__).resolve().parents[2]
 RULES = load_rules(ROOT)
 
 
-def test_rules_are_fixed_before_holdout_and_v1_is_kept() -> None:
-    assert RULES["status"] == "revised_on_development_split_before_holdout"
+def test_rules_are_fixed_before_their_validation_and_old_versions_are_kept() -> None:
+    assert RULES["contract_id"] == "theme_listing_auto_review_v3"
     assert RULES["fitting"] == "none" and isinstance(RULES["rules_fixed_at"], str)
-    assert RULES["supersedes"] == "theme_listing_auto_review_v1"
-    assert (ROOT / "data/contracts/theme_listing_auto_review_v1.yaml").is_file(), "기각된 v1 도 기록으로 남는다"
+    assert RULES["supersedes"] == "theme_listing_auto_review_v2"
+    for old in ("v1", "v2"):
+        assert (ROOT / f"data/contracts/theme_listing_auto_review_{old}.yaml").is_file(), "이전 규칙도 기록으로 남는다"
     assert RULES["change_log"][0]["result"]["precision"] == 0.592
+    # 새 검증 구간 — 앞 버전이 한 번도 보지 않은 시장, 규칙 고정 뒤 한 번만 잰다.
+    assert set(RULES["validation"]["venues"]) == {"euronext", "lse", "us_adr"}
+    assert RULES["validation"]["measured_once"] is True
 
 
 @pytest.mark.parametrize("text, industry, expected", [

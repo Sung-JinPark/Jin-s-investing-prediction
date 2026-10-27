@@ -5,7 +5,7 @@
 과열도 입력 14종 중 이 목록만 자동 갱신 경로가 없음을 확인했다.
 
 이 모듈은 수집·대조를 하고, 판정(상장 시점 주력 사업이 AI·반도체인가)은 ``theme_listing_review`` 가 사전등록
-규칙(``theme_listing_auto_review_v2``)으로 자동 기록한다(2026-10-26 사용자 결정).
+규칙(``theme_listing_auto_review_v3``)으로 자동 기록한다(2026-10-26·27 사용자 결정).
 
 * 거래소 목록의 새 첫 상장을 누적한다(``theme_listing_watch.json``).
 * additions 에 있는 회사 → ``counted``. 검수 기록(``theme_listing_reviews.csv``)이 있으면 → ``reviewed``.
@@ -44,7 +44,9 @@ REVIEWS_RELATIVE = Path("data/statistics/ipo/theme_listing_reviews.csv")
 REVIEW_FIELDS = ["venue", "code", "company", "listing_date", "decision", "reason", "source_url", "reviewed_at",
                  "reviewer"]
 #: counted 는 검수 기록이 아니라 additions 행으로만 생긴다 — 센 회사는 출처를 단 additions 행이 근거다.
-REVIEW_DECISIONS = {"not_theme", "not_first_listing", "no_offering", "excluded_board", "spac", "unclear"}
+#: below_price_floor = ADS 공모가 $5 미만(계약), us_ordinary_ritter = 상장 대기 회사가 미국 보통주로 상장(Ritter 가 셈)
+REVIEW_DECISIONS = {"not_theme", "not_first_listing", "no_offering", "excluded_board", "spac", "unclear",
+                    "below_price_floor", "us_ordinary_ritter"}
 #: 감시 시작일 — 전수조사 마지막 주(10월)와 겹치게 잡아 대조 규칙이 조사 결과를 재현하는지 확인한다.
 WATCH_START = "2026-10-01"
 CENSUS_THROUGH = "2026-10-22"
@@ -74,10 +76,23 @@ VENUES: dict[str, dict[str, str]] = {
     "jp": {"country": "JP", "label": "일본 JPX", "source_url": JPX_URL},
     "tw_twse": {"country": "TW", "label": "대만 TWSE", "source_url": "https://www.twse.com.tw/zh/listed/listed-company/newlisting.html"},
     "tw_tpex": {"country": "TW", "label": "대만 TPEx", "source_url": TPEX_URL},
+    # 2026-10-27 확장 — 유럽·미국 ADR·미국 보통주(상장 대기 회사 전용). theme_listing_global 이 읽는다.
+    "euronext": {"country": "EU", "label": "Euronext(파리·밀라노·암스테르담·브뤼셀·오슬로·리스본·더블린)",
+                 "source_url": "https://live.euronext.com/en/ipo-showcase"},
+    "lse": {"country": "GB", "label": "런던 LSE(Main·AIM)",
+            "source_url": "https://www.londonstockexchange.com/reports?tab=new-issues-and-ipos"},
+    "us_adr": {"country": "US", "label": "미국 ADS 첫 공모(SEC 424B4)",
+               "source_url": "https://efts.sec.gov/LATEST/search-index"},
+    "us_ipo": {"country": "US", "label": "미국 보통주(상장 대기 회사만)",
+               "source_url": "https://api.nasdaq.com/api/ipo/calendar"},
 }
+#: Euronext 상장 도시 → 명단의 market_country
+EURONEXT_COUNTRIES = {"Paris": "FR", "Milan": "IT", "Amsterdam": "NL", "Brussels": "BE", "Oslo": "NO",
+                      "Lisbon": "PT", "Dublin": "IE"}
 #: 기계 판독 가능한 공식 목록을 찾지 못한 시장 — 전수조사 때처럼 사람이 본다. 화면에 그대로 공시한다.
-UNCOVERED_VENUES = ("홍콩 GEM", "싱가포르 SGX", "말레이시아 Bursa", "인도 NSE·BSE 본시장", "유럽·북유럽", "캐나다 TSX",
-                    "호주 ASX", "이스라엘 TASE", "미국 ADR")
+UNCOVERED_VENUES = ("홍콩 GEM", "싱가포르 SGX", "말레이시아 Bursa(기본 UA 403)", "인도 NSE·BSE(기본 UA 403)",
+                    "이스라엘 TASE(기본 UA 403)", "북유럽 Nasdaq Nordic", "독일 Deutsche Börse", "캐나다 TSX", "호주 ASX",
+                    "아부다비 ADX")
 
 #: 검수 우선순위 표시용 — 판정에 쓰지 않는다(키워드에 걸려도 테마가 아닐 수 있고, 안 걸려도 테마일 수 있다).
 _THEME_HINT = re.compile(
@@ -102,9 +117,10 @@ def _clean(text: Any) -> str:
 
 def _listing(venue: str, *, code: str, company: str, listing_date: str, exchange: str, board: str,
              industry: str = "", business: str = "", offer: str = "", auto_exclusion: str | None = None,
-             source_url: str | None = None) -> dict[str, Any]:
+             source_url: str | None = None, country: str | None = None, **extra: Any) -> dict[str, Any]:
     return {
-        "venue": venue, "country": VENUES[venue]["country"], "exchange": exchange, "board": board,
+        **extra,
+        "venue": venue, "country": country or VENUES[venue]["country"], "exchange": exchange, "board": board,
         "code": code.strip(), "company": company.strip(), "listing_date": listing_date,
         "industry": industry.strip(), "business": business.strip()[:160], "offer": offer.strip(),
         "auto_exclusion": auto_exclusion, "source_url": source_url or VENUES[venue]["source_url"],
@@ -322,7 +338,79 @@ def fetch_venue(venue: str, *, since: str, today: date) -> list[dict[str, Any]]:
         return parse_twse(_get(TWSE_URL))
     if venue == "tw_tpex":
         return parse_tpex(_get(TPEX_URL), since=since)
+    if venue in {"euronext", "lse", "us_adr", "us_ipo"}:
+        return fetch_global_venue(venue, since=since, today=today)
     raise ThemeListingWatchError(f"unknown venue: {venue}")
+
+
+_LSE_EVENT = (("introduction", "no_offering"), ("transfer", "not_first_listing"),
+              ("reverse takeover", "not_first_listing"), ("re-admission", "not_first_listing"))
+
+
+def fetch_global_venue(venue: str, *, since: str, today: date) -> list[dict[str, Any]]:
+    """유럽·미국 시장 — 공식 목록 원천은 ``theme_listing_global`` 에 있다."""
+    from . import theme_listing_global as G
+    from .statistics_lab import StatisticsLabError, _xlsx_sheet_rows
+
+    if venue == "euronext":
+        out = []
+        for row in G.fetch_euronext(_get, since=since):
+            micro = any(mark.lower() in row["market"].lower() for mark in G.EURONEXT_MICRO_MARKETS)
+            out.append(_listing(
+                "euronext", code=row["ticker"] or row["isin"], company=row["name"], listing_date=row["listing_date"],
+                exchange=f"Euronext {row['location']}".strip(), board=row["market"],
+                country=EURONEXT_COUNTRIES.get(row["location"], "EU"), source_url=row["detail_url"],
+                auto_exclusion="excluded_board" if micro else None, isin=row["isin"],
+            ))
+        return out
+    if venue == "lse":
+        url = G.lse_download_url(_get)
+        try:
+            grid = _xlsx_sheet_rows(_get(url), "New Issues and IPOs")
+        except StatisticsLabError as exc:
+            raise ThemeListingWatchError(f"LSE new issues workbook unreadable: {exc}") from exc
+        out = []
+        for row in G.parse_lse_rows(grid):
+            if row["listing_date"] < since:
+                continue
+            auto = None
+            if any(mark.lower() in row["market"].lower() for mark in G.LSE_EXCLUDED_MARKETS):
+                auto = "excluded_board"  # 펀드 전용 시장
+            elif not row["is_ipo"]:
+                kind = row["issue_type"].lower()
+                auto = next((reason for mark, reason in _LSE_EVENT if mark in kind), "no_offering")
+            out.append(_listing(
+                "lse", code=row["tidm"] or row["company"], company=row["company"], listing_date=row["listing_date"],
+                exchange="London Stock Exchange", board=row["market"], industry=row["industry"],
+                business=row["issue_type"], source_url=url, auto_exclusion=auto,
+            ))
+        return out
+    if venue == "us_adr":
+        from .ipo_edgar_watch import _fetch as edgar_fetch
+
+        out = []
+        for hit in G.fetch_ads_candidates(since=since, until=today.isoformat(), search=edgar_fetch):
+            out.append(_listing(
+                # 같은 회사의 IPO·후속 공모 424B4 가 같은 티커를 쓴다 — 접수번호를 코드로, 티커는 따로 둔다.
+                "us_adr", code=hit["accession"], company=hit["company"], ticker=hit.get("ticker_hint") or "",
+                listing_date=hit["filed_at"], exchange="US", board="", source_url=hit["filing_url"],
+                auto_exclusion="spac" if _SPAC_NAME.search(hit["company"]) else None,
+                cik=hit["cik"], accession=hit["accession"],
+            ))
+        return out
+    # us_ipo — 승인된 Nasdaq 캘린더 엔드포인트. 상장 대기 회사 일치 건만 남긴다(refresh 에서 거른다).
+    from .ipo_monthly_counts import _nasdaq_fetch
+
+    months = {f"{today.year:04d}-{today.month:02d}"}
+    previous = today.replace(day=1) - timedelta(days=1)
+    months.add(f"{previous.year:04d}-{previous.month:02d}")
+    out = []
+    for month in sorted(months):
+        for row in G.nasdaq_priced_names(_nasdaq_fetch(G.NASDAQ_CALENDAR_URL.format(month=month))):
+            if row["listing_date"] and row["listing_date"] >= since:
+                out.append(_listing("us_ipo", code=row["ticker"] or row["company"], company=row["company"],
+                                    listing_date=row["listing_date"], exchange=row["exchange"] or "US", board=""))
+    return out
 
 
 #: 시장 하나의 수집·파싱 실패는 그 시장만 stale 로 만든다 — 전송 끊김(HTTPException 은 OSError 가 아니다)과
@@ -391,7 +479,9 @@ def classify(listings: list[dict[str, Any]], additions: list[dict[str, str]], re
     for item in listings:
         country = item["country"]
         names = _name_keys(item["company"])
+        ticker = str(item.get("ticker") or "")
         counted = ((country, _code_key(country, item["code"])) in by_code
+                   or (ticker and (country, _code_key(country, ticker)) in by_code)
                    or any((country, key) in by_name for key in names))
         review = reviewed.get((item["venue"], item["code"]))
         if counted and review:
@@ -449,7 +539,7 @@ def refresh_theme_listing_watch(
     fetcher: Callable[..., list[dict[str, Any]]] = fetch_venue,
     review_get: Callable[..., bytes] | None = _get,
 ) -> dict[str, Any]:
-    """시장별로 새 상장을 읽어 누적 목록을 갱신하고, 미검수 상장을 자동 판정(theme_listing_auto_review_v1)한다.
+    """시장별로 새 상장을 읽어 누적 목록을 갱신하고, 미검수 상장을 자동 판정(theme_listing_auto_review_v3)한다.
 
     시장 하나의 실패가 나머지를 막지 않는다. ``review_get=None`` 이면 자동 판정을 건너뛴다(시험용).
     """
@@ -472,6 +562,12 @@ def refresh_theme_listing_watch(
                 if key[0] == venue:
                     gathered[key] = row
             continue
+        if venue == "us_ipo":
+            # 미국 보통주는 Ritter net·Nasdaq 잠정이 센다 — 상장 대기 회사 일치 건만 남긴다(거래 목록 비저장).
+            from .theme_listing_review import pipeline_match_any
+
+            pipeline = load_theme_listing_pipeline(root)
+            fetched = [row for row in fetched if pipeline_match_any(root, row, pipeline)]
         kept = 0
         for row in fetched:
             if not WATCH_START <= row["listing_date"] <= today.isoformat():
@@ -519,7 +615,7 @@ def refresh_theme_listing_watch(
         "watch_start": WATCH_START,
         "census_through": CENSUS_THROUGH,
         "role": "listing_watch_with_auto_review",
-        "decides_theme": "auto_rule_v1 (data/contracts/theme_listing_auto_review_v1.yaml); manual decisions are kept",
+        "decides_theme": _decides_theme_label(),
         "auto_review": auto_review,
         "auto_rule": _auto_rule_disclosure(root),
         "review_grace_days": REVIEW_GRACE_DAYS,
@@ -531,6 +627,12 @@ def refresh_theme_listing_watch(
     }
     _write_json(root / WATCH_RELATIVE, payload)
     return payload
+
+
+def _decides_theme_label() -> str:
+    from .theme_listing_review import REVIEWER, RULES_RELATIVE
+
+    return f"{REVIEWER} ({RULES_RELATIVE.as_posix()}); manual decisions are kept"
 
 
 def _auto_rule_disclosure(root: Path) -> dict[str, Any] | None:
@@ -551,6 +653,10 @@ def _auto_rule_disclosure(root: Path) -> dict[str, Any] | None:
         "auto_counted": sum(1 for row in additions if row["note"].startswith(NOTE_PREFIX)),
         "auto_not_counted": sum(1 for row in load_reviews(root) if row.get("reviewer") == REVIEWER),
         "holdout": {key: holdout.get(key) for key in ("n", "recall", "precision", "agreement", "count_ratio")},
+        # v3 새 검증 구간(앞 버전이 보지 않은 시장) — 측정 결과가 계약에 기록돼 있을 때만
+        "new_venue_validation": {key: ((rules.get("validation") or {}).get("result") or {}).get(key)
+                                 for key in ("n", "recall", "precision", "agreement", "count_ratio")}
+        if (rules.get("validation") or {}).get("result") else None,
     }
 
 
