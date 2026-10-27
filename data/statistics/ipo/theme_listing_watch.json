@@ -1,18 +1,27 @@
 {
   "schema_version": 1,
   "dataset_id": "theme_listing_watch_v1",
-  "checked_at": "2026-10-26T13:05:17+00:00",
+  "checked_at": "2026-10-27T10:12:46+00:00",
   "watch_start": "2026-10-01",
   "census_through": "2026-10-22",
   "role": "listing_watch_with_auto_review",
   "decides_theme": "auto_rule_v1 (data/contracts/theme_listing_auto_review_v1.yaml); manual decisions are kept",
-  "auto_review": null,
+  "auto_review": {
+    "rules": "data/contracts/theme_listing_auto_review_v2.yaml",
+    "reviewer": "auto_rule_v2",
+    "outcomes": {
+      "not_theme": 3
+    },
+    "added": 0,
+    "reviewed": 3,
+    "pipeline_moved": []
+  },
   "auto_rule": {
     "contract": "data/contracts/theme_listing_auto_review_v2.yaml",
     "reviewer": "auto_rule_v2",
     "rules_fixed_at": "2026-10-26T03:19:15Z",
     "auto_counted": 0,
-    "auto_not_counted": 0,
+    "auto_not_counted": 3,
     "holdout": {
       "n": 811,
       "recall": 0.872,
@@ -27,8 +36,8 @@
     "cn_a": {
       "status": "current",
       "error": null,
-      "checked_at": "2026-10-26T13:05:17+00:00",
-      "last_ok_at": "2026-10-26T13:05:17+00:00",
+      "checked_at": "2026-10-27T10:12:46+00:00",
+      "last_ok_at": "2026-10-27T10:12:46+00:00",
       "rows": 8,
       "label": "중국 A주(상해·심천·북경)",
       "source_url": "https://data.eastmoney.com/xg/xg/"
@@ -36,8 +45,8 @@
     "hk_main": {
       "status": "current",
       "error": null,
-      "checked_at": "2026-10-26T13:05:17+00:00",
-      "last_ok_at": "2026-10-26T13:05:17+00:00",
+      "checked_at": "2026-10-27T10:12:46+00:00",
+      "last_ok_at": "2026-10-27T10:12:46+00:00",
       "rows": 2,
       "label": "홍콩 Main Board",
       "source_url": "https://www2.hkexnews.hk/New-Listings/New-Listing-Information/Main-Board"
@@ -45,17 +54,17 @@
     "kr": {
       "status": "current",
       "error": null,
-      "checked_at": "2026-10-26T13:05:17+00:00",
-      "last_ok_at": "2026-10-26T13:05:17+00:00",
-      "rows": 7,
+      "checked_at": "2026-10-27T10:12:46+00:00",
+      "last_ok_at": "2026-10-27T10:12:46+00:00",
+      "rows": 8,
       "label": "한국 KOSPI·KOSDAQ",
       "source_url": "https://kind.krx.co.kr/listinvstg/listingcompany.do?method=searchListingTypeMain"
     },
     "jp": {
       "status": "current",
       "error": null,
-      "checked_at": "2026-10-26T13:05:17+00:00",
-      "last_ok_at": "2026-10-26T13:05:17+00:00",
+      "checked_at": "2026-10-27T10:12:46+00:00",
+      "last_ok_at": "2026-10-27T10:12:46+00:00",
       "rows": 4,
       "label": "일본 JPX",
       "source_url": "https://www.jpx.co.jp/listing/stocks/new/index.html"
@@ -63,18 +72,18 @@
     "tw_twse": {
       "status": "current",
       "error": null,
-      "checked_at": "2026-10-26T13:05:17+00:00",
-      "last_ok_at": "2026-10-26T13:05:17+00:00",
-      "rows": 2,
+      "checked_at": "2026-10-27T10:12:46+00:00",
+      "last_ok_at": "2026-10-27T10:12:46+00:00",
+      "rows": 3,
       "label": "대만 TWSE",
       "source_url": "https://www.twse.com.tw/zh/listed/listed-company/newlisting.html"
     },
     "tw_tpex": {
       "status": "current",
       "error": null,
-      "checked_at": "2026-10-26T13:05:17+00:00",
-      "last_ok_at": "2026-10-26T13:05:17+00:00",
-      "rows": 3,
+      "checked_at": "2026-10-27T10:12:46+00:00",
+      "last_ok_at": "2026-10-27T10:12:46+00:00",
+      "rows": 4,
       "label": "대만 TPEx",
       "source_url": "https://www.tpex.org.tw/openapi/v1/mopsfin_t187ap03_O"
     }
@@ -91,18 +100,18 @@
     "미국 ADR"
   ],
   "summary": {
-    "listings": 26,
+    "listings": 29,
     "by_status": {
       "auto_excluded": 6,
       "counted": 4,
-      "reviewed": 16
+      "reviewed": 19
     },
     "pending_review": 0,
     "pending_theme_hint": 0,
     "pending_pipeline_match": 0,
     "pending_overdue": 0,
     "oldest_pending_listing": null,
-    "reviewed_through": "2026-10-26",
+    "reviewed_through": "2026-10-27",
     "venues_ok": 6,
     "venues_total": 6
   },
@@ -583,6 +592,33 @@
       "pipeline_match": false
     },
     {
+      "venue": "tw_tpex",
+      "country": "TW",
+      "exchange": "TPEx",
+      "board": "main",
+      "code": "6898",
+      "company": "程曦資訊",
+      "listing_date": "2026-10-23",
+      "industry": "industry_code=30",
+      "business": "",
+      "offer": "",
+      "auto_exclusion": null,
+      "source_url": "https://www.tpex.org.tw/openapi/v1/mopsfin_t187ap03_O",
+      "first_seen_at": "2026-10-27T10:12:46+00:00",
+      "status": "reviewed",
+      "reason": "not_theme",
+      "theme_hint": false,
+      "pipeline_match": false,
+      "auto_review": {
+        "decision": "not_theme",
+        "theme": null,
+        "evidence": "사업 설명 첫 문장에 AI·반도체 제품 없음",
+        "text": "服務委外、講習訓練、會員伴銷、顧客流程規劃、、系統租賃及數位行銷",
+        "industry": "資訊服務業",
+        "text_source": "https://mops.twse.com.tw/mops/#/web/t05st03?companyId=6898"
+      }
+    },
+    {
       "venue": "kr",
       "country": "KR",
       "exchange": "KRX",
@@ -600,6 +636,60 @@
       "reason": "excluded_board",
       "theme_hint": false,
       "pipeline_match": false
+    },
+    {
+      "venue": "kr",
+      "country": "KR",
+      "exchange": "KRX",
+      "board": "KOSDAQ",
+      "code": "0205H",
+      "company": "에스케이증권제14호기업인수목적",
+      "listing_date": "2026-10-27",
+      "industry": "금융 지원 서비스업",
+      "business": "기업인수목적",
+      "offer": "2,000",
+      "auto_exclusion": null,
+      "source_url": "https://kind.krx.co.kr/listinvstg/listingcompany.do?method=searchListingTypeMain",
+      "first_seen_at": "2026-10-27T10:12:46+00:00",
+      "status": "reviewed",
+      "reason": "not_theme",
+      "theme_hint": false,
+      "pipeline_match": false,
+      "auto_review": {
+        "decision": "not_theme",
+        "theme": null,
+        "evidence": "사업 설명 첫 문장에 AI·반도체 제품 없음",
+        "text": "기업인수목적",
+        "industry": "금융 지원 서비스업",
+        "text_source": "https://kind.krx.co.kr/listinvstg/listingcompany.do?method=searchListingTypeMain"
+      }
+    },
+    {
+      "venue": "tw_twse",
+      "country": "TW",
+      "exchange": "TWSE",
+      "board": "main",
+      "code": "7710",
+      "company": "東擎科技",
+      "listing_date": "2026-10-27",
+      "industry": "",
+      "business": "",
+      "offer": "138.0",
+      "auto_exclusion": null,
+      "source_url": "https://www.twse.com.tw/zh/listed/listed-company/newlisting.html",
+      "first_seen_at": "2026-10-27T10:12:46+00:00",
+      "status": "reviewed",
+      "reason": "not_theme",
+      "theme_hint": false,
+      "pipeline_match": false,
+      "auto_review": {
+        "decision": "not_theme",
+        "theme": null,
+        "evidence": "사업 설명 첫 문장에 AI·반도체 제품 없음",
+        "text": "工業電腦主機板、嵌入式工業電腦系統、工業級強固邊緣AIoT系統平台",
+        "industry": "電腦及週邊設備業",
+        "text_source": "https://mops.twse.com.tw/mops/#/web/t05st03?companyId=7710"
+      }
     }
   ]
 }
