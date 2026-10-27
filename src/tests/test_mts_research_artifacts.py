@@ -271,3 +271,97 @@ def test_pointer_must_stay_inside_namespace(tmp_path: Path):
             Path("data/timeseries_v8/multivariate_v8_latest.json"),
             {"origin_session": "2026-10-21", "issued_at": "2026-10-21T09:00:00+00:00"},
         )
+
+
+# ---------------------------------------------------------------------------
+# F04·Q6 — prospective commit 의 시간·스냅숏 결박 (외부 리뷰 해소, 2026-10-27)
+# ---------------------------------------------------------------------------
+
+
+def _persist_input_snapshot(root: Path, *, replay_mode="operational_replay") -> str:
+    from ai_fc.timeseries_v8.contracts import canonical_hash
+
+    body = {
+        "kind": "input",
+        "replay_mode": replay_mode,
+        "ledger_checkpoint_id": "ck-1",
+        "cutoff": "2026-10-20T20:15:00+00:00",
+        "observation_revision_ids_hash": "r" * 16,
+    }
+    snap_id = "mts-snap-" + canonical_hash(body)[:24]
+    manifest = {**body, "snapshot_id": snap_id}
+    path = root / "data/mts_research/snapshots" / f"{snap_id}.json"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(manifest, ensure_ascii=False, sort_keys=True), encoding="utf-8")
+    return snap_id
+
+
+def _commit_prospective(root: Path, *, spec, now, run_id, replay_mode="operational_replay"):
+    started = start_attempt(
+        root, attempt_id=f"att-{run_id}", attempted_at=now,
+        intended_origin_session=spec.origin_session, contract_hash="ch", stage="forecast",
+    )
+    return commit_forecast(
+        root, make_ready_draft(spec=spec), started=started, now=now,
+        experiment_id="exp-1", run_id=run_id, evidence_track="prospective",
+        replay_mode=replay_mode, contract_hash="ch",
+        issuance_policy_id="first_issue_v1", model_version="mts.synthetic.1",
+    )
+
+
+def test_f04_q6_prospective_commit_preconditions(tmp_path: Path):
+    from ai_fc.mts_research.maturity import MtsMaturityError
+    from ai_fc.mts_research.sessions import information_cutoff_for
+
+    root = _root(tmp_path)
+    origin = date(2026, 10, 20)
+    cutoff = information_cutoff_for(origin)
+    snap = _persist_input_snapshot(root)
+    good = make_spec(origin_session=origin, information_cutoff_at=cutoff, input_snapshot_id=snap)
+    issue_now = utc(2026, 10, 20, 20, 30)  # cutoff(20:15Z) 이후, 다음 세션 cutoff 이전
+
+    artifact = _commit_prospective(root, spec=good, now=issue_now, run_id="p1")
+    assert artifact.status == "ISSUED"
+
+    # Q6 — 미영속 snapshot id 는 commit 불가
+    unbound = make_spec(origin_session=origin, information_cutoff_at=cutoff)
+    with pytest.raises(MtsArtifactError, match="미영속"):
+        _commit_prospective(root, spec=unbound, now=issue_now, run_id="p2")
+
+    # Q6 — snapshot replay_mode 와 commit replay_mode 불일치 거부
+    with pytest.raises(MtsArtifactError, match="replay_mode"):
+        _commit_prospective(
+            root, spec=good, now=issue_now, run_id="p3",
+            replay_mode="historical_information_set_reconstruction",
+        )
+
+    # F14 잔여 — spec 의 자유 cutoff 거부 (세션 정책과 결박)
+    free_cutoff = make_spec(
+        origin_session=origin, information_cutoff_at=utc(2026, 10, 20, 21, 30),
+        input_snapshot_id=snap,
+    )
+    with pytest.raises(MtsArtifactError, match="세션 정책"):
+        _commit_prospective(root, spec=free_cutoff, now=issue_now, run_id="p4")
+
+    # F04 상한 — 첫 대상 세션 관측 가용 이후의 발행은 prospective 가 아니다 (T15)
+    with pytest.raises(MtsMaturityError, match="prospective"):
+        _commit_prospective(root, spec=good, now=utc(2026, 10, 21, 20, 30), run_id="p5")
+
+    # F04 마감 — 등록된 발행 지연 상한 초과 거부
+    started = start_attempt(
+        root, attempt_id="att-p6", attempted_at=utc(2026, 10, 20, 21, 30),
+        intended_origin_session=origin, contract_hash="ch", stage="forecast",
+    )
+    with pytest.raises(MtsArtifactError, match="발행 마감"):
+        commit_forecast(
+            root, make_ready_draft(spec=good), started=started,
+            now=utc(2026, 10, 20, 21, 30),  # cutoff + 75분
+            experiment_id="exp-1", run_id="p6", evidence_track="prospective",
+            replay_mode="operational_replay", contract_hash="ch",
+            issuance_policy_id="first_issue_v1", model_version="mts.synthetic.1",
+            max_issuance_latency_seconds=600,
+        )
+
+    # 비 prospective 트랙은 기존 동작 유지 (결박 검사 비적용)
+    legacy = _commit(root, now=utc(2026, 10, 21, 9), run_id="hist-1")
+    assert legacy.status == "ISSUED"

@@ -139,6 +139,40 @@ def sample_sufficiency_gate(
     )
 
 
+def enforce_candidate_failure_policy(
+    *,
+    contract_hash: str,
+    policy: str,
+    candidate_failure_count: int,
+    evidence_refs: tuple[str, ...] = (),
+) -> GateResult:
+    """E7 — 계약의 candidate_failure_policy 를 실제로 집행한다 (외부 리뷰 F02, 2026-10-27).
+
+    `hold_confirmatory_verdict`: eligible 원점에서 후보 실패가 1건이라도 있으면 확증
+    판정을 HOLD — 성공 원점만의 paired 평균(성공 교집합)으로 확증하지 않는다.
+    실패를 평가에서 지우는 정책(NOT_ELIGIBLE 재분류·결측 대체)은 등록 불가.
+    """
+    if policy != "hold_confirmatory_verdict":
+        raise MtsGateError(f"등록되지 않은 candidate_failure_policy: {policy}")
+    if candidate_failure_count < 0:
+        raise MtsGateError("failure_count >= 0")
+    inputs = {"policy": policy, "candidate_failure_count": candidate_failure_count}
+    if candidate_failure_count == 0:
+        return GateResult.build(
+            "E7", status="PASS", contract_hash=contract_hash, inputs=inputs,
+            evidence_refs=evidence_refs,
+        )
+    return GateResult.build(
+        "E7", status="HOLD", contract_hash=contract_hash, inputs=inputs,
+        evidence_refs=evidence_refs,
+        extra_reasons=(
+            REASON_CODES["E7"],
+            f"후보 실패 {candidate_failure_count}건 — 확증 판정 보류 (F02, "
+            "성공 교집합 평균으로 확증 금지)",
+        ),
+    )
+
+
 def evaluate_gates(
     *, contract_hash: str, gate_inputs: Mapping[GateId, Mapping[str, Any]],
     required_nulls_resolved: bool,

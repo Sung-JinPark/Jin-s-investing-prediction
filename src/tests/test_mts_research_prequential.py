@@ -133,5 +133,59 @@ def test_rescore_resolved_matches_ledgers(tmp_path: Path):
         shutil.copyfile(ROOT / relative, target)
     result = rescore_resolved(root)
     assert result["ok"], result["mismatches"][:5]
-    assert result["rows"] >= 2 * (19 + 123)  # 모델+기준선 행
-    assert (root / "data/mts_research/derived/origin_losses.parquet").is_file()
+    # F09 — V13 은 (cell, origin) dedupe 후 모델+기준선 2행씩, V8 은 해소 행당 2행
+    import json as _json
+
+    v13_rows = [
+        _json.loads(line)
+        for line in (ROOT / "data/timeseries_v13/ledgers/vol_live_resolutions.jsonl")
+        .read_text(encoding="utf-8").splitlines()
+        if line.strip()
+    ]
+    v8_rows = [
+        _json.loads(line)
+        for line in (ROOT / "data/timeseries_v8/ledgers/shadow_resolutions.jsonl")
+        .read_text(encoding="utf-8").splitlines()
+        if line.strip()
+    ]
+    distinct_v13 = len({(str(r["cell"]), str(r["origin"])) for r in v13_rows})
+    assert result["rows"] == 2 * (len(v8_rows) + distinct_v13)
+    assert result["v13_dropped_duplicates"] == len(v13_rows) - distinct_v13
+    out_path = root / "data/mts_research/derived/origin_losses.parquet"
+    assert out_path.is_file()
+    # 추론 패널 입력에 (track, cell, origin, model) 중복이 없다 — 이중 가중 차단 (F09)
+    import pyarrow.parquet as pq
+
+    table = pq.read_table(out_path)
+    keys = list(zip(
+        table.column("track").to_pylist(), table.column("cell").to_pylist(),
+        table.column("origin").to_pylist(), table.column("model").to_pylist(),
+    ))
+    assert len(keys) == len(set(keys))
+
+
+def test_f05_operational_oof_requires_recorded_at():
+    """operational replay 보정 입력은 라벨 기록 시각까지 cutoff 이내여야 한다 (F05)."""
+    base = dict(
+        forecast_id="f1", origin_session="2026-05-01",
+        issued_at=utc(2026, 5, 1, 21), state_fit_cutoff_at=utc(2026, 5, 1, 20),
+        label_available_at=utc(2026, 6, 5),
+    )
+    no_recorded = OofRecord(**base)
+    with pytest.raises(MtsPrequentialError, match="label_recorded_at"):
+        mature_oof_view(
+            [no_recorded], calibration_fit_cutoff=utc(2026, 7, 1),
+            replay_mode="operational_replay",
+        )
+    late_recorded = OofRecord(**base, label_recorded_at=utc(2026, 7, 15))
+    assert mature_oof_view(
+        [late_recorded], calibration_fit_cutoff=utc(2026, 7, 1),
+        replay_mode="operational_replay",
+    ) == []  # 당시 원장에 없던 라벨 — 제외
+    ok = OofRecord(**base, label_recorded_at=utc(2026, 6, 6))
+    assert len(mature_oof_view(
+        [ok], calibration_fit_cutoff=utc(2026, 7, 1),
+        replay_mode="operational_replay",
+    )) == 1
+    # historical 모드는 기존 동작 유지 (recorded_at 불요)
+    assert len(mature_oof_view([no_recorded], calibration_fit_cutoff=utc(2026, 7, 1))) == 1

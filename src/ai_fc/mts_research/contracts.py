@@ -144,6 +144,9 @@ class TimeTargetsBlock(_Frozen):
     maturity_policy: Literal["complete_horizon"]
     partial_censoring_training_enabled: bool
     original_origin_grid_required: bool
+    # F04 (2026-10-27): 원점별 발행 마감 — cutoff 이후 허용 지연(초). 등록 시 필수
+    # (null 인 채로는 prospective run 불가; artifacts.commit_forecast 가 강제).
+    max_issuance_latency_seconds: int | None = None
 
 
 class HazardBlock(_Frozen):
@@ -250,6 +253,7 @@ class ResearchContract(_Frozen):
                 "time_and_targets.target_spec_hash": self.time_and_targets.target_spec_hash,
                 "time_and_targets.eligibility_rule_hash": self.time_and_targets.eligibility_rule_hash,
                 "time_and_targets.label_revision_policy_hash": self.time_and_targets.label_revision_policy_hash,
+                "time_and_targets.max_issuance_latency_seconds": self.time_and_targets.max_issuance_latency_seconds,
                 "evaluation.evidence_track": self.evaluation.evidence_track,
             }
             missing.extend(name for name, value in checks.items() if value is None)

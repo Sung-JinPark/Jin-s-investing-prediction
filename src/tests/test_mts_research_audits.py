@@ -135,3 +135,32 @@ def test_v13_monotonicity_report_synthetic(tmp_path: Path):
     assert report["rows_checked"] == 2
     assert len(report["horizon_monotonicity_violations"]) == 1
     assert len(report["threshold_monotonicity_violations"]) == 1
+
+
+def test_q4_rv_floor_nonincreasing_in_k_and_argmax_is_one():
+    """외부 리뷰 Q4 정리: 하한은 k 에 비증가(SS 부분집합 단조성) → argmax_k ≡ 1."""
+    from ai_fc.mts_research.audits.rv_mechanics import mechanical_positive, rv_floor
+
+    rng = np.random.default_rng(42)
+    returns = np.concatenate([[np.nan], rng.normal(0, 0.012, 400)])
+    for t in (60, 150, 300):
+        floors = []
+        for k in range(1, RV_WINDOW):
+            d = decompose_rv21(returns, t, k)
+            floors.append(rv_floor(d.known_sum, d.known_sumsq, d.n_known, k))
+        assert all(floors[i] >= floors[i + 1] - 1e-12 for i in range(len(floors) - 1))
+        result = mechanical_positive(returns, t, 63, theta=0.0001)
+        assert result["argmax_k"] == 1
+
+
+def test_q4_rv_floor_k1_bounded_by_origin_rv21():
+    """rv_floor(1) <= RV21(원점) — V14 평온 자격(RV21<=θ)이 기계적 양성을 구조적으로 배제."""
+    from ai_fc.mts_research.audits.rv_mechanics import rv_floor
+
+    rng = np.random.default_rng(7)
+    returns = np.concatenate([[np.nan], rng.normal(0, 0.015, 300)])
+    for t in range(40, 290, 13):
+        d = decompose_rv21(returns, t, 1)
+        floor1 = rv_floor(d.known_sum, d.known_sumsq, d.n_known, 1)
+        origin_rv = float(np.std(returns[t - RV_WINDOW + 1 : t + 1], ddof=1) * np.sqrt(252.0))
+        assert floor1 <= origin_rv + 1e-12
