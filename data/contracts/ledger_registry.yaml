@@ -590,6 +590,14 @@ ledgers:
     allow_empty_accumulating: true
     expected_state: planned
     timestamp_field: resolved_session
+  # V14-D10 동결 계수(2026-10-28) — 바이트 변경은 violation(재적합 금지의 기계적 강제). V13 coefficients 행과 같은 형.
+  - id: timeseries_v14_vol_coefficients
+    path: data/timeseries_v14/vol/champion_coefficients.json
+    kind: immutable_files
+    cadence: event
+    criticality: high
+    schema_ref: json_object
+    expected_state: frozen
   - id: timeseries_v14_prereg_diagnostics
     path: data/timeseries_v14/prereg/*.json
     kind: immutable_files

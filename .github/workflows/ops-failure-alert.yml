@@ -23,6 +23,7 @@ on:
       - earnings-refresh
       - daily6m-sources-refresh
       - timeseries-v13-vol-live
+      - timeseries-v14-cond-live
       - scenario-refresh
       - ai-regime-refresh
       - statistics-refresh

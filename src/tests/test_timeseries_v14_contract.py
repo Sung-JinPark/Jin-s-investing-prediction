@@ -169,21 +169,48 @@ def test_gates_disarmed_and_budget_and_prereg_commit_shape() -> None:
     assert resources == {"holdout": 0, "sealed": 0, "evaluations": 0, "usd": 0}
 
 
-def test_no_automation_exists_for_v14() -> None:
-    # ★ 정지점: 라이브 verb·워크플로·패키지는 V14-D10(설계창 결과 뒤 사용자 결정) 전에는 없다.
-    cli_text = CLI.read_text(encoding="utf-8")
-    assert "timeseries-v14" not in cli_text
-    assert "timeseries_v14" not in cli_text
-    for workflow in sorted(WORKFLOWS.glob("*.yml")):
-        text = workflow.read_text(encoding="utf-8")
-        assert "timeseries-v14" not in text and "timeseries_v14" not in text, workflow.name
-    assert not (ROOT / "src/ai_fc/timeseries_v14").exists()
-    assert not (ROOT / "src/ai_fc/timeseries_v14.py").exists()
+def test_automation_is_exactly_what_v14_d10_approved() -> None:
+    # V14-D10(영수증 r2, 2026-10-28) 전에는 verb·워크플로·패키지가 0 이었다. 지금은 승인된 것만 있어야 한다:
+    # 포인터 발행·채점·검증 verb 3종은 워크플로에서 돌고, 판정 verb(live-verdict)는 읽기 전용이며 워크플로 밖이다.
     contract = _contract()
-    assert contract["live_forward_gate"]["execution_path"] == "absent_by_construction"
-    assert contract["irreversible"]["auto_execution_path"] == "absent_by_construction"
+    gate = contract["live_forward_gate"]
+    assert gate["execution_path"] == "named_verb_guarded"
+    verbs = gate["verbs"]
+    assert verbs == ["timeseries-v14-cond-latest", "timeseries-v14-cond-resolve",
+                     "timeseries-v14-cond-verify", "timeseries-v14-cond-live-verdict"]
+    cli_text = CLI.read_text(encoding="utf-8")
+    for verb in verbs:
+        assert f'@app.command("{verb}")' in cli_text, verb
+    assert (ROOT / "src/ai_fc/timeseries_v14/__init__.py").is_file()
+    # 판정 적용(강등·종결)·홀드아웃·봉인의 자동 경로는 여전히 없다
+    assert contract["irreversible"]["auto_execution_path"].startswith("absent_by_construction")
     assert contract["irreversible"]["user_approval_text_required"] is True
     assert contract["stopping_points"]["sealed"]["execution_path"] == "absent_by_construction"
+    assert contract["stopping_points"]["holdout"]["execution_path"] == "absent_by_construction"
+    assert contract["gates"]["armed"] is False and contract["publication"]["display_tier"] == "t0_internal"
+    # 워크플로: V14 는 별도 워크플로(V13 실패가 V14 를, V14 실패가 V13 배포를 막지 않게) · 판정 verb 는 어떤 워크플로에도 없다
+    mentions = [wf.name for wf in sorted(WORKFLOWS.glob("*.yml"))
+                if "timeseries-v14" in wf.read_text(encoding="utf-8")]
+    assert mentions == ["ops-failure-alert.yml", "timeseries-v14-cond-live.yml"], mentions
+    for wf in WORKFLOWS.glob("*.yml"):
+        assert "timeseries-v14-cond-live-verdict" not in wf.read_text(encoding="utf-8"), wf.name
+    workflow = yaml.safe_load((WORKFLOWS / "timeseries-v14-cond-live.yml").read_text(encoding="utf-8"))
+    assert workflow["name"] == "timeseries-v14-cond-live" and list(workflow["jobs"]) == ["live"]
+    triggers = workflow.get(True) or workflow.get("on")
+    assert triggers["workflow_run"] == {"workflows": ["timeseries-v13-vol-live"], "types": ["completed"]}
+    assert contract["live_pointer"]["workflow"].startswith(".github/workflows/timeseries-v14-cond-live.yml")
+    assert list(yaml.safe_load((WORKFLOWS / "timeseries-v13-vol-live.yml").read_text(encoding="utf-8"))["jobs"]) == ["live"]
+    alert = yaml.safe_load((WORKFLOWS / "ops-failure-alert.yml").read_text(encoding="utf-8"))
+    assert "timeseries-v14-cond-live" in (alert.get(True) or alert.get("on"))["workflow_run"]["workflows"]
+    # live_pointer 는 D10 r2 범위 그대로다
+    pointer = contract["live_pointer"]
+    assert pointer["approval_receipt"] == "v14-approval:V14-D10:2026-10-28:r2"
+    assert pointer["champion_cells"] == ["crv_h5"] and pointer["model"] == "conditional_persistence_pb"
+    assert sorted(pointer["champion_cells"] + pointer["shadow_cells"]) == sorted(
+        contract["targets"]["vix_conditional_transition"]["cells"] + contract["targets"]["rv_conditional_transition"]["cells"])
+    assert pointer["display_tier"] == "t0_internal"
+    assert "V14-D10" in contract["decisions_resolved"] and "V14-D10" not in contract["decisions_pending"]
+    assert "V14-A3" in contract["amendments_applied"]
 
 
 def test_v13_holdout_window_is_contaminated_and_not_reusable() -> None:

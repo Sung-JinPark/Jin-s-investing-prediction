@@ -1,0 +1,88 @@
+name: timeseries-v14-cond-live
+
+# V14 조건부 전이(V14-D10, 영수증 v14-approval:V14-D10:2026-10-28:r2) — 동결 계수
+# (data/timeseries_v14/vol/champion_coefficients.json, sha256 핀)로 6셀 조건부 포인터를 fail-closed 발행하고
+# 성숙한 조건 충족 원점만 append-only 해상 원장에 채점한다. 재적합 없음, 홀드아웃·봉인 무접촉, 시크릿 0
+# (timeseries-v2-refresh 가 채운 PIT 아카이브만 읽는다). 판정 verb(live-verdict)는 사람이 돌린다.
+# 계약: data/contracts/multivariate_timeseries_v14_conditional.yaml (live_pointer · frozen_coefficients).
+# t0 내부 — 배포 단계 없음(pages.yml 에 등록하지 않는다).
+#
+# 별도 워크플로인 이유: V13 워크플로의 잡으로 두면 V14 실패가 timeseries-v13-vol-live 실행 전체를 실패로 만들어
+# pages.yml·verify.yml(workflow_run.conclusion == 'success' 요구)이 V13 배포·검증을 건너뛰고 ops-failure-alert 가
+# V13 장애로 기록한다. 여기서는 V14 실패가 이 워크플로만 실패시키고 ops-failure-alert 가 V14 이름으로 알린다.
+
+on:
+  # 1차 트리거: V13 라이브 실행이 끝난 직후. V13 이 실패해도 돈다(cancelled 만 제외) — V14 표본 축적이 V13 장애에 묶이지 않게.
+  workflow_run:
+    workflows: ["timeseries-v13-vol-live"]
+    types: [completed]
+  schedule:
+    # 보조: V13 예약(40 3 · 43 0-10, Tue-Sat)보다 몇 분 뒤 — V13 이 그날 돌지 않았어도 최신 아카이브로 재평가한다.
+    - cron: "48 3 * * 2-6"
+    - cron: "51 0-10 * * 2-6"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: ${{ github.event_name == 'workflow_run' && (github.event.workflow_run.conclusion == 'cancelled' || github.event.workflow_run.head_branch != 'main') && format('v14-skipped-{0}', github.run_id) || 'investing-data-writer-v14' }}
+  cancel-in-progress: false
+
+jobs:
+  live:
+    if: ${{ github.event_name != 'workflow_run' || (github.event.workflow_run.conclusion != 'cancelled' && github.event.workflow_run.head_branch == 'main') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      PYTHONUTF8: "1"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install the pinned numerical runtime
+        run: pip install -e ".[pit,timeseries]" pytest
+      - name: Publish the fail-closed V14 conditional pointer (frozen coefficients only)
+        run: python -m ai_fc timeseries-v14-cond-latest
+      - name: Score matured condition-met V14 origins (no verdict — accumulation only)
+        run: python -m ai_fc timeseries-v14-cond-resolve
+      - name: Verify V14 pointer, ledger chain, coefficient pin, backfill and archive recompute
+        run: |
+          python -m ai_fc timeseries-v14-cond-verify
+          pytest src/tests/test_timeseries_v14_live.py src/tests/test_timeseries_v14_live_verdict.py -q
+      - name: Commit only the registered V14 live outputs
+        id: commit
+        shell: bash
+        run: |
+          echo "committed=false" >> "$GITHUB_OUTPUT"
+          python -m ai_fc inventory
+          pointer_changed="$(python -c "from pathlib import Path; from ai_fc.timeseries_v14.pipeline import v14_pointer_changed; print(str(v14_pointer_changed(Path.cwd())).lower())")"
+          # 허용 목록 — V14 포인터·라이브 원장 2종·인벤토리만. 해상 원장은 첫 원점이 성숙하기 전까지 없으므로
+          # 있는 것만 add 한다(없는 경로를 git add 하면 fatal 로 죽는다 — 2026-09-09 V13 실측).
+          allow="data/timeseries_v14/live/v14_latest.json data/timeseries_v14/ledgers/v14_live.jsonl data/timeseries_v14/ledgers/v14_live_resolutions.jsonl docs/generated/inventory.generated.md"
+          for f in $allow; do
+            if [ "$f" = data/timeseries_v14/live/v14_latest.json ] && [ "$pointer_changed" = false ]; then continue; fi
+            if [ -f "$f" ]; then git add "$f"; fi
+          done
+          unexpected="$(git diff --cached --name-only | grep -Ev '^(data/timeseries_v14/(live/v14_latest\.json|ledgers/v14_live(_resolutions)?\.jsonl)|docs/generated/inventory\.generated\.md)$' || true)"
+          test -z "$unexpected" || { echo "unexpected live paths: $unexpected"; exit 1; }
+          if ! git diff --cached --quiet; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git commit -m "data: publish V14 conditional live pointer"
+            # 푸시 경합(다른 데이터 라이터·PR 병합) — 새 끝에 재생한 뒤 다시 민다. 3회 실패면 잡을 실패시킨다(조용히 버리지 않는다).
+            pushed=false
+            for attempt in 1 2 3; do
+              git pull --rebase origin main
+              if git push; then pushed=true; break; fi
+              echo "push rejected (attempt $attempt/3) — replaying on the fresh main tip"
+              sleep $((attempt * 15))
+            done
+            test "$pushed" = true || { echo "push failed after 3 attempts"; exit 1; }
+            echo "committed=true" >> "$GITHUB_OUTPUT"
+          fi

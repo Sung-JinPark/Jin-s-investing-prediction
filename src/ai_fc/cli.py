@@ -839,6 +839,55 @@ def cmd_timeseries_v13_vol_verify() -> None:
         raise typer.Exit(code=1)
 
 
+@app.command("timeseries-v14-cond-latest")
+def cmd_timeseries_v14_cond_latest() -> None:
+    """V14 조건부 전이(conditional_persistence_pb) 동결 계수로 최신 6셀 포인터를 fail-closed 발행한다 (재적합 없음)."""
+    from .timeseries_v14.pipeline import publish_latest_timeseries_v14
+
+    result = _timeseries_exit(publish_latest_timeseries_v14, config.ROOT)
+    typer.echo(json.dumps(result, ensure_ascii=False, indent=2))
+
+
+@app.command("timeseries-v14-cond-resolve")
+def cmd_timeseries_v14_cond_resolve() -> None:
+    """성숙한 V14 조건 충족 원점만 채점해 append-only 해상 원장에 남긴다 (판정 없음)."""
+    from .timeseries_v14.resolve import resolve_live_timeseries_v14
+
+    result = _timeseries_exit(resolve_live_timeseries_v14, config.ROOT)
+    typer.echo(json.dumps(result, ensure_ascii=False, indent=2))
+
+
+@app.command("timeseries-v14-cond-verify")
+def cmd_timeseries_v14_cond_verify() -> None:
+    """V14 포인터·라이브 원장·계수 핀·아카이브 재계산·백필 완전성·해상 원장을 검증한다."""
+    from .timeseries_v14.pipeline import verify_timeseries_v14
+    from .timeseries_v14.resolve import verify_live_resolutions as verify_v14_resolutions
+
+    result = _timeseries_exit(verify_timeseries_v14, config.ROOT)
+    resolutions = _timeseries_exit(verify_v14_resolutions, config.ROOT)
+    result["resolutions"] = resolutions
+    result["ok"] = bool(result["ok"] and resolutions["ok"])
+    result["errors"] = list(result["errors"]) + list(resolutions["errors"])
+    typer.echo(json.dumps(result, ensure_ascii=False, indent=2))
+    if not result["ok"]:
+        raise typer.Exit(code=1)
+
+
+@app.command("timeseries-v14-cond-live-verdict")
+def cmd_timeseries_v14_cond_live_verdict(
+    as_json: bool = typer.Option(False, "--json", help="표 대신 JSON 전체를 출력"),
+) -> None:
+    """V14 라이브 전진 판정 **산술만** 인쇄한다 (읽기 전용 — 원장·포인터·계약 무수정, 강등·종결 적용 없음).
+
+    champion_cells 만 판정 범위(T7 분모)이고 shadow 셀은 인쇄만 한다(in_verdict_scope=false).
+    귀무 추출 수는 계약 negative_control_construction.draws(120) 고정이다 — 바꾸는 옵션은 없다.
+    """
+    from .timeseries_v14.live_verdict import live_verdict, main_json, render_table
+
+    result = _timeseries_exit(live_verdict, config.ROOT)
+    typer.echo(main_json(result) if as_json else render_table(result))
+
+
 @app.command("timeseries-v2-preflight")
 def cmd_timeseries_v2_preflight(
     knowledge_cutoff: str | None = typer.Option(None, "--knowledge-cutoff"),

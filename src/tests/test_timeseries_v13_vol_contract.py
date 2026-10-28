@@ -224,20 +224,25 @@ def test_arming_and_display_tier_are_backed_by_non_superseded_receipts() -> None
 def test_live_workflow_commits_only_the_contract_declared_live_outputs() -> None:
     contract = _contract()
     workflow = (ROOT / ".github/workflows/timeseries-v13-vol-live.yml").read_text(encoding="utf-8")
+    # 커밋 단계 문자열 대조는 V13 `live` 잡의 commit 스텝에만 건다 — 같은 파일의 다른 잡(예: 과거의 V14 잡)이 같은
+    # 문자열을 가지고 있어도 V13 커밋 스텝이 그것을 잃으면 잡혀야 한다(파일 전체 부분문자열 대조는 그것을 놓친다).
+    steps = yaml.safe_load(workflow)["jobs"]["live"]["steps"]
+    commit = next(step for step in steps if step.get("id") == "commit")["run"]
     pointer = contract["live_display"]["pointer"]; ledger = contract["live_display"]["ledger"]
     resolutions = contract["live_forward_gate"]["outcomes_written_to"].split()[0]
-    allow = next(line for line in workflow.splitlines() if line.strip().startswith("allow="))
+    allow = next(line for line in commit.splitlines() if line.strip().startswith("allow="))
     for path in (pointer, ledger, resolutions, "docs/generated/inventory.generated.md"):
         assert path in allow, path
     # 없는 경로를 add 하면 워크플로가 죽는다 — 해상 원장은 첫 성숙 전까지 부재하므로 존재 검사가 필수
-    assert 'for f in $allow; do' in workflow and 'if [ -f "$f" ]; then git add "$f"; fi' in workflow
-    assert '"$pointer_changed" = false' in workflow
+    assert 'for f in $allow; do' in commit and 'if [ -f "$f" ]; then git add "$f"; fi' in commit
+    assert '"$pointer_changed" = false' in commit
     guard = ("grep -Ev '^(data/timeseries_v13/(vol/vol_latest\\.json|ledgers/vol_live(_resolutions)?\\.jsonl)"
              "|docs/generated/inventory\\.generated\\.md)$'")
-    assert guard in workflow, "allowlist 가드 정규식이 포인터·원장 2종·인벤토리만 허용해야 한다"
+    assert guard in commit, "allowlist 가드 정규식이 포인터·원장 2종·인벤토리만 허용해야 한다"
     assert "champion_coefficients" not in allow and "vol_experiments" not in allow
     assert "multivariate_timeseries_v13_vol" not in allow, "계약은 CI 가 절대 건드리지 않는다"
-    assert "python -m ai_fc timeseries-v13-vol-latest" in workflow and "timeseries-v13-vol-verify" in workflow
+    live_runs = "\n".join(step.get("run", "") for step in steps)
+    assert "python -m ai_fc timeseries-v13-vol-latest" in live_runs and "timeseries-v13-vol-verify" in live_runs
     assert 'workflows: ["timeseries-v2-refresh"]' in workflow, "V2 refresh 완료에 종속"
     assert "timeseries-v13-vol-holdout" not in workflow
 

@@ -364,7 +364,7 @@ stopping_points:
 irreversible:
   holdout_slots: 0                              # 창이 없으므로 슬롯도 없다 — 블루프린트 골격의 3 을 완화한 것이 아니라 구조상 부재
   sealed_disclosures_per_model_version: 1       # 미소모. 개방은 V14-D3 독립 결정(권고 D1)
-  auto_execution_path: absent_by_construction
+  auto_execution_path: absent_by_construction   # 판정 적용(강등·종결) 자동 경로는 여전히 없다 — 라이브 포인터 발행·채점만 워크플로가 돈다(V14-A3)
   user_approval_text_required: true
   resources_consumed_by_this_draft: {holdout: 0, sealed: 0, evaluations: 0, usd: 0}
 
@@ -381,6 +381,12 @@ live_forward_gate:
   uncertainty: stationary block ℓ=13 · B=2000 · seed 20261021 · CI90 (설계 게이트와 동일)
   demotion_rule: 셀별 conditional_climatology 대비 쌍대 Brier 손실차 CI90 하한 <= 0 이면 그 셀 표시 hold — 자동 재무장 없음, 재개는 사용자 결정
   negative_control: y-block(ℓ=13) 순열 통과율 <= 0.10
+  negative_control_construction:                # [V14-A3 2026-10-28 — 라이브 원장 0행·성숙 원점 0 시점 등록, 위 문면 무수정] 라이브 판정 verb 가 쓰는 귀무 구성
+    draws: 120                                  # V13 live_verdict·holdout 과 같은 추출 수. 다른 값이면 verb 는 계산을 거부한다
+    permutation: 라벨 y-block(ℓ=13) 순열 — scoring.y_block_permutations(seed 20261021)
+    decide: 순열 라벨마다 같은 쌍대 Brier(기후 − 모형) 정지 블록 CI90(ℓ13 · B=300 · seed 20261021) 하한 > 0 이면 통과
+    non_finite_rate: 판정 무효(verdict_void_negative_control) — 추출 0 등으로 통과율이 정의되지 않으면 귀무를 건너뛰지 않고 무효로 닫는다
+    note: 설계 게이트(rung 러너)의 귀무 근사(_boot_lower_fast 고정 블록 b=400)와 다르다 — 라이브 verb 는 V13 라이브 verdict 와 같은 구성을 쓴다(V13 비교 가능성)
   degeneracy:                                   # n 비례 퇴화 규정 — 통계 검토 지적 반영
     why_not_halfwindow_thresholds: |
       설계창 반창 임계(사건 20 / 국면 5)를 n=60 에 그대로 옮기면 h21/h63 에서 국면 5 는 산술적으로 불가하다
@@ -393,7 +399,8 @@ live_forward_gate:
     rule: 판정 가능(testable) 셀이 2개 이상 생긴 뒤, 그중 **과반**이 demotion_rule 에 걸리면 트랙 종결 — 라이브 카드 hold·종결 판정서·동결. 자동 재무장 없음
     scope: untestable·판정 무효 셀은 분모에 들어가지 않는다
     not_a_gate_relaxation: 종결 조건의 추가일 뿐이며 방향은 더 빨리 닫는 쪽이다
-  execution_path: absent_by_construction        # verb 없음. track_open 뒤에도 verb 는 이 규칙을 실행만 한다(규칙 신설 금지)
+  execution_path: named_verb_guarded            # [V14-A3 2026-10-28, D10 영수증 r2] 이전 값 absent_by_construction. 라이브 원장 0행·성숙 원점 0 시점 전환 — verb 는 이 블록의 규칙을 실행만 한다(규칙 신설 금지)
+  verbs: [timeseries-v14-cond-latest, timeseries-v14-cond-resolve, timeseries-v14-cond-verify, timeseries-v14-cond-live-verdict]   # live-verdict 는 읽기 전용·워크플로 밖
   outcomes_written_to: development_protocol.live_resolutions_ledger (append-only) — forecasts/·calibration/ 무접촉
   time_to_verdict_estimate:                     # 정직한 추정. 전부 [추정]
     matured_60_best_case: '[추정] 거래일 원점·조건 충족률 100% 가정 시 60 거래일 ≈ 3개월 + h (h5 +1주 · h21 +1개월 · h63 +3개월) → 가장 빠른 셀(cvix25_h5·crv_h5)도 track_open 후 약 3.3개월'
@@ -503,6 +510,16 @@ approvals:
   dependency: V14-D0 가 선행한다. D0=A2 이면 D1=B5·D3=D1·D9=J1 이 자동 함의되나 **원문은 각각 받는다**(한 문장에 묶어 승인받지 않는다 — 특히 D3 는 독립 결정).
 
 amendments_applied:
+  V14-A3:
+    display_id: V14-A3 (live pointer)
+    approved: '2026-10-28'
+    approval_receipts: [v14-approval:V14-D10:2026-10-28:r2]
+    timing: 라이브 원장 0행 · 성숙 원점 0 — live_forward_gate.prohibitions('성숙 원점이 하나라도 생긴 뒤 이 블록 수정 금지') 이전
+    changes:
+      A3-1: live_forward_gate.execution_path absent_by_construction → named_verb_guarded + verbs 목록. (전환)
+      A3-2: live_pointer · frozen_coefficients 키 신설. (신설)
+      A3-3: decisions_pending.V14-D10 → decisions_resolved. (해소)
+    unchanged: live_forward_gate 산술(60 · n 비례 퇴화 · CI90 ℓ13 B2000 seed 20261021 · 귀무 0.10 · T7 형) · 표적 · 조건 문턱 · gates.armed=false · publication.display_tier=t0_internal.
   V14-A1:
     display_id: V14-A1 (track open)
     approved: '2026-10-22'
@@ -528,9 +545,9 @@ decisions_resolved:                             # 2026-10-22 — 영수증은 da
   V14-D8: I3 라이브 전진 판정 + 병행 축적 — v14-approval:V14-D8:2026-10-22:r1
   V14-D9: J1 블루프린트 §4 개정 안 함 — v14-approval:V14-D9:2026-10-22:r1
   V14-D11: K1 rung-2 집행(권고 K2 보류가 아니라 집행) — v14-approval:V14-D11:2026-10-28:r1 · 블록 E2·P3 (rung2_conditional_blocks)
-decisions_pending:                              # 2026-10-28 rung-2 뒤: D10 은 조건 충족(규칙 a 0건) — live_pointer 키와 함께 해소 예정 · D12(잔여 예산) · gates.armed 전환(별도 승인)
+  V14-D10: D10-crv_h5 — crv_h5 조건부 PB 라이브 포인터 + verb 4종, 나머지 5셀 기록·채점만 — v14-approval:V14-D10:2026-10-28:r2 (r1 대체) · rung-2 규칙 a 0건으로 조건 충족 (live_pointer)
+decisions_pending:                              # 2026-10-28: D12(잔여 예산, 권고 L1) · gates.armed 전환(별도 승인). D10 은 해소(live_pointer)
   V14-D12: {question: "stop_loss(after 2) 발동 — 잔여 개발 예산 2/4 의 처리", options: ["L1 V14 설계창 개발 종료(잔여 2 미사용·반납) — 라이브 전진 축적만", "L2 rung-3 집행 — E3(마지막 달력 후보) 등 사전등록 개정(결과 전) 뒤", "L3 진단 전용 스토어(EPU 등) 적재·라이선스 확정·사전등록 개정 뒤 rung-3"], recommended: L1, basis: "rung-7·8·V14 rung-1·rung-2 — 외부 블록 채택 0 이 네 번(조건부 두 번 포함). 남은 후보 E3 는 같은 달력 클래스", effect: development_protocol, auto_continue: false}
-  V14-D10: {question: 라이브 전진 포인터에 올릴 champion 선정 및 verb 신설, options: "D10-crv_h5 = crv_h5 셀 conditional_persistence_pb(rung-1 규칙 b)를 라이브 포인터에 올리고 verb(latest·resolve·verify·live-verdict) 신설, 나머지 5셀은 같은 모형으로 기록·채점만(판정·T7·표시 밖) / 미개설", recommended: D10-crv_h5, drafted_as: D10-crv_h5 (2026-10-28 rung-1 결과 뒤 정의), receipt: v14-approval:V14-D10:2026-10-28:r2 (r1 대체), effect: live_forward_gate.execution_path · live_pointer · frozen_coefficients}
 
 # ── rung-1: 조건부 블록 vs 조건부 PB — 사전등록 2026-10-22 (결과 전) ─────────────────
 # P0(라벨 미접촉 R1~R4 + 가드 실측) 뒤 등록. 블록 정의는 rung-7 사전등록 §1.1 이 정본이며 여기서 바꾸지 않는다.
@@ -671,3 +688,38 @@ rung2_conditional_blocks:
     - 홀드아웃(2015-2018)·봉인(2019+) 창 열람 금지
     - 표적(K·theta·h) 추가·변경 금지
     - p-순열 귀무 사용 금지
+
+# ── V14-D10 라이브 전진 포인터 — 등록 2026-10-28 (영수증 v14-approval:V14-D10:2026-10-28:r2) ─────────────
+# 첫 라이브 원점 전에 등록한다. champion 은 rung-1·rung-2 의 champion_rule 이 둘 다 b 인 판정 자격(ok) 셀 crv_h5 하나.
+# 나머지 5셀은 같은 모형(조건부 PB)으로 기록·채점만 한다 — 하드룰 셀(cvix25_h5)은 설계창에서 검정 불가라 라이브에서만 증거가 생긴다.
+live_pointer:
+  registered: '2026-10-28'
+  approval_receipt: v14-approval:V14-D10:2026-10-28:r2
+  model: conditional_persistence_pb
+  champion_cells: [crv_h5]
+  shadow_cells: [cvix25_h5, cvix25_h21, cvix25_h63, crv_h21, crv_h63]
+  shadow_rule: |
+    shadow 셀은 포인터·원장·해상 원장에 기록되고 live-verdict 가 같은 산술을 인쇄하지만 in_verdict_scope false 다 — 강등·T7·배선·표시·승격 주장의 범위 밖.
+    shadow 셀을 나중에 판정 범위로 올리려면 새 사용자 결정이 필요하고, 그때는 shadow 5셀 family binomial 로 다중성을 보정한다(결과를 보고 셀을 고르는 것의 대가).
+  t7_scope_note: T7(판정 가능 셀 2개 이상 뒤 과반 강등 → 종결)은 champion 셀만 센다. champion 이 1셀이라 T7 은 구조상 발동할 수 없다 — demotion_rule(셀 단위 hold)만 걸린다
+  pointer: data/timeseries_v14/live/v14_latest.json
+  ledger: data/timeseries_v14/ledgers/v14_live.jsonl
+  resolutions_ledger: data/timeseries_v14/ledgers/v14_live_resolutions.jsonl
+  freshness: {rule: nyse_trading_calendar, max_missing_sessions: 1}
+  origin_backfill:
+    effective_from: '2026-10-28'
+    pit_grade: late_capture
+    rule: V13 origin_backfill 와 같은 규칙 — 어떤 sha 로도 행이 없는 원점 전부, 최초 빈티지 cutoff 되감기, 패널 원점 절단(end=origin), 완전성 verify, unfillable 재현 검사
+  conditioning_at_origin: 조건 불충족 셀은 p 를 기록하지 않고 condition_met false 만 남긴다 — 표본이 아니다(live_forward_gate.scoring)
+  live_panel_start: '2026-01-01'          # VIX_t·RV21_t 는 최근 22 종가만 필요 — 라이브 패널은 아카이브 꼬리만 읽는다
+  display_tier: t0_internal               # publication.display_tier 그대로 — 읽기 모델 키 없음, 표시 승격은 별도 결정
+  workflow: .github/workflows/timeseries-v14-cond-live.yml (timeseries-v13-vol-live 완료 뒤 workflow_run · 별도 워크플로라 V14 실패가 V13 배포·검증을 막지 않는다 · ops-failure-alert 감시) — 커밋 허용 경로는 V14 포인터·라이브 원장 2개·inventory 뿐
+
+frozen_coefficients:
+  path: data/timeseries_v14/vol/champion_coefficients.json
+  sha256: null                            # 동결 뒤 기입 — null 이면 발행은 hold
+  content_hash: null
+  fit: 설계창 2007-2014 전체의 조건 충족 원점(∧ 유한 라벨·수준)에서 셀별 조건부 PB(표준화 1피처 + 절편) — ai_fc.timeseries_v13.features.logit_fit(V13 공유 적합기)
+  climatology: 같은 창·같은 조건 충족 원점의 사건 빈도 — 라이브 채점 기준선(conditional_climatology)
+  tool: tools/v14_freeze_champion.py (출력 존재 시 거부 · 2015+ 패널 미포함 · tools/v13_vol_run._logit_fit 대사 < 1e-10)
+  refit_path: absent_by_construction
