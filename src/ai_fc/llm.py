@@ -55,9 +55,20 @@ class PipelineBudget:
                 f"파이프라인 예산 초과: ${self.spent_usd:.2f} >= ${self.limit_usd:.2f} ({stage} 전 중단)")
 
 
-def _cost(model: str, input_tokens: int, output_tokens: int) -> float:
+def _cost(model: str, input_tokens: int, output_tokens: int, *,
+          cache_write_tokens: int = 0, cache_read_tokens: int = 0,
+          web_search_calls: int = 0) -> float:
+    """실청구 단가 합산 — 상한 가드의 거짓말 교정 (2026-10-28).
+
+    이전 구현은 (a) 웹서치 건당 요금($10/1k)을 더하지 않았고 (b) 캐시 쓰기 1.25x
+    할증을 1.0x로 셌다. 2026-10-26 Console 청구 실측: 원장 $14.89 vs 실청구 $29.43
+    — 월 상한($50) 가드가 실지출의 51%만 보고 있었다. C5-A4의 원칙("실패를 예산
+    밖으로 빼면 상한이 거짓말이 된다")은 요금 항목 누락에도 똑같이 적용된다."""
     in_price, out_price = config.PRICES.get(model, (5.0, 25.0))
-    return input_tokens / 1e6 * in_price + output_tokens / 1e6 * out_price
+    return ((input_tokens + 1.25 * cache_write_tokens + 0.1 * cache_read_tokens)
+            / 1e6 * in_price
+            + output_tokens / 1e6 * out_price
+            + web_search_calls * config.WEB_SEARCH_COST_PER_CALL)
 
 
 def _usage_fields(usage) -> tuple[int, int]:
@@ -76,16 +87,30 @@ def _usage_fields(usage) -> tuple[int, int]:
     def count(key: str) -> int:
         return int(read(key, 0) or 0)
 
-    # 캐시 읽기는 ~0.1x
-    inp = (count("input_tokens") + count("cache_creation_input_tokens")
-           + count("cache_read_input_tokens") // 10)
-    return inp, count("output_tokens")
+    # 서버사이드 검색의 과금 건수는 usage.server_tool_use.web_search_requests 가
+    # 정본이다 (응답 블록 수 세기는 재시도·필터링 서브턴에서 어긋난다 — 2026-10-28).
+    stu = read("server_tool_use", None)
+    if isinstance(stu, dict):
+        searches = int(stu.get("web_search_requests", 0) or 0)
+    elif stu is not None:
+        searches = int(getattr(stu, "web_search_requests", 0) or 0)
+    else:
+        searches = 0
+    return (count("input_tokens"), count("output_tokens"),
+            count("cache_creation_input_tokens"), count("cache_read_input_tokens"),
+            searches)
 
 
 def _usage_of(resp, model: str) -> Usage:
-    inp, out = _usage_fields(resp.usage)
-    return Usage(inp, out, _cost(model, inp, out),
-                 request_id=getattr(resp, "id", None))
+    raw_in, out, cache_write, cache_read, searches = _usage_fields(resp.usage)
+    # ledger input_tokens 열의 의미(캐시 블렌드: 쓰기 1x + 읽기 ~0.1x)는 소급
+    # 변경하지 않는다. 비용만 실청구 단가(쓰기 1.25x·읽기 0.1x·검색 건당)로 센다.
+    inp = raw_in + cache_write + cache_read // 10
+    return Usage(inp, out,
+                 _cost(model, raw_in, out, cache_write_tokens=cache_write,
+                       cache_read_tokens=cache_read, web_search_calls=searches),
+                 request_id=getattr(resp, "id", None),
+                 cached_input_tokens=cache_read, web_search_calls=searches)
 
 
 def _with_retries(fn):
@@ -136,7 +161,10 @@ def research_call(client: anthropic.Anthropic, system: str, user: str,
             u = _usage_of(resp, model)
             total = Usage(total.input_tokens + u.input_tokens,
                           total.output_tokens + u.output_tokens,
-                          total.cost_usd + u.cost_usd)
+                          total.cost_usd + u.cost_usd,
+                          request_id=u.request_id or total.request_id,
+                          cached_input_tokens=total.cached_input_tokens + u.cached_input_tokens,
+                          web_search_calls=total.web_search_calls + u.web_search_calls)
             budget.add(u)
 
             for block in resp.content:
