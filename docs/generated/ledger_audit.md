@@ -1,6 +1,6 @@
 # Ledger accumulation audit
 
-- Generated: `2026-10-28T06:58:53+00:00`
+- Generated: `2026-10-28T13:35:40+00:00`
 - Latest completed NYSE day: `2026-10-27`
 - Result: accumulating 63 · frozen 2 · stalled 8 · inactive 12 · violation 0 · planned 8
 
@@ -34,8 +34,8 @@
 | `realty_o_entry_cohort_archive` | monthly | 3 | 2026-09-30 | **accumulating** | — |
 | `ai_capital_archives` | monthly | 6 | 2026-08-04 | **stalled** | — |
 | `dualdb_model_runs` | weekly | 0 | — | **inactive** | — |
-| `source_monitoring` | trading_daily | 80 | 2026-10-27 | **stalled** | missing trading days: 2026-08-25, 2026-08-27, 2026-08-28, 2026-10-23 |
-| `source_monitoring_status` | trading_daily | 1 | 2026-10-27 | **accumulating** | — |
+| `source_monitoring` | trading_daily | 81 | 2026-10-28 | **stalled** | missing trading days: 2026-08-25, 2026-08-27, 2026-08-28, 2026-10-23 |
+| `source_monitoring_status` | trading_daily | 1 | 2026-10-28 | **accumulating** | — |
 | `ipo_reference_batch_receipts` | weekly | 4 | 2026-08-19 | **stalled** | — |
 | `ipo_reference_batch_status` | weekly | 1 | 2026-10-28 | **accumulating** | — |
 | `ipo_edgar_candidates` | weekly | 1 | 2026-09-28 | **stalled** | — |
@@ -45,7 +45,7 @@
 | `timeseries_observation_facts` | trading_daily | 1 | — | **accumulating** | — |
 | `timeseries_event_facts` | event | 0 | — | **inactive** | — |
 | `timeseries_event_raw_receipts` | event | 0 | — | **inactive** | — |
-| `timeseries_shadow_forecasts` | trading_daily | 1 | 2026-10-27 | **accumulating** | — |
+| `timeseries_shadow_forecasts` | trading_daily | 1 | 2026-10-28 | **accumulating** | — |
 | `timeseries_shadow_resolutions` | trading_daily | 0 | — | **inactive** | — |
 | `timeseries_shadow_corrections` | event | 0 | — | **inactive** | — |
 | `timeseries_model_runs` | weekly | 12 | — | **accumulating** | — |
