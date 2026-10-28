@@ -28,8 +28,11 @@ P0_DIAGNOSTICS = ROOT / "data/timeseries_v14/prereg/p0_conditional_diagnostics.j
 CLI = ROOT / "src/ai_fc/cli.py"
 WORKFLOWS = ROOT / ".github/workflows"
 RUNG1 = "rung1_conditional_blocks"
+RUNG2 = "rung2_conditional_blocks"
 
 DECISIONS = tuple(f"V14-D{i}" for i in range(10))
+# 2026-10-28 사용자 '둘다 진행해' — 직전 턴이 제시한 두 결정(D10 라이브 포인터 · D11 rung-2 집행)에 대한 답
+LATER_DECISIONS = {"V14-D10": "2026-10-28", "V14-D11": "2026-10-28"}
 LEDGER_IDS = {"experiment_ledger": "timeseries_v14_experiments", "approvals_ledger": "timeseries_v14_approvals",
               "live_ledger": "timeseries_v14_live", "live_resolutions_ledger": "timeseries_v14_live_resolutions"}
 V14_NEW_PROHIBITIONS = ("anchoring_mapped_probability_into_llm_digest", "holdout_reuse_of_v13_window",
@@ -107,8 +110,24 @@ def test_approvals_ledger_has_one_receipt_per_decision_and_contract_points_at_th
     by_decision: dict[str, list[dict]] = {}
     for row in rows:
         by_decision.setdefault(row["decision_id"], []).append(row)
-    assert set(by_decision) == set(DECISIONS), sorted(by_decision)
+    assert set(by_decision) == set(DECISIONS) | set(LATER_DECISIONS), sorted(by_decision)
     resolved = contract["decisions_resolved"]
+    for decision, day in LATER_DECISIONS.items():
+        # 정정은 새 개정 행(supersedes)으로만 — 대체되지 않은 최신 행 1개가 효력을 가진다(AGENTS.md 원장 규율)
+        superseded = {r.get("supersedes") for r in by_decision[decision] if r.get("supersedes")}
+        live = [r for r in by_decision[decision] if r["receipt_id"] not in superseded]
+        assert len(live) == 1, decision
+        row = live[0]
+        assert row["receipt_id"].startswith(f"v14-approval:{decision}:{day}:r"), row["receipt_id"]
+        assert row["approval_text"] == "둘다 진행해"
+        assert row["literal_template_match"] is False
+        assert row["approved_at"].startswith(day)
+    assert resolved["V14-D11"].startswith("K1") and "v14-approval:V14-D11:2026-10-28:r1" in resolved["V14-D11"]
+    d10 = [r for r in by_decision["V14-D10"] if r["receipt_id"].endswith(":r2")][0]
+    assert d10["supersedes"] == "v14-approval:V14-D10:2026-10-28:r1"
+    assert d10["approval_scope"]["champion_cells"] == ["crv_h5"] and d10["approval_scope"]["model"] == "conditional_persistence_pb"
+    assert any("규칙 a" in c or "champion_rule a" in c for c in d10["conditions"])
+    assert "short_instruction_answering_a_stated_choice" in contract["approvals"]["receipt_form_2026_10_28"]
     for decision in DECISIONS:
         assert len(by_decision[decision]) == 1, decision
         row = by_decision[decision][0]
@@ -117,8 +136,10 @@ def test_approvals_ledger_has_one_receipt_per_decision_and_contract_points_at_th
         assert row["literal_template_match"] is False
         assert row["approval_form"] == "delegated_bundle_instruction"
         assert receipt in str(resolved[decision]), decision
-    # D10(champion·verb)은 결과 뒤 정의 · D11(rung-2 집행 여부)은 rung-1 negative_result_protocol 이 만든 결정
-    assert set(contract["decisions_pending"]) <= {"V14-D10", "V14-D11"} and "V14-D10" in contract["decisions_pending"]
+    # D10 은 영수증은 받았으나 rung-2 결과로 champion 이 확정된 뒤 live_pointer 키와 함께 해소된다
+    pending = set(contract["decisions_pending"])
+    assert pending <= {"V14-D10"}, pending
+    assert ("V14-D10" in pending) != ("V14-D10" in resolved), "D10 은 대기 또는 해소 중 하나에만 있어야 한다"
     assert not set(contract["decisions_pending"]) & set(DECISIONS), "해소된 D0..D9 가 대기 목록에 남아 있다"
     assert "delegated_bundle_instruction" in contract["approvals"]["receipt_form_2026_10_22"]
     assert contract["approvals"]["approval_text_rule"]
@@ -392,3 +413,57 @@ def test_prereg_document_carries_the_rename_note() -> None:
     assert "multivariate_timeseries_v14_conditional.yaml" in text
     assert "v14-approval:V14-D0:2026-10-22:r1" in text
     assert "contaminated_by_construction" in text
+
+
+
+# ── ⑭ rung-2 사전등록 — 클래스 순서의 다음 후보 · 같은 P0 · 같은 가드 제외 ─────────────
+def test_rung2_blocks_follow_the_class_order_after_rung1_and_pass_p0_rules() -> None:
+    contract, p0 = _contract(), _p0()
+    rung1, rung2 = contract[RUNG1], contract[RUNG2]
+    pool = contract["candidate_blocks"]["inherited_from_rung7_prereg"]
+    used = {b["class"]: b["id"] for b in rung1["blocks"]}
+    for block in rung2["blocks"]:
+        klass = block["class"]
+        order = [pool[klass]["primary"], *pool[klass]["alternates"]]
+        assert order.index(block["id"]) == order.index(used[klass]) + 1, (klass, block["id"])   # 바로 다음 후보
+        summary = p0["label_free"]["summary"][block["id"]]
+        assert not summary["R1_auto_reject_any_cell"] and not summary["R2_coverage_fail_any_cell"], block["id"]
+        assert summary["R3_degenerate_cells"] == [], block["id"]
+        assert abs(block["measured_abs_corr_max_conditional"] - round(summary["max_abs_corr_vs_conditional_champion"], 3)) < 1e-9
+    assert rung2["regime_memory"] == "vacant_R4"
+    assert rung2["diagnostics"] == rung1["diagnostics"] and rung2["diagnostics_content_hash"] == p0["content_hash"]
+    # 블록 정의는 V13 rung-8 정본과 같은 PIT 등급을 쓴다
+    v13 = {b["id"]: b for b in _parent()["rung8_public_blocks"]["blocks"]}
+    for block in rung2["blocks"]:
+        assert block["pit_grade"] == v13[block["id"]]["pit_grade"], block["id"]
+
+
+def test_rung2_exclusions_denominator_and_index() -> None:
+    contract, p0 = _contract(), _p0()
+    rung1, rung2 = contract[RUNG1], contract[RUNG2]
+    guard = p0["guard"]
+    blocks = [b["id"] for b in rung2["blocks"]]
+    excluded = {(e["cell"], e["block"]) for e in rung2["excluded_cells"]}
+    assert excluded == {(c, b) for c in guard["cells_untestable"] for b in blocks}
+    assert rung2["episode_thin_cells"] == guard["cells_episode_thin"]
+    eligible = len(guard["cells_ok"]) + len(guard["cells_episode_thin"])
+    assert rung2["planned_tests"] == eligible * len(blocks) == 6
+    for key in UNCERTAINTY_KEYS:
+        assert rung2["uncertainty"][key] == contract["gate"]["uncertainty"][key], key
+    assert rung2["window"] == rung1["window"] and rung2["split"] == rung1["split"]
+    assert rung2["evaluation_index"] == rung1["evaluation_index"] + 1
+    protocol = contract["development_protocol"]
+    rows = _ledger_rows(ROOT / protocol["experiment_ledger"])
+    executed = [r for r in rows if r.get("experiment_label") == rung2["experiment_label"]]
+    results = ROOT / rung2["results_path"]
+    commit = rung2["prereg_commit"]
+    assert commit is None or re.fullmatch(r"[0-9a-f]{8,40}", str(commit)), commit
+    if not executed:
+        assert not results.exists(), "결과 전 커밋 전에 결과 파일이 있다"
+        assert rung2["evaluation_index"] == max(int(protocol["evaluations_spent"]), len(rows)) + 1
+    else:
+        assert len(executed) == 1
+        row = executed[0]
+        assert commit and row["prereg_commit"] == commit and row["evaluation_index"] == rung2["evaluation_index"]
+        assert hashlib.sha256(results.read_bytes()).hexdigest() == row["results_sha256"]
+        assert int(protocol["evaluations_spent"]) == len(rows) <= protocol["maximum_development_evaluations"]

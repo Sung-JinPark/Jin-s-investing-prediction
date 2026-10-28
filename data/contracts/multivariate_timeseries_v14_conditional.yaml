@@ -475,6 +475,12 @@ known_limits:
 # 승인 지점 — 블루프린트 §8.2 형식. verb·원장·track_open 은 **리터럴 결정 ID + 선택지 코드 + '승인'** 원문이 있어야만.
 approvals:
   approval_text_rule: 부분 일치·의역·요약은 승인이 아니다. 시각은 도구 호출 기록에서만(블루프린트 §8.4). 영수증은 approvals.jsonl(생성 뒤) append-only.
+  receipt_form_2026_10_28: |
+    V14-D10·V14-D11 영수증의 approval_text 는 사용자 메시지 "둘다 진행해" 다 — 리터럴 템플릿(결정 ID + 선택지 코드 + '승인')이 아니다.
+    직전 턴이 두 결정(D10 crv_h5 조건부 모형의 라이브 포인터 · D11 rung-2 집행 여부, 보류 권고)을 문장으로 제시했고, 사용자는 둘 다 진행을 택했다.
+    D10 은 verb 신설을 포함한다 — approval_text_rule 이 요구하는 리터럴 원문이 없음을 공시한다(literal_template_match: false · approval_form:
+    short_instruction_answering_a_stated_choice). D10 r1 은 범위가 질문보다 넓어(rung-2 결과가 셀을 고르게 함) 사전등록 전 검토에서 r2 로 대체했다.
+    효력 판단은 사용자 몫이며 철회 시 r3(철회) 행으로 되돌린다.
   receipt_form_2026_10_22: |
     D0..D9 영수증 10행의 approval_text 는 리터럴 템플릿이 아니라 사용자의 위임형 지시 원문
     "더 고도화 할 포인트나 너가 말한 남은결정부분 다 보강해서 진행해봐" 다. '남은결정부분' 은 직전 턴 보고에 권고안과 함께 나열된
@@ -520,9 +526,9 @@ decisions_resolved:                             # 2026-10-22 — 영수증은 da
   V14-D7: H3 옵션 데이터 구매 보류 — v14-approval:V14-D7:2026-10-22:r1
   V14-D8: I3 라이브 전진 판정 + 병행 축적 — v14-approval:V14-D8:2026-10-22:r1
   V14-D9: J1 블루프린트 §4 개정 안 함 — v14-approval:V14-D9:2026-10-22:r1
-decisions_pending:                              # 2026-10-23 rung-1 뒤 남은 것: D10 · D11 (아래) · gates.armed 전환(별도 승인)
-  V14-D11: {question: rung-2 집행 여부(잔여 예산 3/4), options: [K1 집행 — 사전등록 개정(결과 전)으로 대체 블록(E2·E3·P3) 또는 진단 전용 스토어 적재 후, K2 보류 — 라이브 전진 축적만, K3 V14 설계창 개발 종료], recommended: K2, basis: rung1_conditional_blocks.negative_result_protocol(채택 0 → rung-2 전 사용자 보고) · rung-7/8/V14 rung-1 이 같은 실패 양식(외부 블록이 당일 수준에 흡수)을 세 번 재현, effect: development_protocol}
-  V14-D10: {question: 라이브 전진 포인터에 올릴 champion 선정 및 verb 신설, options: 설계창 결과 뒤 정의, recommended: null, drafted_as: null, effect: live_forward_gate.execution_path — 결과 전에는 정의하지 않는다}
+  V14-D11: K1 rung-2 집행(권고 K2 보류가 아니라 집행) — v14-approval:V14-D11:2026-10-28:r1 · 블록 E2·P3 (rung2_conditional_blocks)
+decisions_pending:                              # 2026-10-28: D10 영수증 수신(r2 — crv_h5·conditional_persistence_pb 한정). rung-2 가 crv_h5 champion 을 b 로 유지하면 live_pointer 키와 함께 해소, 어느 셀이든 규칙 a 가 나오면 새 사용자 결정 · gates.armed 전환(별도 승인)
+  V14-D10: {question: 라이브 전진 포인터에 올릴 champion 선정 및 verb 신설, options: "D10-crv_h5 = crv_h5 셀 conditional_persistence_pb(rung-1 규칙 b)를 라이브 포인터에 올리고 verb(latest·resolve·verify·live-verdict) 신설, 나머지 5셀은 같은 모형으로 기록·채점만(판정·T7·표시 밖) / 미개설", recommended: D10-crv_h5, drafted_as: D10-crv_h5 (2026-10-28 rung-1 결과 뒤 정의), receipt: v14-approval:V14-D10:2026-10-28:r2 (r1 대체), effect: live_forward_gate.execution_path · live_pointer · frozen_coefficients}
 
 # ── rung-1: 조건부 블록 vs 조건부 PB — 사전등록 2026-10-22 (결과 전) ─────────────────
 # P0(라벨 미접촉 R1~R4 + 가드 실측) 뒤 등록. 블록 정의는 rung-7 사전등록 §1.1 이 정본이며 여기서 바꾸지 않는다.
@@ -587,6 +593,75 @@ rung1_conditional_blocks:
     P1_vix_lev_net_oi: [cvix25_h5, cvix25_h21, cvix25_h63, crv_h5, crv_h21, crv_h63]
   champion_rule_outcome: 셀별 기록만(a 후보 / b conditional_persistence_pb / c HOLD) — 승격·표시·라이브 verb 는 V14-D10 사용자 결정
   negative_result_protocol: "채택 0 이면 '조건부 부분집합에서도 달력·포지셔닝은 당일 수준에 흡수' 로 기록하고 stop_loss(after 2) 규칙에 따라 rung-2 집행 전 사용자에게 보고한다"
+  prohibitions:
+    - 결과 후 블록 추가·정의·임계·조건 문턱 변경 금지
+    - 홀드아웃(2015-2018)·봉인(2019+) 창 열람 금지
+    - 표적(K·theta·h) 추가·변경 금지
+    - p-순열 귀무 사용 금지
+
+# ── rung-2: 대체 블록(E2·P3) vs 조건부 PB — 사전등록 2026-10-28 (결과 전) ─────────────────
+# V14-D11 K1(영수증 v14-approval:V14-D11:2026-10-28:r1). 클래스 순서의 다음 후보를 그대로 집는다(V13 rung-7 → rung-8 과 같은 짝).
+# 블록 선택 근거는 rung-1 과 같은 P0 라벨 미접촉 진단(같은 파일·같은 해시) — rung-1 결과를 보고 블록·셀·임계를 고르지 않았다.
+rung2_conditional_blocks:
+  registered: '2026-10-28'
+  prereg_commit: null                       # 결과 전 커밋 뒤 후속 1줄 커밋으로 기입 — null 이면 러너가 거부
+  design_doc: docs/review/V14_COND_RUNG1_VERDICT_20261023.md
+  diagnostics: data/timeseries_v14/prereg/p0_conditional_diagnostics.json
+  diagnostics_content_hash: 05ba936e4b7fcded5853742401dcc9eb0af8d53e559c165af868c15470c2ad4b
+  experiment_label: V14COND_rung2_conditional
+  rung_name: alternate_blocks_vs_conditional_pb
+  results_path: data/timeseries_v14/vol/ladder_rung2_conditional.json
+  window_role: design
+  window: ['2007-01-01', '2014-12-31']
+  split: '2011-01-01'
+  panel_lookback_start: '2005-01-01'
+  evaluation_index: 2                       # 예산 1/4 → 2/4
+  backtest_windows_opened: 0
+  holdout_slot_consumed: 0
+  conditioning:
+    cvix25: "VIX_close_t < 20 (엄격)"
+    crv: "RV21_ann_t 유한 ∧ <= theta (NaN 원점은 부분집합 밖)"
+    compact_subsequence: rung-1 과 동일 — 조건 충족 원점의 시간순 부분수열에 공유 구현을 적용(결과 JSON bootstrap_note 공시)
+  uncertainty: {bootstrap: stationary_block, block_length: 13, replicates: 2000, seed: 20261021, interval: [5, 95]}
+  selection_rules_applied:
+    R1_auto_reject_abs_corr_gt: 0.85
+    R2_min_coverage_per_half: 0.80
+    R3_block_degenerate_mode_share_ge: 0.90
+    scope: rung-1 과 동일(조건부 부분집합 · R1·R2 블록 단위 · R3 셀 단위)
+    class_order_rule: candidate_blocks 의 primary → alternates 순서에서 rung-1 이 쓴 블록 다음 후보. calendar = E1 → E2(→ E3 는 잔류), positioning = P1 → P3, regime_memory = D1·D2 모두 R2 미달 → 공석 유지
+    result: "E2 max|ρ| 0.040 min cov 0.935 R3 없음 → 등록 · P3 max|ρ| 0.186 min cov 0.976 R3 없음 → 등록 · regime_memory 공석(R4) · 같은 P0 산출물(해시 05ba936e…)의 label_free 섹션 값"
+  blocks:
+    - id: E2_macro_release_in_window
+      class: calendar
+      definition: "세션 i+1..i+h 중 고용보고서(Employment Situation)+CPI 발표일 수 — V13 rung-8 정의 그대로(비세션 발표일 다음 세션 이월, 2013 셧다운 4건은 원래 예정일)"
+      lag_sessions: 0
+      pit_grade: actual_release_date_with_year_start_vintage_for_shutdown_shifted
+      measured_abs_corr_max_conditional: 0.040
+    - id: P3_nq_lev_net_oi
+      class: positioning
+      definition: "NASDAQ-100 e-mini(CME, CFTC 코드 209742) 레버리지펀드 (long − short) / 미결제약정 — P1 과 동일 PIT 규칙(available_at = 보고 기준일(화)+7달력일, 2013-10-01~10-29 보고분은 2013-11-08 고정(CFTC 6745-13) · 원점 시점 최신 공표 보고의 보고 기준일로부터 21달력일 초과 시 NaN)"
+      lag_sessions: null
+      pit_grade: reconstructed_release_lag_conservative
+      measured_abs_corr_max_conditional: 0.186
+  regime_memory: vacant_R4
+  excluded_cells:                           # 가드 untestable 셀 × 등록 블록 (P0 가드 · rung-1 과 같은 셀)
+    - {cell: cvix25_h5,  block: E2_macro_release_in_window, reason: "guard untestable_by_construction — early 사건 6 · late 사건 5 (<20)"}
+    - {cell: cvix25_h5,  block: P3_nq_lev_net_oi,           reason: "guard untestable_by_construction — early 사건 6 · late 사건 5 (<20)"}
+    - {cell: cvix25_h63, block: E2_macro_release_in_window, reason: "guard untestable_by_construction — early 국면 2/2 (<3)"}
+    - {cell: cvix25_h63, block: P3_nq_lev_net_oi,           reason: "guard untestable_by_construction — early 국면 2/2 (<3)"}
+    - {cell: crv_h63,    block: E2_macro_release_in_window, reason: "guard untestable_by_construction — early 비사건 국면 1 (<3)"}
+    - {cell: crv_h63,    block: P3_nq_lev_net_oi,           reason: "guard untestable_by_construction — early 비사건 국면 1 (<3)"}
+  episode_thin_cells: [cvix25_h21]          # 검정하되 adopted_episode_thin 라벨 · 배선 불가 · 표시 제한(episode_guard.consequences)
+  planned_tests: 6                          # 판정 자격 3셀(cvix25_h21·crv_h5·crv_h21) × 2블록
+  mde_rule: 셀·블록·방향별 MDE = 1.645·bootstrap_se 를 판정표보다 먼저 인쇄(러너 구조로 강제). |Δ| < MDE 는 '측정된 영'
+  family: {representative: binomial, definition: 판정 자격 셀 × 등록 블록, alpha: 0.05, program_context: "lineage.campaign_prior_tests — rung-1 뒤 229, 이 rung 뒤 235(단위 혼재 합)"}
+  G0_baseline_check: rung-1 과 같은 조건부 PB 대 조건부 기후 — 6셀 전수 재보고(같은 seed·같은 데이터라 rung-1 과 같은 값이 나와야 한다 — 재현성 점검)
+  hypothesis_active_cells:                  # 진단 병기만
+    E2_macro_release_in_window: [cvix25_h5, crv_h5]   # V13 rung-8 E2 와 같은 규칙(h5 셀 — 발표일 효과는 단기 지평)
+    P3_nq_lev_net_oi: [cvix25_h5, cvix25_h21, cvix25_h63, crv_h5, crv_h21, crv_h63]   # rung-7 사전등록 §0 승계(포지셔닝은 전 셀 가설 활성) — rung-1 P1 과 동일
+  champion_rule_outcome: 셀별 기록만(a 후보 / b conditional_persistence_pb / c HOLD) — 승격·표시·라이브 verb 는 V14-D10 사용자 결정. D10 영수증 r2 는 crv_h5 가 규칙 b 로 남을 때만 유효하고, 어느 셀이든 규칙 a 가 나오면 루프 정지·사용자 결정(gate.champion_rule.champion_action)
+  negative_result_protocol: "채택 0 이면 '조건부 부분집합에서 달력·포지셔닝 대체 블록도 당일 수준에 흡수' 로 기록. development_protocol.stop_loss(after 2) — 잔여 2 의 집행은 사용자 보고 뒤 결정(자동 계속 없음)"
+  prior_expectation_disclosure: "rung-7(24검정 채택 0)·rung-8(23검정 퇴화 채택 3)·V14 rung-1(6검정 채택 0) 뒤라 사전 기대는 낮다. 사용자는 보류 권고 대신 집행을 택했다(V14-D11 K1)"
   prohibitions:
     - 결과 후 블록 추가·정의·임계·조건 문턱 변경 금지
     - 홀드아웃(2015-2018)·봉인(2019+) 창 열람 금지
