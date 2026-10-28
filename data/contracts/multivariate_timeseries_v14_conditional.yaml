@@ -604,7 +604,7 @@ rung1_conditional_blocks:
 # 블록 선택 근거는 rung-1 과 같은 P0 라벨 미접촉 진단(같은 파일·같은 해시) — rung-1 결과를 보고 블록·셀·임계를 고르지 않았다.
 rung2_conditional_blocks:
   registered: '2026-10-28'
-  prereg_commit: null                       # 결과 전 커밋 뒤 후속 1줄 커밋으로 기입 — null 이면 러너가 거부
+  prereg_commit: ed12c846                   # 결과 전 커밋(러너 실데이터 0회 · 원장 rung-1 1행 시점) — 후속 1줄 커밋으로 기입
   design_doc: docs/review/V14_COND_RUNG1_VERDICT_20261023.md
   diagnostics: data/timeseries_v14/prereg/p0_conditional_diagnostics.json
   diagnostics_content_hash: 05ba936e4b7fcded5853742401dcc9eb0af8d53e559c165af868c15470c2ad4b
