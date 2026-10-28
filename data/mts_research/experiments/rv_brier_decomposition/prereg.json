@@ -1,0 +1,34 @@
+{
+  "claims_excluded": [
+    "캘리브레이션 표본 아님 — 진단 (CLAUDE.md 5-5)",
+    "등록 검정 아님 — p-value·기각 없음, 기술 분해",
+    "증분 예측력 증거 아님 — 설계창은 in-sample, 라이브는 소표본",
+    "창 간 외삽 금지"
+  ],
+  "content_hash": "4e31ace79e9e3beab15db8a245100343e148c9de231229754a31a704dea2cb5d",
+  "design_cohort": {
+    "caveat": "PB 계수가 같은 창에서 적합 — in-sample 진단",
+    "cells": [
+      "rv_h5",
+      "rv_h21",
+      "rv_h63"
+    ],
+    "climatology": "동결 artifact clim_base_rate (설계창 고정)",
+    "pb_probability": "동결 계수 + compute_cells per-row 동형, 생산 패널(VIX∩NASDAQCOM)",
+    "source": "rv_mechanics results.json per_origin (라벨·플래그 그대로)",
+    "source_prereg_hash": "c87deb1721ee2422baad8084eda4d942b2bd175dace6293724761fdc88358664"
+  },
+  "experiment_id": "RV_BRIER_DECOMP_v1",
+  "formula": "delta_bs_total == share_mech*delta_bs_mech + (1-share)*delta_bs_nonmech (항등 검사)",
+  "frozen_coefficients_sha256": "1a85785056738775f732531dc442616908e20ca0f356187eb5fd1adb614b3ac1",
+  "grid_note": "라벨·플래그=NASDAQCOM 그리드(감사 규약), PB 확률=VIX∩NASDAQCOM 생산 그리드",
+  "live_cohort": {
+    "flags": "원점 시점 재계산 (감사 그리드 NASDAQCOM 수익)",
+    "scores": "원장 brier_model/brier_climatology 그대로 (무수정)",
+    "source": "vol_live_resolutions.jsonl rv 셀, (cell,origin) dedupe (계약 dedupe_rule)"
+  },
+  "mechanical_flag": "rv_floor(k=1) > theta (Q4: argmax_k==1)",
+  "purpose": "F01 후속 — ΔBS 의 기계적/비기계적 층 분해 (진단)",
+  "registered_at": "2026-10-28T01:00:22.669602+00:00",
+  "theta": 0.1694207105468098
+}
