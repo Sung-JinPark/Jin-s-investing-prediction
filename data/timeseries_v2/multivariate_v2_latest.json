@@ -1,6 +1,6 @@
 {
   "as_of": "2026-10-23",
-  "content_hash": "236db0a2bedbc3505cd6a9a8ad6b9abd1b313bf7488522e9c7da9f4363b76660",
+  "content_hash": "ba92081f387f78843be537f875b70510e5117c27101beba94707550c8d4ffe4c",
   "data_summary": {
     "candidate": "C1",
     "data_grades": [
@@ -21,7 +21,7 @@
     "required_market_freshness": {
       "groups": [
         {
-          "age_hours": 15.300555555555556,
+          "age_hours": 17.781944444444445,
           "available_at": "2026-10-28T05:37:51+00:00",
           "group": "NASDAQCOM",
           "observation_time": "2026-10-27",
@@ -29,7 +29,7 @@
           "status": "fresh"
         },
         {
-          "age_hours": 15.300555555555556,
+          "age_hours": 17.781944444444445,
           "available_at": "2026-10-28T05:37:47+00:00",
           "group": "VIX",
           "observation_time": "2026-10-27",
@@ -37,7 +37,7 @@
           "status": "fresh"
         },
         {
-          "age_hours": 18.57901569888889,
+          "age_hours": 21.06040458777778,
           "available_at": "2026-10-27T20:43:16.543484+00:00",
           "group": "DGS2",
           "observation_time": "2026-10-27",
@@ -45,7 +45,7 @@
           "status": "fresh"
         },
         {
-          "age_hours": 18.57901569888889,
+          "age_hours": 21.06040458777778,
           "available_at": "2026-10-27T20:43:16.543484+00:00",
           "group": "DGS10",
           "observation_time": "2026-10-27",
@@ -53,7 +53,7 @@
           "status": "fresh"
         },
         {
-          "age_hours": 111.30055555555556,
+          "age_hours": 113.78194444444445,
           "available_at": "2026-10-26T21:11:24+00:00",
           "group": "DTWEXBGS_or_DTWEXB",
           "observation_time": "2026-10-23",
@@ -86,7 +86,7 @@
       "필수 시장 입력 48시간 SLA 초과: DTWEXBGS_or_DTWEXB"
     ]
   },
-  "knowledge_cutoff": "2026-10-28T15:18:01+00:00",
+  "knowledge_cutoff": "2026-10-28T17:46:54+00:00",
   "model_id": "shadow.mf_dfm_ridge_varx_v2",
   "model_version": 2,
   "probability_space": "research_timeseries_v2_conditional",
