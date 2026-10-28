@@ -138,7 +138,7 @@ def test_approvals_ledger_has_one_receipt_per_decision_and_contract_points_at_th
         assert receipt in str(resolved[decision]), decision
     # D10 은 영수증은 받았으나 rung-2 결과로 champion 이 확정된 뒤 live_pointer 키와 함께 해소된다
     pending = set(contract["decisions_pending"])
-    assert pending <= {"V14-D10"}, pending
+    assert pending <= {"V14-D10", "V14-D12"}, pending
     assert ("V14-D10" in pending) != ("V14-D10" in resolved), "D10 은 대기 또는 해소 중 하나에만 있어야 한다"
     assert not set(contract["decisions_pending"]) & set(DECISIONS), "해소된 D0..D9 가 대기 목록에 남아 있다"
     assert "delegated_bundle_instruction" in contract["approvals"]["receipt_form_2026_10_22"]

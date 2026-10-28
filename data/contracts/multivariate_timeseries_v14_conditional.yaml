@@ -85,6 +85,7 @@ lineage:
       v13_rung7: 24   # 2026-10-21 집행 — 24검정 채택 0 (기입 2026-10-22)
       v13_rung8: 23   # 2026-10-21 집행 — 23검정 채택 3(전부 episode_thin) (기입 2026-10-22)
     value_after_v14_rung1: 229   # 223 + V14 rung-1 6검정(2026-10-23, 채택 0)
+    value_after_v14_rung2: 235   # 229 + V14 rung-2 6검정(2026-10-28, 채택 0) — 단위 혼재 합
     value_at_track_open: 223     # value_at_draft 176 + rung7 24 + rung8 23 — V14 rung-1 family P 는 이 누적 문맥과 함께 보고(M6)
     consistent_range: [168, 257]   # 셀 단위 하한(v12=8·v13=81) / 방향 단위 상한(v12=16·v13=162). 단순 합산이며 실측 아님
     source: 블루프린트 §2.4(2026-09-09 외부 집계 122) + V14 설계도 §4.1 표(v13 갱신). 저장소에 단일 원천 파일 없음
@@ -325,7 +326,7 @@ episode_guard:
 development_protocol:
   track_open: true                              # 2026-10-22 — 영수증 v14-approval:V14-D0:2026-10-22:r1 (위임형 지시 원문 · 리터럴 템플릿 아님 — approvals.receipt_form_2026_10_22)
   maximum_development_evaluations: 4            # V14-D4 E1 — V13 은 8 중 6 소모·채택 1(퇴화). 같은 예산은 같은 결과를 산다
-  evaluations_spent: 1                          # 2026-10-23 rung-1 집행(원장 1행과 대사 — 러너가 max(계약, 원장 행) 으로 센다)
+  evaluations_spent: 2                          # 2026-10-23 rung-1 · 2026-10-28 rung-2 집행(원장 2행과 대사 — 러너가 max(계약, 원장 행) 으로 센다)
   evaluation_unit: 1 단위 = 사전등록된 블록 집합 1벌을 6셀 전수로 1회 검정
   budget_does_not_carry_from_v13: true          # V13 잔여 2 는 V13 계약에 묶인다
   experiment_ledger: data/timeseries_v14/ledgers/v14_experiments.jsonl     # 2026-10-22 생성(빈 파일 · allow_empty_accumulating)
@@ -527,7 +528,8 @@ decisions_resolved:                             # 2026-10-22 — 영수증은 da
   V14-D8: I3 라이브 전진 판정 + 병행 축적 — v14-approval:V14-D8:2026-10-22:r1
   V14-D9: J1 블루프린트 §4 개정 안 함 — v14-approval:V14-D9:2026-10-22:r1
   V14-D11: K1 rung-2 집행(권고 K2 보류가 아니라 집행) — v14-approval:V14-D11:2026-10-28:r1 · 블록 E2·P3 (rung2_conditional_blocks)
-decisions_pending:                              # 2026-10-28: D10 영수증 수신(r2 — crv_h5·conditional_persistence_pb 한정). rung-2 가 crv_h5 champion 을 b 로 유지하면 live_pointer 키와 함께 해소, 어느 셀이든 규칙 a 가 나오면 새 사용자 결정 · gates.armed 전환(별도 승인)
+decisions_pending:                              # 2026-10-28 rung-2 뒤: D10 은 조건 충족(규칙 a 0건) — live_pointer 키와 함께 해소 예정 · D12(잔여 예산) · gates.armed 전환(별도 승인)
+  V14-D12: {question: "stop_loss(after 2) 발동 — 잔여 개발 예산 2/4 의 처리", options: ["L1 V14 설계창 개발 종료(잔여 2 미사용·반납) — 라이브 전진 축적만", "L2 rung-3 집행 — E3(마지막 달력 후보) 등 사전등록 개정(결과 전) 뒤", "L3 진단 전용 스토어(EPU 등) 적재·라이선스 확정·사전등록 개정 뒤 rung-3"], recommended: L1, basis: "rung-7·8·V14 rung-1·rung-2 — 외부 블록 채택 0 이 네 번(조건부 두 번 포함). 남은 후보 E3 는 같은 달력 클래스", effect: development_protocol, auto_continue: false}
   V14-D10: {question: 라이브 전진 포인터에 올릴 champion 선정 및 verb 신설, options: "D10-crv_h5 = crv_h5 셀 conditional_persistence_pb(rung-1 규칙 b)를 라이브 포인터에 올리고 verb(latest·resolve·verify·live-verdict) 신설, 나머지 5셀은 같은 모형으로 기록·채점만(판정·T7·표시 밖) / 미개설", recommended: D10-crv_h5, drafted_as: D10-crv_h5 (2026-10-28 rung-1 결과 뒤 정의), receipt: v14-approval:V14-D10:2026-10-28:r2 (r1 대체), effect: live_forward_gate.execution_path · live_pointer · frozen_coefficients}
 
 # ── rung-1: 조건부 블록 vs 조건부 PB — 사전등록 2026-10-22 (결과 전) ─────────────────
@@ -609,6 +611,8 @@ rung2_conditional_blocks:
   diagnostics: data/timeseries_v14/prereg/p0_conditional_diagnostics.json
   diagnostics_content_hash: 05ba936e4b7fcded5853742401dcc9eb0af8d53e559c165af868c15470c2ad4b
   experiment_label: V14COND_rung2_conditional
+  executed: '2026-10-28T07:05:54+00:00'   # 사전등록 ed12c846 → 해시 기입 cc38d3f4 → 집행 1회. 원장 행 content_hash f96a8d03…
+  result: "[2026-10-28 집행] 6검정(사전등록 6) 전부 measured_zero — 채택 0, family P(k>=0|n=6)=1.0000(캠페인 누적 235 문맥, 단위 혼재). 클래스별 calendar 0/3 · positioning 0/3. 방향 수준 |효과| 중앙값 0.00086 < MDE 중앙값 0.00316, 양(+) 유의 방향 0. 후보가 조건부 PB 보다 유의하게 나쁜 방향 2(P3 e2l — cvix25_h21·crv_h21). G0 는 rung-1 과 6셀 전부 바이트 단위로 같다(재현성 확인). champion_rule(기록만): crv_h5·cvix25_h21 = b, 나머지 HOLD — 규칙 a 0건이라 D10 영수증 r2(crv_h5·conditional_persistence_pb) 조건 충족. stop_loss(after 2) 발동 — 잔여 2 는 V14-D12 사용자 결정. 판정서 docs/review/V14_COND_RUNG2_VERDICT_20261028.md"
   rung_name: alternate_blocks_vs_conditional_pb
   results_path: data/timeseries_v14/vol/ladder_rung2_conditional.json
   window_role: design

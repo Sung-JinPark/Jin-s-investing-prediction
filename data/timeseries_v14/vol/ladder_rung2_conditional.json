@@ -1,0 +1,3667 @@
+{
+ "adopted": [],
+ "blocks": {
+  "E2_macro_release_in_window": {
+   "class": "calendar",
+   "definition": "세션 i+1..i+h 중 고용보고서(Employment Situation)+CPI 발표일 수 — V13 rung-8 정의 그대로(비세션 발표일 다음 세션 이월, 2013 셧다운 4건은 원래 예정일)",
+   "lag_sessions": 0,
+   "pit_grade": "actual_release_date_with_year_start_vintage_for_shutdown_shifted"
+  },
+  "P3_nq_lev_net_oi": {
+   "class": "positioning",
+   "definition": "NASDAQ-100 e-mini(CME, CFTC 코드 209742) 레버리지펀드 (long − short) / 미결제약정 — P1 과 동일 PIT 규칙(available_at = 보고 기준일(화)+7달력일, 2013-10-01~10-29 보고분은 2013-11-08 고정(CFTC 6745-13) · 원점 시점 최신 공표 보고의 보고 기준일로부터 21달력일 초과 시 NaN)",
+   "lag_sessions": null,
+   "pit_grade": "reconstructed_release_lag_conservative"
+  }
+ },
+ "bootstrap": {
+  "block_length": 13,
+  "ci_implementation": "tools/v13_vol_run.block_boot_ci via tools/v13_vol_rung3_pb.paired_model_ci",
+  "interval": [
+   5,
+   95
+  ],
+  "method": "stationary_block",
+  "null_draws": 120,
+  "null_implementation": "tools/v13_vol_run._boot_lower_fast (fixed-length circular blocks, b=400) via v13_vol_run.neg_control / v13_vol_rung3_pb.neg_control_increment",
+  "null_threshold": 0.1,
+  "replicates": 2000,
+  "seed": 20261021
+ },
+ "bootstrap_note": "블록 부트스트랩·y-block 순열은 조건 충족 원점의 **압축 부분열**(시간순) 위에서 돈다 — 블록(ℓ=13)이 달력상 끊긴 구간을 가로지를 수 있다. 본 CI 는 tools/v13_vol_run.block_boot_ci(기하 길이·순환 정지 블록)를 tools/v13_vol_rung3_pb.paired_model_ci 경유로, 귀무(y-block) 채택 판정은 V13 rung-3~8 과 동일한 고속 근사 tools/v13_vol_run._boot_lower_fast(고정 길이 순환 블록 ℓ=13 · b=400 · CI90 하한만)로 돈다. 공유 구현을 그대로 import 했고 새 bootstrap 은 없다.",
+ "by_class": {
+  "calendar": {
+   "k": 0,
+   "n": 3
+  },
+  "positioning": {
+   "k": 0,
+   "n": 3
+  }
+ },
+ "campaign_prior_tests": {
+  "breakdown": {
+   "v10": 12,
+   "v11": 48,
+   "v12": 16,
+   "v13": 81,
+   "v8": 12,
+   "v9": 7
+  },
+  "consistent_range": [
+   168,
+   257
+  ],
+  "pending_placeholders": {
+   "v13_rung7": 24,
+   "v13_rung8": 23
+  },
+  "reporting_rule": "V14 family P 는 V14 내부만이 아니라 이 누적 문맥과 함께 보고한다(M6).",
+  "source": "블루프린트 §2.4(2026-09-09 외부 집계 122) + V14 설계도 §4.1 표(v13 갱신). 저장소에 단일 원천 파일 없음",
+  "unit": "mixed_units_documented",
+  "unit_notes": {
+   "v10": "contract_evaluations",
+   "v11": "cell_tests",
+   "v12": "direction_tests_cells_would_be_8",
+   "v13": "rung_times_cell_rungs_2_to_6_directions_would_be_162",
+   "v8": "contract_evaluations",
+   "v9": "contract_evaluations"
+  },
+  "value_after_v14_rung1": 229,
+  "value_at_draft": 176,
+  "value_at_track_open": 223
+ },
+ "cells": {
+  "crv_h21": {
+   "blocks": {
+    "E2_macro_release_in_window": {
+     "adopted": false,
+     "bidirectional_ci_pass": false,
+     "class": "calendar",
+     "n_early": 312,
+     "n_late": 685,
+     "neg_control_pass_rate": null,
+     "paired": {
+      "early_to_late": {
+       "bs_a_pb": 0.2220703971963864,
+       "bs_b_ewma": 0.22213948614476361,
+       "ci90": [
+        -0.00022552163077131976,
+        7.313059016863332e-05
+       ],
+       "ewma_beats_pb": false,
+       "ewma_significantly_worse": false,
+       "log_score": {
+        "candidate": -0.6365666453441231,
+        "conditional_pb": -0.636426506065447
+       },
+       "mde": 0.00014726185094638677,
+       "n_eval": 685,
+       "paired_mean_pb_minus_ewma": -6.908894837717509e-05,
+       "reliability": {
+        "candidate": {
+         "brier_check": 0.22289668939304635,
+         "curve": [
+          {
+           "bin": 3,
+           "n": 142,
+           "obs": 0.1479,
+           "pred": 0.3672
+          },
+          {
+           "bin": 4,
+           "n": 347,
+           "obs": 0.2363,
+           "pred": 0.4512
+          },
+          {
+           "bin": 5,
+           "n": 196,
+           "obs": 0.5051,
+           "pred": 0.5461
+          }
+         ],
+         "reliability": 0.03382845210467564,
+         "resolution": 0.018861860212828093,
+         "uncertainty": 0.2079300975011988
+        },
+        "conditional_pb": {
+         "brier_check": 0.22260803581668515,
+         "curve": [
+          {
+           "bin": 3,
+           "n": 144,
+           "obs": 0.1458,
+           "pred": 0.368
+          },
+          {
+           "bin": 4,
+           "n": 344,
+           "obs": 0.2355,
+           "pred": 0.451
+          },
+          {
+           "bin": 5,
+           "n": 197,
+           "obs": 0.5076,
+           "pred": 0.546
+          }
+         ],
+         "reliability": 0.03413591280705241,
+         "resolution": 0.01945797449156609,
+         "uncertainty": 0.2079300975011988
+        }
+       }
+      },
+      "ewma_beats_pb_both": false,
+      "late_to_early": {
+       "bs_a_pb": 0.2727972902954699,
+       "bs_b_ewma": 0.27388433559383174,
+       "ci90": [
+        -0.004032144586021559,
+        0.002119472310037285
+       ],
+       "ewma_beats_pb": false,
+       "ewma_significantly_worse": false,
+       "log_score": {
+        "candidate": -0.7538630681929356,
+        "conditional_pb": -0.752461776474587
+       },
+       "mde": 0.003154664845868908,
+       "n_eval": 312,
+       "paired_mean_pb_minus_ewma": -0.0010870452983618324,
+       "reliability": {
+        "candidate": {
+         "brier_check": 0.27506244888916404,
+         "curve": [
+          {
+           "bin": 0,
+           "n": 1,
+           "obs": 0.0,
+           "pred": 0.0849
+          },
+          {
+           "bin": 1,
+           "n": 66,
+           "obs": 0.3333,
+           "pred": 0.1544
+          },
+          {
+           "bin": 2,
+           "n": 75,
+           "obs": 0.56,
+           "pred": 0.2529
+          },
+          {
+           "bin": 3,
+           "n": 75,
+           "obs": 0.4533,
+           "pred": 0.3491
+          },
+          {
+           "bin": 4,
+           "n": 48,
+           "obs": 0.5208,
+           "pred": 0.4491
+          },
+          {
+           "bin": 5,
+           "n": 45,
+           "obs": 0.5778,
+           "pred": 0.5334
+          },
+          {
+           "bin": 6,
+           "n": 2,
+           "obs": 0.0,
+           "pred": 0.6276
+          }
+         ],
+         "reliability": 0.03567053293474811,
+         "resolution": 0.010104714551829938,
+         "uncertainty": 0.24949663050624588
+        },
+        "conditional_pb": {
+         "brier_check": 0.27236113673744133,
+         "curve": [
+          {
+           "bin": 0,
+           "n": 1,
+           "obs": 0.0,
+           "pred": 0.0844
+          },
+          {
+           "bin": 1,
+           "n": 63,
+           "obs": 0.3016,
+           "pred": 0.1552
+          },
+          {
+           "bin": 2,
+           "n": 80,
+           "obs": 0.575,
+           "pred": 0.2511
+          },
+          {
+           "bin": 3,
+           "n": 74,
+           "obs": 0.4459,
+           "pred": 0.3523
+          },
+          {
+           "bin": 4,
+           "n": 49,
+           "obs": 0.5102,
+           "pred": 0.4511
+          },
+          {
+           "bin": 5,
+           "n": 45,
+           "obs": 0.5778,
+           "pred": 0.535
+          }
+         ],
+         "reliability": 0.03413581369068974,
+         "resolution": 0.01127130745949427,
+         "uncertainty": 0.24949663050624588
+        }
+       }
+      }
+     },
+     "paired_naming_note": "공유 구현 키 명칭: a=pb=conditional_pb · b='ewma'=후보 [level, x]",
+     "verdict": "measured_zero"
+    },
+    "P3_nq_lev_net_oi": {
+     "adopted": false,
+     "bidirectional_ci_pass": false,
+     "class": "positioning",
+     "n_early": 312,
+     "n_late": 668,
+     "neg_control_pass_rate": null,
+     "paired": {
+      "early_to_late": {
+       "bs_a_pb": 0.22063011313561795,
+       "bs_b_ewma": 0.2216119233458068,
+       "ci90": [
+        -0.0017973403777863225,
+        -0.0002125315325334554
+       ],
+       "ewma_beats_pb": false,
+       "ewma_significantly_worse": true,
+       "log_score": {
+        "candidate": -0.6355338661118987,
+        "conditional_pb": -0.6335211685785128
+       },
+       "mde": 0.000787566758542107,
+       "n_eval": 668,
+       "paired_mean_pb_minus_ewma": -0.0009818102101888087,
+       "reliability": {
+        "candidate": {
+         "brier_check": 0.22273626331615876,
+         "curve": [
+          {
+           "bin": 3,
+           "n": 133,
+           "obs": 0.1579,
+           "pred": 0.3677
+          },
+          {
+           "bin": 4,
+           "n": 340,
+           "obs": 0.2265,
+           "pred": 0.4508
+          },
+          {
+           "bin": 5,
+           "n": 195,
+           "obs": 0.5333,
+           "pred": 0.5476
+          }
+         ],
+         "reliability": 0.03444388522404577,
+         "resolution": 0.0226599687112862,
+         "uncertainty": 0.2109523468033992
+        },
+        "conditional_pb": {
+         "brier_check": 0.2210685632610067,
+         "curve": [
+          {
+           "bin": 3,
+           "n": 144,
+           "obs": 0.1458,
+           "pred": 0.368
+          },
+          {
+           "bin": 4,
+           "n": 341,
+           "obs": 0.2375,
+           "pred": 0.4508
+          },
+          {
+           "bin": 5,
+           "n": 183,
+           "obs": 0.5464,
+           "pred": 0.5466
+          }
+         ],
+         "reliability": 0.033864638038522486,
+         "resolution": 0.023748421580914978,
+         "uncertainty": 0.2109523468033992
+        }
+       }
+      },
+      "ewma_beats_pb_both": false,
+      "late_to_early": {
+       "bs_a_pb": 0.2705606065968349,
+       "bs_b_ewma": 0.27099504550205544,
+       "ci90": [
+        -0.0010734030702871363,
+        0.00015434072805598563
+       ],
+       "ewma_beats_pb": false,
+       "ewma_significantly_worse": false,
+       "log_score": {
+        "candidate": -0.7486909441101489,
+        "conditional_pb": -0.7476662241782183
+       },
+       "mde": 0.0006105801309116464,
+       "n_eval": 312,
+       "paired_mean_pb_minus_ewma": -0.00043443890522050206,
+       "reliability": {
+        "candidate": {
+         "brier_check": 0.27401314380643266,
+         "curve": [
+          {
+           "bin": 0,
+           "n": 2,
+           "obs": 0.0,
+           "pred": 0.0898
+          },
+          {
+           "bin": 1,
+           "n": 61,
+           "obs": 0.3115,
+           "pred": 0.153
+          },
+          {
+           "bin": 2,
+           "n": 74,
+           "obs": 0.5946,
+           "pred": 0.2514
+          },
+          {
+           "bin": 3,
+           "n": 72,
+           "obs": 0.4444,
+           "pred": 0.3556
+          },
+          {
+           "bin": 4,
+           "n": 42,
+           "obs": 0.5,
+           "pred": 0.4451
+          },
+          {
+           "bin": 5,
+           "n": 58,
+           "obs": 0.569,
+           "pred": 0.5481
+          },
+          {
+           "bin": 6,
+           "n": 3,
+           "obs": 0.0,
+           "pred": 0.6022
+          }
+         ],
+         "reliability": 0.038687115730263295,
+         "resolution": 0.014170602430076496,
+         "uncertainty": 0.24949663050624588
+        },
+        "conditional_pb": {
+         "brier_check": 0.2716818809999754,
+         "curve": [
+          {
+           "bin": 0,
+           "n": 1,
+           "obs": 0.0,
+           "pred": 0.0795
+          },
+          {
+           "bin": 1,
+           "n": 62,
+           "obs": 0.3065,
+           "pred": 0.1531
+          },
+          {
+           "bin": 2,
+           "n": 74,
+           "obs": 0.5811,
+           "pred": 0.2526
+          },
+          {
+           "bin": 3,
+           "n": 69,
+           "obs": 0.4493,
+           "pred": 0.3558
+          },
+          {
+           "bin": 4,
+           "n": 43,
+           "obs": 0.4884,
+           "pred": 0.4422
+          },
+          {
+           "bin": 5,
+           "n": 57,
+           "obs": 0.5614,
+           "pred": 0.5458
+          },
+          {
+           "bin": 6,
+           "n": 6,
+           "obs": 0.5,
+           "pred": 0.6017
+          }
+         ],
+         "reliability": 0.03276306560805863,
+         "resolution": 0.010577815114329096,
+         "uncertainty": 0.24949663050624588
+        }
+       }
+      }
+     },
+     "paired_naming_note": "공유 구현 키 명칭: a=pb=conditional_pb · b='ewma'=후보 [level, x]",
+     "verdict": "measured_zero"
+    }
+   },
+   "champion_rule_outcome": {
+    "champion": "hold",
+    "note": "조건부 부분집합에서도 정보가 '자명'을 넘지 못함 — HOLD 셀은 표시 불가",
+    "rule": "c"
+   },
+   "conditional_pb_vs_climatology": {
+    "adopted_ci_both": false,
+    "early_to_late": {
+     "adopt_dir": true,
+     "bs_clim": 0.24129973857479464,
+     "bs_model": 0.2220703971963864,
+     "bss_vs_clim": 0.079690684672863,
+     "ci90": [
+      0.009252295237403318,
+      0.02957655300161843
+     ],
+     "clim_base_rate": 0.4775641025641026,
+     "log_score": {
+      "conditional_climatology": -0.6757353034435715,
+      "conditional_pb": -0.636426506065447
+     },
+     "mde": 0.010152658935187252,
+     "n_eval": 685,
+     "n_fit": 312,
+     "paired_mean": 0.019229341378408295,
+     "reliability": {
+      "conditional_climatology": {
+       "brier_check": 0.24129973857479475,
+       "curve": [
+        {
+         "bin": 4,
+         "n": 685,
+         "obs": 0.2949,
+         "pred": 0.4776
+        }
+       ],
+       "reliability": 0.033369641073595926,
+       "resolution": 0.0,
+       "uncertainty": 0.2079300975011988
+      },
+      "conditional_pb": {
+       "brier_check": 0.22260803581668515,
+       "curve": [
+        {
+         "bin": 3,
+         "n": 144,
+         "obs": 0.1458,
+         "pred": 0.368
+        },
+        {
+         "bin": 4,
+         "n": 344,
+         "obs": 0.2355,
+         "pred": 0.451
+        },
+        {
+         "bin": 5,
+         "n": 197,
+         "obs": 0.5076,
+         "pred": 0.546
+        }
+       ],
+       "reliability": 0.03413591280705241,
+       "resolution": 0.01945797449156609,
+       "uncertainty": 0.2079300975011988
+      }
+     }
+    },
+    "informational_only": false,
+    "late_to_early": {
+     "adopt_dir": false,
+     "bs_clim": 0.28286627157984184,
+     "bs_model": 0.2727972902954699,
+     "bss_vs_clim": 0.03559625977369263,
+     "ci90": [
+      -0.024182560327552134,
+      0.04727992032824207
+     ],
+     "clim_base_rate": 0.2948905109489051,
+     "log_score": {
+      "conditional_climatology": -0.7657181925630302,
+      "conditional_pb": -0.752461776474587
+     },
+     "mde": 0.03552171904209591,
+     "n_eval": 312,
+     "n_fit": 685,
+     "paired_mean": 0.010068981284371952,
+     "reliability": {
+      "conditional_climatology": {
+       "brier_check": 0.28286627157984184,
+       "curve": [
+        {
+         "bin": 2,
+         "n": 312,
+         "obs": 0.4776,
+         "pred": 0.2949
+        }
+       ],
+       "reliability": 0.03336964107359595,
+       "resolution": 0.0,
+       "uncertainty": 0.24949663050624588
+      },
+      "conditional_pb": {
+       "brier_check": 0.27236113673744133,
+       "curve": [
+        {
+         "bin": 0,
+         "n": 1,
+         "obs": 0.0,
+         "pred": 0.0844
+        },
+        {
+         "bin": 1,
+         "n": 63,
+         "obs": 0.3016,
+         "pred": 0.1552
+        },
+        {
+         "bin": 2,
+         "n": 80,
+         "obs": 0.575,
+         "pred": 0.2511
+        },
+        {
+         "bin": 3,
+         "n": 74,
+         "obs": 0.4459,
+         "pred": 0.3523
+        },
+        {
+         "bin": 4,
+         "n": 49,
+         "obs": 0.5102,
+         "pred": 0.4511
+        },
+        {
+         "bin": 5,
+         "n": 45,
+         "obs": 0.5778,
+         "pred": 0.535
+        }
+       ],
+       "reliability": 0.03413581369068974,
+       "resolution": 0.01127130745949427,
+       "uncertainty": 0.24949663050624588
+      }
+     }
+    },
+    "neg_control_pass_rate": null,
+    "note": "climatology = fit 반창의 조건부 기저율. 귀무는 양방향 CI 통과 셀에만 계산(V13 rung-3 규약). informational_only 셀은 guard untestable — family·champion_rule 에 쓰지 않는다.",
+    "pb_beats_climatology": false
+   },
+   "guard": {
+    "early": {
+     "base_rate": 0.4775641025641026,
+     "episode_band": "ok",
+     "event_runs": 5,
+     "events": 149,
+     "min_episodes": 5,
+     "n": 312,
+     "non_event_runs": 6,
+     "non_events": 163,
+     "reason": null,
+     "verdict": "ok"
+    },
+    "late": {
+     "base_rate": 0.2948905109489051,
+     "episode_band": "ok",
+     "event_runs": 8,
+     "events": 202,
+     "min_episodes": 8,
+     "n": 685,
+     "non_event_runs": 9,
+     "non_events": 483,
+     "reason": null,
+     "verdict": "ok"
+    },
+    "min_episodes": 5
+   },
+   "h": 21,
+   "n_subset_early": 312,
+   "n_subset_late": 685,
+   "target": "rv_conditional",
+   "verdict": "testable"
+  },
+  "crv_h5": {
+   "blocks": {
+    "E2_macro_release_in_window": {
+     "adopted": false,
+     "bidirectional_ci_pass": false,
+     "class": "calendar",
+     "n_early": 312,
+     "n_late": 701,
+     "neg_control_pass_rate": null,
+     "paired": {
+      "early_to_late": {
+       "bs_a_pb": 0.06487255057090795,
+       "bs_b_ewma": 0.06423468501648502,
+       "ci90": [
+        -0.0003874527373373623,
+        0.001649723216414792
+       ],
+       "ewma_beats_pb": false,
+       "ewma_significantly_worse": false,
+       "log_score": {
+        "candidate": -0.21316825362401534,
+        "conditional_pb": -0.2145561190138093
+       },
+       "mde": 0.0010170373652857961,
+       "n_eval": 701,
+       "paired_mean_pb_minus_ewma": 0.0006378655544229073,
+       "reliability": {
+        "candidate": {
+         "brier_check": 0.06415670502572704,
+         "curve": [
+          {
+           "bin": 0,
+           "n": 459,
+           "obs": 0.0087,
+           "pred": 0.03
+          },
+          {
+           "bin": 1,
+           "n": 82,
+           "obs": 0.122,
+           "pred": 0.14
+          },
+          {
+           "bin": 2,
+           "n": 36,
+           "obs": 0.0833,
+           "pred": 0.2427
+          },
+          {
+           "bin": 3,
+           "n": 33,
+           "obs": 0.2121,
+           "pred": 0.3521
+          },
+          {
+           "bin": 4,
+           "n": 54,
+           "obs": 0.4815,
+           "pred": 0.4469
+          },
+          {
+           "bin": 5,
+           "n": 28,
+           "obs": 0.5,
+           "pred": 0.5485
+          },
+          {
+           "bin": 6,
+           "n": 9,
+           "obs": 0.8889,
+           "pred": 0.6167
+          }
+         ],
+         "reliability": 0.0036985719264397664,
+         "resolution": 0.03170285151409366,
+         "uncertainty": 0.09216098461338093
+        },
+        "conditional_pb": {
+         "brier_check": 0.06588966770100779,
+         "curve": [
+          {
+           "bin": 0,
+           "n": 457,
+           "obs": 0.0066,
+           "pred": 0.0304
+          },
+          {
+           "bin": 1,
+           "n": 83,
+           "obs": 0.1446,
+           "pred": 0.1365
+          },
+          {
+           "bin": 2,
+           "n": 37,
+           "obs": 0.0541,
+           "pred": 0.241
+          },
+          {
+           "bin": 3,
+           "n": 34,
+           "obs": 0.2647,
+           "pred": 0.3504
+          },
+          {
+           "bin": 4,
+           "n": 50,
+           "obs": 0.5,
+           "pred": 0.4485
+          },
+          {
+           "bin": 5,
+           "n": 40,
+           "obs": 0.525,
+           "pred": 0.547
+          }
+         ],
+         "reliability": 0.0027942247089788055,
+         "resolution": 0.029065541621351942,
+         "uncertainty": 0.09216098461338093
+        }
+       }
+      },
+      "ewma_beats_pb_both": false,
+      "late_to_early": {
+       "bs_a_pb": 0.1001441584190836,
+       "bs_b_ewma": 0.10132482501831212,
+       "ci90": [
+        -0.004412443651933644,
+        0.0020246853354233987
+       ],
+       "ewma_beats_pb": false,
+       "ewma_significantly_worse": false,
+       "log_score": {
+        "candidate": -0.32734603940374035,
+        "conditional_pb": -0.32801251072329873
+       },
+       "mde": 0.003236184045587247,
+       "n_eval": 312,
+       "paired_mean_pb_minus_ewma": -0.0011806665992285183,
+       "reliability": {
+        "candidate": {
+         "brier_check": 0.10316577171580546,
+         "curve": [
+          {
+           "bin": 0,
+           "n": 196,
+           "obs": 0.0357,
+           "pred": 0.0264
+          },
+          {
+           "bin": 1,
+           "n": 44,
+           "obs": 0.1818,
+           "pred": 0.1408
+          },
+          {
+           "bin": 2,
+           "n": 16,
+           "obs": 0.375,
+           "pred": 0.2591
+          },
+          {
+           "bin": 3,
+           "n": 20,
+           "obs": 0.55,
+           "pred": 0.3493
+          },
+          {
+           "bin": 4,
+           "n": 17,
+           "obs": 0.4118,
+           "pred": 0.4552
+          },
+          {
+           "bin": 5,
+           "n": 12,
+           "obs": 0.5833,
+           "pred": 0.5434
+          },
+          {
+           "bin": 6,
+           "n": 7,
+           "obs": 0.4286,
+           "pred": 0.6288
+          }
+         ],
+         "reliability": 0.004627137147759128,
+         "resolution": 0.03384754228928437,
+         "uncertainty": 0.1323861768573307
+        },
+        "conditional_pb": {
+         "brier_check": 0.10218070808142932,
+         "curve": [
+          {
+           "bin": 0,
+           "n": 198,
+           "obs": 0.0404,
+           "pred": 0.027
+          },
+          {
+           "bin": 1,
+           "n": 37,
+           "obs": 0.1622,
+           "pred": 0.1368
+          },
+          {
+           "bin": 2,
+           "n": 17,
+           "obs": 0.3529,
+           "pred": 0.2538
+          },
+          {
+           "bin": 3,
+           "n": 21,
+           "obs": 0.3333,
+           "pred": 0.3467
+          },
+          {
+           "bin": 4,
+           "n": 18,
+           "obs": 0.6667,
+           "pred": 0.4337
+          },
+          {
+           "bin": 5,
+           "n": 20,
+           "obs": 0.5,
+           "pred": 0.5545
+          },
+          {
+           "bin": 6,
+           "n": 1,
+           "obs": 0.0,
+           "pred": 0.6007
+          }
+         ],
+         "reliability": 0.005216559646692656,
+         "resolution": 0.03542202842259403,
+         "uncertainty": 0.1323861768573307
+        }
+       }
+      }
+     },
+     "paired_naming_note": "공유 구현 키 명칭: a=pb=conditional_pb · b='ewma'=후보 [level, x]",
+     "verdict": "measured_zero"
+    },
+    "P3_nq_lev_net_oi": {
+     "adopted": false,
+     "bidirectional_ci_pass": false,
+     "class": "positioning",
+     "n_early": 312,
+     "n_late": 684,
+     "neg_control_pass_rate": null,
+     "paired": {
+      "early_to_late": {
+       "bs_a_pb": 0.06459169284132255,
+       "bs_b_ewma": 0.06533489152585667,
+       "ci90": [
+        -0.00392871259850206,
+        0.002390001298129872
+       ],
+       "ewma_beats_pb": false,
+       "ewma_significantly_worse": false,
+       "log_score": {
+        "candidate": -0.2108384303894472,
+        "conditional_pb": -0.21223054767987032
+       },
+       "mde": 0.003198568975884629,
+       "n_eval": 684,
+       "paired_mean_pb_minus_ewma": -0.0007431986845341177,
+       "reliability": {
+        "candidate": {
+         "brier_check": 0.06482760588538872,
+         "curve": [
+          {
+           "bin": 0,
+           "n": 482,
+           "obs": 0.0104,
+           "pred": 0.0275
+          },
+          {
+           "bin": 1,
+           "n": 76,
+           "obs": 0.1579,
+           "pred": 0.1369
+          },
+          {
+           "bin": 2,
+           "n": 22,
+           "obs": 0.0909,
+           "pred": 0.2517
+          },
+          {
+           "bin": 3,
+           "n": 49,
+           "obs": 0.5306,
+           "pred": 0.3603
+          },
+          {
+           "bin": 4,
+           "n": 32,
+           "obs": 0.3438,
+           "pred": 0.4442
+          },
+          {
+           "bin": 5,
+           "n": 23,
+           "obs": 0.6957,
+           "pred": 0.5225
+          }
+         ],
+         "reliability": 0.004646356461114011,
+         "resolution": 0.03400157606048983,
+         "uncertainty": 0.09418282548476453
+        },
+        "conditional_pb": {
+         "brier_check": 0.06552538758524612,
+         "curve": [
+          {
+           "bin": 0,
+           "n": 456,
+           "obs": 0.0066,
+           "pred": 0.0304
+          },
+          {
+           "bin": 1,
+           "n": 80,
+           "obs": 0.15,
+           "pred": 0.1364
+          },
+          {
+           "bin": 2,
+           "n": 32,
+           "obs": 0.0625,
+           "pred": 0.2372
+          },
+          {
+           "bin": 3,
+           "n": 26,
+           "obs": 0.3462,
+           "pred": 0.3565
+          },
+          {
+           "bin": 4,
+           "n": 50,
+           "obs": 0.5,
+           "pred": 0.4485
+          },
+          {
+           "bin": 5,
+           "n": 40,
+           "obs": 0.525,
+           "pred": 0.547
+          }
+         ],
+         "reliability": 0.002053342932453555,
+         "resolution": 0.03071078083197197,
+         "uncertainty": 0.09418282548476453
+        }
+       }
+      },
+      "ewma_beats_pb_both": false,
+      "late_to_early": {
+       "bs_a_pb": 0.09966223256552575,
+       "bs_b_ewma": 0.10624825643721077,
+       "ci90": [
+        -0.01588158500388964,
+        0.0010886971309439523
+       ],
+       "ewma_beats_pb": false,
+       "ewma_significantly_worse": false,
+       "log_score": {
+        "candidate": -0.3440336035509111,
+        "conditional_pb": -0.32648743515880596
+       },
+       "mde": 0.008657145016798765,
+       "n_eval": 312,
+       "paired_mean_pb_minus_ewma": -0.006586023871684998,
+       "reliability": {
+        "candidate": {
+         "brier_check": 0.10631520248057885,
+         "curve": [
+          {
+           "bin": 0,
+           "n": 217,
+           "obs": 0.0415,
+           "pred": 0.0265
+          },
+          {
+           "bin": 1,
+           "n": 26,
+           "obs": 0.2692,
+           "pred": 0.1378
+          },
+          {
+           "bin": 2,
+           "n": 20,
+           "obs": 0.4,
+           "pred": 0.2513
+          },
+          {
+           "bin": 3,
+           "n": 19,
+           "obs": 0.5789,
+           "pred": 0.346
+          },
+          {
+           "bin": 4,
+           "n": 18,
+           "obs": 0.5556,
+           "pred": 0.4421
+          },
+          {
+           "bin": 5,
+           "n": 10,
+           "obs": 0.4,
+           "pred": 0.5422
+          },
+          {
+           "bin": 6,
+           "n": 2,
+           "obs": 0.0,
+           "pred": 0.6112
+          }
+         ],
+         "reliability": 0.010103227744051422,
+         "resolution": 0.03617420212080328,
+         "uncertainty": 0.1323861768573307
+        },
+        "conditional_pb": {
+         "brier_check": 0.0998684751466536,
+         "curve": [
+          {
+           "bin": 0,
+           "n": 193,
+           "obs": 0.0363,
+           "pred": 0.0269
+          },
+          {
+           "bin": 1,
+           "n": 40,
+           "obs": 0.175,
+           "pred": 0.1374
+          },
+          {
+           "bin": 2,
+           "n": 14,
+           "obs": 0.1429,
+           "pred": 0.2449
+          },
+          {
+           "bin": 3,
+           "n": 21,
+           "obs": 0.4286,
+           "pred": 0.3425
+          },
+          {
+           "bin": 4,
+           "n": 21,
+           "obs": 0.5714,
+           "pred": 0.4369
+          },
+          {
+           "bin": 5,
+           "n": 16,
+           "obs": 0.5625,
+           "pred": 0.5532
+          },
+          {
+           "bin": 6,
+           "n": 7,
+           "obs": 0.4286,
+           "pred": 0.6098
+          }
+         ],
+         "reliability": 0.003160463275105458,
+         "resolution": 0.03567816498578256,
+         "uncertainty": 0.1323861768573307
+        }
+       }
+      }
+     },
+     "paired_naming_note": "공유 구현 키 명칭: a=pb=conditional_pb · b='ewma'=후보 [level, x]",
+     "verdict": "measured_zero"
+    }
+   },
+   "champion_rule_outcome": {
+    "champion": "conditional_persistence_pb",
+    "note": "후보 전부 미채택 · conditional_pb 가 conditional_climatology 를 같은 형으로 이김 — 기록만",
+    "rule": "b"
+   },
+   "conditional_pb_vs_climatology": {
+    "adopted_ci_both": true,
+    "early_to_late": {
+     "adopt_dir": true,
+     "bs_clim": 0.09511391458712594,
+     "bs_model": 0.06487255057090795,
+     "bss_vs_clim": 0.3179488947278728,
+     "ci90": [
+      0.01326561115510351,
+      0.048082798929099606
+     ],
+     "clim_base_rate": 0.15705128205128205,
+     "log_score": {
+      "conditional_climatology": -0.3434369286029503,
+      "conditional_pb": -0.2145561190138093
+     },
+     "mde": 0.017245238745305674,
+     "n_eval": 701,
+     "n_fit": 312,
+     "paired_mean": 0.030241364016218002,
+     "reliability": {
+      "conditional_climatology": {
+       "brier_check": 0.09511391458712594,
+       "curve": [
+        {
+         "bin": 1,
+         "n": 701,
+         "obs": 0.1027,
+         "pred": 0.1571
+        }
+       ],
+       "reliability": 0.0029529299737450056,
+       "resolution": 0.0,
+       "uncertainty": 0.09216098461338093
+      },
+      "conditional_pb": {
+       "brier_check": 0.06588966770100779,
+       "curve": [
+        {
+         "bin": 0,
+         "n": 457,
+         "obs": 0.0066,
+         "pred": 0.0304
+        },
+        {
+         "bin": 1,
+         "n": 83,
+         "obs": 0.1446,
+         "pred": 0.1365
+        },
+        {
+         "bin": 2,
+         "n": 37,
+         "obs": 0.0541,
+         "pred": 0.241
+        },
+        {
+         "bin": 3,
+         "n": 34,
+         "obs": 0.2647,
+         "pred": 0.3504
+        },
+        {
+         "bin": 4,
+         "n": 50,
+         "obs": 0.5,
+         "pred": 0.4485
+        },
+        {
+         "bin": 5,
+         "n": 40,
+         "obs": 0.525,
+         "pred": 0.547
+        }
+       ],
+       "reliability": 0.0027942247089788055,
+       "resolution": 0.029065541621351942,
+       "uncertainty": 0.09216098461338093
+      }
+     }
+    },
+    "informational_only": false,
+    "late_to_early": {
+     "adopt_dir": true,
+     "bs_clim": 0.13533910683107572,
+     "bs_model": 0.1001441584190836,
+     "bss_vs_clim": 0.2600501010836498,
+     "ci90": [
+      0.006585942866553032,
+      0.06929344146075123
+     ],
+     "clim_base_rate": 0.10271041369472182,
+     "log_score": {
+      "conditional_climatology": -0.44877980900894077,
+      "conditional_pb": -0.32801251072329873
+     },
+     "mde": 0.03193900097383572,
+     "n_eval": 312,
+     "n_fit": 701,
+     "paired_mean": 0.03519494841199213,
+     "reliability": {
+      "conditional_climatology": {
+       "brier_check": 0.13533910683107572,
+       "curve": [
+        {
+         "bin": 1,
+         "n": 312,
+         "obs": 0.1571,
+         "pred": 0.1027
+        }
+       ],
+       "reliability": 0.0029529299737450086,
+       "resolution": 0.0,
+       "uncertainty": 0.1323861768573307
+      },
+      "conditional_pb": {
+       "brier_check": 0.10218070808142932,
+       "curve": [
+        {
+         "bin": 0,
+         "n": 198,
+         "obs": 0.0404,
+         "pred": 0.027
+        },
+        {
+         "bin": 1,
+         "n": 37,
+         "obs": 0.1622,
+         "pred": 0.1368
+        },
+        {
+         "bin": 2,
+         "n": 17,
+         "obs": 0.3529,
+         "pred": 0.2538
+        },
+        {
+         "bin": 3,
+         "n": 21,
+         "obs": 0.3333,
+         "pred": 0.3467
+        },
+        {
+         "bin": 4,
+         "n": 18,
+         "obs": 0.6667,
+         "pred": 0.4337
+        },
+        {
+         "bin": 5,
+         "n": 20,
+         "obs": 0.5,
+         "pred": 0.5545
+        },
+        {
+         "bin": 6,
+         "n": 1,
+         "obs": 0.0,
+         "pred": 0.6007
+        }
+       ],
+       "reliability": 0.005216559646692656,
+       "resolution": 0.03542202842259403,
+       "uncertainty": 0.1323861768573307
+      }
+     }
+    },
+    "neg_control_pass_rate": 0.0,
+    "note": "climatology = fit 반창의 조건부 기저율. 귀무는 양방향 CI 통과 셀에만 계산(V13 rung-3 규약). informational_only 셀은 guard untestable — family·champion_rule 에 쓰지 않는다.",
+    "pb_beats_climatology": true
+   },
+   "guard": {
+    "early": {
+     "base_rate": 0.15705128205128205,
+     "episode_band": "ok",
+     "event_runs": 7,
+     "events": 49,
+     "min_episodes": 7,
+     "n": 312,
+     "non_event_runs": 8,
+     "non_events": 263,
+     "reason": null,
+     "verdict": "ok"
+    },
+    "late": {
+     "base_rate": 0.10271041369472182,
+     "episode_band": "ok",
+     "event_runs": 9,
+     "events": 72,
+     "min_episodes": 9,
+     "n": 701,
+     "non_event_runs": 10,
+     "non_events": 629,
+     "reason": null,
+     "verdict": "ok"
+    },
+    "min_episodes": 7
+   },
+   "h": 5,
+   "n_subset_early": 312,
+   "n_subset_late": 701,
+   "target": "rv_conditional",
+   "verdict": "testable"
+  },
+  "crv_h63": {
+   "blocks": {
+    "E2_macro_release_in_window": {
+     "bidirectional_ci_pass": false,
+     "class": "calendar",
+     "informational_only": true,
+     "n_early": 312,
+     "n_late": 665,
+     "neg_control_pass_rate": null,
+     "paired": {
+      "early_to_late": {
+       "bs_a_pb": 0.26366299825320294,
+       "bs_b_ewma": 0.2625837927252463,
+       "ci90": [
+        0.0002783931611121183,
+        0.0019454086426897727
+       ],
+       "ewma_beats_pb": true,
+       "ewma_significantly_worse": false,
+       "log_score": {
+        "candidate": -0.850713995630122,
+        "conditional_pb": -0.8539417584440973
+       },
+       "mde": 0.000829941897332435,
+       "n_eval": 665,
+       "paired_mean_pb_minus_ewma": 0.0010792055279566393,
+       "reliability": {
+        "candidate": {
+         "brier_check": 0.2625502011436819,
+         "curve": [
+          {
+           "bin": 7,
+           "n": 45,
+           "obs": 0.5778,
+           "pred": 0.7624
+          },
+          {
+           "bin": 8,
+           "n": 226,
+           "obs": 0.7035,
+           "pred": 0.8624
+          },
+          {
+           "bin": 9,
+           "n": 394,
+           "obs": 0.6878,
+           "pred": 0.9379
+          }
+         ],
+         "reliability": 0.04793896992261373,
+         "resolution": 0.0008989728605645453,
+         "uncertainty": 0.21551020408163266
+        },
+        "conditional_pb": {
+         "brier_check": 0.26415996276680825,
+         "curve": [
+          {
+           "bin": 7,
+           "n": 45,
+           "obs": 0.6444,
+           "pred": 0.7652
+          },
+          {
+           "bin": 8,
+           "n": 225,
+           "obs": 0.7022,
+           "pred": 0.8621
+          },
+          {
+           "bin": 9,
+           "n": 395,
+           "obs": 0.681,
+           "pred": 0.938
+          }
+         ],
+         "reliability": 0.04887034632062948,
+         "resolution": 0.00022058763545391467,
+         "uncertainty": 0.21551020408163266
+        }
+       }
+      },
+      "ewma_beats_pb_both": false,
+      "late_to_early": {
+       "bs_a_pb": 0.13163675134871614,
+       "bs_b_ewma": 0.13124040980659485,
+       "ci90": [
+        -0.00353330849351029,
+        0.004025671773586569
+       ],
+       "ewma_beats_pb": false,
+       "ewma_significantly_worse": false,
+       "log_score": {
+        "candidate": -0.4447451988847664,
+        "conditional_pb": -0.446683819234182
+       },
+       "mde": 0.0038067929491976773,
+       "n_eval": 312,
+       "paired_mean_pb_minus_ewma": 0.00039634154212129944,
+       "reliability": {
+        "candidate": {
+         "brier_check": 0.13069107942533126,
+         "curve": [
+          {
+           "bin": 5,
+           "n": 16,
+           "obs": 0.9375,
+           "pred": 0.5875
+          },
+          {
+           "bin": 6,
+           "n": 273,
+           "obs": 0.9121,
+           "pred": 0.6839
+          },
+          {
+           "bin": 7,
+           "n": 23,
+           "obs": 0.9565,
+           "pred": 0.7685
+          }
+         ],
+         "reliability": 0.05445988830597119,
+         "resolution": 0.00015769776952887356,
+         "uncertainty": 0.07638888888888892
+        },
+        "conditional_pb": {
+         "brier_check": 0.1309103104130528,
+         "curve": [
+          {
+           "bin": 6,
+           "n": 311,
+           "obs": 0.9164,
+           "pred": 0.6831
+          },
+          {
+           "bin": 7,
+           "n": 1,
+           "obs": 1.0,
+           "pred": 0.7005
+          }
+         ],
+         "reliability": 0.05454375092752223,
+         "resolution": 2.2329403358342294e-05,
+         "uncertainty": 0.07638888888888892
+        }
+       }
+      }
+     },
+     "paired_naming_note": "공유 구현 키 명칭: a=pb=conditional_pb · b='ewma'=후보 [level, x]",
+     "reason": "guard untestable_by_construction — early 비사건 국면 1 (<3)",
+     "runtime_guard_verdict": "untestable_by_construction",
+     "verdict": "excluded_preregistered",
+     "would_pass_gate": false
+    },
+    "P3_nq_lev_net_oi": {
+     "bidirectional_ci_pass": false,
+     "class": "positioning",
+     "informational_only": true,
+     "n_early": 312,
+     "n_late": 648,
+     "neg_control_pass_rate": null,
+     "paired": {
+      "early_to_late": {
+       "bs_a_pb": 0.2549733134867632,
+       "bs_b_ewma": 0.30199598810863393,
+       "ci90": [
+        -0.07484595858275872,
+        -0.02098360675445792
+       ],
+       "ewma_beats_pb": false,
+       "ewma_significantly_worse": true,
+       "log_score": {
+        "candidate": -2.884987367557875,
+        "conditional_pb": -0.8220874548575358
+       },
+       "mde": 0.026795324088058386,
+       "n_eval": 648,
+       "paired_mean_pb_minus_ewma": -0.04702267462187073,
+       "reliability": {
+        "candidate": {
+         "brier_check": 0.3029046719275563,
+         "curve": [
+          {
+           "bin": 8,
+           "n": 3,
+           "obs": 0.0,
+           "pred": 0.8934
+          },
+          {
+           "bin": 9,
+           "n": 645,
+           "obs": 0.6977,
+           "pred": 0.9971
+          }
+         ],
+         "reliability": 0.09295635151411966,
+         "resolution": 0.0022430376112546656,
+         "uncertainty": 0.21219135802469136
+        },
+        "conditional_pb": {
+         "brier_check": 0.25589862071915753,
+         "curve": [
+          {
+           "bin": 7,
+           "n": 45,
+           "obs": 0.6444,
+           "pred": 0.7652
+          },
+          {
+           "bin": 8,
+           "n": 224,
+           "obs": 0.7009,
+           "pred": 0.862
+          },
+          {
+           "bin": 9,
+           "n": 379,
+           "obs": 0.6966,
+           "pred": 0.9374
+          }
+         ],
+         "reliability": 0.04389789010684246,
+         "resolution": 0.00019062741237628822,
+         "uncertainty": 0.21219135802469136
+        }
+       }
+      },
+      "ewma_beats_pb_both": false,
+      "late_to_early": {
+       "bs_a_pb": 0.12519042183173848,
+       "bs_b_ewma": 0.12746141777939593,
+       "ci90": [
+        -0.006681537014845094,
+        0.0033233639852553593
+       ],
+       "ewma_beats_pb": false,
+       "ewma_significantly_worse": false,
+       "log_score": {
+        "candidate": -0.43710460954383645,
+        "conditional_pb": -0.4316719332201518
+       },
+       "mde": 0.0050531416515429564,
+       "n_eval": 312,
+       "paired_mean_pb_minus_ewma": -0.002270995947657462,
+       "reliability": {
+        "candidate": {
+         "brier_check": 0.13103627459739645,
+         "curve": [
+          {
+           "bin": 6,
+           "n": 309,
+           "obs": 0.9159,
+           "pred": 0.6827
+          },
+          {
+           "bin": 7,
+           "n": 3,
+           "obs": 1.0,
+           "pred": 0.7003
+          }
+         ],
+         "reliability": 0.054714807499230286,
+         "resolution": 6.74217907227616e-05,
+         "uncertainty": 0.07638888888888892
+        },
+        "conditional_pb": {
+         "brier_check": 0.12554343017932434,
+         "curve": [
+          {
+           "bin": 6,
+           "n": 263,
+           "obs": 0.9125,
+           "pred": 0.6937
+          },
+          {
+           "bin": 7,
+           "n": 49,
+           "obs": 0.9388,
+           "pred": 0.7011
+          }
+         ],
+         "reliability": 0.04924561067129296,
+         "resolution": 9.106938085753956e-05,
+         "uncertainty": 0.07638888888888892
+        }
+       }
+      }
+     },
+     "paired_naming_note": "공유 구현 키 명칭: a=pb=conditional_pb · b='ewma'=후보 [level, x]",
+     "reason": "guard untestable_by_construction — early 비사건 국면 1 (<3)",
+     "runtime_guard_verdict": "untestable_by_construction",
+     "verdict": "excluded_preregistered",
+     "would_pass_gate": false
+    }
+   },
+   "champion_rule_outcome": {
+    "champion": "hold",
+    "note": "untestable_by_construction — 판정 자격 없음(G0·블록 통계는 정보용)",
+    "rule": "c"
+   },
+   "conditional_pb_vs_climatology": {
+    "adopted_ci_both": false,
+    "early_to_late": {
+     "adopt_dir": false,
+     "bs_clim": 0.26884920634920634,
+     "bs_model": 0.26366299825320294,
+     "bss_vs_clim": 0.01929039764122298,
+     "ci90": [
+      -0.006545079369036417,
+      0.018743899197580214
+     ],
+     "clim_base_rate": 0.9166666666666666,
+     "log_score": {
+      "conditional_climatology": -0.8406356055834032,
+      "conditional_pb": -0.8539417584440973
+     },
+     "mde": 0.012821137629666494,
+     "n_eval": 665,
+     "n_fit": 312,
+     "paired_mean": 0.00518620809600343,
+     "reliability": {
+      "conditional_climatology": {
+       "brier_check": 0.2688492063492063,
+       "curve": [
+        {
+         "bin": 9,
+         "n": 665,
+         "obs": 0.6857,
+         "pred": 0.9167
+        }
+       ],
+       "reliability": 0.053339002267573626,
+       "resolution": 0.0,
+       "uncertainty": 0.21551020408163266
+      },
+      "conditional_pb": {
+       "brier_check": 0.26415996276680825,
+       "curve": [
+        {
+         "bin": 7,
+         "n": 45,
+         "obs": 0.6444,
+         "pred": 0.7652
+        },
+        {
+         "bin": 8,
+         "n": 225,
+         "obs": 0.7022,
+         "pred": 0.8621
+        },
+        {
+         "bin": 9,
+         "n": 395,
+         "obs": 0.681,
+         "pred": 0.938
+        }
+       ],
+       "reliability": 0.04887034632062948,
+       "resolution": 0.00022058763545391467,
+       "uncertainty": 0.21551020408163266
+      }
+     }
+    },
+    "informational_only": true,
+    "late_to_early": {
+     "adopt_dir": false,
+     "bs_clim": 0.12972789115646258,
+     "bs_model": 0.13163675134871614,
+     "bss_vs_clim": -0.014714339185174286,
+     "ci90": [
+      -0.0030913080953312573,
+      -0.0005344156863894208
+     ],
+     "clim_base_rate": 0.6857142857142857,
+     "log_score": {
+      "conditional_climatology": -0.4423074442705993,
+      "conditional_pb": -0.446683819234182
+     },
+     "mde": 0.0012778608930118754,
+     "n_eval": 312,
+     "n_fit": 665,
+     "paired_mean": -0.0019088601922535562,
+     "reliability": {
+      "conditional_climatology": {
+       "brier_check": 0.12972789115646255,
+       "curve": [
+        {
+         "bin": 6,
+         "n": 312,
+         "obs": 0.9167,
+         "pred": 0.6857
+        }
+       ],
+       "reliability": 0.053339002267573626,
+       "resolution": 0.0,
+       "uncertainty": 0.07638888888888892
+      },
+      "conditional_pb": {
+       "brier_check": 0.1309103104130528,
+       "curve": [
+        {
+         "bin": 6,
+         "n": 311,
+         "obs": 0.9164,
+         "pred": 0.6831
+        },
+        {
+         "bin": 7,
+         "n": 1,
+         "obs": 1.0,
+         "pred": 0.7005
+        }
+       ],
+       "reliability": 0.05454375092752223,
+       "resolution": 2.2329403358342294e-05,
+       "uncertainty": 0.07638888888888892
+      }
+     }
+    },
+    "neg_control_pass_rate": null,
+    "note": "climatology = fit 반창의 조건부 기저율. 귀무는 양방향 CI 통과 셀에만 계산(V13 rung-3 규약). informational_only 셀은 guard untestable — family·champion_rule 에 쓰지 않는다.",
+    "pb_beats_climatology": false
+   },
+   "guard": {
+    "early": {
+     "base_rate": 0.9166666666666666,
+     "episode_band": "below_marginal",
+     "event_runs": 2,
+     "events": 286,
+     "min_episodes": 1,
+     "n": 312,
+     "non_event_runs": 1,
+     "non_events": 26,
+     "reason": "episodes_below_marginal_band",
+     "verdict": "untestable_by_construction"
+    },
+    "late": {
+     "base_rate": 0.6857142857142857,
+     "episode_band": "ok",
+     "event_runs": 6,
+     "events": 456,
+     "min_episodes": 5,
+     "n": 665,
+     "non_event_runs": 5,
+     "non_events": 209,
+     "reason": null,
+     "verdict": "ok"
+    },
+    "min_episodes": 1
+   },
+   "h": 63,
+   "n_subset_early": 312,
+   "n_subset_late": 665,
+   "target": "rv_conditional",
+   "verdict": "untestable_by_construction"
+  },
+  "cvix25_h21": {
+   "blocks": {
+    "E2_macro_release_in_window": {
+     "adopted": false,
+     "bidirectional_ci_pass": false,
+     "class": "calendar",
+     "n_early": 297,
+     "n_late": 795,
+     "neg_control_pass_rate": null,
+     "paired": {
+      "early_to_late": {
+       "bs_a_pb": 0.07672993734796112,
+       "bs_b_ewma": 0.07652172293454511,
+       "ci90": [
+        -0.00027136981019478315,
+        0.0007315378007682005
+       ],
+       "ewma_beats_pb": false,
+       "ewma_significantly_worse": false,
+       "log_score": {
+        "candidate": -0.28261738735610076,
+        "conditional_pb": -0.2837725908296289
+       },
+       "mde": 0.0005081865428348506,
+       "n_eval": 795,
+       "paired_mean_pb_minus_ewma": 0.00020821441341603155,
+       "reliability": {
+        "candidate": {
+         "brier_check": 0.07755212684162902,
+         "curve": [
+          {
+           "bin": 0,
+           "n": 279,
+           "obs": 0.0179,
+           "pred": 0.0716
+          },
+          {
+           "bin": 1,
+           "n": 258,
+           "obs": 0.0736,
+           "pred": 0.1451
+          },
+          {
+           "bin": 2,
+           "n": 140,
+           "obs": 0.1071,
+           "pred": 0.2435
+          },
+          {
+           "bin": 3,
+           "n": 90,
+           "obs": 0.1444,
+           "pred": 0.3439
+          },
+          {
+           "bin": 4,
+           "n": 28,
+           "obs": 0.2857,
+           "pred": 0.4333
+          }
+         ],
+         "reliability": 0.011211831824778069,
+         "resolution": 0.003435425880265463,
+         "uncertainty": 0.06977572089711641
+        },
+        "conditional_pb": {
+         "brier_check": 0.07729943543351135,
+         "curve": [
+          {
+           "bin": 0,
+           "n": 280,
+           "obs": 0.0214,
+           "pred": 0.0718
+          },
+          {
+           "bin": 1,
+           "n": 249,
+           "obs": 0.0602,
+           "pred": 0.1444
+          },
+          {
+           "bin": 2,
+           "n": 149,
+           "obs": 0.1208,
+           "pred": 0.2436
+          },
+          {
+           "bin": 3,
+           "n": 88,
+           "obs": 0.1477,
+           "pred": 0.3435
+          },
+          {
+           "bin": 4,
+           "n": 29,
+           "obs": 0.2759,
+           "pred": 0.4306
+          }
+         ],
+         "reliability": 0.011052936852224238,
+         "resolution": 0.003529222315829291,
+         "uncertainty": 0.06977572089711641
+        }
+       }
+      },
+      "ewma_beats_pb_both": false,
+      "late_to_early": {
+       "bs_a_pb": 0.17074644441663672,
+       "bs_b_ewma": 0.17069869097173407,
+       "ci90": [
+        -0.002883531458390309,
+        0.0033620201680063335
+       ],
+       "ewma_beats_pb": false,
+       "ewma_significantly_worse": false,
+       "log_score": {
+        "candidate": -0.5209194565473335,
+        "conditional_pb": -0.5206970796696362
+       },
+       "mde": 0.003167490558604006,
+       "n_eval": 297,
+       "paired_mean_pb_minus_ewma": 4.77534449026637e-05,
+       "reliability": {
+        "candidate": {
+         "brier_check": 0.1764658395399671,
+         "curve": [
+          {
+           "bin": 0,
+           "n": 150,
+           "obs": 0.1333,
+           "pred": 0.0409
+          },
+          {
+           "bin": 1,
+           "n": 93,
+           "obs": 0.3011,
+           "pred": 0.1487
+          },
+          {
+           "bin": 2,
+           "n": 51,
+           "obs": 0.3333,
+           "pred": 0.2413
+          },
+          {
+           "bin": 3,
+           "n": 3,
+           "obs": 0.0,
+           "pred": 0.3174
+          }
+         ],
+         "reliability": 0.01405318250365416,
+         "resolution": 0.008544954998740162,
+         "uncertainty": 0.1709576120350531
+        },
+        "conditional_pb": {
+         "brier_check": 0.1778770814300186,
+         "curve": [
+          {
+           "bin": 0,
+           "n": 151,
+           "obs": 0.1523,
+           "pred": 0.0417
+          },
+          {
+           "bin": 1,
+           "n": 97,
+           "obs": 0.268,
+           "pred": 0.152
+          },
+          {
+           "bin": 2,
+           "n": 49,
+           "obs": 0.3265,
+           "pred": 0.2392
+          }
+         ],
+         "reliability": 0.011873287555085812,
+         "resolution": 0.004953818160120339,
+         "uncertainty": 0.1709576120350531
+        }
+       }
+      }
+     },
+     "paired_naming_note": "공유 구현 키 명칭: a=pb=conditional_pb · b='ewma'=후보 [level, x]",
+     "verdict": "measured_zero"
+    },
+    "P3_nq_lev_net_oi": {
+     "adopted": false,
+     "bidirectional_ci_pass": false,
+     "class": "positioning",
+     "n_early": 297,
+     "n_late": 778,
+     "neg_control_pass_rate": null,
+     "paired": {
+      "early_to_late": {
+       "bs_a_pb": 0.07824398400191858,
+       "bs_b_ewma": 0.09333375201400133,
+       "ci90": [
+        -0.02092793545969115,
+        -0.009101520789982123
+       ],
+       "ewma_beats_pb": false,
+       "ewma_significantly_worse": true,
+       "log_score": {
+        "candidate": -0.3320277490789058,
+        "conditional_pb": -0.28802270972362853
+       },
+       "mde": 0.005877887848053882,
+       "n_eval": 778,
+       "paired_mean_pb_minus_ewma": -0.015089768012082755,
+       "reliability": {
+        "candidate": {
+         "brier_check": 0.09311187213726194,
+         "curve": [
+          {
+           "bin": 0,
+           "n": 153,
+           "obs": 0.0327,
+           "pred": 0.0721
+          },
+          {
+           "bin": 1,
+           "n": 266,
+           "obs": 0.0526,
+           "pred": 0.1456
+          },
+          {
+           "bin": 2,
+           "n": 164,
+           "obs": 0.0671,
+           "pred": 0.2516
+          },
+          {
+           "bin": 3,
+           "n": 109,
+           "obs": 0.1009,
+           "pred": 0.3464
+          },
+          {
+           "bin": 4,
+           "n": 74,
+           "obs": 0.2027,
+           "pred": 0.4455
+          },
+          {
+           "bin": 5,
+           "n": 12,
+           "obs": 0.3333,
+           "pred": 0.54
+          }
+         ],
+         "reliability": 0.025145305675970835,
+         "resolution": 0.0032066348789062437,
+         "uncertainty": 0.07117320134019733
+        },
+        "conditional_pb": {
+         "brier_check": 0.07883760479950902,
+         "curve": [
+          {
+           "bin": 0,
+           "n": 264,
+           "obs": 0.0227,
+           "pred": 0.0712
+          },
+          {
+           "bin": 1,
+           "n": 248,
+           "obs": 0.0605,
+           "pred": 0.1444
+          },
+          {
+           "bin": 2,
+           "n": 149,
+           "obs": 0.1208,
+           "pred": 0.2436
+          },
+          {
+           "bin": 3,
+           "n": 88,
+           "obs": 0.1477,
+           "pred": 0.3435
+          },
+          {
+           "bin": 4,
+           "n": 29,
+           "obs": 0.2759,
+           "pred": 0.4306
+          }
+         ],
+         "reliability": 0.01115825960973235,
+         "resolution": 0.0034938561504206595,
+         "uncertainty": 0.07117320134019733
+        }
+       }
+      },
+      "ewma_beats_pb_both": false,
+      "late_to_early": {
+       "bs_a_pb": 0.170717172735677,
+       "bs_b_ewma": 0.18258751958720304,
+       "ci90": [
+        -0.042218015432890804,
+        0.017190860765740546
+       ],
+       "ewma_beats_pb": false,
+       "ewma_significantly_worse": false,
+       "log_score": {
+        "candidate": -0.541606395300371,
+        "conditional_pb": -0.5202728970337783
+       },
+       "mde": 0.030082514096879773,
+       "n_eval": 297,
+       "paired_mean_pb_minus_ewma": -0.01187034685152608,
+       "reliability": {
+        "candidate": {
+         "brier_check": 0.18241795600292152,
+         "curve": [
+          {
+           "bin": 0,
+           "n": 68,
+           "obs": 0.0882,
+           "pred": 0.0397
+          },
+          {
+           "bin": 1,
+           "n": 86,
+           "obs": 0.2326,
+           "pred": 0.1502
+          },
+          {
+           "bin": 2,
+           "n": 60,
+           "obs": 0.2167,
+           "pred": 0.2452
+          },
+          {
+           "bin": 3,
+           "n": 29,
+           "obs": 0.3448,
+           "pred": 0.3495
+          },
+          {
+           "bin": 4,
+           "n": 23,
+           "obs": 0.3478,
+           "pred": 0.4495
+          },
+          {
+           "bin": 5,
+           "n": 12,
+           "obs": 0.1667,
+           "pred": 0.5322
+          },
+          {
+           "bin": 6,
+           "n": 15,
+           "obs": 0.4,
+           "pred": 0.6504
+          },
+          {
+           "bin": 7,
+           "n": 2,
+           "obs": 0.0,
+           "pred": 0.7408
+          },
+          {
+           "bin": 8,
+           "n": 2,
+           "obs": 0.0,
+           "pred": 0.8562
+          }
+         ],
+         "reliability": 0.020672027090883446,
+         "resolution": 0.00921168312301505,
+         "uncertainty": 0.1709576120350531
+        },
+        "conditional_pb": {
+         "brier_check": 0.17740311243636298,
+         "curve": [
+          {
+           "bin": 0,
+           "n": 149,
+           "obs": 0.1477,
+           "pred": 0.0418
+          },
+          {
+           "bin": 1,
+           "n": 99,
+           "obs": 0.2727,
+           "pred": 0.151
+          },
+          {
+           "bin": 2,
+           "n": 49,
+           "obs": 0.3265,
+           "pred": 0.2375
+          }
+         ],
+         "reliability": 0.01186926835288061,
+         "resolution": 0.005423767951570745,
+         "uncertainty": 0.1709576120350531
+        }
+       }
+      }
+     },
+     "paired_naming_note": "공유 구현 키 명칭: a=pb=conditional_pb · b='ewma'=후보 [level, x]",
+     "verdict": "measured_zero"
+    }
+   },
+   "champion_rule_outcome": {
+    "champion": "conditional_persistence_pb",
+    "note": "후보 전부 미채택 · conditional_pb 가 conditional_climatology 를 같은 형으로 이김 — 기록만",
+    "rule": "b"
+   },
+   "conditional_pb_vs_climatology": {
+    "adopted_ci_both": true,
+    "early_to_late": {
+     "adopt_dir": true,
+     "bs_clim": 0.0903345549174912,
+     "bs_model": 0.07672993734796112,
+     "bss_vs_clim": 0.1506025859313319,
+     "ci90": [
+      0.005319689926240448,
+      0.021190576661169663
+     ],
+     "clim_base_rate": 0.21885521885521886,
+     "log_score": {
+      "conditional_climatology": -0.34302118991153474,
+      "conditional_pb": -0.2837725908296289
+     },
+     "mde": 0.007959352176461083,
+     "n_eval": 795,
+     "n_fit": 297,
+     "paired_mean": 0.013604617569530072,
+     "reliability": {
+      "conditional_climatology": {
+       "brier_check": 0.0903345549174912,
+       "curve": [
+        {
+         "bin": 2,
+         "n": 795,
+         "obs": 0.0755,
+         "pred": 0.2189
+        }
+       ],
+       "reliability": 0.020558834020374794,
+       "resolution": 0.0,
+       "uncertainty": 0.06977572089711641
+      },
+      "conditional_pb": {
+       "brier_check": 0.07729943543351135,
+       "curve": [
+        {
+         "bin": 0,
+         "n": 280,
+         "obs": 0.0214,
+         "pred": 0.0718
+        },
+        {
+         "bin": 1,
+         "n": 249,
+         "obs": 0.0602,
+         "pred": 0.1444
+        },
+        {
+         "bin": 2,
+         "n": 149,
+         "obs": 0.1208,
+         "pred": 0.2436
+        },
+        {
+         "bin": 3,
+         "n": 88,
+         "obs": 0.1477,
+         "pred": 0.3435
+        },
+        {
+         "bin": 4,
+         "n": 29,
+         "obs": 0.2759,
+         "pred": 0.4306
+        }
+       ],
+       "reliability": 0.011052936852224238,
+       "resolution": 0.003529222315829291,
+       "uncertainty": 0.06977572089711641
+      }
+     }
+    },
+    "informational_only": false,
+    "late_to_early": {
+     "adopt_dir": true,
+     "bs_clim": 0.19151644605542792,
+     "bs_model": 0.17074644441663672,
+     "bss_vs_clim": 0.10845022485839162,
+     "ci90": [
+      0.0014223498996948475,
+      0.04415036211300257
+     ],
+     "clim_base_rate": 0.07547169811320754,
+     "log_score": {
+      "conditional_climatology": -0.6268190427290301,
+      "conditional_pb": -0.5206970796696362
+     },
+     "mde": 0.021364572263498558,
+     "n_eval": 297,
+     "n_fit": 795,
+     "paired_mean": 0.020770001638791197,
+     "reliability": {
+      "conditional_climatology": {
+       "brier_check": 0.1915164460554279,
+       "curve": [
+        {
+         "bin": 0,
+         "n": 297,
+         "obs": 0.2189,
+         "pred": 0.0755
+        }
+       ],
+       "reliability": 0.020558834020374794,
+       "resolution": 0.0,
+       "uncertainty": 0.1709576120350531
+      },
+      "conditional_pb": {
+       "brier_check": 0.1778770814300186,
+       "curve": [
+        {
+         "bin": 0,
+         "n": 151,
+         "obs": 0.1523,
+         "pred": 0.0417
+        },
+        {
+         "bin": 1,
+         "n": 97,
+         "obs": 0.268,
+         "pred": 0.152
+        },
+        {
+         "bin": 2,
+         "n": 49,
+         "obs": 0.3265,
+         "pred": 0.2392
+        }
+       ],
+       "reliability": 0.011873287555085812,
+       "resolution": 0.004953818160120339,
+       "uncertainty": 0.1709576120350531
+      }
+     }
+    },
+    "neg_control_pass_rate": 0.0,
+    "note": "climatology = fit 반창의 조건부 기저율. 귀무는 양방향 CI 통과 셀에만 계산(V13 rung-3 규약). informational_only 셀은 guard untestable — family·champion_rule 에 쓰지 않는다.",
+    "pb_beats_climatology": true
+   },
+   "guard": {
+    "early": {
+     "base_rate": 0.21885521885521886,
+     "episode_band": "marginal",
+     "event_runs": 4,
+     "events": 65,
+     "min_episodes": 4,
+     "n": 297,
+     "non_event_runs": 5,
+     "non_events": 232,
+     "reason": "marginal_band_display_only",
+     "verdict": "episode_thin"
+    },
+    "late": {
+     "base_rate": 0.07547169811320754,
+     "episode_band": "marginal",
+     "event_runs": 4,
+     "events": 60,
+     "min_episodes": 4,
+     "n": 795,
+     "non_event_runs": 5,
+     "non_events": 735,
+     "reason": "marginal_band_display_only",
+     "verdict": "episode_thin"
+    },
+    "min_episodes": 4
+   },
+   "h": 21,
+   "n_subset_early": 297,
+   "n_subset_late": 795,
+   "target": "vix_conditional",
+   "verdict": "episode_thin"
+  },
+  "cvix25_h5": {
+   "blocks": {
+    "E2_macro_release_in_window": {
+     "bidirectional_ci_pass": false,
+     "class": "calendar",
+     "informational_only": true,
+     "n_early": 297,
+     "n_late": 807,
+     "neg_control_pass_rate": null,
+     "paired": {
+      "early_to_late": {
+       "bs_a_pb": 0.006204592751149665,
+       "bs_b_ewma": 0.006179225645340529,
+       "ci90": [
+        -5.49231503794291e-05,
+        0.00010407959771770293
+       ],
+       "ewma_beats_pb": false,
+       "ewma_significantly_worse": false,
+       "log_score": {
+        "candidate": -0.03841102107004981,
+        "conditional_pb": -0.03920705770682787
+       },
+       "mde": 7.794246210441393e-05,
+       "n_eval": 807,
+       "paired_mean_pb_minus_ewma": 2.5367105809135098e-05,
+       "reliability": {
+        "candidate": {
+         "brier_check": 0.00629633739820375,
+         "curve": [
+          {
+           "bin": 0,
+           "n": 807,
+           "obs": 0.0062,
+           "pred": 0.018
+          }
+         ],
+         "reliability": 0.0001389383081475653,
+         "resolution": 0.0,
+         "uncertainty": 0.006157399090056185
+        },
+        "conditional_pb": {
+         "brier_check": 0.006302357639321576,
+         "curve": [
+          {
+           "bin": 0,
+           "n": 807,
+           "obs": 0.0062,
+           "pred": 0.0182
+          }
+         ],
+         "reliability": 0.0001449585492653916,
+         "resolution": 0.0,
+         "uncertainty": 0.006157399090056185
+        }
+       }
+      },
+      "ewma_beats_pb_both": false,
+      "late_to_early": {
+       "bs_a_pb": 0.0196613323869863,
+       "bs_b_ewma": 0.01961668203045112,
+       "ci90": [
+        -0.00012558239637069278,
+        0.0002473344131674452
+       ],
+       "ewma_beats_pb": false,
+       "ewma_significantly_worse": false,
+       "log_score": {
+        "candidate": -0.0916465074624913,
+        "conditional_pb": -0.0924052064321437
+       },
+       "mde": 0.00018907690985063086,
+       "n_eval": 297,
+       "paired_mean_pb_minus_ewma": 4.4650356535175685e-05,
+       "reliability": {
+        "candidate": {
+         "brier_check": 0.019816752998135092,
+         "curve": [
+          {
+           "bin": 0,
+           "n": 297,
+           "obs": 0.0202,
+           "pred": 0.0154
+          }
+         ],
+         "reliability": 2.285441635772305e-05,
+         "resolution": 0.0,
+         "uncertainty": 0.01979389858177737
+        },
+        "conditional_pb": {
+         "brier_check": 0.019820762217752193,
+         "curve": [
+          {
+           "bin": 0,
+           "n": 297,
+           "obs": 0.0202,
+           "pred": 0.015
+          }
+         ],
+         "reliability": 2.6863635974823494e-05,
+         "resolution": 0.0,
+         "uncertainty": 0.01979389858177737
+        }
+       }
+      }
+     },
+     "paired_naming_note": "공유 구현 키 명칭: a=pb=conditional_pb · b='ewma'=후보 [level, x]",
+     "reason": "guard untestable_by_construction — early 사건 6 · late 사건 5 (<20)",
+     "runtime_guard_verdict": "untestable_by_construction",
+     "verdict": "excluded_preregistered",
+     "would_pass_gate": false
+    },
+    "P3_nq_lev_net_oi": {
+     "bidirectional_ci_pass": false,
+     "class": "positioning",
+     "informational_only": true,
+     "n_early": 297,
+     "n_late": 790,
+     "neg_control_pass_rate": null,
+     "paired": {
+      "early_to_late": {
+       "bs_a_pb": 0.006336257946588629,
+       "bs_b_ewma": 0.006443786609125175,
+       "ci90": [
+        -0.000178592974699041,
+        -3.158305498962368e-05
+       ],
+       "ewma_beats_pb": false,
+       "ewma_significantly_worse": true,
+       "log_score": {
+        "candidate": -0.04224817716160742,
+        "conditional_pb": -0.03985201951286409
+       },
+       "mde": 7.492489711224414e-05,
+       "n_eval": 790,
+       "paired_mean_pb_minus_ewma": -0.00010752866253654644,
+       "reliability": {
+        "candidate": {
+         "brier_check": 0.006525929385787211,
+         "curve": [
+          {
+           "bin": 0,
+           "n": 790,
+           "obs": 0.0063,
+           "pred": 0.0217
+          }
+         ],
+         "reliability": 0.00023687314480018993,
+         "resolution": 0.0,
+         "uncertainty": 0.006289056240987021
+        },
+        "conditional_pb": {
+         "brier_check": 0.006435494228166603,
+         "curve": [
+          {
+           "bin": 0,
+           "n": 790,
+           "obs": 0.0063,
+           "pred": 0.0184
+          }
+         ],
+         "reliability": 0.00014643798717958221,
+         "resolution": 0.0,
+         "uncertainty": 0.006289056240987021
+        }
+       }
+      },
+      "ewma_beats_pb_both": false,
+      "late_to_early": {
+       "bs_a_pb": 0.019661403643795594,
+       "bs_b_ewma": 0.019658130083354094,
+       "ci90": [
+        -5.414705109832494e-05,
+        8.164525630953521e-05
+       ],
+       "ewma_beats_pb": false,
+       "ewma_significantly_worse": false,
+       "log_score": {
+        "candidate": -0.09227540003794635,
+        "conditional_pb": -0.0924011150377231
+       },
+       "mde": 6.934798751372177e-05,
+       "n_eval": 297,
+       "paired_mean_pb_minus_ewma": 3.273560441498673e-06,
+       "reliability": {
+        "candidate": {
+         "brier_check": 0.019809191520175667,
+         "curve": [
+          {
+           "bin": 0,
+           "n": 297,
+           "obs": 0.0202,
+           "pred": 0.0163
+          }
+         ],
+         "reliability": 1.5292938398297116e-05,
+         "resolution": 0.0,
+         "uncertainty": 0.01979389858177737
+        },
+        "conditional_pb": {
+         "brier_check": 0.01982075036030634,
+         "curve": [
+          {
+           "bin": 0,
+           "n": 297,
+           "obs": 0.0202,
+           "pred": 0.015
+          }
+         ],
+         "reliability": 2.685177852896731e-05,
+         "resolution": 0.0,
+         "uncertainty": 0.01979389858177737
+        }
+       }
+      }
+     },
+     "paired_naming_note": "공유 구현 키 명칭: a=pb=conditional_pb · b='ewma'=후보 [level, x]",
+     "reason": "guard untestable_by_construction — early 사건 6 · late 사건 5 (<20)",
+     "runtime_guard_verdict": "untestable_by_construction",
+     "verdict": "excluded_preregistered",
+     "would_pass_gate": false
+    }
+   },
+   "champion_rule_outcome": {
+    "champion": "hold",
+    "note": "untestable_by_construction — 판정 자격 없음(G0·블록 통계는 정보용)",
+    "rule": "c"
+   },
+   "conditional_pb_vs_climatology": {
+    "adopted_ci_both": false,
+    "early_to_late": {
+     "adopt_dir": false,
+     "bs_clim": 0.006353573662349148,
+     "bs_model": 0.006204592751149665,
+     "bss_vs_clim": 0.023448364513712017,
+     "ci90": [
+      -9.993065293181568e-06,
+      0.0003349589698318403
+     ],
+     "clim_base_rate": 0.020202020202020204,
+     "log_score": {
+      "conditional_climatology": -0.04445821362590002,
+      "conditional_pb": -0.03920705770682787
+     },
+     "mde": 0.0001733305391788954,
+     "n_eval": 807,
+     "n_fit": 297,
+     "paired_mean": 0.00014898091119948473,
+     "reliability": {
+      "conditional_climatology": {
+       "brier_check": 0.00635357366234915,
+       "curve": [
+        {
+         "bin": 0,
+         "n": 807,
+         "obs": 0.0062,
+         "pred": 0.0202
+        }
+       ],
+       "reliability": 0.00019617457229296516,
+       "resolution": 0.0,
+       "uncertainty": 0.006157399090056185
+      },
+      "conditional_pb": {
+       "brier_check": 0.006302357639321576,
+       "curve": [
+        {
+         "bin": 0,
+         "n": 807,
+         "obs": 0.0062,
+         "pred": 0.0182
+        }
+       ],
+       "reliability": 0.0001449585492653916,
+       "resolution": 0.0,
+       "uncertainty": 0.006157399090056185
+      }
+     }
+    },
+    "informational_only": true,
+    "late_to_early": {
+     "adopt_dir": false,
+     "bs_clim": 0.019990073154070337,
+     "bs_model": 0.0196613323869863,
+     "bss_vs_clim": 0.016445200802934434,
+     "ci90": [
+      -0.00013474683425072461,
+      0.0009662381650802272
+     ],
+     "clim_base_rate": 0.006195786864931847,
+     "log_score": {
+      "conditional_climatology": -0.1087942663717659,
+      "conditional_pb": -0.0924052064321437
+     },
+     "mde": 0.0005686480249140765,
+     "n_eval": 297,
+     "n_fit": 807,
+     "paired_mean": 0.0003287407670840363,
+     "reliability": {
+      "conditional_climatology": {
+       "brier_check": 0.019990073154070337,
+       "curve": [
+        {
+         "bin": 0,
+         "n": 297,
+         "obs": 0.0202,
+         "pred": 0.0062
+        }
+       ],
+       "reliability": 0.00019617457229296526,
+       "resolution": 0.0,
+       "uncertainty": 0.01979389858177737
+      },
+      "conditional_pb": {
+       "brier_check": 0.019820762217752193,
+       "curve": [
+        {
+         "bin": 0,
+         "n": 297,
+         "obs": 0.0202,
+         "pred": 0.015
+        }
+       ],
+       "reliability": 2.6863635974823494e-05,
+       "resolution": 0.0,
+       "uncertainty": 0.01979389858177737
+      }
+     }
+    },
+    "neg_control_pass_rate": null,
+    "note": "climatology = fit 반창의 조건부 기저율. 귀무는 양방향 CI 통과 셀에만 계산(V13 rung-3 규약). informational_only 셀은 guard untestable — family·champion_rule 에 쓰지 않는다.",
+    "pb_beats_climatology": false
+   },
+   "guard": {
+    "early": {
+     "base_rate": 0.020202020202020204,
+     "episode_band": "marginal",
+     "event_runs": 3,
+     "events": 6,
+     "min_episodes": 3,
+     "n": 297,
+     "non_event_runs": 4,
+     "non_events": 291,
+     "reason": "min_events_per_half_per_class",
+     "verdict": "untestable_by_construction"
+    },
+    "late": {
+     "base_rate": 0.006195786864931847,
+     "episode_band": "marginal",
+     "event_runs": 3,
+     "events": 5,
+     "min_episodes": 3,
+     "n": 807,
+     "non_event_runs": 4,
+     "non_events": 802,
+     "reason": "min_events_per_half_per_class",
+     "verdict": "untestable_by_construction"
+    },
+    "min_episodes": 3
+   },
+   "h": 5,
+   "n_subset_early": 297,
+   "n_subset_late": 807,
+   "target": "vix_conditional",
+   "verdict": "untestable_by_construction"
+  },
+  "cvix25_h63": {
+   "blocks": {
+    "E2_macro_release_in_window": {
+     "bidirectional_ci_pass": false,
+     "class": "calendar",
+     "informational_only": true,
+     "n_early": 297,
+     "n_late": 759,
+     "neg_control_pass_rate": null,
+     "paired": {
+      "early_to_late": {
+       "bs_a_pb": 0.2734048074113624,
+       "bs_b_ewma": 0.2788783072580997,
+       "ci90": [
+        -0.018324534233649836,
+        0.007490677089941126
+       ],
+       "ewma_beats_pb": false,
+       "ewma_significantly_worse": false,
+       "log_score": {
+        "candidate": -0.7814691503057917,
+        "conditional_pb": -0.7556276344765915
+       },
+       "mde": 0.013030673431647192,
+       "n_eval": 759,
+       "paired_mean_pb_minus_ewma": -0.005473499846737245,
+       "reliability": {
+        "candidate": {
+         "brier_check": 0.27860150776482345,
+         "curve": [
+          {
+           "bin": 0,
+           "n": 8,
+           "obs": 0.0,
+           "pred": 0.0816
+          },
+          {
+           "bin": 1,
+           "n": 20,
+           "obs": 0.0,
+           "pred": 0.1547
+          },
+          {
+           "bin": 2,
+           "n": 68,
+           "obs": 0.2206,
+           "pred": 0.2569
+          },
+          {
+           "bin": 3,
+           "n": 119,
+           "obs": 0.1933,
+           "pred": 0.3505
+          },
+          {
+           "bin": 4,
+           "n": 116,
+           "obs": 0.0776,
+           "pred": 0.4472
+          },
+          {
+           "bin": 5,
+           "n": 76,
+           "obs": 0.1447,
+           "pred": 0.549
+          },
+          {
+           "bin": 6,
+           "n": 107,
+           "obs": 0.4019,
+           "pred": 0.6507
+          },
+          {
+           "bin": 7,
+           "n": 108,
+           "obs": 0.3519,
+           "pred": 0.7506
+          },
+          {
+           "bin": 8,
+           "n": 104,
+           "obs": 0.3942,
+           "pred": 0.8451
+          },
+          {
+           "bin": 9,
+           "n": 33,
+           "obs": 0.6061,
+           "pred": 0.9393
+          }
+         ],
+         "reliability": 0.105979637761818,
+         "resolution": 0.021448061135150465,
+         "uncertainty": 0.19406993113815593
+        },
+        "conditional_pb": {
+         "brier_check": 0.2723738102390563,
+         "curve": [
+          {
+           "bin": 1,
+           "n": 3,
+           "obs": 0.0,
+           "pred": 0.1941
+          },
+          {
+           "bin": 2,
+           "n": 50,
+           "obs": 0.24,
+           "pred": 0.2654
+          },
+          {
+           "bin": 3,
+           "n": 125,
+           "obs": 0.16,
+           "pred": 0.3515
+          },
+          {
+           "bin": 4,
+           "n": 138,
+           "obs": 0.0652,
+           "pred": 0.4459
+          },
+          {
+           "bin": 5,
+           "n": 95,
+           "obs": 0.1579,
+           "pred": 0.5492
+          },
+          {
+           "bin": 6,
+           "n": 127,
+           "obs": 0.3622,
+           "pred": 0.6509
+          },
+          {
+           "bin": 7,
+           "n": 126,
+           "obs": 0.4127,
+           "pred": 0.7494
+          },
+          {
+           "bin": 8,
+           "n": 95,
+           "obs": 0.4842,
+           "pred": 0.8399
+          }
+         ],
+         "reliability": 0.10034587422858084,
+         "resolution": 0.022041995127680465,
+         "uncertainty": 0.19406993113815593
+        }
+       }
+      },
+      "ewma_beats_pb_both": false,
+      "late_to_early": {
+       "bs_a_pb": 0.29007439343532526,
+       "bs_b_ewma": 0.28591645337261856,
+       "ci90": [
+        -0.002765574170022197,
+        0.01110250986742901
+       ],
+       "ewma_beats_pb": false,
+       "ewma_significantly_worse": false,
+       "log_score": {
+        "candidate": -0.7652537616910473,
+        "conditional_pb": -0.7782352296308923
+       },
+       "mde": 0.006954375120593868,
+       "n_eval": 297,
+       "paired_mean_pb_minus_ewma": 0.004157940062706678,
+       "reliability": {
+        "candidate": {
+         "brier_check": 0.28690609559114144,
+         "curve": [
+          {
+           "bin": 0,
+           "n": 33,
+           "obs": 0.0,
+           "pred": 0.0725
+          },
+          {
+           "bin": 1,
+           "n": 57,
+           "obs": 0.3509,
+           "pred": 0.149
+          },
+          {
+           "bin": 2,
+           "n": 39,
+           "obs": 0.8205,
+           "pred": 0.2531
+          },
+          {
+           "bin": 3,
+           "n": 67,
+           "obs": 0.8657,
+           "pred": 0.3556
+          },
+          {
+           "bin": 4,
+           "n": 65,
+           "obs": 0.7231,
+           "pred": 0.4484
+          },
+          {
+           "bin": 5,
+           "n": 35,
+           "obs": 0.7429,
+           "pred": 0.5364
+          },
+          {
+           "bin": 6,
+           "n": 1,
+           "obs": 1.0,
+           "pred": 0.663
+          }
+         ],
+         "reliability": 0.1312892957219194,
+         "resolution": 0.08009610924436054,
+         "uncertainty": 0.23571290911358253
+        },
+        "conditional_pb": {
+         "brier_check": 0.2914571426703446,
+         "curve": [
+          {
+           "bin": 0,
+           "n": 31,
+           "obs": 0.0,
+           "pred": 0.0788
+          },
+          {
+           "bin": 1,
+           "n": 64,
+           "obs": 0.4219,
+           "pred": 0.1505
+          },
+          {
+           "bin": 2,
+           "n": 36,
+           "obs": 0.75,
+           "pred": 0.2544
+          },
+          {
+           "bin": 3,
+           "n": 57,
+           "obs": 0.8947,
+           "pred": 0.3569
+          },
+          {
+           "bin": 4,
+           "n": 71,
+           "obs": 0.7324,
+           "pred": 0.4492
+          },
+          {
+           "bin": 5,
+           "n": 38,
+           "obs": 0.7105,
+           "pred": 0.5347
+          }
+         ],
+         "reliability": 0.12492825888562317,
+         "resolution": 0.06918402532886106,
+         "uncertainty": 0.23571290911358253
+        }
+       }
+      }
+     },
+     "paired_naming_note": "공유 구현 키 명칭: a=pb=conditional_pb · b='ewma'=후보 [level, x]",
+     "reason": "guard untestable_by_construction — early 국면 2/2 (<3)",
+     "runtime_guard_verdict": "untestable_by_construction",
+     "verdict": "excluded_preregistered",
+     "would_pass_gate": false
+    },
+    "P3_nq_lev_net_oi": {
+     "bidirectional_ci_pass": false,
+     "class": "positioning",
+     "informational_only": true,
+     "n_early": 297,
+     "n_late": 742,
+     "neg_control_pass_rate": null,
+     "paired": {
+      "early_to_late": {
+       "bs_a_pb": 0.27577685498731325,
+       "bs_b_ewma": 0.2697190980318667,
+       "ci90": [
+        0.0037786482352590092,
+        0.008403326925616322
+       ],
+       "ewma_beats_pb": true,
+       "ewma_significantly_worse": false,
+       "log_score": {
+        "candidate": -0.7468084984305875,
+        "conditional_pb": -0.7607858356915712
+       },
+       "mde": 0.0023212357314009954,
+       "n_eval": 742,
+       "paired_mean_pb_minus_ewma": 0.006057756955446519,
+       "reliability": {
+        "candidate": {
+         "brier_check": 0.27078861221446604,
+         "curve": [
+          {
+           "bin": 1,
+           "n": 3,
+           "obs": 0.0,
+           "pred": 0.1907
+          },
+          {
+           "bin": 2,
+           "n": 56,
+           "obs": 0.25,
+           "pred": 0.2654
+          },
+          {
+           "bin": 3,
+           "n": 126,
+           "obs": 0.1667,
+           "pred": 0.3481
+          },
+          {
+           "bin": 4,
+           "n": 131,
+           "obs": 0.0534,
+           "pred": 0.4476
+          },
+          {
+           "bin": 5,
+           "n": 96,
+           "obs": 0.2292,
+           "pred": 0.5549
+          },
+          {
+           "bin": 6,
+           "n": 124,
+           "obs": 0.3629,
+           "pred": 0.6545
+          },
+          {
+           "bin": 7,
+           "n": 116,
+           "obs": 0.4138,
+           "pred": 0.7497
+          },
+          {
+           "bin": 8,
+           "n": 90,
+           "obs": 0.4778,
+           "pred": 0.8372
+          }
+         ],
+         "reliability": 0.09444477264498544,
+         "resolution": 0.0205451687928533,
+         "uncertainty": 0.19688900836233386
+        },
+        "conditional_pb": {
+         "brier_check": 0.274786396979105,
+         "curve": [
+          {
+           "bin": 1,
+           "n": 3,
+           "obs": 0.0,
+           "pred": 0.1941
+          },
+          {
+           "bin": 2,
+           "n": 50,
+           "obs": 0.24,
+           "pred": 0.2654
+          },
+          {
+           "bin": 3,
+           "n": 118,
+           "obs": 0.1695,
+           "pred": 0.3498
+          },
+          {
+           "bin": 4,
+           "n": 129,
+           "obs": 0.0698,
+           "pred": 0.4477
+          },
+          {
+           "bin": 5,
+           "n": 94,
+           "obs": 0.1596,
+           "pred": 0.5494
+          },
+          {
+           "bin": 6,
+           "n": 127,
+           "obs": 0.3622,
+           "pred": 0.6509
+          },
+          {
+           "bin": 7,
+           "n": 126,
+           "obs": 0.4127,
+           "pred": 0.7494
+          },
+          {
+           "bin": 8,
+           "n": 95,
+           "obs": 0.4842,
+           "pred": 0.8399
+          }
+         ],
+         "reliability": 0.09916210250494571,
+         "resolution": 0.02126471388817457,
+         "uncertainty": 0.19688900836233386
+        }
+       }
+      },
+      "ewma_beats_pb_both": false,
+      "late_to_early": {
+       "bs_a_pb": 0.28885367537912493,
+       "bs_b_ewma": 0.231626986408974,
+       "ci90": [
+        -0.009779901643784016,
+        0.11822436355856838
+       ],
+       "ewma_beats_pb": false,
+       "ewma_significantly_worse": false,
+       "log_score": {
+        "candidate": -0.6439487397601225,
+        "conditional_pb": -0.7746318138730357
+       },
+       "mde": 0.06343984363030016,
+       "n_eval": 297,
+       "paired_mean_pb_minus_ewma": 0.057226688970150895,
+       "reliability": {
+        "candidate": {
+         "brier_check": 0.2327663068481134,
+         "curve": [
+          {
+           "bin": 0,
+           "n": 21,
+           "obs": 0.0,
+           "pred": 0.0686
+          },
+          {
+           "bin": 1,
+           "n": 16,
+           "obs": 0.0,
+           "pred": 0.1371
+          },
+          {
+           "bin": 2,
+           "n": 22,
+           "obs": 1.0,
+           "pred": 0.2519
+          },
+          {
+           "bin": 3,
+           "n": 41,
+           "obs": 0.8537,
+           "pred": 0.354
+          },
+          {
+           "bin": 4,
+           "n": 66,
+           "obs": 0.5,
+           "pred": 0.4483
+          },
+          {
+           "bin": 5,
+           "n": 54,
+           "obs": 0.537,
+           "pred": 0.5491
+          },
+          {
+           "bin": 6,
+           "n": 38,
+           "obs": 0.7632,
+           "pred": 0.6503
+          },
+          {
+           "bin": 7,
+           "n": 27,
+           "obs": 0.8889,
+           "pred": 0.7413
+          },
+          {
+           "bin": 8,
+           "n": 10,
+           "obs": 1.0,
+           "pred": 0.8199
+          },
+          {
+           "bin": 9,
+           "n": 2,
+           "obs": 1.0,
+           "pred": 0.9016
+          }
+         ],
+         "reliability": 0.0826553140375532,
+         "resolution": 0.08560191630302234,
+         "uncertainty": 0.23571290911358253
+        },
+        "conditional_pb": {
+         "brier_check": 0.28955595613972146,
+         "curve": [
+          {
+           "bin": 0,
+           "n": 29,
+           "obs": 0.0,
+           "pred": 0.0829
+          },
+          {
+           "bin": 1,
+           "n": 63,
+           "obs": 0.4127,
+           "pred": 0.1529
+          },
+          {
+           "bin": 2,
+           "n": 36,
+           "obs": 0.6944,
+           "pred": 0.251
+          },
+          {
+           "bin": 3,
+           "n": 60,
+           "obs": 0.9,
+           "pred": 0.3559
+          },
+          {
+           "bin": 4,
+           "n": 75,
+           "obs": 0.7067,
+           "pred": 0.4504
+          },
+          {
+           "bin": 5,
+           "n": 34,
+           "obs": 0.7647,
+           "pred": 0.534
+          }
+         ],
+         "reliability": 0.12129654912214448,
+         "resolution": 0.06745350209600556,
+         "uncertainty": 0.23571290911358253
+        }
+       }
+      }
+     },
+     "paired_naming_note": "공유 구현 키 명칭: a=pb=conditional_pb · b='ewma'=후보 [level, x]",
+     "reason": "guard untestable_by_construction — early 국면 2/2 (<3)",
+     "runtime_guard_verdict": "untestable_by_construction",
+     "verdict": "excluded_preregistered",
+     "would_pass_gate": false
+    }
+   },
+   "champion_rule_outcome": {
+    "champion": "hold",
+    "note": "untestable_by_construction — 판정 자격 없음(G0·블록 통계는 정보용)",
+    "rule": "c"
+   },
+   "conditional_pb_vs_climatology": {
+    "adopted_ci_both": true,
+    "early_to_late": {
+     "adopt_dir": true,
+     "bs_clim": 0.3208230255514694,
+     "bs_model": 0.2734048074113624,
+     "bss_vs_clim": 0.14780179215191558,
+     "ci90": [
+      0.008799307828081016,
+      0.08470488326149253
+     ],
+     "clim_base_rate": 0.6195286195286195,
+     "log_score": {
+      "conditional_climatology": -0.8378731899463155,
+      "conditional_pb": -0.7556276344765915
+     },
+     "mde": 0.03778816282575531,
+     "n_eval": 759,
+     "n_fit": 297,
+     "paired_mean": 0.04741821814010696,
+     "reliability": {
+      "conditional_climatology": {
+       "brier_check": 0.32082302555146935,
+       "curve": [
+        {
+         "bin": 6,
+         "n": 759,
+         "obs": 0.2635,
+         "pred": 0.6195
+        }
+       ],
+       "reliability": 0.12675309441331345,
+       "resolution": 0.0,
+       "uncertainty": 0.19406993113815593
+      },
+      "conditional_pb": {
+       "brier_check": 0.2723738102390563,
+       "curve": [
+        {
+         "bin": 1,
+         "n": 3,
+         "obs": 0.0,
+         "pred": 0.1941
+        },
+        {
+         "bin": 2,
+         "n": 50,
+         "obs": 0.24,
+         "pred": 0.2654
+        },
+        {
+         "bin": 3,
+         "n": 125,
+         "obs": 0.16,
+         "pred": 0.3515
+        },
+        {
+         "bin": 4,
+         "n": 138,
+         "obs": 0.0652,
+         "pred": 0.4459
+        },
+        {
+         "bin": 5,
+         "n": 95,
+         "obs": 0.1579,
+         "pred": 0.5492
+        },
+        {
+         "bin": 6,
+         "n": 127,
+         "obs": 0.3622,
+         "pred": 0.6509
+        },
+        {
+         "bin": 7,
+         "n": 126,
+         "obs": 0.4127,
+         "pred": 0.7494
+        },
+        {
+         "bin": 8,
+         "n": 95,
+         "obs": 0.4842,
+         "pred": 0.8399
+        }
+       ],
+       "reliability": 0.10034587422858084,
+       "resolution": 0.022041995127680465,
+       "uncertainty": 0.19406993113815593
+      }
+     }
+    },
+    "informational_only": true,
+    "late_to_early": {
+     "adopt_dir": true,
+     "bs_clim": 0.3624660035268961,
+     "bs_model": 0.29007439343532526,
+     "bss_vs_clim": 0.19971972374562064,
+     "ci90": [
+      0.01687004451770473,
+      0.13214495694440806
+     ],
+     "clim_base_rate": 0.2635046113306983,
+     "log_score": {
+      "conditional_climatology": -0.942623710353997,
+      "conditional_pb": -0.7782352296308923
+     },
+     "mde": 0.05799504433727279,
+     "n_eval": 297,
+     "n_fit": 759,
+     "paired_mean": 0.07239161009157084,
+     "reliability": {
+      "conditional_climatology": {
+       "brier_check": 0.36246600352689595,
+       "curve": [
+        {
+         "bin": 2,
+         "n": 297,
+         "obs": 0.6195,
+         "pred": 0.2635
+        }
+       ],
+       "reliability": 0.12675309441331342,
+       "resolution": 0.0,
+       "uncertainty": 0.23571290911358253
+      },
+      "conditional_pb": {
+       "brier_check": 0.2914571426703446,
+       "curve": [
+        {
+         "bin": 0,
+         "n": 31,
+         "obs": 0.0,
+         "pred": 0.0788
+        },
+        {
+         "bin": 1,
+         "n": 64,
+         "obs": 0.4219,
+         "pred": 0.1505
+        },
+        {
+         "bin": 2,
+         "n": 36,
+         "obs": 0.75,
+         "pred": 0.2544
+        },
+        {
+         "bin": 3,
+         "n": 57,
+         "obs": 0.8947,
+         "pred": 0.3569
+        },
+        {
+         "bin": 4,
+         "n": 71,
+         "obs": 0.7324,
+         "pred": 0.4492
+        },
+        {
+         "bin": 5,
+         "n": 38,
+         "obs": 0.7105,
+         "pred": 0.5347
+        }
+       ],
+       "reliability": 0.12492825888562317,
+       "resolution": 0.06918402532886106,
+       "uncertainty": 0.23571290911358253
+      }
+     }
+    },
+    "neg_control_pass_rate": 0.008333333333333333,
+    "note": "climatology = fit 반창의 조건부 기저율. 귀무는 양방향 CI 통과 셀에만 계산(V13 rung-3 규약). informational_only 셀은 guard untestable — family·champion_rule 에 쓰지 않는다.",
+    "pb_beats_climatology": true
+   },
+   "guard": {
+    "early": {
+     "base_rate": 0.6195286195286195,
+     "episode_band": "below_marginal",
+     "event_runs": 2,
+     "events": 184,
+     "min_episodes": 2,
+     "n": 297,
+     "non_event_runs": 2,
+     "non_events": 113,
+     "reason": "episodes_below_marginal_band",
+     "verdict": "untestable_by_construction"
+    },
+    "late": {
+     "base_rate": 0.2635046113306983,
+     "episode_band": "marginal",
+     "event_runs": 4,
+     "events": 200,
+     "min_episodes": 3,
+     "n": 759,
+     "non_event_runs": 3,
+     "non_events": 559,
+     "reason": "marginal_band_display_only",
+     "verdict": "episode_thin"
+    },
+    "min_episodes": 2
+   },
+   "h": 63,
+   "n_subset_early": 297,
+   "n_subset_late": 759,
+   "target": "vix_conditional",
+   "verdict": "untestable_by_construction"
+  }
+ },
+ "cells_episode_thin": [
+  "cvix25_h21"
+ ],
+ "cells_untestable": [
+  "cvix25_h5",
+  "cvix25_h63",
+  "crv_h63"
+ ],
+ "champion_rule_outcomes": {
+  "crv_h21": {
+   "champion": "hold",
+   "note": "조건부 부분집합에서도 정보가 '자명'을 넘지 못함 — HOLD 셀은 표시 불가",
+   "rule": "c"
+  },
+  "crv_h5": {
+   "champion": "conditional_persistence_pb",
+   "note": "후보 전부 미채택 · conditional_pb 가 conditional_climatology 를 같은 형으로 이김 — 기록만",
+   "rule": "b"
+  },
+  "crv_h63": {
+   "champion": "hold",
+   "note": "untestable_by_construction — 판정 자격 없음(G0·블록 통계는 정보용)",
+   "rule": "c"
+  },
+  "cvix25_h21": {
+   "champion": "conditional_persistence_pb",
+   "note": "후보 전부 미채택 · conditional_pb 가 conditional_climatology 를 같은 형으로 이김 — 기록만",
+   "rule": "b"
+  },
+  "cvix25_h5": {
+   "champion": "hold",
+   "note": "untestable_by_construction — 판정 자격 없음(G0·블록 통계는 정보용)",
+   "rule": "c"
+  },
+  "cvix25_h63": {
+   "champion": "hold",
+   "note": "untestable_by_construction — 판정 자격 없음(G0·블록 통계는 정보용)",
+   "rule": "c"
+  }
+ },
+ "conditioning": {
+  "conditioning_note": "조건 충족 원점(vix 셀 VIX_t<20 엄격 · rv 셀 raw RV21_t 유한 ∧ <=θ)만 표본. 라벨은 전체 패널 미래창에서 계산한 뒤 부분집합으로 제한. rv NaN 원점(패널 첫 21세션)은 부분집합 밖. 기후 = fit 반창의 조건부 기저율.",
+  "rv_cells": "RV21_ann_t <= theta (raw, finite)",
+  "theta": 0.1694207105468098,
+  "vix_cells": "VIX_close_t < 20 (strict)"
+ },
+ "content_hash": "fab36fa31a23997b2abf7d26a207dc60b541d11d9eb518920abcccd93f258e5c",
+ "contract_id": "timeseries_v14_conditional",
+ "evaluation_index": 2,
+ "excluded_cells": [
+  {
+   "block": "E2_macro_release_in_window",
+   "cell": "cvix25_h5",
+   "reason": "guard untestable_by_construction — early 사건 6 · late 사건 5 (<20)"
+  },
+  {
+   "block": "P3_nq_lev_net_oi",
+   "cell": "cvix25_h5",
+   "reason": "guard untestable_by_construction — early 사건 6 · late 사건 5 (<20)"
+  },
+  {
+   "block": "E2_macro_release_in_window",
+   "cell": "cvix25_h63",
+   "reason": "guard untestable_by_construction — early 국면 2/2 (<3)"
+  },
+  {
+   "block": "P3_nq_lev_net_oi",
+   "cell": "cvix25_h63",
+   "reason": "guard untestable_by_construction — early 국면 2/2 (<3)"
+  },
+  {
+   "block": "E2_macro_release_in_window",
+   "cell": "crv_h63",
+   "reason": "guard untestable_by_construction — early 비사건 국면 1 (<3)"
+  },
+  {
+   "block": "P3_nq_lev_net_oi",
+   "cell": "crv_h63",
+   "reason": "guard untestable_by_construction — early 비사건 국면 1 (<3)"
+  }
+ ],
+ "experiment_label": "V14COND_rung2_conditional",
+ "family_dependence_caveat": "셀 종속(지평 중첩) — 대표값은 이항, 종속조정은 진단 병기만. 프로그램 전역 누적(lineage.campaign_prior_tests)과 함께 읽는다(M6).",
+ "family_p_binomial": 0.9999999999999998,
+ "family_representative": "binomial",
+ "generated_at": "2026-10-28T07:05:54+00:00",
+ "holdout_read": false,
+ "hypothesis_active_diagnostic": {
+  "E2_macro_release_in_window": {
+   "cells": [
+    "cvix25_h5",
+    "crv_h5"
+   ],
+   "family_p_binomial_diagnostic": 1.0,
+   "k": 0,
+   "n": 1
+  },
+  "P3_nq_lev_net_oi": {
+   "cells": [
+    "cvix25_h5",
+    "cvix25_h21",
+    "cvix25_h63",
+    "crv_h5",
+    "crv_h21",
+    "crv_h63"
+   ],
+   "family_p_binomial_diagnostic": 0.9999999999999999,
+   "k": 0,
+   "n": 3
+  }
+ },
+ "informational_note": "informational_only=true 인 셀·블록 통계(G0 · 쌍대 CI · MDE · 귀무)는 계약 G0_baseline_check(6셀 전수 보고)와 gate.mde(모든 셀·방향 인쇄)를 위한 것이며 family 분모·k_obs·채택 목록에 들어가지 않는다.",
+ "k_obs_adopted": 0,
+ "lookback_start": "2005-01-01",
+ "model_id": "event_probability.volatility_v14_conditional",
+ "n_panel_design": 2014,
+ "new_data_ingested": false,
+ "planned_tests": 6,
+ "prereg_commit": "ed12c846",
+ "promotion": "none — champion_rule 은 기록만. 라이브 포인터·verb 는 V14-D10 사용자 결정",
+ "schema": "v14_cond_rung2_conditional",
+ "scoring_note": "reliability = Murphy 분해(rel/res/unc + 10구간 곡선, S.murphy_reliability) · log_score = 평균 로그우도(높을수록 좋음, p clip [1e-6, 1−1e-6]). 계약 gate.reliability · gate.scoring 보고 의무 — 판정 다리가 아니다.",
+ "sealed_read": false,
+ "split": "2011-01-01",
+ "tests_run": 6,
+ "window": [
+  "2007-01-01",
+  "2014-12-31"
+ ]
+}
