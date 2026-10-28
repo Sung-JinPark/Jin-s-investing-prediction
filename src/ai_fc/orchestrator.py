@@ -142,7 +142,13 @@ def run_forecast(conn: sqlite3.Connection, root: Path, question_id: str,
             raise PreflightError(
                 "API 키 없음 — ANTHROPIC_API_KEY 환경변수 또는 "
                 "~/.ai_fc/anthropic_key.dpapi 필요")
-        client = anthropic.Anthropic(api_key=api_key)
+        # timeout 30분: 리서치 호출(검색 8회 + 서버측 필터링 + pause_turn)은 기본
+        # 10분을 넘길 수 있고, 중간 절단된 요청은 **청구되고 응답만 유실**되어
+        # 원장 밖 지출이 된다 (2026-10-26 실측: 과금된 검색 223회 vs 설정 상한
+        # 112회 ≈ 2x — 재시도 이중 과금 정황). max_retries=0: 재시도 권한은
+        # llm._with_retries 하나만 갖는다 — SDK 내부 재시도(기본 2회)는 미터링
+        # 밖에서 요청을 복제한다.
+        client = anthropic.Anthropic(api_key=api_key, timeout=1800.0, max_retries=0)
         official_provider = AnthropicProvider(client)
     else:
         official_provider = OpenAIResponsesProvider(

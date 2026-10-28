@@ -85,7 +85,7 @@ PROMPT_VERSION = os.environ.get("AI_FC_PROMPT_VERSION", "reasoning_core_v1_1")
 # 가격 ($/MTok) — 비용 추정용. 모델 변경 시 갱신.
 PRICES = {
     "claude-opus-4-8": (5.00, 25.00),
-    "claude-sonnet-5": (3.00, 15.00),
+    "claude-sonnet-5": (2.00, 10.00),  # 2026-10-28 교정 — 종전 (3,15)는 Sonnet 4.6 가격이었다
     # OpenAI list prices verified from official model cards on 2026-08-01.
     "gpt-5.6-sol": (5.00, 30.00),
     "gpt-5.6-terra": (2.00, 12.00),
@@ -108,6 +108,9 @@ OFFICIAL_LLM_PROVIDER = os.environ.get("AI_FC_OFFICIAL_LLM_PROVIDER", "anthropic
 OPENAI_OFFICIAL_MODEL = os.environ.get("AI_FC_OPENAI_OFFICIAL_MODEL", "").strip()
 
 WEB_SEARCH_MAX_USES = int(os.environ.get("AI_FC_SEARCH_MAX_USES", "8"))
+# 서버사이드 web_search 건당 요금 ($10 / 1,000회). 토큰과 별도 청구 항목인데
+# 2026-10-28 전까지 원장이 이 항목을 아예 세지 않았다 (10-26 실측 $2.23 누락).
+WEB_SEARCH_COST_PER_CALL = float(os.environ.get("AI_FC_WEB_SEARCH_COST_PER_CALL", "0.01"))
 # v3 WS-B 경량(lite) 티어 — 검색량·분량만 축소 (에이전트 수·데블스·스키마 불변, 헌법 준수).
 # 목표 단가 $1.2~1.8 (표준 $2.5~4). 적용: registry `tier: lite` (시리즈 E/M 질문 한정).
 LITE_SEARCH_MAX_USES = int(os.environ.get("AI_FC_LITE_SEARCH_MAX_USES", "4"))

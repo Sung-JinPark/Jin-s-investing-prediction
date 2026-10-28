@@ -125,5 +125,6 @@ def test_usage_reader_agrees_between_object_and_raw_json() -> None:
     for key, value in fields.items():
         setattr(obj, key, value)
 
-    assert llm._usage_fields(obj) == llm._usage_fields(fields) == (170, 7)
-    assert llm._usage_fields(_Usage()) == (0, 0), "필드가 없어도 예외 없이 0"
+    # (raw_input, output, cache_write, cache_read, web_search_requests)
+    assert llm._usage_fields(obj) == llm._usage_fields(fields) == (100, 7, 50, 200, 0)
+    assert llm._usage_fields(_Usage()) == (0, 0, 0, 0, 0), "필드가 없어도 예외 없이 0"
