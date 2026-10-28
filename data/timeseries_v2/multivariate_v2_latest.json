@@ -1,6 +1,6 @@
 {
   "as_of": "2026-10-23",
-  "content_hash": "e69851dceda6efe3c417aabdd62ac924e293a1af9beddb09367c1a56e52a0faa",
+  "content_hash": "b1086312f212953d6acf5fd6b7326b381c3548f15d96cbf30c32092706909c1c",
   "data_summary": {
     "candidate": "C1",
     "data_grades": [
@@ -21,23 +21,23 @@
     "required_market_freshness": {
       "groups": [
         {
-          "age_hours": 24.313055555555554,
-          "available_at": "2026-10-27T05:07:17.019242+00:00",
+          "age_hours": 5.746666666666667,
+          "available_at": "2026-10-28T05:37:51+00:00",
           "group": "NASDAQCOM",
-          "observation_time": "2026-10-26",
+          "observation_time": "2026-10-27",
           "selected_series": "NASDAQCOM",
           "status": "fresh"
         },
         {
-          "age_hours": 24.313055555555554,
-          "available_at": "2026-10-27T05:07:16.058991+00:00",
+          "age_hours": 5.746666666666667,
+          "available_at": "2026-10-28T05:37:47+00:00",
           "group": "VIX",
-          "observation_time": "2026-10-26",
+          "observation_time": "2026-10-27",
           "selected_series": "VIX",
           "status": "fresh"
         },
         {
-          "age_hours": 3.5915156988888888,
+          "age_hours": 9.02512681,
           "available_at": "2026-10-27T20:43:16.543484+00:00",
           "group": "DGS2",
           "observation_time": "2026-10-27",
@@ -45,7 +45,7 @@
           "status": "fresh"
         },
         {
-          "age_hours": 3.5915156988888888,
+          "age_hours": 9.02512681,
           "available_at": "2026-10-27T20:43:16.543484+00:00",
           "group": "DGS10",
           "observation_time": "2026-10-27",
@@ -53,7 +53,7 @@
           "status": "fresh"
         },
         {
-          "age_hours": 96.31305555555555,
+          "age_hours": 101.74666666666667,
           "available_at": "2026-10-26T21:11:24+00:00",
           "group": "DTWEXBGS_or_DTWEXB",
           "observation_time": "2026-10-23",
@@ -86,7 +86,7 @@
       "필수 시장 입력 48시간 SLA 초과: DTWEXBGS_or_DTWEXB"
     ]
   },
-  "knowledge_cutoff": "2026-10-28T00:18:46+00:00",
+  "knowledge_cutoff": "2026-10-28T05:44:47+00:00",
   "model_id": "shadow.mf_dfm_ridge_varx_v2",
   "model_version": 2,
   "probability_space": "research_timeseries_v2_conditional",
