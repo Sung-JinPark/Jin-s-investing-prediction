@@ -1,18 +1,28 @@
 {
   "schema_version": 1,
   "dataset_id": "theme_listing_watch_v1",
-  "checked_at": "2026-10-28T07:00:09+00:00",
+  "checked_at": "2026-10-28T12:56:21+00:00",
   "watch_start": "2026-10-01",
   "census_through": "2026-10-22",
   "role": "listing_watch_with_auto_review",
   "decides_theme": "auto_rule_v3 (data/contracts/theme_listing_auto_review_v3.yaml); manual decisions are kept",
-  "auto_review": null,
+  "auto_review": {
+    "rules": "data/contracts/theme_listing_auto_review_v3.yaml",
+    "reviewer": "auto_rule_v3",
+    "outcomes": {
+      "not_first_listing": 1,
+      "not_theme": 1
+    },
+    "added": 0,
+    "reviewed": 2,
+    "pipeline_moved": []
+  },
   "auto_rule": {
     "contract": "data/contracts/theme_listing_auto_review_v3.yaml",
     "reviewer": "auto_rule_v3",
     "rules_fixed_at": "2026-10-27T09:34:42Z",
     "auto_counted": 0,
-    "auto_not_counted": 4,
+    "auto_not_counted": 6,
     "holdout": {
       "n": 811,
       "recall": 0.872,
@@ -34,8 +44,8 @@
     "cn_a": {
       "status": "current",
       "error": null,
-      "checked_at": "2026-10-28T07:00:09+00:00",
-      "last_ok_at": "2026-10-28T07:00:09+00:00",
+      "checked_at": "2026-10-28T12:56:21+00:00",
+      "last_ok_at": "2026-10-28T12:56:21+00:00",
       "rows": 8,
       "label": "중국 A주(상해·심천·북경)",
       "source_url": "https://data.eastmoney.com/xg/xg/"
@@ -43,17 +53,17 @@
     "hk_main": {
       "status": "current",
       "error": null,
-      "checked_at": "2026-10-28T07:00:09+00:00",
-      "last_ok_at": "2026-10-28T07:00:09+00:00",
-      "rows": 2,
+      "checked_at": "2026-10-28T12:56:21+00:00",
+      "last_ok_at": "2026-10-28T12:56:21+00:00",
+      "rows": 3,
       "label": "홍콩 Main Board",
       "source_url": "https://www2.hkexnews.hk/New-Listings/New-Listing-Information/Main-Board"
     },
     "kr": {
       "status": "current",
       "error": null,
-      "checked_at": "2026-10-28T07:00:09+00:00",
-      "last_ok_at": "2026-10-28T07:00:09+00:00",
+      "checked_at": "2026-10-28T12:56:21+00:00",
+      "last_ok_at": "2026-10-28T12:56:21+00:00",
       "rows": 8,
       "label": "한국 KOSPI·KOSDAQ",
       "source_url": "https://kind.krx.co.kr/listinvstg/listingcompany.do?method=searchListingTypeMain"
@@ -61,8 +71,8 @@
     "jp": {
       "status": "current",
       "error": null,
-      "checked_at": "2026-10-28T07:00:09+00:00",
-      "last_ok_at": "2026-10-28T07:00:09+00:00",
+      "checked_at": "2026-10-28T12:56:21+00:00",
+      "last_ok_at": "2026-10-28T12:56:21+00:00",
       "rows": 4,
       "label": "일본 JPX",
       "source_url": "https://www.jpx.co.jp/listing/stocks/new/index.html"
@@ -70,8 +80,8 @@
     "tw_twse": {
       "status": "current",
       "error": null,
-      "checked_at": "2026-10-28T07:00:09+00:00",
-      "last_ok_at": "2026-10-28T07:00:09+00:00",
+      "checked_at": "2026-10-28T12:56:21+00:00",
+      "last_ok_at": "2026-10-28T12:56:21+00:00",
       "rows": 3,
       "label": "대만 TWSE",
       "source_url": "https://www.twse.com.tw/zh/listed/listed-company/newlisting.html"
@@ -79,17 +89,17 @@
     "tw_tpex": {
       "status": "current",
       "error": null,
-      "checked_at": "2026-10-28T07:00:09+00:00",
-      "last_ok_at": "2026-10-28T07:00:09+00:00",
-      "rows": 4,
+      "checked_at": "2026-10-28T12:56:21+00:00",
+      "last_ok_at": "2026-10-28T12:56:21+00:00",
+      "rows": 5,
       "label": "대만 TPEx",
       "source_url": "https://www.tpex.org.tw/openapi/v1/mopsfin_t187ap03_O"
     },
     "euronext": {
       "status": "current",
       "error": null,
-      "checked_at": "2026-10-28T07:00:09+00:00",
-      "last_ok_at": "2026-10-28T07:00:09+00:00",
+      "checked_at": "2026-10-28T12:56:21+00:00",
+      "last_ok_at": "2026-10-28T12:56:21+00:00",
       "rows": 4,
       "label": "Euronext(파리·밀라노·암스테르담·브뤼셀·오슬로·리스본·더블린)",
       "source_url": "https://live.euronext.com/en/ipo-showcase"
@@ -97,8 +107,8 @@
     "lse": {
       "status": "current",
       "error": null,
-      "checked_at": "2026-10-28T07:00:09+00:00",
-      "last_ok_at": "2026-10-28T07:00:09+00:00",
+      "checked_at": "2026-10-28T12:56:21+00:00",
+      "last_ok_at": "2026-10-28T12:56:21+00:00",
       "rows": 0,
       "label": "런던 LSE(Main·AIM)",
       "source_url": "https://www.londonstockexchange.com/reports?tab=new-issues-and-ipos"
@@ -106,8 +116,8 @@
     "us_adr": {
       "status": "current",
       "error": null,
-      "checked_at": "2026-10-28T07:00:09+00:00",
-      "last_ok_at": "2026-10-28T07:00:09+00:00",
+      "checked_at": "2026-10-28T12:56:21+00:00",
+      "last_ok_at": "2026-10-28T12:56:21+00:00",
       "rows": 0,
       "label": "미국 ADS 첫 공모(SEC 424B4)",
       "source_url": "https://efts.sec.gov/LATEST/search-index"
@@ -115,8 +125,8 @@
     "us_ipo": {
       "status": "current",
       "error": null,
-      "checked_at": "2026-10-28T07:00:09+00:00",
-      "last_ok_at": "2026-10-28T07:00:09+00:00",
+      "checked_at": "2026-10-28T12:56:21+00:00",
+      "last_ok_at": "2026-10-28T12:56:21+00:00",
       "rows": 0,
       "label": "미국 보통주(상장 대기 회사만)",
       "source_url": "https://api.nasdaq.com/api/ipo/calendar"
@@ -135,11 +145,11 @@
     "아부다비 ADX"
   ],
   "summary": {
-    "listings": 33,
+    "listings": 35,
     "by_status": {
       "auto_excluded": 6,
       "counted": 4,
-      "reviewed": 23
+      "reviewed": 25
     },
     "pending_review": 0,
     "pending_theme_hint": 0,
@@ -666,6 +676,33 @@
       "pipeline_match": false
     },
     {
+      "venue": "tw_tpex",
+      "country": "TW",
+      "exchange": "TPEx",
+      "board": "main",
+      "code": "6938",
+      "company": "藍新資訊",
+      "listing_date": "2026-10-23",
+      "industry": "industry_code=30",
+      "business": "",
+      "offer": "",
+      "auto_exclusion": null,
+      "source_url": "https://www.tpex.org.tw/openapi/v1/mopsfin_t187ap03_O",
+      "first_seen_at": "2026-10-28T12:56:21+00:00",
+      "status": "reviewed",
+      "reason": "not_theme",
+      "theme_hint": false,
+      "pipeline_match": false,
+      "auto_review": {
+        "decision": "not_theme",
+        "theme": null,
+        "evidence": "사업 설명 첫 문장에 AI·반도체 제품 없음",
+        "text": "資訊軟硬體產品整合規劃銷售、顧問諮詢、導入、雲端建置及管理維運等服務",
+        "industry": "資訊服務業",
+        "text_source": "https://mops.twse.com.tw/mops/#/web/t05st03?companyId=6938"
+      }
+    },
+    {
       "isin": "GB00BLNBD412",
       "venue": "euronext",
       "country": "NO",
@@ -781,6 +818,33 @@
       "reason": "not_first_listing",
       "theme_hint": false,
       "pipeline_match": false
+    },
+    {
+      "venue": "hk_main",
+      "country": "HK",
+      "exchange": "HKEX",
+      "board": "Main",
+      "code": "02384",
+      "company": "Suzhou Dongshan Precision Manufacturing Co., Ltd. - H Shares",
+      "listing_date": "2026-10-28",
+      "industry": "",
+      "business": "",
+      "offer": "86.8",
+      "auto_exclusion": null,
+      "source_url": "https://www2.hkexnews.hk/New-Listings/New-Listing-Information/Main-Board",
+      "first_seen_at": "2026-10-28T12:56:21+00:00",
+      "status": "reviewed",
+      "reason": "not_first_listing",
+      "theme_hint": false,
+      "pipeline_match": false,
+      "auto_review": {
+        "decision": "not_first_listing",
+        "theme": null,
+        "evidence": "먼저 상장: A주 002384.SZ",
+        "text": "电子电路、光模块(含光芯片)、精密组件、光电显示模组的全球设计、生产和销售     苏州东山精密制造股份有限公司(DSBJ)始建于1998年,前身为1980年创立于苏州东山镇的一家小型钣金和冲压工厂。公司于2010年在深交所上市,现已在全球拥有全资、控股、参股企业70余家,与众多行业顶级客户建立了深厚且广泛的合作关系。DSBJ围绕电子电路、光电显示和精密制造三大业务板块,构建起高度协同的多元化产业矩阵。公司秉持\"创建更互联互通的新世界\"的使命,以\"成为全球领先的智能互连方案解",
+        "industry": "工业工程",
+        "text_source": "https://emweb.securities.eastmoney.com/PC_HKF10/pages/home/index.html?code=02384"
+      }
     }
   ]
 }
