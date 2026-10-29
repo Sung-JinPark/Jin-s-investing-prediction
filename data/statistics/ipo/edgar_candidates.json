@@ -2,10 +2,10 @@
   "schema_version": 2,
   "dataset_id": "ipo_edgar_424b4_auto_classification_v1",
   "cadence": "weekly",
-  "checked_at": "2026-09-28T01:41:32+00:00",
+  "checked_at": "2026-10-29T02:18:04+00:00",
   "reviewed_through": "2026-09-28",
   "window_start": "2026-09-29",
-  "window_end": "2026-09-28",
+  "window_end": "2026-10-29",
   "status": "current",
   "form": "424B4",
   "source": "sec_edgar_full_text_search",
@@ -23,13 +23,13 @@
   "historical_rows_locked": true,
   "allowed_update_scope": "current_era_rows_only_after_automatic_sec_prospectus_classification",
   "counts": {
-    "candidates": 19,
+    "candidates": 30,
     "already_in_cohort": 10,
     "pending_review": 0,
-    "new_decisions": 19,
-    "auto_included": 10,
-    "auto_excluded": 9,
-    "new_cohort_rows": 0
+    "new_decisions": 11,
+    "auto_included": 9,
+    "auto_excluded": 2,
+    "new_cohort_rows": 9
   },
   "errors": [],
   "candidates": [
@@ -423,6 +423,236 @@
       "reason_codes": [
         "not_initial_public_offering",
         "already_public_or_follow_on"
+      ]
+    },
+    {
+      "company": "Accelevation Holdings Corp.",
+      "cik": "0002141406",
+      "accession": "0001628280-26-064097",
+      "filed_at": "2026-10-01",
+      "form": "424B4",
+      "filing_url": "https://www.sec.gov/Archives/edgar/data/2141406/000162828026064097/accelevationllc-424b4.htm",
+      "ticker_hint": "ACCV",
+      "matched_keywords": [
+        "artificial intelligence",
+        "generative AI",
+        "machine learning"
+      ],
+      "already_in_cohort": false,
+      "review_status": "auto_include_core",
+      "decision_id": "9478e5b06231356e615a82dee5fad5759ca6c9409e1da242b3574821e8fae7b4",
+      "reason_codes": [
+        "eligible_initial_public_offering",
+        "ai_label_present_in_final_prospectus",
+        "user_directed_core_inclusion"
+      ]
+    },
+    {
+      "company": "Southport Acquisition Corp. II",
+      "cik": "0002148436",
+      "accession": "0001185185-26-004535",
+      "filed_at": "2026-10-02",
+      "form": "424B4",
+      "filing_url": "https://www.sec.gov/Archives/edgar/data/2148436/000118518526004535/southacq2424b4093026.htm",
+      "ticker_hint": null,
+      "matched_keywords": [
+        "artificial intelligence"
+      ],
+      "already_in_cohort": false,
+      "review_status": "auto_include_core",
+      "decision_id": "6e71c5c45a98d598ca3a46aa7aabf6b3a2f041fe7c826b087d709935d1779a9c",
+      "reason_codes": [
+        "eligible_initial_public_offering",
+        "ai_label_present_in_final_prospectus",
+        "user_directed_core_inclusion",
+        "spac_or_blank_check_vehicle"
+      ]
+    },
+    {
+      "company": "Pine Tree Acquisition Corp.",
+      "cik": "0002076561",
+      "accession": "0001477932-26-006063",
+      "filed_at": "2026-10-06",
+      "form": "424B4",
+      "filing_url": "https://www.sec.gov/Archives/edgar/data/2076561/000147793226006063/ptree_424b4.htm",
+      "ticker_hint": "PAXG",
+      "matched_keywords": [
+        "artificial intelligence"
+      ],
+      "already_in_cohort": false,
+      "review_status": "auto_include_core",
+      "decision_id": "72e78e7c5c8afb9286844d4dc5989d4ee0438b546749f255be700f611d65cfa1",
+      "reason_codes": [
+        "eligible_initial_public_offering",
+        "ai_label_present_in_final_prospectus",
+        "user_directed_core_inclusion",
+        "spac_or_blank_check_vehicle"
+      ]
+    },
+    {
+      "company": "Retension Pharmaceuticals, Inc.",
+      "cik": "0002002988",
+      "accession": "0001213900-26-108587",
+      "filed_at": "2026-10-09",
+      "form": "424B4",
+      "filing_url": "https://www.sec.gov/Archives/edgar/data/2002988/000121390026108587/ea0276911-10.htm",
+      "ticker_hint": null,
+      "matched_keywords": [
+        "artificial intelligence"
+      ],
+      "already_in_cohort": false,
+      "review_status": "auto_include_core",
+      "decision_id": "60d2f267f99b694053aacda1a3712663310e90636f44494b91fd60092c330ca2",
+      "reason_codes": [
+        "eligible_initial_public_offering",
+        "ai_label_present_in_final_prospectus",
+        "user_directed_core_inclusion"
+      ]
+    },
+    {
+      "company": "DarkIris Inc.",
+      "cik": "0002058584",
+      "accession": "0001493152-26-046431",
+      "filed_at": "2026-10-09",
+      "form": "424B4",
+      "filing_url": "https://www.sec.gov/Archives/edgar/data/2058584/000149315226046431/form424b4.htm",
+      "ticker_hint": "DKI",
+      "matched_keywords": [
+        "artificial intelligence"
+      ],
+      "already_in_cohort": false,
+      "review_status": "auto_exclude",
+      "decision_id": "6562dcdc8323af1548ef603afefc8f9c74b9f845212550d3e333aada1ca3d3b9",
+      "reason_codes": [
+        "not_initial_public_offering",
+        "already_public_or_follow_on"
+      ]
+    },
+    {
+      "company": "DarkIris Inc.",
+      "cik": "0002058584",
+      "accession": "0001493152-26-046432",
+      "filed_at": "2026-10-09",
+      "form": "424B4",
+      "filing_url": "https://www.sec.gov/Archives/edgar/data/2058584/000149315226046432/form424b4.htm",
+      "ticker_hint": "DKI",
+      "matched_keywords": [
+        "artificial intelligence"
+      ],
+      "already_in_cohort": false,
+      "review_status": "auto_exclude",
+      "decision_id": "d8ecf97e62521a478f33290b79783bc1e4f32df3446f7c79c77630d7ea7e8a4a",
+      "reason_codes": [
+        "not_initial_public_offering",
+        "already_public_or_follow_on"
+      ]
+    },
+    {
+      "company": "Amaero Inc.",
+      "cik": "0002141616",
+      "accession": "0001193125-26-422334",
+      "filed_at": "2026-10-15",
+      "form": "424B4",
+      "filing_url": "https://www.sec.gov/Archives/edgar/data/2141616/000119312526422334/project_alchemy_-_424b4.htm",
+      "ticker_hint": "AMRO",
+      "matched_keywords": [
+        "artificial intelligence"
+      ],
+      "already_in_cohort": false,
+      "review_status": "auto_include_core",
+      "decision_id": "70553b88ddf37ea64084d7cf7865bdb5054d99d435e0c18616e5d56ff969914e",
+      "reason_codes": [
+        "eligible_initial_public_offering",
+        "ai_label_present_in_final_prospectus",
+        "user_directed_core_inclusion"
+      ]
+    },
+    {
+      "company": "Iambic Therapeutics, Inc.",
+      "cik": "0001997038",
+      "accession": "0001193125-26-422865",
+      "filed_at": "2026-10-15",
+      "form": "424B4",
+      "filing_url": "https://www.sec.gov/Archives/edgar/data/1997038/000119312526422865/iambic_inception_424b4.htm",
+      "ticker_hint": "IAM",
+      "matched_keywords": [
+        "artificial intelligence",
+        "deep learning",
+        "generative AI",
+        "large language model",
+        "machine learning",
+        "neural network"
+      ],
+      "already_in_cohort": false,
+      "review_status": "auto_include_core",
+      "decision_id": "97a85f6243ca21605b841f02b96e3ee531f95f94d26db672035fee3c5874eb9f",
+      "reason_codes": [
+        "eligible_initial_public_offering",
+        "ai_label_present_in_final_prospectus",
+        "user_directed_core_inclusion"
+      ]
+    },
+    {
+      "company": "CITY THERAPEUTICS, INC.",
+      "cik": "0002143850",
+      "accession": "0001104659-26-116636",
+      "filed_at": "2026-10-16",
+      "form": "424B4",
+      "filing_url": "https://www.sec.gov/Archives/edgar/data/2143850/000110465926116636/tm2619715-10_424b4.htm",
+      "ticker_hint": "CTY",
+      "matched_keywords": [
+        "artificial intelligence",
+        "generative AI",
+        "machine learning"
+      ],
+      "already_in_cohort": false,
+      "review_status": "auto_include_core",
+      "decision_id": "dffceb3264289597399176c639cf814671a1496c4b41517b0dc765200560289e",
+      "reason_codes": [
+        "eligible_initial_public_offering",
+        "ai_label_present_in_final_prospectus",
+        "user_directed_core_inclusion"
+      ]
+    },
+    {
+      "company": "Lycia Therapeutics, Inc.",
+      "cik": "0001806540",
+      "accession": "0001628280-26-067048",
+      "filed_at": "2026-10-23",
+      "form": "424B4",
+      "filing_url": "https://www.sec.gov/Archives/edgar/data/1806540/000162828026067048/lyciatherapeutics-424b4.htm",
+      "ticker_hint": null,
+      "matched_keywords": [
+        "artificial intelligence"
+      ],
+      "already_in_cohort": false,
+      "review_status": "auto_include_core",
+      "decision_id": "eedff295c73437b2f50b7b8e4724fa8b5cabbba5d6aaafbdad625b8a3674061f",
+      "reason_codes": [
+        "eligible_initial_public_offering",
+        "ai_label_present_in_final_prospectus",
+        "user_directed_core_inclusion"
+      ]
+    },
+    {
+      "company": "SPACCircle Acquisition Corp.",
+      "cik": "0002131303",
+      "accession": "0001185185-26-005030",
+      "filed_at": "2026-10-27",
+      "form": "424B4",
+      "filing_url": "https://www.sec.gov/Archives/edgar/data/2131303/000118518526005030/spac424b4102626.htm",
+      "ticker_hint": "SCQC",
+      "matched_keywords": [
+        "artificial intelligence"
+      ],
+      "already_in_cohort": false,
+      "review_status": "auto_include_core",
+      "decision_id": "7ecc5831ba8511f296344dab37fcbedb3641c71259fac2301c79def683da0423",
+      "reason_codes": [
+        "eligible_initial_public_offering",
+        "ai_label_present_in_final_prospectus",
+        "user_directed_core_inclusion",
+        "spac_or_blank_check_vehicle"
       ]
     }
   ]

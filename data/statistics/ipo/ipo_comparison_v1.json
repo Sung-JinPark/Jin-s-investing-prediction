@@ -5,7 +5,7 @@
   "probability_space": "reference_only",
   "model_use": false,
   "official_forecast_input": false,
-  "as_of": "2026-09-28",
+  "as_of": "2026-10-29",
   "coverage": {
     "dotcom_years": [
       1995,
@@ -31,7 +31,7 @@
     "ai_broad_limit": "This is a reviewed market-narrative cohort, not a complete keyword census. It is intentionally broader than the AI-core minimum and should not be read as a pure-play count.",
     "ai_core_series": "Reviewed minimum count: final SEC 424B4, traditional U.S. exchange IPO, offer price at least USD 5, excluding ADRs, SPACs, REITs and direct listings; AI/ML product or compute infrastructure must be central to the prospectus summary",
     "ai_core_limit": "This is a conservative reviewed minimum, not a keyword census. A company that merely uses AI is excluded.",
-    "reviewed_through": "2026-09-28",
+    "reviewed_through": "2026-10-29",
     "excluded_2026_examples": "SharonAI was already public after a business combination; QumulusAI and Ionic Digital used direct listings. They are excluded from both traditional-IPO counts. Reformation is excluded because the public tracker rates it minimal AI usage.",
     "automation_policy": "sec_424b4_ai_label_v5",
     "automation_semantics": "SEC final 424B4 deterministic classification; every current-year actual IPO found by the registered AI keyword search is included in both the broad and core cohorts; structural follow-ons, mergers, and already-public issuers remain excluded"
@@ -207,7 +207,7 @@
     },
     {
       "year": 2026,
-      "through": "2026-09-28",
+      "through": "2026-10-29",
       "issuers": [
         {
           "name": "Rank One Computing",
@@ -338,6 +338,87 @@
           "basis": "SEC final prospectus: AI label + actual initial public offering; core under registered AI-label policy",
           "evidence_source_id": "SEC_AUTO_2094989_000118518526004253",
           "classification_decision_id": "3536451abeb53416e310e463f72fd7fc60269f7c2f95638aead2e43198c28c01"
+        },
+        {
+          "name": "Accelevation Holdings Corp.",
+          "ticker": "ACCV",
+          "dependency_tier": 5,
+          "core_member": true,
+          "basis": "SEC final prospectus: AI label + actual initial public offering; core under registered AI-label policy",
+          "evidence_source_id": "SEC_AUTO_2141406_000162828026064097",
+          "classification_decision_id": "9478e5b06231356e615a82dee5fad5759ca6c9409e1da242b3574821e8fae7b4"
+        },
+        {
+          "name": "Southport Acquisition Corp. II",
+          "ticker": "PORT",
+          "dependency_tier": 5,
+          "core_member": true,
+          "basis": "SEC final prospectus: AI label + actual initial public offering; core under registered AI-label policy",
+          "evidence_source_id": "SEC_AUTO_2148436_000118518526004535",
+          "classification_decision_id": "6e71c5c45a98d598ca3a46aa7aabf6b3a2f041fe7c826b087d709935d1779a9c"
+        },
+        {
+          "name": "Pine Tree Acquisition Corp.",
+          "ticker": "PAXGU",
+          "dependency_tier": 5,
+          "core_member": true,
+          "basis": "SEC final prospectus: AI label + actual initial public offering; core under registered AI-label policy",
+          "evidence_source_id": "SEC_AUTO_2076561_000147793226006063",
+          "classification_decision_id": "72e78e7c5c8afb9286844d4dc5989d4ee0438b546749f255be700f611d65cfa1"
+        },
+        {
+          "name": "Retension Pharmaceuticals, Inc.",
+          "ticker": "RTSN",
+          "dependency_tier": 5,
+          "core_member": true,
+          "basis": "SEC final prospectus: AI label + actual initial public offering; core under registered AI-label policy",
+          "evidence_source_id": "SEC_AUTO_2002988_000121390026108587",
+          "classification_decision_id": "60d2f267f99b694053aacda1a3712663310e90636f44494b91fd60092c330ca2"
+        },
+        {
+          "name": "Amaero Inc.",
+          "ticker": "AMRO",
+          "dependency_tier": 5,
+          "core_member": true,
+          "basis": "SEC final prospectus: AI label + actual initial public offering; core under registered AI-label policy",
+          "evidence_source_id": "SEC_AUTO_2141616_000119312526422334",
+          "classification_decision_id": "70553b88ddf37ea64084d7cf7865bdb5054d99d435e0c18616e5d56ff969914e"
+        },
+        {
+          "name": "Iambic Therapeutics, Inc.",
+          "ticker": "IAM",
+          "dependency_tier": 5,
+          "core_member": true,
+          "basis": "SEC final prospectus: AI label + actual initial public offering; core under registered AI-label policy",
+          "evidence_source_id": "SEC_AUTO_1997038_000119312526422865",
+          "classification_decision_id": "97a85f6243ca21605b841f02b96e3ee531f95f94d26db672035fee3c5874eb9f"
+        },
+        {
+          "name": "CITY THERAPEUTICS, INC.",
+          "ticker": "CTY",
+          "dependency_tier": 5,
+          "core_member": true,
+          "basis": "SEC final prospectus: AI label + actual initial public offering; core under registered AI-label policy",
+          "evidence_source_id": "SEC_AUTO_2143850_000110465926116636",
+          "classification_decision_id": "dffceb3264289597399176c639cf814671a1496c4b41517b0dc765200560289e"
+        },
+        {
+          "name": "Lycia Therapeutics, Inc.",
+          "ticker": "LYCA",
+          "dependency_tier": 5,
+          "core_member": true,
+          "basis": "SEC final prospectus: AI label + actual initial public offering; core under registered AI-label policy",
+          "evidence_source_id": "SEC_AUTO_1806540_000162828026067048",
+          "classification_decision_id": "eedff295c73437b2f50b7b8e4724fa8b5cabbba5d6aaafbdad625b8a3674061f"
+        },
+        {
+          "name": "SPACCircle Acquisition Corp.",
+          "ticker": "SCQCU",
+          "dependency_tier": 5,
+          "core_member": true,
+          "basis": "SEC final prospectus: AI label + actual initial public offering; core under registered AI-label policy",
+          "evidence_source_id": "SEC_AUTO_2131303_000118518526005030",
+          "classification_decision_id": "7ecc5831ba8511f296344dab37fcbedb3641c71259fac2301c79def683da0423"
         }
       ]
     }
@@ -544,8 +625,8 @@
       "unit": "count",
       "scale": "log1p",
       "description": "닷컴기의 인터넷 IPO와 현재의 AI 표방 신규 IPO를 함께 봅니다. 현재 광의선은 SEC 공모 문서에 AI 키워드가 있고 실제 신규 IPO인 운영회사·SPAC을 모두 포함하며, 핵심선도 같은 AI 표방 신규 IPO 전체를 반영합니다.",
-      "caveat": "현재 광의 15건은 AI 표방 여부를 넓게 포착한 관심도 지표라 닷컴기의 Ritter 전통 IPO 정의와 완전히 같은 모집단은 아닙니다. SPAC도 포함합니다. 현재 핵심선은 사용자 지정 AI 표방 기준으로 분류되어 과거의 엄격한 사업 중요도 기준과 직접 비교할 때 이 정의 차이를 함께 봐야 합니다. SK하이닉스 NASDAQ ADS 사건을 더한 영향 포함 값은 16건이며, 세로축은 log(1+x)입니다.",
-      "insight": "SEC 공모 문서에서 AI를 표방한 신규 IPO는 2026-09-28까지 15건이고 NASDAQ ADS를 포함한 자본시장 사건 진단치는 16입니다.",
+      "caveat": "현재 광의 24건은 AI 표방 여부를 넓게 포착한 관심도 지표라 닷컴기의 Ritter 전통 IPO 정의와 완전히 같은 모집단은 아닙니다. SPAC도 포함합니다. 현재 핵심선은 사용자 지정 AI 표방 기준으로 분류되어 과거의 엄격한 사업 중요도 기준과 직접 비교할 때 이 정의 차이를 함께 봐야 합니다. SK하이닉스 NASDAQ ADS 사건을 더한 영향 포함 값은 25건이며, 세로축은 log(1+x)입니다.",
+      "insight": "SEC 공모 문서에서 AI를 표방한 신규 IPO는 2026-10-29까지 24건이고 NASDAQ ADS를 포함한 자본시장 사건 진단치는 25입니다.",
       "source_ids": [
         "RITTER_INTERNET_IPO_2025",
         "RC_AI_MARKET_2024",
@@ -618,8 +699,8 @@
             },
             {
               "period": 36,
-              "date": "2026-09-28",
-              "value": 15
+              "date": "2026-10-29",
+              "value": 24
             }
           ]
         },
@@ -645,8 +726,8 @@
             },
             {
               "period": 36,
-              "date": "2026-09-28",
-              "value": 16
+              "date": "2026-10-29",
+              "value": 25
             }
           ]
         },
@@ -672,8 +753,8 @@
             },
             {
               "period": 36,
-              "date": "2026-09-28",
-              "value": 11
+              "date": "2026-10-29",
+              "value": 20
             }
           ]
         }
@@ -696,8 +777,8 @@
         },
         {
           "period": "2026 YTD",
-          "label": "Rank One Computing · Cerebras Systems · VIDA Global · Csquare · Standard Nuclear · Orion180 Insurance Group Inc. · Londian Wason New Energy Tech Inc. · Rainier Acquisition Corp · Electra Therapeutics, Inc. · SunScout Holding Ltd · Karman Line Acquisition Corp. · Lyntris Inc. · JATT III Acquisition Corp · Haymaker Acquisition Corp V · RUI Holdings Inc + SK hynix SKHY(NASDAQ ADS)",
-          "value": "AI 표방 신규 IPO 15 · ADS 영향 포함 16 · 핵심 11"
+          "label": "Rank One Computing · Cerebras Systems · VIDA Global · Csquare · Standard Nuclear · Orion180 Insurance Group Inc. · Londian Wason New Energy Tech Inc. · Rainier Acquisition Corp · Electra Therapeutics, Inc. · SunScout Holding Ltd · Karman Line Acquisition Corp. · Lyntris Inc. · JATT III Acquisition Corp · Haymaker Acquisition Corp V · RUI Holdings Inc · Accelevation Holdings Corp. · Southport Acquisition Corp. II · Pine Tree Acquisition Corp. · Retension Pharmaceuticals, Inc. · Amaero Inc. · Iambic Therapeutics, Inc. · CITY THERAPEUTICS, INC. · Lycia Therapeutics, Inc. · SPACCircle Acquisition Corp. + SK hynix SKHY(NASDAQ ADS)",
+          "value": "AI 표방 신규 IPO 24 · ADS 영향 포함 25 · 핵심 20"
         },
         {
           "period": "역사 맥락",
@@ -1779,6 +1860,123 @@
       "row_count": 1,
       "raw_sha256": "ab8ccee7aceafe2abbd638763f08713b48ae46227cf4542ff178c8d62e51819c",
       "vintage": "SEC_accession_0001185185-26-004253"
+    },
+    {
+      "series_id": "SEC_AUTO_2141406_000162828026064097",
+      "title": "Accelevation Holdings Corp. final IPO prospectus",
+      "provider": "U.S. Securities and Exchange Commission",
+      "unit": "filing",
+      "native_frequency": "event",
+      "source_url": "https://www.sec.gov/Archives/edgar/data/2141406/000162828026064097/accelevationllc-424b4.htm",
+      "available_at": "2026-10-01T00:00:00Z",
+      "latest_observation": "2026-10-01",
+      "row_count": 1,
+      "raw_sha256": "648c6b07bcf00198c9442b381e476b57f8039c0bffb8ec4839cecb56b9b2a1d7",
+      "vintage": "SEC_accession_0001628280-26-064097"
+    },
+    {
+      "series_id": "SEC_AUTO_2148436_000118518526004535",
+      "title": "Southport Acquisition Corp. II final IPO prospectus",
+      "provider": "U.S. Securities and Exchange Commission",
+      "unit": "filing",
+      "native_frequency": "event",
+      "source_url": "https://www.sec.gov/Archives/edgar/data/2148436/000118518526004535/southacq2424b4093026.htm",
+      "available_at": "2026-10-02T00:00:00Z",
+      "latest_observation": "2026-10-02",
+      "row_count": 1,
+      "raw_sha256": "042cb3b243b225e2dd070d86f961942d18bc36272e3e8012183763eb55ec35e0",
+      "vintage": "SEC_accession_0001185185-26-004535"
+    },
+    {
+      "series_id": "SEC_AUTO_2076561_000147793226006063",
+      "title": "Pine Tree Acquisition Corp. final IPO prospectus",
+      "provider": "U.S. Securities and Exchange Commission",
+      "unit": "filing",
+      "native_frequency": "event",
+      "source_url": "https://www.sec.gov/Archives/edgar/data/2076561/000147793226006063/ptree_424b4.htm",
+      "available_at": "2026-10-06T00:00:00Z",
+      "latest_observation": "2026-10-06",
+      "row_count": 1,
+      "raw_sha256": "7efba45fbc863528ddeea0a7908f924b41311fdaf2edd982723c656502c995e0",
+      "vintage": "SEC_accession_0001477932-26-006063"
+    },
+    {
+      "series_id": "SEC_AUTO_2002988_000121390026108587",
+      "title": "Retension Pharmaceuticals, Inc. final IPO prospectus",
+      "provider": "U.S. Securities and Exchange Commission",
+      "unit": "filing",
+      "native_frequency": "event",
+      "source_url": "https://www.sec.gov/Archives/edgar/data/2002988/000121390026108587/ea0276911-10.htm",
+      "available_at": "2026-10-09T00:00:00Z",
+      "latest_observation": "2026-10-09",
+      "row_count": 1,
+      "raw_sha256": "76f7515cee6b2f050615465d0686705b1758004f50467d5fc7fafadf91fc9a44",
+      "vintage": "SEC_accession_0001213900-26-108587"
+    },
+    {
+      "series_id": "SEC_AUTO_2141616_000119312526422334",
+      "title": "Amaero Inc. final IPO prospectus",
+      "provider": "U.S. Securities and Exchange Commission",
+      "unit": "filing",
+      "native_frequency": "event",
+      "source_url": "https://www.sec.gov/Archives/edgar/data/2141616/000119312526422334/project_alchemy_-_424b4.htm",
+      "available_at": "2026-10-15T00:00:00Z",
+      "latest_observation": "2026-10-15",
+      "row_count": 1,
+      "raw_sha256": "e865f502bbb21e28758e279fcf38925bc003171ad70df1acc135f2e23d2d0adb",
+      "vintage": "SEC_accession_0001193125-26-422334"
+    },
+    {
+      "series_id": "SEC_AUTO_1997038_000119312526422865",
+      "title": "Iambic Therapeutics, Inc. final IPO prospectus",
+      "provider": "U.S. Securities and Exchange Commission",
+      "unit": "filing",
+      "native_frequency": "event",
+      "source_url": "https://www.sec.gov/Archives/edgar/data/1997038/000119312526422865/iambic_inception_424b4.htm",
+      "available_at": "2026-10-15T00:00:00Z",
+      "latest_observation": "2026-10-15",
+      "row_count": 1,
+      "raw_sha256": "39e518a48f1c379531bbdd4ea1c48af4b66e19a18915f02cee9b2acee845875e",
+      "vintage": "SEC_accession_0001193125-26-422865"
+    },
+    {
+      "series_id": "SEC_AUTO_2143850_000110465926116636",
+      "title": "CITY THERAPEUTICS, INC. final IPO prospectus",
+      "provider": "U.S. Securities and Exchange Commission",
+      "unit": "filing",
+      "native_frequency": "event",
+      "source_url": "https://www.sec.gov/Archives/edgar/data/2143850/000110465926116636/tm2619715-10_424b4.htm",
+      "available_at": "2026-10-16T00:00:00Z",
+      "latest_observation": "2026-10-16",
+      "row_count": 1,
+      "raw_sha256": "9454a403aefac24f2fd9893690822b0f7c09c0903d9d8d1233835f3c87fad815",
+      "vintage": "SEC_accession_0001104659-26-116636"
+    },
+    {
+      "series_id": "SEC_AUTO_1806540_000162828026067048",
+      "title": "Lycia Therapeutics, Inc. final IPO prospectus",
+      "provider": "U.S. Securities and Exchange Commission",
+      "unit": "filing",
+      "native_frequency": "event",
+      "source_url": "https://www.sec.gov/Archives/edgar/data/1806540/000162828026067048/lyciatherapeutics-424b4.htm",
+      "available_at": "2026-10-23T00:00:00Z",
+      "latest_observation": "2026-10-23",
+      "row_count": 1,
+      "raw_sha256": "85072eb55e5ab3701638e790ba994f70bcfeb038b9a0cb4691dba74f1bbf69fa",
+      "vintage": "SEC_accession_0001628280-26-067048"
+    },
+    {
+      "series_id": "SEC_AUTO_2131303_000118518526005030",
+      "title": "SPACCircle Acquisition Corp. final IPO prospectus",
+      "provider": "U.S. Securities and Exchange Commission",
+      "unit": "filing",
+      "native_frequency": "event",
+      "source_url": "https://www.sec.gov/Archives/edgar/data/2131303/000118518526005030/spac424b4102626.htm",
+      "available_at": "2026-10-27T00:00:00Z",
+      "latest_observation": "2026-10-27",
+      "row_count": 1,
+      "raw_sha256": "15dd4b979e56111f4e55515e563a6ac78a55c064a45f815f5865d3c7e7b4faab",
+      "vintage": "SEC_accession_0001185185-26-005030"
     }
   ]
 }
