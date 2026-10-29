@@ -533,7 +533,12 @@ def test_public_supplemental_parsers_preserve_source_definitions() -> None:
 def test_manual_reference_staleness_stops_weekly_republication() -> None:
     ipo = _repo_ipo_reference()
     hmi = _repo_hmi_reference()
+    # The real EDGAR watcher advances the shipped IPO checkpoint. Isolate this
+    # validator's clock without changing the production fixture or its history.
+    ipo["as_of"] = "2026-09-28"
+    hmi["as_of"] = "2026-09-28"
     _validate_manual_reference_freshness(ipo, hmi, "2026-09-28T00:00:00+00:00")
+    _validate_manual_reference_freshness(ipo, hmi, "2026-10-12T00:00:00+00:00")
     with pytest.raises(StatisticsLabError, match="IPO reviewed cohort stale"):
         _validate_manual_reference_freshness(ipo, hmi, "2026-10-13T00:00:00+00:00")
 
@@ -1056,7 +1061,10 @@ def test_ipo_reference_is_actual_only_and_sec_auditable() -> None:
     validate_ipo_reference(payload)
     assert payload["coverage"]["current_axis_end"] == 2027
     assert payload["coverage"]["current_line_policy"] == "actual_observations_only_no_forecast_extension"
-    assert len(payload["sources"]) == 37
+    source_ids = [source["series_id"] for source in payload["sources"]]
+    assert source_ids and len(source_ids) == len(set(source_ids)), "원천 ID는 누적 후에도 유일해야 한다"
+    sources = {source["series_id"]: source for source in payload["sources"]}
+    assert all(set(chart["source_ids"]) <= sources.keys() for chart in payload["charts"])
     assert all(source["raw_sha256"] for source in payload["sources"])
     # IPO 참고 원장은 FRED를 쓰지 않는다 — 여기서 all()로 FRED URL을 검사하면
     # 빈 리스트에 대한 공허참이 된다. 부재 자체를 단언하는 것이 올바른 검사다.
@@ -1066,13 +1074,53 @@ def test_ipo_reference_is_actual_only_and_sec_auditable() -> None:
     assert not any("api_key" in str(source.get("request_url", "")) for source in payload["sources"])
     assert not any("fredgraph.csv" in str(source.get("request_url", "")) for source in payload["sources"])
     sec_sources = [source for source in payload["sources"] if source["series_id"].startswith("SEC_")]
-    assert len(sec_sources) == 17
+    assert sec_sources, "자동 편입된 SEC 공모 원문도 감사 가능한 원천으로 등록해야 한다"
     assert all("sec.gov/Archives/edgar/data" in source["source_url"] for source in sec_sources)
     broad = payload["ai_broad_cohort"]
-    assert [row["year"] for row in broad] == [2023, 2024, 2025, 2026]
-    assert [len(row["issuers"]) for row in broad] == [2, 5, 10, 15]
+    years = [row["year"] for row in broad]
+    assert years == sorted(set(years))
+    historical = [row for row in broad if row["year"] <= 2025]
+    assert [row["year"] for row in historical] == [2023, 2024, 2025]
+    assert [len(row["issuers"]) for row in historical] == [2, 5, 10]
     assert all(2 <= issuer["dependency_tier"] <= 5 for row in broad for issuer in row["issuers"])
-    assert [sum(issuer["core_member"] for issuer in row["issuers"]) for row in broad] == [0, 2, 3, 11]
+    assert [sum(issuer["core_member"] for issuer in row["issuers"]) for row in historical] == [0, 2, 3]
+    for row in broad:
+        tickers = [issuer["ticker"] for issuer in row["issuers"]]
+        assert len(tickers) == len(set(tickers)), "동일 코호트의 발행인을 중복 집계하면 안 된다"
+        assert all(issuer["evidence_source_id"] in sources for issuer in row["issuers"])
+    current_year = date.fromisoformat(payload["as_of"]).year
+    current = next(row for row in broad if row["year"] == current_year)
+    assert current["through"] == payload["classification"]["reviewed_through"] == payload["as_of"]
+    comparison = next(chart for chart in payload["charts"] if chart["id"] == "internet_vs_ai_core_ipos")
+    for label, expected in (
+        ("현재 광의 AI 연관 IPO", len(current["issuers"])),
+        ("현재 AI 핵심 최소치", sum(issuer["core_member"] for issuer in current["issuers"])),
+    ):
+        series = next(series for series in comparison["series"] if series["label"] == label)
+        assert series["points"][-1]["date"] == current["through"]
+        assert series["points"][-1]["value"] == expected
+    # Automatically admitted issuers retain their decision and filing identity.
+    # A registry entry may describe an earlier acquisition of the same filing;
+    # its original hash must not be rewritten to a later decision's snapshot.
+    root = Path(__file__).resolve().parents[2]
+    decisions = {
+        row["decision_id"]: row
+        for row in (
+            json.loads(line)
+            for line in (root / "data/statistics/ipo/classification_decisions.jsonl").read_text(
+                encoding="utf-8"
+            ).splitlines() if line.strip()
+        )
+    }
+    for row in broad:
+        for issuer in row["issuers"]:
+            if not issuer["evidence_source_id"].startswith("SEC_AUTO_"):
+                continue
+            decision = decisions[issuer["classification_decision_id"]]
+            source = sources[issuer["evidence_source_id"]]
+            assert decision["decision"] in {"include_broad", "include_core"}
+            assert source["source_url"] == decision["filing_url"]
+            assert len(decision["raw_sha256"]) == 64
     qualitative = payload["qualitative_ipo"]
     assert qualitative["listed_ai_beneficiary_watchlist"]["members"][0]["name"] == "SK hynix"
     assert qualitative["listed_ai_beneficiary_watchlist"]["members"][0]["count_period"] == 2026
