@@ -54,6 +54,7 @@ jobs:
           src/tests/test_authoritative_statistics.py
           src/tests/test_official_data_workbook.py
           src/tests/test_statistics_lab.py
+          src/tests/test_statistics_quarter_alignment.py
           src/tests/test_statistics_native.py
           src/tests/test_wti_history.py
           src/tests/test_dotcom_overheat.py

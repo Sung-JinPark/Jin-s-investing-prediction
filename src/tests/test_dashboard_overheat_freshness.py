@@ -50,6 +50,26 @@ def test_weekly_source_endpoint_remains_visible_for_a_monthly_average(tmp_path: 
     assert "시각 미상" in result["check"]
 
 
+@pytest.mark.parametrize("indicator_id", ["nasdaq_per_household_liquid_assets", "spx_per_federal_debt"])
+def test_quarter_end_ratio_explains_june_without_labeling_its_balance_as_april_data(tmp_path: Path, indicator_id: str) -> None:
+    result = _labels(tmp_path, [{"id": indicator_id, "freshness": {
+        "period_label": "2026년 2분기", "latest_observation": "2026-06-01",
+        "source_observation_through": "2026-04-01", "status": "current",
+        "sources": [{"frequency": "daily"}, {"frequency": "quarterly"}],
+    }}])[0]
+    assert result["period"] == "통계 기간 2026년 2분기 · 분기말 월 2026-06"
+    assert "2026-04" not in result["period"]
+
+
+def test_quarterly_source_in_an_earlier_quarter_remains_visible(tmp_path: Path) -> None:
+    result = _labels(tmp_path, [{"id": "spx_per_federal_debt", "freshness": {
+        "period_label": "2026년 2분기", "latest_observation": "2026-06-01",
+        "source_observation_through": "2026-01-01", "status": "observation_overdue",
+        "sources": [{"frequency": "monthly"}, {"frequency": "quarterly"}],
+    }}])[0]
+    assert result["period"] == "통계 기간 2026년 2분기 · 원자료 2026-01-01까지"
+
+
 def test_ipo_confirmed_period_and_provisional_definition_are_explicit(tmp_path: Path) -> None:
     result = _labels(tmp_path, [{"id": "ipo_count_operating_12m", "freshness": {
         "period_label": "2025-12 최근 12개월", "status": "source_waiting",

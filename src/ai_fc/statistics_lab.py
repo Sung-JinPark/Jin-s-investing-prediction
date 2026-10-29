@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import calendar
 import csv
 import hashlib
 import io
@@ -329,7 +330,7 @@ FRED_SERIES: dict[str, dict[str, str]] = {
         "title": "Federal debt: total public debt",
         "provider": "U.S. Department of the Treasury, Fiscal Service via Federal Reserve Bank of St. Louis",
         "unit": "millions_usd",
-        "native_frequency": "quarterly",
+        "native_frequency": "quarterly_end_of_period",
         "aggregation": "last",
         "window_start": "1966-01-01",
     },
@@ -1061,6 +1062,70 @@ def _ratio(left: list[dict[str, Any]], right: list[dict[str, Any]]) -> list[dict
         divisor = right_by_month.get(_month_key(row["date"]))
         if divisor not in (None, 0):
             result.append({"date": row["date"], "value": float(row["value"]) / divisor})
+    return result
+
+
+def _quarter_end_ratio(
+    left: list[dict[str, Any]], right: list[dict[str, Any]], *, as_of: date,
+    audit: dict[str, Any] | None = None,
+) -> list[dict[str, Any]]:
+    """Join monthly prices to explicitly selected quarter-end stock balances.
+
+    FRED labels these stocks with the first day of their quarter. That label is
+    not the price month: Q2 requires June. Derived dates follow the charts'
+    month-start convention (June 1 means June), without changing source dates or
+    claiming that the balance was available then. No filling or extrapolation.
+    """
+    prices: dict[tuple[int, int], float] = {}
+    for row in left:
+        try:
+            key = _month_key(row["date"])
+            value = float(row["value"])
+        except (TypeError, ValueError) as exc:
+            raise StatisticsLabError("quarter-end ratio monthly price invalid") from exc
+        if key in prices or not math.isfinite(value) or value <= 0:
+            raise StatisticsLabError("quarter-end ratio requires unique positive monthly prices")
+        prices[key] = value
+    result = []
+    missing = []
+    incomplete = []
+    outside = 0
+    quarters = set()
+    for row in sorted(right, key=lambda item: item["date"]):
+        try:
+            observed = date.fromisoformat(str(row["date"]))
+            balance = float(row["value"])
+        except (TypeError, ValueError) as exc:
+            raise StatisticsLabError("quarter-end ratio quarterly balance invalid") from exc
+        if observed.day != 1 or observed.month not in (1, 4, 7, 10):
+            raise StatisticsLabError("quarter-end balance requires an explicit quarter-start source label")
+        key = (observed.year, observed.month + 2)
+        if key in quarters or not math.isfinite(balance) or balance <= 0:
+            raise StatisticsLabError("quarter-end ratio requires unique positive quarterly balances")
+        quarters.add(key)
+        endpoint = date(*key, calendar.monthrange(*key)[1])
+        target = date(*key, 1).isoformat()
+        if endpoint > as_of:
+            incomplete.append(target)
+            continue
+        if key not in prices:
+            if prices and min(prices) <= key and (observed.year, observed.month) <= max(prices):
+                missing.append(target)
+            else:
+                outside += 1
+            continue
+        result.append({"date": target, "value": prices[key] / balance})
+    if audit is not None:
+        audit.update({
+            "method": "quarter_end_month_to_quarter_end_stock_v1",
+            "balance_source_date": "quarter_start_label",
+            "derived_date": "quarter_end_month_start",
+            "completed_quarters_only": True,
+            "matched_points": len(result),
+            "missing_price_months": missing,
+            "incomplete_quarters": incomplete,
+            "outside_price_coverage": outside,
+        })
     return result
 
 
@@ -2122,15 +2187,18 @@ def build_statistics_lab(
     dot_nasdaq_m2, cur_nasdaq_m2 = cycles(
         _ratio(monthly["NASDAQCOM"], monthly["M2SL"]), indexed=True,
     )
-    dot_nasdaq_cash, cur_nasdaq_cash = cycles(
-        _ratio(monthly["NASDAQCOM"], monthly["DABSHNO"]), indexed=True,
+    cash_alignment: dict[str, Any] = {}
+    debt_alignment: dict[str, Any] = {}
+    nasdaq_cash_ratio = _quarter_end_ratio(
+        monthly["NASDAQCOM"], monthly["DABSHNO"], as_of=generated_time.date(), audit=cash_alignment,
     )
-    dot_spx_debt, cur_spx_debt = cycles(
-        _ratio(monthly["SPASTT01USM661N"], monthly["GFDEBTN"]), indexed=True,
+    dot_nasdaq_cash, cur_nasdaq_cash = cycles(nasdaq_cash_ratio, indexed=True)
+    spx_debt_full_raw = _quarter_end_ratio(
+        monthly["SPASTT01USM661N"], monthly["GFDEBTN"], as_of=generated_time.date(), audit=debt_alignment,
     )
+    dot_spx_debt, cur_spx_debt = cycles(spx_debt_full_raw, indexed=True)
     # 전 구간(1966~) 레벨 경로.  5년 창 비교와 달리 1968·2000 고점과 현재 위치를
     # 한 선에서 본다.  분모가 분기 잔액이라 관측 밀도는 분기다.
-    spx_debt_full_raw = _ratio(monthly["SPASTT01USM661N"], monthly["GFDEBTN"])
     full_base = float(spx_debt_full_raw[0]["value"]) if spx_debt_full_raw else 1.0
     full_origin = _month_key(spx_debt_full_raw[0]["date"]) if spx_debt_full_raw else (1966, 1)
     spx_debt_full = [
@@ -2475,17 +2543,31 @@ def build_statistics_lab(
         )
         charts.insert(1, ipo_count_chart)
     by_id = {chart["id"]: chart for chart in charts}
+    for chart_id, audit, price_id, balance_id, price_measure in (
+        ("nasdaq_per_household_liquid_assets", cash_alignment, "NASDAQCOM", "DABSHNO",
+         "last_trading_close_of_quarter_end_month"),
+        ("spx_per_federal_debt", debt_alignment, "SPASTT01USM661N", "GFDEBTN",
+         "quarter_end_month_average"),
+        ("spx_per_federal_debt_full_history", debt_alignment, "SPASTT01USM661N", "GFDEBTN",
+         "quarter_end_month_average"),
+    ):
+        by_id[chart_id]["ratio_alignment"] = {
+            **audit, "price_series": price_id, "balance_series": balance_id,
+            "price_measure": price_measure,
+        }
+        if audit["missing_price_months"]:
+            raise StatisticsLabError(f"{chart_id}: missing exact quarter-end price months: {audit['missing_price_months']}")
     by_id["m2_nasdaq"]["scale"] = "log1p"
     full_chart = by_id["spx_per_federal_debt_full_history"]
     if spx_debt_full:
         last_period = spx_debt_full[-1]["period"]
         full_chart["max_period"] = last_period
         full_chart["x_ticks"] = [
-            [(year - full_origin[0]) * 12, str(year)]
+            [(year - full_origin[0]) * 12 + 1 - full_origin[1], str(year)]
             for year in range(full_origin[0] + 4, full_origin[0] + last_period // 12 + 1, 10)
         ]
         full_chart["axis_note"] = (
-            f"{full_origin[0]}년부터 현재까지 분기 관측 경로. 첫 관측=100."
+            f"{full_origin[0]}년 {full_origin[1]}월부터 현재까지 분기말 월의 관측 경로. 첫 관측=100."
         )
         full_chart["observed_end_label"] = "실제 관측 종료"
         full_chart["events"] = [
@@ -2549,18 +2631,22 @@ def build_statistics_lab(
             "매수·매도 신호가 아닙니다."
         ),
         "nasdaq_per_household_liquid_assets": (
-            "분모가 분기 자료라 관측치가 적습니다(닷컴 20개·현재 13개). "
+            "분기말 가계 잔액과 같은 분기 마지막 달의 NASDAQ 최종 거래 종가를 나눕니다. "
+            "그래프는 3·6·9·12월에 표시하고, 각 시대 첫 분기말 비율을 100으로 맞춥니다. "
+            "분기 자료라 관측치가 적고, 당시 알려진 자료만으로 재현한 과거 예측은 아닙니다. "
             "명목 비교입니다."
         ),
         "spx_per_federal_debt": (
             "분자는 OECD 미국 주가지수(S&P 계열 월평균, 2015=100)로 S&P 500 종가가 "
             "아니며 — FRED의 S&P 500은 최근 10년만 제공해 닷컴 구간 비교가 불가능합니다 — "
-            "분모는 재무부 분기말 연방부채 잔액입니다. 명목 비율의 시작=100 지수이며 "
+            "분모는 재무부 분기말 연방부채 잔액입니다. 같은 분기 마지막 달의 주가 월평균을 "
+            "나누고 3·6·9·12월에 표시합니다. 각 시대 첫 분기말 비율=100의 명목 지수이며 "
             "매수·매도 신호가 아닙니다."
         ),
         "spx_per_federal_debt_full_history": (
             "분자는 OECD 미국 주가지수(S&P 계열 월평균)로 S&P 500 종가가 아니고, "
-            "분모가 분기 잔액이라 관측 밀도는 분기입니다. 1966년 첫 관측=100의 "
+            "같은 분기 마지막 달의 주가 월평균을 분기말 잔액으로 나눕니다. "
+            "관측 밀도는 분기이며, 1966년 첫 관측=100의 "
             "명목 지수이며, 고점 표시는 데이터의 최대값이지 매매 기준선이 아닙니다. "
             "빨간 저항 추세선은 1968·2000 두 고점을 지나는 직선 참고선(차트 기법)으로 "
             "공식 통계가 아니며, 관측 범위 밖 미래로는 연장하지 않습니다. 접근·터치는 "
@@ -3121,6 +3207,24 @@ def validate_statistics_lab(payload: dict[str, Any], *, projected: bool = False)
     if len(ids) != len(set(ids)):
         raise StatisticsLabError("statistics chart ids must be unique")
     for chart in charts:
+        ratio_alignment = chart.get("ratio_alignment")
+        if ratio_alignment is not None:
+            if (not isinstance(ratio_alignment, dict)
+                    or ratio_alignment.get("method") != "quarter_end_month_to_quarter_end_stock_v1"
+                    or ratio_alignment.get("derived_date") != "quarter_end_month_start"
+                    or ratio_alignment.get("completed_quarters_only") is not True
+                    or ratio_alignment.get("missing_price_months") != []):
+                raise StatisticsLabError(f"chart {chart.get('id')} quarter-end ratio alignment invalid or missing price months")
+            try:
+                cutoff = datetime.fromisoformat(str(payload["generated_at"]).replace("Z", "+00:00")).date()
+            except (KeyError, TypeError, ValueError) as exc:
+                raise StatisticsLabError("quarter-end ratio generation cutoff invalid") from exc
+            for series in ([] if projected else chart.get("series") or []):
+                for point in series.get("points") or []:
+                    observed = date.fromisoformat(str(point["date"]))
+                    if (observed.day != 1 or observed.month not in (3, 6, 9, 12)
+                            or date(observed.year, observed.month, calendar.monthrange(observed.year, observed.month)[1]) > cutoff):
+                        raise StatisticsLabError(f"chart {chart.get('id')} quarter-end ratio observation date invalid")
         if (
             not chart.get("insight")
             or not chart.get("conclusion")
