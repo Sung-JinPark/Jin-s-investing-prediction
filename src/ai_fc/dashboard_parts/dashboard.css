@@ -1930,6 +1930,8 @@ body[data-view="future"] .page-heading .page-lede{margin:6px 0 0;font-size:12px}
 .oh-list button:hover{background:#faf9f5}
 .oh-list em{font-style:normal;font-size:13px;font-weight:650;min-width:0;word-break:keep-all;line-height:1.35}
 .oh-list em small{display:block;color:#8a877e;font-size:10.5px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.oh-freshness{grid-column:1/-1;display:grid;gap:2px;margin-top:-4px;color:#706d65;font-size:10.5px;font-weight:500;line-height:1.45;overflow-wrap:anywhere}
+.oh-freshness[data-oh-freshness="check_overdue"],.oh-freshness[data-oh-freshness="observation_overdue"],.oh-freshness[data-oh-freshness="unverified"]{color:#9a410c}
 .oh-list strong{color:var(--oh);font:800 14px/1.1 var(--mono);text-align:right}
 .oh-list strong small{display:block;font-size:9.5px;font-weight:600}
 .oh-track{position:relative;display:block;height:10px;border-radius:5px;background:#efeee8}

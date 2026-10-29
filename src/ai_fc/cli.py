@@ -1759,6 +1759,34 @@ def cmd_statistics_refresh() -> None:
     )
 
 
+@app.command("statistics-freshness")
+def cmd_statistics_freshness(
+    output: Path | None = typer.Option(None, "--output", help="지표별 원천 확인 JSON 보고서 저장 경로"),
+    strict: bool = typer.Option(False, "--strict", help="확인 지연·원천 장애가 있으면 종료코드 1"),
+) -> None:
+    """14개 지표의 자료 기간과 실제 원천 재확인 상태를 구분해 검사한다."""
+    from .statistics_freshness import audit_statistics_freshness, freshness_markdown
+    import yaml
+
+    try:
+        report = audit_statistics_freshness(config.ROOT)
+    except (OSError, ValueError, yaml.YAMLError) as exc:
+        # Preserve a machine-readable failure even when a required artifact is
+        # absent/corrupt. Exception text can contain source URLs, so keep a closed
+        # category/type rather than copying untrusted details into a report.
+        report = {"schema_version": 1, "dataset_id": "statistics_indicator_freshness_v1",
+                  "checked_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+                  "status": "error", "indicators": [], "issues": ["audit_artifact_error"],
+                  "auxiliary_issues": [], "error_type": type(exc).__name__,
+                  "error_category": "missing_data_or_artifact"}
+    if output is not None:
+        output.parent.mkdir(parents=True, exist_ok=True)
+        output.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    typer.echo(freshness_markdown(report))
+    if strict and report["status"] != "ok":
+        raise typer.Exit(code=1)
+
+
 @app.command("ipo-reference-batch")
 def cmd_ipo_reference_batch() -> None:
     """IPO 학술 원천 변경을 확인하고 현재 구간 검토 배치를 기록한다."""

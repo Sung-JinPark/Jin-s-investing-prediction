@@ -57,6 +57,8 @@ jobs:
           src/tests/test_statistics_native.py
           src/tests/test_wti_history.py
           src/tests/test_dotcom_overheat.py
+          src/tests/test_statistics_freshness.py
+          src/tests/test_statistics_refresh_workflow.py
           src/tests/test_theme_listing_watch.py
           src/tests/test_theme_listing_review.py
           src/tests/test_theme_listing_global.py
@@ -106,12 +108,18 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: gh workflow run pages.yml --repo "$GITHUB_REPOSITORY" --ref main
-      - name: Report unavailable sources after publishing verified partial updates
-        run: |
-          python - <<'PY'
-          import json
-          data = json.load(open('data/statistics/dotcom_statistics_latest.json', encoding='utf-8'))
-          waiting = data.get('source_refresh', {}).get('waiting_series', [])
-          if waiting:
-              raise SystemExit('Retained dated verified observations; source unavailable: ' + ', '.join(waiting))
-          PY
+      - name: Audit all 14 indicators after publishing verified partial updates
+        if: ${{ always() }}
+        shell: bash
+        run: >-
+          python -m ai_fc statistics-freshness
+          --output "$RUNNER_TEMP/statistics-freshness.json" --strict
+          | tee -a "$GITHUB_STEP_SUMMARY"
+      - name: Preserve the per-indicator freshness audit
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: statistics-freshness-${{ github.run_id }}
+          path: ${{ runner.temp }}/statistics-freshness.json
+          if-no-files-found: warn
+          retention-days: 30

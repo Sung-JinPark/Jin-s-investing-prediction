@@ -2,38 +2,42 @@ name: ipo-edgar-watch
 
 on:
   schedule:
-    # 금요일 23:40 UTC. 현재 연도 IPO 판정을 먼저 반영한 뒤 statistics-refresh(00:20)가
-    # 같은 기준을 읽어 사이트 통계를 재생성한다.
+    # 금요일 23:40 UTC. 판정이 바뀌면 statistics-refresh를 실행해 사이트 통계도 재생성한다.
     - cron: "40 23 * * 5"
   workflow_dispatch:
 
 permissions:
   contents: write
+  actions: write
 
 concurrency:
-  group: investing-data-writer
+  group: ${{ github.ref != 'refs/heads/main' && format('ipo-skipped-{0}', github.run_id) || 'investing-data-writer' }}
   cancel-in-progress: false
 
 jobs:
   watch:
+    if: ${{ github.ref == 'refs/heads/main' }}
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
         with:
+          ref: main
           fetch-depth: 0
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
       - name: Install statistics pipeline
         run: pip install -e "." pytest
-      - name: Sweep EDGAR 424B4 and classify completed AI IPOs
-        run: python -m ai_fc ipo-edgar-watch
       - name: Validate the watch contract
         run: pytest -q src/tests/test_ipo_edgar_watch.py
+      - name: Sweep EDGAR 424B4 and classify completed AI IPOs
+        run: python -m ai_fc ipo-edgar-watch
       - name: Commit the classification ledger and current-year projection
+        id: commit
         shell: bash
         run: |
+          echo "committed=false" >> "$GITHUB_OUTPUT"
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add data/statistics/ipo/edgar_candidates.json \
@@ -52,6 +56,12 @@ jobs:
           git commit -m "data: classify EDGAR AI IPOs $(date -u +%F)"
           git pull --rebase origin main
           git push origin HEAD:main
+          echo "committed=true" >> "$GITHUB_OUTPUT"
+      - name: Rebuild and publish statistics from changed IPO classifications
+        if: ${{ steps.commit.outcome == 'success' && steps.commit.outputs.committed == 'true' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run statistics-refresh.yml --repo "$GITHUB_REPOSITORY" --ref main
       - name: Report the review queue
         shell: bash
         run: |
@@ -76,4 +86,6 @@ jobs:
           print("Every actual IPO found by the AI keyword search is projected into the broad "
                 "and core cohorts automatically under the registered AI-label policy. "
                 "Every policy revision is preserved in the append-only classification ledger.")
+          if rows["status"] != "current" or rows["errors"]:
+              raise SystemExit("EDGAR watch retained partial evidence; unavailable sources need attention")
           PY

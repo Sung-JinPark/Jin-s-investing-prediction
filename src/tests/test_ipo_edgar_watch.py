@@ -24,6 +24,9 @@ ROOT = Path(__file__).resolve().parents[2]
 
 def _install_reference(tmp_path: Path) -> dict:
     payload = json.loads((ROOT / IPO_REFERENCE_PATH).read_text(encoding="utf-8"))
+    # The live sweep advances this field before CI runs. Keep the injected
+    # September test window independent of the production checkpoint.
+    payload["classification"]["reviewed_through"] = "2026-09-28"
     target = tmp_path / IPO_REFERENCE_PATH
     target.parent.mkdir(parents=True, exist_ok=True)
     target.write_text(
