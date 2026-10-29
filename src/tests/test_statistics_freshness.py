@@ -127,6 +127,15 @@ def test_wrong_ipo_hash_and_failed_provisional_source_are_reported():
     assert report["status"] == "attention"
 
 
+def test_failed_provisional_feed_cannot_leave_ipo_display_marked_current():
+    payload, contract, status = ipo_fixture()
+    status["nasdaq"]["status"] = "stale"
+    report = build_indicator_freshness(payload, contract=contract, checked_at=NOW, ipo_status=status)
+    assert report["indicators"][0]["status"] == "source_waiting"
+    assert report["indicators"][0]["provisional_value"] == 218
+    assert payload["charts"][0]["series"][0]["points"][-1]["value"] == 1.0
+
+
 def test_shipped_snapshot_all_fourteen_are_checked_against_current_source_receipts():
     # CI runs after a real acquisition, including deliberately retained partial
     # releases. Health failures belong to the post-publication strict audit;

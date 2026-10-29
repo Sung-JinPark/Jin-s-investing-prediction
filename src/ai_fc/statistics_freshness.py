@@ -235,9 +235,11 @@ def build_indicator_freshness(
             if row["id"] == "ipo_count_operating_12m":
                 summary = theme_status.get("summary") or {}
                 row["note"] += f" 해외 상장 감시 {summary.get('venues_ok', 0)}/{summary.get('venues_total', 0)}개 시장 확인."
-                if row["status"] == "current" and any(issue.startswith("ipo_theme_") for issue in auxiliary_issues):
-                    row["status"] = "source_waiting"
-                    row["status_label"] = STATUS_LABELS["source_waiting"]
+    for row in rows:
+        if (row["id"] == "ipo_count_operating_12m" and row["status"] == "current"
+                and any(issue.startswith("ipo_") for issue in auxiliary_issues)):
+            row["status"] = "source_waiting"
+            row["status_label"] = STATUS_LABELS["source_waiting"]
     issues = [row["id"] for row in rows if row["status"] != "current"]
     return {"schema_version": 1, "dataset_id": "statistics_indicator_freshness_v1",
             "checked_at": now.isoformat(timespec="seconds"), "snapshot_generated_at": payload.get("generated_at"),
@@ -270,6 +272,11 @@ def audit_statistics_freshness(root: Path, *, now: datetime | None = None) -> di
     if theme_status is None and any(row["id"] == "ipo_count_operating_12m" for row in report["indicators"]):
         report["auxiliary_issues"].append("ipo_theme_watch_missing")
         report["status"] = "attention"
+        for row in report["indicators"]:
+            if row["id"] == "ipo_count_operating_12m" and row["status"] == "current":
+                row["status"] = "unverified"
+                row["status_label"] = STATUS_LABELS["unverified"]
+                report["issues"].append(row["id"])
     return report
 
 
