@@ -186,7 +186,7 @@ def _rows(series_id: str) -> list[dict[str, float | str]]:
         if series_id in {
             "DABSHNO", "BOGZ1LM153064475Q", "BOGZ1LM893064105Q",
             "MMMFFAQ027S", "CDCABSHNO", "TSDABSHNO", "FGDSLAQ027S",
-            "BOGZ1FL153064235Q",
+            "BOGZ1FL153064235Q", "GFDEBTN",
         } and month not in {1, 4, 7, 10}:
             continue
         if series_id == "BOGZ1FL154022375A" and month != 1:

@@ -1391,7 +1391,10 @@ function overheatIndicatorFreshness(row){
   const info=row.freshness||{},status=info.status||'unverified';
   const labels={current:'정상 확인',source_waiting:'원천 응답 대기',check_overdue:'원천 재확인 필요',observation_overdue:'관측 지연 검수 필요',unverified:'확인 정보 없음'};
   const period=info.period_label||row.current_date||'기간 미상';
-  const source=info.source_observation_through&&info.source_observation_through!==info.latest_observation?` · 원자료 ${info.source_observation_through}까지`:'';
+  const quarter=value=>/^\d{4}-(0[1-9]|1[0-2])/.test(String(value||''))?`${String(value).slice(0,4)}-${Math.floor((Number(String(value).slice(5,7))-1)/3)}`:null;
+  const observedQuarter=quarter(info.latest_observation),sourceQuarter=quarter(info.source_observation_through);
+  const alignedQuarterEnd=(info.sources||[]).some(source=>source.frequency==='quarterly')&&observedQuarter&&observedQuarter===sourceQuarter&&[3,6,9,12].includes(Number(String(info.latest_observation).slice(5,7)));
+  const source=info.source_observation_through&&info.source_observation_through!==info.latest_observation?(alignedQuarterEnd?` · 분기말 월 ${String(info.latest_observation).slice(0,7)}`:` · 원자료 ${info.source_observation_through}까지`):'';
   const provisional=info.provisional_through?`잠정 참고 ${String(info.provisional_through).slice(0,7)} 최근 12개월${Number.isFinite(info.provisional_value)?` ${info.provisional_value.toLocaleString()}건`:''} · 확정치와 정의가 달라 지수에 미반영`:'';
   return {period:`${row.id==='ipo_count_operating_12m'?'확정 통계 기간':'통계 기간'} ${period}${source}`,check:`원천 확인 ${formatKstTimestamp(info.last_successful_check)} · ${labels[status]||labels.unverified}`,status,provisional,note:info.note||''};
 }

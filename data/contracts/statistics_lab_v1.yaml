@@ -18,6 +18,21 @@ cycle_alignment:
   current_line_policy: actual_observations_only_no_forecast_extension
   interpretation: Descriptive alignment only; not a forecast or probability.
 
+quarter_end_stock_ratios:
+  method: quarter_end_month_to_quarter_end_stock_v1
+  balance_source_date: quarter_start_label
+  derived_date: quarter_end_month_start
+  price_month: exact_same_quarter_final_month
+  completed_quarters_only: true
+  missing_internal_price_month: reject_with_auditable_reason
+  fill_or_extrapolate: false
+  normalization: first_available_quarter_endpoint_in_each_cycle_equals_100
+  historical_availability: latest_vintage_reference_only_not_point_in_time_forecast
+  charts:
+    nasdaq_per_household_liquid_assets: {price: NASDAQCOM, balance: DABSHNO, price_measure: last_trading_close_of_quarter_end_month}
+    spx_per_federal_debt: {price: SPASTT01USM661N, balance: GFDEBTN, price_measure: quarter_end_month_average}
+    spx_per_federal_debt_full_history: {price: SPASTT01USM661N, balance: GFDEBTN, price_measure: quarter_end_month_average, normalization: first_available_full_history_quarter_endpoint_equals_100}
+
 sources:
   fred:
     endpoint: https://api.stlouisfed.org/fred/series/observations
@@ -56,7 +71,7 @@ sources:
       NASDAQSOX: {native_frequency: daily_close, unit: index, aggregation: last, role: us_semiconductor_index_reference}
       SPASTT01KRM661N: {native_frequency: monthly, unit: index_2015_100, aggregation: last, role: korea_share_price_reference}
       SPASTT01USM661N: {native_frequency: monthly, unit: index_2015_100, aggregation: last, role: us_share_price_full_history_sp_family_monthly_average}
-      GFDEBTN: {native_frequency: quarterly, unit: millions_usd, aggregation: last, role: federal_total_public_debt_denominator}
+      GFDEBTN: {native_frequency: quarterly_end_of_period, unit: millions_usd, aggregation: last, role: federal_total_public_debt_denominator}
       HOUST: {native_frequency: monthly, unit: thousands_saar, aggregation: last, role: housing_starts_cycle_reference}
       GDP: {native_frequency: quarterly, unit: billions_usd_saar, aggregation: last, role: investment_share_denominator}
       Y034RC1Q027SBEA: {native_frequency: quarterly, unit: billions_usd_saar, aggregation: last, role: information_processing_equipment_investment}
