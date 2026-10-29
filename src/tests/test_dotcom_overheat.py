@@ -6,6 +6,7 @@ import json
 import statistics
 from pathlib import Path
 
+import pytest
 import yaml
 
 from ai_fc.dotcom_overheat import CONTRACT_RELATIVE, compute_index, dotcom_range_position
@@ -279,16 +280,80 @@ def test_v5_contract_drops_the_size_floor_and_commits_deepseek_on_listing() -> N
     assert "SME" in ipo["venue_rule"] and "한 번" in ipo["event_rule"]
 
 
-def test_indicators_carry_their_data_month_so_a_flat_composite_is_explained() -> None:
-    """입력 14종 중 9종이 분기·연간이라 대표값은 발표 사이에 그대로다 — 지표마다 자료월을 내보낸다."""
+def test_indicators_separate_the_statistical_period_from_source_checks() -> None:
+    """분기 시작일·월간 집계와 원천 확인 시각은 서로 다른 표시 정보다."""
     result = compute_index(ROOT)
     if result.get("status") != "ok":
         import pytest
         pytest.skip("statistics snapshot unavailable")
     for row in result["indicators"]:
         assert row["current_date"] and len(row["current_date"]) == 10
-    panel = (ROOT / "src/ai_fc/dashboard_parts/dashboard.js").read_text(encoding="utf-8")
-    assert "자료 ${esc(dataMonth(r))}" in panel and "current_date" in panel
+        assert row["freshness"]["id"] == row["id"]
+        assert row["freshness"]["period_label"]
+        assert "last_successful_check" in row["freshness"]
+        assert row["freshness"]["status"] in {
+            "current", "source_waiting", "check_overdue", "observation_overdue", "unverified",
+        }
+    quarters = {"nasdaq_per_household_liquid_assets", "spx_per_federal_debt", "valuation_proxy",
+                "margin_credit", "investment_share_gdp", "corporate_bond_stock",
+                "household_debt_service", "loan_standards"}
+    for row in result["indicators"]:
+        if row["id"] in quarters:
+            assert "분기" in row["freshness"]["period_label"]
+
+
+def test_freshness_metadata_cannot_change_index_calculations(tmp_path: Path) -> None:
+    """동일 입력의 숫자·집계 결과는 원천 확인 메타데이터 추가 전후에 완전히 같아야 한다."""
+    chart = {"id": "c", "category": "credit", "source_ids": ["SOURCE"],
+             "series": [_series("닷컴", "dotcom", list(range(13))),
+                        _series("현재", "current", [8.0] * 13)]}
+    _write(tmp_path, [chart], [{"id": "i", "chart": "c", "dotcom_series": "닷컴",
+                              "current_series": "현재", "direction": "higher_is_hotter"}])
+    before = compute_index(tmp_path)
+    path = tmp_path / "data/statistics/dotcom_statistics_latest.json"
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    payload["sources"] = [{"series_id": "SOURCE", "native_frequency": "quarterly",
+                           "latest_observation": "1996-01-01",
+                           "available_at": "2026-10-29T00:00:00Z"}]
+    path.write_text(json.dumps(payload, ensure_ascii=False), encoding="utf-8")
+    after = compute_index(tmp_path)
+    assert before["indicators"][0]["freshness"] != after["indicators"][0]["freshness"]
+    for result in (before, after):
+        for row in result["indicators"]:
+            row.pop("freshness")
+    assert before == after
+
+
+@pytest.mark.parametrize("error", [OSError("unreadable receipt ledger"), ValueError("invalid receipt")])
+def test_source_check_read_failure_preserves_all_index_numbers(tmp_path: Path, monkeypatch, error: Exception) -> None:
+    from ai_fc import dotcom_overheat
+
+    chart = {"id": "c", "category": "credit", "source_ids": ["SOURCE"],
+             "series": [_series("닷컴", "dotcom", list(range(13))),
+                        _series("현재", "current", [8.0] * 13)]}
+    _write(tmp_path, [chart], [{"id": "i", "chart": "c", "dotcom_series": "닷컴",
+                              "current_series": "현재", "direction": "higher_is_hotter"}])
+    path = tmp_path / "data/statistics/dotcom_statistics_latest.json"
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    payload["sources"] = [{"series_id": "SOURCE", "native_frequency": "quarterly",
+                           "latest_observation": "1996-01-01"}]
+    path.write_text(json.dumps(payload, ensure_ascii=False), encoding="utf-8")
+    monkeypatch.setattr(dotcom_overheat, "load_source_checks",
+                        lambda *_: {"SOURCE": "2026-10-29T00:00:00Z"})
+    before = compute_index(tmp_path)
+
+    def unreadable(*_):
+        raise error
+
+    monkeypatch.setattr(dotcom_overheat, "load_source_checks", unreadable)
+    after = compute_index(tmp_path)
+    assert after["status"] == "ok"
+    assert after["indicators"][0]["freshness"]["status"] == "unverified"
+    assert after["indicators"][0]["freshness"]["last_successful_check"] is None
+    for result in (before, after):
+        for row in result["indicators"]:
+            row.pop("freshness")
+    assert before == after
 
 
 def test_live_index_includes_the_confirmed_ipo_count_in_its_own_category() -> None:

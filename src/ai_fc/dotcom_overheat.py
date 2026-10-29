@@ -4,9 +4,9 @@ v2(2026-10-06): IPO 건수(운영기업 12개월 합, Ritter 확정치만) 지�
 시대 핵심 ADR 가산. v4(2026-10-23): 시대 핵심 테마의 해외 대형 IPO(상장지 불문) 가산. v1~v3 은
 역사 기록으로 남아 있다.
 
-지수는 매일 대시보드 빌드 때 통계 스냅샷에서 다시 계산된다. 입력 14종 중 9종이 분기·연간
-(Z.1·GDP·Ritter) 계열이라 대표값은 분기 발표 사이에 그대로일 수 있다 — 그래서 지표마다
-`current_date`(자료 기준월)를 함께 내보내 화면이 "언제 자료인지"를 보이게 한다.
+지수는 매일 대시보드 빌드 때 통계 스냅샷에서 다시 계산된다. 분기·저빈도 발표 계열은
+발표 사이에 값이 그대로일 수 있다. 지표마다 통계 기간과 원천 확인 시각을 따로 내보내며,
+분기 시작일을 월간 관측치로 오인하지 않도록 분기를 명시한다.
 
 읽는 사람이 알고 싶은 것은 "닷컴 정점에 얼마나 가까운가" 다. 그래서 **100% 를 닷컴
 사이클의 극단(정점)에 고정**한다 — 100% 면 그 지표는 닷컴이 터지기 직전 수준이고,
@@ -35,6 +35,8 @@ from pathlib import Path
 from typing import Any
 
 import yaml
+
+from .statistics_freshness import build_indicator_freshness, load_source_checks
 
 CONTRACT_RELATIVE = Path("data/contracts/dotcom_overheat_index_v5.yaml")
 STATISTICS_RELATIVE = Path("data/statistics/dotcom_statistics_latest.json")
@@ -85,6 +87,21 @@ def compute_index(root: Path) -> dict[str, Any]:
     charts = {chart.get("id"): chart for chart in payload.get("charts") or []}
     method = contract.get("method") or {}
     minimum = int(method.get("minimum_reference_points", 12))
+    try:
+        ipo_status = json.loads((root / "data/statistics/ipo/monthly_counts_status.json")
+                                .read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        ipo_status = None
+    try:
+        source_checks = load_source_checks(root, payload)
+    except (OSError, ValueError):
+        # 확인 기록 장애는 수집 상태를 미검증으로 표시하며 검수된 수치 계산은 보존한다.
+        source_checks = {}
+    freshness = build_indicator_freshness(
+        payload, contract=contract, ipo_status=ipo_status,
+        source_checks=source_checks,
+    )
+    freshness_by_id = {row["id"]: row for row in freshness["indicators"]}
 
     rows: list[dict[str, Any]] = []
     skipped: list[dict[str, str]] = []
@@ -120,6 +137,8 @@ def compute_index(root: Path) -> dict[str, Any]:
             # 자료 기준월 — 분기·연간 입력은 발표 사이에 값이 그대로다. 화면이 이것을 보여야
             # "매일 갱신되는데 왜 같은가" 가 설명된다.
             "current_date": latest.get("date"),
+            # 표시·운영 상태만 추가한다. 위 pct 계산과 지수 집계의 입력은 바꾸지 않는다.
+            "freshness": freshness_by_id.get(spec.get("id"), {}),
             "dotcom_low": round(min(reference), 4),
             "dotcom_high": round(max(reference), 4),
             "reference_n": len(reference),

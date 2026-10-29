@@ -1387,6 +1387,14 @@ function renderFearGreedLab(){
    확률이 아니다. 대표값은 언제나 부문 산포와 함께 낸다(홈 카드와 같은 규칙). */
 const OVERHEAT_CATEGORY_LABELS={economy:'경기·물가',rates:'금리',valuation:'기업가치',credit:'신용',liquidity:'유동성',ipo:'IPO·상장'};
 const overheatTone=v=>v>=100?'is-over':v>=80?'is-hot':v>=50?'is-warm':'is-cool';
+function overheatIndicatorFreshness(row){
+  const info=row.freshness||{},status=info.status||'unverified';
+  const labels={current:'정상 확인',source_waiting:'원천 응답 대기',check_overdue:'원천 재확인 필요',observation_overdue:'관측 지연 검수 필요',unverified:'확인 정보 없음'};
+  const period=info.period_label||row.current_date||'기간 미상';
+  const source=info.source_observation_through&&info.source_observation_through!==info.latest_observation?` · 원자료 ${info.source_observation_through}까지`:'';
+  const provisional=info.provisional_through?`잠정 참고 ${String(info.provisional_through).slice(0,7)} 최근 12개월${Number.isFinite(info.provisional_value)?` ${info.provisional_value.toLocaleString()}건`:''} · 확정치와 정의가 달라 지수에 미반영`:'';
+  return {period:`${row.id==='ipo_count_operating_12m'?'확정 통계 기간':'통계 기간'} ${period}${source}`,check:`원천 확인 ${formatKstTimestamp(info.last_successful_check)} · ${labels[status]||labels.unverified}`,status,provisional,note:info.note||''};
+}
 function statisticsOverheatPanel(idx){
   const sig=dotcomOverheatSignal(idx);
   if(!sig)return null;
@@ -1395,18 +1403,14 @@ function statisticsOverheatPanel(idx){
   const X=v=>Math.max(0,Math.min(100,Number(v)/top*100));
   const bar=(v,cls='')=>`<span class="oh-track"><i class="oh-fill ${cls||overheatTone(v)}" style="width:${X(v).toFixed(1)}%"></i><b class="oh-peak" style="left:${X(100).toFixed(1)}%"></b></span>`;
   const catRows=cats.map(([key,v])=>`<li><em>${esc(OVERHEAT_CATEGORY_LABELS[key]||key)}</em>${bar(v)}<strong class="${overheatTone(v)}">${Math.round(v)}%</strong></li>`).join('');
-  /* 자료월: 입력 14종 중 9종이 분기·연간 계열이라 대표값은 발표 사이에 그대로다 — 지표마다
-     어느 달 자료인지 보여야 "매일 갱신인데 왜 같은가" 가 화면에서 설명된다. */
-  const dataMonth=r=>r.current_date?String(r.current_date).slice(0,7):'';
-  const indRows=rows.map(r=>`<li><button type="button" data-oh-jump="${esc(r.chart||'')}" title="${esc(r.why||'')}"><em>${esc(r.title||r.id)}<small>${esc(OVERHEAT_CATEGORY_LABELS[r.category]||r.category)}${r.why?` · ${esc(r.why)}`:''}${dataMonth(r)?` · 자료 ${esc(dataMonth(r))}`:''}</small></em>${bar(r.pct)}<strong class="${overheatTone(r.pct)}">${Math.round(r.pct)}%${r.beyond_dotcom_peak?'<small>정점 초과</small>':''}</strong></button></li>`).join('');
-  const months=rows.map(dataMonth).filter(Boolean).sort();
-  const dataRange=months.length?` · 자료 ${esc(months[0])}~${esc(months[months.length-1])}`:'';
+  // 통계 기간(분기·월)과 실제 원천 확인 시각을 분리한다. 둘 다 갱신 성공을 뜻하지는 않는다.
+  const indRows=rows.map(r=>{const info=overheatIndicatorFreshness(r);return `<li><button type="button" data-oh-jump="${esc(r.chart||'')}" title="${esc(r.why||'')}"><em>${esc(r.title||r.id)}<small>${esc(OVERHEAT_CATEGORY_LABELS[r.category]||r.category)}${r.why?` · ${esc(r.why)}`:''}</small></em>${bar(r.pct)}<strong class="${overheatTone(r.pct)}">${Math.round(r.pct)}%${r.beyond_dotcom_peak?'<small>정점 초과</small>':''}</strong><span class="oh-freshness" data-oh-freshness="${esc(info.status)}"><span>${esc(info.period)}</span><span>${esc(info.check)}</span>${info.provisional?`<span>${esc(info.provisional)}</span>`:''}${info.note?`<span>${esc(info.note)}</span>`:''}</span></button></li>`;}).join('');
   const node=el(`<section class="statistics-overheat" aria-labelledby="statistics-overheat-title"><h2 id="statistics-overheat-title">닷컴 대비 과열도</h2>`
     +`<div class="oh-hero"><div class="oh-score ${overheatTone(sig.pct)}"><span>현재</span><strong>${sig.pct}<small>%</small></strong><p>부문별 ${sig.lo}~${sig.hi}% · 정점 초과 ${sig.beyond}개 / ${sig.included}개</p></div>`
     +`<div class="oh-gauge"><div class="oh-gauge-bar"><i class="oh-span" style="left:${X(sig.lo).toFixed(1)}%;width:${(X(sig.hi)-X(sig.lo)).toFixed(1)}%"></i><b class="oh-peak" style="left:${X(100).toFixed(1)}%"></b><b class="oh-pin" style="left:${X(sig.pct).toFixed(1)}%"></b></div>`
     +`<div class="oh-gauge-scale"><span style="left:0">0%</span><span style="left:${X(50).toFixed(1)}%">50%</span><span class="is-peak" style="left:${X(100).toFixed(1)}%">닷컴 정점 100%</span></div></div></div>`
     +`<div class="oh-grid"><div><h3>부문별</h3><ul class="oh-list">${catRows}</ul></div><div><h3>지표별 ${rows.length}개</h3><ul class="oh-list is-indicators">${indRows}</ul></div></div>`
-    +`<p class="oh-note">확률 아님 · 100% = 닷컴 사이클 정점(1995~1999 범위 위치) · 부문 중앙값의 중앙값 · 참고 의견${idx.as_of?` · ${esc(idx.as_of)} 기준`:''}${dataRange}</p></section>`);
+    +`<p class="oh-note">확률 아님 · 100% = 닷컴 사이클 정점(1995~1999 범위 위치) · 부문 중앙값의 중앙값 · 참고 의견${idx.as_of?` · ${esc(idx.as_of)} 기준`:''}</p><p class="oh-note">통계 기간은 값이 측정된 기간이고 원천 확인은 공개 자료를 확인한 시각입니다. 분기 자료는 다음 발표 전까지 유지됩니다.</p></section>`);
   node.querySelectorAll('[data-oh-jump]').forEach(button=>button.onclick=()=>{
     const card=document.querySelector(`[data-stat-id="${CSS.escape(button.dataset.ohJump)}"]`);
     if(!card)return;

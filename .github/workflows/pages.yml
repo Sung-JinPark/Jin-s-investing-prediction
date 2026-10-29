@@ -21,7 +21,7 @@ on:
   # trendlines-refresh dispatches only after a meaningful verified change.
   workflow_dispatch:
   workflow_run:
-    workflows: ["investing-refresh", "scenario-refresh", "ai-regime-refresh", "statistics-refresh", "timeseries-refresh", "timeseries-v5-refresh", "timeseries-v2-refresh", "timeseries-v8-shadow", "timeseries-v8-daily", "timeseries-v13-vol-live", "market-mood-refresh", "source-monitoring", "timeseries-daily6m"]
+    workflows: ["investing-refresh", "scenario-refresh", "ai-regime-refresh", "statistics-refresh", "statistics-backfill", "timeseries-refresh", "timeseries-v5-refresh", "timeseries-v2-refresh", "timeseries-v8-shadow", "timeseries-v8-daily", "timeseries-v13-vol-live", "market-mood-refresh", "source-monitoring", "timeseries-daily6m"]
     types: [completed]
 
 permissions:
