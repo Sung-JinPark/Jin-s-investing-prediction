@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "dataset_id": "theme_listing_watch_v1",
-  "checked_at": "2026-10-29T05:33:31+00:00",
+  "checked_at": "2026-10-29T07:22:12+00:00",
   "watch_start": "2026-10-01",
   "census_through": "2026-10-22",
   "role": "listing_watch_with_auto_review",
@@ -34,8 +34,8 @@
     "cn_a": {
       "status": "current",
       "error": null,
-      "checked_at": "2026-10-29T05:33:31+00:00",
-      "last_ok_at": "2026-10-29T05:33:31+00:00",
+      "checked_at": "2026-10-29T07:22:12+00:00",
+      "last_ok_at": "2026-10-29T07:22:12+00:00",
       "rows": 9,
       "label": "중국 A주(상해·심천·북경)",
       "source_url": "https://data.eastmoney.com/xg/xg/"
@@ -43,8 +43,8 @@
     "hk_main": {
       "status": "current",
       "error": null,
-      "checked_at": "2026-10-29T05:33:31+00:00",
-      "last_ok_at": "2026-10-29T05:33:31+00:00",
+      "checked_at": "2026-10-29T07:22:12+00:00",
+      "last_ok_at": "2026-10-29T07:22:12+00:00",
       "rows": 3,
       "label": "홍콩 Main Board",
       "source_url": "https://www2.hkexnews.hk/New-Listings/New-Listing-Information/Main-Board"
@@ -52,8 +52,8 @@
     "kr": {
       "status": "current",
       "error": null,
-      "checked_at": "2026-10-29T05:33:31+00:00",
-      "last_ok_at": "2026-10-29T05:33:31+00:00",
+      "checked_at": "2026-10-29T07:22:12+00:00",
+      "last_ok_at": "2026-10-29T07:22:12+00:00",
       "rows": 9,
       "label": "한국 KOSPI·KOSDAQ",
       "source_url": "https://kind.krx.co.kr/listinvstg/listingcompany.do?method=searchListingTypeMain"
@@ -61,8 +61,8 @@
     "jp": {
       "status": "current",
       "error": null,
-      "checked_at": "2026-10-29T05:33:31+00:00",
-      "last_ok_at": "2026-10-29T05:33:31+00:00",
+      "checked_at": "2026-10-29T07:22:12+00:00",
+      "last_ok_at": "2026-10-29T07:22:12+00:00",
       "rows": 4,
       "label": "일본 JPX",
       "source_url": "https://www.jpx.co.jp/listing/stocks/new/index.html"
@@ -70,8 +70,8 @@
     "tw_twse": {
       "status": "current",
       "error": null,
-      "checked_at": "2026-10-29T05:33:31+00:00",
-      "last_ok_at": "2026-10-29T05:33:31+00:00",
+      "checked_at": "2026-10-29T07:22:12+00:00",
+      "last_ok_at": "2026-10-29T07:22:12+00:00",
       "rows": 3,
       "label": "대만 TWSE",
       "source_url": "https://www.twse.com.tw/zh/listed/listed-company/newlisting.html"
@@ -79,8 +79,8 @@
     "tw_tpex": {
       "status": "current",
       "error": null,
-      "checked_at": "2026-10-29T05:33:31+00:00",
-      "last_ok_at": "2026-10-29T05:33:31+00:00",
+      "checked_at": "2026-10-29T07:22:12+00:00",
+      "last_ok_at": "2026-10-29T07:22:12+00:00",
       "rows": 5,
       "label": "대만 TPEx",
       "source_url": "https://www.tpex.org.tw/openapi/v1/mopsfin_t187ap03_O"
@@ -88,8 +88,8 @@
     "euronext": {
       "status": "current",
       "error": null,
-      "checked_at": "2026-10-29T05:33:31+00:00",
-      "last_ok_at": "2026-10-29T05:33:31+00:00",
+      "checked_at": "2026-10-29T07:22:12+00:00",
+      "last_ok_at": "2026-10-29T07:22:12+00:00",
       "rows": 4,
       "label": "Euronext(파리·밀라노·암스테르담·브뤼셀·오슬로·리스본·더블린)",
       "source_url": "https://live.euronext.com/en/ipo-showcase"
@@ -97,8 +97,8 @@
     "lse": {
       "status": "current",
       "error": null,
-      "checked_at": "2026-10-29T05:33:31+00:00",
-      "last_ok_at": "2026-10-29T05:33:31+00:00",
+      "checked_at": "2026-10-29T07:22:12+00:00",
+      "last_ok_at": "2026-10-29T07:22:12+00:00",
       "rows": 0,
       "label": "런던 LSE(Main·AIM)",
       "source_url": "https://www.londonstockexchange.com/reports?tab=new-issues-and-ipos"
@@ -106,8 +106,8 @@
     "us_adr": {
       "status": "current",
       "error": null,
-      "checked_at": "2026-10-29T05:33:31+00:00",
-      "last_ok_at": "2026-10-29T05:33:31+00:00",
+      "checked_at": "2026-10-29T07:22:12+00:00",
+      "last_ok_at": "2026-10-29T07:22:12+00:00",
       "rows": 0,
       "label": "미국 ADS 첫 공모(SEC 424B4)",
       "source_url": "https://efts.sec.gov/LATEST/search-index"
@@ -115,8 +115,8 @@
     "us_ipo": {
       "status": "current",
       "error": null,
-      "checked_at": "2026-10-29T05:33:31+00:00",
-      "last_ok_at": "2026-10-29T05:33:31+00:00",
+      "checked_at": "2026-10-29T07:22:12+00:00",
+      "last_ok_at": "2026-10-29T07:22:12+00:00",
       "rows": 0,
       "label": "미국 보통주(상장 대기 회사만)",
       "source_url": "https://api.nasdaq.com/api/ipo/calendar"
