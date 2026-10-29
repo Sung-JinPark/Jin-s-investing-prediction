@@ -286,3 +286,25 @@ def test_dashboard_projection_preserves_corrected_quarter_coordinates_without_po
     chart["ratio_alignment"]["missing_price_months"] = ["2023-06-01"]
     with pytest.raises(lab.StatisticsLabError, match="quarter-end ratio alignment"):
         lab.validate_statistics_lab(invalid, projected=True)
+
+
+@pytest.mark.parametrize("chart_id,price_terms", [
+    ("nasdaq_per_household_liquid_assets", ("NASDAQ", "종가")),
+    ("spx_per_federal_debt", ("OECD", "월평균")),
+    ("spx_per_federal_debt_full_history", ("OECD", "월평균")),
+])
+def test_corrected_chart_reading_guide_explains_price_period_and_survives_projection(
+    quarter_payload, tmp_path, chart_id, price_terms,
+) -> None:
+    payload, _ = quarter_payload
+    raw_chart = next(row for row in payload["charts"] if row["id"] == chart_id)
+    guide = raw_chart.get("reading_guide", "")
+    assert "분기" in guide
+    assert any(term in guide for term in ("마지막 달", "분기말 월", "3·6·9·12월"))
+    assert all(term in guide for term in price_terms)
+    latest = tmp_path / "data/statistics/dotcom_statistics_latest.json"
+    latest.parent.mkdir(parents=True)
+    latest.write_text(json.dumps(payload), encoding="utf-8")
+    projected = lab.statistics_dashboard_projection(tmp_path)
+    view_chart = next(row for row in projected["charts"] if row["id"] == chart_id)
+    assert view_chart["reading_guide"] == guide

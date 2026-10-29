@@ -2682,6 +2682,13 @@ def build_statistics_lab(
         by_id[caveat_chart_id]["caveat"] = (
             by_id[caveat_chart_id]["caveat"] + " " + caveat_text
         )
+    # Cards show only the first caveat sentence. Keep the complete alignment
+    # explanation available through their existing, expandable reading guide.
+    for chart_id in (
+        "nasdaq_per_household_liquid_assets", "spx_per_federal_debt",
+        "spx_per_federal_debt_full_history",
+    ):
+        by_id[chart_id]["reading_guide"] = chart_caveats[chart_id]
     # 단위가 다른 두 지표(주택착공 %YoY vs 제조업 확산지수 원값)를 0 중심이라는
     # 이유로 한 축에 겹치므로, 단위 차이를 읽는 법으로 명시한다.
     by_id["housing_manufacturing_warning"]["reading_guide"] = (
