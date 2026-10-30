@@ -1,18 +1,17 @@
 {
   "schema_version": 1,
-  "asof": "2026-10-23",
-  "generated_at": "2026-10-23T20:39:32+00:00",
+  "asof": "2026-10-30",
+  "generated_at": "2026-10-30T21:43:05+00:00",
   "status": "partial",
   "probability_space": "reference_only",
   "rules_version": "2026-08-03.v1",
-  "zone": "expansion",
+  "zone": "contraction",
   "zone_metric": {
     "name": "fed_net_liquidity_four_week_change_pct",
-    "value": 0.54
+    "value": -0.89
   },
   "series": {
     "labels": [
-      "2025-05-02",
       "2025-05-09",
       "2025-05-16",
       "2025-05-23",
@@ -89,10 +88,10 @@
       "2026-10-02",
       "2026-10-09",
       "2026-10-16",
-      "2026-10-23"
+      "2026-10-23",
+      "2026-10-30"
     ],
     "fed_net_liquidity_trillion": [
-      5.966,
       5.985,
       6.001,
       6.031,
@@ -169,10 +168,10 @@
       5.793,
       5.867,
       5.872,
-      5.801
+      5.801,
+      5.742
     ],
     "fed_net_liquidity_z_52w": [
-      null,
       null,
       null,
       null,
@@ -249,10 +248,10 @@
       0.116,
       0.843,
       0.871,
-      0.143
+      0.143,
+      -0.514
     ],
     "nasdaq_return_26w_pct": [
-      null,
       null,
       null,
       null,
@@ -329,10 +328,10 @@
       24.28,
       19.49,
       6.83,
-      4.5
+      4.5,
+      1.28
     ],
     "bitcoin_return_26w_pct": [
-      null,
       null,
       null,
       null,
@@ -409,12 +408,12 @@
       26.25,
       13.11,
       5.67,
-      5.0
+      4.67,
+      -1.94
     ],
     "liquidity_zone": [
       "contraction",
       "contraction",
-      "contraction",
       "neutral",
       "contraction",
       "expansion",
@@ -489,7 +488,8 @@
       "neutral",
       "neutral",
       "neutral",
-      "expansion"
+      "expansion",
+      "contraction"
     ]
   },
   "lead_lag": {
@@ -497,28 +497,28 @@
       {
         "lag_weeks": 0,
         "correlation": null,
-        "observations": 94,
+        "observations": 95,
         "minimum_observations": 156,
         "status": "accumulating"
       },
       {
         "lag_weeks": 4,
         "correlation": null,
-        "observations": 90,
+        "observations": 91,
         "minimum_observations": 156,
         "status": "accumulating"
       },
       {
         "lag_weeks": 8,
         "correlation": null,
-        "observations": 86,
+        "observations": 87,
         "minimum_observations": 156,
         "status": "accumulating"
       },
       {
         "lag_weeks": 12,
         "correlation": null,
-        "observations": 82,
+        "observations": 83,
         "minimum_observations": 156,
         "status": "accumulating"
       }
@@ -527,28 +527,28 @@
       {
         "lag_weeks": 0,
         "correlation": null,
-        "observations": 94,
+        "observations": 95,
         "minimum_observations": 156,
         "status": "accumulating"
       },
       {
         "lag_weeks": 4,
         "correlation": null,
-        "observations": 90,
+        "observations": 91,
         "minimum_observations": 156,
         "status": "accumulating"
       },
       {
         "lag_weeks": 8,
         "correlation": null,
-        "observations": 86,
+        "observations": 87,
         "minimum_observations": 156,
         "status": "accumulating"
       },
       {
         "lag_weeks": 12,
         "correlation": null,
-        "observations": 82,
+        "observations": 83,
         "minimum_observations": 156,
         "status": "accumulating"
       }
@@ -573,41 +573,41 @@
       "source": "fred_market_signals",
       "series_id": "WALCL",
       "request_url": "https://api.stlouisfed.org/fred/series/observations?series_id=WALCL&file_type=json&observation_start=2025-01-01",
-      "response_sha256": "18a4e08ae16ee155ebe35b5e330bf88de6fccce2c97d92c643ca6ab42c1b615d",
-      "fetched_at": "2026-10-23T20:39:30+00:00",
+      "response_sha256": "7b5f073d4007a918199a9923a0ad98571329446aab848c185d1119600dee7bb7",
+      "fetched_at": "2026-10-30T21:43:03+00:00",
       "revision_vintage": "captured_current"
     },
     {
       "source": "fred_market_signals",
       "series_id": "WTREGEN",
       "request_url": "https://api.stlouisfed.org/fred/series/observations?series_id=WTREGEN&file_type=json&observation_start=2025-01-01",
-      "response_sha256": "bdb29b413a78cf5ecc34d67631a03c79c79202f334da2b8f85f22288698a7f64",
-      "fetched_at": "2026-10-23T20:39:31+00:00",
+      "response_sha256": "b01e7598cb43d69d76d5f2b8b4a74a640140cd81e07cbf626b10af4dff88b2cf",
+      "fetched_at": "2026-10-30T21:43:03+00:00",
       "revision_vintage": "captured_current"
     },
     {
       "source": "fred_market_signals",
       "series_id": "RRPONTSYD",
       "request_url": "https://api.stlouisfed.org/fred/series/observations?series_id=RRPONTSYD&file_type=json&observation_start=2025-01-01",
-      "response_sha256": "bb46333bfaffa57a8b4683a5891006e5fe021deb5a4feb7da345f99bec4d7259",
-      "fetched_at": "2026-10-23T20:39:31+00:00",
+      "response_sha256": "9fa20343d8f397ef92bd6624733e188a98ed07f3c6f0fc5862a363fc22783ec1",
+      "fetched_at": "2026-10-30T21:43:03+00:00",
       "revision_vintage": "captured_current"
     },
     {
       "source": "yahoo-chart",
       "symbol": "^IXIC",
       "interval": "1d",
-      "request_url": "https://query1.finance.yahoo.com/v8/finance/chart/%5EIXIC?interval=1d&period1=1735689600&period2=1792800000&events=div%2Csplits",
-      "response_sha256": "87edda3b9d9a33fce3648adff1a411ce1084df5e26502a990fb51aaf91205c6e",
-      "fetched_at": "2026-10-23T20:39:31+00:00"
+      "request_url": "https://query1.finance.yahoo.com/v8/finance/chart/%5EIXIC?interval=1d&period1=1735689600&period2=1793404800&events=div%2Csplits",
+      "response_sha256": "099efa2888190d250d2a7eb2bb15f6b4c24bd8a28f3528fb875e888a3fdc2578",
+      "fetched_at": "2026-10-30T21:43:04+00:00"
     },
     {
       "source": "yahoo-chart",
       "symbol": "BTC-USD",
       "interval": "1d",
-      "request_url": "https://query1.finance.yahoo.com/v8/finance/chart/BTC-USD?interval=1d&period1=1735689600&period2=1792800000&events=div%2Csplits",
-      "response_sha256": "549b7e414f07144d5c924fcc5dd7dfbd6642c6b6118d093d84f52428f0c8eba2",
-      "fetched_at": "2026-10-23T20:39:31+00:00"
+      "request_url": "https://query1.finance.yahoo.com/v8/finance/chart/BTC-USD?interval=1d&period1=1735689600&period2=1793404800&events=div%2Csplits",
+      "response_sha256": "6c182fec942e0a7945d2b7d9a7f6a521296d6afae478721fd207a561a4f4ae2e",
+      "fetched_at": "2026-10-30T21:43:04+00:00"
     }
   ],
   "semantics": "reference-only liquidity diagnostics; no probability, causal, or leading-indicator claim",
