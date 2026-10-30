@@ -1,8 +1,8 @@
 # Ledger accumulation audit
 
-- Generated: `2026-10-30T06:30:10+00:00`
+- Generated: `2026-10-30T07:25:38+00:00`
 - Latest completed NYSE day: `2026-10-29`
-- Result: accumulating 64 · frozen 2 · stalled 7 · inactive 12 · violation 0 · planned 8
+- Result: accumulating 65 · frozen 2 · stalled 6 · inactive 12 · violation 0 · planned 8
 
 | Ledger | Cadence | Files / rows | Latest | Status | Finding |
 |---|---:|---:|---:|---:|---|
@@ -21,7 +21,7 @@
 | `cross_asset_latest` | trading_daily | 1 | 2026-10-29 | **accumulating** | — |
 | `cross_asset_path_tracking` | trading_daily | 1 / 3 | — | **frozen** | — |
 | `timeseries_daily6m_research_forecasts` | weekly | 1 | 2026-10-30 | **accumulating** | — |
-| `timeseries_daily6m_research_resolutions` | trading_daily | 1 | 2026-10-29 | **accumulating** | — |
+| `timeseries_daily6m_research_resolutions` | trading_daily | 1 | 2026-10-30 | **accumulating** | — |
 | `timeseries_daily6m_research_runs` | weekly | 10 | 2026-10-30 | **accumulating** | — |
 | `cross_asset_path_tracking_v2` | trading_daily | 1 / 159 | 2026-10-29 | **accumulating** | — |
 | `scenario_band_calibration` | trading_daily | 1 / 1431 | 2026-10-29 | **accumulating** | — |
@@ -65,7 +65,7 @@
 | `timeseries_v13_vol_experiments` | event | 1 | 2026-10-21 | **accumulating** | — |
 | `timeseries_v13_holdout_scorings` | event | 1 | — | **accumulating** | — |
 | `timeseries_v13_approvals` | event | 1 | 2026-10-22 | **accumulating** | — |
-| `timeseries_v13_vol_live` | trading_daily | 1 | 2026-10-29 | **accumulating** | — |
+| `timeseries_v13_vol_live` | trading_daily | 1 | 2026-10-30 | **accumulating** | — |
 | `timeseries_v13_exog_vxn_observations` | event | 1 | 2014-12-31 | **accumulating** | — |
 | `timeseries_v13_exog_raw_receipts` | event | 1 | 2026-10-21 | **accumulating** | — |
 | `ml_reference_scores` | event | 1 | 2026-07-20 | **accumulating** | — |
@@ -74,7 +74,7 @@
 | `timeseries_v13_exog_cftc_tff` | event | 1 | — | **accumulating** | — |
 | `timeseries_v13_exog_raw_blobs` | event | 15 | 2014-04-17 | **accumulating** | — |
 | `timeseries_v13_prereg_diagnostics` | event | 9 | — | **accumulating** | — |
-| `timeseries_v13_vol_live_resolutions` | trading_daily | 1 | 2026-10-28 | **stalled** | — |
+| `timeseries_v13_vol_live_resolutions` | trading_daily | 1 | 2026-10-29 | **accumulating** | — |
 | `timeseries_v13_vol_ladder_results` | event | 8 | — | **accumulating** | — |
 | `timeseries_v13_vol_coefficients` | event | 1 | — | **frozen** | — |
 | `trendlines_raw_artifacts` | event | 0 | — | **inactive** | — |
