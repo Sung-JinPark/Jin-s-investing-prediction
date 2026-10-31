@@ -2,10 +2,10 @@
   "schema_version": 2,
   "dataset_id": "ipo_edgar_424b4_auto_classification_v1",
   "cadence": "weekly",
-  "checked_at": "2026-10-29T02:18:04+00:00",
-  "reviewed_through": "2026-09-28",
-  "window_start": "2026-09-29",
-  "window_end": "2026-10-29",
+  "checked_at": "2026-10-31T02:42:35+00:00",
+  "reviewed_through": "2026-10-29",
+  "window_start": "2026-10-30",
+  "window_end": "2026-10-31",
   "status": "current",
   "form": "424B4",
   "source": "sec_edgar_full_text_search",
@@ -23,13 +23,13 @@
   "historical_rows_locked": true,
   "allowed_update_scope": "current_era_rows_only_after_automatic_sec_prospectus_classification",
   "counts": {
-    "candidates": 30,
-    "already_in_cohort": 10,
+    "candidates": 33,
+    "already_in_cohort": 19,
     "pending_review": 0,
-    "new_decisions": 11,
-    "auto_included": 9,
-    "auto_excluded": 2,
-    "new_cohort_rows": 9
+    "new_decisions": 3,
+    "auto_included": 3,
+    "auto_excluded": 0,
+    "new_cohort_rows": 3
   },
   "errors": [],
   "candidates": [
@@ -438,7 +438,7 @@
         "generative AI",
         "machine learning"
       ],
-      "already_in_cohort": false,
+      "already_in_cohort": true,
       "review_status": "auto_include_core",
       "decision_id": "9478e5b06231356e615a82dee5fad5759ca6c9409e1da242b3574821e8fae7b4",
       "reason_codes": [
@@ -458,7 +458,7 @@
       "matched_keywords": [
         "artificial intelligence"
       ],
-      "already_in_cohort": false,
+      "already_in_cohort": true,
       "review_status": "auto_include_core",
       "decision_id": "6e71c5c45a98d598ca3a46aa7aabf6b3a2f041fe7c826b087d709935d1779a9c",
       "reason_codes": [
@@ -479,7 +479,7 @@
       "matched_keywords": [
         "artificial intelligence"
       ],
-      "already_in_cohort": false,
+      "already_in_cohort": true,
       "review_status": "auto_include_core",
       "decision_id": "72e78e7c5c8afb9286844d4dc5989d4ee0438b546749f255be700f611d65cfa1",
       "reason_codes": [
@@ -500,7 +500,7 @@
       "matched_keywords": [
         "artificial intelligence"
       ],
-      "already_in_cohort": false,
+      "already_in_cohort": true,
       "review_status": "auto_include_core",
       "decision_id": "60d2f267f99b694053aacda1a3712663310e90636f44494b91fd60092c330ca2",
       "reason_codes": [
@@ -558,7 +558,7 @@
       "matched_keywords": [
         "artificial intelligence"
       ],
-      "already_in_cohort": false,
+      "already_in_cohort": true,
       "review_status": "auto_include_core",
       "decision_id": "70553b88ddf37ea64084d7cf7865bdb5054d99d435e0c18616e5d56ff969914e",
       "reason_codes": [
@@ -583,7 +583,7 @@
         "machine learning",
         "neural network"
       ],
-      "already_in_cohort": false,
+      "already_in_cohort": true,
       "review_status": "auto_include_core",
       "decision_id": "97a85f6243ca21605b841f02b96e3ee531f95f94d26db672035fee3c5874eb9f",
       "reason_codes": [
@@ -605,7 +605,7 @@
         "generative AI",
         "machine learning"
       ],
-      "already_in_cohort": false,
+      "already_in_cohort": true,
       "review_status": "auto_include_core",
       "decision_id": "dffceb3264289597399176c639cf814671a1496c4b41517b0dc765200560289e",
       "reason_codes": [
@@ -625,7 +625,7 @@
       "matched_keywords": [
         "artificial intelligence"
       ],
-      "already_in_cohort": false,
+      "already_in_cohort": true,
       "review_status": "auto_include_core",
       "decision_id": "eedff295c73437b2f50b7b8e4724fa8b5cabbba5d6aaafbdad625b8a3674061f",
       "reason_codes": [
@@ -645,7 +645,7 @@
       "matched_keywords": [
         "artificial intelligence"
       ],
-      "already_in_cohort": false,
+      "already_in_cohort": true,
       "review_status": "auto_include_core",
       "decision_id": "7ecc5831ba8511f296344dab37fcbedb3641c71259fac2301c79def683da0423",
       "reason_codes": [
@@ -653,6 +653,69 @@
         "ai_label_present_in_final_prospectus",
         "user_directed_core_inclusion",
         "spac_or_blank_check_vehicle"
+      ]
+    },
+    {
+      "company": "Aspen Neuroscience, Inc.",
+      "cik": "0002124080",
+      "accession": "0001193125-26-441782",
+      "filed_at": "2026-10-30",
+      "form": "424B4",
+      "filing_url": "https://www.sec.gov/Archives/edgar/data/2124080/000119312526441782/elevation_424b4.htm",
+      "ticker_hint": "ASPE",
+      "matched_keywords": [
+        "artificial intelligence",
+        "machine learning"
+      ],
+      "already_in_cohort": false,
+      "review_status": "auto_include_core",
+      "decision_id": "5aaae3e1df38216a726bf9b9fc9a81895571772d030cadb65b2a68fd4209bb73",
+      "reason_codes": [
+        "eligible_initial_public_offering",
+        "ai_label_present_in_final_prospectus",
+        "user_directed_core_inclusion"
+      ]
+    },
+    {
+      "company": "BHAV Acquisition Corp II",
+      "cik": "0002142627",
+      "accession": "0001213900-26-114072",
+      "filed_at": "2026-10-30",
+      "form": "424B4",
+      "filing_url": "https://www.sec.gov/Archives/edgar/data/2142627/000121390026114072/ea0298196-05.htm",
+      "ticker_hint": "BHAI",
+      "matched_keywords": [
+        "artificial intelligence",
+        "machine learning"
+      ],
+      "already_in_cohort": false,
+      "review_status": "auto_include_core",
+      "decision_id": "3505fe857bbe5bc3797b3e6d20ab636c48c7360ca36375902f8c3f19087dde01",
+      "reason_codes": [
+        "eligible_initial_public_offering",
+        "ai_label_present_in_final_prospectus",
+        "user_directed_core_inclusion",
+        "spac_or_blank_check_vehicle"
+      ]
+    },
+    {
+      "company": "Bambusa Therapeutics, Inc.",
+      "cik": "0002044950",
+      "accession": "0001628280-26-068563",
+      "filed_at": "2026-10-30",
+      "form": "424B4",
+      "filing_url": "https://www.sec.gov/Archives/edgar/data/2044950/000162828026068563/bambusa-424b4.htm",
+      "ticker_hint": null,
+      "matched_keywords": [
+        "artificial intelligence"
+      ],
+      "already_in_cohort": false,
+      "review_status": "auto_include_core",
+      "decision_id": "81849cd0bf884d769ca873f8dab7f83ee96dc289c16b71c1e8882f7df9ea39e1",
+      "reason_codes": [
+        "eligible_initial_public_offering",
+        "ai_label_present_in_final_prospectus",
+        "user_directed_core_inclusion"
       ]
     }
   ]

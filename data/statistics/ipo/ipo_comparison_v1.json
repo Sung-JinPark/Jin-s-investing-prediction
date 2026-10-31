@@ -5,7 +5,7 @@
   "probability_space": "reference_only",
   "model_use": false,
   "official_forecast_input": false,
-  "as_of": "2026-10-29",
+  "as_of": "2026-10-31",
   "coverage": {
     "dotcom_years": [
       1995,
@@ -31,7 +31,7 @@
     "ai_broad_limit": "This is a reviewed market-narrative cohort, not a complete keyword census. It is intentionally broader than the AI-core minimum and should not be read as a pure-play count.",
     "ai_core_series": "Reviewed minimum count: final SEC 424B4, traditional U.S. exchange IPO, offer price at least USD 5, excluding ADRs, SPACs, REITs and direct listings; AI/ML product or compute infrastructure must be central to the prospectus summary",
     "ai_core_limit": "This is a conservative reviewed minimum, not a keyword census. A company that merely uses AI is excluded.",
-    "reviewed_through": "2026-10-29",
+    "reviewed_through": "2026-10-31",
     "excluded_2026_examples": "SharonAI was already public after a business combination; QumulusAI and Ionic Digital used direct listings. They are excluded from both traditional-IPO counts. Reformation is excluded because the public tracker rates it minimal AI usage.",
     "automation_policy": "sec_424b4_ai_label_v5",
     "automation_semantics": "SEC final 424B4 deterministic classification; every current-year actual IPO found by the registered AI keyword search is included in both the broad and core cohorts; structural follow-ons, mergers, and already-public issuers remain excluded"
@@ -207,7 +207,7 @@
     },
     {
       "year": 2026,
-      "through": "2026-10-29",
+      "through": "2026-10-31",
       "issuers": [
         {
           "name": "Rank One Computing",
@@ -419,6 +419,33 @@
           "basis": "SEC final prospectus: AI label + actual initial public offering; core under registered AI-label policy",
           "evidence_source_id": "SEC_AUTO_2131303_000118518526005030",
           "classification_decision_id": "7ecc5831ba8511f296344dab37fcbedb3641c71259fac2301c79def683da0423"
+        },
+        {
+          "name": "Aspen Neuroscience, Inc.",
+          "ticker": "ASPE",
+          "dependency_tier": 5,
+          "core_member": true,
+          "basis": "SEC final prospectus: AI label + actual initial public offering; core under registered AI-label policy",
+          "evidence_source_id": "SEC_AUTO_2124080_000119312526441782",
+          "classification_decision_id": "5aaae3e1df38216a726bf9b9fc9a81895571772d030cadb65b2a68fd4209bb73"
+        },
+        {
+          "name": "BHAV Acquisition Corp II",
+          "ticker": "BHAIU",
+          "dependency_tier": 5,
+          "core_member": true,
+          "basis": "SEC final prospectus: AI label + actual initial public offering; core under registered AI-label policy",
+          "evidence_source_id": "SEC_AUTO_2142627_000121390026114072",
+          "classification_decision_id": "3505fe857bbe5bc3797b3e6d20ab636c48c7360ca36375902f8c3f19087dde01"
+        },
+        {
+          "name": "Bambusa Therapeutics, Inc.",
+          "ticker": "BBTX",
+          "dependency_tier": 5,
+          "core_member": true,
+          "basis": "SEC final prospectus: AI label + actual initial public offering; core under registered AI-label policy",
+          "evidence_source_id": "SEC_AUTO_2044950_000162828026068563",
+          "classification_decision_id": "81849cd0bf884d769ca873f8dab7f83ee96dc289c16b71c1e8882f7df9ea39e1"
         }
       ]
     }
@@ -625,8 +652,8 @@
       "unit": "count",
       "scale": "log1p",
       "description": "닷컴기의 인터넷 IPO와 현재의 AI 표방 신규 IPO를 함께 봅니다. 현재 광의선은 SEC 공모 문서에 AI 키워드가 있고 실제 신규 IPO인 운영회사·SPAC을 모두 포함하며, 핵심선도 같은 AI 표방 신규 IPO 전체를 반영합니다.",
-      "caveat": "현재 광의 24건은 AI 표방 여부를 넓게 포착한 관심도 지표라 닷컴기의 Ritter 전통 IPO 정의와 완전히 같은 모집단은 아닙니다. SPAC도 포함합니다. 현재 핵심선은 사용자 지정 AI 표방 기준으로 분류되어 과거의 엄격한 사업 중요도 기준과 직접 비교할 때 이 정의 차이를 함께 봐야 합니다. SK하이닉스 NASDAQ ADS 사건을 더한 영향 포함 값은 25건이며, 세로축은 log(1+x)입니다.",
-      "insight": "SEC 공모 문서에서 AI를 표방한 신규 IPO는 2026-10-29까지 24건이고 NASDAQ ADS를 포함한 자본시장 사건 진단치는 25입니다.",
+      "caveat": "현재 광의 27건은 AI 표방 여부를 넓게 포착한 관심도 지표라 닷컴기의 Ritter 전통 IPO 정의와 완전히 같은 모집단은 아닙니다. SPAC도 포함합니다. 현재 핵심선은 사용자 지정 AI 표방 기준으로 분류되어 과거의 엄격한 사업 중요도 기준과 직접 비교할 때 이 정의 차이를 함께 봐야 합니다. SK하이닉스 NASDAQ ADS 사건을 더한 영향 포함 값은 28건이며, 세로축은 log(1+x)입니다.",
+      "insight": "SEC 공모 문서에서 AI를 표방한 신규 IPO는 2026-10-31까지 27건이고 NASDAQ ADS를 포함한 자본시장 사건 진단치는 28입니다.",
       "source_ids": [
         "RITTER_INTERNET_IPO_2025",
         "RC_AI_MARKET_2024",
@@ -699,8 +726,8 @@
             },
             {
               "period": 36,
-              "date": "2026-10-29",
-              "value": 24
+              "date": "2026-10-31",
+              "value": 27
             }
           ]
         },
@@ -726,8 +753,8 @@
             },
             {
               "period": 36,
-              "date": "2026-10-29",
-              "value": 25
+              "date": "2026-10-31",
+              "value": 28
             }
           ]
         },
@@ -753,8 +780,8 @@
             },
             {
               "period": 36,
-              "date": "2026-10-29",
-              "value": 20
+              "date": "2026-10-31",
+              "value": 23
             }
           ]
         }
@@ -777,8 +804,8 @@
         },
         {
           "period": "2026 YTD",
-          "label": "Rank One Computing · Cerebras Systems · VIDA Global · Csquare · Standard Nuclear · Orion180 Insurance Group Inc. · Londian Wason New Energy Tech Inc. · Rainier Acquisition Corp · Electra Therapeutics, Inc. · SunScout Holding Ltd · Karman Line Acquisition Corp. · Lyntris Inc. · JATT III Acquisition Corp · Haymaker Acquisition Corp V · RUI Holdings Inc · Accelevation Holdings Corp. · Southport Acquisition Corp. II · Pine Tree Acquisition Corp. · Retension Pharmaceuticals, Inc. · Amaero Inc. · Iambic Therapeutics, Inc. · CITY THERAPEUTICS, INC. · Lycia Therapeutics, Inc. · SPACCircle Acquisition Corp. + SK hynix SKHY(NASDAQ ADS)",
-          "value": "AI 표방 신규 IPO 24 · ADS 영향 포함 25 · 핵심 20"
+          "label": "Rank One Computing · Cerebras Systems · VIDA Global · Csquare · Standard Nuclear · Orion180 Insurance Group Inc. · Londian Wason New Energy Tech Inc. · Rainier Acquisition Corp · Electra Therapeutics, Inc. · SunScout Holding Ltd · Karman Line Acquisition Corp. · Lyntris Inc. · JATT III Acquisition Corp · Haymaker Acquisition Corp V · RUI Holdings Inc · Accelevation Holdings Corp. · Southport Acquisition Corp. II · Pine Tree Acquisition Corp. · Retension Pharmaceuticals, Inc. · Amaero Inc. · Iambic Therapeutics, Inc. · CITY THERAPEUTICS, INC. · Lycia Therapeutics, Inc. · SPACCircle Acquisition Corp. · Aspen Neuroscience, Inc. · BHAV Acquisition Corp II · Bambusa Therapeutics, Inc. + SK hynix SKHY(NASDAQ ADS)",
+          "value": "AI 표방 신규 IPO 27 · ADS 영향 포함 28 · 핵심 23"
         },
         {
           "period": "역사 맥락",
@@ -1977,6 +2004,45 @@
       "row_count": 1,
       "raw_sha256": "15dd4b979e56111f4e55515e563a6ac78a55c064a45f815f5865d3c7e7b4faab",
       "vintage": "SEC_accession_0001185185-26-005030"
+    },
+    {
+      "series_id": "SEC_AUTO_2124080_000119312526441782",
+      "title": "Aspen Neuroscience, Inc. final IPO prospectus",
+      "provider": "U.S. Securities and Exchange Commission",
+      "unit": "filing",
+      "native_frequency": "event",
+      "source_url": "https://www.sec.gov/Archives/edgar/data/2124080/000119312526441782/elevation_424b4.htm",
+      "available_at": "2026-10-30T00:00:00Z",
+      "latest_observation": "2026-10-30",
+      "row_count": 1,
+      "raw_sha256": "364df80e952bda8c069e3320e911aa2d500bed4de015e02e34e8787b84f32dae",
+      "vintage": "SEC_accession_0001193125-26-441782"
+    },
+    {
+      "series_id": "SEC_AUTO_2142627_000121390026114072",
+      "title": "BHAV Acquisition Corp II final IPO prospectus",
+      "provider": "U.S. Securities and Exchange Commission",
+      "unit": "filing",
+      "native_frequency": "event",
+      "source_url": "https://www.sec.gov/Archives/edgar/data/2142627/000121390026114072/ea0298196-05.htm",
+      "available_at": "2026-10-30T00:00:00Z",
+      "latest_observation": "2026-10-30",
+      "row_count": 1,
+      "raw_sha256": "350ff4562f7f22dc846f22eea21ab6f942a7a17a2160f34e0db96d124695b193",
+      "vintage": "SEC_accession_0001213900-26-114072"
+    },
+    {
+      "series_id": "SEC_AUTO_2044950_000162828026068563",
+      "title": "Bambusa Therapeutics, Inc. final IPO prospectus",
+      "provider": "U.S. Securities and Exchange Commission",
+      "unit": "filing",
+      "native_frequency": "event",
+      "source_url": "https://www.sec.gov/Archives/edgar/data/2044950/000162828026068563/bambusa-424b4.htm",
+      "available_at": "2026-10-30T00:00:00Z",
+      "latest_observation": "2026-10-30",
+      "row_count": 1,
+      "raw_sha256": "0790b2f3179dcb18f582b24c7005868328717aa87244345f1000bfd7a1c9dbc1",
+      "vintage": "SEC_accession_0001628280-26-068563"
     }
   ]
 }
