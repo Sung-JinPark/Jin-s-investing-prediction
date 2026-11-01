@@ -1,0 +1,3 @@
+# Research pack data dictionary
+
+Each registered ledger is exported to its own Zstandard-compressed Parquet table. A normalized representation of each source row is retained as `payload_json`; `source_file` and `source_sha256` identify the immutable input. `probability_space` prevents physical-event, risk-neutral and scenario-conditional probabilities from being silently mixed. `derived_from` is a JSON array of source paths. Dates without a time remain civil dates; timestamps are converted to UTC ISO-8601. `normalized_fields` lists changed field paths; `unit_review_pending` keeps unresolved source units unchanged. Generic `weight` fields are not probabilities. Missing planned ledgers are intentionally absent.
