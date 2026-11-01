@@ -296,3 +296,4 @@
 {"observed_date": "2026-10-30", "fetched_at": "2026-10-29T21:57:56+00:00", "value": 35, "band": "fear", "band_label": "공포", "source_label": "Stock Market Fear and Greed Index", "source_url": "https://feargreedmeter.com/", "http_status": 200}
 {"observed_date": "2026-10-31", "fetched_at": "2026-10-30T21:40:42+00:00", "value": 26, "band": "fear", "band_label": "공포", "source_label": "Stock Market Fear and Greed Index", "source_url": "https://feargreedmeter.com/", "http_status": 200}
 {"observed_date": "2026-11-01", "fetched_at": "2026-10-31T20:38:53+00:00", "value": 26, "band": "fear", "band_label": "공포", "source_label": "Stock Market Fear and Greed Index", "source_url": "https://feargreedmeter.com/", "http_status": 200}
+{"observed_date": "2026-11-02", "fetched_at": "2026-11-01T21:22:09+00:00", "value": 26, "band": "fear", "band_label": "공포", "source_label": "Stock Market Fear and Greed Index", "source_url": "https://feargreedmeter.com/", "http_status": 200}
