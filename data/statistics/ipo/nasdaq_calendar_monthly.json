@@ -115,18 +115,18 @@
       "stale": false
     },
     "2026-10": {
-      "priced_total": 15,
-      "operating_approx": 8,
-      "fetched_at": "2026-11-02T11:42:51+00:00",
-      "response_sha256": "a164a2221175119b6d27cd4084c78606df0a41c6bb408ff21b8a9c74853e7e0e",
+      "priced_total": 17,
+      "operating_approx": 10,
+      "fetched_at": "2026-11-02T15:55:08+00:00",
+      "response_sha256": "dda4c235d09c231ae779184213497579db7d72e3fcbf2bc8a3c157594fe16e5e",
       "complete": true,
       "stale": false
     },
     "2026-11": {
       "priced_total": 0,
       "operating_approx": 0,
-      "fetched_at": "2026-11-02T11:42:51+00:00",
-      "response_sha256": "167f5503e645d26f6715f403ea887ac2e2f5c95c3c825078c63f0c2b5c597e5d",
+      "fetched_at": "2026-11-02T15:55:08+00:00",
+      "response_sha256": "212deb8ded9099dc137a3d0c6ae0c048c030942829ef4a47bdea5adf3fe4b178",
       "complete": false,
       "stale": false
     }
