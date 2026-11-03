@@ -1,8 +1,163 @@
 {
- "as_of": "2026-10-29",
+ "as_of": "2026-11-02",
  "backfill": {
   "effective_from": "2026-10-22",
   "unfillable": []
+ },
+ "cells": {
+  "rv_h21": {
+   "band80": [
+    0.876505,
+    0.927785
+   ],
+   "clim_base_rate": 0.670848,
+   "derived_layer": "raw",
+   "episode_sample": "ok",
+   "h": 21,
+   "model": "persistence_pb",
+   "p": 0.902145,
+   "p_raw": 0.902145,
+   "reliability": "good",
+   "se_raw": 0.020007,
+   "target": "rv_exceedance",
+   "theta": 0.1694
+  },
+  "rv_h5": {
+   "band80": [
+    0.915319,
+    0.944394
+   ],
+   "clim_base_rate": 0.552434,
+   "derived_layer": "raw",
+   "episode_sample": "ok",
+   "h": 5,
+   "model": "persistence_pb",
+   "p": 0.929856,
+   "p_raw": 0.929856,
+   "reliability": "good",
+   "se_raw": 0.011344,
+   "target": "rv_exceedance",
+   "theta": 0.1694
+  },
+  "rv_h63": {
+   "band80": [
+    0.925622,
+    0.963385
+   ],
+   "clim_base_rate": 0.876474,
+   "derived_layer": "raw",
+   "episode_sample": "thin",
+   "h": 63,
+   "model": "persistence_pb",
+   "p": 0.944503,
+   "p_raw": 0.944503,
+   "reliability": "weak",
+   "se_raw": 0.014733,
+   "target": "rv_exceedance",
+   "theta": 0.1694
+  },
+  "vix25_h21": {
+   "K": 25,
+   "band80": [
+    0.407211,
+    0.543481
+   ],
+   "clim_base_rate": 0.419468,
+   "derived_layer": "raw",
+   "episode_sample": "thin",
+   "h": 21,
+   "model": "persistence_pb",
+   "p": 0.475346,
+   "p_raw": 0.475346,
+   "reliability": "good",
+   "se_raw": 0.053166,
+   "target": "vix_touch"
+  },
+  "vix25_h5": {
+   "K": 25,
+   "band80": [
+    0.149581,
+    0.217823
+   ],
+   "clim_base_rate": 0.307616,
+   "derived_layer": "raw",
+   "episode_sample": "ok",
+   "h": 5,
+   "model": "persistence_pb",
+   "p": 0.183702,
+   "p_raw": 0.183702,
+   "reliability": "good",
+   "se_raw": 0.026625,
+   "target": "vix_touch"
+  },
+  "vix25_h63": {
+   "K": 25,
+   "band80": [
+    0.683921,
+    0.814811
+   ],
+   "clim_base_rate": 0.607893,
+   "derived_layer": "raw",
+   "episode_sample": "thin",
+   "h": 63,
+   "model": "persistence_pb",
+   "p": 0.749366,
+   "p_raw": 0.749366,
+   "reliability": "weak",
+   "se_raw": 0.051067,
+   "target": "vix_touch"
+  },
+  "vix30_h21": {
+   "K": 30,
+   "band80": [
+    0.108937,
+    0.202985
+   ],
+   "clim_base_rate": 0.251882,
+   "derived_layer": "raw",
+   "episode_sample": "thin",
+   "h": 21,
+   "model": "persistence_pb",
+   "p": 0.155961,
+   "p_raw": 0.155961,
+   "reliability": "good",
+   "se_raw": 0.036693,
+   "target": "vix_touch"
+  },
+  "vix30_h5": {
+   "K": 30,
+   "band80": [
+    0.022643,
+    0.040232
+   ],
+   "clim_base_rate": 0.178198,
+   "derived_layer": "raw",
+   "episode_sample": "thin",
+   "h": 5,
+   "model": "persistence_pb",
+   "p": 0.031438,
+   "p_raw": 0.031438,
+   "reliability": "good",
+   "se_raw": 0.006862,
+   "target": "vix_touch"
+  },
+  "vix30_h63": {
+   "K": 30,
+   "band80": [
+    0.331596,
+    0.493472
+   ],
+   "clim_base_rate": 0.406971,
+   "derived_layer": "raw",
+   "episode_sample": "thin",
+   "h": 63,
+   "model": "persistence_pb",
+   "p": 0.412534,
+   "p_raw": 0.412534,
+   "reliability": "weak",
+   "se_raw": 0.063156,
+   "target": "vix_touch"
+  }
  },
  "coefficients": {
   "content_hash": "1fdeb1364ea7eba01a1f420eebba0ad53c8339ae8be4c877c9affe0bd91e23f4",
@@ -10,28 +165,32 @@
   "path": "data/timeseries_v13/vol/champion_coefficients.json",
   "sha256": "1a85785056738775f732531dc442616908e20ca0f356187eb5fd1adb614b3ac1"
  },
- "content_hash": "efe9a518501b2984f5fd9370442a331f7412d6480246c53b2bda2c779d0383ec",
+ "content_hash": "21fad1e9ea86d6fd9daec62ecfbb4e1ae8f4b41bdeaff8bc48c50f800fde893f",
  "footnote": "설계창(2007-2014) 스킬 · 홀드아웃 미검증 · 참고 의견 — 매매 신호 아님. 80% 대역은 계수 불확실성(델타법)이며 보정 대역이 아니다.",
  "freshness": {
-  "as_of": "2026-10-29",
-  "evaluated_at": "2026-11-02T22:38:12+00:00",
+  "as_of": "2026-11-02",
+  "evaluated_at": "2026-11-03T07:00:13+00:00",
   "last_completed_session": "2026-11-02",
   "max_missing_sessions": 1,
-  "missing_sessions": 2,
+  "missing_sessions": 0,
   "rule": "nyse_trading_calendar",
-  "status": "stale"
+  "status": "fresh"
  },
  "gate": {
   "armed": true,
   "coefficients_pinned": true,
   "design_gate_pass": true,
-  "freshness_pass": false,
+  "freshness_pass": true,
   "holdout_status": "partial",
-  "reasons": [
-   "stale: missing_sessions=2 > 1"
-  ]
+  "reasons": []
  },
- "knowledge_cutoff": "2026-11-02T22:38:12+00:00",
+ "inputs": {
+  "rv21_ann": 0.2004897068288356,
+  "rv21_ann_ewma21": 0.16765536544385515,
+  "vix_close": 21.15,
+  "vix_close_ewma21": 17.639024541762154
+ },
+ "knowledge_cutoff": "2026-11-03T07:00:13+00:00",
  "model_id": "event_probability.volatility_v13",
  "model_version": 13,
  "probability_space": "research_volatility_v13_base_rate",
@@ -40,11 +199,11 @@
   "combined_with_official_forecasts": false,
   "combined_with_scenario_v5_2": false,
   "combined_with_timeseries_v8": false,
-  "customer_numbers_visible": false,
+  "customer_numbers_visible": true,
   "holdout_status": "partial",
   "reference_opinion_only": true,
   "trading_signal": false
  },
  "schema_version": 1,
- "status": "hold"
+ "status": "live"
 }
