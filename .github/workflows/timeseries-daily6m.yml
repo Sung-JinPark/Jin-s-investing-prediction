@@ -80,35 +80,34 @@ jobs:
         run: |
           python -m ai_fc timeseries-daily6m-verify
           pytest src/tests/test_timeseries_daily6m_model.py src/tests/test_timeseries_daily6m_pipeline.py src/tests/test_timeseries_daily6m_refresh.py -q
-      - name: Preserve full simulated paths as research artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: daily6m-paths-${{ github.run_id }}
-          path: outputs/timeseries_daily6m/
-          if-no-files-found: ignore
       - name: Commit only the new research ledger and derived pointer
         if: ${{ steps.readiness.outputs.ready == 'true' }}
         id: commit
         shell: bash
-        run: |
-          echo "committed=false" >> "$GITHUB_OUTPUT"
-          if test -d data/timeseries_daily6m; then
-            git add data/timeseries_daily6m
-          fi
-          unexpected="$(git diff --cached --name-only | grep -Ev '^data/timeseries_daily6m/' || true)"
-          test -z "$unexpected" || { echo "unexpected daily6m paths: $unexpected"; exit 1; }
-          if ! git diff --cached --quiet; then
-            git config user.name "github-actions[bot]"
-            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git commit -m "data: append six-month daily research forecast and outcomes"
-            git pull --rebase origin main
-            git push
-            echo "committed=true" >> "$GITHUB_OUTPUT"
-          fi
+        run: python tools/publish_daily6m_research.py --report .tmp/daily6m-publication.json --github-output "$GITHUB_OUTPUT"
+      - name: Preserve every publication attempt and failure
+        if: ${{ always() && (steps.commit.outcome == 'success' || steps.commit.outcome == 'failure') }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: daily6m-publication-${{ github.run_id }}
+          path: |
+            .tmp/daily6m-publication.json
+            .tmp/attempt-*/readiness.json
+          include-hidden-files: true
+          if-no-files-found: error
+      - name: Preserve full simulated paths including fresh-main retries
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: daily6m-paths-${{ github.run_id }}
+          path: |
+            outputs/timeseries_daily6m/
+            ${{ runner.temp }}/daily6m-publish-*/outputs/timeseries_daily6m/paths/
+          if-no-files-found: ignore
       # The fast collector dispatches this workflow with GITHUB_TOKEN; use an
       # explicit deployment after the final pointer is committed to main.
       - name: Deploy committed research updates from an explicit trigger
-        if: ${{ github.event_name == 'workflow_dispatch' && steps.commit.outcome == 'success' && steps.commit.outputs.committed == 'true' }}
+        if: ${{ always() && !cancelled() && steps.commit.outcome == 'success' && steps.commit.outputs.committed == 'true' }}
         env:
           GH_TOKEN: ${{ github.token }}
         run: gh workflow run pages.yml --repo "$GITHUB_REPOSITORY" --ref main
