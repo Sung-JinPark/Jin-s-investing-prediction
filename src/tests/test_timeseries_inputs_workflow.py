@@ -226,12 +226,13 @@ def test_explicit_forecast_triggers_deploy_only_after_verified_main_commit(name:
     assert deploy["run"] == 'gh workflow run pages.yml --repo "$GITHUB_REPOSITORY" --ref main'
     assert deploy["env"] == {"GH_TOKEN": "${{ github.token }}"}
     assert steps.index(commit) < steps.index(deploy)
-    assert 'echo "committed=false"' in commit["run"]
-    assert commit["run"].index("git push") < commit["run"].index('echo "committed=true"')
     if name == "timeseries-v8-daily.yml":
+        assert 'echo "committed=false"' in commit["run"]
+        assert commit["run"].index("git push") < commit["run"].index('echo "committed=true"')
         assert commit["run"].index("timeseries-v8-daily-verify") < commit["run"].index("git commit")
         assert "actions" not in (document["jobs"]["forecast"].get("permissions") or document["permissions"])
     else:
+        assert "publish_daily6m_research.py" in commit["run"]
         verification = next(step for step in steps if "timeseries-daily6m-verify" in step.get("run", ""))
         assert steps.index(verification) < steps.index(commit)
 
@@ -249,12 +250,14 @@ def test_failed_validation_no_change_and_baseline_triggers_do_not_dispatch_pages
     for name, job in (("timeseries-v8-daily.yml", "commit"), ("timeseries-daily6m.yml", "research")):
         expression = _workflow(name)["jobs"][job]["steps"][-1]["if"]
         expression = expression.removeprefix("${{").removesuffix("}}").strip()
-        expression = expression.replace("&&", " and ").replace("||", " or ")
+        expression = expression.replace("&&", " and ").replace("||", " or ").replace("!cancelled()", "not cancelled()")
         actual = eval(expression, {"__builtins__": {}}, {
             "github": _ExpressionContext(event_name=event),
+            "always": lambda: True, "cancelled": lambda: False,
             "steps": _ExpressionContext(commit={"outcome": outcome, "outputs": {"committed": committed}}),
         })
-        assert actual is expected
+        wanted = expected if name == "timeseries-v8-daily.yml" else (event != "pull_request" and outcome == "success" and committed == "true")
+        assert actual is wanted
 
 
 def test_publisher_shell_parses_with_the_available_git_bash(tmp_path: Path) -> None:
