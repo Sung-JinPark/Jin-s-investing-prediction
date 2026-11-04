@@ -1,0 +1,25 @@
+name: alfred-diagnostics
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Compare incremental, bounded and wider official inventory responses
+        env:
+          FRED_API_KEY: ${{ secrets.FRED_API_KEY }}
+        run: python tools/diagnose_alfred_inventory.py
+      - uses: actions/upload-artifact@v4
+        if: ${{ always() }}
+        with:
+          name: alfred-diagnostics-${{ github.run_id }}
+          path: .tmp/alfred-diagnostics.json
+          include-hidden-files: true
+          if-no-files-found: error
