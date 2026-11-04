@@ -1,28 +1,28 @@
 # Ledger accumulation audit
 
-- Generated: `2026-11-04T07:44:20+00:00`
+- Generated: `2026-11-04T15:48:41+00:00`
 - Latest completed NYSE day: `2026-11-03`
-- Result: accumulating 64 · frozen 2 · stalled 7 · inactive 12 · violation 0 · planned 8
+- Result: accumulating 65 · frozen 2 · stalled 6 · inactive 12 · violation 0 · planned 8
 
 | Ledger | Cadence | Files / rows | Latest | Status | Finding |
 |---|---:|---:|---:|---:|---|
-| `forecast_records` | event | 76 | 2026-10-26 | **accumulating** | — |
-| `forecast_evidence` | event | 40 | 2026-10-26 | **accumulating** | — |
-| `ml_market_history` | weekly | 1 | 2026-10-31 | **accumulating** | — |
+| `forecast_records` | event | 79 | 2026-11-04 | **accumulating** | — |
+| `forecast_evidence` | event | 43 | 2026-11-04 | **accumulating** | — |
+| `ml_market_history` | weekly | 1 | 2026-11-04 | **accumulating** | — |
 | `method_changes` | event | 1 | — | **accumulating** | — |
 | `calibration_ledger` | event | 1 / 32 | 2026-10-26 | **accumulating** | — |
 | `corrections_ledger` | event | 1 / 23 | — | **accumulating** | — |
 | `benchmark_ledger` | event | 1 / 32 | — | **accumulating** | — |
-| `cost_ledger` | event | 1 / 86 | — | **accumulating** | — |
+| `cost_ledger` | event | 1 / 97 | — | **accumulating** | — |
 | `provider_shadow_ledger` | event | 1 / 0 | — | **accumulating** | — |
 | `scenario_archive` | trading_daily | 67 | 2026-11-03 | **stalled** | missing trading days: 2026-08-04, 2026-08-05, 2026-09-03, 2026-09-16, 2026-09-17, 2026-09-21, 2026-09-22, 2026-10-02, 2026-10-05 |
 | `scenario_latest` | trading_daily | 1 | 2026-11-03 | **accumulating** | — |
 | `cross_asset_archive` | trading_daily | 62 | 2026-11-03 | **stalled** | missing trading days: 2026-08-04, 2026-08-25, 2026-09-03, 2026-09-16, 2026-09-17, 2026-09-21, 2026-09-22, 2026-10-02, 2026-10-06, 2026-10-16, 2026-10-30 |
 | `cross_asset_latest` | trading_daily | 1 | 2026-11-03 | **accumulating** | — |
 | `cross_asset_path_tracking` | trading_daily | 1 / 3 | — | **frozen** | — |
-| `timeseries_daily6m_research_forecasts` | weekly | 1 | 2026-11-03 | **accumulating** | — |
-| `timeseries_daily6m_research_resolutions` | trading_daily | 1 | 2026-11-03 | **accumulating** | — |
-| `timeseries_daily6m_research_runs` | weekly | 11 | 2026-11-03 | **accumulating** | — |
+| `timeseries_daily6m_research_forecasts` | weekly | 1 | 2026-11-04 | **accumulating** | — |
+| `timeseries_daily6m_research_resolutions` | trading_daily | 1 | 2026-11-04 | **accumulating** | — |
+| `timeseries_daily6m_research_runs` | weekly | 12 | 2026-11-04 | **accumulating** | — |
 | `cross_asset_path_tracking_v2` | trading_daily | 1 / 165 | 2026-11-03 | **accumulating** | — |
 | `scenario_band_calibration` | trading_daily | 1 / 1596 | 2026-11-03 | **accumulating** | — |
 | `market_event_calendar` | event | 1 / 59 | 2026-10-11 | **accumulating** | — |
@@ -65,7 +65,7 @@
 | `timeseries_v13_vol_experiments` | event | 1 | 2026-10-21 | **accumulating** | — |
 | `timeseries_v13_holdout_scorings` | event | 1 | — | **accumulating** | — |
 | `timeseries_v13_approvals` | event | 1 | 2026-10-22 | **accumulating** | — |
-| `timeseries_v13_vol_live` | trading_daily | 1 | 2026-11-03 | **accumulating** | — |
+| `timeseries_v13_vol_live` | trading_daily | 1 | 2026-11-04 | **accumulating** | — |
 | `timeseries_v13_exog_vxn_observations` | event | 1 | 2014-12-31 | **accumulating** | — |
 | `timeseries_v13_exog_raw_receipts` | event | 1 | 2026-10-21 | **accumulating** | — |
 | `ml_reference_scores` | event | 1 | 2026-07-20 | **accumulating** | — |
@@ -74,7 +74,7 @@
 | `timeseries_v13_exog_cftc_tff` | event | 1 | — | **accumulating** | — |
 | `timeseries_v13_exog_raw_blobs` | event | 15 | 2014-04-17 | **accumulating** | — |
 | `timeseries_v13_prereg_diagnostics` | event | 9 | — | **accumulating** | — |
-| `timeseries_v13_vol_live_resolutions` | trading_daily | 1 | 2026-11-02 | **stalled** | — |
+| `timeseries_v13_vol_live_resolutions` | trading_daily | 1 | 2026-11-03 | **accumulating** | — |
 | `timeseries_v13_vol_ladder_results` | event | 8 | — | **accumulating** | — |
 | `timeseries_v13_vol_coefficients` | event | 1 | — | **frozen** | — |
 | `trendlines_raw_artifacts` | event | 0 | — | **inactive** | — |
