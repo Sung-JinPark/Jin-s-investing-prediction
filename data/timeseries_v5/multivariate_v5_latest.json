@@ -1,20 +1,20 @@
 {
   "as_of": "2026-08-14",
-  "backtest_run_id": "tsv5-research-ac6afa6e277e570350435818",
+  "backtest_run_id": "tsv5-research-e4eac931a6c0387b3b0ead9b",
   "combined_with_existing_models": false,
-  "content_hash": "8981bf2d40b241c197574c8601579c892db7e1b72e79afeb5d3834eceeea80ec",
+  "content_hash": "1d8446417e9c1aa34038c786a1f3816b74c8a41449934f18fd89d37673e77a0d",
   "footnote": "*미국 시장·미국 공식 거시자료 기준",
   "horizons": {},
-  "knowledge_cutoff": "2026-11-03T04:08:20.102393+00:00",
+  "knowledge_cutoff": "2026-11-04T03:05:58.583385+00:00",
   "label": "연구모델 · 기존 전망과 미결합",
   "model_id": "shadow.nasdaq_pit_hybrid_distribution_v5",
   "model_version": 5,
   "numbers_visible": false,
   "operational_gate": {
-    "missing_completed_sessions": 56,
+    "missing_completed_sessions": 57,
     "pass": false,
     "reasons": [
-      "NASDAQ target is 56 completed XNAS sessions stale"
+      "NASDAQ target is 57 completed XNAS sessions stale"
     ]
   },
   "path": {},
@@ -28,7 +28,7 @@
         "count": 963,
         "improvement": 0.0018365183759985833,
         "lower_miss_share": 0.470873786407767,
-        "mean_width": 0.02944124505360651,
+        "mean_width": 0.029441245053606513,
         "model_crps": 0.007191599283530799,
         "p10_p90_coverage": 0.7860851505711319,
         "p25_p75_coverage": 0.5025960539979232
@@ -37,10 +37,10 @@
         "baseline_crps": 0.030049342246009376,
         "baseline_p10_p90_coverage": 0.8753894080996885,
         "count": 963,
-        "improvement": -0.0345143075497615,
+        "improvement": -0.03451430754976185,
         "lower_miss_share": 0.48878923766816146,
-        "mean_width": 0.13133120375363563,
-        "model_crps": 0.031086474485956184,
+        "mean_width": 0.13133120375363486,
+        "model_crps": 0.031086474485956195,
         "p10_p90_coverage": 0.7684319833852544,
         "p25_p75_coverage": 0.4932502596053998
       },
@@ -50,7 +50,7 @@
         "count": 963,
         "improvement": 0.012952868438590774,
         "lower_miss_share": 0.529126213592233,
-        "mean_width": 0.06497079394828184,
+        "mean_width": 0.06497079394828185,
         "model_crps": 0.014918056408901417,
         "p10_p90_coverage": 0.7860851505711319,
         "p25_p75_coverage": 0.4755970924195223
@@ -59,10 +59,10 @@
         "baseline_crps": 0.05181759765633686,
         "baseline_p10_p90_coverage": 0.8701973001038421,
         "count": 963,
-        "improvement": -0.1308023380766081,
+        "improvement": -0.1308023380766089,
         "lower_miss_share": 0.4788732394366197,
-        "mean_width": 0.22018946651971721,
-        "model_crps": 0.05859546058329869,
+        "mean_width": 0.2201894665197171,
+        "model_crps": 0.05859546058329873,
         "p10_p90_coverage": 0.7050882658359294,
         "p25_p75_coverage": 0.446521287642783
       }
@@ -74,10 +74,10 @@
             "baseline_crps": 0.041988047615655145,
             "baseline_p10_p90_coverage": 0.8136645962732919,
             "count": 322,
-            "improvement": -0.05111429056519572,
+            "improvement": -0.05111429056519241,
             "lower_miss_share": 1.0,
-            "mean_width": 0.13305328134694558,
-            "model_crps": 0.044134236881747016,
+            "mean_width": 0.1330532813469445,
+            "model_crps": 0.04413423688174688,
             "p10_p90_coverage": 0.6614906832298136,
             "p25_p75_coverage": 0.37577639751552794
           },
@@ -85,10 +85,10 @@
             "baseline_crps": 0.024052051873113992,
             "baseline_p10_p90_coverage": 0.906396255850234,
             "count": 641,
-            "improvement": -0.01995706778587901,
+            "improvement": -0.019957067785882902,
             "lower_miss_share": 0.0,
-            "mean_width": 0.13046613513421937,
-            "model_crps": 0.024532060302735206,
+            "mean_width": 0.13046613513421876,
+            "model_crps": 0.0245320603027353,
             "p10_p90_coverage": 0.8221528861154446,
             "p25_p75_coverage": 0.5522620904836193
           }
@@ -97,10 +97,10 @@
           "baseline_crps": 0.06343534447127687,
           "baseline_p10_p90_coverage": 0.5020746887966805,
           "count": 241,
-          "improvement": -0.045588703320804204,
+          "improvement": -0.04558870332080464,
           "lower_miss_share": 0.46308724832214765,
-          "mean_width": 0.1447965910899225,
-          "model_crps": 0.06632727957043093,
+          "mean_width": 0.1447965910899216,
+          "model_crps": 0.06632727957043096,
           "p10_p90_coverage": 0.3817427385892116,
           "p25_p75_coverage": 0.03734439834024896
         },
@@ -120,10 +120,10 @@
             "baseline_crps": 0.0255292154696682,
             "baseline_p10_p90_coverage": 0.9025367156208278,
             "count": 749,
-            "improvement": -0.007176995006039644,
+            "improvement": -0.007176995006040323,
             "lower_miss_share": 0.4879518072289157,
-            "mean_width": 0.11981382365896126,
-            "model_crps": 0.02571243852160212,
+            "mean_width": 0.11981382365896026,
+            "model_crps": 0.025712438521602137,
             "p10_p90_coverage": 0.7783711615487316,
             "p25_p75_coverage": 0.4953271028037383
           },
@@ -168,10 +168,10 @@
             "baseline_crps": 0.08045569473303624,
             "baseline_p10_p90_coverage": 0.7867647058823529,
             "count": 272,
-            "improvement": -0.13917605575294353,
+            "improvement": -0.13917605575294578,
             "lower_miss_share": 1.0,
             "mean_width": 0.21783876204595262,
-            "model_crps": 0.0916532009888431,
+            "model_crps": 0.09165320098884328,
             "p10_p90_coverage": 0.5367647058823529,
             "p25_p75_coverage": 0.3602941176470588
           },
@@ -179,10 +179,10 @@
             "baseline_crps": 0.04054471429184738,
             "baseline_p10_p90_coverage": 0.9030390738060782,
             "count": 691,
-            "improvement": -0.12426152533288169,
+            "improvement": -0.12426152533288135,
             "lower_miss_share": 0.06329113924050633,
-            "mean_width": 0.2211147800028778,
-            "model_crps": 0.045582862333938226,
+            "mean_width": 0.22111478000287765,
+            "model_crps": 0.04558286233393821,
             "p10_p90_coverage": 0.7713458755426917,
             "p25_p75_coverage": 0.4804630969609262
           }
@@ -191,10 +191,10 @@
           "baseline_crps": 0.1086554497614901,
           "baseline_p10_p90_coverage": 0.48132780082987553,
           "count": 241,
-          "improvement": -0.07901166613373445,
+          "improvement": -0.07901166613373418,
           "lower_miss_share": 0.3885350318471338,
-          "mean_width": 0.2436997732672766,
-          "model_crps": 0.1172404978816557,
+          "mean_width": 0.24369977326727657,
+          "model_crps": 0.11724049788165568,
           "p10_p90_coverage": 0.34854771784232363,
           "p25_p75_coverage": 0.04149377593360996
         },
@@ -214,10 +214,10 @@
             "baseline_crps": 0.04313402110185246,
             "baseline_p10_p90_coverage": 0.8945260347129506,
             "count": 749,
-            "improvement": -0.11570213743574513,
+            "improvement": -0.11570213743574626,
             "lower_miss_share": 0.4413145539906103,
-            "mean_width": 0.19944053256525554,
-            "model_crps": 0.04812471953953532,
+            "mean_width": 0.19944053256525537,
+            "model_crps": 0.04812471953953537,
             "p10_p90_coverage": 0.7156208277703605,
             "p25_p75_coverage": 0.4459279038718291
           },
@@ -258,9 +258,9 @@
       }
     },
     "lineage_linkage": 1.0,
-    "long_horizon_mean_improvement": -0.0826583228131848,
+    "long_horizon_mean_improvement": -0.08265832281318537,
     "paired_loss_difference_90_ci": [
-      0.001963118756952904,
+      0.0019631187569528943,
       0.006001089046625764
     ],
     "pass": false,
@@ -275,7 +275,7 @@
       "p10-p90 coverage range gate failed",
       "p25-p75 coverage range gate failed"
     ],
-    "sign_side_max_underperformance": 0.13917605575294353
+    "sign_side_max_underperformance": 0.13917605575294578
   },
   "schema_version": 5,
   "status": "shadow_validation_hold"

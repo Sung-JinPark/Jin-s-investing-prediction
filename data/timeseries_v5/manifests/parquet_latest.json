@@ -1,81 +1,81 @@
 {
-  "content_hash": "a720aebee90096468d682cbd3cd85f87824e47f350f1eada5611dedcccb7fd28",
+  "content_hash": "666b6ff1dc512a0d77896bd53cef883a1236c3984700c0ce05cb0e0e5b871bce",
   "files": [
     {
-      "rows": 9261,
+      "rows": 9262,
       "schema_hash": "1c5421e941cee5eb771dc4634510f936734dcb0f756758dac646628d514a50e1",
-      "sha256": "30e20d0d8a3370546fb71ce1f16d01f59cc6aa96ffed261437706126f2ad091a",
+      "sha256": "7e0336e1d64a7d39258a6bb0340152d223e235c9652d8d1284c0034403096449",
       "source_id": "cboe_skew",
       "uri": "private://observations/source_id=cboe_skew/observations.parquet"
     },
     {
-      "rows": 9307,
+      "rows": 9308,
       "schema_hash": "1c5421e941cee5eb771dc4634510f936734dcb0f756758dac646628d514a50e1",
-      "sha256": "c3b4f2398fa5b9f30aa7adfd7a2a6d389f607c734dfed58111835e7a59ec30ef",
+      "sha256": "ef8fdee67e0fe092b17a522db7dbcaa91aa2b3a43e5402cd5fcd04e6b9fd36c5",
       "source_id": "cboe_vix",
       "uri": "private://observations/source_id=cboe_vix/observations.parquet"
     },
     {
-      "rows": 4307,
+      "rows": 4308,
       "schema_hash": "1c5421e941cee5eb771dc4634510f936734dcb0f756758dac646628d514a50e1",
-      "sha256": "a40dbd87a455fb19a845d9be3ea5ab977a85fbcb6702539016143957e1bc5651",
+      "sha256": "5b4d1006e9f32683415b150909fcb9a7cb2b7e51237d1f59c1b489a8fd27fb97",
       "source_id": "cboe_vix3m",
       "uri": "private://observations/source_id=cboe_vix3m/observations.parquet"
     },
     {
-      "rows": 3981,
+      "rows": 3982,
       "schema_hash": "1c5421e941cee5eb771dc4634510f936734dcb0f756758dac646628d514a50e1",
-      "sha256": "91105131e2a455bbd7eb3cfde52e66a231954a3d2b83be15cee347509ad5815c",
+      "sha256": "99272f27410ccbb215c26b1350db4af469f37d39fabc292ec08855f27facf0bd",
       "source_id": "cboe_vix9d",
       "uri": "private://observations/source_id=cboe_vix9d/observations.parquet"
     },
     {
-      "rows": 5138,
+      "rows": 5139,
       "schema_hash": "1c5421e941cee5eb771dc4634510f936734dcb0f756758dac646628d514a50e1",
-      "sha256": "f44e87295857b929f1b12e16b25e4ddc3beb9dd5b5e0e6d87ab13581fe0c037a",
+      "sha256": "311eed94cf5941548488a34a5638656fe53729c7e900309203701767f51ee4a8",
       "source_id": "cboe_vvix",
       "uri": "private://observations/source_id=cboe_vvix/observations.parquet"
     },
     {
       "rows": 1935,
       "schema_hash": "1c5421e941cee5eb771dc4634510f936734dcb0f756758dac646628d514a50e1",
-      "sha256": "72ac8928429209a9a86f6ea77a8996a845fe41faeeec6eb3a589992877f5f3fd",
+      "sha256": "9c56a492a543fcf7143aa0812139e36d270120cf4cefa3f60405a7015d55e00a",
       "source_id": "fed_ebp",
       "uri": "private://observations/source_id=fed_ebp/observations.parquet"
     },
     {
       "rows": 36,
       "schema_hash": "2e5835a9e39214e39059c621b6ef25ec78921537730459ccb3347a3a64efd4d5",
-      "sha256": "1525aed99a52be3eb9a35ab18bd9d5a14dd3314cf5537440ecc27d8af7995ac8",
+      "sha256": "397884175413a0b9b73b67610c34d4c86574a665f126cf58e5d7d5a19e16df38",
       "source_id": "nyfed_reference_rates",
       "uri": "private://observations/source_id=nyfed_reference_rates/observations.parquet"
     },
     {
-      "rows": 61119,
+      "rows": 61128,
       "schema_hash": "1c5421e941cee5eb771dc4634510f936734dcb0f756758dac646628d514a50e1",
-      "sha256": "c1e0748c59230f310be388dc711901a0826c06bb6bfb40e25056e966a68b0cd5",
+      "sha256": "bd3793ff5df5ad1a59e46eab9b0861d9872c582519b3b02bfa4f6eef65fac467",
       "source_id": "ofr_fsi",
       "uri": "private://observations/source_id=ofr_fsi/observations.parquet"
     },
     {
-      "rows": 105448,
+      "rows": 105444,
       "schema_hash": "ec27a11a3dc76136c44eda8d6868e0bd9228558ab69c89f609ab04ed92a8dd90",
-      "sha256": "bba54f5f69fa2f2c4ee330d90f3bb92b44ac927610bddb1a3954aeeba12920b5",
+      "sha256": "544eded85a041f28d7be085d499a82620bb1317b1a6141a8339b5f1d886c2d68",
       "source_id": "treasury_dts",
       "uri": "private://observations/source_id=treasury_dts/observations.parquet"
     },
     {
-      "rows": 63002,
+      "rows": 63017,
       "schema_hash": "1c5421e941cee5eb771dc4634510f936734dcb0f756758dac646628d514a50e1",
-      "sha256": "b7131c0f926f63321e118c06f8593bd1f388134f96886195960bb76cc580c466",
+      "sha256": "ad3503f8eb4e22d310e0f975275752f2f6a4fc5f745ef57cb87d9d9e15f1c18a",
       "source_id": "treasury_yield_curve",
       "uri": "private://observations/source_id=treasury_yield_curve/observations.parquet"
     }
   ],
   "lineage": {
     "errors": [],
-    "link_count": 263534,
-    "observation_count": 263534,
+    "link_count": 263559,
+    "observation_count": 263559,
     "observation_linkage": 1.0,
     "ok": true,
     "pit_leakage_count": 0,
@@ -84,5 +84,5 @@
     "receipt_linkage": 1.0,
     "terminal_outcome_coverage": 1.0
   },
-  "row_count": 263534
+  "row_count": 263559
 }
