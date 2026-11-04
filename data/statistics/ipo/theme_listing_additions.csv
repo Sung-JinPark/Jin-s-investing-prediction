@@ -404,3 +404,4 @@ month,era,theme,subtheme,company,ticker,exchange,board,market_country,instrument
 2026-10,ai,ai,auto,"toggle holdings,Inc. (トグルホールディングス（株）)",652A,TSE,Growth,JP,ordinary,foreign_primary,,https://www.jpx.co.jp/english/listing/stocks/new/vk0khi000002itiy-att/10toggleholdings-OutlineEN.pdf,auto_rule_v3: 사업 설명 AI; listed 2026-10-30
 2026-10,ai,ai,auto,인텔리빅스,420610,KRX,KOSDAQ,KR,ordinary,foreign_primary,,https://kind.krx.co.kr/listinvstg/listingcompany.do?method=searchListingTypeMain,auto_rule_v3: 사업 설명 AI; listed 2026-10-30
 2026-11,ai,ai,auto,래블업,0147B0,KRX,KOSDAQ,KR,ordinary,foreign_primary,,https://kind.krx.co.kr/listinvstg/listingcompany.do?method=searchListingTypeMain,auto_rule_v3: 사업 설명 AI; listed 2026-11-03
+2026-11,ai,semiconductor,auto,이에스티,495910,KRX,KOSDAQ,KR,ordinary,foreign_primary,,https://kind.krx.co.kr/listinvstg/listingcompany.do?method=searchListingTypeMain,auto_rule_v3: 사업 설명 반도체; listed 2026-11-04
