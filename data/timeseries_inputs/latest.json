@@ -1,12 +1,12 @@
 {
-  "bundle_id": "ts-inputs-7cc96f17a3862b610afd42cb",
-  "capture_completed_at": "2026-11-03T21:03:03.410959+00:00",
+  "bundle_id": "ts-inputs-6dabb03a5c3ed35abe75992a",
+  "capture_completed_at": "2026-11-04T01:23:54.056922+00:00",
   "changed": true,
-  "checked_at": "2026-11-03T21:04:45.081609+00:00",
-  "content_hash": "6961f3d64ee43a2d4bfbbf6a28eb51b24666d29d0025edb2a54bbf3e524b48bd",
+  "checked_at": "2026-11-04T01:25:12.946595+00:00",
+  "content_hash": "9c3622b3f4c2f04bbd9d716cec63a4f67a90511059d3672a786915c23db93bd0",
   "contract_id": "timeseries_inputs_refresh_v1",
   "eligibility_changed": true,
-  "eligibility_hash": "fbd73bd03482195c5d7c70196627c854303d382944178684423d49ffeeb65812",
+  "eligibility_hash": "122f6e83b62140c3740286cfe5946794a9c19efe94525866230e0242759afe7e",
   "eligibility_status": "hold",
   "eligible_native_latest": {
     "DGS2": {
@@ -50,26 +50,18 @@
       "vintage_start": "2026-11-03T04:59:59+00:00"
     }
   },
-  "expected_session": "2026-11-02",
+  "expected_session": "2026-11-03",
   "native_watermarks": {
-    "DGS2": "2026-11-03T21:03:01.331124+00:00",
-    "DTWEXBGS": "2026-11-03T21:03:02.356536+00:00",
-    "NASDAQCOM": "2026-11-03T21:02:59.475135+00:00",
-    "T10Y2Y": "2026-11-03T21:03:01.811328+00:00",
-    "VIXCLS": "2026-11-03T21:03:00.376010+00:00"
+    "DGS2": "2026-11-04T01:23:49.958845+00:00",
+    "DTWEXBGS": "2026-11-04T01:23:52.122730+00:00",
+    "NASDAQCOM": "2026-11-04T01:23:47.747871+00:00",
+    "T10Y2Y": "2026-11-04T01:23:51.475680+00:00",
+    "VIXCLS": "2026-11-04T01:23:48.803015+00:00"
   },
-  "publication_allowed": false,
+  "publication_allowed": true,
   "schema_version": 1,
   "semantic_changed": false,
-  "source_failures": [
-    {
-      "http_status": null,
-      "reason": "TimeSeriesInputsError",
-      "series_id": "DGS2_DGS10",
-      "source_id": "us_treasury_yield_archive",
-      "stage": "market_treasury"
-    }
-  ],
+  "source_failures": [],
   "source_status": [
     {
       "series_id": "NASDAQCOM",
@@ -92,5 +84,5 @@
       "status": "fresh"
     }
   ],
-  "status": "hold"
+  "status": "ready"
 }
