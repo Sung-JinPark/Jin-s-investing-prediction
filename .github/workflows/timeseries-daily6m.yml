@@ -107,7 +107,7 @@ jobs:
       # The fast collector dispatches this workflow with GITHUB_TOKEN; use an
       # explicit deployment after the final pointer is committed to main.
       - name: Deploy committed research updates from an explicit trigger
-        if: ${{ always() && !cancelled() && steps.commit.outcome == 'success' && steps.commit.outputs.committed == 'true' }}
+        if: ${{ always() && !cancelled() && github.event_name != 'pull_request' && steps.commit.outcome == 'success' && steps.commit.outputs.committed == 'true' }}
         env:
           GH_TOKEN: ${{ github.token }}
         run: gh workflow run pages.yml --repo "$GITHUB_REPOSITORY" --ref main
