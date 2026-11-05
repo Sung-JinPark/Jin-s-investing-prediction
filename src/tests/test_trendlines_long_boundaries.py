@@ -74,6 +74,39 @@ def test_reference_classification_and_no_role_flip_are_explicit():
     assert 'formation_penetration' in upper['reference_reasons']
 
 
+
+def anchor_without_atr(*extra_highs):
+    """Samsung 2026-11-05: ATR restarts after a data gap, so a high 12 sessions later cannot count as a contact."""
+    observations=rows(300,gaps=(40,180))
+    highs={52:20,230:20,**dict(extra_highs)}
+    for row in observations:
+        base=100+row['session_index']*.1
+        row['high']=base+highs.get(row['session_index'],6)
+    return observations
+
+
+def test_line_short_of_two_contacts_is_passed_over_for_the_next_one():
+    *_,result=calculation(anchor_without_atr((130,10)))
+    for axis,view in result['analyses'].items():
+        upper=view['boundaries'][0]
+        audit=result['candidate_audits'][axis]['long_upper']
+        assert upper['status']=='ready' and upper['contact_count']>=B.MINIMUM_CONTACTS
+        assert audit['eligible_line_ids'][0]!=upper['line_id'] and upper['line_id'] in audit['eligible_line_ids']
+        assert upper['first_anchor']['index']==130 and upper['second_anchor']['index']==230
+
+
+def test_only_line_short_of_two_contacts_becomes_an_explicit_hold(monkeypatch):
+    *_,result=calculation(anchor_without_atr())
+    for axis,view in result['analyses'].items():
+        upper=view['boundaries'][0]
+        assert result['candidate_audits'][axis]['long_upper']['candidate_count']==1
+        assert upper['status']=='hold' and upper['current_price'] is None
+    # Without the guard the same input publishes the line that decode_envelope refuses.
+    monkeypatch.setattr(B,'MINIMUM_CONTACTS',0)
+    *_,unguarded=calculation(anchor_without_atr())
+    assert unguarded['analyses']['linear']['boundaries'][0]['contact_count']==1
+
+
 def test_nonpositive_far_or_unconfirmed_geometry_is_not_eligible():
     observations=rows();source,_=inputs(observations);atr=V.E._atr(observations,14,segmented=True);future=V._future(observations,source['asset'])
     pivots=V._pivots(observations,10,10);a=next(p for p in pivots if p['index']==45 and p['side']=='resistance');b=next(p for p in pivots if p['index']==135 and p['side']=='resistance')
