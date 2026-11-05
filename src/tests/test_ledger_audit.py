@@ -244,3 +244,13 @@ ledgers:
     stalled, report = audit("2026-07-01T00:00:00+00:00", "2026-07-19T00:00:00")
     assert stalled["status"] == "stalled", "18일이면 격주 작성기가 멈춘 것"
     assert not has_violations(report), "정체는 불변성 위반이 아니다"
+
+
+def test_registry_reads_v8_origin_dates_and_ipo_receipts_are_event_driven() -> None:
+    import yaml
+
+    rows = {row["id"]: row for row in yaml.safe_load((Path(__file__).parents[2] / "data/contracts/ledger_registry.yaml").read_text(encoding="utf-8"))["ledgers"]}
+    assert rows["timeseries_v8_shadow_forecasts"]["timestamp_field"] == "origin"
+    assert rows["timeseries_v8_shadow_resolutions"]["timestamp_field"] == "origin"
+    assert rows["ipo_reference_batch_receipts"]["cadence"] == "event"
+

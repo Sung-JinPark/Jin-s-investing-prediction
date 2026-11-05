@@ -1,8 +1,8 @@
 # Ledger accumulation audit
 
-- Generated: `2026-11-05T11:39:18+00:00`
+- Generated: `2026-11-05T12:32:26+00:00`
 - Latest completed NYSE day: `2026-11-04`
-- Result: accumulating 66 · frozen 2 · stalled 6 · inactive 11 · violation 0 · planned 8
+- Result: accumulating 67 · frozen 2 · stalled 4 · inactive 12 · violation 0 · planned 8
 
 | Ledger | Cadence | Files / rows | Latest | Status | Finding |
 |---|---:|---:|---:|---:|---|
@@ -15,7 +15,7 @@
 | `benchmark_ledger` | event | 1 / 50 | — | **accumulating** | — |
 | `cost_ledger` | event | 1 / 97 | — | **accumulating** | — |
 | `provider_shadow_ledger` | event | 1 / 0 | — | **accumulating** | — |
-| `scenario_archive` | trading_daily | 68 | 2026-11-04 | **stalled** | missing trading days: 2026-08-04, 2026-08-05, 2026-09-03, 2026-09-16, 2026-09-17, 2026-09-21, 2026-09-22, 2026-10-02, 2026-10-05 |
+| `scenario_archive` | trading_daily | 68 | 2026-11-04 | **accumulating** | missing trading days: 2026-08-04, 2026-08-05, 2026-09-03, 2026-09-16, 2026-09-17, 2026-09-21, 2026-09-22, 2026-10-02, 2026-10-05 |
 | `scenario_latest` | trading_daily | 1 | 2026-11-04 | **accumulating** | — |
 | `cross_asset_archive` | trading_daily | 63 | 2026-11-04 | **stalled** | missing trading days: 2026-08-04, 2026-08-25, 2026-09-03, 2026-09-16, 2026-09-17, 2026-09-21, 2026-09-22, 2026-10-02, 2026-10-06, 2026-10-16, 2026-10-30 |
 | `cross_asset_latest` | trading_daily | 1 | 2026-11-04 | **accumulating** | — |
@@ -33,10 +33,10 @@
 | `realty_dividends` | monthly | 1 / 346 | 2026-11-03 | **accumulating** | — |
 | `realty_o_entry_cohort_archive` | monthly | 4 | 2026-10-29 | **accumulating** | — |
 | `ai_capital_archives` | monthly | 6 | 2026-08-04 | **stalled** | — |
-| `dualdb_model_runs` | weekly | 1 | 2026-11-04 | **accumulating** | — |
+| `dualdb_model_runs` | weekly | 0 | — | **inactive** | — |
 | `source_monitoring` | trading_daily | 88 | 2026-11-05 | **stalled** | missing trading days: 2026-08-25, 2026-08-27, 2026-08-28, 2026-10-23, 2026-11-04 |
 | `source_monitoring_status` | trading_daily | 1 | 2026-11-05 | **accumulating** | — |
-| `ipo_reference_batch_receipts` | weekly | 4 | 2026-08-19 | **stalled** | — |
+| `ipo_reference_batch_receipts` | event | 4 | 2026-08-19 | **accumulating** | — |
 | `ipo_reference_batch_status` | weekly | 1 | 2026-11-05 | **accumulating** | — |
 | `ipo_edgar_candidates` | weekly | 1 | 2026-10-31 | **accumulating** | — |
 | `ipo_ai_classification_decisions` | biweekly | 1 | 2026-10-31 | **accumulating** | — |
@@ -58,8 +58,8 @@
 | `scenario_v5_2_distinctness_shadow` | trading_daily | 1 | — | **accumulating** | — |
 | `scenario_v5_2_sensitivity_grid` | event | 1 | — | **accumulating** | — |
 | `timeseries_v8_sealed_evaluations` | event | 1 | — | **accumulating** | — |
-| `timeseries_v8_shadow_forecasts` | weekly | 1 | — | **stalled** | — |
-| `timeseries_v8_shadow_resolutions` | weekly | 1 | — | **accumulating** | — |
+| `timeseries_v8_shadow_forecasts` | weekly | 1 | 2026-10-30 | **accumulating** | — |
+| `timeseries_v8_shadow_resolutions` | weekly | 1 | 2026-10-23 | **stalled** | — |
 | `timeseries_v8_holdout_scorings` | event | 1 | — | **accumulating** | — |
 | `timeseries_v8_development_experiments` | event | 1 | — | **accumulating** | — |
 | `timeseries_v13_vol_experiments` | event | 1 | 2026-10-21 | **accumulating** | — |

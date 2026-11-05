@@ -204,7 +204,8 @@ ledgers:
   - id: ipo_reference_batch_receipts
     path: data/statistics/ipo/reference_batch_receipts/*.json
     kind: archive_dir
-    cadence: weekly
+    # A receipt lands only when a watched source file changes; the status ledger is the weekly one.
+    cadence: event
     criticality: medium
     schema_ref: json_object
     timestamp_field: checked_at
@@ -360,12 +361,14 @@ ledgers:
     cadence: weekly
     criticality: high
     schema_ref: jsonl
+    timestamp_field: origin
   - id: timeseries_v8_shadow_resolutions
     path: data/timeseries_v8/ledgers/shadow_resolutions.jsonl
     kind: jsonl
     cadence: weekly
     criticality: high
     schema_ref: jsonl
+    timestamp_field: origin
     allow_empty_accumulating: true
   - id: timeseries_v8_holdout_scorings
     path: data/timeseries_v8/ledgers/holdout_scorings.jsonl

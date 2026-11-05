@@ -130,6 +130,11 @@ def _dates(paths: list[Path], timestamp_field: str | None = None) -> list[date]:
     return sorted(out)
 
 
+#: A past hole cannot be backfilled into an archive and stays listed in missing_trading_days.
+#: Only a recent one means the writer is failing now, so only that reads as stalled.
+RECENT_GAP_DAYS = 14
+
+
 def _last_market_day(root: Path, today: date) -> date:
     cutoff = completed_market_cutoff(today)
     calendar = load_calendar_contract(root)
@@ -292,7 +297,7 @@ def audit_ledgers(root: Path, *, write: bool = True, now: datetime | None = None
             status = "frozen"
         elif not paths:
             status = "inactive"
-        elif stale or gaps:
+        elif stale or any((today - date.fromisoformat(gap)).days <= RECENT_GAP_DAYS for gap in gaps):
             status = "stalled"
         else:
             status = "accumulating"
