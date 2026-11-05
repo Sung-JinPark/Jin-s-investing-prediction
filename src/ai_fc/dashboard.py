@@ -989,8 +989,6 @@ def build_read_model(
         "SELECT key,value FROM db_meta")}
     trust_sources = queries.source_health(conn)
     trust = {
-        "status": ("degraded" if any(item["status"] != "ok" for item in trust_sources)
-                   else "ok"),
         "sources": trust_sources,
         "index": {
             "branch": db_meta.get("branch", "미산출"),
@@ -1009,6 +1007,7 @@ def build_read_model(
     except (OSError, json.JSONDecodeError, TypeError):
         trust["ledgers"] = []
         trust["ledger_summary"] = {"status": "audit_unavailable"}
+    trust["status"] = _trust_status(trust["ledger_summary"])
     receipts = [{
         "receipt_id": "scenario:current", "label": "현재 시장 시나리오",
         "model": scenario.get("method") or "미산출",
@@ -1925,6 +1924,13 @@ def _limit_embed_inline_bodies(read_model: dict) -> dict:
         "source_field": "source_uri",
     }
     return limited
+
+
+def _trust_status(summary: dict) -> str:
+    """Overall health comes from the audit that measures something; an unread audit is not health."""
+    if summary.get("status") == "audit_unavailable":
+        return "degraded"
+    return "degraded" if summary.get("violation") or summary.get("stalled") else "ok"
 
 
 def render_html(read_model: dict, mode: str = "embed") -> str:

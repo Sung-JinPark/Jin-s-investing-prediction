@@ -177,8 +177,9 @@ def source_health(conn: sqlite3.Connection) -> list[dict]:
             "source_id": row["source_id"],
             "name": row["name"],
             "provider": row["provider"],
-            "status": "degraded" if enabled else "failed",
-            "state_label": "미산출" if enabled else "비활성",
+            # Nothing measures a source one by one yet. Saying so beats a warning that is always on.
+            "status": "unmonitored" if enabled else "disabled",
+            "state_label": "미계측" if enabled else "비활성",
             "asof": None,
             "freshness_sla_hours": row["freshness_sla_hours"],
             "vintage_capability": row["vintage_capability"],
