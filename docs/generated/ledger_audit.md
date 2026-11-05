@@ -1,18 +1,18 @@
 # Ledger accumulation audit
 
-- Generated: `2026-11-05T10:34:05+00:00`
+- Generated: `2026-11-05T11:39:18+00:00`
 - Latest completed NYSE day: `2026-11-04`
-- Result: accumulating 65 · frozen 2 · stalled 6 · inactive 12 · violation 0 · planned 8
+- Result: accumulating 66 · frozen 2 · stalled 6 · inactive 11 · violation 0 · planned 8
 
 | Ledger | Cadence | Files / rows | Latest | Status | Finding |
 |---|---:|---:|---:|---:|---|
 | `forecast_records` | event | 79 | 2026-11-04 | **accumulating** | — |
 | `forecast_evidence` | event | 43 | 2026-11-04 | **accumulating** | — |
-| `ml_market_history` | weekly | 1 | 2026-11-04 | **accumulating** | — |
+| `ml_market_history` | weekly | 1 | 2026-11-05 | **accumulating** | — |
 | `method_changes` | event | 1 | — | **accumulating** | — |
-| `calibration_ledger` | event | 1 / 32 | 2026-10-26 | **accumulating** | — |
+| `calibration_ledger` | event | 1 / 50 | 2026-11-05 | **accumulating** | — |
 | `corrections_ledger` | event | 1 / 23 | — | **accumulating** | — |
-| `benchmark_ledger` | event | 1 / 32 | — | **accumulating** | — |
+| `benchmark_ledger` | event | 1 / 50 | — | **accumulating** | — |
 | `cost_ledger` | event | 1 / 97 | — | **accumulating** | — |
 | `provider_shadow_ledger` | event | 1 / 0 | — | **accumulating** | — |
 | `scenario_archive` | trading_daily | 68 | 2026-11-04 | **stalled** | missing trading days: 2026-08-04, 2026-08-05, 2026-09-03, 2026-09-16, 2026-09-17, 2026-09-21, 2026-09-22, 2026-10-02, 2026-10-05 |
@@ -33,7 +33,7 @@
 | `realty_dividends` | monthly | 1 / 346 | 2026-11-03 | **accumulating** | — |
 | `realty_o_entry_cohort_archive` | monthly | 4 | 2026-10-29 | **accumulating** | — |
 | `ai_capital_archives` | monthly | 6 | 2026-08-04 | **stalled** | — |
-| `dualdb_model_runs` | weekly | 0 | — | **inactive** | — |
+| `dualdb_model_runs` | weekly | 1 | 2026-11-04 | **accumulating** | — |
 | `source_monitoring` | trading_daily | 88 | 2026-11-05 | **stalled** | missing trading days: 2026-08-25, 2026-08-27, 2026-08-28, 2026-10-23, 2026-11-04 |
 | `source_monitoring_status` | trading_daily | 1 | 2026-11-05 | **accumulating** | — |
 | `ipo_reference_batch_receipts` | weekly | 4 | 2026-08-19 | **stalled** | — |

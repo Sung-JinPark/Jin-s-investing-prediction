@@ -18,6 +18,7 @@ on:
       - "src/ai_fc/timeseries_v4/**"
       - "src/tests/test_multivariate_timeseries_v4.py"
       - "src/ai_fc/cli.py"
+      - "src/ai_fc/timeseries_v4_official_transport.py"
 
 permissions:
   contents: write
@@ -44,6 +45,8 @@ jobs:
         run: pytest src/tests/test_multivariate_timeseries_v4.py -q
       - name: Collect public archives raw-first and build Parquet view
         if: ${{ github.event_name != 'pull_request' }}
+        env:
+          FRED_API_KEY: ${{ secrets.FRED_API_KEY }}
         run: python -m ai_fc timeseries-v4-collect --volume-start-year 2009
       - name: Verify raw hashes and receipt linkage
         if: ${{ github.event_name != 'pull_request' }}
