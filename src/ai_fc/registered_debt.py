@@ -16,7 +16,6 @@ from __future__ import annotations
 
 import hashlib
 import json
-import os
 import time
 import urllib.request
 import xml.etree.ElementTree as ET
@@ -25,6 +24,7 @@ from pathlib import Path
 from typing import Any, Callable
 
 from .market_extensions import MarketExtensionError, _persist_json
+from .sec_contact import sec_user_agent
 
 # Frozen issuer list.  Changing it changes the meaning of the totals, so it is
 # recorded in the payload and any change must be a deliberate, visible edit.
@@ -47,10 +47,7 @@ _SEC_RATE_LIMIT_SECONDS = 0.15
 
 
 def _user_agent() -> str:
-    return os.getenv(
-        "AI_FC_SEC_USER_AGENT",
-        "Jin Investing Prediction research Sung-JinPark@users.noreply.github.com",
-    )
+    return sec_user_agent()
 
 
 def _fetch(url: str) -> bytes:

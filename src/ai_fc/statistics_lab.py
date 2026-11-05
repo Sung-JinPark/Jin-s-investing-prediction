@@ -54,7 +54,7 @@ NYU_RETURNS_ENDPOINT = "https://pages.stern.nyu.edu/~adamodar/pc/datasets/histre
 #: 우회가 아니라 SEC가 문서로 지시한 준수 방법이다.  주소는 저장소 소유자가 지정했고
 #: `ipo_edgar_watch`가 이미 같은 주소를 쓴다.  형제 모듈
 #: (`ai_capital_cycle`·`segment_filing_inventory`)과 같은 환경변수로 교체할 수 있다.
-SEC_CONTACT = "91ssjj@gmail.com"
+from .sec_contact import SEC_CONTACT  # noqa: E402
 DEFAULT_USER_AGENT = f"JinsInvestingStatisticsLab/1.0 ({SEC_CONTACT})"
 
 

@@ -8,7 +8,6 @@ from __future__ import annotations
 
 import hashlib
 import json
-import os
 import urllib.request
 from copy import deepcopy
 from datetime import date, datetime, timezone
@@ -16,6 +15,7 @@ from pathlib import Path
 from typing import Any
 
 from .ai_capital_cycle import CIKS
+from .sec_contact import sec_user_agent
 
 LATEST = Path("data/ai_capital_cycle/segment_filing_accessions_latest.json")
 ARCHIVE = Path("data/ai_capital_cycle/segment_filing_accessions_archive")
@@ -28,10 +28,7 @@ class SegmentInventoryError(ValueError):
 
 
 def _user_agent() -> str:
-    return os.getenv(
-        "AI_FC_SEC_USER_AGENT",
-        "Jin Investing Prediction research Sung-JinPark@users.noreply.github.com",
-    )
+    return sec_user_agent()
 
 
 def _fetch_submissions(cik: str) -> tuple[dict[str, Any], dict[str, Any]]:

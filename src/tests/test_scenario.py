@@ -196,6 +196,53 @@ def test_band_calibration_is_append_only_and_duplicate_safe(tmp_path: Path) -> N
     assert coverage["buckets"][0]["inside_p10_p90_rate_pct"] is None
 
 
+def test_band_calibration_keeps_the_first_close_when_the_provider_restates_it(tmp_path: Path) -> None:
+    # Measured: ^IXIC 2026-11-02 went 25164.36 -> 25164.31 and 2026-11-04 returned 25736.51 then
+    # 25736.509765625, which rounds p50_error_pct differently. The ledger stays append-only.
+    payload = _build()
+    _, persisted, _ = scenario._persist_scenario(tmp_path, payload)
+    target = date.fromisoformat(persisted["quantile_table"]["trading_days"][0])
+    actual = persisted["quantile_table"]["quantiles"]["p50"][0]
+    path = tmp_path / "data/scenarios/band_calibration.csv"
+    assert scenario.append_band_calibration(tmp_path, asof=target, actual_close=actual)
+    before = path.read_bytes()
+    assert not scenario.append_band_calibration(tmp_path, asof=target, actual_close=actual * 1.0002)
+    assert path.read_bytes() == before
+
+
+def test_band_calibration_still_refuses_a_real_restatement_or_changed_band(tmp_path: Path) -> None:
+    payload = _build()
+    _, persisted, _ = scenario._persist_scenario(tmp_path, payload)
+    target = date.fromisoformat(persisted["quantile_table"]["trading_days"][0])
+    actual = persisted["quantile_table"]["quantiles"]["p50"][0]
+    assert scenario.append_band_calibration(tmp_path, asof=target, actual_close=actual)
+    with pytest.raises(scenario.ScenarioError, match="band calibration conflict"):
+        scenario.append_band_calibration(tmp_path, asof=target, actual_close=actual * 1.01)
+    path = tmp_path / "data/scenarios/band_calibration.csv"
+    text = path.read_text(encoding="utf-8")
+    p10 = str(persisted["quantile_table"]["quantiles"]["p10"][0])
+    path.write_text(text.replace("," + p10 + ",", ",1,", 1), encoding="utf-8")
+    with pytest.raises(scenario.ScenarioError, match="band calibration conflict"):
+        scenario.append_band_calibration(tmp_path, asof=target, actual_close=actual)
+
+
+def test_same_day_ledger_conflict_is_not_reported_as_an_archive_conflict(tmp_path: Path, monkeypatch) -> None:
+    days, closes = _series()
+    contract = scenario.load_calendar_contract(Path(__file__).parents[2])
+    contract_path = tmp_path / scenario.CALENDAR_RELATIVE_PATH
+    contract_path.parent.mkdir(parents=True)
+    import yaml
+    contract_path.write_text(yaml.safe_dump(contract), encoding="utf-8")
+    monkeypatch.setattr(scenario.feed, "yahoo_series", lambda *args, **kwargs: (days, closes))
+    scenario.refresh_scenario(tmp_path, asof=days[-1])
+
+    def conflict(*args, **kwargs):
+        raise scenario.ScenarioError("append-only band calibration conflict for x")
+    monkeypatch.setattr(scenario, "append_band_calibration", conflict)
+    with pytest.raises(scenario.ScenarioError, match="band calibration conflict"):
+        scenario.refresh_scenario(tmp_path, asof=days[-1])
+
+
 def test_horizon_coverage_hides_rates_until_sixty_observations(tmp_path: Path) -> None:
     path = tmp_path / scenario.BAND_CALIBRATION_PATH
     path.parent.mkdir(parents=True)
