@@ -152,7 +152,7 @@ if(kind==='extra_key')value.lines[0].source_approved=true;
 if(kind==='wrong_asset')value.asset_id='bitcoin';
 if(kind==='duplicate_id')value.lines.push({...record,number:2});
 if(kind==='invalid_date')value.lines[0].a.session='2026-02-30';
-if(kind==='too_many')value.lines=Array.from({length:21},(_,i)=>({...record,id:'manual-'+i,number:i+1}));
+if(kind==='too_many')value.lines=Array.from({length:101},(_,i)=>({...record,id:'manual-'+i,number:i+1}));
 const raw=JSON.stringify(value);memory.set(TREND_MANUAL_STORAGE_PREFIX+'soxx',raw);
 const state=trendManualState('soxx');process.stdout.write(JSON.stringify({count:state.lines.length,message:state.message,preserved:raw===memory.get(TREND_MANUAL_STORAGE_PREFIX+'soxx')}));
 '''.replace('KIND', repr(corruption)), FIXTURE)
@@ -359,7 +359,7 @@ const state=trendManualState('soxx');await state.loading;trendManualApply(state,
 const backup={schema_version:2,contract_id:'trendlines_personal_backup_v2',exported_at:new Date().toISOString(),assets:TREND_VISIBLE_ASSETS.map(([id])=>({...trendManualPayload(state),asset_id:id,unit:TREND_PRIVATE_IDENTITIES[id][4]})),templates:TREND_TEMPLATE_STATE};
 const valid=trendManualBackupCheck(backup),fault=FAULT;
 if(fault==='unit')backup.assets[0].unit='USD_per_share';if(fault==='asset')backup.assets[0].asset_id='mag7';if(fault==='version')backup.schema_version=1;
-if(fault==='extra')backup.assets[0].lines[0].approved=true;if(fault==='count')backup.assets[0].lines=Array.from({length:21},(_,i)=>({...backup.assets[0].lines[0],id:'manual-'+i,number:i+1}));
+if(fault==='extra')backup.assets[0].lines[0].approved=true;if(fault==='count')backup.assets[0].lines=Array.from({length:101},(_,i)=>({...backup.assets[0].lines[0],id:'manual-'+i,number:i+1}));
 if(fault==='style')backup.assets[0].lines[0].style.color='url(javascript:test)';if(fault==='date')backup.assets[0].lines[0].a.session='2026-02-30';if(fault==='duplicate')backup.assets[0]=backup.assets[1];if(fault==='templates')backup.templates.items=[{id:'template-a',name:'x',style:{...TREND_MANUAL_STYLE},a:record.a}];
 let rejected=false;try{trendManualBackupCheck(backup);}catch(_){rejected=true;}process.stdout.write(JSON.stringify({valid:valid.assets.length,rejected,unchanged:state.lines.length===1}));
 '''.replace('FAULT', repr(fault)), FIXTURE)

@@ -3,10 +3,14 @@
 HTTP never starts a refresh, executes a command, reads credentials, or serves
 vendor originals. A separate, serialized worker runs the explicitly supplied
 collector; the public dashboard continues to publish only approved-source data.
+Chart symbol lookups (symbol_lookup.py) read fixed public hosts into a memory
+cache and write nothing.
 """
 
 from __future__ import annotations
 
+import base64
+import binascii
 import json
 import math
 import os
@@ -23,6 +27,7 @@ from urllib.parse import parse_qsl, unquote, urlsplit
 from zoneinfo import ZoneInfo
 
 from . import contracts as C, research as R, storage as S, delivery as D
+from .symbol_lookup import SymbolLookup
 
 HOST = "127.0.0.1"
 PORT = 8878
@@ -542,9 +547,19 @@ class LocalTrendlinesService:
         return raw, media
 
 
-def make_http_server(service: LocalTrendlinesService, *, host: str = HOST, port: int = PORT):
+def _symbol_argument(route: str) -> str:
+    # Hangul and "^" travel as one base64url segment: the path guard forbids "%" and "?".
+    segment = route.rsplit("/", 1)[-1]
+    try:
+        return base64.urlsafe_b64decode(segment + "=" * (-len(segment) % 4)).decode("utf-8")
+    except (binascii.Error, UnicodeDecodeError) as error:
+        raise FileNotFoundError(segment) from error
+
+
+def make_http_server(service: LocalTrendlinesService, *, host: str = HOST, port: int = PORT, symbols: SymbolLookup | None = None):
     if host != HOST:
         raise LocalServiceError("local_service_must_bind_exact_loopback")
+    lookup = symbols or SymbolLookup()
 
     class Handler(BaseHTTPRequestHandler):
         protocol_version = "HTTP/1.1"
@@ -598,6 +613,8 @@ def make_http_server(service: LocalTrendlinesService, *, host: str = HOST, port:
                 return self.path
             if self.path in {"/api/private-trendlines/" + asset_id + "/long-boundaries" for asset_id in ASSET_IDS}:
                 return self.path
+            if re.fullmatch(r"/api/private-trendlines/symbol-(?:search|bars)/[A-Za-z0-9_-]{1,128}", self.path):
+                return self.path
             prefix = "/api/private-trendlines/(" + "|".join(ASSET_IDS) + ")/full"
             if re.fullmatch(prefix, self.path) or re.fullmatch(prefix + r"/research-full-snapshot-[a-f0-9]{64}/bars/(?:0|[1-7])", self.path):
                 return self.path
@@ -612,6 +629,10 @@ def make_http_server(service: LocalTrendlinesService, *, host: str = HOST, port:
             try:
                 if route == "/api/private-trendlines/status":
                     return self._reply(200, S.encode(service.status()))
+                if "/symbol-search/" in route:
+                    return self._reply(200, S.encode(lookup.search(_symbol_argument(route))))
+                if "/symbol-bars/" in route:
+                    return self._reply(200, S.encode(lookup.bars(_symbol_argument(route))))
                 if route.endswith("/critical"):
                     return self._reply(200, service.read_critical_detail(route.split("/")[3]))
                 if route.endswith("/representative"):
