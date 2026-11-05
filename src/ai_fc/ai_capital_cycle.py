@@ -10,7 +10,6 @@ from __future__ import annotations
 
 import hashlib
 import json
-import os
 import re
 import urllib.request
 from datetime import date, datetime, timezone
@@ -20,6 +19,7 @@ from typing import Any
 import yaml
 
 from .market_extensions import MarketExtensionError, _persist_json
+from .sec_contact import sec_user_agent
 
 CIKS = {
     "MSFT": "0000789019", "AMZN": "0001018724",
@@ -54,10 +54,7 @@ ANNUAL_MAX_DAYS = 400
 
 
 def _user_agent() -> str:
-    return os.getenv(
-        "AI_FC_SEC_USER_AGENT",
-        "Jin Investing Prediction research Sung-JinPark@users.noreply.github.com",
-    )
+    return sec_user_agent()
 
 
 def _fetch_companyfacts(cik: str) -> tuple[dict[str, Any], dict[str, Any]]:

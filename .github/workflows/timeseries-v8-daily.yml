@@ -48,7 +48,7 @@ jobs:
           python-version: "3.12"
           cache: pip
       - name: Install the pinned numerical runtime
-        run: pip install -e ".[pit,timeseries]" pytest
+        run: pip install -e ".[pit,timeseries]" "exchange-calendars>=4.6,<5" pytest
       - name: Daily display forecast (idempotent per origin and input state)
         run: python -m ai_fc timeseries-v8-daily
       - name: Verify ledgers and chains
@@ -101,7 +101,7 @@ jobs:
           python-version: "3.12"
           cache: pip
       - name: Install the pinned numerical runtime
-        run: pip install -e ".[pit,timeseries]"
+        run: pip install -e ".[pit,timeseries]" "exchange-calendars>=4.6,<5"
       - uses: actions/download-artifact@v4
         with:
           name: timeseries-v8-daily
