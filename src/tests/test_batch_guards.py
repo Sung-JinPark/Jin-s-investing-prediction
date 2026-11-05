@@ -87,10 +87,15 @@ def test_v4_api_failure_stays_visible_and_other_failures_of_that_source_are_kept
     assert [row["source_id"] for row in result["failures"]] == ["fred_nasdaq100", "fred_api_nasdaq100"]
 
 
-def test_v4_workflow_gives_the_collect_step_the_api_key():
+def test_nothing_refreshes_the_frozen_v4_benchmark():
+    # V5 reproduces data/timeseries_v4 byte for byte; a refresh breaks its baseline audit.
     text = (WORKFLOWS / "timeseries-v4-data-refresh.yml").read_text(encoding="utf-8")
-    step = text[text.index("Collect public archives raw-first"):text.index("Verify raw hashes")]
-    assert "FRED_API_KEY: ${{ secrets.FRED_API_KEY }}" in step
+    trigger = text[text.index("on:\n"):text.index("permissions:\n")]
+    assert "schedule:" not in trigger and "workflow_dispatch" not in trigger
+    for path in WORKFLOWS.glob("*.yml"):
+        if path.name != "timeseries-v4-data-refresh.yml":
+            assert "timeseries-v4-data-refresh.yml" not in path.read_text(encoding="utf-8"), path.name
+            assert "git add data/timeseries_v4" not in path.read_text(encoding="utf-8"), path.name
 
 
 def test_v2_refresh_runs_on_one_exact_runtime_generation():
