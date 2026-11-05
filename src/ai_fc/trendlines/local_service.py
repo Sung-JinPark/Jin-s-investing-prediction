@@ -613,7 +613,7 @@ def make_http_server(service: LocalTrendlinesService, *, host: str = HOST, port:
                 return self.path
             if self.path in {"/api/private-trendlines/" + asset_id + "/long-boundaries" for asset_id in ASSET_IDS}:
                 return self.path
-            if re.fullmatch(r"/api/private-trendlines/symbol-(?:search|bars)/[A-Za-z0-9_-]{1,128}", self.path):
+            if re.fullmatch(r"/api/private-trendlines/symbol-(?:search|bars|intraday|quote)/[A-Za-z0-9_-]{1,128}", self.path):
                 return self.path
             prefix = "/api/private-trendlines/(" + "|".join(ASSET_IDS) + ")/full"
             if re.fullmatch(prefix, self.path) or re.fullmatch(prefix + r"/research-full-snapshot-[a-f0-9]{64}/bars/(?:0|[1-7])", self.path):
@@ -633,6 +633,10 @@ def make_http_server(service: LocalTrendlinesService, *, host: str = HOST, port:
                     return self._reply(200, S.encode(lookup.search(_symbol_argument(route))))
                 if "/symbol-bars/" in route:
                     return self._reply(200, S.encode(lookup.bars(_symbol_argument(route))))
+                if "/symbol-intraday/" in route:
+                    return self._reply(200, S.encode(lookup.intraday(_symbol_argument(route))))
+                if "/symbol-quote/" in route:
+                    return self._reply(200, S.encode(lookup.quote(_symbol_argument(route))))
                 if route.endswith("/critical"):
                     return self._reply(200, service.read_critical_detail(route.split("/")[3]))
                 if route.endswith("/representative"):
