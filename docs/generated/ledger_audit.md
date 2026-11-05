@@ -1,8 +1,8 @@
 # Ledger accumulation audit
 
-- Generated: `2026-11-05T12:33:26+00:00`
+- Generated: `2026-11-05T12:58:30+00:00`
 - Latest completed NYSE day: `2026-11-04`
-- Result: accumulating 68 · frozen 2 · stalled 3 · inactive 12 · violation 0 · planned 8
+- Result: accumulating 69 · frozen 2 · stalled 2 · inactive 12 · violation 0 · planned 8
 
 | Ledger | Cadence | Files / rows | Latest | Status | Finding |
 |---|---:|---:|---:|---:|---|
@@ -31,8 +31,8 @@
 | `rate_event_archive` | monthly | 58 | 2026-11-04 | **accumulating** | — |
 | `realty_rate_sensitivity_archive` | monthly | 58 | 2026-11-04 | **accumulating** | — |
 | `realty_dividends` | monthly | 1 / 346 | 2026-11-03 | **accumulating** | — |
-| `realty_o_entry_cohort_archive` | monthly | 4 | 2026-10-29 | **accumulating** | — |
-| `ai_capital_archives` | monthly | 6 | 2026-08-04 | **stalled** | — |
+| `realty_o_entry_cohort_archive` | monthly | 5 | 2026-11-03 | **accumulating** | — |
+| `ai_capital_archives` | monthly | 9 | 2026-11-05 | **accumulating** | — |
 | `dualdb_model_runs` | weekly | 0 | — | **inactive** | — |
 | `source_monitoring` | trading_daily | 88 | 2026-11-05 | **stalled** | missing trading days: 2026-08-25, 2026-08-27, 2026-08-28, 2026-10-23, 2026-11-04 |
 | `source_monitoring_status` | trading_daily | 1 | 2026-11-05 | **accumulating** | — |
