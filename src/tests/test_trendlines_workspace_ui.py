@@ -66,11 +66,11 @@ process.stdout.write(JSON.stringify({pending,base,parallel,through:trendLinePric
 
 def test_channel_needs_two_free_slots_and_leaves_lines_unchanged(tmp_path):
     out = run(tmp_path, SESSIONS + r'''
-const filler=Array.from({length:19},(_,i)=>({...trendManualUpgrade({...record,id:'manual-fill-'+i,number:i+1}),axis:'linear'}));trendManualApply(state,filler);
+const filler=Array.from({length:99},(_,i)=>({...trendManualUpgrade({...record,id:'manual-fill-'+i,number:i+1}),axis:'linear'}));trendManualApply(state,filler);
 state.tool='channel';trendManualChoose(state,at(1,100),sessions);trendManualChoose(state,at(5,200),sessions);trendManualChoose(state,at(3,180),sessions);
 process.stdout.write(JSON.stringify({count:state.lines.length,message:state.message}));
 ''', FIXTURE)
-    assert out['count'] == 19 and '20개' in out['message']
+    assert out['count'] == 99 and '100개' in out['message']
 
 
 def test_measurement_is_transient_and_never_enters_the_saved_document(tmp_path):
@@ -176,15 +176,16 @@ def test_workspace_mouse_pan_suppresses_selection_and_always_releases(workspace_
     """Run the real pan handlers and CSS; isolate chart data, rendering and storage."""
     parts = Path(__file__).parents[1] / 'ai_fc/dashboard_parts'
     source = (parts / 'trendlines.js').read_text(encoding='utf-8')
-    drawing = source[source.index('function drawTrendWorkspace('):source.index('function trendWorkspaceSnapshot(')]
+    drawing = source[source.index('// TradingView-style chart layer.'):source.index('function trendIcon(')] + source[source.index('function drawTrendWorkspace('):source.index('function trendWorkspaceSnapshot(')]
     css = (parts / 'trendlines.css').read_text(encoding='utf-8')
     program = r'''
 const manual={ready:true,mode:false,lines:[],selection:[],saveStatus:'saved'},state={factor:2,offset:100,heldCount:100,yRange:null};
-const baseBars=Array.from({length:200},(_,i)=>({session:'2026-'+String(i).padStart(3,'0'),close:100+i})),bars=baseBars.slice(100);
+const baseBars=Array.from({length:200},(_,i)=>({session:'2026-'+String(i).padStart(3,'0'),session_index:i,open:100+i,high:101+i,low:99+i,close:100+i})),bars=baseBars.slice(100);
+const trendManualSessions=()=>[],trendPlotFrame=()=>({R:60}),TREND_LOCAL_BASE='';
 const detail={asset_id:'soxx',bars:baseBars},analysis={lines:[]},asset={label:'SOXX'},ws={context:{family:null},family:null,panelOpen:false};
 const before=JSON.stringify({baseBars,analysis,manual}),TREND_ZOOM={ws},TREND_RANGE_PRESETS=[];
 const trendManualState=()=>manual,trendManualGeometry=()=>null;
-const trendPlotModel=()=>({W:1000,H:500,L:50,R:60,T:20,B:40,range:[50,150]});
+const trendPlotModel=()=>({W:1000,H:500,L:50,R:60,T:20,B:40,range:[50,150],first:state.xRange?state.xRange[0]:100,end:state.xRange?state.xRange[1]:200,bars,x:()=>0});
 const trendWorkspaceFrame=()=>'<header class="trend-ws-top"><p>SOXX chart toolbar</p><input id="editable" value="line name"></header><div class="trend-ws-main"><nav class="trend-ws-tools"></nav><div class="trend-ws-stage" data-trend-ws-stage></div></div><footer class="trend-ws-bottom">Chart dates and price labels</footer>';
 const trendWorkspaceLegend=()=>'',trendWorkspaceSelectionBar=()=>'';
 const trendSvg=()=>'<svg data-trend-plot viewBox="0 0 1000 500" tabindex="0"><text x="100" y="100">SOXX selectable price labels and chart history</text><text x="100" y="130">2026-10-22  100  200  300</text></svg>';
@@ -193,7 +194,7 @@ const bindTrendWorkspaceChart=()=>{},bindTrendManual=()=>{},drawTrendInteractive
 const host=document.querySelector('[data-trend-zoom-chart]');
 drawTrendWorkspace(host,detail,analysis,baseBars,bars,asset,'linear','workspace',state,ws,10);
 host.addEventListener('pointerdown',event=>{window.lastPointer=event.pointerId;});
-window.inspect=()=>({offset:state.offset,cursor:getComputedStyle(host.querySelector('svg')).cursor,selection:getSelection().toString(),
+window.inspect=()=>({offset:state.xRange?state.xRange[0]:state.offset,cursor:getComputedStyle(host.querySelector('svg')).cursor,selection:getSelection().toString(),
   active:host.hasAttribute('data-trend-gesture'),captured:host.hasPointerCapture(window.lastPointer||1),
   unchanged:before===JSON.stringify({baseBars,analysis,manual})});
 '''
@@ -275,7 +276,7 @@ window.openFullWorkspace=(scale='linear')=>{
 };
 window.inspectChart=()=>{
   const {m,bars}=host._trendNavigation;
-  return {factor:state.factor,x:state.xRange?.slice()||[m.first,m.end],y:(state.yRange||m.range).slice(),first:m.first,end:m.end,
+  return {manual_price:!!state.yRange,factor:state.factor,x:state.xRange?.slice()||[m.first,m.end],y:(state.yRange||m.range).slice(),first:m.first,end:m.end,
     bars:bars.map(bar=>bar.session_index),axisWidth:m.R,plotHeight:(m.H-m.T-m.B)/m.H*host.querySelector('svg').getBoundingClientRect().height,
     finite:[m.first,m.end,...m.range,...(state.xRange||[]),...(state.yRange||[])].every(Number.isFinite),
     unchanged:original===JSON.stringify({baseBars,analysis,manual}),cursor:getComputedStyle(host.querySelector('svg')).cursor,
@@ -297,10 +298,10 @@ window.anchorAtClientPoint=point=>{
 };
 window.anchorError=(anchor,target=anchor)=>{
   const {m}=host._trendNavigation,box=host.querySelector('svg').getBoundingClientRect();
-  return {x:Math.abs(box.left+m.x(anchor.index)/m.W*box.width-target.x),y:Math.abs(box.top+m.y(anchor.price)/m.H*box.height-target.y)};
+  return {x:Math.abs(box.left+m.x(anchor.index)/m.W*box.width-target.x),y:state.yRange?Math.abs(box.top+m.y(anchor.price)/m.H*box.height-target.y):0};
 };
-window.wheelAt=({rx=.5,ry=.5,dy=-80,dx=0,mode=0,shift=false,priceAxis=false,target='svg'}={})=>{
-  const point=chartPoint(rx,ry,priceAxis),event=new WheelEvent('wheel',{bubbles:true,cancelable:true,clientX:point.x,clientY:point.y,deltaY:dy,deltaX:dx,deltaMode:mode,shiftKey:shift});
+window.wheelAt=({rx=.5,ry=.5,dy=-80,dx=0,mode=0,shift=false,ctrl=false,priceAxis=false,target='svg'}={})=>{
+  const point=chartPoint(rx,ry,priceAxis),event=new WheelEvent('wheel',{bubbles:true,cancelable:true,clientX:point.x,clientY:point.y,deltaY:dy,deltaX:dx,deltaMode:mode,shiftKey:shift,ctrlKey:ctrl});
   host.querySelector(target).dispatchEvent(event);return event.defaultPrevented;
 };
 host.addEventListener('pointerdown',event=>{window.lastPointer=event.pointerId;});
@@ -321,14 +322,17 @@ resetChart();
 @pytest.mark.parametrize('scale', ['linear', 'log'])
 @pytest.mark.parametrize('rx,ry', [(.2, .25), (.5, .5), (.8, .75)])
 @pytest.mark.parametrize('dy', [-80, 80])
-def test_workspace_wheel_keeps_cursor_session_and_price_fixed(workspace_chart, scale, rx, ry, dy):
+def test_workspace_wheel_holds_right_edge_and_ctrl_wheel_holds_cursor_session(workspace_chart, scale, rx, ry, dy):
     result = workspace_chart.evaluate('''({scale,rx,ry,dy})=>{
-      resetChart(scale);const anchor=anchorAt(rx,ry),before=inspectChart();
-      const prevented=wheelAt({rx,ry,dy});flushFrames();
-      return {before,after:inspectChart(),error:anchorError(anchor),prevented};
+      resetChart(scale);const before=inspectChart();wheelAt({rx,ry,dy});flushFrames();const plain=inspectChart();
+      resetChart(scale);const anchor=anchorAt(rx,ry);const prevented=wheelAt({rx,ry,dy,ctrl:true});flushFrames();
+      return {before,plain,after:inspectChart(),error:anchorError(anchor),prevented};
     }''', {'scale': scale, 'rx': rx, 'ry': ry, 'dy': dy})
     assert result['prevented']
+    assert result['plain']['x'][1] == pytest.approx(result['before']['x'][1]), 'a plain wheel holds the right edge'
+    assert result['plain']['factor'] == pytest.approx(result['before']['factor'] * (.9 if dy > 0 else 1 + .08), rel=.03)
     assert (result['after']['factor'] > result['before']['factor']) == (dy < 0)
+    assert result['after']['pending'] == 0 and result['after']['manual_price'] is False
     assert result['error']['x'] < 1 and result['error']['y'] < 1
     assert result['after']['finite'] and result['after']['unchanged']
     assert len(result['after']['bars']) >= 20
@@ -342,9 +346,9 @@ def test_workspace_wheel_bursts_match_separate_frames_and_delta_units(workspace_
       const run=(events,separate)=>{resetChart(scale);for(const event of events){wheelAt(event);if(separate)flushFrames();}const queued=inspectChart().pending;flushFrames();return {state:inspectChart(),queued};};
       const events=Array.from({length:4},()=>({rx:.35,ry:.6,dy:-35}));
       const burst=run(events,false),separate=run(events,true);
-      const pixel=run([{dy:-80}],false),line=run([{dy:-5,mode:1}],false);
+      const pixel=run([{dy:-32}],false),line=run([{dy:-1,mode:1}],false);
       resetChart(scale);const height=inspectChart().plotHeight;
-      const page=run([{dy:-80/height,mode:2}],false);
+      const page=run([{dy:-32/120,mode:2}],false);
       resetChart(scale);const before=inspectChart();wheelAt({dy:0});flushFrames();const zero=inspectChart();
       resetChart(scale);wheelAt({dy:-1e6});flushFrames();const capped=inspectChart();
       return {burst,separate,pixel,line,page,before,zero,capped};
@@ -355,7 +359,7 @@ def test_workspace_wheel_bursts_match_separate_frames_and_delta_units(workspace_
         assert result['pixel']['state'][key] == pytest.approx(result['line']['state'][key])
         assert result['pixel']['state'][key] == pytest.approx(result['page']['state'][key])
         assert result['zero'][key] == result['before'][key]
-    assert result['capped']['factor'] == pytest.approx(4 * math.exp(.32))
+    assert result['capped']['factor'] == pytest.approx(4 * 1.1)
     assert all(result[key]['state']['unchanged'] for key in ('burst', 'separate', 'pixel', 'line', 'page'))
 
 
@@ -371,21 +375,25 @@ def test_workspace_wheel_limits_axes_and_pan_keep_valid_original_data(workspace_
       const outsidePrevented=wheelAt({target:'#editable'});
       return {bounds,before,axisPrevented,priceAxis,panBefore,shifted,horizontal,outsidePrevented};
     }''', scale)
-    assert [row['factor'] for row in result['bounds']] == [8, 1]
+    assert result['bounds'][0]['factor'] == pytest.approx(8)
+    # Zooming out passes the data on both sides, up to twice its span.
+    assert result['bounds'][1]['factor'] < 1
     assert result['bounds'][0]['disabled']['in']
     assert result['bounds'][1]['disabled']['out']
     for row in result['bounds']:
         assert row['finite'] and row['x'][1] > row['x'][0] and row['y'][1] > row['y'][0]
-        assert 0 <= row['x'][0] < row['x'][1] <= 500
+        assert row['x'][0] < 500 and row['x'][1] > 0
         assert len(row['bars']) >= 20 and row['unchanged']
     assert result['axisPrevented'] and not result['outsidePrevented']
     assert result['priceAxis']['state']['x'] == result['before']['x']
     assert result['priceAxis']['state']['factor'] == result['before']['factor']
     assert result['priceAxis']['state']['y'] != result['before']['y']
-    assert result['priceAxis']['error']['y'] < 1
+    y0, y1 = result['before']['y'], result['priceAxis']['state']['y']
+    assert (y1[0] + y1[1]) / 2 == pytest.approx((y0[0] + y0[1]) / 2), 'the price axis wheel scales around the centre'
+    assert (y1[1] - y1[0]) / (y0[1] - y0[0]) == pytest.approx(1 - .05 * .6)
     for row in (result['shifted'], result['horizontal']):
         assert row['factor'] == result['panBefore']['factor']
-        assert row['y'] == result['panBefore']['y'] and row['unchanged']
+        assert row['unchanged']
     assert result['shifted']['x'][0] > result['panBefore']['x'][0]
     assert result['horizontal']['x'][0] < result['shifted']['x'][0]
 
@@ -394,10 +402,11 @@ def test_workspace_wheel_anchor_survives_price_axis_width_change(workspace_chart
     result = workspace_chart.evaluate('''()=>{
       resetChart('linear',{yRange:[50,1005]});
       const before=host._trendNavigation.m.R,anchor=anchorAt(.8,.25);
-      wheelAt({rx:.8,ry:.25});flushFrames();
+      wheelAt({rx:.8,ry:.25,ctrl:true});flushFrames();
       return {before,after:host._trendNavigation.m.R,error:anchorError(anchor),state:inspectChart()};
     }''')
-    assert result['before'] != result['after'], 'fixture must exercise changing axis label width'
+    assert result['before'] == result['after'], 'the axis gutter must not jump while zooming'
+    assert result['state']['y'] == [50, 1005], 'a held manual price range survives the wheel'
     assert result['error']['x'] < 1 and result['error']['y'] < 1
     assert result['state']['unchanged']
 
@@ -417,8 +426,70 @@ def test_workspace_mouse_drag_after_wheel_preserves_continuous_zoom_window(works
     after = page.evaluate('inspectChart()')
     assert after['x'][0] < before['x'][0]
     assert after['x'][1] - after['x'][0] == pytest.approx(before['x'][1] - before['x'][0])
-    assert after['y'] == before['y'] and after['factor'] == before['factor']
+    assert after['factor'] == before['factor']
     assert not after['active'] and after['cursor'] == 'grab' and after['unchanged']
+
+
+def mouse_drag(page, point, dx, dy):
+    page.mouse.move(point['x'], point['y'])
+    page.mouse.down()
+    page.mouse.move(point['x'] + dx, point['y'] + dy, steps=6)
+    page.mouse.up()
+    page.evaluate('flushFrames()')
+    return page.evaluate('inspectChart()')
+
+
+def test_workspace_vertical_drag_moves_price_only_after_the_axis_went_manual(workspace_chart):
+    page = workspace_chart
+    page.evaluate("resetChart('linear')")
+    after = mouse_drag(page, page.evaluate('chartPoint(.5,.5)'), 0, 140)
+    assert not after['manual_price'], 'auto stays on, as measured on the live chart'
+    page.evaluate("resetChart('linear',{yRange:[100,300]})")
+    after = mouse_drag(page, page.evaluate('chartPoint(.5,.5)'), 0, 100)
+    assert after['y'][0] > 100 and after['y'][1] - after['y'][0] == pytest.approx(200)
+
+
+def test_workspace_time_axis_drag_follows_the_pointer_from_the_right_edge(workspace_chart):
+    page = workspace_chart
+    page.evaluate("resetChart('linear')")
+    before = page.evaluate('inspectChart()')
+    grip = page.evaluate("(()=>{const {m}=host._trendNavigation,box=host.querySelector('svg').getBoundingClientRect();return (m.W-m.L-m.R)/m.W*box.width*.5;})()")
+    after = mouse_drag(page, page.evaluate('chartPoint(.5,1.025)'), -100, 0)
+    assert after['x'][1] == pytest.approx(before['x'][1], abs=.01)
+    assert (before['x'][1] - before['x'][0]) / (after['x'][1] - after['x'][0]) == pytest.approx((grip + 100) / grip, rel=.01)
+
+
+def test_workspace_price_axis_drag_keeps_the_centre_and_tracks_the_pointer(workspace_chart):
+    page = workspace_chart
+    page.evaluate("resetChart('linear')")
+    before = page.evaluate('inspectChart()')
+    after = mouse_drag(page, page.evaluate('chartPoint(.5,.5,true)'), 0, 110)
+    height = before['plotHeight']
+    expected = (height / 2 + (height - 1) * .2) / (height / 2 - 110 + (height - 1) * .2)
+    assert after['manual_price']
+    assert (after['y'][1] - after['y'][0]) / (before['y'][1] - before['y'][0]) == pytest.approx(expected, rel=.01)
+    assert (after['y'][0] + after['y'][1]) / 2 == pytest.approx((before['y'][0] + before['y'][1]) / 2)
+
+
+@pytest.mark.parametrize('interval,days', [('W', 7), ('M', 30)])  # the fixture calendar has no weekends
+def test_workspace_interval_scales_window_zoom_floor_and_bar_step(workspace_chart, interval, days):
+    result = workspace_chart.evaluate('''interval=>{
+      openFullWorkspace('linear');const source=JSON.stringify(baseBars),daily=inspectChart();ws.setPref('interval:'+interval);flushFrames();const switched=inspectChart(),{rowSpan,maxSpan}=host._trendNavigation;
+      for(let i=0;i<60;i++){wheelAt({dy:-160});flushFrames();}const floor=inspectChart();
+      ws.resetView();flushFrames();const home=inspectChart();
+      ws.setPref('interval:D');flushFrames();const back=inspectChart();ws.prefs.interval='D';
+      return {daily,switched,rowSpan,maxSpan,floor,home,back,unchanged:source===JSON.stringify(baseBars)};
+    }''', interval)
+    span = lambda row: row['x'][1] - row['x'][0]
+    assert result['rowSpan'] == pytest.approx(days, rel=.1)
+    # Wider by the row length, up to the two-data-spans limit; the right edge never moves.
+    assert span(result['switched']) == pytest.approx(min(span(result['daily']) * result['rowSpan'], result['maxSpan']), rel=.01)
+    assert result['switched']['x'][1] == pytest.approx(result['daily']['x'][1], abs=1)
+    assert span(result['floor']) == pytest.approx(2 * result['rowSpan'])
+    assert span(result['home']) == pytest.approx(min(span(result['daily']) * result['rowSpan'], result['maxSpan']), rel=.01)
+    assert result['home']['x'][1] == pytest.approx(result['daily']['x'][1], abs=1)
+    assert span(result['back']) == pytest.approx(span(result['home']) / result['rowSpan'], rel=.01), 'going back to daily undoes the widening'
+    assert result['unchanged'], 'derived rows never edit the source bars'
 
 
 @pytest.mark.parametrize('window', [(470.25, 498.75), (505.25, 515.75)])
@@ -435,7 +506,8 @@ def test_workspace_fractional_windows_keep_svg_dimensions_and_date_ticks_valid(w
     }''', window)
     assert result['valid'] and result['unchanged']
     assert all(result['left'] <= x <= result['right'] for x in result['ticks'])
-    assert bool(result['ticks']) == bool(result['visible'])
+    # The time axis keeps labelling past the last bar, where lines can still be drawn.
+    assert result['ticks']
 
 
 @pytest.mark.parametrize('scale', ['linear', 'log'])
@@ -458,10 +530,15 @@ def test_workspace_double_click_restores_opening_window_and_keeps_dialog_and_dra
     page.mouse.dblclick(point['x'], point['y'])
     page.evaluate('flushFrames()')
     restored = page.evaluate('inspectChart()')
-    for key in ('factor', 'x', 'y', 'bars'):
-        assert restored[key] == pytest.approx(initial[key])
+    if region == 'price_axis':
+        assert restored['x'] == pytest.approx(changed['x']) and not restored['manual_price']
+    elif region == 'time_axis':
+        assert restored['x'] == pytest.approx(initial['x']) and restored['y'] == pytest.approx(changed['y'])
+    else:
+        for key in ('factor', 'x', 'y', 'bars'):
+            assert restored[key] == pytest.approx(initial[key])
+        assert page.evaluate('TREND_ZOOM.ws===ws && state.xRange===null && state.yRange===null')
     assert page.locator('[data-trend-zoom] [role="dialog"][aria-modal="true"]').count() == 1
-    assert page.evaluate('TREND_ZOOM.ws===ws && state.xRange===null && state.yRange===null')
     assert page.evaluate('sourceBeforeReset===JSON.stringify({baseBars,analysis,lines:manual.lines})')
 
 
@@ -538,9 +615,14 @@ def test_workspace_native_double_tap_restores_home_once(workspace_chart, scale, 
     page.touchscreen.tap(point['x'], point['y'])
     page.evaluate('flushFrames()')
     restored = page.evaluate('inspectChart()')
-    for key in ('factor', 'x', 'y', 'bars'):
-        assert restored[key] == pytest.approx(initial['home'][key])
-    assert page.evaluate('touchResetCount') == 1, 'compatibility mouse events must not cause a second reset'
+    if region == 'price_axis':
+        assert restored['x'] == pytest.approx(initial['changed']['x']) and not restored['manual_price']
+    elif region == 'time_axis':
+        assert restored['x'] == pytest.approx(initial['home']['x']) and restored['y'] == pytest.approx(initial['changed']['y'])
+    else:
+        for key in ('factor', 'x', 'y', 'bars'):
+            assert restored[key] == pytest.approx(initial['home'][key])
+        assert page.evaluate('touchResetCount') == 1, 'compatibility mouse events must not cause a second reset'
     assert page.locator('[data-trend-zoom] [role="dialog"][aria-modal="true"]').count() == 1
     assert page.evaluate('touchSource===JSON.stringify({baseBars,analysis,lines:manual.lines})')
 
@@ -662,9 +744,8 @@ def test_workspace_native_pinch_keeps_starting_data_under_moving_midpoint(worksp
         error = page.evaluate('({anchor,target})=>anchorError(anchor,target)', {'anchor': anchor, 'target': target})
         assert error['x'] < 1 and error['y'] < 1
         assert after['factor'] == pytest.approx(initial['changed']['factor'] * ratio, rel=1e-5)
-        for key in ('x', 'y'):
-            before_range, after_range = initial['changed'][key], after[key]
-            assert after_range[1] - after_range[0] == pytest.approx((before_range[1] - before_range[0]) / ratio, rel=1e-5)
+        before_range, after_range = initial['changed']['x'], after['x']
+        assert after_range[1] - after_range[0] == pytest.approx((before_range[1] - before_range[0]) / ratio, rel=1e-5)
         assert after['finite'] and len(after['bars']) >= 20
         assert page.evaluate('touchResetCount') == 0
         assert page.evaluate('touchSource===JSON.stringify({baseBars,analysis,lines:manual.lines})')
@@ -699,7 +780,7 @@ def test_workspace_native_pinch_is_frame_independent_and_reversible_across_axis_
                 'anchor': anchor, 'target': {'x': anchor['x'] + 18, 'y': anchor['y'] - 12},
             })
             assert error['x'] < 1 and error['y'] < 1
-            assert before['axisWidth'] != final['axisWidth'], 'fixture must exercise a changing price label width'
+            assert before['axisWidth'] == final['axisWidth'], 'the axis gutter must not jump during a pinch'
             assert pending == (0 if separate_frames else 1)
             move_native_touches(page, session, start)
             page.evaluate('flushFrames()')
@@ -722,21 +803,21 @@ def test_workspace_native_pinch_limits_keep_finite_domains_and_original_rows(wor
     prepare_mobile_gesture(page, scale)
     session = page.context.new_cdp_session(page)
     try:
-        for ratio, expected in [(4, 8), (.1, 1)]:
-            page.evaluate('''()=>{ws.resetView();state.maxFactor=8;state.factor=4;state.offset=0;state.heldCount=125;state.yRange=null;ws.render();}''')
+        for ratio, expected in [(4, 8), (.1, None)]:
+            page.evaluate('''scale=>{ws.resetView();state.maxFactor=8;state.factor=4;state.offset=0;state.heldCount=125;state.yRange=scale==='log'?[Math.log(50),Math.log(1005)]:[50,1005];ws.render();}''', scale)
             anchor = page.evaluate('anchorAt(.1,.3)')
             dispatch_native_touch(session, 'touchStart', native_pinch_points(anchor))
             move_native_touches(page, session, native_pinch_points(anchor, ratio, 60, -5))
             page.evaluate('flushFrames()')
             after = page.evaluate('inspectChart()')
-            assert after['factor'] == pytest.approx(expected)
-            assert after['finite'] and 0 <= after['x'][0] < after['x'][1] <= 500
+            assert after['factor'] == pytest.approx(expected) if expected else after['factor'] < 1
+            assert after['finite'] and after['x'][0] < after['x'][1]
             assert after['y'][0] < after['y'][1] and len(after['bars']) >= 20
             assert after['bars'] == list(range(after['bars'][0], after['bars'][-1] + 1))
             move_native_touches(page, session, native_pinch_points(anchor, ratio, 60, 15))
             page.evaluate('flushFrames()')
             translated = page.evaluate('inspectChart()')
-            assert translated['factor'] == pytest.approx(expected)
+            assert translated['factor'] == pytest.approx(after['factor'])
             assert translated['y'] != after['y'], 'midpoint translation must keep working at a zoom limit'
             assert translated['y'][1] - translated['y'][0] == pytest.approx(after['y'][1] - after['y'][0])
             dispatch_native_touch(session, 'touchEnd')
@@ -768,7 +849,6 @@ def test_workspace_native_pinch_release_then_double_tap_restores_home(workspace_
             assert panned['factor'] == before_release['factor']
             assert panned['x'][0] < before_release['x'][0]
             assert panned['x'][1] - panned['x'][0] == pytest.approx(before_release['x'][1] - before_release['x'][0])
-            assert panned['y'] == before_release['y']
             dispatch_native_touch(session, 'touchEnd')
         else:
             dispatch_native_touch(session, 'touchCancel')

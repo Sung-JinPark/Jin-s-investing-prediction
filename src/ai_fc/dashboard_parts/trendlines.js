@@ -49,7 +49,7 @@ const TREND_CRITICAL_POLICY_SHA256='3bbc9d9d15af58886b9a35de7d9796887538a8a424b1
 let TREND_ZOOM=null,TREND_CHART_INSTANCE=0;
 const TREND_CHART_VIEWS=new Map();
 const TREND_MANUAL_STATES=new Map(),TREND_MANUAL_VIEWS=new Map();
-const TREND_MANUAL_LIMIT=20,TREND_MANUAL_STORAGE_PREFIX='jins-trendlines-drawings-v1:';
+const TREND_MANUAL_LIMIT=100,TREND_MANUAL_STORAGE_PREFIX='jins-trendlines-drawings-v1:';
 let TREND_LOCAL_ENABLED=readTrendLocalPreference(),TREND_LOCAL_SESSION=null,TREND_LOCAL_EPOCH=0;
 function readTrendLocalPreference(){return ['https://sung-jinpark.github.io','http://127.0.0.1:8878'].includes(globalThis.location?.origin);}
 function trendLocalVisible(){return typeof document==='undefined'||document.visibilityState!=='hidden';}
@@ -712,11 +712,14 @@ function trendManualStyleCheck(style){
   if(!style||Object.keys(style).sort().join(',')!==Object.keys(TREND_MANUAL_STYLE).sort().join(',')||!/^#[a-fA-F0-9]{6}$/.test(style.color)||!Number.isFinite(style.opacity)||style.opacity<.1||style.opacity>1||!Number.isFinite(style.width)||style.width<.5||style.width>6||!['solid','dash','dot'].includes(style.dash)||!['none','start','end','both'].includes(style.arrow)||typeof style.labels!=='boolean'||typeof style.stats!=='boolean')throw new Error('선 스타일이 올바르지 않습니다');return {...style};
 }
 function trendManualUpgrade(line){return {...trendManualCopy(line),axis:'legacy',extension:line.extend?'right':'none',name:'내 빗각선 '+line.number,note:'',style:{...TREND_MANUAL_STYLE},hidden:false,locked:false};}
+function trendManualKnownAsset(id){return TREND_VISIBLE_ASSETS.some(a=>a[0]===id)||/^sym:\^?[A-Z0-9][A-Z0-9.=_-]{0,23}$/.test(String(id));}
+function trendManualUnit(id){return TREND_PRIVATE_IDENTITIES[id]?.[4]||TREND_SYMBOL_UNITS.get(id)||'price';}
+const TREND_MANUAL_SHAPES=['rect','fib','vertical','text'];
 function trendManualValidateV2(lines,assetId){
-  if(!TREND_VISIBLE_ASSETS.some(a=>a[0]===assetId)||!Array.isArray(lines)||lines.length>TREND_MANUAL_LIMIT)throw new Error('자산 또는 선 개수(최대 20개)를 확인해 주세요');
+  if(!trendManualKnownAsset(assetId)||!Array.isArray(lines)||lines.length>TREND_MANUAL_LIMIT)throw new Error('자산 또는 선 개수(최대 '+TREND_MANUAL_LIMIT+'개)를 확인해 주세요');
   const ids=new Set(),numbers=new Set(),keys='a,axis,b,extend,extension,hidden,id,locked,name,note,number,style';
   for(const l of lines){
-    if(!l||Object.keys(l).sort().join(',')!==keys||!/^manual-[a-z0-9-]{1,80}$/.test(l.id)||ids.has(l.id)||!Number.isSafeInteger(l.number)||l.number<1||numbers.has(l.number)||!['legacy','linear','log'].includes(l.axis)||!['none','left','right','both'].includes(l.extension)||typeof l.extend!=='boolean'||l.extend!==['right','both'].includes(l.extension)||typeof l.name!=='string'||l.name.length>80||typeof l.note!=='string'||l.note.length>500||typeof l.hidden!=='boolean'||typeof l.locked!=='boolean')throw new Error('개인 선 형식이 올바르지 않습니다');
+    if(!l||Object.keys(l).filter(k=>k!=='shape').sort().join(',')!==keys||'shape' in l&&!TREND_MANUAL_SHAPES.includes(l.shape)||!/^manual-[a-z0-9-]{1,80}$/.test(l.id)||ids.has(l.id)||!Number.isSafeInteger(l.number)||l.number<1||numbers.has(l.number)||!['legacy','linear','log'].includes(l.axis)||!['none','left','right','both'].includes(l.extension)||typeof l.extend!=='boolean'||l.extend!==['right','both'].includes(l.extension)||typeof l.name!=='string'||l.name.length>80||typeof l.note!=='string'||l.note.length>500||typeof l.hidden!=='boolean'||typeof l.locked!=='boolean')throw new Error('개인 선 형식이 올바르지 않습니다');
     for(const p of [l.a,l.b])if(!p||Object.keys(p).sort().join(',')!=='price,session'||!trendManualDate(p.session)||!Number.isFinite(p.price)||p.price<=0||p.price>1e15)throw new Error('기준점 날짜·가격이 올바르지 않습니다');
     if(l.a.session>=l.b.session)throw new Error('서로 다른 두 날짜를 시간순으로 선택해 주세요');trendManualStyleCheck(l.style);ids.add(l.id);numbers.add(l.number);
   }return trendManualCopy(lines);
@@ -727,7 +730,7 @@ function trendManualViewCheck(view){
 }
 function trendManualDocumentCheck(doc,assetId){
   if(doc?.revision!==undefined&&(!Number.isSafeInteger(doc.revision)||doc.revision<1))throw new Error('저장 revision 확인 불가');
-  if(!doc||doc.schema_version!==2||doc.asset_id!==assetId||doc.unit!==TREND_PRIVATE_IDENTITIES[assetId]?.[4]||Object.keys(doc).some(k=>!['key','revision','schema_version','asset_id','unit','lines','view','saved_at','base_revision','tab_id','updated_at','edit_draft'].includes(k)))throw new Error('저장본 자산·단위·버전이 올바르지 않습니다');
+  if(!doc||doc.schema_version!==2||doc.asset_id!==assetId||(String(assetId).startsWith('sym:')?typeof doc.unit!=='string':doc.unit!==TREND_PRIVATE_IDENTITIES[assetId]?.[4])||Object.keys(doc).some(k=>!['key','revision','schema_version','asset_id','unit','lines','view','saved_at','base_revision','tab_id','updated_at','edit_draft'].includes(k)))throw new Error('저장본 자산·단위·버전이 올바르지 않습니다');
   if(doc.edit_draft!==undefined&&doc.edit_draft!==null){const d=doc.edit_draft;if(typeof d!=='object'||Array.isArray(d)||Object.keys(d).some(k=>!['id','name','note','a_session','a_price','b_session','b_price','extension','color','opacity','width','dash','arrow','labels','stats'].includes(k))||!doc.lines.some(l=>l.id===d.id)||JSON.stringify(d).length>4096)throw new Error('임시 입력 형식 확인 불가');}
   return {lines:trendManualValidateV2(doc.lines,assetId),view:trendManualViewCheck(doc.view)};
 }
@@ -739,7 +742,7 @@ function trendManualState(assetId){
   catch(error){state.message='기존 저장본 확인 불가 · 원본 보존: '+error.message;state.legacyError=true;}
   TREND_MANUAL_STATES.set(assetId,state);state.loading=trendManualLoad(state);return state;
 }
-function trendManualPayload(state){return {schema_version:2,asset_id:state.assetId,unit:TREND_PRIVATE_IDENTITIES[state.assetId][4],lines:trendManualCopy(state.lines),view:trendManualCopy(state.view)};}
+function trendManualPayload(state){return {schema_version:2,asset_id:state.assetId,unit:trendManualUnit(state.assetId),lines:trendManualCopy(state.lines),view:trendManualCopy(state.view)};}
 async function trendManualLoad(state){
   try{
     const docs=await trendWorkspaceRead(),saved=docs.find(d=>d.key==='asset:'+state.assetId);
@@ -798,16 +801,21 @@ async function trendManualSave(state,commitForm=null){
   }catch(error){state.saveStatus='failed';state.conflict=!!error.conflict;state.message='저장 실패 · '+error.message+' · 내 편집은 유지됩니다. 파일 백업 가능';trendManualNotify(state);return false;}
 }
 function trendManualSessions(detail,analysis){
+  if(analysis?.drawing_sessions&&analysis._sessionsFor===detail)return analysis._sessions;
   const missing=new Set((detail.gaps||[]).filter(g=>g.reason!=='unfinished_session_not_a_final_candle').map(g=>g.session));
   const map=new Map(detail.bars.map(b=>[b.session_index,{index:b.session_index,session:b.session||b.session_date,bar:b}]));
   for(const p of analysis.projection_sessions||[])if(!map.has(p.index)&&!missing.has(p.session))map.set(p.index,{index:p.index,session:p.session});
   const q=detail.intraday_quote;if(q&&!map.has(q.session_index)&&!missing.has(q.date))map.set(q.session_index,{index:q.session_index,session:q.date});
-  return [...map.values()].filter(p=>trendManualDate(p.session)).sort((a,b)=>a.index-b.index);
+  for(const p of analysis.drawing_sessions||[])if(!map.has(p.index))map.set(p.index,{index:p.index,session:p.session,calendar:true});
+  const rows=[...map.values()].filter(p=>trendManualDate(p.session)).sort((a,b)=>a.index-b.index);
+  if(analysis?.drawing_sessions){analysis._sessions=rows;analysis._sessionsFor=detail;}
+  return rows;
 }
 function trendManualGeometry(record,detail,analysis,scale,m){
-  const sessions=trendManualSessions(detail,analysis),a=sessions.find(p=>p.session===record.a.session),b=sessions.find(p=>p.session===record.b.session);if(!a||!b||a.index>=b.index)return null;
+  // A future calendar date may turn out to be a holiday: it then lands on the next real session.
+  const sessions=trendManualSessions(detail,analysis),find=session=>sessions.find(p=>p.session===session)||(analysis.drawing_sessions?sessions.find(p=>p.session>session):null),a=find(record.a.session),b=find(record.b.session);if(!a||!b||a.index>=b.index)return null;
   const axis=record.axis&&record.axis!=='legacy'?record.axis:scale,transform=p=>axis==='log'?Math.log(p):p,intercept=transform(record.a.price),slope=(transform(record.b.price)-intercept)/(b.index-a.index),extension=record.extension||(record.extend?'right':'none');
-  const line={manual:true,line_id:record.id,number:record.number,name:record.name,note:record.note,style:record.style||TREND_MANUAL_STYLE,locked:record.locked,axis,role:'manual_reference',kind:'manual',intercept,slope,coordinate_origin_index:a.index,display_start_index:['left','both'].includes(extension)?Math.floor(m.first):a.index,first_anchor:{index:a.index,session:a.session,price:record.a.price},second_anchor:{index:b.index,session:b.session,price:record.b.price},extend:record.extend,extension};
+  const line={manual:true,line_id:record.id,number:record.number,name:record.name,note:record.note,style:record.style||TREND_MANUAL_STYLE,locked:record.locked,axis,shape:record.shape,role:'manual_reference',kind:'manual',intercept,slope,coordinate_origin_index:a.index,display_start_index:['left','both'].includes(extension)?Math.floor(m.first):a.index,first_anchor:{index:a.index,session:a.session,price:record.a.price},second_anchor:{index:b.index,session:b.session,price:record.b.price},extend:record.extend,extension};
   if(!Number.isFinite(intercept)||!Number.isFinite(slope))return null;
   const last=['right','both'].includes(extension)?Math.ceil(m.end):Math.min(b.index,Math.ceil(m.end));
   line.points=sessions.filter(p=>p.index>=Math.max(line.display_start_index,Math.floor(m.first))&&p.index<=last).map(p=>({index:p.index,session:p.session,price:trendLinePrice(line,p.index,axis),future:p.index>(m.sourceLast??m.last)})).filter(p=>Number.isFinite(p.price)&&p.price>0);return line;
@@ -816,17 +824,19 @@ function trendManualPriceAt(m,y,scale){const bottom=m.ticks[0],top=m.ticks.at(-1
 function trendManualPoint(m,detail,x,y,scale,snap='weak',sx=1,sy=1){
   if(!Number.isFinite(x)||!Number.isFinite(y)||x<m.L||x>m.W-m.R||y<m.T||y>m.H-m.B)return null;
   const index=Math.round(m.first+(x-m.L)/(m.W-m.L-m.R)*(m.end-m.first)),p=trendManualSessions(detail,m.analysis).find(p=>p.index===index);if(!p)return null;let price=trendManualPriceAt(m,y,scale);
-  if(snap&&snap!=='off'&&p.bar){const choices=[p.bar.low,p.bar.high,p.bar.close,p.bar.open].map(price=>({price,distance:Math.hypot((m.x(index)-x)*sx,(m.y(price)-y)*sy)})).sort((a,b)=>a.distance-b.distance);if(snap==='strong'||choices[0].distance<=12)price=choices[0].price;}
-  return Number.isFinite(price)&&price>0&&price<=1e15?{session:p.session,price}:null;
+  const period=m.wsAll?.[0]?.first!==undefined?m.wsAll[trendWsRowAt(m.wsAll,index)]:null,target=period||p.bar;let session=p.session;
+  if(snap&&snap!=='off'&&target){const choices=[target.low,target.high,target.close,target.open].map(price=>({price,distance:Math.hypot((m.x(target.session_index)-x)*sx,(m.y(price)-y)*sy)})).sort((a,b)=>a.distance-b.distance);if(snap==='strong'||choices[0].distance<=12){price=choices[0].price;if(period)session=trendManualSessions(detail,m.analysis).find(row=>row.index===Math.round(period.session_index))?.session||session;}}
+  return Number.isFinite(price)&&price>0&&price<=1e15?{session,price}:null;
 }
 // TradingView-style tools map onto the same two-anchor record: only extension and name differ.
-const TREND_TOOL_ACTIONS={draw:'ray','draw-segment':'segment','draw-extended':'extended','draw-horizontal':'horizontal','draw-hray':'hray','draw-channel':'channel',measure:'measure'};
-const TREND_TOOL_SHAPES={segment:['none','추세선'],extended:['both','연장선'],horizontal:['both','수평선'],hray:['right','수평 반직선'],channel:['right','채널']};
+const TREND_TOOL_ACTIONS={draw:'ray','draw-segment':'segment','draw-extended':'extended','draw-horizontal':'horizontal','draw-hray':'hray','draw-channel':'channel','draw-vertical':'vertical','draw-rect':'rect','draw-fib':'fib','draw-arrow':'arrow','draw-text':'text',measure:'measure'};
+const TREND_SINGLE_TOOLS=new Set(['horizontal','hray','vertical','text']);
+const TREND_TOOL_SHAPES={segment:['none','추세선'],extended:['both','연장선'],horizontal:['both','수평선'],hray:['right','수평 반직선'],channel:['right','채널'],vertical:['none','수직선','vertical'],rect:['none','사각형','rect'],fib:['none','피보나치','fib'],arrow:['none','화살표'],text:['none','텍스트','text']};
 function trendManualRecord(state,a,b,extend=true,tool=null){
-  if(a.session===b.session)throw new Error('서로 다른 두 날짜를 선택해 주세요');if(state.lines.length>=TREND_MANUAL_LIMIT)throw new Error('직접선은 자산별 20개까지 그릴 수 있습니다');
+  if(a.session===b.session)throw new Error('서로 다른 두 날짜를 선택해 주세요');if(state.lines.length>=TREND_MANUAL_LIMIT)throw new Error('직접선은 자산별 '+TREND_MANUAL_LIMIT+'개까지 그릴 수 있습니다');
   const [first,second]=a.session<b.session?[a,b]:[b,a],number=Math.max(0,...state.lines.map(l=>l.number))+1,template=TREND_TEMPLATE_STATE.items.find(t=>t.id===TREND_TEMPLATE_STATE.default_id);
   const record={...trendManualUpgrade({id:'manual-'+(globalThis.crypto?.randomUUID?.()||Date.now().toString(36)+'-'+Math.random().toString(36).slice(2)),number,a:{...first},b:{...second},extend}),axis:state.drawingScale||state.view?.scale||'linear',style:{...(template?.style||TREND_MANUAL_STYLE)}},shape=TREND_TOOL_SHAPES[tool];
-  if(shape){record.extension=shape[0];record.extend=['right','both'].includes(shape[0]);record.name=(shape[1]+' '+number).slice(0,80);}
+  if(shape){record.extension=shape[0];record.extend=['right','both'].includes(shape[0]);record.name=(shape[1]+' '+number).slice(0,80);if(shape[2])record.shape=shape[2];if(tool==='arrow')record.style.arrow='end';}
   return record;
 }
 // One click: the clicked session and its neighbour carry the same price.
@@ -837,7 +847,7 @@ function trendManualHorizontal(state,point,sessions,tool){
 }
 // Three clicks: a base line and its parallel through the third point, on the creation axis.
 function trendManualChannel(state,first,second,third,sessions){
-  if(state.lines.length+2>TREND_MANUAL_LIMIT)throw new Error('직접선은 자산별 20개까지 그릴 수 있습니다');
+  if(state.lines.length+2>TREND_MANUAL_LIMIT)throw new Error('직접선은 자산별 '+TREND_MANUAL_LIMIT+'개까지 그릴 수 있습니다');
   const base=trendManualRecord(state,first,second,true,'channel'),log=base.axis==='log',T=price=>log?Math.log(price):price,I=value=>log?Math.exp(value):value,at=session=>sessions.find(row=>row.session===session)?.index;
   const ia=at(base.a.session),ib=at(base.b.session),ic=at(third.session);
   if(![ia,ib,ic].every(Number.isInteger)||ia===ib)throw new Error('확인된 거래일을 선택해 주세요');
@@ -848,7 +858,7 @@ function trendManualChannel(state,first,second,third,sessions){
   return [base,parallel];
 }
 function trendManualChoose(state,point,sessions=[]){
-  if(!point)return false;const tool=state.tool||'ray',single=tool==='horizontal'||tool==='hray';
+  if(!point)return false;const tool=state.tool||'ray',single=TREND_SINGLE_TOOLS.has(tool);
   if(tool==='measure'){
     if(!state.first){state.first={...point};state.measure=null;state.hover=null;state.message='';trendManualNotify(state);return false;}
     state.measure={a:{...state.first},b:{...point}};state.first=null;state.hover=null;state.mode=false;trendManualNotify(state);return true;
@@ -857,7 +867,7 @@ function trendManualChoose(state,point,sessions=[]){
   if(tool==='channel'&&!state.second){if(point.session===state.first.session){state.message='서로 다른 두 날짜를 선택해 주세요';trendManualNotify(state);return false;}state.second={...point};state.hover=null;state.message='';trendManualNotify(state);return false;}
   try{
     const continuous=state.continuous,records=single?[trendManualHorizontal(state,point,sessions,tool)]:tool==='channel'?trendManualChannel(state,state.first,state.second,point,sessions):[trendManualRecord(state,state.first,point,true,tool==='ray'?null:tool)];
-    trendManualApply(state,[...state.lines,...records],records.at(-1).id);state.selection=records.map(line=>line.id);state.created.push(...state.selection);
+    trendManualApply(state,[...state.lines,...records],records.at(-1).id);state.selection=records.map(line=>line.id);state.created.push(...state.selection);if(tool==='text')state.openEditorNext=true;
     if(continuous&&state.lines.length<TREND_MANUAL_LIMIT){state.mode=true;state.tool=tool;}
     trendManualNotify(state);return true;
   }catch(error){state.message=error.message;trendManualNotify(state);return false;}
@@ -867,26 +877,49 @@ function trendManualMove(record,steps,priceDelta,sessions,scale){
   const move=p=>{const source=sessions.find(s=>s.session===p.session),q=source&&sessions.find(s=>s.index===source.index+steps);if(!source||!q)throw new Error('검증된 날짜 범위 밖으로 이동할 수 없습니다');const price=axis==='log'?Math.exp(Math.log(p.price)+priceDelta):p.price+priceDelta;if(!Number.isFinite(price)||price<=0||price>1e15)throw new Error('이동 후 가격이 유효하지 않습니다');return {session:q.session,price};};return {...record,a:move(record.a),b:move(record.b)};
 }
 function trendManualClone(state,records,imported=false){
-  if(state.lines.length+records.length>TREND_MANUAL_LIMIT)throw new Error('직접선은 자산별 20개까지 그릴 수 있습니다');if(!imported&&records.some(l=>l.locked))throw new Error('잠긴 선을 먼저 잠금 해제해 주세요');
+  if(state.lines.length+records.length>TREND_MANUAL_LIMIT)throw new Error('직접선은 자산별 '+TREND_MANUAL_LIMIT+'개까지 그릴 수 있습니다');if(!imported&&records.some(l=>l.locked))throw new Error('잠긴 선을 먼저 잠금 해제해 주세요');
   let number=Math.max(0,...state.lines.map(l=>l.number));return records.map(l=>({...trendManualCopy(l),id:'manual-'+(globalThis.crypto?.randomUUID?.()||Date.now().toString(36)+'-'+Math.random().toString(36).slice(2)),number:++number,name:(l.name+' 복사').slice(0,80)}));
 }
 function trendManualTemplatesCheck(doc){
   if(!doc||Object.keys(doc).some(k=>!['key','revision','items','default_id'].includes(k))||!Array.isArray(doc.items)||doc.items.length>20||!Number.isSafeInteger(doc.revision)||doc.revision<0)throw new Error('템플릿 형식 확인 불가');const ids=new Set();for(const t of doc.items){if(!t||Object.keys(t).sort().join(',')!=='id,name,style'||!/^template-[a-z0-9-]{1,80}$/.test(t.id)||ids.has(t.id)||typeof t.name!=='string'||!t.name.trim()||t.name.length>80)throw new Error('템플릿 확인 불가');trendManualStyleCheck(t.style);ids.add(t.id);}if(doc.default_id!==null&&!ids.has(doc.default_id))throw new Error('기본 템플릿 확인 불가');return {revision:doc.revision,items:trendManualCopy(doc.items),default_id:doc.default_id};
 }
 function trendManualBackupCheck(value){
-  if(!value||Object.keys(value).sort().join(',')!=='assets,contract_id,exported_at,schema_version,templates'||value.schema_version!==2||value.contract_id!=='trendlines_personal_backup_v2'||!trendIsoDate(String(value.exported_at).slice(0,10))||!Array.isArray(value.assets)||!value.assets.length||value.assets.length>TREND_VISIBLE_ASSETS.length)throw new Error('개인 선 백업 형식이 올바르지 않습니다');
+  if(!value||Object.keys(value).sort().join(',')!=='assets,contract_id,exported_at,schema_version,templates'||value.schema_version!==2||value.contract_id!=='trendlines_personal_backup_v2'||!trendIsoDate(String(value.exported_at).slice(0,10))||!Array.isArray(value.assets)||!value.assets.length||value.assets.length>TREND_VISIBLE_ASSETS.length+200)throw new Error('개인 선 백업 형식이 올바르지 않습니다');
   const ids=new Set();for(const doc of value.assets){trendManualDocumentCheck(doc,doc.asset_id);if(ids.has(doc.asset_id))throw new Error('자산 중복');ids.add(doc.asset_id);}trendManualTemplatesCheck(value.templates);return trendManualCopy(value);
 }
 async function trendManualExport(state,saveFirst=false,working=false){
   if(saveFirst&&!await trendManualSave(state,state.commitForm))return;
   let docs=[];try{docs=await trendWorkspaceRead();}catch(_){if(!working)throw new Error('확정본 읽기 실패 · 현재 편집 백업을 선택해 주세요');}
-  const assets=TREND_VISIBLE_ASSETS.map(([id])=>{const active=TREND_MANUAL_STATES.get(id),doc=docs.find(d=>d.key==='asset:'+id);let legacy=[];if(!doc){const raw=globalThis.localStorage?.getItem(TREND_MANUAL_STORAGE_PREFIX+id);if(raw){if(raw.length>65536)throw new Error('기존 선 크기 제한 초과: '+id);legacy=trendManualValidate(JSON.parse(raw),id).map(trendManualUpgrade);}}return working&&active?trendManualPayload(active):doc?{schema_version:2,asset_id:id,unit:doc.unit,lines:doc.lines,view:doc.view}:{schema_version:2,asset_id:id,unit:TREND_PRIVATE_IDENTITIES[id][4],lines:legacy,view:{family:'all',scope:'all',scale:'linear',window:null,priceStep:1,snap:'weak',continuous:false}};});
+  const symbolIds=[...new Set([...docs.filter(d=>String(d.key).startsWith('asset:sym:')).map(d=>d.key.slice(6)),...(working?[...TREND_MANUAL_STATES.keys()].filter(id=>String(id).startsWith('sym:')):[])])];
+  const assets=[...TREND_VISIBLE_ASSETS.map(row=>row[0]),...symbolIds].map(id=>{const active=TREND_MANUAL_STATES.get(id),doc=docs.find(d=>d.key==='asset:'+id);let legacy=[];if(!doc){const raw=globalThis.localStorage?.getItem(TREND_MANUAL_STORAGE_PREFIX+id);if(raw){if(raw.length>65536)throw new Error('기존 선 크기 제한 초과: '+id);legacy=trendManualValidate(JSON.parse(raw),id).map(trendManualUpgrade);}}return working&&active?trendManualPayload(active):doc?{schema_version:2,asset_id:id,unit:doc.unit,lines:doc.lines,view:doc.view}:{schema_version:2,asset_id:id,unit:TREND_PRIVATE_IDENTITIES[id][4],lines:legacy,view:{family:'all',scope:'all',scale:'linear',window:null,priceStep:1,snap:'weak',continuous:false}};});
   const backup=trendManualBackupCheck({schema_version:2,contract_id:'trendlines_personal_backup_v2',exported_at:new Date().toISOString(),assets,templates:working?TREND_TEMPLATE_STATE:docs.find(d=>d.key==='templates')||{revision:0,items:[],default_id:null}}),blob=new Blob([JSON.stringify(backup,null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='jins-personal-trendlines-'+new Date().toISOString().slice(0,10)+(working?'-working':'')+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+const TREND_FIB_LEVELS=[0,.236,.382,.5,.618,.786,1];
+function trendManualFibRows(line){const log=line.axis==='log',T=value=>log?Math.log(value):value,I=value=>log?Math.exp(value):value,a=T(line.first_anchor.price),b=T(line.second_anchor.price);return TREND_FIB_LEVELS.map(level=>({level,price:I(b+(a-b)*level)}));}
+function trendManualShapeEnd(m,line){return ['right','both'].includes(line.extension)?m.W-m.R:m.x(line.second_anchor.index);}
+function trendManualShapeHit(m,line,x,y,tolerance,sx=1,sy=1){
+  const a=line.first_anchor,b=line.second_anchor,xa=m.x(a.index),ya=m.y(a.price),yb=m.y(b.price),xb=trendManualShapeEnd(m,line);
+  if(line.shape==='vertical')return Math.abs(x-xa)*sx<=tolerance;
+  if(line.shape==='text')return x>=xa-3&&x<=xa+(String(line.note||line.name).length*8+6)&&y>=ya-16&&y<=ya+5;
+  if(line.shape==='rect')return x>=xa-tolerance/sx&&x<=xb+tolerance/sx&&y>=Math.min(ya,yb)-tolerance/sy&&y<=Math.max(ya,yb)+tolerance/sy;
+  if(line.shape==='fib')return x>=xa&&x<=xb&&trendManualFibRows(line).some(row=>Math.abs(m.y(row.price)-y)*sy<=tolerance);
+  return false;
+}
+function trendManualShapeSvg(m,line,selected){
+  const style=line.style||TREND_MANUAL_STYLE,a=line.first_anchor,b=line.second_anchor,xa=m.x(a.index),ya=m.y(a.price),yb=m.y(b.price),xb=trendManualShapeEnd(m,line),dash=style.dash==='dash'?' stroke-dasharray="7 5"':style.dash==='dot'?' stroke-dasharray="1 4"':'',stroke=' stroke="'+style.color+'" stroke-opacity="'+style.opacity+'" stroke-width="'+style.width+'" vector-effect="non-scaling-stroke"'+dash;
+  let body='';
+  if(line.shape==='rect')body='<rect data-trend-manual-path x="'+xa+'" y="'+Math.min(ya,yb)+'" width="'+Math.max(0,xb-xa)+'" height="'+Math.abs(yb-ya)+'" fill="'+style.color+'" fill-opacity=".1"'+stroke+'/>';
+  else if(line.shape==='vertical')body='<line data-trend-manual-path x1="'+xa+'" x2="'+xa+'" y1="'+m.T+'" y2="'+(m.H-m.B)+'"'+stroke+'/>';
+  else if(line.shape==='text')body='<text data-trend-manual-path x="'+xa+'" y="'+ya+'" fill="'+style.color+'" style="font:600 13px var(--sans);fill:'+style.color+'">'+esc(line.note||line.name)+'</text>';
+  else if(line.shape==='fib')body=trendManualFibRows(line).map(row=>{const y=m.y(row.price);return '<line data-trend-fib="'+row.level+'" x1="'+xa+'" x2="'+xb+'" y1="'+y+'" y2="'+y+'"'+stroke+'/><text x="'+(xa+4)+'" y="'+(y-3)+'" style="font:11px var(--mono);fill:'+style.color+'">'+row.level+' · '+esc(Number(row.price).toLocaleString('ko-KR',{maximumFractionDigits:2}))+'</text>';}).join('');
+  const handles=selected?(['rect','fib'].includes(line.shape)?[a,b]:[a]).map((p,i)=>'<circle data-trend-manual-handle="'+i+'" cx="'+m.x(p.index)+'" cy="'+m.y(p.price)+'" r="'+(line.locked?3:4)+'" fill="'+(line.locked?style.color:'#fff')+'" stroke="'+style.color+'" stroke-width="1.4" vector-effect="non-scaling-stroke"/>').join(''):'';
+  return '<g data-trend-manual-line="'+esc(line.line_id)+'" data-trend-manual-shape="'+esc(line.shape)+'"'+(selected?' class="is-selected"':'')+'>'+body+handles+'</g>';
 }
 function trendManualSvg(m,state,preview=null){
   const lines=preview?m.manualLines.map(l=>l.line_id===preview.line_id?preview:l):m.manualLines,path=points=>points.map(p=>m.x(p.index).toFixed(3)+','+m.y(p.price).toFixed(3)).join(' ');
   let html=lines.map(line=>{const selected=trendManualTargets(state).includes(line.line_id)||state.selected===line.line_id,style=line.style||TREND_MANUAL_STYLE,actual=line.points.filter(p=>!p.future),future=line.points.filter(p=>p.future),anchors=selected?[line.first_anchor,line.second_anchor]:[],dash=style.dash==='dash'?'7 5':style.dash==='dot'?'1 4':'',marker='manual-arrow-'+line.line_id;
     const attrs=' fill="none" stroke="'+style.color+'" stroke-opacity="'+style.opacity+'" stroke-width="'+style.width+'" vector-effect="non-scaling-stroke"';
+    if(line.shape)return trendManualShapeSvg(m,line,selected);
     let html='<g data-trend-manual-line="'+esc(line.line_id)+'"'+(selected?' class="is-selected"':'')+'><defs><marker id="'+marker+'" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="'+style.color+'"/></marker></defs><polyline data-trend-manual-path points="'+path(actual)+'"'+attrs+(dash?' stroke-dasharray="'+dash+'"':'')+(['start','both'].includes(style.arrow)?' marker-start="url(#'+marker+')"':'')+(!future.length&&['end','both'].includes(style.arrow)?' marker-end="url(#'+marker+')"':'')+'/>'+(future.length?'<polyline data-trend-manual-projection points="'+path([actual.at(-1),...future].filter(Boolean))+'"'+attrs+' stroke-dasharray="3 5"'+(['end','both'].includes(style.arrow)?' marker-end="url(#'+marker+')"':'')+'/>':'');
     html+=anchors.map((a,i)=>({a,i})).filter(({a})=>a.index>=m.first&&a.index<=m.end).map(({a,i})=>'<circle data-trend-manual-handle="'+i+'" cx="'+m.x(a.index)+'" cy="'+m.y(a.price)+'" r="'+(line.locked?3:4)+'" fill="'+(line.locked?style.color:'#fff')+'" stroke="'+style.color+'" stroke-width="1.4" vector-effect="non-scaling-stroke"><title>'+esc(line.name||'내 빗각선 '+line.number)+' · '+a.session+' · '+a.price+'</title></circle>').join('');
     if(style.labels){for(const a of [line.first_anchor,line.second_anchor])if(a.index>=m.first&&a.index<=m.end)html+='<text x="'+(m.x(a.index)+7)+'" y="'+(m.y(a.price)-8)+'" fill="'+style.color+'">'+esc(Number(a.price).toLocaleString('ko-KR',{maximumFractionDigits:4}))+'</text>';}
@@ -894,11 +927,12 @@ function trendManualSvg(m,state,preview=null){
   }).join('');
   const sessions=trendManualSessions(m.manualDetail,m.analysis),point=p=>{const row=sessions.find(s=>s.session===p?.session);return row?{index:row.index,price:p.price}:null;},first=point(state.first),second=point(state.second),hover=point(state.hover),tool=state.tool||'ray';
   const dashed=(a,b)=>'<line x1="'+m.x(a.index)+'" y1="'+m.y(a.price)+'" x2="'+m.x(b.index)+'" y2="'+m.y(b.price)+'" stroke="#7056a3" stroke-width="1.1" stroke-dasharray="4 4" vector-effect="non-scaling-stroke"/>',dot=p=>'<circle cx="'+m.x(p.index)+'" cy="'+m.y(p.price)+'" r="4" fill="#7056a3"/>';
+  if(state.mode&&tool==='vertical'&&hover)html+='<line x1="'+m.x(hover.index)+'" x2="'+m.x(hover.index)+'" y1="'+m.T+'" y2="'+(m.H-m.B)+'" stroke="#7056a3" stroke-width="1.1" stroke-dasharray="4 4" vector-effect="non-scaling-stroke"/>';
   if(state.mode&&(tool==='horizontal'||tool==='hray')&&hover)html+='<line x1="'+(tool==='hray'?m.x(hover.index):m.L)+'" y1="'+m.y(hover.price)+'" x2="'+(m.W-m.R)+'" y2="'+m.y(hover.price)+'" stroke="#7056a3" stroke-width="1.1" stroke-dasharray="4 4" vector-effect="non-scaling-stroke"/>';
   if(state.mode&&tool!=='measure'&&first){
     html+=dot(first);
     if(second){html+=dot(second)+dashed(first,second);if(hover&&second.index!==first.index){const log=(state.drawingScale||m.scale)==='log',T=p=>log?Math.log(p):p,I=v=>log?Math.exp(v):v,offset=T(hover.price)-(T(first.price)+(T(second.price)-T(first.price))*(hover.index-first.index)/(second.index-first.index)),a={index:first.index,price:I(T(first.price)+offset)},b={index:second.index,price:I(T(second.price)+offset)};if([a.price,b.price].every(price=>Number.isFinite(price)&&price>0))html+=dashed(a,b);}}
-    else if(hover&&hover.index!==first.index)html+=dashed(first,hover);
+    else if(hover&&hover.index!==first.index){if(tool==='rect'||tool==='fib')html+='<rect x="'+Math.min(m.x(first.index),m.x(hover.index))+'" y="'+Math.min(m.y(first.price),m.y(hover.price))+'" width="'+Math.abs(m.x(hover.index)-m.x(first.index))+'" height="'+Math.abs(m.y(hover.price)-m.y(first.price))+'" fill="#7056a3" fill-opacity=".08" stroke="#7056a3" stroke-dasharray="4 4"/>';else html+=dashed(first,hover);}
   }
   const measure=state.measure?{a:point(state.measure.a),b:point(state.measure.b),from:state.measure.a.session,to:state.measure.b.session}:state.mode&&tool==='measure'&&first&&hover?{a:first,b:hover,from:state.first.session,to:state.hover.session}:null;
   if(measure?.a&&measure.b&&m.x(measure.b.index)>=m.L&&m.x(measure.b.index)<=m.W-m.R){
@@ -920,14 +954,14 @@ let TREND_MANUAL_KEY_BOUND=false,TREND_MANUAL_ACTIVE_HOST=null;
 function trendManualBindKeys(){if(!TREND_MANUAL_KEY_BOUND&&globalThis.document?.addEventListener){document.addEventListener('keydown',trendManualKeyboard,true);TREND_MANUAL_KEY_BOUND=true;}}
 function trendManualKeyboard(event){
   const letter=value=>String(event.key||'').toLowerCase()===value||event.code==='Key'+value.toUpperCase();
-  if(!TREND_ZOOM&&event.altKey&&!event.ctrlKey&&!event.metaKey&&!event.target?.closest?.('input,textarea,select,[contenteditable="true"]')){const action=letter('t')?'draw':letter('h')?'draw-horizontal':letter('j')?'draw-hray':null,opener=action&&globalThis.document?.querySelector?.('[data-trend-preview]')?._trendOpenWorkspace;if(opener){event.preventDefault();event.stopImmediatePropagation();opener({action});return;}}
+  if(!TREND_ZOOM&&event.altKey&&!event.ctrlKey&&!event.metaKey&&!event.target?.closest?.('input,textarea,select,[contenteditable="true"]')){const action=letter('t')?'draw':letter('h')?'draw-horizontal':letter('j')?'draw-hray':letter('v')?'draw-vertical':letter('f')?'draw-fib':null,opener=action&&globalThis.document?.querySelector?.('[data-trend-preview]')?._trendOpenWorkspace;if(opener){event.preventDefault();event.stopImmediatePropagation();opener({action});return;}}
   const host=TREND_ZOOM?.layer?.querySelector('[data-trend-zoom-chart]')||TREND_MANUAL_ACTIVE_HOST;if(!host?.isConnected||!host._trendManual)return;
   const c=host._trendManual,state=c.state,target=event.target,input=target?.closest?.('input,textarea,select,[contenteditable="true"]'),mod=event.ctrlKey||event.metaKey;
   if(mod&&event.key.toLowerCase()==='s'){event.preventDefault();event.stopImmediatePropagation();c.action('save');return;}
   if(input)return;
   const stop=()=>{event.preventDefault();event.stopImmediatePropagation();};
   if(event.altKey&&mod&&letter('h')){stop();c.action('hide-all');return;}
-  if(event.altKey&&!mod){const action=letter('t')?'draw':letter('h')?'draw-horizontal':letter('j')?'draw-hray':null;if(action){stop();c.action(action);return;}}
+  if(event.altKey&&!mod){const action=letter('t')?'draw':letter('h')?'draw-horizontal':letter('j')?'draw-hray':letter('v')?'draw-vertical':letter('f')?'draw-fib':null;if(action){stop();c.action(action);return;}}
   if(mod&&event.key.toLowerCase()==='z'){stop();c.action(event.shiftKey?'redo':'undo');return;}
   if(mod&&event.key.toLowerCase()==='y'){stop();c.action('redo');return;}
   if(mod&&event.key.toLowerCase()==='c'&&trendManualTargets(state).length){stop();TREND_MANUAL_CLIPBOARD={assetId:state.assetId,lines:trendManualCopy(state.lines.filter(l=>trendManualTargets(state).includes(l.id)))};return;}
@@ -944,6 +978,7 @@ function bindTrendManual(host,detail,m,asset,scale){
   const error=err=>{state.message=err.message||String(err);trendManualNotify(state);};
   const selectedLines=()=>state.lines.filter(l=>trendManualTargets(state).includes(l.id));
   const refresh=()=>{
+    if(state.openEditorNext){state.openEditorNext=false;state.editorOpen=true;host._trendWorkspace?.openPanel();}
     const matrix=svg.getScreenCTM?.();if(matrix){m.screenSX=Math.hypot(matrix.a,matrix.b);m.screenSY=Math.hypot(matrix.c,matrix.d);}
     m.manualLines=state.lines.filter(l=>!l.hidden).map(l=>trendManualGeometry(l,detail,m.analysis,scale,m)).filter(Boolean);layer.innerHTML=trendManualSvg(m,state);const tags=host.querySelector('[data-trend-manual-tags]');if(tags)tags.innerHTML=trendManualTags(m,state,asset);svg.classList.toggle('trend-manual-drawing',state.mode);
     select.innerHTML='<option value="">내 빗각선 '+state.lines.length+'개</option>'+state.lines.map(l=>'<option value="'+esc(l.id)+'">'+esc(l.name)+'</option>').join('');select.value=state.selected||'';select.disabled=!state.lines.length;
@@ -967,7 +1002,7 @@ function bindTrendManual(host,detail,m,asset,scale){
     const recovery=element('[data-trend-recovery]');if(recovery){recovery.hidden=!state.recovery&&!state.conflict&&!state.legacy;recovery.innerHTML=state.conflict?'<p>다른 탭에서 새 저장본이 생겼습니다. 내 편집은 유지됩니다.</p><button type="button" data-trend-recover="latest">최신본 불러오기</button><button type="button" data-trend-recover="mine">내 편집 복구 후 저장</button><button type="button" data-trend-manual-action="working-export">내 편집 백업</button>':state.recovery?'<p>미저장 임시본이 있습니다. 자동으로 확정본을 덮어쓰지 않습니다.</p><button type="button" data-trend-recover="restore">임시본 복구</button><button type="button" data-trend-recover="saved">저장본 사용</button>':state.legacy?'<p>기존 선은 생성 축 기록이 없습니다. 첫 명시적 저장 시 현재 '+(scale==='log'?'로그':'선형')+' 계산 축으로 고정합니다. v1 원본은 보존합니다.</p>':'';}
     const count=element('[data-trend-ws-count]');if(count)count.textContent=state.lines.length+'/'+TREND_MANUAL_LIMIT;
     if(element('[data-trend-manual-statistics]'))element('[data-trend-manual-statistics]').textContent=chosen?trendManualStats(chosen,geometry,m,asset):'';
-    const tool=state.tool||'ray',hint=tool==='measure'?(state.first?'측정 끝점 선택 · Esc 취소':'측정 시작점 · 드래그 또는 두 번 클릭'):tool==='horizontal'||tool==='hray'?'가격을 눌러 '+(tool==='hray'?'수평 반직선':'수평선')+' · Esc 취소':tool==='channel'&&state.second?'평행선 위치 선택 · Esc 취소':null;
+    const tool=state.tool||'ray',hint=tool==='measure'?(state.first?'측정 끝점 선택 · Esc 취소':'측정 시작점 · 드래그 또는 두 번 클릭'):TREND_SINGLE_TOOLS.has(tool)?'위치를 눌러 '+TREND_TOOL_SHAPES[tool][1]+' · Esc 취소':tool==='channel'&&state.second?'평행선 위치 선택 · Esc 취소':null;
     status.textContent=state.message||(state.mode?hint||(state.first?'둘째 점 선택 · Enter · Esc 취소':'첫 점 선택 · Enter · Esc 취소'):chosen?(chosen.name||'내 선 '+chosen.number)+(Number.isFinite(price)&&price>0?' · 최근 확정일 선 가격 '+trendPrice(price,asset):'')+(chosen.locked?' · 잠김':''):'두 점을 찍어 빗각을 그린 뒤 저장하세요')+(missing?' · '+missing+'개 기준점 자료 확인 중':'');
   };
   for(const [other] of TREND_MANUAL_VIEWS)if(other.isConnected===false)TREND_MANUAL_VIEWS.delete(other);TREND_MANUAL_VIEWS.set(host,{assetId:state.assetId,paint:refresh});
@@ -982,13 +1017,13 @@ function bindTrendManual(host,detail,m,asset,scale){
       trendManualValidateV2([changed],state.assetId);if(!trendManualGeometry(changed,detail,m.analysis,scale,m))throw new Error('확인된 거래일 또는 제공된 연장 날짜를 선택해 주세요');trendManualApply(state,state.lines.map(l=>l.id===line.id?changed:l),line.id);return true;
     }catch(err){error(err);return false;}
   };state.commitForm=commitForm;
-  const point=event=>{const bounds=svg.getBoundingClientRect(),sx=bounds.width/m.W,sy=bounds.height/m.H;let x=(event.clientX-bounds.left)/sx,y=(event.clientY-bounds.top)/sy;if(svg.getScreenCTM&&globalThis.DOMPoint){const matrix=svg.getScreenCTM();if(matrix){const p=new DOMPoint(event.clientX,event.clientY).matrixTransform(matrix.inverse());x=p.x;y=p.y;}}let anchor=trendManualPoint(m,detail,x,y,scale,state.snap,sx,sy);if(anchor&&event.shiftKey&&state.mode&&state.first&&!['measure','horizontal','hray'].includes(state.tool||'ray')&&!(state.tool==='channel'&&state.second))anchor={...anchor,price:state.first.price};return {x,y,sx,sy,anchor};};
+  const point=event=>{const bounds=svg.getBoundingClientRect(),sx=bounds.width/m.W,sy=bounds.height/m.H;let x=(event.clientX-bounds.left)/sx,y=(event.clientY-bounds.top)/sy;if(svg.getScreenCTM&&globalThis.DOMPoint){const matrix=svg.getScreenCTM();if(matrix){const p=new DOMPoint(event.clientX,event.clientY).matrixTransform(matrix.inverse());x=p.x;y=p.y;}}let anchor=trendManualPoint(m,detail,x,y,scale,state.snap,sx,sy);if(anchor&&event.shiftKey&&state.mode&&state.first&&state.tool!=='measure'&&!TREND_SINGLE_TOOLS.has(state.tool||'ray')&&!(state.tool==='channel'&&state.second))anchor={...anchor,price:state.first.price};return {x,y,sx,sy,anchor};};
   const consume=event=>{event.preventDefault();event.stopPropagation();},cancel=()=>{gesture=null;state.mode=false;state.first=null;state.second=null;state.measure=null;state.hover=null;state.selected=null;state.selection=[];state.message='';trendManualNotify(state);};
   const clone=records=>{try{const lines=trendManualClone(state,records);trendManualApply(state,[...state.lines,...lines],lines.at(-1)?.id);state.selection=lines.map(l=>l.id);state.created.push(...state.selection);trendManualNotify(state);}catch(err){error(err);}};
   const change=(fn,unlock=false,all=false)=>{const ids=all?state.lines.map(l=>l.id):trendManualTargets(state);if(!ids.length)return;if(!unlock&&state.lines.some(l=>ids.includes(l.id)&&l.locked))throw new Error('잠긴 선을 먼저 잠금 해제해 주세요');const selected=state.selected;trendManualApply(state,state.lines.map(l=>ids.includes(l.id)?fn(l):l),selected,unlock);state.selection=ids;trendManualNotify(state);};
   const action=async(name,value=null)=>{try{
     if(!state.ready)throw new Error('저장본을 불러온 뒤 편집해 주세요');
-    if(TREND_TOOL_ACTIONS[name]){const tool=TREND_TOOL_ACTIONS[name];if(state.mode&&(state.tool||'ray')===tool)cancel();else{if(tool!=='measure'&&state.lines.length>=TREND_MANUAL_LIMIT-(tool==='channel'?1:0))throw new Error('직접선은 자산별 20개까지 그릴 수 있습니다');state.mode=true;state.tool=tool;state.drawingScale=scale;state.first=null;state.second=null;state.measure=null;state.hover=null;state.selected=null;state.selection=[];state.message='';trendManualNotify(state);svg.focus?.();}}
+    if(TREND_TOOL_ACTIONS[name]){const tool=TREND_TOOL_ACTIONS[name];if(state.mode&&(state.tool||'ray')===tool)cancel();else{if(tool!=='measure'&&state.lines.length>=TREND_MANUAL_LIMIT-(tool==='channel'?1:0))throw new Error('직접선은 자산별 '+TREND_MANUAL_LIMIT+'개까지 그릴 수 있습니다');state.mode=true;state.tool=tool;state.drawingScale=scale;state.first=null;state.second=null;state.measure=null;state.hover=null;state.selected=null;state.selection=[];state.message='';trendManualNotify(state);svg.focus?.();}}
     else if(name==='cursor')cancel();
     else if(name==='set-color'&&/^#[0-9a-fA-F]{6}$/.test(value||''))change(l=>({...l,style:{...l.style,color:value}}));
     else if(name==='set-width'&&Number(value)>=.5&&Number(value)<=6)change(l=>({...l,style:{...l.style,width:Number(value)}}));
@@ -1039,15 +1074,15 @@ function bindTrendManual(host,detail,m,asset,scale){
   if(element('[data-trend-snap]'))element('[data-trend-snap]').onchange=event=>{state.snap=event.target.value;state.view.snap=state.snap;trendManualPersist(state);refresh();};
   if(element('[data-trend-continuous]'))element('[data-trend-continuous]').onchange=event=>{state.continuous=event.target.checked;state.view.continuous=state.continuous;trendManualPersist(state);};
   if(element('[data-trend-price-step]'))element('[data-trend-price-step]').onchange=event=>{const value=Number(event.target.value);if(!Number.isFinite(value)||value<=0||value>1e15){error(new Error('양수인 가격 이동 단위를 입력해 주세요'));return;}state.view.priceStep=value;trendManualPersist(state);};
-  if(element('[data-trend-import]'))element('[data-trend-import]').onchange=async event=>{try{const file=event.target.files[0];if(!file)return;if(file.size>524288)throw new Error('백업은 512KiB 이하여야 합니다');const backup=trendManualBackupCheck(trendUniqueJson(await file.text())),doc=backup.assets.find(d=>d.asset_id===state.assetId);state.importPreview=backup;const preview=element('[data-trend-import-preview]');preview.hidden=false;preview.innerHTML='<p>가져오기 미리보기 · '+esc(asset.label)+' '+doc.lines.length+'개 선 · 현재 '+state.lines.length+'개. 좌표·단위 검증 완료.</p><p>'+backup.assets.map(d=>esc(TREND_ASSETS.find(a=>a[0]===d.asset_id)[1])+': '+d.lines.length+'개').join(' · ')+'</p><label><input type="checkbox" data-trend-import-all>'+backup.assets.length+'개 자산 모두 가져오기</label><label><input type="checkbox" data-trend-import-templates>스타일 템플릿도 추가 ('+backup.templates.items.length+'개)</label><label><input type="checkbox" data-trend-import-replace>현재 자산의 선 교체 (기본은 추가)</label><button type="button" data-trend-import-confirm>선택 범위에 가져오기</button><button type="button" data-trend-import-cancel>취소</button><p>체크하지 않으면 현재 자산의 선만 추가합니다. 가져온 내용은 저장 전까지 편집본입니다.</p>';}catch(err){error(err);}};
+  if(element('[data-trend-import]'))element('[data-trend-import]').onchange=async event=>{try{const file=event.target.files[0];if(!file)return;if(file.size>524288)throw new Error('백업은 512KiB 이하여야 합니다');const backup=trendManualBackupCheck(trendUniqueJson(await file.text())),doc=backup.assets.find(d=>d.asset_id===state.assetId);state.importPreview=backup;const preview=element('[data-trend-import-preview]');preview.hidden=false;preview.innerHTML='<p>가져오기 미리보기 · '+esc(asset.label)+' '+(doc?.lines.length??0)+'개 선 · 현재 '+state.lines.length+'개. 좌표·단위 검증 완료.</p><p>'+backup.assets.map(d=>esc(TREND_ASSETS.find(a=>a[0]===d.asset_id)?.[1]||d.asset_id)+': '+d.lines.length+'개').join(' · ')+'</p><label><input type="checkbox" data-trend-import-all>'+backup.assets.length+'개 자산 모두 가져오기</label><label><input type="checkbox" data-trend-import-templates>스타일 템플릿도 추가 ('+backup.templates.items.length+'개)</label><label><input type="checkbox" data-trend-import-replace>현재 자산의 선 교체 (기본은 추가)</label><button type="button" data-trend-import-confirm>선택 범위에 가져오기</button><button type="button" data-trend-import-cancel>취소</button><p>체크하지 않으면 현재 자산의 선만 추가합니다. 가져온 내용은 저장 전까지 편집본입니다.</p>';}catch(err){error(err);}};
   svg.addEventListener('pointerdown',event=>{
     if(state.editDraft&&!commitForm())return;
     if(!state.ready||event.button!==0&&event.pointerType!=='touch')return;TREND_MANUAL_ACTIVE_HOST=host;const p=point(event),tolerance=event.pointerType==='touch'?12:6;if(p.x<m.L||p.x>m.W-m.R||p.y<m.T||p.y>m.H-m.B)return;if(state.measure&&!state.mode){state.measure=null;layer.innerHTML=trendManualSvg(m,state);}
-    const chosen=m.manualLines.find(l=>l.line_id===state.selected),handle=chosen&&!chosen.locked?[chosen.first_anchor,chosen.second_anchor].findIndex(a=>Math.hypot((m.x(a.index)-p.x)*p.sx,(m.y(a.price)-p.y)*p.sy)<=tolerance+2):-1,hit=!state.mode&&handle<0?trendLineHit({...m,lines:m.manualLines},p.x,p.y,tolerance,p.sx,p.sy):chosen;
+    const chosen=m.manualLines.find(l=>l.line_id===state.selected),handle=chosen&&!chosen.locked&&!['vertical','text'].includes(chosen.shape)?[chosen.first_anchor,chosen.second_anchor].findIndex(a=>Math.hypot((m.x(a.index)-p.x)*p.sx,(m.y(a.price)-p.y)*p.sy)<=tolerance+2):-1,hit=!state.mode&&handle<0?([...m.manualLines].reverse().find(l=>l.shape&&trendManualShapeHit(m,l,p.x,p.y,tolerance,p.sx,p.sy))||trendLineHit({...m,lines:m.manualLines.filter(l=>!l.shape)},p.x,p.y,tolerance,p.sx,p.sy)):chosen;
     const hitSelected=hit&&trendManualTargets(state).includes(hit.line_id);
     if(!state.mode&&event.shiftKey&&!(event.ctrlKey||event.metaKey)&&handle<0&&!hit&&p.anchor){state.mode=true;state.tool='measure';state.first=null;state.second=null;}
     if(state.mode||handle>=0||hit){consume(event);if(gesture)return;if(hit&&!state.mode&&handle<0&&!trendManualTargets(state).includes(hit.line_id))trendManualSelect(state,hit.line_id,event.ctrlKey||event.metaKey);else if(hit&&!state.mode&&handle<0&&(event.ctrlKey||event.metaKey)&&!event.altKey){/* Ctrl-drag clones; Ctrl-click toggles on release. */}
-      gesture={id:event.pointerId,anchor:p.anchor,start:p,handle,line:state.lines.find(l=>l.id===state.selected),records:trendManualCopy(selectedLines()),clone:!!(event.ctrlKey||event.metaKey),hitId:hit?.line_id,hitSelected,draw:state.mode};if(state.mode&&!state.first&&p.anchor&&!['horizontal','hray'].includes(state.tool||'ray')){state.first={...p.anchor};state.hover=null;gesture.setFirst=true;layer.innerHTML=trendManualSvg(m,state);}if(event.isTrusted)svg.setPointerCapture?.(event.pointerId);return;}
+      gesture={id:event.pointerId,anchor:p.anchor,start:p,handle,line:state.lines.find(l=>l.id===state.selected),records:trendManualCopy(selectedLines()),clone:!!(event.ctrlKey||event.metaKey),hitId:hit?.line_id,hitSelected,draw:state.mode};if(state.mode&&!state.first&&p.anchor&&!TREND_SINGLE_TOOLS.has(state.tool||'ray')){state.first={...p.anchor};state.hover=null;gesture.setFirst=true;layer.innerHTML=trendManualSvg(m,state);}if(event.isTrusted)svg.setPointerCapture?.(event.pointerId);return;}
     if(state.selected)trendManualSelect(state,null);
   });
   const movedRecords=(g,p)=>{
@@ -1097,21 +1132,21 @@ function trendHoverText(hit,asset){
   return `${date} · 종가 ${trendPrice(row.close,asset)} · 시가 ${trendPrice(row.open,asset)} · 고가 ${trendPrice(row.high,asset)} · 저가 ${trendPrice(row.low,asset)}`;
 }
 function trendSvg(detail,model,asset,version='current'){
-  const m=model,clip=`trend-clip-${detail.asset_id}-${version}`,futureX=Math.max(m.L,Math.min(m.W-m.R,m.x(m.last))),showFuture=m.end>m.last&&[...m.lines,...(m.manualLines||[])].some(line=>line.points.some(point=>point.future)),showFutureLabel=(m.W-m.R-futureX)*(m.cssWidth||m.W)/m.W>=50,bodyWidth=Math.max(1,Math.min(m.axisRight?16:8,(m.W-m.L-m.R)/(m.end-m.first+1)*.55));
+  const m=model,clip=`trend-clip-${detail.asset_id}-${version}`,futureX=Math.max(m.L,Math.min(m.W-m.R,m.x(m.last))),showFuture=m.end>m.last&&[...m.lines,...(m.manualLines||[])].some(line=>line.points.some(point=>point.future)),showFutureLabel=(m.W-m.R-futureX)*(m.cssWidth||m.W)/m.W>=50,bodyWidth=Math.max(1,Math.min(m.axisRight?60:8,(m.W-m.L-m.R)/(m.end-m.first+1)*.55));
   const gridTicks=m.axisRight?trendNiceTicks(m):m.ticks;
-  const grid=gridTicks.map(price=>`<g><line x1="${m.L}" y1="${m.y(price)}" x2="${m.W-m.R}" y2="${m.y(price)}" stroke="#e1ded5"/>${m.axisRight?`<text x="${m.W-m.R+7}" y="${m.y(price)+4}">${esc(trendAxisNumber(price,gridTicks))}</text>`:`<text x="${m.L-7}" y="${m.y(price)+4}" text-anchor="end">${esc(Number(price).toLocaleString('ko-KR',{maximumFractionDigits:0}))}</text>`}</g>`).join('');
+  const grid=gridTicks.map(price=>`<g><line x1="${m.L}" y1="${m.y(price)}" x2="${m.W-m.R}" y2="${m.y(price)}" stroke="#e1ded5"/>${m.axisRight?`<text x="${m.W-m.R+7}" y="${m.y(price)+4}">${esc(m.axisLabel?m.axisLabel(price):trendAxisNumber(price,gridTicks))}</text>`:`<text x="${m.L-7}" y="${m.y(price)+4}" text-anchor="end">${esc(Number(price).toLocaleString('ko-KR',{maximumFractionDigits:0}))}</text>`}</g>`).join('');
   const visibleBars=m.bars.filter(bar=>bar.session_index>=m.first&&bar.session_index<=m.end),tickBars=visibleBars.length?[visibleBars[0]]:[],tickGap=m.W<600?75:110;
   for(const bar of visibleBars.slice(1,-1))if(m.x(bar.session_index)-m.x(tickBars.at(-1).session_index)>=tickGap)tickBars.push(bar);
   const finalBar=visibleBars.at(-1);
   if(tickBars.length>1&&m.x(finalBar.session_index)-m.x(tickBars.at(-1).session_index)<(m.axisRight?tickGap:65))tickBars.pop();
   if(finalBar&&finalBar!==tickBars.at(-1))tickBars.push(finalBar);
-  const ticks=tickBars.map(bar=>`<text x="${m.x(bar.session_index)}" y="${m.axisRight?m.H-9:m.H-15}" text-anchor="${m.axisRight&&m.x(bar.session_index)-m.L<30?'start':m.axisRight&&m.W-m.R-m.x(bar.session_index)<30?'end':'middle'}">${esc((bar.session||bar.session_date).slice(2))}</text>`).join('');
-  const candles=m.bars.map(bar=>{const up=bar.close>=bar.open,color=up?'#bb4c1c':'#34738d',top=m.y(Math.max(bar.open,bar.close)),height=Math.max(1,Math.abs(m.y(bar.open)-m.y(bar.close)));return `<g data-trend-bar="${esc(bar.session||bar.session_date)}"><line x1="${m.x(bar.session_index)}" y1="${m.y(bar.high)}" x2="${m.x(bar.session_index)}" y2="${m.y(bar.low)}" stroke="${color}"/><rect x="${m.x(bar.session_index)-bodyWidth/2}" y="${top}" width="${bodyWidth}" height="${height}" fill="${color}"/></g>`;}).join('');
+  const ticks=m.wsTicks!==undefined?m.wsTicks:tickBars.map(bar=>`<text x="${m.x(bar.session_index)}" y="${m.axisRight?m.H-9:m.H-15}" text-anchor="${m.axisRight&&m.x(bar.session_index)-m.L<30?'start':m.axisRight&&m.W-m.R-m.x(bar.session_index)<30?'end':'middle'}">${esc((bar.session||bar.session_date).slice(2))}</text>`).join('');
+  const candles=m.wsSeries?trendWsSeriesMarkup(m):m.bars.map(bar=>{const up=bar.close>=bar.open,color=up?'#bb4c1c':'#34738d',top=m.y(Math.max(bar.open,bar.close)),height=Math.max(1,Math.abs(m.y(bar.open)-m.y(bar.close)));return `<g data-trend-bar="${esc(bar.session||bar.session_date)}"><line x1="${m.x(bar.session_index)}" y1="${m.y(bar.high)}" x2="${m.x(bar.session_index)}" y2="${m.y(bar.low)}" stroke="${color}"/><rect x="${m.x(bar.session_index)-bodyWidth/2}" y="${top}" width="${bodyWidth}" height="${height}" fill="${color}"/></g>`;}).join('');
   const gaps=m.gaps.map(gap=>`<g data-trend-gap="${esc(gap.session)}"><rect x="${m.x(gap.session_index)-bodyWidth}" y="${m.T}" width="${bodyWidth*2}" height="${m.H-m.T-m.B}" fill="#b88120" opacity=".15"/><line x1="${m.x(gap.session_index)}" x2="${m.x(gap.session_index)}" y1="${m.T}" y2="${m.H-m.B}" stroke="#a77927" stroke-dasharray="2 4"/><title>${esc(gap.session)} · 원천 결측 일봉</title></g>`).join('');
   const paths=m.lines.map(line=>{const role=line.role||line.side,color=line.slot?TREND_REPRESENTATIVE_COLORS[line.slot]:role==='support'?'#247d78':'#bd5a20',actual=line.points.filter(point=>!point.future),future=line.points.filter(point=>point.future),path=points=>points.map(point=>`${m.x(point.index).toFixed(3)},${m.y(point.price).toFixed(3)}`).join(' ');const anchors=(m.critical?line.independent_contacts:[line.first_anchor,line.second_anchor]).filter(anchor=>anchor&&anchor.index>=m.first&&anchor.index<=m.end).map(anchor=>`<circle data-trend-marker="${esc(anchor.bar_id||anchor.index)}:${esc(anchor.side||line.role||line.side||'reference')}" cx="${m.x(anchor.index)}" cy="${m.y(anchor.price)}" r="2" fill="${color}" stroke="#fff" stroke-width=".7" vector-effect="non-scaling-stroke"><title>${esc(anchor.session)} · ${esc(trendPrice(anchor.price,asset))}</title></circle>`).join('');const zone=line.kind==='horizontal_zone'&&line.points.length>=2&&line.first_anchor.index<=m.end?`<rect x="${m.x(Math.max(m.first,line.first_anchor.index))}" y="${m.y(line.zone_high)}" width="${m.x(m.end)-m.x(Math.max(m.first,line.first_anchor.index))}" height="${Math.max(1,m.y(line.zone_low)-m.y(line.zone_high))}" fill="${color}" opacity=".07"/>`:'';return `<g data-trend-line="${esc(line.line_id)}" data-trend-role="${esc(role)}" data-trend-kind="${esc(line.kind||'diagonal')}"${line.slot?` data-trend-slot="${esc(line.slot)}" data-trend-aliases="${esc((line.alias_slots||[line.slot]).join(','))}"`:''}${line.classification==='reference_structure'?' opacity=".5"':''}>${zone}<polyline data-trend-line-path points="${path(actual)}" fill="none" stroke="${color}" stroke-width="1.1" vector-effect="non-scaling-stroke"/>${future.length?`<polyline data-trend-projection="${esc(line.line_id)}" points="${path([actual.at(-1),...future].filter(Boolean))}" fill="none" stroke="${color}" stroke-width="1" stroke-dasharray="3 5" vector-effect="non-scaling-stroke"/>`:''}${anchors}</g>`;}).join('');
   const quote=m.quote?`<g data-trend-quote-point="${esc(m.quote.date)}"><circle cx="${m.x(m.quote.session_index)}" cy="${m.y(m.quote.price)}" r="6" fill="#fff8e8" stroke="#a77919" stroke-width="2.5"/><text x="${m.x(m.quote.session_index)-9}" y="${m.y(m.quote.price)-10}" text-anchor="end">장중</text><title>${esc(m.quote.date)} ${esc(m.quote.time||'')} · ${esc(trendPrice(m.quote.price,asset))} · 별도 장중 관측, 일봉 종가 아님</title></g>`:'';
   const tipId=`trend-tooltip-${detail.asset_id}-${version}`;
-  return `<svg data-trend-plot viewBox="0 0 ${m.W} ${m.H}" role="img" tabindex="0" aria-describedby="${tipId}" aria-label="${esc(asset.label)} 일봉과 상방·하방 빗각선. ${m.axisRight?'좌우 방향키로 차트를 이동합니다':'좌우 방향키로 날짜, 상하 방향키로 선을 선택합니다'}"><defs><clipPath id="${clip}"><rect x="${m.L}" y="${m.T}" width="${m.W-m.L-m.R}" height="${m.H-m.T-m.B}"/></clipPath></defs>${grid}${showFuture?`<rect x="${futureX}" y="${m.T}" width="${m.W-m.R-futureX}" height="${m.H-m.T-m.B}" fill="#eeece6" opacity=".8"/>${showFutureLabel?`<text x="${futureX+5}" y="${m.T+12}">선 연장</text>`:''}`:''}<g clip-path="url(#${clip})">${gaps}${candles}${paths}<g data-trend-manual-layer>${m.manualState?trendManualSvg(m,m.manualState):''}</g>${quote}<line data-trend-cross x1="${futureX}" x2="${futureX}" y1="${m.T}" y2="${m.H-m.B}" stroke="#777" stroke-dasharray="2 4" visibility="hidden"/><line data-trend-cross-price x1="${m.L}" x2="${m.W-m.R}" y1="${m.T}" y2="${m.T}" stroke="#247d78" stroke-dasharray="3 4" visibility="hidden"/><circle data-trend-hover-point cx="${futureX}" cy="${m.T}" r="4" fill="#247d78" stroke="#fff" visibility="hidden"/></g>${ticks}${m.axisRight?trendAxisChrome(detail,m,asset):''}<rect data-trend-overlay x="${m.L}" y="${m.T}" width="${m.W-m.L-m.R}" height="${m.H-m.T-m.B}" fill="transparent"/></svg><div id="${tipId}" class="trend-tooltip" data-trend-tooltip role="tooltip" hidden><span data-trend-tooltip-date></span><div><span data-trend-tooltip-kind></span><strong data-trend-tooltip-price></strong></div><p data-trend-tooltip-ohlc></p><small data-trend-tooltip-current></small></div>`;
+  return `<svg data-trend-plot viewBox="0 0 ${m.W} ${m.H}" role="img" tabindex="0" aria-describedby="${tipId}" aria-label="${esc(asset.label)} 일봉과 상방·하방 빗각선. ${m.axisRight?'좌우 방향키로 차트를 이동합니다':'좌우 방향키로 날짜, 상하 방향키로 선을 선택합니다'}"><defs><clipPath id="${clip}"><rect x="${m.L}" y="${m.T}" width="${m.W-m.L-m.R}" height="${m.H-m.T-m.B}"/></clipPath></defs>${grid}${showFuture?`<rect x="${futureX}" y="${m.T}" width="${m.W-m.R-futureX}" height="${m.H-m.T-m.B}" fill="#eeece6" opacity=".8"/>${showFutureLabel?`<text x="${futureX+5}" y="${m.T+12}">선 연장</text>`:''}`:''}<g clip-path="url(#${clip})">${gaps}${candles}${m.wsOverlays||''}${paths}<g data-trend-manual-layer>${m.manualState?trendManualSvg(m,m.manualState):''}</g>${quote}<line data-trend-cross x1="${futureX}" x2="${futureX}" y1="${m.T}" y2="${m.H-m.B}" stroke="#777" stroke-dasharray="2 4" visibility="hidden"/><line data-trend-cross-price x1="${m.L}" x2="${m.W-m.R}" y1="${m.T}" y2="${m.T}" stroke="#247d78" stroke-dasharray="3 4" visibility="hidden"/><circle data-trend-hover-point cx="${futureX}" cy="${m.T}" r="4" fill="#247d78" stroke="#fff" visibility="hidden"/></g>${ticks}${m.axisRight?trendAxisChrome(detail,m,asset):''}<rect data-trend-overlay x="${m.L}" y="${m.T}" width="${m.W-m.L-m.R}" height="${m.H-m.T-m.B}" fill="transparent"/></svg><div id="${tipId}" class="trend-tooltip" data-trend-tooltip role="tooltip" hidden><span data-trend-tooltip-date></span><div><span data-trend-tooltip-kind></span><strong data-trend-tooltip-price></strong></div><p data-trend-tooltip-ohlc></p><small data-trend-tooltip-current></small></div>`;
 }
 // Workspace axis chrome: latest price and personal-line tags, drag zones and crosshair labels.
 function trendAxisChrome(detail,m,asset){
@@ -1120,14 +1155,14 @@ function trendAxisChrome(detail,m,asset){
   return `<line x1="${m.W-m.R}" x2="${m.W-m.R}" y1="${m.T}" y2="${m.H-m.B}" stroke="#d6d3ca"/><line x1="${m.L}" x2="${m.W-m.R}" y1="${m.H-m.B}" y2="${m.H-m.B}" stroke="#d6d3ca"/>`
     +(visible?`<line data-trend-last-line x1="${m.L}" x2="${m.W-m.R}" y1="${y}" y2="${y}" stroke="${color}" stroke-dasharray="1 3" opacity=".8" pointer-events="none"/>`+tag(y,color,trendAxisPrice(reference.price,asset),' data-trend-last-tag'):'')
     +`<g data-trend-manual-tags>${m.manualState?trendManualTags(m,m.manualState,asset):''}</g>`
-    +`<rect data-trend-price-axis x="${m.W-m.R}" y="${m.T}" width="${m.R}" height="${m.H-m.B-m.T}" fill="transparent"><title>드래그: 세로 배율 · 더블클릭 · 두 번 터치: 처음 화면</title></rect><rect data-trend-time-axis x="${m.L}" y="${m.H-m.B}" width="${m.W-m.L-m.R}" height="${m.B}" fill="transparent"><title>드래그: 가로 배율</title></rect>`
+    +`<rect data-trend-price-axis x="${m.W-m.R}" y="${m.T}" width="${m.R}" height="${m.H-m.B-m.T}" fill="transparent"><title>드래그: 세로 배율 · 더블클릭: 자동</title></rect><rect data-trend-time-axis x="${m.L}" y="${m.H-m.B}" width="${m.W-m.L-m.R}" height="${m.B}" fill="transparent"><title>드래그: 가로 배율 · 더블클릭: 시간축 초기화</title></rect>`
     +`<g data-trend-ws-ylabel visibility="hidden" pointer-events="none"><rect x="${m.W-m.R+1}" y="0" width="${m.R-2}" height="18" rx="2" fill="#26302b"/><text x="${m.W-m.R+6}" y="13" style="fill:#fff"></text></g>`
     +`<g data-trend-ws-xlabel visibility="hidden" pointer-events="none"><rect x="0" y="${m.H-m.B+3}" width="80" height="18" rx="2" fill="#26302b"/><text x="40" y="${m.H-m.B+16}" text-anchor="middle" style="fill:#fff"></text></g>`;
 }
 function trendManualTags(m,state,asset){
   if(!m.axisRight)return '';
   const selected=new Set(trendManualTargets(state));
-  return (m.manualLines||[]).filter(line=>selected.has(line.line_id)||line.first_anchor.price===line.second_anchor.price).map(line=>{
+  return (m.manualLines||[]).filter(line=>!line.shape&&(selected.has(line.line_id)||line.first_anchor.price===line.second_anchor.price)).map(line=>{
     const end=[...line.points].reverse().find(point=>point.index<=m.end&&point.index>=m.first),y=end?m.y(end.price):NaN;if(!(y>=m.T&&y<=m.H-m.B))return '';
     return `<g data-trend-manual-tag="${esc(line.line_id)}" pointer-events="none"><rect x="${m.W-m.R+1}" y="${y-9}" width="${m.R-2}" height="18" rx="2" fill="${(line.style||TREND_MANUAL_STYLE).color}"/><text x="${m.W-m.R+6}" y="${y+4}" style="fill:#fff">${esc(trendAxisPrice(end.price,asset))}</text></g>`;
   }).join('');
@@ -1185,7 +1220,7 @@ function trendPreviewBar(detail){
   return `<div class="trend-chart-tools trend-preview-bar"><button type="button" class="trend-expand-primary" data-trend-tool="expand" aria-haspopup="dialog">크게 열어 추세선 그리기 <span aria-hidden="true">⤢</span></button>${notes?`<span class="trend-preview-meta">${esc(notes)}</span>`:''}</div>`;
 }
 function trendManualSummary(m,detail,asset){
-  const reference=trendReference(detail),rows=(m.manualLines||[]).filter(line=>['right','both'].includes(line.extension)||line.second_anchor.index>=reference.index).map(line=>({line,price:trendLinePrice(line,reference.index,line.axis)})).filter(row=>Number.isFinite(row.price)&&row.price>0);
+  const reference=trendReference(detail),rows=(m.manualLines||[]).filter(line=>!line.shape).filter(line=>['right','both'].includes(line.extension)||line.second_anchor.index>=reference.index).map(line=>({line,price:trendLinePrice(line,reference.index,line.axis)})).filter(row=>Number.isFinite(row.price)&&row.price>0);
   if(!rows.length)return '';
   return `<div class="trend-manual-summary" aria-label="내 선의 최근 관측일 가격">${rows.map(({line,price})=>{const distance=(price/reference.price-1)*100;return `<span><i style="background:${esc((line.style||TREND_MANUAL_STYLE).color)}"></i>${esc(line.name||'내 선 '+line.number)} <b>${esc(trendPrice(price,asset))}</b> <small>${distance>0?'+':''}${distance.toFixed(2)}%</small></span>`;}).join('')}</div>`;
 }
@@ -1193,6 +1228,7 @@ function trendGenericWorkspaceContext(detail,analysis,baseBars,bars,asset,scale,
   return {assetId:detail.asset_id,asset,scale,family:null,version,initialBars:bars,fixedScale:true,build:()=>({source:{...detail,bars:baseBars},analysis})};
 }
 function drawTrendInteractiveChart(host,detail,analysis,baseBars,asset,scale,version,state,onState=()=>{},modal=false){
+  if(!analysis.drawing_sessions)analysis={...analysis,drawing_sessions:trendDrawingCalendar(detail,analysis)};
   const ws=modal&&typeof modal==='object'?modal:null;
   const active=globalThis.document?.activeElement,restoreName=host.contains?.(active)&&active?.closest?.('[data-trend-manual-form]')?active.name:null,restoreTool=host.contains?.(active)?active?.dataset?.trendTool:null;
   const workspace=trendManualState(detail.asset_id),window=ws?null:state.dateWindow||workspace.view.window,date=bar=>bar.session||bar.session_date;
@@ -1234,37 +1270,156 @@ const TREND_WS_ICONS={
   panel:'<rect x="2.5" y="3.5" width="15" height="13" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M12 3.5v13M13.8 7h2M13.8 10h2M13.8 13h2" stroke="currentColor" stroke-width="1.3"/>',
   camera:'<rect x="2.5" y="6" width="15" height="10" rx="2" fill="none" stroke="currentColor" stroke-width="1.4"/><circle cx="10" cy="11" r="2.8" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M7 6l1.2-2h3.6L13 6" fill="none" stroke="currentColor" stroke-width="1.4"/>',
   fullscreen:'<path d="M3 7.5V3h4.5M12.5 3H17v4.5M17 12.5V17h-4.5M7.5 17H3v-4.5" fill="none" stroke="currentColor" stroke-width="1.6"/>',
+  vertical:'<path d="M10 1.5v17" stroke="currentColor" stroke-width="1.5"/><circle cx="10" cy="10" r="1.9" fill="#fff" stroke="currentColor" stroke-width="1.3"/>',
+  rect:'<rect x="3.5" y="5" width="13" height="10" fill="none" stroke="currentColor" stroke-width="1.5"/>',
+  fib:'<path d="M2.5 4h15M2.5 8h15M2.5 12h15M2.5 16h15" stroke="currentColor" stroke-width="1.3"/>',
+  arrow:'<path d="M4 16 15.5 4.5M10.5 4.5h5v5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>',
+  text:'<path d="M4 5V3.8h12V5M10 3.8v12.4M7.5 16.2h5" fill="none" stroke="currentColor" stroke-width="1.6"/>',
   close:'<path d="M5 5l10 10M15 5 5 15" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>'
 };
+// TradingView-style chart layer. Everything here is display-only: series, indicators and the
+// drawing calendar are derived in the browser and never reach the sources, automatic models or ledgers.
+const TREND_WS_MIN_BARS=2,TREND_WS_FUTURE_SESSIONS=1500,TREND_WS_DENSE=700;
+const TREND_WS_PREFS_KEY='jins-trend-ws-prefs-v1',TREND_WS_RECENT_KEY='jins-trend-ws-recent-v1';
+const TREND_WS_TYPES=[['candle','캔들'],['bar','바'],['line','라인'],['area','영역'],['heikin','하이킨']];
+const TREND_WS_INTERVALS=[['D','1D','일봉'],['W','1W','주봉'],['M','1M','월봉']];
+const TREND_WS_INDICATORS=[['ma20','MA 20','#c98a14',false],['ma50','MA 50','#2f6fb2',false],['ma200','MA 200','#7056a3',false],['ema20','EMA 20','#2f8a57',false],['bb','볼린저 20·2','#8a8f86',false],['volume','거래량','#8a8f86',true],['rsi','RSI 14','#7056a3',true],['macd','MACD 12·26·9','#2f6fb2',true]];
+const TREND_WS_UP='#bb4c1c',TREND_WS_DOWN='#34738d';
+function trendWsPrefs(){
+  const fallback={type:'candle',interval:'D',percent:false,indicators:[]};
+  try{const raw=JSON.parse(globalThis.localStorage?.getItem(TREND_WS_PREFS_KEY)||'null');if(!raw||typeof raw!=='object')return fallback;return {type:TREND_WS_TYPES.some(row=>row[0]===raw.type)?raw.type:'candle',interval:TREND_WS_INTERVALS.some(row=>row[0]===raw.interval)?raw.interval:'D',percent:raw.percent===true,indicators:Array.isArray(raw.indicators)?TREND_WS_INDICATORS.map(row=>row[0]).filter(key=>raw.indicators.includes(key)):[]};}catch(_){return fallback;}
+}
+function trendWsPrefsSave(prefs){try{globalThis.localStorage?.setItem(TREND_WS_PREFS_KEY,JSON.stringify(prefs));}catch(_){/* Preferences are a convenience. */}}
+function trendWsRecent(){try{const rows=JSON.parse(globalThis.localStorage?.getItem(TREND_WS_RECENT_KEY)||'[]');return Array.isArray(rows)?rows.filter(row=>typeof row?.symbol==='string'&&TREND_SYMBOL_PATTERN.test(row.symbol)).slice(0,8):[];}catch(_){return [];}}
+function trendWsRemember(symbol,name){try{globalThis.localStorage?.setItem(TREND_WS_RECENT_KEY,JSON.stringify([{symbol,name:String(name||symbol).slice(0,80)},...trendWsRecent().filter(row=>row.symbol!==symbol)].slice(0,8)));}catch(_){/* Recents are a convenience. */}}
+// Future drawing dates are a plain calendar, marked only by being past the last observation.
+const TREND_DRAWING_CALENDARS=new Map();
+function trendDrawingCalendar(detail,analysis){
+  const rows=[...(analysis.projection_sessions||[]).map(row=>({index:row.index,session:row.session}))];const last=detail.bars?.at(-1);if(last)rows.push({index:last.session_index,session:last.session||last.session_date});const quote=detail.intraday_quote;if(quote)rows.push({index:quote.session_index,session:quote.date});
+  const tail=rows.filter(row=>trendManualDate(row.session)).sort((a,b)=>a.index-b.index).at(-1);if(!tail)return [];
+  const daily=detail.asset?.kind==='crypto'||detail.asset_id==='bitcoin',key=[tail.index,tail.session,daily].join('|');if(TREND_DRAWING_CALENDARS.has(key))return TREND_DRAWING_CALENDARS.get(key);
+  const out=[],day=new Date(tail.session+'T00:00:00Z');let index=tail.index;while(out.length<TREND_WS_FUTURE_SESSIONS){day.setUTCDate(day.getUTCDate()+1);const weekday=day.getUTCDay();if(!daily&&(weekday===0||weekday===6))continue;out.push({index:++index,session:day.toISOString().slice(0,10)});}
+  if(TREND_DRAWING_CALENDARS.size>=32)TREND_DRAWING_CALENDARS.clear();TREND_DRAWING_CALENDARS.set(key,out);return out;
+}
+const TREND_WS_SERIES=new WeakMap();
+function trendWsCached(owner,key,build){let map=TREND_WS_SERIES.get(owner);if(!map){map=new Map();TREND_WS_SERIES.set(owner,map);}if(!map.has(key))map.set(key,build());return map.get(key);}
+// Weekly and monthly rows sit at the middle of the daily sessions they cover.
+function trendWsAggregate(bars,interval){
+  if(interval==='D')return bars;
+  return trendWsCached(bars,'interval:'+interval,()=>{
+    const groups=[];let key=null;
+    for(const bar of bars){const session=bar.session||bar.session_date,day=new Date(session+'T00:00:00Z'),next=interval==='M'?session.slice(0,7):new Date(day.getTime()-((day.getUTCDay()+6)%7)*864e5).toISOString().slice(0,10);if(next!==key){key=next;groups.push({session,session_date:session,first:bar.session_index,last:bar.session_index,session_index:bar.session_index,open:bar.open,high:bar.high,low:bar.low,close:bar.close,volume:bar.volume??null});continue;}const row=groups.at(-1);row.last=bar.session_index;row.session_index=(row.first+row.last)/2;row.high=Math.max(row.high,bar.high);row.low=Math.min(row.low,bar.low);row.close=bar.close;if(bar.volume!==null&&bar.volume!==undefined)row.volume=(row.volume||0)+bar.volume;}
+    return groups;
+  });
+}
+function trendWsSeries(bars,interval,type){
+  const rows=trendWsAggregate(bars,interval);if(type!=='heikin')return rows;
+  return trendWsCached(rows,'heikin',()=>{const out=[];for(const row of rows){const previous=out.at(-1),close=(row.open+row.high+row.low+row.close)/4,open=previous?(previous.open+previous.close)/2:(row.open+row.close)/2;out.push({...row,open,close,high:Math.max(row.high,open,close),low:Math.min(row.low,open,close)});}return out;});
+}
+function trendWsRowAt(rows,index){let low=0,high=rows.length-1;while(low<high){const middle=(low+high)>>1;if((rows[middle].last??rows[middle].session_index)<index)low=middle+1;else high=middle;}return rows.length&&(rows[low].first??rows[low].session_index)<=index&&(rows[low].last??rows[low].session_index)>=index?low:-1;}
+function trendWsSma(values,length){const out=new Array(values.length).fill(null);let sum=0;for(let i=0;i<values.length;i++){sum+=values[i];if(i>=length)sum-=values[i-length];if(i>=length-1)out[i]=sum/length;}return out;}
+function trendWsEma(values,length){const out=new Array(values.length).fill(null),k=2/(length+1);let current=null,seed=0;for(let i=0;i<values.length;i++){if(i<length-1){seed+=values[i];continue;}if(current===null)current=(seed+values[i])/length;else current=values[i]*k+current*(1-k);out[i]=current;}return out;}
+function trendWsIndicator(rows,key){
+  return trendWsCached(rows,'indicator:'+key,()=>{
+    const close=rows.map(row=>row.close);
+    if(key==='ma20')return {line:trendWsSma(close,20)};if(key==='ma50')return {line:trendWsSma(close,50)};if(key==='ma200')return {line:trendWsSma(close,200)};if(key==='ema20')return {line:trendWsEma(close,20)};
+    if(key==='bb'){const middle=trendWsSma(close,20),upper=new Array(close.length).fill(null),lower=new Array(close.length).fill(null);for(let i=19;i<close.length;i++){let sum=0;for(let j=i-19;j<=i;j++)sum+=(close[j]-middle[i])**2;const deviation=Math.sqrt(sum/20)*2;upper[i]=middle[i]+deviation;lower[i]=middle[i]-deviation;}return {line:middle,upper,lower};}
+    if(key==='rsi'){const line=new Array(close.length).fill(null);let gain=0,loss=0;for(let i=1;i<close.length;i++){const change=close[i]-close[i-1],up=Math.max(change,0),down=Math.max(-change,0);if(i<=14){gain+=up/14;loss+=down/14;}else{gain=(gain*13+up)/14;loss=(loss*13+down)/14;}if(i>=14)line[i]=loss===0?100:100-100/(1+gain/loss);}return {line};}
+    if(key==='macd'){const fast=trendWsEma(close,12),slow=trendWsEma(close,26),line=close.map((_,i)=>fast[i]===null||slow[i]===null?null:fast[i]-slow[i]),start=line.findIndex(value=>value!==null),signal=new Array(close.length).fill(null);if(start>=0){const tail=trendWsEma(line.slice(start),9);tail.forEach((value,i)=>{signal[start+i]=value;});}return {line,signal,hist:line.map((value,i)=>value===null||signal[i]===null?null:value-signal[i])};}
+    return {line:rows.map(row=>row.volume??null)};
+  });
+}
+function trendWsVisible(rows,first,end){let from=rows.findIndex(row=>(row.last??row.session_index)>=first);if(from<0)return [rows.length,rows.length];let to=from;while(to<rows.length&&(rows[to].first??rows[to].session_index)<=end)to++;return [from,to];}
+// Auto scale follows what is on screen; drawings never move it, automatic lines do when they sit near.
+function trendWsAutoRange(rows,from,to,first,end,analysis,detail,scale){
+  if(to<=from)return null;let low=Infinity,high=-Infinity;for(let i=from;i<to;i++){low=Math.min(low,rows[i].low);high=Math.max(high,rows[i].high);}
+  const candleLow=low,candleHigh=high,allowance=(high-low)*.2,include=price=>{if(Number.isFinite(price)&&price>0&&price>=candleLow-allowance&&price<=candleHigh+allowance){low=Math.min(low,price);high=Math.max(high,price);}};
+  for(const line of analysis.lines||[]){if(!Number.isFinite(line.intercept)||!Number.isFinite(line.slope))continue;const start=Math.max(first,trendLineStart(line)??first),stop=Math.min(end,line.points?.at(-1)?.index??end);if(start>stop)continue;include(trendLinePrice(line,start,scale));include(trendLinePrice(line,stop,scale));}
+  const quote=detail.intraday_quote;if(quote&&quote.session_index>=first&&quote.session_index<=end)include(quote.price);
+  const T=value=>scale==='log'?Math.log(value):value;let bottom=T(low),top=T(high);const pad=(top-bottom)*.07||Math.abs(top)*.02||1;bottom=scale==='linear'?Math.max(0,bottom-pad):bottom-pad;top+=pad;return [bottom,top];
+}
+function trendWsSeriesMarkup(m){
+  const rows=m.wsSeries,type=m.wsType,step=(m.W-m.L-m.R)/Math.max(1e-9,m.end-m.first),color=row=>row.close>=row.open?TREND_WS_UP:TREND_WS_DOWN,width=row=>Math.max(1,Math.min(60,step*((row.last??row.session_index)-(row.first??row.session_index)+1)*.7));
+  if(!rows.length)return '';
+  if(type==='line'||type==='area'){const points=rows.map(row=>m.x(row.session_index).toFixed(2)+','+m.y(row.close).toFixed(2)).join(' '),floor=m.H-m.B;return (type==='area'?`<polygon data-trend-series-fill points="${m.x(rows[0].session_index).toFixed(2)},${floor} ${points} ${m.x(rows.at(-1).session_index).toFixed(2)},${floor}" fill="${TREND_WS_DOWN}" opacity=".14"/>`:'')+`<polyline data-trend-series="${type}" points="${points}" fill="none" stroke="${TREND_WS_DOWN}" stroke-width="1.6" stroke-linejoin="round"/>`;}
+  if(type==='bar'){const path=up=>rows.filter(row=>(row.close>=row.open)===up).map(row=>{const x=m.x(row.session_index),arm=Math.max(1.5,width(row)/2);return `M${x.toFixed(2)} ${m.y(row.high).toFixed(2)}V${m.y(row.low).toFixed(2)}M${(x-arm).toFixed(2)} ${m.y(row.open).toFixed(2)}H${x.toFixed(2)}M${x.toFixed(2)} ${m.y(row.close).toFixed(2)}H${(x+arm).toFixed(2)}`;}).join('');return `<path data-trend-series="bar" d="${path(true)}" fill="none" stroke="${TREND_WS_UP}"/><path data-trend-series="bar" d="${path(false)}" fill="none" stroke="${TREND_WS_DOWN}"/>`;}
+  if(rows.length>TREND_WS_DENSE){const buckets=[];for(const row of rows){const key=Math.floor(m.x(row.session_index)/2),last=buckets.at(-1);if(last?.key===key){last.high=Math.max(last.high,row.high);last.low=Math.min(last.low,row.low);last.close=row.close;}else buckets.push({key,session_index:row.session_index,first:row.first,last:row.last,open:row.open,high:row.high,low:row.low,close:row.close});}const path=up=>buckets.filter(row=>(row.close>=row.open)===up).map(row=>{const x=m.x(row.session_index),half=width(row)/2,top=m.y(Math.max(row.open,row.close)),height=Math.max(1,Math.abs(m.y(row.open)-m.y(row.close)));return `M${x.toFixed(2)} ${m.y(row.high).toFixed(2)}V${m.y(row.low).toFixed(2)}M${(x-half).toFixed(2)} ${top.toFixed(2)}h${(half*2).toFixed(2)}v${height.toFixed(2)}h${(-half*2).toFixed(2)}z`;}).join('');return `<path data-trend-series="dense" d="${path(true)}" fill="${TREND_WS_UP}" stroke="${TREND_WS_UP}" stroke-width=".7"/><path data-trend-series="dense" d="${path(false)}" fill="${TREND_WS_DOWN}" stroke="${TREND_WS_DOWN}" stroke-width=".7"/>`;}
+  return rows.map(row=>{const fill=color(row),x=m.x(row.session_index),body=width(row),top=m.y(Math.max(row.open,row.close)),height=Math.max(1,Math.abs(m.y(row.open)-m.y(row.close)));return `<g data-trend-bar="${esc(row.session||row.session_date)}"><line x1="${x}" y1="${m.y(row.high)}" x2="${x}" y2="${m.y(row.low)}" stroke="${fill}"/><rect x="${x-body/2}" y="${top}" width="${body}" height="${height}" fill="${fill}"/></g>`;}).join('');
+}
+function trendWsOverlayMarkup(m,rows,from,to,keys){
+  const line=(values,color,extra='')=>{const points=[];for(let i=Math.max(0,from-1);i<Math.min(rows.length,to+1);i++)if(values[i]!==null&&values[i]>0)points.push(m.x(rows[i].session_index).toFixed(2)+','+m.y(values[i]).toFixed(2));return points.length>1?`<polyline points="${points.join(' ')}" fill="none" stroke="${color}" stroke-width="1.2"${extra}/>`:'';};
+  return keys.map(key=>{const row=TREND_WS_INDICATORS.find(item=>item[0]===key);if(!row||row[3])return '';const data=trendWsIndicator(rows,key);return `<g data-trend-indicator="${key}" pointer-events="none">${line(data.line,row[2])}${data.upper?line(data.upper,row[2],' stroke-dasharray="3 3"')+line(data.lower,row[2],' stroke-dasharray="3 3"'):''}</g>`;}).join('');
+}
+function trendWsPaneMarkup(key,m,rows,from,to,height){
+  const row=TREND_WS_INDICATORS.find(item=>item[0]===key),data=trendWsIndicator(rows,key),top=6,bottom=height-4,right=m.W-m.R,visible=[];for(let i=from;i<to;i++)visible.push(i);
+  const values=key==='macd'?visible.flatMap(i=>[data.line[i],data.signal[i],data.hist[i]]).filter(value=>value!==null):visible.map(i=>data.line[i]).filter(value=>value!==null);
+  let low=key==='volume'?0:key==='rsi'?0:Math.min(0,...values),high=key==='rsi'?100:Math.max(0,...values);if(key==='macd'){const limit=Math.max(Math.abs(low),Math.abs(high))||1;low=-limit;high=limit;}if(!(high>low))high=low+1;
+  const y=value=>top+(high-value)/(high-low)*(bottom-top),path=series=>{const points=[];for(const i of visible)if(series[i]!==null)points.push(m.x(rows[i].session_index).toFixed(2)+','+y(series[i]).toFixed(2));return points.join(' ');},step=(right-m.L)/Math.max(1e-9,m.end-m.first),bar=i=>Math.max(1,Math.min(60,step*((rows[i].last??rows[i].session_index)-(rows[i].first??rows[i].session_index)+1)*.7));
+  let body='',labels=[];
+  if(key==='volume'){body=[true,false].map(up=>`<path d="${visible.filter(i=>data.line[i]!==null&&(rows[i].close>=rows[i].open)===up).map(i=>{const x=m.x(rows[i].session_index),half=bar(i)/2;return `M${(x-half).toFixed(2)} ${bottom}V${y(data.line[i]).toFixed(2)}h${(half*2).toFixed(2)}V${bottom}z`;}).join('')}" fill="${up?TREND_WS_UP:TREND_WS_DOWN}" opacity=".55"/>`).join('');labels=[[high,Number(high).toLocaleString('ko-KR',{notation:'compact',maximumFractionDigits:1})]];}
+  else if(key==='rsi'){body=[30,70].map(level=>`<line x1="${m.L}" x2="${right}" y1="${y(level)}" y2="${y(level)}" stroke="#d6d3ca" stroke-dasharray="3 3"/>`).join('')+`<polyline points="${path(data.line)}" fill="none" stroke="${row[2]}" stroke-width="1.2"/>`;labels=[[70,'70'],[30,'30']];}
+  else{body=`<line x1="${m.L}" x2="${right}" y1="${y(0)}" y2="${y(0)}" stroke="#d6d3ca"/><path d="${visible.filter(i=>data.hist[i]!==null).map(i=>{const x=m.x(rows[i].session_index),half=bar(i)/2;return `M${(x-half).toFixed(2)} ${y(0).toFixed(2)}V${y(data.hist[i]).toFixed(2)}h${(half*2).toFixed(2)}V${y(0).toFixed(2)}z`;}).join('')}" fill="#8a8f86" opacity=".5"/><polyline points="${path(data.line)}" fill="none" stroke="${TREND_WS_DOWN}" stroke-width="1.2"/><polyline points="${path(data.signal)}" fill="none" stroke="${TREND_WS_UP}" stroke-width="1.2"/>`;labels=[[high,Number(high).toLocaleString('ko-KR',{maximumFractionDigits:2})],[low,Number(low).toLocaleString('ko-KR',{maximumFractionDigits:2})]];}
+  const clip=`trend-pane-clip-${key}`;
+  return `<svg data-trend-pane="${key}" viewBox="0 0 ${m.W} ${height}" style="height:${height}px" role="img" aria-label="${esc(row[1])}"><defs><clipPath id="${clip}"><rect x="${m.L}" y="0" width="${right-m.L}" height="${height}"/></clipPath></defs><line x1="${m.L}" x2="${m.W}" y1="0.5" y2="0.5" stroke="#d6d3ca"/><line x1="${right}" x2="${right}" y1="0" y2="${height}" stroke="#d6d3ca"/><g clip-path="url(#${clip})">${body}<line data-trend-pane-cross x1="0" x2="0" y1="0" y2="${height}" stroke="#777" stroke-dasharray="2 4" visibility="hidden"/></g><text x="${m.L+6}" y="14" style="font:600 11px var(--sans);fill:#6f6a60">${esc(row[1])}</text>${labels.map(([value,text])=>`<text x="${right+6}" y="${Math.max(11,Math.min(height-3,y(value)+4))}">${esc(text)}</text>`).join('')}</svg>`;
+}
+function trendWsTimeTicks(m,sessions){
+  const px=(m.W-m.L-m.R)/Math.max(1e-9,m.end-m.first),gap=m.W<600?64:84,out=[];let previous=null,lastX=-Infinity;
+  for(const row of sessions){
+    if(row.index<m.first){previous=row.session;continue;}if(row.index>m.end)break;
+    const year=previous&&row.session.slice(0,4)!==previous.slice(0,4),month=previous&&row.session.slice(0,7)!==previous.slice(0,7),week=previous&&Date.parse(row.session)-Date.parse(previous)>864e5,x=m.x(row.index);previous=row.session;
+    if(x<m.L+14||x>m.W-m.R-14)continue;
+    const label=year?row.session.slice(0,4):month&&px*21>=40?Number(row.session.slice(5,7))+'월':(px>=60||(week&&px*5>=gap))?String(Number(row.session.slice(8))):null;if(!label||x-lastX<gap)continue;
+    out.push(`<text x="${x.toFixed(2)}" y="${m.H-9}" text-anchor="middle"${year?' style="font-weight:700"':''}>${esc(label)}</text>`);lastX=x;
+  }
+  return out.join('');
+}
+// Searched symbols: read through the local service, kept for this tab, drawable, never verified.
+const TREND_SYMBOL_PATTERN=/^\^?[A-Z0-9][A-Z0-9.=_-]{0,23}$/,TREND_SYMBOL_DETAILS=new Map(),TREND_SYMBOL_UNITS=new Map();
+function trendSymbolBase(){const origin=globalThis.location?.origin||'';return /^http:\/\/(127\.0\.0\.1|localhost)(:\d+)?$/.test(origin)?origin+'/api/private-trendlines/':TREND_LOCAL_BASE;}
+function trendSymbolSegment(value){return btoa(String.fromCharCode(...new TextEncoder().encode(value))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');}
+async function trendSymbolFetch(kind,value){const response=await fetch(trendSymbolBase()+kind+'/'+trendSymbolSegment(value),{cache:'no-store',headers:{Accept:'application/json'}});if(!response.ok)throw new Error('시세 응답 없음 (HTTP '+response.status+')');return response.json();}
+function trendSymbolDetail(body,symbol){
+  if(body?.schema_version!==1||body.contract_id!=='chart_symbol_bars_v1'||body.symbol!==symbol||!Array.isArray(body.bars)||body.bars.length<2)throw new Error('시세 형식을 확인할 수 없습니다');
+  let previous='';body.bars.forEach((bar,i)=>{if(bar.session_index!==i||!trendManualDate(bar.session)||bar.session<=previous||![bar.open,bar.high,bar.low,bar.close].every(value=>Number.isFinite(value)&&value>0))throw new Error('시세 봉을 확인할 수 없습니다');previous=bar.session;});
+  const quote=body.intraday_quote,id='sym:'+symbol,unit=typeof body.unit==='string'&&/^[A-Za-z_]{1,24}$/.test(body.unit)?body.unit:'price';TREND_SYMBOL_UNITS.set(id,unit);
+  return {detail:{asset_id:id,status:'unverified_display',snapshot_id:null,bars:body.bars,gaps:[],observation_through:body.observation_through,intraday_quote:quote&&Number.isFinite(quote.price)&&quote.price>0&&trendManualDate(quote.date)?quote:null,asset:{unit,currency:body.currency,kind:body.kind}},asset:{asset_id:id,label:String(body.name||symbol),currency:body.currency,price_unit:unit,status:'unverified_display'}};
+}
+function trendSymbolContext(symbol,body){
+  const {detail,asset}=trendSymbolDetail(body,symbol);
+  TREND_ASSET_META[detail.asset_id]={group:'검색',ticker:symbol,label:asset.label};
+  return {assetId:detail.asset_id,asset,scale:'linear',family:null,version:'symbol',symbol,initialBars:detail.bars.slice(-252),build:scale=>({source:detail,analysis:{axis:scale,lines:[],projection_sessions:[],status:'ready',reason_codes:[],borders:{down:[],up:[],broken:[]}}})};
+}
 function trendIcon(name){return `<svg class="trend-ico" viewBox="0 0 20 20" aria-hidden="true" focusable="false">${TREND_WS_ICONS[name]||''}</svg>`;}
+function trendWsSymbolRow(row,current){return `<button type="button" role="menuitemradio" aria-checked="${'sym:'+row.symbol===current}" data-trend-ws-symbol="${esc(row.symbol)}" data-trend-ws-symbol-name="${esc(row.name||row.symbol)}"><strong>${esc(row.name||row.symbol)}</strong><small>${esc(row.symbol)}${row.exchange?' · '+esc(row.exchange):''}${row.type?' · '+esc(row.type):''}</small></button>`;}
 function trendWorkspaceAssetMenu(ws){
-  const current=ws.pendingAsset||ws.assetId,groups=[...new Set(TREND_VISIBLE_ASSETS.map(([id])=>TREND_ASSET_META[id]?.group||'기타'))];
-  return `<div class="trend-ws-menu" role="menu" aria-label="자산 선택">${groups.map(group=>`<div role="group" aria-label="${esc(group)}"><span>${esc(group)}</span>${TREND_VISIBLE_ASSETS.filter(([id])=>(TREND_ASSET_META[id]?.group||'기타')===group).map(([id,label])=>`<button type="button" role="menuitemradio" aria-checked="${id===current}" data-trend-ws-asset="${esc(id)}"><strong>${esc(label)}</strong><small>${esc(TREND_ASSET_META[id]?.ticker||'')}</small></button>`).join('')}</div>`).join('')}</div>`;
+  const current=ws.pendingAsset||ws.assetId,groups=[...new Set(TREND_VISIBLE_ASSETS.map(([id])=>TREND_ASSET_META[id]?.group||'기타'))],recent=trendWsRecent();
+  return `<div class="trend-ws-menu" role="menu" aria-label="자산 선택"><div class="trend-ws-search"><input type="search" data-trend-ws-search placeholder="티커 · 회사명 · 한글 검색" aria-label="종목 검색" autocomplete="off" spellcheck="false" value="${esc(ws.searchText||'')}"><div data-trend-ws-results></div></div>${recent.length?`<div role="group" aria-label="최근 검색"><span>최근 검색</span>${recent.map(row=>trendWsSymbolRow(row,current)).join('')}</div>`:''}${groups.map(group=>`<div role="group" aria-label="${esc(group)}"><span>${esc(group)}</span>${TREND_VISIBLE_ASSETS.filter(([id])=>(TREND_ASSET_META[id]?.group||'기타')===group).map(([id,label])=>`<button type="button" role="menuitemradio" aria-checked="${id===current}" data-trend-ws-asset="${esc(id)}"><strong>${esc(label)}</strong><small>${esc(TREND_ASSET_META[id]?.ticker||'')}</small></button>`).join('')}</div>`).join('')}</div>`;
 }
 function trendWorkspaceSymbol(ws,label,ticker){
   return `<div class="trend-ws-symbol"><button type="button" class="trend-ws-asset" data-trend-ws-action="assets" aria-haspopup="menu" aria-expanded="${ws.assetMenu}"><strong>${esc(label)}</strong>${ticker?`<small>${esc(ticker)}</small>`:''}<span aria-hidden="true">▾</span></button>${ws.assetMenu?trendWorkspaceAssetMenu(ws):''}</div>`;
 }
 function trendWorkspaceHelp(){
-  const rows=[['그리기',[['Alt+T','추세선'],['Alt+H','수평선'],['Alt+J','수평 반직선'],['Shift+드래그','측정'],['Shift (그리는 중)','수평 고정'],['Esc','취소']]],['편집',[['Delete','삭제'],['Ctrl+Z · Ctrl+Y','되돌리기 · 다시'],['Ctrl+C · Ctrl+V','복사 · 붙여넣기'],['Ctrl+드래그','복제'],['Ctrl+클릭','여러 선 선택'],['방향키','선택한 선 이동'],['Ctrl+S','저장'],['Ctrl+Alt+H','모두 숨김']]],['화면',[['휠','확대 · 축소'],['Shift+휠','좌우 이동'],['드래그','이동'],['가격축 드래그','세로 배율'],['더블클릭 · 두 번 터치','처음 화면'],['시간축 드래그','가로 배율'],['← · →','1봉 이동'],['Ctrl+↑ · ↓','확대 · 축소'],['Alt+R','초기화'],['Alt+L','로그 축'],['Alt+G','날짜로 이동']]]];
+  const rows=[['그리기',[['Alt+T','추세선'],['Alt+H','수평선'],['Alt+J','수평 반직선'],['Alt+V','수직선'],['Alt+F','피보나치'],['Shift+드래그','측정'],['Shift (그리는 중)','수평 고정'],['Esc','취소']]],['편집',[['Delete','삭제'],['Ctrl+Z · Ctrl+Y','되돌리기 · 다시'],['Ctrl+C · Ctrl+V','복사 · 붙여넣기'],['Ctrl+드래그','복제'],['Ctrl+클릭','여러 선 선택'],['방향키','선택한 선 이동'],['Ctrl+S','저장'],['Ctrl+Alt+H','모두 숨김']]],['화면',[['휠','오른쪽 끝 기준 시간축 확대'],['Ctrl+휠 · 핀치','커서 기준 시간축 확대'],['Shift+휠','좌우 이동'],['드래그','좌우 이동 · 미래 구간까지 · 가격 수동이면 상하도'],['가격축 드래그 · 휠','세로 배율'],['가격축 더블클릭','가격 자동'],['시간축 드래그','가로 배율'],['시간축 더블클릭','시간축 초기화'],['차트 더블클릭 · 두 번 터치','처음 화면'],['← · →','1봉 이동'],['Home · End','처음 · 최신 봉'],['Ctrl+↑ · ↓','확대 · 축소'],['Alt+R','초기화'],['Alt+A','가격 자동'],['Alt+L','로그 축'],['Alt+G','날짜로 이동']]]];
   return `<div class="trend-ws-help" role="dialog" aria-label="단축키"><div class="trend-ws-help-head"><strong>단축키</strong><button type="button" class="trend-ws-icon" data-trend-ws-action="help" aria-label="닫기">${trendIcon('close')}</button></div>${rows.map(([title,items])=>`<section><h3>${esc(title)}</h3><dl>${items.map(([key,text])=>`<div><dt><kbd>${esc(key)}</kbd></dt><dd>${esc(text)}</dd></div>`).join('')}</dl></section>`).join('')}</div>`;
 }
 function trendWorkspaceFrame(detail,asset,scale,ws){
+  ws.prefs||=trendWsPrefs();
   const meta=TREND_ASSET_META[detail.asset_id]||{},label=asset?.label||TREND_ASSETS.find(row=>row[0]===detail.asset_id)?.[1]||detail.asset_id,fixed=!!ws.context.fixedScale;
   const tool=(action,icon,title,key='')=>`<button type="button" class="trend-ws-tool" data-trend-manual-action="${action}" title="${esc(title+(key?' · '+key:''))}" aria-label="${esc(title)}" aria-pressed="false">${trendIcon(icon)}</button>`;
   const icon=(attrs,name,title)=>`<button type="button" class="trend-ws-icon" ${attrs} title="${esc(title)}" aria-label="${esc(title.split(' · ')[0])}">${trendIcon(name)}</button>`;
   const families=ws.context.family===null?'':`<div class="trend-ws-seg trend-ws-families" role="group" aria-label="자동 추세선">${[['all','모두'],['regression_200','200일'],['current_structure','현재'],['major_structure','장기'],['long_boundaries','상·하단']].map(([value,text])=>`<button type="button" data-trend-ws-family="${value}" aria-pressed="${!ws.hideAuto&&ws.family===value}">${text}</button>`).join('')}<button type="button" data-trend-ws-family="none" aria-pressed="${ws.hideAuto}">끄기</button></div>`;
   const button=(action,text)=>`<button type="button" data-trend-manual-action="${action}">${text}</button>`;
-  return `<header class="trend-ws-top"><div class="trend-ws-top-scroll">${trendWorkspaceSymbol(ws,label,meta.ticker)}<span class="trend-ws-interval" title="일봉">1D</span>${families}<div class="trend-ws-seg" role="group" aria-label="가격 축"><button type="button" data-trend-ws-action="linear" aria-pressed="${scale==='linear'}"${fixed?' disabled':''}>선형</button><button type="button" data-trend-ws-action="log" aria-pressed="${scale==='log'}" title="Alt+L"${fixed?' disabled':''}>로그</button></div></div><div class="trend-ws-actions">${icon('data-trend-manual-action="undo"','undo','되돌리기 · Ctrl+Z')}${icon('data-trend-manual-action="redo"','redo','다시 실행 · Ctrl+Y')}<button type="button" class="trend-save trend-ws-save" data-trend-manual-action="save" title="Ctrl+S">저장</button><output data-trend-save-state></output>${icon(`data-trend-ws-action="panel" aria-pressed="${ws.panelOpen}"`,'panel','내 선 목록')}${icon('data-trend-ws-action="snapshot"','camera','이미지 저장').replace('trend-ws-icon','trend-ws-icon trend-ws-wide')}${icon('data-trend-ws-action="fullscreen"','fullscreen','전체 화면').replace('trend-ws-icon','trend-ws-icon trend-ws-wide')}<button type="button" class="trend-ws-icon trend-ws-wide" data-trend-ws-action="help" aria-pressed="${ws.helpOpen}" title="단축키 · ?" aria-label="단축키">?</button>${icon('data-trend-ws-action="close"','close','닫기 · Esc').replace('trend-ws-icon','trend-ws-icon trend-ws-close')}</div></header>`
-    +`<div class="trend-ws-main${ws.panelOpen?' has-panel':''}"><nav class="trend-ws-tools" role="toolbar" aria-label="그리기 도구">${tool('cursor','cursor','커서','Esc')}${tool('draw','ray','추세선','Alt+T')}${tool('draw-segment','segment','선분')}${tool('draw-extended','extended','연장선')}${tool('draw-horizontal','horizontal','수평선','Alt+H')}${tool('draw-hray','hray','수평 반직선','Alt+J')}${tool('draw-channel','channel','평행 채널')}${tool('measure','measure','측정','Shift+드래그')}<span class="trend-ws-divider" aria-hidden="true"></span>${tool('snap-cycle','magnet','자석')}${tool('continuous-toggle','repeat','연속 그리기')}<span class="trend-ws-divider" aria-hidden="true"></span>${tool('hide-all','eye','모두 숨김','Ctrl+Alt+H')}${tool('lock-all','lock','모두 잠금')}${tool('clear','trash','모두 지우기')}</nav>`
+  return `<header class="trend-ws-top"><div class="trend-ws-top-scroll">${trendWorkspaceSymbol(ws,label,meta.ticker)}<div class="trend-ws-seg trend-ws-interval" role="group" aria-label="봉 주기">${TREND_WS_INTERVALS.map(([value,text,title])=>`<button type="button" data-trend-ws-set="interval:${value}" title="${title}" aria-pressed="${ws.prefs.interval===value}">${text}</button>`).join('')}</div><div class="trend-ws-seg trend-ws-types" role="group" aria-label="차트 종류">${TREND_WS_TYPES.map(([value,text])=>`<button type="button" data-trend-ws-set="type:${value}" aria-pressed="${ws.prefs.type===value}">${text}</button>`).join('')}</div><div class="trend-ws-indicators"><button type="button" class="trend-ws-asset trend-ws-indicator-button" data-trend-ws-action="indicators" aria-haspopup="menu" aria-expanded="${!!ws.indicatorMenu}">지표${ws.prefs.indicators.length?` <small>${ws.prefs.indicators.length}</small>`:''}<span aria-hidden="true">▾</span></button>${ws.indicatorMenu?`<div class="trend-ws-menu" role="menu" aria-label="지표">${TREND_WS_INDICATORS.map(([key,name,color])=>`<button type="button" role="menuitemcheckbox" aria-checked="${ws.prefs.indicators.includes(key)}" data-trend-ws-indicator="${key}"><strong><i style="background:${color}"></i>${esc(name)}</strong><small>${ws.prefs.indicators.includes(key)?'✓':''}</small></button>`).join('')}</div>`:''}</div>${families}<div class="trend-ws-seg" role="group" aria-label="가격 축"><button type="button" data-trend-ws-action="linear" aria-pressed="${scale==='linear'}"${fixed?' disabled':''}>선형</button><button type="button" data-trend-ws-action="log" aria-pressed="${scale==='log'}" title="Alt+L"${fixed?' disabled':''}>로그</button></div></div><div class="trend-ws-actions">${icon('data-trend-manual-action="undo"','undo','되돌리기 · Ctrl+Z')}${icon('data-trend-manual-action="redo"','redo','다시 실행 · Ctrl+Y')}<button type="button" class="trend-save trend-ws-save" data-trend-manual-action="save" title="Ctrl+S">저장</button><output data-trend-save-state></output>${icon(`data-trend-ws-action="panel" aria-pressed="${ws.panelOpen}"`,'panel','내 선 목록')}${icon('data-trend-ws-action="snapshot"','camera','이미지 저장').replace('trend-ws-icon','trend-ws-icon trend-ws-wide')}${icon('data-trend-ws-action="fullscreen"','fullscreen','전체 화면').replace('trend-ws-icon','trend-ws-icon trend-ws-wide')}<button type="button" class="trend-ws-icon trend-ws-wide" data-trend-ws-action="help" aria-pressed="${ws.helpOpen}" title="단축키 · ?" aria-label="단축키">?</button>${icon('data-trend-ws-action="close"','close','닫기 · Esc').replace('trend-ws-icon','trend-ws-icon trend-ws-close')}</div></header>`
+    +`<div class="trend-ws-main${ws.panelOpen?' has-panel':''}"><nav class="trend-ws-tools" role="toolbar" aria-label="그리기 도구">${tool('cursor','cursor','커서','Esc')}${tool('draw','ray','추세선','Alt+T')}${tool('draw-segment','segment','선분')}${tool('draw-extended','extended','연장선')}${tool('draw-horizontal','horizontal','수평선','Alt+H')}${tool('draw-hray','hray','수평 반직선','Alt+J')}${tool('draw-channel','channel','평행 채널')}${tool('draw-vertical','vertical','수직선','Alt+V')}${tool('draw-rect','rect','사각형')}${tool('draw-fib','fib','피보나치 되돌림','Alt+F')}${tool('draw-arrow','arrow','화살표')}${tool('draw-text','text','텍스트')}${tool('measure','measure','측정','Shift+드래그')}<span class="trend-ws-divider" aria-hidden="true"></span>${tool('snap-cycle','magnet','자석')}${tool('continuous-toggle','repeat','연속 그리기')}<span class="trend-ws-divider" aria-hidden="true"></span>${tool('hide-all','eye','모두 숨김','Ctrl+Alt+H')}${tool('lock-all','lock','모두 잠금')}${tool('clear','trash','모두 지우기')}</nav>`
     +`<div class="trend-ws-stage" data-trend-ws-stage></div>`
     +`<aside class="trend-ws-panel" data-trend-ws-panel aria-label="내 선 목록"${ws.panelOpen?'':' hidden'}><div class="trend-ws-panel-head"><strong>내 선</strong><span data-trend-ws-count></span><button type="button" class="trend-ws-icon" data-trend-ws-action="panel" aria-label="목록 닫기">${trendIcon('close')}</button></div><div class="trend-recovery" data-trend-recovery hidden></div><div class="trend-manual-list" data-trend-manual-list></div>${trendManualEditorMarkup()}<p class="trend-manual-statistics" data-trend-manual-statistics></p>${button('more','설정 · 백업')}<div class="trend-manual-extra" data-trend-more hidden><label>자석<select data-trend-snap><option value="off">꺼짐</option><option value="weak">약함</option><option value="strong">강함</option></select></label><label><input type="checkbox" data-trend-continuous>연속 그리기</label><label>가격 이동 단위<input type="number" min="0.00000001" step="any" data-trend-price-step value="1"></label>${button('revert','저장본으로 되돌리기')}${button('export','확정본 백업')}${button('save-export','저장 후 백업')}${button('working-export','편집본 백업')}<label class="trend-import-label">백업 가져오기<input type="file" accept="application/json,.json" data-trend-import></label></div><div data-trend-import-preview hidden></div><select data-trend-manual-select aria-label="내 선 선택" hidden></select></aside></div>`
-    +`<footer class="trend-ws-bottom"><div class="trend-ws-seg trend-ws-ranges" role="group" aria-label="표시 기간">${TREND_RANGE_PRESETS.map(([text])=>`<button type="button" data-trend-tool="range" data-trend-range="${text}" aria-pressed="false">${text}</button>`).join('')}</div><div class="trend-ws-zoom" role="group" aria-label="시간축"><button type="button" data-trend-tool="out" aria-label="축소" title="축소 · Ctrl+↓">−</button><button type="button" data-trend-tool="in" aria-label="확대" title="확대 · Ctrl+↑">＋</button><button type="button" data-trend-tool="left" aria-label="이전 구간" title="이전 구간 · ←">‹</button><button type="button" data-trend-tool="right" aria-label="다음 구간" title="다음 구간 · →">›</button><button type="button" data-trend-tool="reset" title="초기화 · Alt+R">초기화</button></div><output class="trend-ws-span" data-trend-ws-span></output><label class="trend-ws-goto"><span>날짜</span><input type="date" data-trend-ws-goto aria-label="날짜로 이동" title="Alt+G"></label><p class="trend-manual-status trend-ws-status" data-trend-manual-status role="status"></p><button type="button" class="trend-ws-auto" data-trend-ws-action="auto" aria-pressed="true" title="가격축 자동">자동</button></footer>`
+    +`<footer class="trend-ws-bottom"><div class="trend-ws-seg trend-ws-ranges" role="group" aria-label="표시 기간">${TREND_RANGE_PRESETS.map(([text])=>`<button type="button" data-trend-tool="range" data-trend-range="${text}" aria-pressed="false">${text}</button>`).join('')}</div><div class="trend-ws-zoom" role="group" aria-label="시간축"><button type="button" data-trend-tool="out" aria-label="축소" title="축소 · Ctrl+↓">−</button><button type="button" data-trend-tool="in" aria-label="확대" title="확대 · Ctrl+↑">＋</button><button type="button" data-trend-tool="left" aria-label="이전 구간" title="이전 구간 · ←">‹</button><button type="button" data-trend-tool="right" aria-label="다음 구간" title="다음 구간 · →">›</button><button type="button" data-trend-tool="reset" title="초기화 · Alt+R">초기화</button></div><output class="trend-ws-span" data-trend-ws-span></output><label class="trend-ws-goto"><span>날짜</span><input type="date" data-trend-ws-goto aria-label="날짜로 이동" title="Alt+G"></label><p class="trend-manual-status trend-ws-status" data-trend-manual-status role="status"></p><button type="button" class="trend-ws-auto" data-trend-ws-action="percent" aria-pressed="${ws.prefs.percent}" title="가격축 % 표시">%</button><button type="button" class="trend-ws-auto" data-trend-ws-action="auto" aria-pressed="true" title="가격축 자동 · Alt+A">자동</button></footer>`
     +(ws.helpOpen?trendWorkspaceHelp():'')
     +(ws.confirmClose?`<div class="trend-ws-confirm" role="alertdialog" aria-label="저장하지 않은 변경"><div><strong>저장하지 않은 변경이 있습니다</strong><p>임시본은 이 브라우저에 남습니다.</p><div><button type="button" class="trend-save" data-trend-ws-action="confirm-save">저장 후 닫기</button><button type="button" data-trend-ws-action="confirm-discard">저장하지 않고 닫기</button><button type="button" data-trend-ws-action="confirm-cancel">계속 편집</button></div></div></div>`:'');
 }
-function trendWorkspaceLegend(detail,analysis,asset,scale){
-  const meta=TREND_ASSET_META[detail.asset_id]||{},chips=(analysis.lines||[]).map(line=>{const role=line.role||line.side,color=line.slot?TREND_REPRESENTATIVE_COLORS[line.slot]:role==='support'?'#247d78':'#bd5a20';return `<span><i style="background:${color}"></i>${esc(line.slot?trendRepresentativeName(line):role==='support'?'지지':'저항')}</span>`;}).join('');
-  return `<div class="trend-ws-legend" data-trend-ws-legend><div><strong>${esc(asset?.label||'')}</strong><span>${esc(meta.ticker||detail.asset_id)} · 1D${scale==='log'?' · 로그':''}</span><span class="trend-ws-ohlc" data-trend-ws-ohlc></span>${detail.status==='unverified_display'?'<em>개인 연구 시세 · 참고선</em>':''}</div>${chips?`<div class="trend-ws-chips">${chips}</div>`:''}</div>`;
+function trendWorkspaceLegend(detail,analysis,asset,scale,prefs=null){
+  const meta=TREND_ASSET_META[detail.asset_id]||{},indicatorChips=(prefs?.indicators||[]).map(key=>{const row=TREND_WS_INDICATORS.find(item=>item[0]===key);return row&&!row[3]?`<span data-trend-ind="${key}"><i style="background:${row[2]}"></i>${esc(row[1])} <b></b></span>`:'';}).join(''),chips=(analysis.lines||[]).map(line=>{const role=line.role||line.side,color=line.slot?TREND_REPRESENTATIVE_COLORS[line.slot]:role==='support'?'#247d78':'#bd5a20';return `<span><i style="background:${color}"></i>${esc(line.slot?trendRepresentativeName(line):role==='support'?'지지':'저항')}</span>`;}).join('');
+  return `<div class="trend-ws-legend" data-trend-ws-legend><div><strong>${esc(asset?.label||'')}</strong><span>${esc(meta.ticker||detail.asset_id)} · ${esc(TREND_WS_INTERVALS.find(row=>row[0]===(prefs?.interval||'D'))?.[1]||'1D')}${scale==='log'?' · 로그':''}</span><span class="trend-ws-ohlc" data-trend-ws-ohlc></span>${detail.status==='unverified_display'?'<em>개인 연구 시세 · 참고선</em>':''}</div>${chips||indicatorChips?`<div class="trend-ws-chips">${indicatorChips}${chips}</div>`:''}</div>`;
 }
 function trendWorkspaceSelectionBar(){
   const button=(action,value,label,content,extra='')=>`<button type="button" data-trend-manual-action="${action}"${value===null?'':` data-trend-manual-value="${value}"`} title="${esc(label)}" aria-label="${esc(label)}"${extra}>${content}</button>`;
@@ -1272,118 +1427,136 @@ function trendWorkspaceSelectionBar(){
   return `<div class="trend-ws-float" data-trend-selection role="toolbar" aria-label="선택한 선" hidden>${colors.map(color=>button('set-color',color,'색 '+color,'',` class="trend-swatch" style="--swatch:${color}"`)).join('')}<span class="trend-ws-sep" aria-hidden="true"></span>${[1,2,3].map(width=>button('set-width',width,'두께 '+width+'px',`<i style="height:${width}px"></i>`,' class="trend-width"')).join('')}<span class="trend-ws-sep" aria-hidden="true"></span>${button('set-dash','solid','실선','실선')}${button('set-dash','dash','파선','파선')}${button('set-dash','dot','점선','점선')}<span class="trend-ws-sep" aria-hidden="true"></span>${button('set-extension','none','연장 없음','선분')}${button('set-extension','right','오른쪽 연장','→')}${button('set-extension','both','양쪽 연장','↔')}<span class="trend-ws-sep" aria-hidden="true"></span>${button('lock',null,'잠금/해제',trendIcon('lock'))}${button('hide',null,'숨김/표시',trendIcon('eye'))}${button('clone',null,'복제','복제')}${button('settings',null,'선 설정','설정')}${button('delete',null,'삭제 · Delete',trendIcon('trash'))}</div>`;
 }
 function trendWorkspacePending(ws,error=null){
-  const id=ws.pendingAsset||ws.assetId,label=TREND_ASSETS.find(row=>row[0]===id)?.[1]||id;
+  const id=ws.pendingAsset||ws.assetId,label=TREND_ASSETS.find(row=>row[0]===id)?.[1]||TREND_ASSET_META[id]?.label||id;
   return `<header class="trend-ws-top"><div class="trend-ws-top-scroll">${trendWorkspaceSymbol(ws,label,TREND_ASSET_META[id]?.ticker)}</div><div class="trend-ws-actions"><button type="button" class="trend-ws-icon trend-ws-close" data-trend-ws-action="close" title="닫기 · Esc" aria-label="닫기">${trendIcon('close')}</button></div></header><div class="trend-ws-pending" role="status"><span aria-hidden="true">${error?'—':'⋯'}</span><strong>${esc(error?'차트를 표시하지 못했습니다':label+' 시세를 확인하고 있습니다')}</strong><p>${esc(error||ws.pendingMessage||'')}</p></div>`;
 }
 // Crosshair follows the pointer price (TradingView), with axis labels and an OHLC legend.
 function bindTrendWorkspaceChart(host,detail,m,asset){
   const svg=host.querySelector('svg[data-trend-plot]'),cross=svg?.querySelector('[data-trend-cross]'),horizontal=svg?.querySelector('[data-trend-cross-price]'),ylabel=svg?.querySelector('[data-trend-ws-ylabel]'),xlabel=svg?.querySelector('[data-trend-ws-xlabel]'),ohlc=host.querySelector('[data-trend-ws-ohlc]');if(!svg||!cross||!horizontal||!ylabel||!xlabel)return;
-  const position=new Map(detail.bars.map((bar,i)=>[bar.session_index,i])),visible=new Map(m.bars.map(bar=>[bar.session_index,bar])),sessions=new Map(trendManualSessions(detail,m.analysis).map(row=>[row.index,row.session])),format=value=>trendAxisPrice(value,asset);
-  const legend=bar=>{if(!ohlc)return;const row=bar||detail.bars.at(-1),i=position.get(row.session_index),previous=i>0?detail.bars[i-1].close:null,change=previous?(row.close/previous-1)*100:null;ohlc.innerHTML=`<span>${esc(row.session||row.session_date)}</span> 시 <b>${esc(format(row.open))}</b> 고 <b>${esc(format(row.high))}</b> 저 <b>${esc(format(row.low))}</b> 종 <b>${esc(format(row.close))}</b>${change===null?'':` <b class="${change>=0?'is-up':'is-down'}">${change>=0?'+':''}${change.toFixed(2)}%</b>`}`;};
-  const hide=()=>{for(const node of [cross,horizontal,ylabel,xlabel])node.setAttribute('visibility','hidden');legend(null);};
+  const rows=m.wsAll||detail.bars,sessions=new Map(trendManualSessions(detail,m.analysis).map(row=>[row.index,row.session])),format=value=>trendAxisPrice(value,asset),chips=[...host.querySelectorAll('[data-trend-ind]')],panes=[...host.querySelectorAll('svg[data-trend-pane]')];
+  const legend=position=>{const at=position===null||position<0?rows.length-1:position,row=rows[at];if(row&&ohlc){const previous=at>0?rows[at-1].close:null,change=previous?(row.close/previous-1)*100:null;ohlc.innerHTML=`<span>${esc(row.session||row.session_date)}</span> 시 <b>${esc(format(row.open))}</b> 고 <b>${esc(format(row.high))}</b> 저 <b>${esc(format(row.low))}</b> 종 <b>${esc(format(row.close))}</b>${change===null?'':` <b class="${change>=0?'is-up':'is-down'}">${change>=0?'+':''}${change.toFixed(2)}%</b>`}`;}for(const chip of chips){const value=trendWsIndicator(rows,chip.dataset.trendInd).line[at],node=chip.querySelector('b');if(node)node.textContent=value===null||value===undefined?'':format(value);}};
+  const paneCross=x=>{for(const pane of panes){const line=pane.querySelector('[data-trend-pane-cross]');if(!line)continue;if(x===null)line.setAttribute('visibility','hidden');else{line.setAttribute('x1',x);line.setAttribute('x2',x);line.setAttribute('visibility','visible');}}};
+  const hide=()=>{for(const node of [cross,horizontal,ylabel,xlabel])node.setAttribute('visibility','hidden');paneCross(null);legend(null);};
+  const moveX=x=>{const index=Math.round(Math.max(m.first,Math.min(m.end,m.first+(x-m.L)/(m.W-m.L-m.R)*(m.end-m.first)))),position=trendWsRowAt(rows,index),period=position>=0&&rows[position].first!==undefined?rows[position]:null,cx=m.x(period?period.session_index:index),label=period?period.session:sessions.get(index)||'',left=Math.max(m.L,Math.min(m.W-m.R-80,cx-40));cross.setAttribute('x1',cx);cross.setAttribute('x2',cx);cross.setAttribute('visibility','visible');paneCross(cx);xlabel.querySelector('rect').setAttribute('x',left);const date=xlabel.querySelector('text');date.setAttribute('x',left+40);date.textContent=label;xlabel.setAttribute('visibility',label?'visible':'hidden');if(position>=0)legend(position);};
   const show=event=>{
     const bounds=svg.getBoundingClientRect();if(!bounds.width||!bounds.height)return;const x=(event.clientX-bounds.left)/bounds.width*m.W,y=(event.clientY-bounds.top)/bounds.height*m.H;
     if(x<m.L||x>m.W-m.R||y<m.T||y>m.H-m.B){hide();return;}
-    const index=Math.round(Math.max(m.first,Math.min(m.end,m.first+(x-m.L)/(m.W-m.L-m.R)*(m.end-m.first)))),cx=m.x(index),price=trendManualPriceAt(m,y,m.scale),label=sessions.get(index)||'',left=Math.max(m.L,Math.min(m.W-m.R-80,cx-40));
-    cross.setAttribute('x1',cx);cross.setAttribute('x2',cx);horizontal.setAttribute('y1',y);horizontal.setAttribute('y2',y);
-    ylabel.querySelector('rect').setAttribute('y',y-9);const text=ylabel.querySelector('text');text.setAttribute('y',y+4);text.textContent=Number.isFinite(price)&&price>0?format(price):'';
-    xlabel.querySelector('rect').setAttribute('x',left);const date=xlabel.querySelector('text');date.setAttribute('x',left+40);date.textContent=label;
-    for(const node of [cross,horizontal,ylabel])node.setAttribute('visibility','visible');xlabel.setAttribute('visibility',label?'visible':'hidden');
-    const bar=visible.get(index);if(bar)legend(bar);
+    const price=trendManualPriceAt(m,y,m.scale);horizontal.setAttribute('y1',y);horizontal.setAttribute('y2',y);
+    ylabel.querySelector('rect').setAttribute('y',y-9);const text=ylabel.querySelector('text');text.setAttribute('y',y+4);text.textContent=Number.isFinite(price)&&price>0?(m.axisLabel?m.axisLabel(price):format(price)):'';
+    for(const node of [horizontal,ylabel])node.setAttribute('visibility','visible');moveX(x);
   };
-  svg.addEventListener('pointermove',show);svg.addEventListener('pointerdown',show);svg.addEventListener('pointerleave',hide);legend(null);
+  svg.addEventListener('pointermove',show);svg.addEventListener('pointerdown',show);svg.addEventListener('pointerleave',hide);
+  for(const pane of panes){pane.addEventListener('pointermove',event=>{const bounds=pane.getBoundingClientRect();if(!bounds.width)return;const x=(event.clientX-bounds.left)/bounds.width*m.W;if(x<m.L||x>m.W-m.R){hide();return;}for(const node of [horizontal,ylabel])node.setAttribute('visibility','hidden');moveX(x);});pane.addEventListener('pointerleave',hide);}
+  legend(null);
 }
 function drawTrendWorkspace(host,detail,analysis,baseBars,bars,asset,scale,version,state,ws,maximum,restoreName){
-  const manual=trendManualState(detail.asset_id),narrow=(globalThis.innerWidth||1280)<760,date=bar=>bar.session||bar.session_date;
-  const frameKey=[detail.asset_id,scale,ws.family,ws.hideAuto,ws.panelOpen,ws.helpOpen,ws.assetMenu,ws.confirmClose,narrow].join('|');
+  const manual=trendManualState(detail.asset_id),narrow=(globalThis.innerWidth||1280)<760,date=bar=>bar.session||bar.session_date,prefs=ws.prefs||(ws.prefs=trendWsPrefs());
+  const frameKey=[detail.asset_id,scale,ws.family,ws.hideAuto,ws.panelOpen,ws.helpOpen,ws.assetMenu,ws.indicatorMenu,ws.confirmClose,narrow,prefs.interval,prefs.type,prefs.percent,prefs.indicators.join()].join('|');
   if(host._trendWsFrameKey!==frameKey||!host.querySelector?.('[data-trend-ws-stage]')){host.innerHTML=trendWorkspaceFrame(detail,asset,scale,ws);host._trendWsFrameKey=frameKey;}
-  const stage=host.querySelector('[data-trend-ws-stage]'),width=stage?.clientWidth||Math.max(330,(host.clientWidth||1200)-48-(ws.panelOpen&&!narrow?300:0)),height=stage?.clientHeight||Math.max(260,(host.clientHeight||720)-96);
+  const stage=host.querySelector('[data-trend-ws-stage]'),width=stage?.clientWidth||Math.max(330,(host.clientWidth||1200)-48-(ws.panelOpen&&!narrow?300:0)),stageHeight=stage?.clientHeight||Math.max(260,(host.clientHeight||720)-96);
+  const allRows=trendWsAggregate(baseBars,prefs.interval),hasVolume=baseBars.some(bar=>Number.isFinite(bar.volume)),paneKeys=prefs.indicators.filter(key=>TREND_WS_INDICATORS.find(row=>row[0]===key)?.[3]&&(key!=='volume'||hasVolume)),paneHeight=paneKeys.length?Math.max(64,Math.min(120,Math.floor(stageHeight*.16))):0,height=Math.max(180,stageHeight-paneHeight*paneKeys.length);
   const m=trendPlotModel(detail,analysis,bars,scale,width,{axis:'right',height,yRange:state.yRange});
-  const domain=[baseBars[0].session_index,Math.max(baseBars.at(-1).session_index+(analysis.representative||analysis.critical?0:1),m.end,analysis.projection_sessions?.at(-1)?.index??0)];
-  if(state.xRange){[m.first,m.end]=state.xRange;m.x=index=>m.L+(index-m.first)/(m.end-m.first)*(m.W-m.L-m.R);}
+  const dataFirst=baseBars[0].session_index,dataLast=baseBars.at(-1).session_index;
+  const domain=[dataFirst,Math.max(dataLast+(analysis.representative||analysis.critical?0:1),m.end,analysis.projection_sessions?.at(-1)?.index??0)],dataSpan=Math.max(1,domain[1]-domain[0]);
+  if(state.xRange)[m.first,m.end]=state.xRange;
+  const series=trendWsSeries(baseBars,prefs.interval,prefs.type),[seriesFrom,seriesTo]=trendWsVisible(series,m.first,m.end);
+  if(!state.yRange){
+    // Auto scale fits only what is in the window, so zooming and panning never squash the candles.
+    const auto=trendWsAutoRange(series,seriesFrom,seriesTo,m.first,m.end,analysis,detail,scale)||state.lastAuto;
+    if(auto){const [low,high]=auto,T=value=>scale==='log'?Math.log(value):value,I=value=>scale==='log'?Math.exp(value):value;state.lastAuto=auto;m.range=auto;m.y=price=>m.T+(high-T(price))/(high-low)*(m.H-m.T-m.B);m.ticks=Array.from({length:5},(_,i)=>I(low+(high-low)*i/4));}
+  }
+  m.R=trendPlotFrame(m.W,{axis:'right',height:m.H},m.H,trendWsCached(baseBars,'gutter',()=>baseBars.reduce((top,bar)=>Math.max(top,bar.high??bar.close),0))).R;
+  m.x=index=>m.L+(index-m.first)/(m.end-m.first)*(m.W-m.L-m.R);
+  m.wsAll=allRows;m.wsType=prefs.type;m.wsSeries=series.slice(Math.max(0,seriesFrom-1),Math.min(series.length,seriesTo+1));m.wsOverlays=trendWsOverlayMarkup(m,allRows,seriesFrom,seriesTo,prefs.indicators);
   m.manualState=manual;m.manualDetail=detail;m.manualLines=manual.lines.filter(l=>!l.hidden).map(l=>trendManualGeometry(l,detail,analysis,scale,m)).filter(Boolean);
-  if(stage)stage.innerHTML=trendWorkspaceLegend(detail,analysis,asset,scale)+trendSvg(detail,m,asset,'workspace')+trendWorkspaceSelectionBar();
+  m.wsTicks=trendWsTimeTicks(m,trendManualSessions(detail,analysis));
+  if(prefs.percent&&seriesTo>seriesFrom){const base=series[seriesFrom].close;m.axisLabel=price=>{const value=(price/base-1)*100;return (value>0?'+':'')+value.toFixed(2)+'%';};}
+  const away=m.end<dataLast-.5||m.first>dataLast;
+  if(stage){stage.innerHTML=trendWorkspaceLegend(detail,analysis,asset,scale,prefs)+trendSvg(detail,m,asset,'workspace')+trendWorkspaceSelectionBar()+(away?`<button type="button" class="trend-ws-realtime" data-trend-ws-action="realtime" title="최신 봉으로 · End" aria-label="최신 봉으로" style="bottom:${paneHeight*paneKeys.length+34}px;right:${m.R+8}px">≫</button>`:'')+(paneKeys.length?`<div class="trend-ws-panes" data-trend-panes>${paneKeys.map(key=>trendWsPaneMarkup(key,m,allRows,seriesFrom,seriesTo,paneHeight)).join('')}</div>`:'');const plot=stage.querySelector('svg[data-trend-plot]');if(plot&&paneKeys.length&&plot.style)plot.style.height=height+'px';}
   host._trendWorkspace=ws;bindTrendWorkspaceChart(host,detail,m,asset);bindTrendManual(host,detail,m,asset,scale);
   if(restoreName&&/^[a-z_]+$/.test(restoreName))host.querySelector('[data-trend-manual-form] [name="'+restoreName+'"]')?.focus();
   const repaint=()=>{if(host._trendWsFrameRequest)return;const run=()=>{host._trendWsFrameRequest=0;if(host.isConnected!==false&&TREND_ZOOM?.ws===ws)drawTrendInteractiveChart(host,detail,analysis,baseBars,asset,scale,version,state,()=>{},ws);};host._trendWsFrameRequest=globalThis.requestAnimationFrame?requestAnimationFrame(run):(run(),0);};
-  const limit=()=>baseBars.length-bars.length,clampOffset=value=>Math.max(0,Math.min(limit(),Math.round(value)));
   const windowRange=()=>state.xRange||[m.first,m.end];
   const validRange=range=>range.every(Number.isFinite)&&range[1]>range[0]&&(scale!=='log'||range.every(value=>Math.exp(value)>0&&Number.isFinite(Math.exp(value))));
-  const boundedWindow=(start,span)=>{const size=Math.min(domain[1]-domain[0],span),first=Math.max(domain[0],Math.min(domain[1]-size,start));return [first,first+size];};
-  const priceFrame=range=>trendPlotFrame(m.W,{axis:'right',height:m.H},m.H,scale==='log'?Math.exp(range[1]):range[1]);
+  const rowSpan=prefs.interval==='D'?1:baseBars.length/allRows.length,minSpan=Math.max(TREND_WS_MIN_BARS*rowSpan,(m.end-m.first)*state.factor/(state.maxFactor??Infinity)),maxSpan=Math.max((m.W-m.L-m.R)*2*rowSpan,dataSpan*1.05);
+  // Free scrolling as in TradingView: past both ends of the data, keeping a few bars in view.
+  const boundedWindow=(start,span)=>{const size=Math.max(minSpan,Math.min(maxSpan,span)),keep=Math.min(size,TREND_WS_MIN_BARS*rowSpan),first=Math.max(dataFirst-size+keep,Math.min(dataLast-keep,start));return [first,first+size];};
+  // Wheel changes the time scale only: the right edge holds, Ctrl+wheel and pinch hold the pointer's session.
   const zoom=(factor,ratio=.5,point=null)=>{
-    const target=Math.max(1,Math.min(maximum,factor));if(!Number.isFinite(target)||Math.abs(target-state.factor)<1e-12)return;
-    const current=windowRange(),range=state.yRange||m.range,frame=priceFrame(range),clamp=value=>Math.max(0,Math.min(1,value));
-    const rx=point?clamp((point.x-frame.L)/(frame.W-frame.L-frame.R)):clamp(ratio),anchor=current[0]+rx*(current[1]-current[0]),step=target/state.factor;
-    let nextRange=range;
-    if(point&&point.y>=frame.T&&point.y<=frame.H-frame.B){const ry=clamp((point.y-frame.T)/(frame.H-frame.T-frame.B)),price=range[1]-ry*(range[1]-range[0]),span=(range[1]-range[0])/step;nextRange=[price-(1-ry)*span,price+ry*span];if(!validRange(nextRange))return;}
-    const nextFrame=priceFrame(nextRange),nextRatio=point?clamp((point.x-nextFrame.L)/(nextFrame.W-nextFrame.L-nextFrame.R)):rx;
-    const span=target===1?domain[1]-domain[0]:(current[1]-current[0])/step;
-    state.xRange=boundedWindow(anchor-nextRatio*span,span);state.factor=target;state.heldCount=null;
-    if(nextRange!==range)state.yRange=nextRange;ws.range=null;repaint();
+    const step=factor/state.factor;if(!Number.isFinite(step)||step<=0||Math.abs(step-1)<1e-12)return;
+    const current=windowRange(),now=current[1]-current[0],clamp=value=>Math.max(0,Math.min(1,value)),rx=point?clamp((point.x-m.L)/(m.W-m.L-m.R)):clamp(ratio),anchor=current[0]+rx*now,span=Math.max(minSpan,Math.min(maxSpan,now/step)),next=boundedWindow(anchor-rx*span,span);
+    if(next.every((value,i)=>Math.abs(value-current[i])<1e-9))return;
+    state.xRange=next;state.factor*=now/(next[1]-next[0]);state.heldCount=null;ws.range=null;repaint();
   };
   const pinchOrigin=(point,pan=false)=>{
-    const current=windowRange(),range=state.yRange||m.range,frame=priceFrame(range),clamp=value=>pan?value:Math.max(0,Math.min(1,value));
-    const rx=clamp((point.x-frame.L)/(frame.W-frame.L-frame.R)),ry=clamp((point.y-frame.T)/(frame.H-frame.T-frame.B));
-    return {state,scale,baseBars,pan,factor:state.factor,width:current[1]-current[0],range:range.slice(),index:current[0]+rx*(current[1]-current[0]),price:range[1]-ry*(range[1]-range[0])};
+    const current=windowRange(),range=state.yRange||m.range,clamp=value=>pan?value:Math.max(0,Math.min(1,value));
+    const rx=clamp((point.x-m.L)/(m.W-m.L-m.R)),ry=clamp((point.y-m.T)/(m.H-m.T-m.B));
+    return {state,scale,baseBars,pan,manual:!!state.yRange,factor:state.factor,width:current[1]-current[0],range:range.slice(),index:current[0]+rx*(current[1]-current[0]),price:range[1]-ry*(range[1]-range[0])};
   };
   const isCurrentOrigin=origin=>origin?.state===state&&origin?.scale===scale&&origin?.baseBars===baseBars;
   const pinch=(origin,factor,point)=>{
-    if(!isCurrentOrigin(origin))return;
-    const target=Math.max(1,Math.min(maximum,factor));if(!Number.isFinite(target))return;
+    if(!isCurrentOrigin(origin)||!Number.isFinite(factor)||factor<=0)return;
     // Always use the gesture's starting data point, even between redraws or at a zoom limit.
-    const step=target/origin.factor,frame=priceFrame(origin.range),clamp=value=>origin.pan?value:Math.max(0,Math.min(1,value)),ry=clamp((point.y-frame.T)/(frame.H-frame.T-frame.B));
-    const height=(origin.range[1]-origin.range[0])/step,range=[origin.price-(1-ry)*height,origin.price+ry*height];if(!validRange(range))return;
-    const nextFrame=priceFrame(range),rx=clamp((point.x-nextFrame.L)/(nextFrame.W-nextFrame.L-nextFrame.R)),width=target===1?domain[1]-domain[0]:origin.width/step;
-    const next=boundedWindow(origin.index-rx*width,width),current=windowRange(),previous=state.yRange||m.range;
-    if(Math.abs(target-state.factor)<1e-12&&next.every((value,i)=>Math.abs(value-current[i])<1e-9)&&range.every((value,i)=>Math.abs(value-previous[i])<1e-9))return;
-    state.xRange=next;state.yRange=range;state.factor=target;state.heldCount=null;ws.range=null;repaint();
+    const clamp=value=>origin.pan?value:Math.max(0,Math.min(1,value)),rx=clamp((point.x-m.L)/(m.W-m.L-m.R)),width=Math.max(minSpan,Math.min(maxSpan,origin.width*origin.factor/factor)),next=boundedWindow(origin.index-rx*width,width),current=windowRange();
+    let range=null;if(origin.manual){const ry=clamp((point.y-m.T)/(m.H-m.T-m.B)),height=origin.range[1]-origin.range[0];range=[origin.price-(1-ry)*height,origin.price+ry*height];if(!validRange(range))return;}
+    const previous=state.yRange;if(next.every((value,i)=>Math.abs(value-current[i])<1e-9)&&(!range||range.every((value,i)=>Math.abs(value-previous[i])<1e-9)))return;
+    state.xRange=next;if(range)state.yRange=range;state.factor=Math.abs(next[1]-next[0]-origin.width*origin.factor/factor)<1e-9?factor:origin.factor*origin.width/(next[1]-next[0]);state.heldCount=null;ws.range=null;repaint();
   };
-  const panWindow=(first,range=null)=>{const current=windowRange();state.xRange=boundedWindow(first,current[1]-current[0]);if(range)state.yRange=range;ws.range=null;repaint();};
-  const pan=delta=>{if(state.xRange){panWindow(state.xRange[0]+delta);return;}state.heldCount=bars.length;state.offset=clampOffset((state.offset??limit())+delta);ws.range=null;repaint();};
-  const panTo=(offset,range=null)=>{state.heldCount=bars.length;state.offset=clampOffset(offset);if(range)state.yRange=range;ws.range=null;repaint();};
+  const panWindow=(first,range=null)=>{const current=windowRange();state.xRange=boundedWindow(first,current[1]-current[0]);if(range)state.yRange=range;state.heldCount=null;ws.range=null;repaint();};
+  const pan=delta=>{panWindow(windowRange()[0]+delta);};
   const setRange=range=>{if(range&&!validRange(range))return;state.yRange=range;repaint();};
   const scalePrice=(factor,ratio=.5)=>{const [low,high]=state.yRange||m.range,anchor=low+ratio*(high-low),span=(high-low)*factor;setRange([anchor-ratio*span,anchor+(1-ratio)*span]);};
-  const preset=label=>{const row=TREND_RANGE_PRESETS.find(item=>item[0]===label);if(!row)return;const crypto=detail.asset?.kind==='crypto'||detail.asset_id==='bitcoin',count=row[1]===null?baseBars.length:Math.min(baseBars.length,Math.max(20,crypto?row[2]:row[1]));state.heldCount=count;state.factor=baseBars.length/count;state.offset=null;state.yRange=null;state.xRange=null;ws.range=label;repaint();};
-  const goto=value=>{if(!trendManualDate(value))return;let position=baseBars.findIndex(bar=>date(bar)>=value);if(position<0)position=baseBars.length-1;state.heldCount=bars.length;state.offset=clampOffset(position-Math.floor(bars.length/2));state.xRange=null;ws.range=null;repaint();};
-  host._trendNavigation={m,zoom,pinchOrigin,isCurrentOrigin,pinch,pan,panTo,panWindow,setRange,scalePrice,preset,goto,repaint,state,baseBars,bars};
-  host.querySelectorAll?.('[data-trend-tool]').forEach(button=>{const action=button.dataset.trendTool;button.disabled=action==='in'&&state.factor>=maximum||action==='out'&&(state.factor<=1||(state.xRange?state.xRange[1]-state.xRange[0]>=domain[1]-domain[0]-1e-9:bars.length>=baseBars.length))||action==='left'&&(state.xRange?state.xRange[0]<=domain[0]+1e-9:state.offset<=0)||action==='right'&&(state.xRange?state.xRange[1]>=domain[1]-1e-9:state.offset>=limit());if(action==='range')button.setAttribute('aria-pressed',String(ws.range===button.dataset.trendRange));button.onclick=()=>{if(action==='range'){preset(button.dataset.trendRange);return;}if(action==='in'||action==='out'){zoom(state.factor*(action==='in'?1.5:1/1.5));return;}if(action==='reset'){ws.resetView();return;}pan(Math.round(bars.length*.4)*(action==='left'?-1:1));};});
-  const span=host.querySelector('[data-trend-ws-span]');if(span)span.textContent=`${date(bars[0])} — ${date(bars.at(-1))} · ${bars.length.toLocaleString('ko-KR')}봉`;
+  const toLatest=()=>{const current=windowRange(),span=current[1]-current[0];panWindow(dataLast+Math.min(span*.2,10*rowSpan)-span);};
+  const toFirst=()=>{const current=windowRange();panWindow(dataFirst-Math.min((current[1]-current[0])*.05,5));};
+  // Changing interval keeps the bar spacing and the right edge, so weekly and monthly open wider.
+  const rescale=ratio=>{const current=windowRange(),now=current[1]-current[0],span=Math.max(minSpan,Math.min(maxSpan,now*ratio)),next=boundedWindow(current[1]-span,span);state.xRange=next;state.factor*=now/(next[1]-next[0]);state.heldCount=null;ws.range=null;repaint();};
+  const preset=label=>{const row=TREND_RANGE_PRESETS.find(item=>item[0]===label);if(!row)return;const crypto=detail.asset?.kind==='crypto'||detail.asset_id==='bitcoin',count=row[1]===null?baseBars.length:Math.min(baseBars.length,Math.max(20,Math.ceil(TREND_WS_MIN_BARS*rowSpan),crypto?row[2]:row[1]));state.heldCount=count;state.factor=baseBars.length/count;state.offset=null;state.yRange=null;state.xRange=null;ws.range=label;repaint();};
+  const goto=value=>{if(!trendManualDate(value))return;const row=trendManualSessions(detail,analysis).find(item=>item.session>=value)||{index:dataLast},current=windowRange();panWindow(row.index-(current[1]-current[0])/2);};
+  host._trendNavigation={m,rowSpan,maxSpan,rescale,zoom,pinchOrigin,isCurrentOrigin,pinch,pan,panWindow,setRange,scalePrice,preset,goto,toLatest,toFirst,repaint,state,baseBars,bars};
+  host.querySelectorAll?.('[data-trend-tool]').forEach(button=>{const action=button.dataset.trendTool;const spanNow=m.end-m.first,keep=Math.min(spanNow,TREND_WS_MIN_BARS*rowSpan);button.disabled=action==='in'&&spanNow<=minSpan+1e-9||action==='out'&&spanNow>=maxSpan-1e-9||action==='left'&&m.first<=dataFirst-spanNow+keep+1e-9||action==='right'&&m.first>=dataLast-keep-1e-9;if(action==='range')button.setAttribute('aria-pressed',String(ws.range===button.dataset.trendRange));button.onclick=()=>{if(action==='range'){preset(button.dataset.trendRange);return;}if(action==='in'||action==='out'){zoom(state.factor*(action==='in'?1.5:1/1.5),1);return;}if(action==='reset'){ws.resetView();return;}pan((m.end-m.first)*.4*(action==='left'?-1:1));};});
+  const span=host.querySelector('[data-trend-ws-span]');if(span){const shown=seriesTo>seriesFrom?series.slice(seriesFrom,seriesTo):[series.at(-1)];span.textContent=`${date(shown[0])} — ${date(shown.at(-1))} · ${shown.length.toLocaleString('ko-KR')}봉`;}
   const auto=host.querySelector('[data-trend-ws-action="auto"]');auto?.setAttribute('aria-pressed',String(!state.yRange));
   const goto_=host.querySelector('[data-trend-ws-goto]');if(goto_&&globalThis.document?.activeElement!==goto_){goto_.min=date(baseBars[0]);goto_.max=date(baseBars.at(-1));}
   if(host._trendWsNavBound||!host.addEventListener)return;host._trendWsNavBound=true;
   const local=event=>{const nav=host._trendNavigation,svg=host.querySelector('svg[data-trend-plot]'),bounds=svg?.getBoundingClientRect();if(!nav?.zoom||!bounds?.width||!bounds.height)return null;return {nav,bounds,x:(event.clientX-bounds.left)/bounds.width*nav.m.W,y:(event.clientY-bounds.top)/bounds.height*nav.m.H};};
   const pointers=new Map();let gesture=null,tapSeed=null,touchPress=null,lastTap=null,lastTouchAt=-Infinity;
+  // Touch drags keep gliding after release, as on TradingView's mobile chart.
+  let glide=0;const stopGlide=()=>{if(glide){globalThis.cancelAnimationFrame?.(glide);glide=0;}};
+  const startGlide=velocity=>{stopGlide();if(globalThis.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches||!globalThis.requestAnimationFrame)return;let speed=velocity,last=null;const tick=stamp=>{const nav=host._trendNavigation;if(!nav?.panWindow||!host.isConnected){glide=0;return;}if(last!==null){const elapsed=Math.min(40,stamp-last),plot=nav.m,bounds=host.querySelector('svg[data-trend-plot]')?.getBoundingClientRect();if(!bounds?.width){glide=0;return;}nav.pan(-speed*elapsed/((plot.W-plot.L-plot.R)/plot.W*bounds.width)*(plot.end-plot.first));speed*=.997**elapsed;}last=stamp;glide=Math.abs(speed)>.03?requestAnimationFrame(tick):0;};glide=requestAnimationFrame(tick);};
   const clearTaps=()=>{tapSeed=null;touchPress=null;lastTap=null;};
   // Capture also sees toolbar actions and drawing handlers that consume pointerdown.
-  host.addEventListener('pointerdown',event=>{const previous=lastTap;clearTaps();if(pointers.size>=2&&!pointers.has(event.pointerId))clearGesture();if(event.pointerType==='touch'){lastTouchAt=event.timeStamp;tapSeed={id:event.pointerId,previous};}else lastTouchAt=-Infinity;},true);
-  host.addEventListener('wheel',event=>{clearTaps();if(!event.target.closest?.('svg[data-trend-plot]'))return;const p=local(event);if(!p)return;event.preventDefault();const {nav}=p,plot=nav.m;
-    const unitY=event.deltaMode===1?16:event.deltaMode===2?(plot.H-plot.T-plot.B)/plot.H*p.bounds.height:1,unitX=event.deltaMode===2?(plot.W-plot.L-plot.R)/plot.W*p.bounds.width:unitY;
-    const dx=event.deltaX*unitX,dy=event.deltaY*unitY;if(!Number.isFinite(dx)||!Number.isFinite(dy)||!dx&&!dy)return;
-    const delta=Math.max(-160,Math.min(160,dy));
-    if(p.x>plot.W-plot.R){nav.scalePrice(Math.exp(delta*.0015),Math.max(0,Math.min(1,(plot.H-plot.B-p.y)/(plot.H-plot.T-plot.B))));return;}
-    if(event.shiftKey||Math.abs(dx)>Math.abs(dy)){const move=event.shiftKey?dy||dx:dx;nav.pan(Math.round(move/Math.max(1,plot.W-plot.L-plot.R)*nav.bars.length)||Math.sign(move));return;}
-    nav.zoom(nav.state.factor*Math.exp(-delta*.002),.5,{x:p.x,y:p.y});},{passive:false});
+  host.addEventListener('pointerdown',event=>{stopGlide();const previous=lastTap;clearTaps();if(pointers.size>=2&&!pointers.has(event.pointerId))clearGesture();if(event.pointerType==='touch'){lastTouchAt=event.timeStamp;tapSeed={id:event.pointerId,previous};}else lastTouchAt=-Infinity;},true);
+  host.addEventListener('wheel',event=>{clearTaps();stopGlide();if(!event.target.closest?.('svg[data-trend-plot],svg[data-trend-pane]'))return;const p=local(event);if(!p)return;event.preventDefault();const {nav}=p,plot=nav.m;
+    // Chromium on Windows scales wheel deltas by display density; other units follow the browser's mode.
+    const unit=event.deltaMode===2?120:event.deltaMode===1?32:/Windows/.test(globalThis.navigator?.userAgent||'')&&/Chrome/.test(globalThis.navigator?.userAgent||'')?1/(globalThis.devicePixelRatio||1):1;
+    const dx=event.deltaX*unit,dy=event.deltaY*unit;if(!Number.isFinite(dx)||!Number.isFinite(dy)||!dx&&!dy)return;
+    const notch=Math.sign(dy)*Math.min(1,Math.abs(dy)/100);
+    const inPane=!!event.target.closest?.('svg[data-trend-pane]');if(p.x>plot.W-plot.R&&!inPane){nav.scalePrice(1+notch*.05,.5);return;}
+    if(event.shiftKey||Math.abs(dx)>Math.abs(dy)){const move=(event.shiftKey?dy||dx:dx)*.8;nav.pan(move/Math.max(1,(plot.W-plot.L-plot.R)/plot.W*p.bounds.width)*(plot.end-plot.first));return;}
+    nav.zoom(nav.state.factor*(1-notch*.1),1,event.ctrlKey||event.metaKey?{x:p.x,y:p.y}:null);},{passive:false});
+  host.addEventListener('input',event=>{if(event.target.matches?.('[data-trend-ws-search]'))host._trendWorkspace?.search(event.target.value);});
+  host.addEventListener('keydown',event=>{if(event.key==='Enter'&&event.target.matches?.('[data-trend-ws-search]')){event.preventDefault();const first=host.querySelector('[data-trend-ws-results] [data-trend-ws-symbol]');if(first)host._trendWorkspace?.openSymbol(first.dataset.trendWsSymbol,first.dataset.trendWsSymbolName);else host._trendWorkspace?.openSymbol(event.target.value.trim().toUpperCase());}});
   const clearGesture=()=>{gesture=null;delete host.dataset.trendGesture;};
-  host.addEventListener('pointerdown',event=>{if(event.button!==0&&event.pointerType!=='touch'||!event.target.closest?.('svg[data-trend-plot]'))return;const p=local(event);if(!p)return;const {nav}=p,plot=nav.m;
+  host.addEventListener('pointerdown',event=>{if(event.button!==0&&event.pointerType!=='touch'||!event.target.closest?.('svg[data-trend-plot],svg[data-trend-pane]'))return;const p=local(event);if(!p)return;const {nav}=p,plot=nav.m;
     // Suppress native text selection before the SVG is repainted during panning.
-    event.preventDefault();event.target.closest('svg[data-trend-plot]')?.focus?.({preventScroll:true});
+    event.preventDefault();event.target.closest('svg[data-trend-plot]')?.focus?.({preventScroll:true});const inPane=!!event.target.closest('svg[data-trend-pane]');
     if(event.pointerType==='touch'&&!pointers.size)touchPress={id:event.pointerId,x:event.clientX,y:event.clientY,at:event.timeStamp,previous:tapSeed?.id===event.pointerId?tapSeed.previous:null};else clearTaps();tapSeed=null;
     pointers.set(event.pointerId,{x:event.clientX,y:event.clientY,type:event.pointerType});if(event.isTrusted)host.setPointerCapture?.(event.pointerId);
     if(pointers.size>2){clearGesture();return;}
     if(pointers.size===2){const values=[...pointers.values()],midpoint=local({clientX:(values[0].x+values[1].x)/2,clientY:(values[0].y+values[1].y)/2});gesture={kind:'pinch',distance:Math.max(1,Math.hypot(values[0].x-values[1].x,values[0].y-values[1].y)),origin:nav.pinchOrigin(midpoint)};host.dataset.trendGesture='plot';return;}
-    gesture={kind:p.x>plot.W-plot.R?'price':p.y>plot.H-plot.B?'time':'plot',id:event.pointerId,x:event.clientX,y:event.clientY,offset:nav.state.offset,factor:nav.state.factor,range:(nav.state.yRange||plot.range).slice(),plotWidth:Math.max(1,(plot.W-plot.L-plot.R)/plot.W*p.bounds.width),plotHeight:Math.max(1,(plot.H-plot.T-plot.B)/plot.H*p.bounds.height),count:nav.bars.length,first:plot.first,span:plot.end-plot.first,moved:false};host.dataset.trendGesture=gesture.kind;});
+    gesture={kind:inPane?'plot':p.x>plot.W-plot.R?'price':p.y>plot.H-plot.B?'time':'plot',pane:inPane,samples:[],fromBottom:(plot.H-plot.B-p.y)/plot.H*p.bounds.height,fromRight:(plot.W-plot.R-p.x)/plot.W*p.bounds.width,id:event.pointerId,x:event.clientX,y:event.clientY,offset:nav.state.offset,factor:nav.state.factor,range:(nav.state.yRange||plot.range).slice(),plotWidth:Math.max(1,(plot.W-plot.L-plot.R)/plot.W*p.bounds.width),plotHeight:Math.max(1,(plot.H-plot.T-plot.B)/plot.H*p.bounds.height),count:nav.bars.length,first:plot.first,span:plot.end-plot.first,moved:false};host.dataset.trendGesture=gesture.kind;});
   host.addEventListener('pointermove',event=>{if(!pointers.has(event.pointerId))return;if(touchPress?.id===event.pointerId&&Math.hypot(event.clientX-touchPress.x,event.clientY-touchPress.y)>=5)clearTaps();pointers.set(event.pointerId,{x:event.clientX,y:event.clientY,type:event.pointerType});const nav=host._trendNavigation;if(!gesture||!nav?.zoom)return;
     if(gesture.kind==='pinch'){if(pointers.size===2){const values=[...pointers.values()],midpoint=local({clientX:(values[0].x+values[1].x)/2,clientY:(values[0].y+values[1].y)/2});if(!midpoint)return;event.preventDefault();nav.pinch(gesture.origin,gesture.origin.factor*Math.hypot(values[0].x-values[1].x,values[0].y-values[1].y)/gesture.distance,midpoint);}return;}
     if(gesture.id!==event.pointerId)return;
     if(gesture.origin){const point=local(event);if(point){event.preventDefault();nav.pinch(gesture.origin,gesture.origin.factor,point);}return;}
     const dx=event.clientX-gesture.x,dy=event.clientY-gesture.y;if(!gesture.moved&&Math.hypot(dx,dy)<5)return;gesture.moved=true;event.preventDefault();
     const [low,high]=gesture.range;
-    if(gesture.kind==='price'){const half=(high-low)/2*Math.exp(dy*.006),mid=(low+high)/2;nav.setRange([mid-half,mid+half]);return;}
-    if(gesture.kind==='time'){nav.zoom(gesture.factor*Math.exp(-dx*.006),1);return;}
-    const shift=dy/gesture.plotHeight*(high-low),range=nav.state.yRange||Math.abs(dy)>12?[low+shift,high+shift]:null;if(nav.state.xRange)nav.panWindow(gesture.first-dx/gesture.plotWidth*gesture.span,range);else nav.panTo(gesture.offset-dx/gesture.plotWidth*gesture.count,range);});
+    if(gesture.kind==='price'){const h=gesture.plotHeight,grip=(h-1)*.2,now=Math.max(0,Math.min(h,gesture.fromBottom-dy)),half=(high-low)/2*Math.max(.1,(gesture.fromBottom+grip)/(now+grip)),mid=(low+high)/2;nav.setRange([mid-half,mid+half]);return;}
+    if(gesture.kind==='time'){const width=gesture.plotWidth,start=Math.max(0,Math.min(width,gesture.fromRight)),now=Math.max(0,Math.min(width,gesture.fromRight-dx));if(start>0&&now>0)nav.zoom(gesture.factor*now/start,1);return;}
+    if(event.pointerType==='touch'&&event.isTrusted&&gesture.samples){gesture.samples.push([event.timeStamp,event.clientX]);if(gesture.samples.length>6)gesture.samples.shift();}const shift=dy/gesture.plotHeight*(high-low),range=!gesture.pane&&nav.state.yRange?[low+shift,high+shift]:null;nav.panWindow(gesture.first-dx/gesture.plotWidth*gesture.span,range);});
   const release=(event,continuePan=false)=>{
     if(!pointers.delete(event.pointerId))return;
+    if(continuePan&&gesture?.id===event.pointerId&&gesture.kind==='plot'&&gesture.samples?.length>=2&&event.timeStamp-gesture.samples.at(-1)[0]<80){const a=gesture.samples[0],b=gesture.samples.at(-1),velocity=(b[1]-a[1])/Math.max(1,b[0]-a[0]);if(Math.abs(velocity)>.2&&Math.abs(b[1]-a[1])>=15)startGlide(Math.sign(velocity)*Math.min(7,Math.abs(velocity)));}
     if(gesture?.kind==='pinch'&&pointers.size<2||gesture?.id===event.pointerId){
       const nav=host._trendNavigation,remaining=pointers.size===1?[...pointers.entries()][0]:null;
       const point=continuePan&&event.pointerType==='touch'&&gesture.kind==='pinch'&&remaining?.[1].type==='touch'&&nav?.isCurrentOrigin(gesture.origin)?local({clientX:remaining[1].x,clientY:remaining[1].y}):null;
@@ -1395,7 +1568,7 @@ function drawTrendWorkspace(host,detail,analysis,baseBars,bars,asset,scale,versi
     if(host.hasPointerCapture?.(event.pointerId))host.releasePointerCapture(event.pointerId);
   };
   const cancel=()=>{clearTaps();for(const id of [...pointers.keys()])release({pointerId:id});clearGesture();};
-  window.addEventListener('blur',cancel);host._trendWsDisposeNavigation=()=>{cancel();window.removeEventListener('blur',cancel);};
+  window.addEventListener('blur',cancel);host._trendWsDisposeNavigation=()=>{cancel();stopGlide();window.removeEventListener('blur',cancel);};
   const canResetFromChart=event=>{
     const p=local(event),editor=host._trendManual;
     // Pointer capture can retarget a chart double-click to this stable host.
@@ -1405,6 +1578,9 @@ function drawTrendWorkspace(host,detail,analysis,baseBars,bars,asset,scale,versi
     if(!canResetFromChart(event))return;
     event.preventDefault();cancel();
     if(host._trendWsFrameRequest){globalThis.cancelAnimationFrame?.(host._trendWsFrameRequest);host._trendWsFrameRequest=0;}
+    const point=local(event),plot=point?.nav.m;
+    if(plot&&point.x>plot.W-plot.R){host._trendWorkspace?.command('auto');return;}
+    if(plot&&point.y>plot.H-plot.B){host._trendWorkspace?.resetTime();return;}
     host._trendWorkspace?.resetView();
   };
   host.addEventListener('pointerup',event=>{
@@ -1422,7 +1598,7 @@ function drawTrendWorkspace(host,detail,analysis,baseBars,bars,asset,scale,versi
     if(event.sourceCapabilities?.firesTouchEvents||event.timeStamp-lastTouchAt<=700)return;
     resetFromChart(event);
   });
-  host.addEventListener('click',event=>{const w=host._trendWorkspace;if(!w)return;if(w.assetMenu&&!event.target.closest?.('.trend-ws-symbol')){w.assetMenu=false;w.render();}const target=event.target.closest?.('[data-trend-ws-action],[data-trend-ws-family],[data-trend-ws-asset]');if(!target)return;
+  host.addEventListener('click',event=>{const w=host._trendWorkspace;if(!w)return;if(w.assetMenu&&!event.target.closest?.('.trend-ws-symbol')){w.assetMenu=false;w.render();}if(w.indicatorMenu&&!event.target.closest?.('.trend-ws-indicators')){w.indicatorMenu=false;w.render();}const target=event.target.closest?.('[data-trend-ws-action],[data-trend-ws-family],[data-trend-ws-asset],[data-trend-ws-symbol],[data-trend-ws-set],[data-trend-ws-indicator]');if(!target)return;if(target.dataset.trendWsSymbol){w.openSymbol(target.dataset.trendWsSymbol,target.dataset.trendWsSymbolName);return;}if(target.dataset.trendWsSet){w.setPref(target.dataset.trendWsSet);return;}if(target.dataset.trendWsIndicator){w.toggleIndicator(target.dataset.trendWsIndicator);return;}
     if(target.dataset.trendWsAsset){w.switchAsset(target.dataset.trendWsAsset);return;}if(target.dataset.trendWsFamily){w.setFamily(target.dataset.trendWsFamily);return;}w.command(target.dataset.trendWsAction);});
   host.addEventListener('change',event=>{if(event.target.matches?.('[data-trend-ws-goto]'))host._trendNavigation?.goto?.(event.target.value);});
 }
@@ -1441,27 +1617,44 @@ function openTrendWorkspace(context,trigger=null,options={}){
   const label=context.asset?.label||context.assetId,layer=el(`<div class="trend-ws-layer" data-trend-zoom><section class="trend-ws" role="dialog" aria-modal="true" tabindex="-1" aria-label="${esc(label)} 차트"><div class="trend-ws-host" data-trend-zoom-chart></div></section></div>`);
   document.body.appendChild(layer);const inert=[...document.body.children].filter(node=>node!==layer).map(node=>[node,node.inert]);for(const [node] of inert)node.inert=true;document.body.classList.add('trend-zoom-open');
   const host=layer.querySelector('[data-trend-zoom-chart]'),date=bar=>bar.session||bar.session_date;
-  const ws={context,assetId:context.assetId,scale:context.scale||'linear',family:context.family??null,hideAuto:false,panelOpen:(globalThis.innerWidth||1280)>=1180,helpOpen:false,assetMenu:false,confirmClose:false,pendingAsset:null,pendingMessage:null,range:null};
+  const ws={prefs:trendWsPrefs(),pageContext:context,indicatorMenu:false,searchText:'',searchSeq:0,context,assetId:context.assetId,scale:context.scale||'linear',family:context.family??null,hideAuto:false,panelOpen:(globalThis.innerWidth||1280)>=1180,helpOpen:false,assetMenu:false,confirmClose:false,pendingAsset:null,pendingMessage:null,range:null};
   const prime=()=>{ws.state={factor:1,offset:null,heldCount:null,maxFactor:Infinity,yRange:null};const bars=ws.context.initialBars;ws.home=bars?.length?{start:date(bars[0]),end:date(bars.at(-1))}:null;ws.pendingWindow=ws.home;ws.range=null;};
   prime();
   ws.render=()=>{
     if(!host.isConnected)return;
-    if(ws.pendingAsset){host._trendWsFrameKey=null;host.innerHTML=trendWorkspacePending(ws);return;}
+    if(ws.pendingAsset){host._trendWsFrameKey=null;host.innerHTML=trendWorkspacePending(ws,ws.pendingError||null);return;}
     let built;try{built=ws.context.build(ws.scale,ws.family||'all');}catch(error){host._trendWsFrameKey=null;host.innerHTML=trendWorkspacePending(ws,String(error.message||error));return;}
     const base=built.source.bars;
     if(ws.pendingWindow){const first=base.findIndex(bar=>date(bar)>=ws.pendingWindow.start),last=base.findLastIndex(bar=>date(bar)<=ws.pendingWindow.end);if(first>=0&&last>=first){ws.state.heldCount=Math.max(20,last-first+1);ws.state.factor=base.length/ws.state.heldCount;ws.state.offset=last+1>=base.length?null:first;}ws.pendingWindow=null;}
     drawTrendInteractiveChart(host,built.source,ws.hideAuto?{...built.analysis,lines:[]}:built.analysis,base,ws.context.asset,ws.scale,ws.context.version||'workspace',ws.state,()=>{},ws);
   };
   ws.openPanel=()=>{if(!ws.panelOpen){ws.panelOpen=true;ws.render();}};
-  ws.resetView=()=>{ws.state.factor=1;ws.state.offset=null;ws.state.heldCount=null;ws.state.yRange=null;ws.state.xRange=null;ws.pendingWindow=ws.home;ws.range=null;ws.render();};
+  ws.resetTime=()=>{ws.state.factor=1;ws.state.offset=null;ws.state.heldCount=null;ws.state.xRange=null;ws.pendingWindow=ws.home;ws.range=null;ws.render();if(ws.prefs.interval!=='D')host._trendNavigation?.rescale(host._trendNavigation.rowSpan);};
+  ws.setPref=value=>{const [key,next]=String(value).split(':');if(key==='interval'&&TREND_WS_INTERVALS.some(row=>row[0]===next)){const nav=host._trendNavigation,before=ws.prefs.interval;ws.prefs.interval=next;trendWsPrefsSave(ws.prefs);if(next!==before&&nav?.rescale){const length=interval=>nav.baseBars.length/trendWsAggregate(nav.baseBars,interval).length;ws.render();host._trendNavigation?.rescale(length(next)/length(before));return;}}else if(key==='type'&&TREND_WS_TYPES.some(row=>row[0]===next))ws.prefs.type=next;else return;trendWsPrefsSave(ws.prefs);ws.render();};
+  ws.toggleIndicator=key=>{if(!TREND_WS_INDICATORS.some(row=>row[0]===key))return;ws.prefs.indicators=ws.prefs.indicators.includes(key)?ws.prefs.indicators.filter(item=>item!==key):TREND_WS_INDICATORS.map(row=>row[0]).filter(item=>item===key||ws.prefs.indicators.includes(item));trendWsPrefsSave(ws.prefs);ws.render();};
+  ws.search=value=>{clearTimeout(ws.searchTimer);ws.searchText=value;const sequence=++ws.searchSeq,paint=html=>{const box=host.querySelector('[data-trend-ws-results]');if(box)box.innerHTML=html;};if(!String(value).trim()){paint('');return;}ws.searchTimer=setTimeout(async()=>{try{const body=await trendSymbolFetch('symbol-search',String(value));if(sequence!==ws.searchSeq)return;const rows=Array.isArray(body?.results)?body.results.filter(row=>TREND_SYMBOL_PATTERN.test(row?.symbol||'')):[];paint(rows.length?rows.map(row=>trendWsSymbolRow(row,ws.pendingAsset||ws.assetId)).join(''):'<p class="trend-ws-search-note">결과 없음</p>');}catch(_){if(sequence===ws.searchSeq)paint('<p class="trend-ws-search-note">검색 응답 없음 · 로컬 갱신기 확인</p>');}},220);};
+  ws.openSymbol=async(symbol,name=null)=>{
+    const checked=String(symbol||'').trim().toUpperCase();if(!TREND_SYMBOL_PATTERN.test(checked))return;const id='sym:'+checked;ws.assetMenu=false;ws.searchText='';
+    TREND_ASSET_META[id]={group:'검색',ticker:checked,label:name||TREND_ASSET_META[id]?.label||checked};
+    ws.pendingAsset=id;ws.pendingError=null;ws.pendingMessage=null;ws.render();
+    try{
+      if(!TREND_SYMBOL_DETAILS.has(checked))TREND_SYMBOL_DETAILS.set(checked,await trendSymbolFetch('symbol-bars',checked));
+      if(ws.pendingAsset!==id)return;const next=trendSymbolContext(checked,TREND_SYMBOL_DETAILS.get(checked));await trendManualState(id).loading;if(ws.pendingAsset!==id)return;
+      trendWsRemember(checked,name||next.asset.label);ws.attach(next);
+    }catch(error){TREND_SYMBOL_DETAILS.delete(checked);if(ws.pendingAsset===id){ws.pendingError=String(error.message||error);ws.render();}}
+  };
+  ws.resetView=()=>{ws.state.factor=1;ws.state.offset=null;ws.state.heldCount=null;ws.state.yRange=null;ws.state.xRange=null;ws.pendingWindow=ws.home;ws.range=null;ws.render();if(ws.prefs.interval!=='D')host._trendNavigation?.rescale(host._trendNavigation.rowSpan);};
   ws.setScale=scale=>{if(ws.context.fixedScale||!['linear','log'].includes(scale)||scale===ws.scale)return;ws.scale=scale;ws.state.yRange=null;ws.render();};
   ws.setFamily=value=>{if(value==='none')ws.hideAuto=!ws.hideAuto;else{ws.hideAuto=false;ws.family=value;}ws.render();};
-  ws.switchAsset=id=>{ws.assetMenu=false;if(id===ws.assetId&&!ws.pendingAsset){ws.render();return;}if(!TREND_VISIBLE_ASSETS.some(row=>row[0]===id))return;ws.pendingAsset=id;ws.pendingMessage=null;ws.render();globalThis.location.hash='#trendlines/'+id;};
+  ws.switchAsset=id=>{ws.assetMenu=false;if(id===ws.assetId&&!ws.pendingAsset){ws.render();return;}if(!TREND_VISIBLE_ASSETS.some(row=>row[0]===id))return;if(ws.pageContext?.assetId===id){ws.pendingAsset=null;ws.pendingError=null;ws.attach(ws.pageContext);return;}ws.pendingError=null;ws.pendingAsset=id;ws.pendingMessage=null;ws.render();globalThis.location.hash='#trendlines/'+id;};
   ws.showPending=message=>{ws.pendingMessage=message;if(ws.pendingAsset)ws.render();};
-  ws.attach=next=>{if(ws.pendingAsset&&next.assetId!==ws.pendingAsset)return;const switched=next.assetId!==ws.assetId;ws.context=next;ws.pendingAsset=null;if(switched){ws.assetId=next.assetId;if(next.fixedScale)ws.scale=next.scale;prime();trendManualState(ws.assetId).listOpen=true;host._trendWsFrameKey=null;}ws.render();};
+  ws.attach=next=>{if(ws.pendingAsset&&next.assetId!==ws.pendingAsset)return;const switched=next.assetId!==ws.assetId;ws.context=next;ws.pendingAsset=null;ws.pendingError=null;if(!next.symbol)ws.pageContext=next;if(switched){ws.assetId=next.assetId;if(next.fixedScale)ws.scale=next.scale;prime();trendManualState(ws.assetId).listOpen=true;host._trendWsFrameKey=null;}ws.render();};
   ws.requestClose=()=>{const manual=TREND_MANUAL_STATES.get(ws.assetId);if(!ws.pendingAsset&&manual?.saveStatus==='dirty'&&!ws.confirmClose){ws.confirmClose=true;ws.render();host.querySelector('[data-trend-ws-action="confirm-save"]')?.focus();return;}closeTrendZoom(true);};
   ws.command=async name=>{
-    if(name==='assets'){ws.assetMenu=!ws.assetMenu;ws.render();return;}
+    if(name==='assets'){ws.assetMenu=!ws.assetMenu;ws.indicatorMenu=false;ws.render();if(ws.assetMenu)host.querySelector('[data-trend-ws-search]')?.focus();return;}
+    if(name==='indicators'){ws.indicatorMenu=!ws.indicatorMenu;ws.assetMenu=false;ws.render();return;}
+    if(name==='percent'){ws.prefs.percent=!ws.prefs.percent;trendWsPrefsSave(ws.prefs);ws.render();return;}
+    if(name==='realtime'){host._trendNavigation?.toLatest?.();return;}
     if(name==='linear'||name==='log'){ws.setScale(name);return;}
     if(name==='panel'){ws.panelOpen=!ws.panelOpen;ws.render();return;}
     if(name==='help'){ws.helpOpen=!ws.helpOpen;ws.render();return;}
@@ -1475,15 +1668,17 @@ function openTrendWorkspace(context,trigger=null,options={}){
   };
   const key=event=>{
     const target=event.target,input=target?.closest?.('input,textarea,select,[contenteditable="true"]'),mod=event.ctrlKey||event.metaKey,letter=value=>String(event.key||'').toLowerCase()===value||event.code==='Key'+value.toUpperCase();
-    if(event.key==='Escape'){event.preventDefault();if(ws.confirmClose){ws.command('confirm-cancel');return;}if(ws.helpOpen||ws.assetMenu){ws.helpOpen=false;ws.assetMenu=false;ws.render();return;}ws.requestClose();return;}
+    if(event.key==='Escape'){event.preventDefault();if(ws.confirmClose){ws.command('confirm-cancel');return;}if(ws.helpOpen||ws.assetMenu||ws.indicatorMenu){ws.helpOpen=false;ws.assetMenu=false;ws.indicatorMenu=false;ws.render();return;}ws.requestClose();return;}
     if(event.key==='Tab'){const nodes=[...layer.querySelectorAll('button:not([disabled]):not([tabindex="-1"]),svg[tabindex="0"],input:not([disabled]),select:not([disabled]),summary')].filter(node=>node.getClientRects().length),first=nodes[0],last=nodes.at(-1);if(event.shiftKey&&document.activeElement===first){event.preventDefault();last.focus();}else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first.focus();}return;}
     if(input)return;const nav=host._trendNavigation;if(!nav?.zoom)return;
     if(event.altKey&&!mod&&letter('r')){event.preventDefault();ws.resetView();return;}
+    if(event.altKey&&!mod&&letter('a')){event.preventDefault();ws.command('auto');return;}
+    if(event.key==='Home'||event.key==='End'){event.preventDefault();if(event.key==='Home')nav.toFirst();else nav.toLatest();return;}
     if(event.altKey&&!mod&&letter('l')){event.preventDefault();ws.setScale(ws.scale==='log'?'linear':'log');return;}
     if(event.altKey&&!mod&&letter('g')){event.preventDefault();host.querySelector('[data-trend-ws-goto]')?.focus();return;}
     if(event.key==='?'){event.preventDefault();ws.command('help');return;}
-    if(event.key==='ArrowLeft'||event.key==='ArrowRight'){event.preventDefault();nav.pan((event.key==='ArrowLeft'?-1:1)*(mod?Math.max(2,Math.round(nav.bars.length*.2)):1));return;}
-    if(mod&&(event.key==='ArrowUp'||event.key==='ArrowDown')){event.preventDefault();nav.zoom(nav.state.factor*(event.key==='ArrowUp'?1.25:.8));}
+    if(event.key==='ArrowLeft'||event.key==='ArrowRight'){event.preventDefault();nav.pan((event.key==='ArrowLeft'?-1:1)*(mod?Math.max(2,Math.round(nav.bars.length*.2)):nav.rowSpan||1));return;}
+    if(mod&&(event.key==='ArrowUp'||event.key==='ArrowDown')){event.preventDefault();nav.zoom(nav.state.factor*(event.key==='ArrowUp'?1.25:.8),1);}
   };
   const resize=()=>{if(ws.resizeFrame)return;const run=()=>{ws.resizeFrame=0;host._trendWsFrameKey=null;ws.render();};ws.resizeFrame=globalThis.requestAnimationFrame?requestAnimationFrame(run):(run(),0);};
   TREND_ZOOM={layer,host,trigger,triggerSelector:`[data-trend-${context.version||'representative'}-chart] [data-trend-tool="expand"]`,inert,key,resize,ws};
@@ -1585,7 +1780,7 @@ function renderTrendlineEntry(assetId,target){
 }
 function renderTrendlinePage(initial={},loadState=null,localSession=null){
   if(initial?.asset==='mag7'){globalThis.history?.replaceState(null,'','#trendlines/sk-hynix');initial={...initial,asset:'sk-hynix'};}
-  if(TREND_ZOOM&&!(TREND_ZOOM.ws&&[TREND_ZOOM.ws.assetId,TREND_ZOOM.ws.pendingAsset].includes(initial?.asset||'sk-hynix')))closeTrendZoom(false);if(TRENDLINES_RESIZE){TRENDLINES_RESIZE.disconnect();TRENDLINES_RESIZE=null;}
+  if(TREND_ZOOM&&!(TREND_ZOOM.ws&&[TREND_ZOOM.ws.assetId,TREND_ZOOM.ws.pendingAsset,TREND_ZOOM.ws.pageContext?.assetId].includes(initial?.asset||'sk-hynix')))closeTrendZoom(false);if(TRENDLINES_RESIZE){TRENDLINES_RESIZE.disconnect();TRENDLINES_RESIZE=null;}
   const assetId=initial?.asset||'sk-hynix',projection=DATA?.trendlines||{},officialAsset=projection.assets?.find(row=>row.asset_id===assetId),localDetail=TREND_PRIVATE_DETAILS.get(assetId);let detail=localDetail||projection.details?.[assetId],validationError=null;
   const chartNavigation=!['ready','stale'].includes(officialAsset?.status)&&trendlineAppNavigation(globalThis.location?.origin,'trendlines','',assetId);if(chartNavigation){renderTrendlineEntry(assetId,chartNavigation);return;}
   const workspace=trendManualState(assetId);
