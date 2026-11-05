@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-11-05T13:29:25+00:00",
+  "generated_at": "2026-11-05T15:51:20+00:00",
   "market_cutoff": "2026-11-04",
   "summary": {
     "accumulating": 69,
@@ -202,7 +202,7 @@
       "criticality": "low",
       "status": "accumulating",
       "file_count": 1,
-      "row_count": 97,
+      "row_count": 98,
       "latest_date": null,
       "missing_trading_days": [],
       "immutable_changes": [],

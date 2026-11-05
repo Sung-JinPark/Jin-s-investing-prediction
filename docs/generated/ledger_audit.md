@@ -1,6 +1,6 @@
 # Ledger accumulation audit
 
-- Generated: `2026-11-05T13:29:25+00:00`
+- Generated: `2026-11-05T15:51:20+00:00`
 - Latest completed NYSE day: `2026-11-04`
 - Result: accumulating 69 · frozen 2 · stalled 2 · inactive 12 · violation 0 · planned 8
 
@@ -13,7 +13,7 @@
 | `calibration_ledger` | event | 1 / 50 | 2026-11-05 | **accumulating** | — |
 | `corrections_ledger` | event | 1 / 23 | — | **accumulating** | — |
 | `benchmark_ledger` | event | 1 / 50 | — | **accumulating** | — |
-| `cost_ledger` | event | 1 / 97 | — | **accumulating** | — |
+| `cost_ledger` | event | 1 / 98 | — | **accumulating** | — |
 | `provider_shadow_ledger` | event | 1 / 0 | — | **accumulating** | — |
 | `scenario_archive` | trading_daily | 68 | 2026-11-04 | **accumulating** | missing trading days: 2026-08-04, 2026-08-05, 2026-09-03, 2026-09-16, 2026-09-17, 2026-09-21, 2026-09-22, 2026-10-02, 2026-10-05 |
 | `scenario_latest` | trading_daily | 1 | 2026-11-04 | **accumulating** | — |
