@@ -1,4 +1,4 @@
-"""Read-only symbol search and daily bars for the private chart workspace.
+"""Read-only symbol search, bars and quotes for the private chart workspace.
 
 Answers live only in this process's bounded cache. Nothing is written to the
 research store, the ledgers or any public read model, and automatic trendlines
@@ -28,6 +28,11 @@ RESPONSE_LIMIT = 8 * 1024 * 1024
 MAX_BARS = 12_000
 SEARCH_TTL = 600.0
 BARS_TTL = 900.0
+INTRADAY_TTL = 45.0
+QUOTE_TTL = 30.0
+# name -> (Yahoo interval, Yahoo range, source rows per bar, seconds per source row)
+INTRADAY = {"1m": ("1m", "7d", 1, 60), "5m": ("5m", "60d", 1, 300), "15m": ("15m", "60d", 1, 900),
+            "30m": ("30m", "60d", 1, 1800), "1h": ("60m", "730d", 1, 3600), "4h": ("60m", "730d", 4, 3600)}
 CACHE_ENTRIES = 256
 SYMBOL = re.compile(r"\^?[A-Z0-9][A-Z0-9.=_-]{0,23}")
 SEARCH_TYPES = {"EQUITY": "주식", "ETF": "ETF", "INDEX": "지수", "CRYPTOCURRENCY": "가상자산",
@@ -135,6 +140,81 @@ def parse_chart(body: Any, symbol: str, *, now: datetime | None = None) -> dict[
     return payload
 
 
+def parse_intraday(body: Any, symbol: str, interval: str, *, now: datetime | None = None) -> dict[str, Any]:
+    """Finished intraday rows only: the bar still forming is left out rather than shown as final."""
+    result = ((body or {}).get("chart") or {}).get("result") or []
+    if len(result) != 1:
+        raise SymbolLookupError("symbol_chart_missing")
+    meta, stamps = result[0].get("meta") or {}, result[0].get("timestamp") or []
+    candles = ((result[0].get("indicators") or {}).get("quote") or [{}])[0]
+    if str(meta.get("symbol") or "").upper() != symbol:
+        raise SymbolLookupError("symbol_chart_mismatch")
+    _, _, group, seconds = INTRADAY[interval]
+    zone = ZoneInfo(str(meta.get("exchangeTimezoneName") or "UTC"))
+    clock = (now or datetime.now(timezone.utc)).timestamp()
+    # Yahoo adds a one-tick row at each session's closing minute; it is not a bar of this interval.
+    regular = (meta.get("currentTradingPeriod") or {}).get("regular") or {}
+    start, end = regular.get("start"), regular.get("end")
+    close_clock = None
+    if _positive(start) and _positive(end) and end - start < 23 * 3600:
+        opened, closed = datetime.fromtimestamp(start, zone), datetime.fromtimestamp(end, zone)
+        close_clock = closed.strftime("%H:%M") if opened.date() == closed.date() else None
+    columns = [candles.get(name) or [] for name in ("open", "high", "low", "close", "volume")]
+    rows: list[dict[str, Any]] = []
+    dropped = forming = closing = 0
+    for position, stamp in enumerate(stamps):
+        o, h, l, c, volume = [column[position] if position < len(column) else None for column in columns]
+        if not all(_positive(v) for v in (o, h, l, c)) or h < max(o, c, l) or l > min(o, c, h):
+            dropped += 1
+            continue
+        if stamp + seconds > clock:
+            forming += 1
+            continue
+        at = datetime.fromtimestamp(stamp, zone)
+        if close_clock and at.strftime("%H:%M") >= close_clock:
+            closing += 1
+            continue
+        rows.append({"t": int(stamp), "session": at.date().isoformat(), "time": at.strftime("%H:%M"), "open": o, "high": h,
+                     "low": l, "close": c, "volume": volume if _positive(volume) else None})
+    rows.sort(key=lambda row: row["t"])
+    if group > 1:
+        merged: list[dict[str, Any]] = []
+        count = 0
+        for row in rows:
+            if merged and merged[-1]["session"] == row["session"] and count < group:
+                last = merged[-1]
+                last.update(high=max(last["high"], row["high"]), low=min(last["low"], row["low"]), close=row["close"])
+                if row["volume"] is not None:
+                    last["volume"] = (last["volume"] or 0) + row["volume"]
+                count += 1
+            else:
+                merged.append(dict(row))
+                count = 1
+        rows = merged
+    rows = rows[-MAX_BARS:]
+    if len(rows) < 2:
+        raise SymbolLookupError("symbol_history_too_short")
+    return {"schema_version": 1, "contract_id": "chart_symbol_intraday_v1", "symbol": symbol, "interval": interval,
+            "timezone": str(zone), "dropped_rows": dropped, "forming_rows": forming, "closing_rows": closing, "bars": rows}
+
+
+def parse_quote(body: Any, symbol: str) -> dict[str, Any]:
+    """The exchange's latest price, labelled as an observation with its own time."""
+    result = ((body or {}).get("chart") or {}).get("result") or []
+    if len(result) != 1:
+        raise SymbolLookupError("symbol_chart_missing")
+    meta = result[0].get("meta") or {}
+    if str(meta.get("symbol") or "").upper() != symbol:
+        raise SymbolLookupError("symbol_chart_mismatch")
+    price, stamp = meta.get("regularMarketPrice"), meta.get("regularMarketTime")
+    if not _positive(price) or not _positive(stamp):
+        raise SymbolLookupError("symbol_quote_missing")
+    previous = meta.get("chartPreviousClose") if _positive(meta.get("chartPreviousClose")) else meta.get("previousClose")
+    return {"schema_version": 1, "contract_id": "chart_symbol_quote_v1", "symbol": symbol, "price": price,
+            "previous_close": previous if _positive(previous) else None, "currency": str(meta.get("currency") or "")[:8],
+            "as_of": datetime.fromtimestamp(stamp, timezone.utc).isoformat().replace("+00:00", "Z")}
+
+
 class SymbolLookup:
     def __init__(self, fetch: Callable[[str], Any] = _fetch_json):
         self._fetch = fetch
@@ -177,3 +257,21 @@ class SymbolLookup:
                    + "&interval=1d&includePrePost=false")
             return parse_chart(self._fetch(url), checked)
         return self._cached("bars:" + checked, BARS_TTL, build)
+
+    def intraday(self, request: str) -> dict[str, Any]:
+        """``request`` is ``SYMBOL@interval``: one path segment, one strict pattern, one fixed table."""
+        symbol_text, _, interval = str(request or "").rpartition("@")
+        checked = valid_symbol(symbol_text)
+        if interval not in INTRADAY:
+            raise SymbolLookupError("invalid_interval")
+        yahoo, span, _, _ = INTRADAY[interval]
+        def build():
+            url = YAHOO_CHART + quote(checked, safe="") + "?range=" + span + "&interval=" + yahoo + "&includePrePost=false"
+            return parse_intraday(self._fetch(url), checked, interval)
+        return self._cached("intraday:" + checked + "@" + interval, INTRADAY_TTL, build)
+
+    def quote(self, symbol: str) -> dict[str, Any]:
+        checked = valid_symbol(symbol)
+        def build():
+            return parse_quote(self._fetch(YAHOO_CHART + quote(checked, safe="") + "?range=1d&interval=1d&includePrePost=false"), checked)
+        return self._cached("quote:" + checked, QUOTE_TTL, build)
