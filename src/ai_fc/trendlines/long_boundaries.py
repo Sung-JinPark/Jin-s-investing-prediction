@@ -41,6 +41,9 @@ REFERENCE_FIELDS = ('asset_id', 'as_of', 'source_snapshot_id', 'source_archive_s
                     'source_engine_content_hash', 'full_manifest_payload_sha256')
 
 
+MINIMUM_CONTACTS = 2
+
+
 def _sha(raw):
     return hashlib.sha256(raw).hexdigest()
 
@@ -148,8 +151,10 @@ def _calculate(source, full, representative):
             candidates.sort(key=_rank)
             audit[slot] = {'candidate_count': len(candidates), 'intact_count': sum(p['classification']=='intact_structure' for p in candidates),
                            'eligible_line_ids': [p['line_id'] for p in candidates]}
-            if candidates:
-                winner = candidates[0]
+            # An anchor on a session without ATR is not a contact, so a line can hold fewer than two.
+            # decode_envelope refuses those, and picking one would cost the asset its whole snapshot.
+            winner = next((p for p in candidates if p['contact_count'] >= MINIMUM_CONTACTS), None)
+            if winner is not None:
                 winner['equivalent_to_line_ids'] = [p['line_id'] for p in representative['analyses'][axis]['representatives'] if _geometry_equal(winner, p)]
             else:
                 winner = {'slot': slot, 'axis': axis, 'status': 'hold', 'kind': 'pivot_structure',
@@ -231,10 +236,10 @@ def _scalar_verify(rows, asset, settings, result):
                           'eligible_line_ids':[p['line_id'] for p in expected]}:
                 raise C.TrendlinesError('long_boundaries_scalar_candidate_completeness_or_rank')
             actual = next(p for p in result['analyses'][axis]['boundaries'] if p['slot']==slot)
-            if not expected:
+            winner=next((p for p in expected if len(p['contacts'])>=MINIMUM_CONTACTS),None)
+            if winner is None:
                 if actual['status']!='hold': raise C.TrendlinesError('long_boundaries_scalar_unnecessary_line')
                 continue
-            winner=expected[0]
             for key in ('line_id','first_anchor','second_anchor','classification','formation_valid','formation_missing_sessions','formation_atr_unavailable','contacts'):
                 if actual[key]!=winner[key]: raise C.TrendlinesError('long_boundaries_scalar_'+key)
             V._near(actual['formation_penetration'],winner['formation_penetration'],'long_formation_penetration')
@@ -302,7 +307,7 @@ def decode_envelope(envelope):
                         or first['index']<body['reference_index']-755 or body['reference_index']-second['index']>252
                         or line['classification'] not in {'intact_structure','reference_structure'}
                         or line['role']!=(side if line['classification']=='intact_structure' else 'direction_only')
-                        or line['contact_count']!=len(line['contacts']) or line['contact_count']<2
+                        or line['contact_count']!=len(line['contacts']) or line['contact_count']<MINIMUM_CONTACTS
                         or line['parameters']!={'left':10,'right':10,'min_anchor_gap':60}
                         or line['display_start_index']!=first['index'] or line['coordinate_origin_index']!=first['index']
                         or line['display_end_index']!=future[-1]['index'] or len(line['projections'])!=count
