@@ -251,6 +251,6 @@ def test_registry_reads_v8_origin_dates_and_ipo_receipts_are_event_driven() -> N
 
     rows = {row["id"]: row for row in yaml.safe_load((Path(__file__).parents[2] / "data/contracts/ledger_registry.yaml").read_text(encoding="utf-8"))["ledgers"]}
     assert rows["timeseries_v8_shadow_forecasts"]["timestamp_field"] == "origin"
-    assert rows["timeseries_v8_shadow_resolutions"]["timestamp_field"] == "origin"
+    assert rows["timeseries_v8_shadow_resolutions"]["timestamp_field"] == "resolved_session"
     assert rows["ipo_reference_batch_receipts"]["cadence"] == "event"
 

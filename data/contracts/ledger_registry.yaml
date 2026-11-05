@@ -368,7 +368,7 @@ ledgers:
     cadence: weekly
     criticality: high
     schema_ref: jsonl
-    timestamp_field: origin
+    timestamp_field: resolved_session
     allow_empty_accumulating: true
   - id: timeseries_v8_holdout_scorings
     path: data/timeseries_v8/ledgers/holdout_scorings.jsonl
