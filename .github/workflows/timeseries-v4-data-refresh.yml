@@ -1,15 +1,10 @@
 name: timeseries-v4-data-refresh
 
+# data/timeseries_v4 is the immutable benchmark V5 reproduces byte for byte (V5-P0-001,
+# timeseries_v5/baseline_audit.py PROTECTED_ROOTS), so nothing may refresh it. The weekly schedule
+# failed from 2026-08-29 and that failure alone kept the benchmark intact; a successful run on
+# 2026-11-05 broke the baseline test and was reverted. Only the contract tests remain here.
 on:
-  schedule:
-    - cron: "20 3 * * 6"
-  workflow_dispatch:
-    inputs:
-      rerun_backtest:
-        description: "Re-run the exact V3 comparator and V4 Gate"
-        required: false
-        type: boolean
-        default: true
   pull_request:
     branches: [main]
     paths:

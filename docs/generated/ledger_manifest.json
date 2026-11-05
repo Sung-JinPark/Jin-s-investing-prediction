@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "baseline_at": "2026-11-05T12:58:30+00:00",
+  "baseline_at": "2026-11-05T13:29:25+00:00",
   "files": {
     "calibration/benchmark_ledger.csv": "4bbfd631dd18f48b1434824f966df0cb526698c2bd12b51b90e77ae3ba590b58",
     "calibration/corrections.csv": "cf777217ef95d01838e8b636fc35dcea4373ed49c155dab59ea87368bccd6bb3",
