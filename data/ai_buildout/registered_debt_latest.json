@@ -1,11 +1,11 @@
 {
   "schema_version": 1,
   "dataset_id": "registered_debt_offerings_v1",
-  "generated_at": "2026-08-31T12:27:04+00:00",
-  "asof": "2026-08-31",
+  "generated_at": "2026-11-05T12:32:48+00:00",
+  "asof": "2026-11-05",
   "window": {
     "start": "2025-01-01",
-    "end": "2026-08-31"
+    "end": "2026-11-05"
   },
   "gate": "D2",
   "probability_space": "reference_only",
@@ -24,52 +24,52 @@
       "cik": "0001018724",
       "debt_amount_usd": 0.0,
       "filings_parsed": 0,
-      "filings_skipped": 16,
+      "filings_skipped": 19,
       "coverage": "no_machine_readable_fee_table_in_window"
     },
     {
       "company": "GOOGL",
       "cik": "0001652044",
-      "debt_amount_usd": 110120530291.22,
-      "filings_parsed": 10,
-      "filings_skipped": 27,
+      "debt_amount_usd": 116835212746.47,
+      "filings_parsed": 11,
+      "filings_skipped": 29,
       "coverage": "measured"
     },
     {
       "company": "META",
       "cik": "0001326801",
-      "debt_amount_usd": 54936465000.0,
-      "filings_parsed": 2,
-      "filings_skipped": 4,
+      "debt_amount_usd": 69916565000.0,
+      "filings_parsed": 3,
+      "filings_skipped": 12,
       "coverage": "measured"
     },
     {
       "company": "MSFT",
       "cik": "0000789019",
-      "debt_amount_usd": 0.0,
-      "filings_parsed": 0,
-      "filings_skipped": 0,
-      "coverage": "no_registered_prospectus_in_window"
+      "debt_amount_usd": 24964215000.0,
+      "filings_parsed": 1,
+      "filings_skipped": 2,
+      "coverage": "measured"
     },
     {
       "company": "ORCL",
       "cik": "0001341439",
-      "debt_amount_usd": 50649582500.0,
-      "filings_parsed": 3,
-      "filings_skipped": 11,
+      "debt_amount_usd": 60640655000.0,
+      "filings_parsed": 4,
+      "filings_skipped": 14,
       "coverage": "measured"
     }
   ],
-  "total_debt_amount_usd": 215706577791.22,
+  "total_debt_amount_usd": 272356647746.47,
   "ai_attribution": "not_inferred",
   "measured_issuers": [
     "GOOGL",
     "META",
+    "MSFT",
     "ORCL"
   ],
   "unmeasured_issuers": [
-    "AMZN",
-    "MSFT"
+    "AMZN"
   ],
   "coverage_limits": [
     "144A 및 사모 발행은 424B를 남기지 않으므로 구조적으로 보이지 않는다 — 이 합계는 하한이다.",
