@@ -90,9 +90,7 @@ def test_v4_api_failure_stays_visible_and_other_failures_of_that_source_are_kept
 def test_nothing_refreshes_the_frozen_v4_benchmark():
     # V5 reproduces data/timeseries_v4 byte for byte; a refresh breaks its baseline audit.
     text = (WORKFLOWS / "timeseries-v4-data-refresh.yml").read_text(encoding="utf-8")
-    trigger = text[text.index("
-on:"):text.index("
-permissions:")]
+    trigger = text[text.index("on:\n"):text.index("permissions:\n")]
     assert "schedule:" not in trigger and "workflow_dispatch" not in trigger
     for path in WORKFLOWS.glob("*.yml"):
         if path.name != "timeseries-v4-data-refresh.yml":
