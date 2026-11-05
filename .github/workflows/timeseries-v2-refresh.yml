@@ -58,10 +58,13 @@ jobs:
           ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.ref_name }}
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
+          # Runners resolve "3.12" to different patch releases. The sealed DFM manifest is keyed by
+          # the exact runtime, so going back to an earlier one appended a row that collides with its
+          # own past entry and failed about half the runs. Exact versions keep one generation.
+          python-version: "3.12.16"
           cache: pip
       - name: Install PIT and time-series dependencies
-        run: pip install -e ".[pit,timeseries]" pytest
+        run: pip install -e ".[pit,timeseries]" "numpy==2.5.4" "scipy==1.18.1" "pandas==2.3.3" pytest
       - name: Append ALFRED native PIT macro vintages
         run: python -m ai_fc timeseries-refresh
       - name: Append official reconstructed market archives

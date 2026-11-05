@@ -91,3 +91,18 @@ def test_v4_workflow_gives_the_collect_step_the_api_key():
     text = (WORKFLOWS / "timeseries-v4-data-refresh.yml").read_text(encoding="utf-8")
     step = text[text.index("Collect public archives raw-first"):text.index("Verify raw hashes")]
     assert "FRED_API_KEY: ${{ secrets.FRED_API_KEY }}" in step
+
+
+def test_v2_refresh_runs_on_one_exact_runtime_generation():
+    # The manifest's latest generation must be the pinned one, or the next run refits every cutoff.
+    import json
+
+    text = (WORKFLOWS / "timeseries-v2-refresh.yml").read_text(encoding="utf-8")
+    python = re.search(r'python-version: "([^"]+)"', text).group(1)
+    assert re.fullmatch(r"\d+\.\d+\.\d+", python)
+    versions = dict(re.findall(r'"(numpy|scipy|pandas)==([\d.]+)"', text))
+    assert set(versions) == {"numpy", "scipy", "pandas"}
+    rows = (ROOT / "data" / "timeseries_v2" / "ledgers" / "dfm_cache_manifest.jsonl").read_text(encoding="utf-8").splitlines()
+    runtime = json.loads(rows[-1])["runtime"]
+    assert runtime["python"] == python
+    assert {name: runtime[name] for name in versions} == versions
