@@ -1,12 +1,12 @@
 {
-  "as_of": "2026-11-04",
-  "content_hash": "688fc230036b9336c143ffc3898f40b6cb33037a3433be49e139cdef55f50cdd",
+  "as_of": "2026-11-05",
+  "content_hash": "3400cfa2ea43f15ced6442af46ab7cf94066a755b02d02e138cc5ce8416e92cd",
   "daily": {
     "anchor": {
-      "provisional": false,
+      "provisional": true,
       "series_id": "NASDAQCOM",
-      "source": "fred_api_nasdaqcom_archive",
-      "value": 25736.51
+      "source": "nasdaq_quote_api_comp",
+      "value": 24315.0
     },
     "cadence": "daily",
     "carried_forward": [
@@ -24,14 +24,35 @@
         "carried_from": "2026-10-30",
         "observation_time": "2026-11-04",
         "series_id": "DTWEXBGS"
+      },
+      {
+        "carried_from": "2026-10-30",
+        "observation_time": "2026-11-05",
+        "series_id": "DTWEXBGS"
       }
     ],
-    "display_id": "tsv8-daily-4b5c126c07b760189bf507bc",
+    "display_id": "tsv8-daily-c1fcf48988b87db34f6f7d41",
     "display_only": true,
-    "input_state": "confirmed",
-    "provisional_inputs": [],
-    "provisional_series": [],
-    "row_knowledge_cutoff": "2026-11-05T10:59:30+00:00",
+    "input_state": "provisional",
+    "provisional_inputs": [
+      {
+        "observation_time": "2026-11-05",
+        "series_id": "NASDAQCOM",
+        "source": "nasdaq_quote_api_comp",
+        "value": 24315.0
+      },
+      {
+        "observation_time": "2026-11-05",
+        "series_id": "VIX",
+        "source": "cboe_delayed_quote",
+        "value": 28.18
+      }
+    ],
+    "provisional_series": [
+      "NASDAQCOM",
+      "VIX"
+    ],
+    "row_knowledge_cutoff": "2026-11-05T22:38:54+00:00",
     "scoring_excluded": true
   },
   "display_state": "research_reference",
@@ -44,66 +65,66 @@
   },
   "horizons": {
     "1": {
-      "p10": -0.013902822445643911,
-      "p25": -0.004450960557723425,
-      "p50": 0.00229269533006751,
-      "p75": 0.009278815600187946,
-      "p90": 0.016217873327964673,
-      "probability_up": 0.6
+      "p10": -0.011533531469404055,
+      "p25": -0.0017603688930610398,
+      "p50": 0.005283809534070114,
+      "p75": 0.012237438048096376,
+      "p90": 0.019183886277465072,
+      "probability_up": 0.695
     },
     "21": {
-      "p10": -0.05734423492128142,
-      "p25": -0.018167030872863824,
-      "p50": 0.019304701802799848,
-      "p75": 0.0449999739276768,
-      "p90": 0.06571771406717178,
+      "p10": -0.05756793149126693,
+      "p25": -0.018510708395903783,
+      "p50": 0.019304039800759606,
+      "p75": 0.04524319516014254,
+      "p90": 0.0661892851578854,
       "probability_up": 0.65
     },
     "5": {
-      "p10": -0.03107680460457957,
-      "p25": -0.011840191690645294,
-      "p50": 0.0062945381098067224,
-      "p75": 0.02243616604577368,
-      "p90": 0.03636197996074531,
-      "probability_up": 0.595
+      "p10": -0.029507027615218687,
+      "p25": -0.00927136154136646,
+      "p50": 0.009470891450816213,
+      "p75": 0.025562722346592008,
+      "p90": 0.03916218440451239,
+      "probability_up": 0.63
     },
     "63": {
-      "p10": -0.0887957997454012,
-      "p25": -0.012659573107842138,
-      "p50": 0.04377376141867086,
-      "p75": 0.08706457672368476,
-      "p90": 0.12121324701164808,
+      "p10": -0.08914677911173867,
+      "p25": -0.013016681103680601,
+      "p50": 0.0439031543080078,
+      "p75": 0.08714839711309212,
+      "p90": 0.1214348006521444,
       "probability_up": 0.715
     }
   },
-  "knowledge_cutoff": "2026-11-05T22:25:40+00:00",
+  "knowledge_cutoff": "2026-11-05T23:43:09+00:00",
   "model_id": "shadow.mf_dfm_varx_calibrated_v8",
   "model_version": 8,
   "operational": {
     "freshness": [
       {
-        "age_hours": 22.428122,
+        "age_hours": 0.0,
         "expected_observation": "2026-11-04",
         "group": "NASDAQCOM",
         "next_publication_deadline": "2026-11-06T15:00:00+00:00",
-        "observation_time": "2026-11-04",
+        "observation_time": "2026-11-05",
         "policy_id": "forecast-source-freshness-v1",
         "policy_sha256": "fa15e7be79bc7da593b310f6e04b92e6aab6d350b8129cda36f5c39eab32fb56",
-        "provisional": false,
+        "provisional": true,
         "publication_deadline": "2026-11-05T15:00:00+00:00",
         "rule": "xnas_completed_session_publication",
         "series_id": "NASDAQCOM",
         "status": "fresh"
       },
       {
-        "age_hours": 22.428122,
+        "age_hours": 0.0,
         "expected_observation": "2026-11-04",
         "group": "VIX",
         "next_publication_deadline": "2026-11-06T15:00:00+00:00",
-        "observation_time": "2026-11-04",
+        "observation_time": "2026-11-05",
         "policy_id": "forecast-source-freshness-v1",
         "policy_sha256": "fa15e7be79bc7da593b310f6e04b92e6aab6d350b8129cda36f5c39eab32fb56",
-        "provisional": false,
+        "provisional": true,
         "publication_deadline": "2026-11-05T15:00:00+00:00",
         "rule": "xnas_completed_session_publication",
         "series_id": "VIX",
@@ -111,34 +132,34 @@
       },
       {
         "age_hours": 0.0,
-        "expected_observation": "2026-11-03",
+        "expected_observation": "2026-11-04",
         "group": "DGS2",
-        "next_publication_deadline": "2026-11-05T23:15:00+00:00",
+        "next_publication_deadline": "2026-11-06T23:15:00+00:00",
         "observation_time": "2026-11-05",
         "policy_id": "forecast-source-freshness-v1",
         "policy_sha256": "fa15e7be79bc7da593b310f6e04b92e6aab6d350b8129cda36f5c39eab32fb56",
         "provisional": false,
-        "publication_deadline": "2026-11-04T23:15:00+00:00",
+        "publication_deadline": "2026-11-05T23:15:00+00:00",
         "rule": "h15_next_board_business_day_publication",
         "series_id": "DGS2",
         "status": "fresh"
       },
       {
         "age_hours": 0.0,
-        "expected_observation": "2026-11-03",
+        "expected_observation": "2026-11-04",
         "group": "DGS10",
-        "next_publication_deadline": "2026-11-05T23:15:00+00:00",
+        "next_publication_deadline": "2026-11-06T23:15:00+00:00",
         "observation_time": "2026-11-05",
         "policy_id": "forecast-source-freshness-v1",
         "policy_sha256": "fa15e7be79bc7da593b310f6e04b92e6aab6d350b8129cda36f5c39eab32fb56",
         "provisional": false,
-        "publication_deadline": "2026-11-04T23:15:00+00:00",
+        "publication_deadline": "2026-11-05T23:15:00+00:00",
         "rule": "h15_next_board_business_day_publication",
         "series_id": "DGS10",
         "status": "fresh"
       },
       {
-        "age_hours": 142.428122,
+        "age_hours": 143.719538,
         "expected_observation": "2026-10-30",
         "group": "DTWEXBGS_or_DTWEXB",
         "next_publication_deadline": "2026-11-09T23:15:00+00:00",
