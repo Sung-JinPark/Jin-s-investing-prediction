@@ -210,6 +210,39 @@ def test_detects_forecast_file_modification(tmp_path: Path) -> None:
     assert any("기존 파일이 수정·삭제됐다" in v.detail for v in hits)
 
 
+def _with_stamp(root: Path) -> Path:
+    stamp = root / "forecasts/.hashes.ots"
+    stamp.write_bytes(b"proof-1")
+    subprocess.run(["git", "add", "-A"], cwd=root, check=True, capture_output=True)
+    subprocess.run(["git", "commit", "-qm", "stamp"], cwd=root, check=True, capture_output=True)
+    return stamp
+
+
+@pytest.mark.skipif(shutil.which("git") is None, reason="git 없음")
+def test_the_stamp_bot_regenerating_its_proof_is_not_a_violation(tmp_path: Path) -> None:
+    """ots-stamp 커밋 위에서 verify 가 돌면 main 이 거짓으로 빨개졌다 (2026-11-05 run 42040954191)."""
+    from ai_fc.gate_guard import check_all
+    root = _repo(tmp_path)
+    stamp = _with_stamp(root)
+    stamp.write_bytes(b"proof-2")
+    assert check_all(root) == []
+
+
+@pytest.mark.skipif(shutil.which("git") is None, reason="git 없음")
+def test_deleting_the_stamp_or_a_forecast_beside_it_is_still_caught(tmp_path: Path) -> None:
+    from ai_fc.gate_guard import check_all
+    root = _repo(tmp_path)
+    stamp = _with_stamp(root)
+    stamp.unlink()
+    assert any(".hashes.ots" in v.detail for v in check_all(root))
+    stamp.write_bytes(b"proof-2")
+    forecast = root / "forecasts/2026/2026-07-10_a_r1.md"
+    forecast.write_text(forecast.read_text(encoding="utf-8") + "수정", encoding="utf-8")
+    hits = check_all(root)
+    assert any("2026-07-10_a_r1.md" in v.detail for v in hits)
+    assert not any(".hashes.ots" in v.detail for v in hits)
+
+
 def test_unreadable_baseline_is_not_a_pass(tmp_path: Path) -> None:
     """git 을 못 읽으면 '보류'다. 보류는 통과가 아니다."""
     from ai_fc.gate_guard import check_ledger_append_only

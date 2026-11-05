@@ -129,8 +129,15 @@ def check_failed_tags_not_changed_post_hoc(root: Path,
     # 아니다 — 새 예측은 늘 새 파일로 들어온다(재예측은 r<N> 신규 파일). 그래서
     # `--diff-filter=MDR` 로 **수정·삭제·이름변경만** 잡는다. 저장소의 기존 검증기
     # `tools/verify_track_record.py` 도 같은 필터(`--diff-filter=MD`)를 쓴다.
+    # `.hashes.ots` 는 예측이 아니라 `.hashes` 를 덮는 시점 증명이다. ots-stamp 봇이 설계대로
+    # 통째로 다시 만들므로 변경은 위반이 아니다 — verify 가 스탬프 커밋 위에서 돌면 거짓 경보였다.
+    # 삭제만은 잡는다: 증명이 사라지면 앵커의 시점을 보일 수 없다.
     code, diff = _git(root, "diff", "--name-only", "--diff-filter=MDR", baseline,
-                      "--", "forecasts", ":(exclude)forecasts/.hashes")
+                      "--", "forecasts", ":(exclude)forecasts/.hashes", ":(exclude)forecasts/.hashes.ots")
+    stamp_code, stamp_gone = _git(root, "diff", "--name-only", "--diff-filter=D", baseline,
+                                  "--", "forecasts/.hashes.ots")
+    if stamp_code == 0 and stamp_gone.strip():
+        diff = " ".join((diff + " " + stamp_gone).split())
     if code == 0 and diff.strip():
         out.append(Violation("post_hoc_failed_tagging",
                              "forecasts/ 의 기존 파일이 수정·삭제됐다 (불변 규약 위반): "
