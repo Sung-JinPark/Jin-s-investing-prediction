@@ -111,3 +111,28 @@ def test_v2_refresh_runs_on_one_exact_runtime_generation():
     runtime = json.loads(rows[-1])["runtime"]
     assert runtime["python"] == python
     assert {name: runtime[name] for name in versions} == versions
+
+
+def test_overall_trust_status_follows_the_ledger_audit():
+    # It used to read every source as "degraded", so the page warned forever whatever the audit said.
+    from ai_fc.dashboard import _trust_status
+
+    assert _trust_status({"accumulating": 80, "stalled": 0, "violation": 0}) == "ok"
+    assert _trust_status({"accumulating": 80, "stalled": 2, "violation": 0}) == "degraded"
+    assert _trust_status({"accumulating": 80, "stalled": 0, "violation": 1}) == "degraded"
+    assert _trust_status({"status": "audit_unavailable"}) == "degraded"
+
+
+def test_unmeasured_sources_say_so_instead_of_claiming_a_state():
+    import sqlite3
+
+    from ai_fc.db import queries
+
+    conn = sqlite3.connect(":memory:")
+    conn.row_factory = sqlite3.Row
+    conn.execute("""CREATE TABLE source_registry (source_id TEXT, name TEXT, provider TEXT, enabled INT,
+        freshness_sla_hours INT, vintage_capability TEXT, license_status TEXT, contract_path TEXT)""")
+    conn.execute("INSERT INTO source_registry VALUES ('a','A','P',1,24,'native','approved','c')")
+    conn.execute("INSERT INTO source_registry VALUES ('b','B','P',0,24,'native','approved','c')")
+    rows = queries.source_health(conn)
+    assert [(row["status"], row["state_label"]) for row in rows] == [("unmonitored", "미계측"), ("disabled", "비활성")]
