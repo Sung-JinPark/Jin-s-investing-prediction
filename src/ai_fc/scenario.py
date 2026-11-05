@@ -836,6 +836,24 @@ def _persist_scenario(root: Path, payload: dict[str, Any]) -> tuple[Path, dict[s
     return latest, persisted, True
 
 
+#: Yahoo restates a close by cents and flips its float precision between requests. The first
+#: observation stands in the append-only ledger; a larger difference is still a hard conflict.
+BAND_CLOSE_RESTATEMENT_TOLERANCE = 0.0005
+_BAND_CLOSE_FIELDS = {"actual_close", "inside_p10_p90", "p50_error_pct"}
+
+
+def _band_row_conflicts(existing: dict[str, str], text_row: dict[str, str]) -> bool:
+    if existing == text_row:
+        return False
+    if any(existing.get(field) != text_row[field] for field in text_row if field not in _BAND_CLOSE_FIELDS):
+        return True
+    try:
+        first, later = float(existing["actual_close"]), float(text_row["actual_close"])
+    except (KeyError, TypeError, ValueError):
+        return True
+    return first <= 0 or abs(later / first - 1) > BAND_CLOSE_RESTATEMENT_TOLERANCE
+
+
 def append_band_calibration(root: Path, *, asof: date, actual_close: float) -> bool:
     """Score all eligible prior immutable fan bands without duplicating revisions."""
     candidates: list[dict[str, Any]] = []
@@ -894,7 +912,7 @@ def append_band_calibration(root: Path, *, asof: date, actual_close: float) -> b
         key = (row["asof"], row["origin_snapshot_id"])
         text_row = {field: str(row[field]) for field in BAND_CALIBRATION_FIELDS}
         if key in existing:
-            if existing[key] != text_row:
+            if _band_row_conflicts(existing[key], text_row):
                 raise ScenarioError(f"append-only band calibration conflict for {key}")
             continue
         rows.append(row)
@@ -977,6 +995,11 @@ def refresh_scenario(root: Path, *, asof: date | None = None,
     if latest.exists() and not force:
         try:
             current = validate_scenario(json.loads(latest.read_text(encoding="utf-8")))
+        except (OSError, json.JSONDecodeError, ScenarioError):
+            current = None
+        # Only an unreadable latest may fall through to persist. A ledger conflict below is its
+        # own error: swallowing it used to resurface as a false immutable-archive conflict.
+        if current is not None:
             if current["asof"] > payload["asof"]:
                 # Yahoo can temporarily lag the already-published completed day.
                 # A scheduled refresh must never move latest backwards or reopen
@@ -985,8 +1008,6 @@ def refresh_scenario(root: Path, *, asof: date | None = None,
             if current["asof"] == payload["asof"]:
                 append_band_calibration(root, asof=dates[-1], actual_close=closes[-1])
                 return latest, current, False
-        except (OSError, json.JSONDecodeError, ScenarioError):
-            pass
 
     result = _persist_scenario(root, payload)
     append_band_calibration(root, asof=dates[-1], actual_close=closes[-1])

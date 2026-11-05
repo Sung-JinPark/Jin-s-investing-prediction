@@ -3,7 +3,7 @@
 > 이 문서는 정적 수기 현황표가 아닙니다. `ai-fc inventory`가 원천 파일과 재구축된
 > 읽기 인덱스에서 결정론적으로 생성합니다. 숫자를 직접 수정하지 마세요.
 
-- Source fingerprint: `ea1c52499da0bd1253a5027750c8bf4e744440230a0450503319bae547fce521`
+- Source fingerprint: `9af96a084b340775074ba5ffbb5c9f2f930d1214362023eae589de2ad8b5980b`
 - Registered questions: 79
 - Forecast bodies: 79
 - Evidence files: 43
