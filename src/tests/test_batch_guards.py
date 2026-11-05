@@ -42,3 +42,67 @@ def test_the_address_sec_refuses_is_not_sent_to_sec():
     assert source not in (WORKFLOWS / "ai-regime-refresh.yml").read_text(encoding="utf-8")
     for path in (ROOT / "src" / "ai_fc").rglob("*.py"):
         assert source not in path.read_text(encoding="utf-8"), path
+
+
+def _collector(url_log):
+    def collect(root, *, retrieved_at, fetcher, volume_start_year):
+        status, payload, _ = fetcher("https://fred.stlouisfed.org/graph/fredgraph.csv?id=NASDAQ100&cosd=1995-01-01")
+        url_log.append((status, payload))
+        assert fetcher("https://cdn.cboe.com/x.csv") == (200, b"passthrough", "text/csv")
+        return {"sources": {}, "ok": False, "failures": [{"source_id": "fred_nasdaq100", "reason": "HTTP 451"}]}
+    return collect
+
+
+def test_v4_refuses_the_scrape_and_appends_through_the_official_api(monkeypatch, tmp_path):
+    from ai_fc import timeseries_v4_official_transport as T
+
+    refused, persisted, appended = [], [], []
+    monkeypatch.setattr(T, "collect_v4_sources", _collector(refused))
+    monkeypatch.setattr(T, "observations_csv", lambda series, observation_start, fetch_text: "observation_date,NASDAQ100\n2026-11-04,100.5\n")
+    monkeypatch.setattr(T, "persist_raw", lambda root, **kwargs: persisted.append(kwargs) or "receipt")
+    monkeypatch.setattr(T, "_all_observations", lambda root: [])
+    monkeypatch.setattr(T, "append_observations", lambda root, parsed, receipt, observation_cache: appended.append(parsed) or {"appended": 1})
+    monkeypatch.setattr(T, "verify_v4_source_store", lambda root: {"ok": True})
+    result = T.collect_v4_official(tmp_path, fetcher=lambda url: (200, b"passthrough", "text/csv"))
+    assert refused[0][0] == 451
+    assert result["ok"] is True and result["failures"] == []
+    assert persisted[0]["source_id"] == "fred_api_nasdaq100" and "api_key" not in persisted[0]["source_uri"]
+    assert appended[0][0].series_id == "NASDAQ100" and float(appended[0][0].value) == 100.5
+
+
+def test_v4_api_failure_stays_visible_and_other_failures_of_that_source_are_kept(monkeypatch, tmp_path):
+    from ai_fc import timeseries_v4_official_transport as T
+    from ai_fc.fred_api import FredApiError
+
+    def collect(root, *, retrieved_at, fetcher, volume_start_year):
+        return {"sources": {}, "failures": [{"source_id": "fred_nasdaq100", "reason": "parser produced zero observations"}]}
+
+    def no_key(series, observation_start, fetch_text):
+        raise FredApiError("FRED_API_KEY가 필요합니다")
+    monkeypatch.setattr(T, "collect_v4_sources", collect)
+    monkeypatch.setattr(T, "observations_csv", no_key)
+    monkeypatch.setattr(T, "verify_v4_source_store", lambda root: {"ok": True})
+    result = T.collect_v4_official(tmp_path, fetcher=lambda url: (200, b"", "text/plain"))
+    assert result["ok"] is False
+    assert [row["source_id"] for row in result["failures"]] == ["fred_nasdaq100", "fred_api_nasdaq100"]
+
+
+def test_v4_workflow_gives_the_collect_step_the_api_key():
+    text = (WORKFLOWS / "timeseries-v4-data-refresh.yml").read_text(encoding="utf-8")
+    step = text[text.index("Collect public archives raw-first"):text.index("Verify raw hashes")]
+    assert "FRED_API_KEY: ${{ secrets.FRED_API_KEY }}" in step
+
+
+def test_v2_refresh_runs_on_one_exact_runtime_generation():
+    # The manifest's latest generation must be the pinned one, or the next run refits every cutoff.
+    import json
+
+    text = (WORKFLOWS / "timeseries-v2-refresh.yml").read_text(encoding="utf-8")
+    python = re.search(r'python-version: "([^"]+)"', text).group(1)
+    assert re.fullmatch(r"\d+\.\d+\.\d+", python)
+    versions = dict(re.findall(r'"(numpy|scipy|pandas)==([\d.]+)"', text))
+    assert set(versions) == {"numpy", "scipy", "pandas"}
+    rows = (ROOT / "data" / "timeseries_v2" / "ledgers" / "dfm_cache_manifest.jsonl").read_text(encoding="utf-8").splitlines()
+    runtime = json.loads(rows[-1])["runtime"]
+    assert runtime["python"] == python
+    assert {name: runtime[name] for name in versions} == versions

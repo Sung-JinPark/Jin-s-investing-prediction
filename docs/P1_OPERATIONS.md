@@ -199,6 +199,9 @@ due 계산은 순수 함수라 PC가 꺼져 있던 날이 있어도 다음 실�
 ## 데스크톱 앱 예약 작업 (무인 실행, 2026-10-26 정비)
 
 토요일 KST 순서: `weekly-model-refresh` 09:00 → `weekly-ml-reference` 10:00 → `weekly-forecast-3` 11:30.
+`weekly-model-refresh` 는 `dualdb context` 까지 돌린다. 안 돌리면 헤더의 시장 폭·경기 국면, 예측 프롬프트의 아날로그·레짐, 구조 경로의
+혁신 사이클 선택이 옛 값에 머문다(실측: 2026-07-30 이후 2026-11-05 까지 정지). 경로 모양은 계약상 최신 context 를 따르므로 갱신마다 달라질 수 있고,
+확률·분포는 바뀌지 않는다.
 작업 정의(SKILL.md)는 `~/.claude/scheduled-tasks/<id>/` 에 있고 저장소 밖이다.
 
 - **권한**: 무인 세션은 권한 프롬프트에 답할 사람이 없다. 2026-08 ~ 10-26 동안 `weekly-model-refresh`

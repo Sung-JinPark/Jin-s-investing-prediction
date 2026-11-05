@@ -978,10 +978,11 @@ def cmd_timeseries_v4_collect(
     volume_start_year: int = typer.Option(2009, "--volume-start-year", min=2009),
 ) -> None:
     """Collect the V4 official/public market and expectation archives raw-first."""
-    from .timeseries_v4.source_store import _fetch, collect_v4_sources, export_v4_parquet
+    from .timeseries_v4.source_store import _fetch, export_v4_parquet
+    from .timeseries_v4_official_transport import collect_v4_official
 
     result = _timeseries_exit(
-        collect_v4_sources, config.ROOT, volume_start_year=volume_start_year,
+        collect_v4_official, config.ROOT, volume_start_year=volume_start_year,
         fetcher=_v4_retrying_fetcher(_fetch),
     )
     if result.get("ok"):
