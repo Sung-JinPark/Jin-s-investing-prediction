@@ -4913,8 +4913,8 @@
     ],
     "scenarios": {
       "S1": {
-        "active_path_sha256": "4d037396269531fb04120453a74c669319d3173d7c5e67ad1d4ca94f0736b387",
-        "zero_event_path_sha256": "937d2a99bb7a221a5992dee404ecd2c2ae97bfa9770e4e4e2bfd93f1b777f2b4",
+        "active_path_sha256": "0b88e97d2a0fbb7fab1bb86734b5243ef8d3208fecc3de4fba7284bfe7d29e1c",
+        "zero_event_path_sha256": "0c2b08337a30682e535b0edf38718c582a040b757b53ca766a87b10ec2ea29af",
         "paths_differ": true,
         "p50_return_difference_active_minus_zero": {
           "21": -0.004829633559080726,
@@ -4940,8 +4940,8 @@
         }
       },
       "S2": {
-        "active_path_sha256": "dc3c2d7ed03d22f12efdfb37a01ad79dec8116a275c730ef9a992bcd6027b6bc",
-        "zero_event_path_sha256": "b189c35c750ef4668c0297efb6d19a7c9504fe5b8837a637a5ef462826bfc8e0",
+        "active_path_sha256": "71b73b304185e2d24f3909526b6c48cb545419c9bbcfbd22c87a16f94547a46b",
+        "zero_event_path_sha256": "092f0dd5540a1f1d05dbc95240dfdda0bd2e2976866e54b5617aae83cbb410ca",
         "paths_differ": true,
         "p50_return_difference_active_minus_zero": {
           "21": -0.0008681942340644788,
@@ -4965,8 +4965,8 @@
         }
       },
       "S3": {
-        "active_path_sha256": "3c4cdc8b033a5dfca7e926b7849de431165c39b310abdb47336d49e841083e9f",
-        "zero_event_path_sha256": "00e4b14b507fecc95af38fc801236497a7bfa9d866895ffda5f04514bb2b0465",
+        "active_path_sha256": "4dfd2d3ba93ac17119f000b2d1a40ff2786d21a2d56ee21fc3452d726b91d21c",
+        "zero_event_path_sha256": "e882f4242670f2585a3805ad3914fc8925561108abd8d948385ea07fe021f81f",
         "paths_differ": true,
         "p50_return_difference_active_minus_zero": {
           "21": 0.01209194100360833,
@@ -10167,7 +10167,7 @@
         }
       ],
       "no_piecewise_linear_endpoint_path": true,
-      "maximum_pair_return_correlation": 0.10247528918489249,
+      "maximum_pair_return_correlation": 0.10247528918489252,
       "no_common_residual_gate": true,
       "realism_gate_pass": true
     }
@@ -15102,7 +15102,7 @@
             },
             "maximum_drawdown": {
               "low": -0.23735028931767166,
-              "high": -0.08349021413273307
+              "high": -0.08349021413273318
             },
             "time_underwater": {
               "low": 0.2508250825082508,
@@ -15224,7 +15224,7 @@
             }
           ],
           "no_piecewise_linear_endpoint_path": true,
-          "maximum_pair_return_correlation": 0.09593233107099308,
+          "maximum_pair_return_correlation": 0.09593233107099307,
           "no_common_residual_gate": true,
           "realism_gate_pass": true
         }
@@ -19878,7 +19878,7 @@
             {
               "path_id": "path_05679",
               "metrics": {
-                "annualized_volatility": 0.1293374290928447,
+                "annualized_volatility": 0.12933742909284462,
                 "direction_changes": 144.0,
                 "maximum_drawdown": -0.15428903550469997,
                 "time_underwater": 0.7194719471947195
@@ -19958,7 +19958,7 @@
             {
               "path_id": "path_05094",
               "metrics": {
-                "annualized_volatility": 0.12057492083454457,
+                "annualized_volatility": 0.12057492083454449,
                 "direction_changes": 148.0,
                 "maximum_drawdown": -0.09778017291964336,
                 "time_underwater": 0.6534653465346535
@@ -19973,7 +19973,7 @@
             }
           ],
           "no_piecewise_linear_endpoint_path": true,
-          "maximum_pair_return_correlation": 0.1251284288439392,
+          "maximum_pair_return_correlation": 0.12512842884393924,
           "no_common_residual_gate": true,
           "realism_gate_pass": true
         }
@@ -24722,7 +24722,7 @@
             }
           ],
           "no_piecewise_linear_endpoint_path": true,
-          "maximum_pair_return_correlation": 0.07136828298701386,
+          "maximum_pair_return_correlation": 0.07136828298701388,
           "no_common_residual_gate": true,
           "realism_gate_pass": true
         }
@@ -25294,8 +25294,8 @@
         "S1_terminal_return_p50": 0.648788433241337,
         "S1_maximum_drawdown_p50": -0.14405077800201485,
         "C_mixture_probability": {
-          "S1": 0.748265969973469,
-          "S2": 0.1386225124863115,
+          "S1": 0.7482659699734688,
+          "S2": 0.1386225124863116,
           "S3": 0.1131115175402197
         }
       },
@@ -25378,7 +25378,7 @@
           "terminal_wasserstein": 0.7588124035499377,
           "terminal_energy": 0.9415568828669345,
           "mdd_distribution_distance": 0.017069450744232686,
-          "volatility_distribution_distance": 0.08656236929149354
+          "volatility_distribution_distance": 0.08656236929149355
         },
         "distribution_gates": {
           "normalized_p50_level_correlation": true,
@@ -25412,7 +25412,7 @@
           "weekly_return_correlation": 0.21647218258102527,
           "terminal_wasserstein": 1.1840856704132747,
           "terminal_energy": 1.296812444835945,
-          "mdd_distribution_distance": 0.37684227878335497,
+          "mdd_distribution_distance": 0.3768422787833549,
           "volatility_distribution_distance": 0.1733767244011292
         },
         "distribution_gates": {
@@ -25447,7 +25447,7 @@
           "weekly_return_correlation": 0.09086206632093535,
           "terminal_wasserstein": 0.4255666986358145,
           "terminal_energy": 0.6965941737682562,
-          "mdd_distribution_distance": 0.3606088086865078,
+          "mdd_distribution_distance": 0.36060880868650774,
           "volatility_distribution_distance": 0.2599390936926227
         },
         "distribution_gates": {
@@ -25846,7 +25846,7 @@
       {
         "pair": "S1-S2",
         "p50_log_level_correlation": -0.9606460328679315,
-        "p50_first_difference_correlation": 0.14228461882821294,
+        "p50_first_difference_correlation": 0.142284618828213,
         "rolling_63d_first_difference_correlation": {
           "minimum": -0.023239225731094527,
           "median": 0.05805985267692787,
@@ -25859,22 +25859,22 @@
       },
       {
         "pair": "S1-S3",
-        "p50_log_level_correlation": -0.9990060924718478,
-        "p50_first_difference_correlation": 0.22766184306610207,
+        "p50_log_level_correlation": -0.999006092471848,
+        "p50_first_difference_correlation": 0.22766184306610202,
         "rolling_63d_first_difference_correlation": {
           "minimum": -0.16969096135534212,
           "median": -0.01185789731363982,
           "maximum": 0.30410533293457337
         },
         "standardized_log_path_dtw": 1.7337696685989528,
-        "terminal_wasserstein_2026": 0.17241128543088616,
+        "terminal_wasserstein_2026": 0.17241128543088619,
         "terminal_wasserstein_2027": 1.1840856704132747,
         "first_touch_minus_10_ks": 0.6166978758
       },
       {
         "pair": "S2-S3",
-        "p50_log_level_correlation": 0.9606746974675208,
-        "p50_first_difference_correlation": 0.08629496388465516,
+        "p50_log_level_correlation": 0.960674697467521,
+        "p50_first_difference_correlation": 0.08629496388465513,
         "rolling_63d_first_difference_correlation": {
           "minimum": -0.2877845224248889,
           "median": -0.00750165230605301,
@@ -25952,13 +25952,13 @@
     "ledger": "not_opened_for_write",
     "archive": "not_opened_for_write"
   },
-  "model_content_sha256": "e48a67a22cc3c58316abe1cef4997d53d560aa00d1a682f93a1d7aab7d08bbe6",
-  "generated_at": "2026-11-05T11:38:41+00:00",
+  "model_content_sha256": "9f03e357ab42caee969396de47d292410399a199a749ca99aff7e43680ed7a5a",
+  "generated_at": "2026-11-05T12:33:25+00:00",
   "build_receipt": {
     "artifact_type": "scenario_v5_2_research_candidate",
     "candidate_id": "scenario_v5_2_scenario_clustered_db_v4",
-    "model_content_sha256": "e48a67a22cc3c58316abe1cef4997d53d560aa00d1a682f93a1d7aab7d08bbe6",
-    "generated_at": "2026-11-05T11:38:41+00:00",
+    "model_content_sha256": "9f03e357ab42caee969396de47d292410399a199a749ca99aff7e43680ed7a5a",
+    "generated_at": "2026-11-05T12:33:25+00:00",
     "source_hashes": {
       "data/raw/macro/bls_empsit_2026_07_20260807_browser_capture.txt": "9277c5da5507eda6689f9ae5a7d41063a105c3f5f03e84a33e31fc6b55b5dc79",
       "data/normalized/macro/bls_empsit_2026_07_20260807.json": "a86bd117ccb90081ae95cb59f1be7c51c59fa9061ef5023d8a11fdb0d3d0b035",
@@ -26376,32 +26376,35 @@
         "data/cross_asset/receipts/2026-11-02_e3061f09a1c8.json": "a7c2dd0eeeb9298f65cebf38c40c2b8caedcac77f7381d5bb067d51e9270102d",
         "data/cross_asset/receipts/2026-11-03_db72fe7d7ade.json": "87d8057d5e3dea171fa499e8971297a1e6577256131b169821b816774b4868e6",
         "data/cross_asset/receipts/2026-11-04_fb3be4d6fb6e.json": "e53b682a215d54c5b877a991a9034687b52d83c7dfd25cd40cf1aeb0110d4b7d",
-        "data/ai_capital_cycle/ai_regime_latest.json": "dd51fa4ad325e2f95372736d62c4d992ea9b926e64d79340997d258984eabf07",
+        "data/ai_capital_cycle/ai_regime_latest.json": "3ece628716275381fcaf685cb145a811c5eb043b6051886ef219154cc724ab75",
         "data/ai_capital_cycle/canonical_segment_map.yaml": "e21be70a85473fd2d7c185b6a8c276f7266d5111142bc1a46a4928609b1d356c",
         "data/ai_capital_cycle/circular_finance_candidates.csv": "5801a917659c430654829d4d60a50944933d289958c0b1f606c2548a23d42b65",
         "data/ai_capital_cycle/company_capex_archive/2026-08-03.json": "4024c23dd9a909b304eef7fddd8d6b3858e6feb9f16528683abac4d8e57fe4df",
         "data/ai_capital_cycle/company_capex_archive/2026-08-04.json": "236a896769b433071b624eea55bc5a05f9c3cd586d072d5e4cdea0cd179f5fc2",
-        "data/ai_capital_cycle/company_capex_quarterly_latest.json": "236a896769b433071b624eea55bc5a05f9c3cd586d072d5e4cdea0cd179f5fc2",
+        "data/ai_capital_cycle/company_capex_archive/2026-11-05.json": "2b63b1d655881a07442a2d0b29a4eb0b82f5209baa58e5d09755490788498a89",
+        "data/ai_capital_cycle/company_capex_quarterly_latest.json": "2b63b1d655881a07442a2d0b29a4eb0b82f5209baa58e5d09755490788498a89",
         "data/ai_capital_cycle/coverage_archive/2026-08-03.json": "5a0fc66b5e7df9bb261e8def50ef1d0fcfe9b4f792cfcde775528d122c444139",
         "data/ai_capital_cycle/coverage_archive/2026-08-04.json": "2f75d1ebaea233112ec83dda82014e1e281a9b3752ec99a3157e289a1db2ecb5",
-        "data/ai_capital_cycle/coverage_latest.json": "2f75d1ebaea233112ec83dda82014e1e281a9b3752ec99a3157e289a1db2ecb5",
+        "data/ai_capital_cycle/coverage_archive/2026-11-05.json": "8dfea82daa89007985b3ce911e530a0fddc94fa13d96e98c77f3ea4e67bd79b4",
+        "data/ai_capital_cycle/coverage_latest.json": "8dfea82daa89007985b3ce911e530a0fddc94fa13d96e98c77f3ea4e67bd79b4",
         "data/ai_capital_cycle/d0_source_audit.json": "04500b7908515b8a9ef2dc34677c812d981d86e93b2a99ea0a992feea9a3f660",
         "data/ai_capital_cycle/regime_archive/2026-08-03.json": "38986a1e00b3454bca99170a929fbd993c11732ec375a30294d47d7ab6559eba",
         "data/ai_capital_cycle/regime_archive/2026-08-04.json": "dd51fa4ad325e2f95372736d62c4d992ea9b926e64d79340997d258984eabf07",
+        "data/ai_capital_cycle/regime_archive/2026-11-05.json": "3ece628716275381fcaf685cb145a811c5eb043b6051886ef219154cc724ab75",
         "data/ai_capital_cycle/regime_link_rules.yaml": "bb6242fdd935a66522979f4992c2784c1312a01a52425f1fa9dc959b70f87cc8",
         "data/ai_capital_cycle/regime_model.yaml": "f6bf1b78677b6b93a7e0922edb2e83e81fd73c47c97611ab322bf7eecd033927",
-        "data/ai_capital_cycle/segment_filing_accessions_latest.json": "af7027702ed3e68864d9e6e5043fb7cfec01290cf14474cc3d6afccf51b3f72c"
+        "data/ai_capital_cycle/segment_filing_accessions_latest.json": "58ff8900157d2230406f6d3a79e99a32988bcf83db31452f499531ec059456e3"
       },
       "missing_roots": [],
-      "manifest_sha256": "45a2640e231658c8f23236f0a7c8032d9e59743ae809740f9d1177dd84555c99"
+      "manifest_sha256": "475a0e085e9941d98b73fdc021ccc8e49c0b2a31123398172ea6022294ac7b91"
     },
     "build_context": {
-      "head": "b9879569113e79c1da9b2756718ddf26e4f280c3",
-      "branch": "claude/context-refresh-1105",
+      "head": "5e8a62f5787541c4ac628f6a3b6fab16159a3f59",
+      "branch": "main",
       "dirty": true,
-      "status_entry_count": 3,
-      "python": "3.12.10"
+      "status_entry_count": 14,
+      "python": "3.12.15"
     }
   },
-  "build_receipt_sha256": "4c3702b6deb42d96d7fc9cdc94000dce40625e1b587b03eef56f52dc21c7022e"
+  "build_receipt_sha256": "e1b26d0f33135ffa76afe6ac32fe3bd62714eaee5e6502011833734d558739ec"
 }

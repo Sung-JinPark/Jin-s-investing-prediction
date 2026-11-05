@@ -1,8 +1,8 @@
 {
   "schema_version": 1,
   "dataset_id": "ai_capital_intensity_v1",
-  "asof": "2026-08-31",
-  "generated_at": "2026-08-31T11:59:37+00:00",
+  "asof": "2026-11-05",
+  "generated_at": "2026-11-05T12:32:13+00:00",
   "gate": "D2",
   "probability_space": "reference_only",
   "model_use": false,
@@ -117,35 +117,35 @@
       "lease_obligations": {
         "finance_lease_payments_due": {
           "taxonomy_tag": "FinanceLeaseLiabilityPaymentsDue",
-          "value": 89686000000.0,
-          "period_end": "2026-06-30",
-          "available_at": "2026-07-29",
-          "accession": "0001193125-26-323660"
+          "value": 95246000000.0,
+          "period_end": "2026-09-30",
+          "available_at": "2026-10-28",
+          "accession": "0001193125-26-436133"
         },
         "operating_lease_payments_due": {
           "taxonomy_tag": "LesseeOperatingLeaseLiabilityPaymentsDue",
-          "value": 24706000000.0,
-          "period_end": "2026-06-30",
-          "available_at": "2026-07-29",
-          "accession": "0001193125-26-323660"
+          "value": 33012000000.0,
+          "period_end": "2026-09-30",
+          "available_at": "2026-10-28",
+          "accession": "0001193125-26-436133"
         },
         "finance_lease_liability": {
           "taxonomy_tag": "FinanceLeaseLiability",
-          "value": 66594000000.0,
-          "period_end": "2026-06-30",
-          "available_at": "2026-07-29",
-          "accession": "0001193125-26-323660"
+          "value": 70973000000.0,
+          "period_end": "2026-09-30",
+          "available_at": "2026-10-28",
+          "accession": "0001193125-26-436133"
         },
         "operating_lease_liability": {
           "taxonomy_tag": "OperatingLeaseLiability",
-          "value": 21925000000.0,
-          "period_end": "2026-06-30",
-          "available_at": "2026-07-29",
-          "accession": "0001193125-26-323660"
+          "value": 27477000000.0,
+          "period_end": "2026-09-30",
+          "available_at": "2026-10-28",
+          "accession": "0001193125-26-436133"
         }
       },
       "source_url": "https://data.sec.gov/api/xbrl/companyfacts/CIK0000789019.json",
-      "source_fingerprint": "f8aae2965b20ad0df44bdf7ccbedf797d275b6b8dc030154a7a311361bb7246f"
+      "source_fingerprint": "8c1903c041f5c27e86ed15f37debb1f41882b7904bba129ef9edc76478b1e8ea"
     },
     {
       "company": "AMZN",
@@ -256,35 +256,35 @@
       "lease_obligations": {
         "finance_lease_payments_due": {
           "taxonomy_tag": "FinanceLeaseLiabilityPaymentsDue",
-          "value": 16660000000.0,
-          "period_end": "2026-06-30",
-          "available_at": "2026-07-31",
-          "accession": "0001018724-26-000026"
+          "value": 17955000000.0,
+          "period_end": "2026-09-30",
+          "available_at": "2026-10-30",
+          "accession": "0001018724-26-000040"
         },
         "operating_lease_payments_due": {
           "taxonomy_tag": "LesseeOperatingLeaseLiabilityPaymentsDue",
-          "value": 116350000000.0,
-          "period_end": "2026-06-30",
-          "available_at": "2026-07-31",
-          "accession": "0001018724-26-000026"
+          "value": 121492000000.0,
+          "period_end": "2026-09-30",
+          "available_at": "2026-10-30",
+          "accession": "0001018724-26-000040"
         },
         "finance_lease_liability": {
           "taxonomy_tag": "FinanceLeaseLiability",
-          "value": 13451000000.0,
-          "period_end": "2026-06-30",
-          "available_at": "2026-07-31",
-          "accession": "0001018724-26-000026"
+          "value": 14495000000.0,
+          "period_end": "2026-09-30",
+          "available_at": "2026-10-30",
+          "accession": "0001018724-26-000040"
         },
         "operating_lease_liability": {
           "taxonomy_tag": "OperatingLeaseLiability",
-          "value": 96320000000.0,
-          "period_end": "2026-06-30",
-          "available_at": "2026-07-31",
-          "accession": "0001018724-26-000026"
+          "value": 100288000000.0,
+          "period_end": "2026-09-30",
+          "available_at": "2026-10-30",
+          "accession": "0001018724-26-000040"
         }
       },
       "source_url": "https://data.sec.gov/api/xbrl/companyfacts/CIK0001018724.json",
-      "source_fingerprint": "e6aadb0da7384597dbd78f74d1379ffb7fd0829a4d2e797b6d7e442b5e1da0d7"
+      "source_fingerprint": "acddb7c0a6973a1fd08372de3b292298a34eae7f42a7eedc4bdebd3ac659c8fd"
     },
     {
       "company": "GOOGL",
@@ -395,35 +395,35 @@
       "lease_obligations": {
         "finance_lease_payments_due": {
           "taxonomy_tag": "FinanceLeaseLiabilityPaymentsDue",
-          "value": 2920000000.0,
-          "period_end": "2026-06-30",
-          "available_at": "2026-07-23",
-          "accession": "0001652044-26-000071"
+          "value": 4330000000.0,
+          "period_end": "2026-09-30",
+          "available_at": "2026-10-29",
+          "accession": "0001652044-26-000084"
         },
         "operating_lease_payments_due": {
           "taxonomy_tag": "LesseeOperatingLeaseLiabilityPaymentsDue",
-          "value": 21333000000.0,
-          "period_end": "2026-06-30",
-          "available_at": "2026-07-23",
-          "accession": "0001652044-26-000071"
+          "value": 24439000000.0,
+          "period_end": "2026-09-30",
+          "available_at": "2026-10-29",
+          "accession": "0001652044-26-000084"
         },
         "finance_lease_liability": {
           "taxonomy_tag": "FinanceLeaseLiability",
-          "value": 2590000000.0,
-          "period_end": "2026-06-30",
-          "available_at": "2026-07-23",
-          "accession": "0001652044-26-000071"
+          "value": 3705000000.0,
+          "period_end": "2026-09-30",
+          "available_at": "2026-10-29",
+          "accession": "0001652044-26-000084"
         },
         "operating_lease_liability": {
           "taxonomy_tag": "OperatingLeaseLiability",
-          "value": 18037000000.0,
-          "period_end": "2026-06-30",
-          "available_at": "2026-07-23",
-          "accession": "0001652044-26-000071"
+          "value": 20508000000.0,
+          "period_end": "2026-09-30",
+          "available_at": "2026-10-29",
+          "accession": "0001652044-26-000084"
         }
       },
       "source_url": "https://data.sec.gov/api/xbrl/companyfacts/CIK0001652044.json",
-      "source_fingerprint": "a017f26ee88cb4a639d1c1ddb06d53b4afe22f0ac89cabec7cd67c88919fe1c5"
+      "source_fingerprint": "f87bc183f74b45ecf9a0933e0e0a1b6b97ead51a9d29367a7dae436574e1c1d0"
     },
     {
       "company": "META",
@@ -562,36 +562,36 @@
         }
       },
       "source_url": "https://data.sec.gov/api/xbrl/companyfacts/CIK0001326801.json",
-      "source_fingerprint": "7518e76d6dac2d016e1a3d1dec1cc55ff9ea3bdd58a151b16fcaa067a6c9d94e"
+      "source_fingerprint": "83c9002a70c6ecbcbe2c4dbcd7020bdacf027f514f29d1560dee3527d2bf55c8"
     }
   ],
   "receipts": [
     {
       "source": "sec_edgar",
       "request_url": "https://data.sec.gov/api/xbrl/companyfacts/CIK0000789019.json",
-      "response_sha256": "f8aae2965b20ad0df44bdf7ccbedf797d275b6b8dc030154a7a311361bb7246f",
-      "fetched_at": "2026-08-31T11:59:35+00:00",
+      "response_sha256": "8c1903c041f5c27e86ed15f37debb1f41882b7904bba129ef9edc76478b1e8ea",
+      "fetched_at": "2026-11-05T12:32:11+00:00",
       "revision_vintage": "sec_filing_native"
     },
     {
       "source": "sec_edgar",
       "request_url": "https://data.sec.gov/api/xbrl/companyfacts/CIK0001018724.json",
-      "response_sha256": "e6aadb0da7384597dbd78f74d1379ffb7fd0829a4d2e797b6d7e442b5e1da0d7",
-      "fetched_at": "2026-08-31T11:59:35+00:00",
+      "response_sha256": "acddb7c0a6973a1fd08372de3b292298a34eae7f42a7eedc4bdebd3ac659c8fd",
+      "fetched_at": "2026-11-05T12:32:12+00:00",
       "revision_vintage": "sec_filing_native"
     },
     {
       "source": "sec_edgar",
       "request_url": "https://data.sec.gov/api/xbrl/companyfacts/CIK0001652044.json",
-      "response_sha256": "a017f26ee88cb4a639d1c1ddb06d53b4afe22f0ac89cabec7cd67c88919fe1c5",
-      "fetched_at": "2026-08-31T11:59:36+00:00",
+      "response_sha256": "f87bc183f74b45ecf9a0933e0e0a1b6b97ead51a9d29367a7dae436574e1c1d0",
+      "fetched_at": "2026-11-05T12:32:12+00:00",
       "revision_vintage": "sec_filing_native"
     },
     {
       "source": "sec_edgar",
       "request_url": "https://data.sec.gov/api/xbrl/companyfacts/CIK0001326801.json",
-      "response_sha256": "7518e76d6dac2d016e1a3d1dec1cc55ff9ea3bdd58a151b16fcaa067a6c9d94e",
-      "fetched_at": "2026-08-31T11:59:37+00:00",
+      "response_sha256": "83c9002a70c6ecbcbe2c4dbcd7020bdacf027f514f29d1560dee3527d2bf55c8",
+      "fetched_at": "2026-11-05T12:32:13+00:00",
       "revision_vintage": "sec_filing_native"
     }
   ],
