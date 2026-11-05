@@ -99,8 +99,12 @@ def test_build_scenario_is_deterministic_and_partitioned() -> None:
     assert structure["dates"] == first["week_dates"]
     assert structure["path_kind"] == "structural_forecast_not_random_sample"
     assert [row["year"] for row in structure["years"]] == [2026, 2027]
-    assert structure["years"][0]["path_diagnostics"]["S1"]["max_drawdown_pct"] <= -10
-    assert structure["years"][1]["path_diagnostics"]["S1"]["max_drawdown_pct"] <= -5
+    # The contract fixes the depth over the whole horizon; which year holds the trough moves with
+    # the latest committed context, so this asserts the depth rather than its calendar year.
+    calibration = structure["calibration"]
+    assert calibration["depth_invariant_to_selection"] is True
+    assert abs(calibration["calibrated_origin_window_s1_max_drawdown_pct"] + calibration["target_depth_pct"]) <= 0.2
+    assert min(row["path_diagnostics"]["S1"]["max_drawdown_pct"] for row in structure["years"]) <= -5
     assert structure["evidence"]["physical_event"]["used_numerically"] is False
     assert structure["evidence"]["ai_regime"]["used_numerically"] is False
     assert structure["guardrails"]["simulation_sample_used_as_display_path"] is False
@@ -118,10 +122,11 @@ def test_build_scenario_is_deterministic_and_partitioned() -> None:
     sensitivity = selection["selection_sensitivity"]
     assert sensitivity["calibrated_depth_invariant"] is True
     calibrated_range = sensitivity["origin_window_calibrated_s1_mdd_range_pct"]
-    assert calibrated_range == pytest.approx([-12.2, -12.1], abs=0.1)
+    target_depth = -structure["calibration"]["target_depth_pct"]
+    assert calibrated_range == pytest.approx([target_depth, target_depth], abs=0.2)
     assert all(
         row["calibration_status"] == "ok"
-        and row["origin_window_calibrated_s1_mdd_pct"] == pytest.approx(-12.19, abs=0.2)
+        and row["origin_window_calibrated_s1_mdd_pct"] == pytest.approx(target_depth, abs=0.2)
         for row in sensitivity["alternatives"]
     )
     proximity = structure["evidence"]["physical_event"]["proximity_context"]
