@@ -81,7 +81,7 @@ questions:
   domain: macro
   cadence: 주 1회, D-14부터 일 1회
   action_link: 9~10월 조정 시나리오 검증
-  status: active
+  status: resolved
   created: 2026-07-08
   notes: 회의 일정 2026-10-27~28 확인 완료 (Fed 공식 캘린더, r1 리서치 2026-07-08)
   schedule:
@@ -319,7 +319,7 @@ questions:
   domain: market-regime
   cadence: 월 2회
   action_link: v4 오버레이 F2 — 미드텀 전 조정 시나리오 (조정 후 회복 경로의 트리거)
-  status: active
+  status: resolved
   created: 2026-07-10
   schedule:
   - per_week: 0.5
@@ -471,7 +471,7 @@ questions:
   domain: earnings
   cadence: r1 + D-3
   action_link: 하이퍼스케일러 캐펙스/Azure 사이클 + 캘리브레이션 표본
-  status: active
+  status: resolved
   created: 2026-07-20
   notes: '등록필터: (a) beat율 5년 78%, MSFT 최근 4분기 4/4 비트. 발표일 추정(WSH INFERRED) — 10월 초순 공식 확정 시 재확인.
     2026-10-26 확정: Microsoft IR 2026-10-07 공지 "after the close of the market on Wednesday, Oct. 28, 2026"
@@ -495,7 +495,7 @@ questions:
   domain: earnings
   cadence: r1 + D-3
   action_link: 하이퍼스케일러 + 클라우드 백로그 + 캘리브레이션 표본
-  status: active
+  status: resolved
   created: 2026-07-20
   notes: '등록필터: (a) beat율 5년 78%, GOOGL 최근 4분기 4/4 비트. 발표일 추정(WSH INFERRED) — 10월 초순 재확인.
     2026-10-26 확정: Alphabet IR 2026-10-06 공지 — 2026-10-28 13:30 PT 컨퍼런스콜, 실적 자료는 콜 전 IR 게시
@@ -544,7 +544,7 @@ questions:
   domain: earnings
   cadence: r1 + D-3
   action_link: AWS 가속 사이클 + 캘리브레이션 표본
-  status: active
+  status: resolved
   created: 2026-07-20
   notes: '등록필터: (a) beat율 5년 78%, AMZN 최근 4분기 3/4 비트. 발표일 추정(WSH INFERRED) — 10월 초순 재확인.
     2026-10-26 확정: Amazon IR 2026-10-15 공지 — 2026-10-29 14:00 PT 실적 컨퍼런스콜
@@ -565,7 +565,7 @@ questions:
   domain: earnings
   cadence: r1 + D-3
   action_link: 빅테크 이틀 집중일(10/28-29) 캘리브레이션 표본
-  status: active
+  status: resolved
   created: 2026-07-20
   notes: '등록필터: (a) beat율 5년 78%, AAPL 최근 4분기 4/4 비트. 발표일 추정(WSH INFERRED) — 10월 초순 재확인.
     2026-10-26 확인: Apple IR 이벤트 페이지 — FY26 Q4 실적 콜 2026-11-02 14:00 PT
@@ -766,7 +766,7 @@ questions:
   domain: macro
   cadence: r1 + D-3
   action_link: 성장 vs 인플레 조합 판독 — 10월 말 이벤트 밀집일(10/29 AMZN·AAPL 동일)
-  status: active
+  status: resolved
   created: 2026-07-20
   notes: '등록필터: (b) 정보 우위 — GDPNow 류 nowcast의 실시간 추적 vs 컨센 확정(발표 전주) 시차. 발표일 확정 (OMB PFEI, 2차 추정 11/25·3차
     12/23).'
