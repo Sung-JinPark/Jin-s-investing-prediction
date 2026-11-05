@@ -1,6 +1,6 @@
 {
   "as_of": "2026-11-05",
-  "content_hash": "3400cfa2ea43f15ced6442af46ab7cf94066a755b02d02e138cc5ce8416e92cd",
+  "content_hash": "57af1b3168486440263019c571a92f6ab1cc60182fad1b53d624afdc2fdd8362",
   "daily": {
     "anchor": {
       "provisional": true,
@@ -97,7 +97,7 @@
       "probability_up": 0.715
     }
   },
-  "knowledge_cutoff": "2026-11-05T23:43:09+00:00",
+  "knowledge_cutoff": "2026-11-05T23:47:38+00:00",
   "model_id": "shadow.mf_dfm_varx_calibrated_v8",
   "model_version": 8,
   "operational": {
@@ -159,7 +159,7 @@
         "status": "fresh"
       },
       {
-        "age_hours": 143.719538,
+        "age_hours": 143.79442,
         "expected_observation": "2026-10-30",
         "group": "DTWEXBGS_or_DTWEXB",
         "next_publication_deadline": "2026-11-09T23:15:00+00:00",
