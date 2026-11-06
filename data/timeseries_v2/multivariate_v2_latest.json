@@ -1,6 +1,6 @@
 {
   "as_of": "2026-10-30",
-  "content_hash": "b349df89e3dbe81afd4465d6eebb9df4df6cee363ba3c31f0e5ddb4e97b0f4af",
+  "content_hash": "b408486ec53fea00039e1543b2e90f5c78c850db8a357c510f541d4ee7c453aa",
   "data_summary": {
     "candidate": "C1",
     "data_grades": [
@@ -21,7 +21,7 @@
     "required_market_freshness": {
       "groups": [
         {
-          "age_hours": 27.003055555555555,
+          "age_hours": 27.940555555555555,
           "available_at": "2026-11-05T09:52:04.902234+00:00",
           "group": "NASDAQCOM",
           "observation_time": "2026-11-04",
@@ -29,7 +29,7 @@
           "status": "fresh"
         },
         {
-          "age_hours": 3.0030555555555556,
+          "age_hours": 3.9405555555555556,
           "available_at": "2026-11-06T02:54:10+00:00",
           "group": "VIX",
           "observation_time": "2026-11-05",
@@ -37,7 +37,7 @@
           "status": "fresh"
         },
         {
-          "age_hours": 4.629722222222222,
+          "age_hours": 5.567222222222222,
           "available_at": "2026-11-05T22:22:23+00:00",
           "group": "DGS2",
           "observation_time": "2026-11-05",
@@ -45,7 +45,7 @@
           "status": "fresh"
         },
         {
-          "age_hours": 4.629722222222222,
+          "age_hours": 5.567222222222222,
           "available_at": "2026-11-05T22:22:23+00:00",
           "group": "DGS10",
           "observation_time": "2026-11-05",
@@ -53,7 +53,7 @@
           "status": "fresh"
         },
         {
-          "age_hours": 147.00305555555556,
+          "age_hours": 147.94055555555556,
           "available_at": "2026-11-02T22:36:45+00:00",
           "group": "DTWEXBGS_or_DTWEXB",
           "observation_time": "2026-10-30",
@@ -86,7 +86,7 @@
       "필수 시장 입력 48시간 SLA 초과: DTWEXBGS_or_DTWEXB"
     ]
   },
-  "knowledge_cutoff": "2026-11-06T03:00:10+00:00",
+  "knowledge_cutoff": "2026-11-06T03:56:25+00:00",
   "model_id": "shadow.mf_dfm_ridge_varx_v2",
   "model_version": 2,
   "probability_space": "research_timeseries_v2_conditional",
