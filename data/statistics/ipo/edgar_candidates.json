@@ -2,10 +2,10 @@
   "schema_version": 2,
   "dataset_id": "ipo_edgar_424b4_auto_classification_v1",
   "cadence": "weekly",
-  "checked_at": "2026-10-31T02:42:35+00:00",
-  "reviewed_through": "2026-10-29",
-  "window_start": "2026-10-30",
-  "window_end": "2026-10-31",
+  "checked_at": "2026-11-07T03:11:05+00:00",
+  "reviewed_through": "2026-10-31",
+  "window_start": "2026-11-01",
+  "window_end": "2026-11-07",
   "status": "current",
   "form": "424B4",
   "source": "sec_edgar_full_text_search",
@@ -23,13 +23,13 @@
   "historical_rows_locked": true,
   "allowed_update_scope": "current_era_rows_only_after_automatic_sec_prospectus_classification",
   "counts": {
-    "candidates": 33,
-    "already_in_cohort": 19,
+    "candidates": 37,
+    "already_in_cohort": 22,
     "pending_review": 0,
-    "new_decisions": 3,
-    "auto_included": 3,
-    "auto_excluded": 0,
-    "new_cohort_rows": 3
+    "new_decisions": 4,
+    "auto_included": 0,
+    "auto_excluded": 4,
+    "new_cohort_rows": 0
   },
   "errors": [],
   "candidates": [
@@ -667,7 +667,7 @@
         "artificial intelligence",
         "machine learning"
       ],
-      "already_in_cohort": false,
+      "already_in_cohort": true,
       "review_status": "auto_include_core",
       "decision_id": "5aaae3e1df38216a726bf9b9fc9a81895571772d030cadb65b2a68fd4209bb73",
       "reason_codes": [
@@ -688,7 +688,7 @@
         "artificial intelligence",
         "machine learning"
       ],
-      "already_in_cohort": false,
+      "already_in_cohort": true,
       "review_status": "auto_include_core",
       "decision_id": "3505fe857bbe5bc3797b3e6d20ab636c48c7360ca36375902f8c3f19087dde01",
       "reason_codes": [
@@ -709,13 +709,91 @@
       "matched_keywords": [
         "artificial intelligence"
       ],
-      "already_in_cohort": false,
+      "already_in_cohort": true,
       "review_status": "auto_include_core",
       "decision_id": "81849cd0bf884d769ca873f8dab7f83ee96dc289c16b71c1e8882f7df9ea39e1",
       "reason_codes": [
         "eligible_initial_public_offering",
         "ai_label_present_in_final_prospectus",
         "user_directed_core_inclusion"
+      ]
+    },
+    {
+      "company": "Research Alliance Corp III",
+      "cik": "0002118032",
+      "accession": "0001193125-26-447320",
+      "filed_at": "2026-11-04",
+      "form": "424B4",
+      "filing_url": "https://www.sec.gov/Archives/edgar/data/2118032/000119312526447320/d149484d424b4.htm",
+      "ticker_hint": "RACC",
+      "matched_keywords": [
+        "artificial intelligence",
+        "generative AI"
+      ],
+      "already_in_cohort": false,
+      "review_status": "auto_exclude",
+      "decision_id": "e15ef0dcf0a3eafb2c416db7c00be5ebab9cd303271aad827c065690d33de855",
+      "reason_codes": [
+        "not_initial_public_offering"
+      ]
+    },
+    {
+      "company": "reAlpha Tech Corp.",
+      "cik": "0001859199",
+      "accession": "0001213900-26-115755",
+      "filed_at": "2026-11-04",
+      "form": "424B4",
+      "filing_url": "https://www.sec.gov/Archives/edgar/data/1859199/000121390026115755/ea0306283-04.htm",
+      "ticker_hint": "AIRE",
+      "matched_keywords": [
+        "artificial intelligence",
+        "generative AI"
+      ],
+      "already_in_cohort": false,
+      "review_status": "auto_exclude",
+      "decision_id": "533504bd16d87c2a33302b5c17c71d0b64643830988e4aa9bb01a25986c80864",
+      "reason_codes": [
+        "not_initial_public_offering",
+        "already_public_or_follow_on"
+      ]
+    },
+    {
+      "company": "Janus Living, Inc.",
+      "cik": "0002100805",
+      "accession": "0001104659-26-123373",
+      "filed_at": "2026-11-05",
+      "form": "424B4",
+      "filing_url": "https://www.sec.gov/Archives/edgar/data/2100805/000110465926123373/tm2624344-32_424b4.htm",
+      "ticker_hint": "JAN",
+      "matched_keywords": [
+        "artificial intelligence",
+        "machine learning"
+      ],
+      "already_in_cohort": false,
+      "review_status": "auto_exclude",
+      "decision_id": "8a37a4fc6677785d6fe1946ec48c89dcafdacf1dcb4fec6c1c4a8cad2579275a",
+      "reason_codes": [
+        "not_initial_public_offering",
+        "already_public_or_follow_on"
+      ]
+    },
+    {
+      "company": "Parabolic Technologies, Inc.",
+      "cik": "0001826011",
+      "accession": "0001493152-26-050319",
+      "filed_at": "2026-11-06",
+      "form": "424B4",
+      "filing_url": "https://www.sec.gov/Archives/edgar/data/1826011/000149315226050319/form424b4.htm",
+      "ticker_hint": null,
+      "matched_keywords": [
+        "machine learning"
+      ],
+      "already_in_cohort": false,
+      "review_status": "auto_exclude",
+      "decision_id": "326ffa35f77dd055526bffdba01d4a44523a7b207e09b83f70020505443ca16d",
+      "reason_codes": [
+        "not_initial_public_offering",
+        "already_public_or_follow_on"
       ]
     }
   ]
