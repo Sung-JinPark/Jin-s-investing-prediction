@@ -2,9 +2,9 @@
   "session_date": "2026-11-06",
   "close": 24579.42,
   "previous_close": 24315.0,
-  "market_status": "After-Hours",
+  "market_status": "Closed",
   "source": "Nasdaq quote API (COMP)",
   "source_url": "https://api.nasdaq.com/api/quote/COMP/info?assetclass=index",
-  "fetched_at": "2026-11-06T22:19:11+00:00",
+  "fetched_at": "2026-11-07T21:04:11+00:00",
   "display_only": true
 }
