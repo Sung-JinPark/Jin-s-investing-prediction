@@ -97,3 +97,13 @@ ts,question_id,stage,model,input_tokens,output_tokens,cost_usd,provider,snapshot
 2026-11-04T20:19:15+09:00,avgo-eps-miss-fq4-2026,research:devil,claude-opus-4-8,119816,7608,0.86928000,anthropic,claude-opus-4-8,msg_011Cghnx1yp5ChsBxQQPGmZE,0,8
 2026-11-04T20:19:15+09:00,avgo-eps-miss-fq4-2026,reasoning,claude-opus-4-8,0,0,0.12465875,anthropic,claude-opus-4-8,,0,0
 2026-11-05T23:00:03+09:00,_system,smoke,gpt-5.6-terra,27,5,0.00011400,openai,gpt-5.6-terra,resp_0ce63d1876335449006aec8be20fb487d1a6da6bf7550d4236,0,0
+2026-11-07T11:54:36+09:00,cpi-oct2026-reaccel,research:general,claude-opus-4-8,134145,6414,0.91107500,anthropic,claude-opus-4-8,msg_011Cgno49L1yiqrzvV2ikDQa,0,8
+2026-11-07T11:54:36+09:00,cpi-oct2026-reaccel,research:devil,claude-opus-4-8,294574,6591,1.71764500,anthropic,claude-opus-4-8,msg_011Cgnohvthz2rMBJdrQCErc,0,8
+2026-11-07T11:54:36+09:00,cpi-oct2026-reaccel,reasoning,claude-opus-4-8,0,0,0.17149375,anthropic,claude-opus-4-8,,0,0
+2026-11-07T12:17:11+09:00,avgo-eps-surprise-ge5pct-fq4-2026,failed:pipeline:1,claude-opus-4-8,261530,7757,1.58157500,anthropic,claude-opus-4-8,msg_011Cgnp8dVA2spaxC1e9X7py,0,8
+2026-11-07T12:17:11+09:00,avgo-eps-surprise-ge5pct-fq4-2026,failed:pipeline:2,claude-opus-4-8,80896,7827,0.68015500,anthropic,claude-opus-4-8,msg_011CgnqamRjfHLAVc4DBJ7dH,0,8
+2026-11-07T12:17:11+09:00,avgo-eps-surprise-ge5pct-fq4-2026,failed:pipeline:3,claude-opus-4-8,12228,2299,0.12470375,anthropic,claude-opus-4-8,msg_011CgnqkyaFx2vGjVmtcku2C,0,0
+2026-11-07T12:17:11+09:00,avgo-eps-surprise-ge5pct-fq4-2026,failed:pipeline:4,claude-opus-4-8,8188,2164,0.09504050,anthropic,claude-opus-4-8,msg_011CgnqoftDgDbhmTFB2z4SV,4871,0
+2026-11-07T12:22:04+09:00,vix-13-touch-by-2026-12-18,research:general,claude-opus-4-8,77186,6406,0.62608000,anthropic,claude-opus-4-8,msg_011CgnqrG464pT9bd9BFPYJ7,0,8
+2026-11-07T12:22:04+09:00,vix-13-touch-by-2026-12-18,research:devil,claude-opus-4-8,64277,5590,0.54113500,anthropic,claude-opus-4-8,msg_011CgnqywS8q57DmMzNV8c1g,0,8
+2026-11-07T12:22:04+09:00,vix-13-touch-by-2026-12-18,reasoning,claude-opus-4-8,0,0,0.10839550,anthropic,claude-opus-4-8,,0,0
