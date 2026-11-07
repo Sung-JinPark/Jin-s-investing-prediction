@@ -1,10 +1,10 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-11-07T07:28:55+00:00",
+  "generated_at": "2026-11-07T13:37:39+00:00",
   "market_cutoff": "2026-11-06",
   "summary": {
-    "accumulating": 68,
-    "stalled": 3,
+    "accumulating": 69,
+    "stalled": 2,
     "inactive": 12,
     "violation": 0,
     "planned": 8,
@@ -214,7 +214,7 @@
       "criticality": "low",
       "status": "accumulating",
       "file_count": 1,
-      "row_count": 108,
+      "row_count": 109,
       "latest_date": null,
       "missing_trading_days": [],
       "immutable_changes": [],
@@ -614,7 +614,7 @@
       "status": "accumulating",
       "file_count": 1,
       "row_count": null,
-      "latest_date": "2026-11-06",
+      "latest_date": "2026-11-07",
       "missing_trading_days": [],
       "immutable_changes": [],
       "schema_errors": [],
@@ -676,6 +676,10 @@
         {
           "date": "2026-11-06",
           "count": 14
+        },
+        {
+          "date": "2026-11-07",
+          "count": 15
         }
       ]
     },
@@ -1349,9 +1353,9 @@
       "cadence": "trading_daily",
       "criticality": "low",
       "status": "stalled",
-      "file_count": 89,
+      "file_count": 90,
       "row_count": null,
-      "latest_date": "2026-11-06",
+      "latest_date": "2026-11-07",
       "missing_trading_days": [
         "2026-08-25",
         "2026-08-27",
@@ -1475,6 +1479,10 @@
         {
           "date": "2026-11-06",
           "count": 89
+        },
+        {
+          "date": "2026-11-07",
+          "count": 90
         }
       ]
     },
@@ -1487,7 +1495,7 @@
       "status": "accumulating",
       "file_count": 1,
       "row_count": null,
-      "latest_date": "2026-11-06",
+      "latest_date": "2026-11-07",
       "missing_trading_days": [],
       "immutable_changes": [],
       "schema_errors": [],
@@ -1495,7 +1503,7 @@
       "reversed_timestamps": 0,
       "growth_last_30d": [
         {
-          "date": "2026-11-06",
+          "date": "2026-11-07",
           "count": 1
         }
       ]
@@ -1690,7 +1698,7 @@
       "status": "accumulating",
       "file_count": 1,
       "row_count": null,
-      "latest_date": "2026-11-06",
+      "latest_date": "2026-11-07",
       "missing_trading_days": [],
       "immutable_changes": [],
       "schema_errors": [],
@@ -1768,6 +1776,10 @@
         {
           "date": "2026-11-06",
           "count": 48
+        },
+        {
+          "date": "2026-11-07",
+          "count": 49
         }
       ]
     },
@@ -1812,7 +1824,7 @@
       "cadence": "weekly",
       "criticality": "high",
       "status": "accumulating",
-      "file_count": 13,
+      "file_count": 14,
       "row_count": null,
       "latest_date": null,
       "missing_trading_days": [],
@@ -1829,7 +1841,7 @@
       "cadence": "monthly",
       "criticality": "high",
       "status": "accumulating",
-      "file_count": 4,
+      "file_count": 5,
       "row_count": null,
       "latest_date": null,
       "missing_trading_days": [],
@@ -2172,7 +2184,7 @@
       "status": "accumulating",
       "file_count": 1,
       "row_count": null,
-      "latest_date": "2026-11-06",
+      "latest_date": "2026-11-07",
       "missing_trading_days": [],
       "immutable_changes": [],
       "schema_errors": [],
@@ -2258,6 +2270,10 @@
         {
           "date": "2026-11-06",
           "count": 40
+        },
+        {
+          "date": "2026-11-07",
+          "count": 41
         }
       ]
     },
@@ -2422,10 +2438,10 @@
       "kind": "jsonl",
       "cadence": "trading_daily",
       "criticality": "high",
-      "status": "stalled",
+      "status": "accumulating",
       "file_count": 1,
       "row_count": null,
-      "latest_date": "2026-11-05",
+      "latest_date": "2026-11-06",
       "missing_trading_days": [],
       "immutable_changes": [],
       "schema_errors": [],
@@ -2511,6 +2527,10 @@
         {
           "date": "2026-11-05",
           "count": 36
+        },
+        {
+          "date": "2026-11-06",
+          "count": 37
         }
       ]
     },
