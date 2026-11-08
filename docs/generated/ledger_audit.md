@@ -1,6 +1,6 @@
 # Ledger accumulation audit
 
-- Generated: `2026-11-07T22:14:26+00:00`
+- Generated: `2026-11-08T21:23:21+00:00`
 - Latest completed NYSE day: `2026-11-06`
 - Result: accumulating 69 · frozen 2 · stalled 2 · inactive 12 · violation 0 · planned 8
 
@@ -34,13 +34,13 @@
 | `realty_o_entry_cohort_archive` | monthly | 5 | 2026-11-03 | **accumulating** | — |
 | `ai_capital_archives` | monthly | 9 | 2026-11-05 | **accumulating** | — |
 | `dualdb_model_runs` | weekly | 0 | — | **inactive** | — |
-| `source_monitoring` | trading_daily | 90 | 2026-11-07 | **stalled** | missing trading days: 2026-08-25, 2026-08-27, 2026-08-28, 2026-10-23, 2026-11-04 |
-| `source_monitoring_status` | trading_daily | 1 | 2026-11-07 | **accumulating** | — |
+| `source_monitoring` | trading_daily | 91 | 2026-11-08 | **stalled** | missing trading days: 2026-08-25, 2026-08-27, 2026-08-28, 2026-10-23, 2026-11-04 |
+| `source_monitoring_status` | trading_daily | 1 | 2026-11-08 | **accumulating** | — |
 | `ipo_reference_batch_receipts` | event | 4 | 2026-08-19 | **accumulating** | — |
-| `ipo_reference_batch_status` | weekly | 1 | 2026-11-07 | **accumulating** | — |
+| `ipo_reference_batch_status` | weekly | 1 | 2026-11-08 | **accumulating** | — |
 | `ipo_edgar_candidates` | weekly | 1 | 2026-11-07 | **accumulating** | — |
 | `ipo_ai_classification_decisions` | biweekly | 1 | 2026-11-07 | **accumulating** | — |
-| `statistics_alert_notify_state` | event | 1 | 2026-11-07 | **accumulating** | — |
+| `statistics_alert_notify_state` | event | 1 | 2026-11-08 | **accumulating** | — |
 | `timeseries_raw_receipts` | trading_daily | 1 | — | **accumulating** | — |
 | `timeseries_observation_facts` | trading_daily | 1 | — | **accumulating** | — |
 | `timeseries_event_facts` | event | 0 | — | **inactive** | — |
@@ -53,7 +53,7 @@
 | `raw_receipts` | event | 0 | — | **planned** | — |
 | `quarantine` | event | 0 | — | **planned** | — |
 | `bitemporal_facts` | event | 0 | — | **planned** | — |
-| `forecast_timestamp_proof` | weekly | 1 | 2026-11-07 | **accumulating** | — |
+| `forecast_timestamp_proof` | weekly | 1 | 2026-11-08 | **accumulating** | — |
 | `research_pack` | monthly | 5 | — | **accumulating** | — |
 | `scenario_v5_2_distinctness_shadow` | trading_daily | 1 | — | **accumulating** | — |
 | `scenario_v5_2_sensitivity_grid` | event | 1 | — | **accumulating** | — |
