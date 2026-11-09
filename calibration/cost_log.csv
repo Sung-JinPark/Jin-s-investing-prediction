@@ -132,3 +132,6 @@ ts,question_id,stage,model,input_tokens,output_tokens,cost_usd,provider,snapshot
 2026-11-09T16:10:56+09:00,nasdaq-comp-30000-close-2027-01-15,research:general,claude-opus-4-8,97270,5076,0.69325000,anthropic,claude-opus-4-8,msg_011Cgrvnk4KK1qiSvtHhJmW2,0,8
 2026-11-09T16:10:56+09:00,nasdaq-comp-30000-close-2027-01-15,research:devil,claude-opus-4-8,195230,6594,1.22100000,anthropic,claude-opus-4-8,msg_011CgrvttfPyLsA6yX2wmP75,0,8
 2026-11-09T16:10:56+09:00,nasdaq-comp-30000-close-2027-01-15,reasoning,claude-opus-4-8,0,0,0.13132875,anthropic,claude-opus-4-8,,0,0
+2026-11-09T16:44:52+09:00,t10y2y-100bp-by-2027-01-15,research:general,claude-opus-4-8,127089,7262,0.89699500,anthropic,claude-opus-4-8,msg_011CgrwJxFcbbZfbehHbVSfX,0,8
+2026-11-09T16:44:52+09:00,t10y2y-100bp-by-2027-01-15,research:devil,claude-opus-4-8,282759,8219,1.69927000,anthropic,claude-opus-4-8,msg_011Cgrx4iba8Q4grqweRivB7,0,8
+2026-11-09T16:44:52+09:00,t10y2y-100bp-by-2027-01-15,reasoning,claude-opus-4-8,0,0,0.13467875,anthropic,claude-opus-4-8,,0,0
