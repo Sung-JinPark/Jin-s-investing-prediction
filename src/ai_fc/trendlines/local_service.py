@@ -675,8 +675,23 @@ def make_http_server(service: LocalTrendlinesService, *, host: str = HOST, port:
                 self.send_header("Vary", "Origin")
             self.end_headers()
 
+        def _discard_small_body(self):
+            # 읽지 않은 요청 바이트가 남은 채 소켓을 닫으면 Windows 는 RST 를 보내고,
+            # 클라이언트는 405 응답을 읽기 전에 WinError 10053 으로 끊긴다(테스트 간헐 실패).
+            # 작은 본문만 읽어 버린다 — 내용은 해석·저장하지 않으며 쓰기 거부 계약은 그대로다.
+            try:
+                length = int(self.headers.get("Content-Length") or 0)
+            except ValueError:
+                return
+            if 0 < length <= 65536:
+                try:
+                    self.rfile.read(length)
+                except OSError:
+                    pass
+
         def do_POST(self):
             self.close_connection = True
+            self._discard_small_body()
             self._error(405)
 
         do_PUT = do_POST
