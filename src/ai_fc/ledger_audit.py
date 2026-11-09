@@ -52,6 +52,12 @@ def _load_registry(root: Path) -> list[dict[str, Any]]:
         if row["id"] in ids:
             raise LedgerAuditError(f"duplicate ledger id: {row['id']}")
         ids.add(row["id"])
+        if "settle_hours" in row:
+            settle = row["settle_hours"]
+            if row["cadence"] != "trading_daily":
+                raise LedgerAuditError(f"{row['id']}: settle_hours applies to trading_daily ledgers only")
+            if isinstance(settle, bool) or not isinstance(settle, (int, float)) or not 0 < settle <= MAX_SETTLE_HOURS:
+                raise LedgerAuditError(f"{row['id']}: settle_hours must be in (0, {MAX_SETTLE_HOURS}]")
     return rows
 
 
@@ -134,9 +140,14 @@ def _dates(paths: list[Path], timestamp_field: str | None = None) -> list[date]:
 #: Only a recent one means the writer is failing now, so only that reads as stalled.
 RECENT_GAP_DAYS = 14
 
+#: A writer that runs hours after the 16:15 ET close would read as stalled every morning until it ran.
+#: settle_hours holds such a ledger to the session that closed at least that long ago; a day is the cap,
+#: so a writer that misses a whole session still reads as stalled the next day.
+MAX_SETTLE_HOURS = 24
 
-def _last_market_day(root: Path, today: date) -> date:
-    cutoff = completed_market_cutoff(today)
+
+def _last_market_day(root: Path, now: datetime) -> date:
+    cutoff = completed_market_cutoff(now.date(), now=now)
     calendar = load_calendar_contract(root)
     start = cutoff - timedelta(days=40)
     valid = [d for d in future_trading_days(start, 40, calendar) if d <= cutoff]
@@ -246,7 +257,7 @@ def audit_ledgers(root: Path, *, write: bool = True, now: datetime | None = None
         previous = json.loads(manifest_path.read_text(encoding="utf-8")).get("files", {})
     all_hashes: dict[str, str] = dict(previous)
     results: list[dict[str, Any]] = []
-    last_market = _last_market_day(root, today)
+    last_market = _last_market_day(root, stamp)
 
     for row in registered:
         paths = _files(root, row)
@@ -269,10 +280,14 @@ def audit_ledgers(root: Path, *, write: bool = True, now: datetime | None = None
         csv_health = _csv_health(paths, row.get("timestamp_field")) if row["kind"] == "append_csv" else {"rows": None, "duplicate_rows": 0, "reversed_timestamps": 0}
         latest = days[-1] if days else None
         expected = row.get("expected_state")
+        settle = row.get("settle_hours")
+        expected_day = None
+        if row["cadence"] == "trading_daily":
+            expected_day = _last_market_day(root, stamp - timedelta(hours=settle)) if settle else last_market
         stale = False
         if latest and expected != "frozen":
             if row["cadence"] == "trading_daily":
-                stale = latest < last_market
+                stale = latest < expected_day
             elif row["cadence"] == "weekly":
                 stale = (today - latest).days > 10
             elif row["cadence"] == "biweekly":
@@ -306,6 +321,8 @@ def audit_ledgers(root: Path, *, write: bool = True, now: datetime | None = None
             "cadence": row["cadence"], "criticality": row["criticality"],
             "status": status, "file_count": len(paths), "row_count": csv_health["rows"],
             "latest_date": latest.isoformat() if latest else None,
+            "expected_date": expected_day.isoformat() if expected_day else None,
+            "settle_hours": settle,
             "missing_trading_days": gaps, "immutable_changes": immutable_changes,
             "schema_errors": schema_errors, "duplicate_rows": csv_health["duplicate_rows"],
             "reversed_timestamps": csv_health["reversed_timestamps"],
@@ -352,11 +369,13 @@ def render_markdown(report: dict[str, Any]) -> str:
             findings.append(f"schema errors: {len(item['schema_errors'])}")
         if item["duplicate_rows"]:
             findings.append(f"duplicate rows: {item['duplicate_rows']}")
+        if item.get("settle_hours"):
+            findings.append(f"writer settles within {item['settle_hours']}h of the close; expects {item['expected_date']}")
         count = str(item["file_count"])
         if item["row_count"] is not None:
             count += f" / {item['row_count']}"
         lines.append(f"| `{item['id']}` | {item['cadence']} | {count} | {item['latest_date'] or '—'} | **{item['status']}** | {'; '.join(findings) or '—'} |")
-    lines += ["", "## Interpretation", "", "`frozen` is a deliberately retired ledger whose bytes remain immutable. `stalled` is an operational warning, not an immutable-record violation. `planned` means the layer is registered before first ingestion. Existing file hash changes and schema failures are `violation` and fail the check gate.", ""]
+    lines += ["", "## Interpretation", "", "`frozen` is a deliberately retired ledger whose bytes remain immutable. `stalled` is an operational warning, not an immutable-record violation. A trading-daily ledger is held to the latest NYSE session closed (16:15 ET) by the audit time, or, when it registers `settle_hours`, to the session closed at least that many hours earlier, so a writer that runs the next morning is not read as stalled before it runs. `planned` means the layer is registered before first ingestion. Existing file hash changes and schema failures are `violation` and fail the check gate.", ""]
     return "\n".join(lines)
 
 
