@@ -114,3 +114,6 @@ ts,question_id,stage,model,input_tokens,output_tokens,cost_usd,provider,snapshot
 2026-11-09T14:39:14+09:00,vix-weekly-spike-50pct-by-2026-12-18,research:general,claude-opus-4-8,184730,10521,1.26667500,anthropic,claude-opus-4-8,msg_011CgrnnrJfpwXDRSHfwKbRS,0,8
 2026-11-09T14:39:14+09:00,vix-weekly-spike-50pct-by-2026-12-18,research:devil,claude-opus-4-8,107356,11120,0.89478000,anthropic,claude-opus-4-8,msg_011Cgroy2fuAGngk4U2P9Pdt,0,8
 2026-11-09T14:39:14+09:00,vix-weekly-spike-50pct-by-2026-12-18,reasoning,claude-opus-4-8,0,0,0.18422875,anthropic,claude-opus-4-8,,0,0
+2026-11-09T14:52:38+09:00,ecb-depo-300-2026-12-28,research:general,claude-opus-4-8,149401,8431,1.03778000,anthropic,claude-opus-4-8,msg_011CgrpNYLjvV2C2EYcQLXaR,0,8
+2026-11-09T14:52:38+09:00,ecb-depo-300-2026-12-28,research:devil,claude-opus-4-8,100302,9541,0.82003500,anthropic,claude-opus-4-8,msg_011Cgrq4LH4yvBVuW4Avevko,0,8
+2026-11-09T14:52:38+09:00,ecb-depo-300-2026-12-28,reasoning,claude-opus-4-8,0,0,0.13021875,anthropic,claude-opus-4-8,,0,0
