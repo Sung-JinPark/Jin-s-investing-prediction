@@ -117,3 +117,6 @@ ts,question_id,stage,model,input_tokens,output_tokens,cost_usd,provider,snapshot
 2026-11-09T14:52:38+09:00,ecb-depo-300-2026-12-28,research:general,claude-opus-4-8,149401,8431,1.03778000,anthropic,claude-opus-4-8,msg_011CgrpNYLjvV2C2EYcQLXaR,0,8
 2026-11-09T14:52:38+09:00,ecb-depo-300-2026-12-28,research:devil,claude-opus-4-8,100302,9541,0.82003500,anthropic,claude-opus-4-8,msg_011Cgrq4LH4yvBVuW4Avevko,0,8
 2026-11-09T14:52:38+09:00,ecb-depo-300-2026-12-28,reasoning,claude-opus-4-8,0,0,0.13021875,anthropic,claude-opus-4-8,,0,0
+2026-11-09T15:05:53+09:00,fedfunds-upper-hold-2026ye,research:general,claude-opus-4-8,131671,8525,0.95148000,anthropic,claude-opus-4-8,msg_011CgrqMeQiPcj8yMFKBrv2N,0,8
+2026-11-09T15:05:53+09:00,fedfunds-upper-hold-2026ye,research:devil,claude-opus-4-8,211116,7111,1.31335500,anthropic,claude-opus-4-8,msg_011Cgrr5H7Dzrj4sKd4FYwp6,0,8
+2026-11-09T15:05:53+09:00,fedfunds-upper-hold-2026ye,reasoning,claude-opus-4-8,0,0,0.12402875,anthropic,claude-opus-4-8,,0,0
