@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import math
+import shutil
 from copy import deepcopy
 from datetime import date, datetime, timedelta
 from pathlib import Path
@@ -13,16 +14,21 @@ import pytest
 import yaml
 
 from ai_fc.scenario_v5.contracts import (
+    PROTECTED_PATHS,
     canonical_hash,
     canonical_numerical_hash,
     compare_protected_append_only,
     protected_hashes,
 )
-from ai_fc.scenario_v5_2.artifact import _model_content, dashboard_projection, validate_candidate
+from ai_fc.scenario_v5_2.artifact import (
+    _model_content, build_candidate, dashboard_projection, validate_candidate,
+)
 from ai_fc.scenario_v5_2.audit import PACKAGE_RELATIVE, render_dashboard
 from ai_fc.scenario_v5_2.engine import (
     ANCHOR_DATE, CANDIDATE_RELATIVE, KNOWLEDGE_CUTOFF, ScenarioV52Error,
-    SOURCE_PATHS, _live_actual_gap, generate_prior, load_inputs, source_file_hash,
+    SOURCE_PATHS, LEGACY_V52_RELATIVE, SHADOW_V52_RELATIVE,
+    WEIGHT_CONTRACT_RELATIVE, _live_actual_gap, generate_prior, load_inputs,
+    source_file_hash,
 )
 from ai_fc.scenario_v5_2.event_learning import (
     EventLearningError, active_events, append_event, event_score_summary,
@@ -37,6 +43,44 @@ ROOT = Path(__file__).parents[2]
 
 def _candidate() -> dict:
     return json.loads((ROOT / CANDIDATE_RELATIVE).read_text(encoding="utf-8"))
+
+
+@pytest.fixture(scope="module")
+def rebuilt_candidate_root(tmp_path_factory: pytest.TempPathFactory) -> Path:
+    """Exercise a real build/replay without refreshing the saved research artifact.
+
+    A checked-in candidate may legitimately be stale between data refreshes.
+    Fresh-path tests must build their own candidate from copied inputs instead
+    of rewriting its receipt or assuming the working repository is fresh.
+    """
+    root = tmp_path_factory.mktemp("scenario-v52-rebuilt")
+    protected_before = protected_hashes(ROOT)
+    paths = {
+        *PROTECTED_PATHS, *SOURCE_PATHS,
+        SHADOW_V52_RELATIVE.as_posix(), LEGACY_V52_RELATIVE.as_posix(),
+        WEIGHT_CONTRACT_RELATIVE.as_posix(),
+        "data/scenarios/band_calibration.csv",
+        "data/scenarios/candidates/event_learning",
+    }
+    for relative in sorted(paths):
+        source, target = ROOT / relative, root / relative
+        if source.is_dir():
+            shutil.copytree(source, target, dirs_exist_ok=True)
+        elif source.is_file():
+            target.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(source, target)
+    # Git metadata is not a numerical input; the disposable copy is no checkout.
+    with pytest.MonkeyPatch.context() as patch:
+        patch.setattr(
+            "ai_fc.scenario_v5_2.artifact._git_context",
+            lambda _root: {"kind": "isolated_test_copy"},
+        )
+        _, payload, changed = build_candidate(root, force=True)
+    assert changed is True
+    validation = validate_candidate(payload, root, replay=True)
+    assert validation["ok"], validation["errors"]
+    assert protected_hashes(ROOT) == protected_before
+    return root
 
 
 def _rehash(payload: dict) -> dict:
@@ -70,9 +114,63 @@ def test_review_package_uses_central_review_tree() -> None:
     assert PACKAGE_RELATIVE.parent.as_posix() == "reports/reviews/current/scenario_v5_2"
 
 
-def test_candidate_passes_strict_validation_and_sources() -> None:
-    result = validate_candidate(_candidate(), ROOT, replay=False)
+def test_candidate_passes_strict_validation_and_sources(
+    rebuilt_candidate_root: Path,
+) -> None:
+    payload = json.loads(
+        (rebuilt_candidate_root / CANDIDATE_RELATIVE).read_text(encoding="utf-8")
+    )
+    result = validate_candidate(payload, rebuilt_candidate_root, replay=False)
     assert result["ok"], result["errors"]
+
+
+def test_repository_candidate_discloses_protected_input_drift() -> None:
+    """A stale saved artifact stays rejected, even though fresh fixtures pass."""
+    payload = _candidate()
+    comparison = compare_protected_append_only(
+        payload["build_receipt"]["protected_before"], protected_hashes(ROOT)
+    )
+    validation = validate_candidate(payload, ROOT, replay=False)
+    assert validation["ok"] is comparison["ok"], validation["errors"]
+    projection = dashboard_projection(
+        ROOT, datetime.fromisoformat(payload["knowledge_cutoff"]),
+        maximum_age_trading_days=1,
+    )
+    assert projection["runtime_gate"]["display_eligible"] is comparison["ok"]
+    if not comparison["ok"]:
+        assert any("protected existing file changed" in error
+                   for error in validation["errors"]), validation["errors"]
+        assert projection["status"] == "stale_last_valid"
+        assert projection["runtime_gate"]["fallback_mode"] == \
+            "last_valid_candidate_with_explicit_disclosure"
+        reasons = " ".join(projection["runtime_gate"]["reasons"])
+        for path in comparison["changed"] + comparison["removed"]:
+            assert path in reasons
+
+
+def test_rebuilt_candidate_rejects_later_protected_ledger_drift(
+    rebuilt_candidate_root: Path, tmp_path: Path,
+) -> None:
+    """Copy-only byte drift must close the same real validation/display gates."""
+    shutil.copytree(rebuilt_candidate_root, tmp_path, dirs_exist_ok=True)
+    payload = json.loads(
+        (tmp_path / CANDIDATE_RELATIVE).read_text(encoding="utf-8")
+    )
+    assert validate_candidate(payload, tmp_path, replay=False)["ok"] is True
+    ledger = tmp_path / "data/ml_history/2026.jsonl"
+    ledger.write_bytes(ledger.read_bytes() + b"\n")
+    validation = validate_candidate(payload, tmp_path, replay=False)
+    assert validation["ok"] is False
+    assert any("data/ml_history/2026.jsonl" in error
+               for error in validation["errors"]), validation["errors"]
+    projection = dashboard_projection(
+        tmp_path, datetime.fromisoformat(payload["knowledge_cutoff"]),
+        maximum_age_trading_days=1,
+    )
+    assert projection["runtime_gate"]["display_eligible"] is False
+    assert projection["status"] == "stale_last_valid"
+    assert any("data/ml_history/2026.jsonl" in reason
+               for reason in projection["runtime_gate"]["reasons"])
 
 
 def test_july_jobs_actual_was_not_available_to_v5_1() -> None:
@@ -661,10 +759,15 @@ def test_seed_path_count_and_independent_phase_sampling_primitives() -> None:
     assert np.isfinite(a).all() and (a > 0).all()
 
 
-def test_dashboard_projection_fresh_and_stale_fallback() -> None:
-    cutoff = datetime.fromisoformat(_candidate()["knowledge_cutoff"])
+def test_dashboard_projection_fresh_and_stale_fallback(
+    rebuilt_candidate_root: Path,
+) -> None:
+    payload = json.loads(
+        (rebuilt_candidate_root / CANDIDATE_RELATIVE).read_text(encoding="utf-8")
+    )
+    cutoff = datetime.fromisoformat(payload["knowledge_cutoff"])
     fresh = dashboard_projection(
-        ROOT, cutoff,
+        rebuilt_candidate_root, cutoff,
         maximum_age_trading_days=1,
     )
     assert fresh["runtime_gate"]["display_eligible"] is True
@@ -680,7 +783,7 @@ def test_dashboard_projection_fresh_and_stale_fallback() -> None:
         "observations": 1, "minimum": 60, "pass": False,
     }
     calibration_rows = (
-        ROOT / "data/scenarios/band_calibration.csv"
+        rebuilt_candidate_root / "data/scenarios/band_calibration.csv"
     ).read_text(encoding="utf-8").splitlines()[1:]
     assert fresh["governance"]["gates"]["band_calibration"]["observations"] == \
         len(calibration_rows)
@@ -709,7 +812,7 @@ def test_dashboard_projection_fresh_and_stale_fallback() -> None:
     assert dotcom["dependency_cap"] == .60
     assert dotcom["requested_sensitivity_policy"]["0.80"] == \
         "blocked_above_dependency_cap"
-    source_dates = _candidate()["distribution"]["dates"]
+    source_dates = payload["distribution"]["dates"]
     projected_dates = fresh["distribution"]["dates"]
     source_index = {value: index for index, value in enumerate(source_dates)}
     projected_indexes = [source_index[value] for value in projected_dates]
@@ -737,7 +840,9 @@ def test_dashboard_projection_fresh_and_stale_fallback() -> None:
         stale_now += timedelta(days=1)
         if stale_now.weekday() < 5:
             elapsed_trading_days += 1
-    stale = dashboard_projection(ROOT, stale_now, maximum_age_trading_days=1)
+    stale = dashboard_projection(
+        rebuilt_candidate_root, stale_now, maximum_age_trading_days=1,
+    )
     # 소유자 승인 B안 (DECISIONS.md 2026-09-02): 게이트는 닫힌 채 공시되지만,
     # 봉인 산출물이 내부적으로 온전하면 마지막 유효 내용은 유지된다.
     assert stale["status"] == "stale_last_valid"
@@ -982,10 +1087,16 @@ def test_mutations_fail_probability_dates_circularity_and_distinctness() -> None
         assert any(expected in error for error in result["errors"]), result["errors"]
 
 
-def test_protected_snapshot_ledger_and_archive_hashes_are_unchanged() -> None:
-    payload = _candidate()
+def test_protected_snapshot_ledger_and_archive_hashes_are_unchanged(
+    rebuilt_candidate_root: Path,
+) -> None:
+    payload = json.loads(
+        (rebuilt_candidate_root / CANDIDATE_RELATIVE).read_text(encoding="utf-8")
+    )
     before = payload["build_receipt"]["protected_before"]
-    comparison = compare_protected_append_only(before, protected_hashes(ROOT))
+    comparison = compare_protected_append_only(
+        before, protected_hashes(rebuilt_candidate_root)
+    )
     assert comparison["ok"], comparison
     # 삭제·변조는 어떤 보호 경로에서도 허용하지 않는다.
     assert comparison["removed"] == comparison["changed"] == []

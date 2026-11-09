@@ -33,6 +33,8 @@ DASHBOARD_STYLES = DASHBOARD_PARTS / "dashboard.css"
 DASHBOARD_LOOKUP_SCRIPT = DASHBOARD_PARTS / "forecast_lookup.js"
 DASHBOARD_QR_SCRIPT = DASHBOARD_PARTS / "qr-creator.min.js"
 DASHBOARD_SCRIPT = DASHBOARD_PARTS / "dashboard.js"
+RECORDS_COPY_SCRIPT = DASHBOARD_PARTS / "records_copy.js"
+RECORDS_METHOD_COPY_SCRIPT = DASHBOARD_PARTS / "records_method_copy.js"
 # Route-specific path arrays are loaded only when the future surface is opened.
 # The shell plus summary payload must remain below this fixed ceiling.  Keep the
 # binary unit explicit so feature growth is still bounded and the check is
@@ -116,6 +118,15 @@ FORECAST_BODY_DICTIONARY = (
     "| ↓ | −2%p |", "| ↓ | −3%p |", "| ↓ | −1%p |", "| ↑ | +2%p |",
     "CME FedWatch", "- **직전 대비**:",
     "| ↓ | −4%p |", "| base rate | 값 |", "| ↑ | +1%p |", "| ↑ | +3%p |", "| ↑ | +4%p |",
+    "컨센서스", "매출총이익률", "가이던스", "최초 공표", "전년 대비", "전분기 대비",
+    "https://www.federalreserve.gov/newsevents/speech/warsh20260828a.htm",
+    "https://advantage.factset.com/hubfs/Website/Resources%20Section/Research%20Desk/Earnings%20Insight/EarningsInsight_082826.pdf",
+    "https://www.cnbc.com/2026/08/28/-september-fed-decision-now-a-coin-flip-as-rate-hike-odds-increase.html",
+    "https://www.bls.gov/news.release/empsit.nr0.htm",
+    "https://nvidianews.nvidia.com/news/nvidia-announces-financial-results-for-second-quarter-fiscal-2027",
+    "https://www.federalreserve.gov/newsevents/pressreleases/monetary20260729a.htm",
+    "https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm",
+    "https://www.morganstanley.com/insights/articles/2026-us-midterm-elections-stock-market-impact",
 )
 
 # Public UI copy must not imply a target-price product.  Historical ledgers and
@@ -729,7 +740,9 @@ def load_template(*, include_qr: bool = True) -> str:
     script_parts = [DASHBOARD_LOOKUP_SCRIPT.read_text(encoding="utf-8")]
     if include_qr:
         script_parts.append(DASHBOARD_QR_SCRIPT.read_text(encoding="utf-8"))
-    script_parts.append(DASHBOARD_SCRIPT.read_text(encoding="utf-8"))
+    script_parts.extend(path.read_text(encoding="utf-8") for path in (
+        RECORDS_COPY_SCRIPT, RECORDS_METHOD_COPY_SCRIPT, DASHBOARD_SCRIPT,
+    ))
     script = "\n".join(script_parts)
     for marker in ("<!--STYLES-->", "<!--APP_SCRIPT-->", "<!--ANALYTICS-->"):
         if marker not in shell:

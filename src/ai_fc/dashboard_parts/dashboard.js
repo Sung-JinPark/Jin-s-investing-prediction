@@ -110,7 +110,9 @@ const app=()=>document.getElementById('app');
 const pct=v=>(v==null?'—':Math.round(v*100)+'%');
 const hasNumeric=v=>v!==null&&v!==''&&Number.isFinite(Number(v));
 const p1=v=>(hasNumeric(v)?v+'%':'산출 전');
-const roundLabel=v=>(Number(v)>0?`R${v}`:'회차 없음');
+const roundLabel=v=>(Number(v)>0?`${v}번째 예측`:'예측 전');
+const questionTitle=q=>RecordsCopy.title(q);
+const recordsText=(value,context={})=>RecordsCopy.text(value,context);
 const num=v=>(v==null?'—':Number(v).toLocaleString());
 const esc=s=>(s==null?'':String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])));
 const UI_TERMS={
@@ -213,7 +215,7 @@ function loadUIState(){
       }};
   }catch(_){return {...UI_DEFAULTS,pins:[],recent:[],notes:{},compare:[],questionView:{...UI_DEFAULTS.questionView}};}
 }
-function saveUIState(){try{localStorage.setItem(UI_KEY,JSON.stringify(UI_STATE));}catch(_){}}
+function saveUIState(){try{localStorage.setItem(UI_KEY,JSON.stringify(UI_STATE));return true;}catch(_){return false;}}
 let UI_STATE=loadUIState(),toastTimer=0,utilityReturnFocus=null,shortcutReturnFocus=null;
 const VISIT_SEEN_AT=UI_STATE.lastSeenGeneratedAt;
 function rememberVisitSnapshot(){if(!DATA?.meta?.generated)return;UI_STATE.lastSeenGeneratedAt=DATA.meta.generated;saveUIState();}
@@ -244,7 +246,7 @@ function currentNote(){return UI_STATE.notes[currentNoteKey()]||'';}
 function saveCurrentNote(value){
   const key=currentNoteKey(),note=String(value||'').slice(0,700),notes={...UI_STATE.notes};
   if(note.trim())notes[key]=note;else delete notes[key];
-  UI_STATE.notes=Object.fromEntries(Object.entries(notes).slice(-20));saveUIState();
+  UI_STATE.notes=Object.fromEntries(Object.entries(notes).slice(-20));return saveUIState();
 }
 function openCurrentNote(){
   setUtility(true);
@@ -259,8 +261,8 @@ function setMotion(value){
   UI_STATE.motion=value==='reduced'?'reduced':'adaptive';saveUIState();
   document.body.classList.toggle('motion-reduced',UI_STATE.motion==='reduced');
   if(UI_STATE.motion==='reduced')document.querySelectorAll('.section-reveal').forEach(x=>x.classList.add('is-visible'));
-  if(!utilityLayer.hidden)renderUtilityPanel();
-  showToast(UI_STATE.motion==='reduced'?'움직임을 최소화했습니다.':'시스템 설정에 맞춰 움직임을 적용합니다.');
+  updateUtilityPreferences();
+  showToast(UI_STATE.motion==='reduced'?'애니메이션을 줄였습니다.':'기본 애니메이션을 적용했습니다.');
 }
 
 function cleanupExperienceLayer(){
@@ -333,11 +335,19 @@ function closeQuickPeek(){
   peekAnchor=null;quickPeek.hidden=true;quickPeek.setAttribute('aria-hidden','true');
 }
 const DRIVER_LABELS=Object.freeze({
-  'ai-capex-cycle':'AI 투자 사이클',
+  'ai-capex-cycle':'인공지능 투자 흐름',
   'memory-cycle':'메모리 업황',
   'vol-regime':'변동성 국면',
   'fed-path':'연준 정책 경로',
-  'midterm-2026':'2026 중간선거'
+  'midterm-2026':'2026 중간선거',
+  'ai-financing':'인공지능 기업 자금 조달',
+  'ai-software-monetization':'인공지능 소프트웨어 수익화',
+  'boj-normalization':'일본은행 통화정책',
+  'credit-cycle':'신용 시장 흐름',
+  'ecb-normalization':'유럽중앙은행 통화정책',
+  'inflation-path':'물가 흐름',
+  'labor-market':'고용 시장',
+  'ipo-window':'기업 상장 여건'
 });
 const DOMAIN_LABELS=Object.freeze({
   'market-regime':'시장 국면',
@@ -348,8 +358,8 @@ const DOMAIN_LABELS=Object.freeze({
   'corporate-event':'기업 이벤트',
   'crypto':'가상자산'
 });
-function humanDomain(value){return DOMAIN_LABELS[value]||String(value||'기타').replaceAll('-',' ');}
-function humanDriver(value){return DRIVER_LABELS[value]||String(value||'기타').replaceAll('-',' ');}
+function humanDomain(value){return DOMAIN_LABELS[value]||recordsText(value||'기타 분야');}
+function humanDriver(value){return DRIVER_LABELS[value]||recordsText(value||'기타 요인');}
 function generatedDay(){return String(DATA?.meta?.generated||'').slice(0,10);}
 function dayDiff(from,to){
   const a=Date.parse(`${from}T00:00:00Z`),b=Date.parse(`${to}T00:00:00Z`);
@@ -427,11 +437,11 @@ function median(values){
 function isQuestionPinned(qid){return UI_STATE.pins.some(x=>x.hash==='#records/question/'+qid||x.hash==='#q/'+qid);}
 function toggleQuestionPin(qid){
   const q=DATA?.questions?.find(x=>x.id===qid);if(!q)return;
-  const hash='#records/question/'+qid,on=isQuestionPinned(qid),d={hash,title:q.title,type:'question'};
+  const hash='#records/question/'+qid,on=isQuestionPinned(qid),d={hash,title:questionTitle(q),type:'question'};
   UI_STATE.pins=on?UI_STATE.pins.filter(x=>x.hash!==hash):[d,...UI_STATE.pins.filter(x=>x.hash!==hash&&descriptorExists(x))].slice(0,8);
   saveUIState();syncQuestionActions();renderCompareTray();
   const old=document.getElementById('my-radar');if(old)old.replaceWith(myRadarPanel());
-  showToast(on?'개인 레이더에서 제거했습니다.':'개인 레이더에 추가했습니다.');
+  showToast(on?'관심 질문에서 제거했습니다.':'관심 질문에 추가했습니다.');
   if(!commandLayer.hidden)renderCommandResults(commandInput.value);
 }
 function myRadarQuestions(){
@@ -439,8 +449,8 @@ function myRadarQuestions(){
 }
 function myRadarPanel(){
   const qs=myRadarQuestions();
-  return el(`<section class="my-radar" id="my-radar" aria-labelledby="my-radar-title"><div class="panel-head"><div><h2 id="my-radar-title">MY RADAR</h2><p>이 기기에 고정한 질문을 빠르게 다시 봅니다.</p></div><a class="text-button" href="#records">질문 찾기</a></div>
-    ${qs.length?`<div class="radar-pins">${qs.slice(0,6).map(q=>`<button type="button" class="radar-pin" data-open-q="${esc(q.id)}"><span>${p1(q.latest_prob)} · ${esc(humanDomain(q.domain))}</span><b>${esc(q.title)}</b><small>${q.deadline?esc(q.deadline):'수시 판정'} · ${roundLabel(q.n_rounds)}</small></button>`).join('')}</div>`:
+  return el(`<section class="my-radar" id="my-radar" aria-labelledby="my-radar-title"><div class="panel-head"><div><h2 id="my-radar-title">관심 질문</h2><p>이 기기에 고정한 질문을 빠르게 다시 봅니다.</p></div><a class="text-button" href="#records">질문 찾기</a></div>
+    ${qs.length?`<div class="radar-pins">${qs.slice(0,6).map(q=>`<button type="button" class="radar-pin" data-open-q="${esc(q.id)}"><span>${p1(q.latest_prob)} · ${esc(humanDomain(q.domain))}</span><b>${esc(questionTitle(q))}</b><small>${q.deadline?esc(q.deadline):'수시 판정'} · ${roundLabel(q.n_rounds)}</small></button>`).join('')}</div>`:
     '<div class="radar-empty">예측 상세 또는 목록의 ☆ 버튼으로 질문을 고정하면 여기에 표시됩니다.</div>'}</section>`);
 }
 const REVIEW_DISMISSED_KEY='jin-review-dismissed-v1';
@@ -458,10 +468,10 @@ function selectDecisionItems({since=VISIT_SEEN_AT,includePinned=true,dueWithinDa
     const latestTs=latest?.forecast_ts||q.latest_ts||'',latestMs=latestTs?Date.parse(latestTs):null;
     const days=q.deadline?dayDiff(today,q.deadline):null,pinned=isQuestionPinned(q.id),reasons=[],signals=[];
     const newSince=Number.isFinite(sinceMs)&&Number.isFinite(latestMs)&&latestMs>sinceMs;
-    if(newSince){reasons.push(delta===0?'새 회차 · 확률 재확인':'새 예측 회차');signals.push('new');}
-    if(delta!=null&&Math.abs(delta)>=minAbsoluteDelta){reasons.push(`직전 대비 ${delta>0?'+':''}${delta}%p`);signals.push('changed');}
-    if(q.status==='active'&&days!=null&&days>=0&&days<=dueWithinDays){reasons.push(days===0?'오늘 판정':`D-${days} 판정 임박`);signals.push('due');}
-    if(includePinned&&pinned){reasons.push('MY RADAR');signals.push('pinned');}
+    if(newSince){reasons.push(delta===0?'새 예측 · 확률 재확인':'새 예측');signals.push('new');}
+    if(delta!=null&&Math.abs(delta)>=minAbsoluteDelta){reasons.push(`직전 대비 ${delta>0?'+':''}${delta}%포인트`);signals.push('changed');}
+    if(q.status==='active'&&days!=null&&days>=0&&days<=dueWithinDays){reasons.push(days===0?'오늘 판정':`판정일까지 ${days}일`);signals.push('due');}
+    if(includePinned&&pinned){reasons.push('관심 질문');signals.push('pinned');}
     const score=(newSince?220:0)+(days!=null&&days>=0&&days<=dueWithinDays?140-days:0)+(delta==null?0:Math.abs(delta)*4)+(pinned?28:0);
     return {q,reasons:[...new Set(reasons)],signals:[...new Set(signals)],score,delta,days,newSince};
   }).filter(x=>x.reasons.length).sort((a,b)=>b.score-a.score||String(a.q.deadline||'').localeCompare(String(b.q.deadline||''))).slice(0,limit);
@@ -473,10 +483,10 @@ function reviewQueueData(){
 function reviewQueuePanel(){
   const items=reviewQueueData();
   return `<section class="utility-section"><div class="review-queue" role="region" aria-labelledby="review-queue-title">
-    <div class="review-queue-head"><div><span>DECISION SUPPORT</span><h3 id="review-queue-title">REVIEW QUEUE</h3><small>변화 · 판정 임박 · MY RADAR만 모았습니다.</small></div><b>${items.length}</b></div>
+    <div class="review-queue-head"><div><span>확인할 질문</span><h3 id="review-queue-title">검토할 질문</h3><small>변화 · 판정 임박 · 관심 질문만 모았습니다.</small></div><b>${items.length}</b></div>
     ${items.length?`<div class="review-items">${items.map(({q,reasons})=>`<div class="review-item">
-      <button type="button" class="review-open" data-open-q="${esc(q.id)}"><span>${esc(q.title)}<small>${esc(reasons.join(' · '))}</small></span><strong class="${hasNumeric(q.latest_prob)?'':'pending-value'}">${p1(q.latest_prob)}</strong></button>
-      <button type="button" class="review-dismiss" data-review-dismiss="${esc(q.id)}" aria-label="${esc(q.title)} 이번 세션에서 숨기기">×</button>
+      <button type="button" class="review-open" data-open-q="${esc(q.id)}"><span>${esc(questionTitle(q))}<small>${esc(reasons.join(' · '))}</small></span><strong class="${hasNumeric(q.latest_prob)?'':'pending-value'}">${p1(q.latest_prob)}</strong></button>
+      <button type="button" class="review-dismiss" data-review-dismiss="${esc(q.id)}" aria-label="${esc(questionTitle(q))} 이번 세션에서 숨기기">×</button>
     </div>`).join('')}</div>`:'<p class="review-empty">지금 다시 확인할 변화나 임박한 판정이 없습니다.</p>'}
   </div></section>`;
 }
@@ -513,7 +523,7 @@ function renderCompareTray(){
   const collapsed=location.hash.startsWith('#records/compare/')||UI_STATE.compareCollapsed;
   compareTray.classList.toggle('is-collapsed',collapsed);compareToggle.setAttribute('aria-expanded',String(!collapsed));compareCount.textContent=String(ids.length);
   compareToggle.setAttribute('aria-label',collapsed?`비교 선택 ${ids.length}개 펼치기`:`비교 선택 ${ids.length}개 접기`);
-  compareItems.innerHTML=ids.map(id=>{const q=DATA.questions.find(x=>x.id===id);return `<button type="button" class="compare-chip" data-remove-compare="${esc(id)}"><b>${p1(q.latest_prob)}</b><span>${esc(q.title)}</span><i>×</i></button>`;}).join('');
+  compareItems.innerHTML=ids.map(id=>{const q=DATA.questions.find(x=>x.id===id);return `<button type="button" class="compare-chip" data-remove-compare="${esc(id)}"><b>${p1(q.latest_prob)}</b><span>${esc(questionTitle(q))}</span><i>×</i></button>`;}).join('');
   compareOpen.disabled=ids.length<2;compareOpen.textContent=ids.length<2?'1개 더 선택':'비교 보기';
 }
 function icsEscape(value){return String(value||'').replaceAll('\\','\\\\').replaceAll('\n','\\n').replaceAll(',','\\,').replaceAll(';','\\;');}
@@ -522,10 +532,11 @@ function downloadQuestionCalendar(ids=null){
   if(!qs.length)return showToast('저장할 판정일이 없습니다.','warning');
   const stamp=generatedDay().replaceAll('-','')+'T000000Z';
   const base=location.origin+location.pathname;
-  const events=qs.map(q=>`BEGIN:VEVENT\r\nUID:${icsEscape(q.id)}@jin-investing\r\nDTSTAMP:${stamp}\r\nDTSTART;VALUE=DATE:${q.deadline.replaceAll('-','')}\r\nDTEND;VALUE=DATE:${addIsoDays(q.deadline,1).replaceAll('-','')}\r\nSUMMARY:${icsEscape('[예측 판정] '+q.title)}\r\nDESCRIPTION:${icsEscape(`현재 확률 ${p1(q.latest_prob)} · ${humanDomain(q.domain)} · ${roundLabel(q.n_rounds)}`)}\r\nURL:${icsEscape(base+'#records/question/'+q.id)}\r\nEND:VEVENT`).join('\r\n');
+  const events=qs.map(q=>`BEGIN:VEVENT\r\nUID:${icsEscape(q.id)}@jin-investing\r\nDTSTAMP:${stamp}\r\nDTSTART;VALUE=DATE:${q.deadline.replaceAll('-','')}\r\nDTEND;VALUE=DATE:${addIsoDays(q.deadline,1).replaceAll('-','')}\r\nSUMMARY:${icsEscape('[예측 판정] '+questionTitle(q))}\r\nDESCRIPTION:${icsEscape(`현재 확률 ${p1(q.latest_prob)} · ${humanDomain(q.domain)} · ${roundLabel(q.n_rounds)}`)}\r\nURL:${icsEscape(base+'#records/question/'+q.id)}\r\nEND:VEVENT`).join('\r\n');
   const content=`BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//Jin's Investing//Forecast Calendar//KO\r\nCALSCALE:GREGORIAN\r\nMETHOD:PUBLISH\r\n${events}\r\nEND:VCALENDAR\r\n`;
   const url=URL.createObjectURL(new Blob([content],{type:'text/calendar;charset=utf-8'})),a=document.createElement('a');
-  a.href=url;a.download=ids?.length===1?`${ids[0]}-deadline.ics`:'jin-investing-deadlines.ics';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
+  const filename=qs.length===1?questionTitle(qs[0]).replace(/[<>:"/\\|?*\u0000-\u001f]/g,' ').trim().slice(0,90)+' 판정일.ics':'예측 질문 판정 일정.ics';
+  a.href=url;a.download=filename;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
   showToast(`${qs.length}개 판정일 캘린더를 저장했습니다.`);
 }
 function quickPeekProbability(probability){
@@ -539,12 +550,12 @@ function quickPeekProbability(probability){
   return {band:'낮은 가능성',copy:'현재는 가능성이 낮은 보조 경로로 보고 있습니다.'};
 }
 function quickPeekTrend(delta){
-  if(delta==null)return '첫 회차라 변화보다 초기 기준선에 의미가 있습니다.';
+  if(delta==null)return '첫 예측이므로 이전 예측과 비교할 수 없습니다.';
   const size=Math.abs(delta);
-  if(size===0)return '직전 회차와 같은 확률을 유지하고 있습니다.';
-  if(delta>=5)return `직전 회차보다 ${size}%p 올라 관찰 강도가 커졌습니다.`;
-  if(delta<=-5)return `직전 회차보다 ${size}%p 내려 우세도가 약해졌습니다.`;
-  return `직전 회차 대비 ${delta>0?'소폭 상승':'소폭 하락'}해 비슷한 범위를 유지합니다.`;
+  if(size===0)return '이전 예측과 같은 확률을 유지하고 있습니다.';
+  if(delta>=5)return `이전 예측보다 ${size}%포인트 올라 관찰 강도가 커졌습니다.`;
+  if(delta<=-5)return `이전 예측보다 ${size}%포인트 내려 우세도가 약해졌습니다.`;
+  return `이전 예측 대비 ${delta>0?'소폭 상승':'소폭 하락'}해 비슷한 범위를 유지합니다.`;
 }
 function deadlineWindow(q){
   if(!q.deadline)return {short:'수시 판정',next:'새 데이터와 조건 충족 여부 확인'};
@@ -552,21 +563,21 @@ function deadlineWindow(q){
   const end=Date.parse(`${q.deadline}T00:00:00Z`),start=Date.parse(`${asOf}T00:00:00Z`);
   if(!Number.isFinite(end)||!Number.isFinite(start))return {short:q.deadline,next:'판정 기준과 공식 자료 확인'};
   const days=Math.round((end-start)/86400000);
-  if(days>30)return {short:`D-${days}`,next:'주간 변화와 핵심 근거 확인'};
-  if(days>7)return {short:`D-${days}`,next:'이벤트 변동과 판정 기준 확인'};
-  if(days>0)return {short:`D-${days}`,next:'판정 임박 · 근거 재확인'};
-  if(days===0)return {short:'D-DAY',next:'공식 자료와 해소 여부 확인'};
-  return {short:`D+${Math.abs(days)}`,next:'판정 시점 경과 · 해소 여부 확인'};
+  if(days>30)return {short:`판정일까지 ${days}일`,next:'주간 변화와 핵심 근거 확인'};
+  if(days>7)return {short:`판정일까지 ${days}일`,next:'주요 일정과 판정 기준 확인'};
+  if(days>0)return {short:`판정일까지 ${days}일`,next:'판정 임박 · 근거 재확인'};
+  if(days===0)return {short:'오늘 판정',next:'공식 자료와 결과 확인'};
+  return {short:`판정일 ${Math.abs(days)}일 지남`,next:'판정 시점 경과 · 결과 확인'};
 }
 function quickPeekCopy(anchor,q){
   const delta=latestDelta(q.id),prob=quickPeekProbability(q.latest_prob),deadline=deadlineWindow(q);
-  const context=anchor.classList.contains('forecast-card')?'WHY IT MATTERS':anchor.closest('.deadline-list')?'DECISION WINDOW':'FORECAST CONTEXT';
-  const drivers=(q.drivers||[]).slice(0,2).map(x=>DRIVER_LABELS[x]||String(x).replaceAll('-',' '));
+  const context=anchor.classList.contains('forecast-card')?'이 예측을 살펴볼 이유':anchor.closest('.deadline-list')?'판정 일정':'이 예측을 읽는 방법';
+  const drivers=(q.drivers||[]).slice(0,2).map(humanDriver);
   return {
     context,prob,deadline,drivers,
-    meta:`${DOMAIN_LABELS[q.domain]||q.domain} · ${q.latest_prob==null?'확률 대기':`${q.latest_prob}% 기준`}`,
+    meta:`${humanDomain(q.domain)} · ${q.latest_prob==null?'확률 대기':`${q.latest_prob}% 기준`}`,
     trend:quickPeekTrend(delta),
-    round:q.n_rounds?`R${q.n_rounds} · ${delta==null?'첫 기준선':`직전 대비 ${delta>0?'+':''}${delta}%p`}`:'예측 대기'
+    round:q.n_rounds?`${roundLabel(q.n_rounds)} · ${delta==null?'첫 예측':`직전 대비 ${delta>0?'+':''}${delta}%포인트`}`:'예측 대기'
   };
 }
 function showQuickPeek(anchor){
@@ -576,10 +587,10 @@ function showQuickPeek(anchor){
   quickPeek.innerHTML=`<div class="peek-top"><span>${esc(view.meta)}</span><b>${esc(view.context)}</b></div>
     <div class="peek-summary"><span>한 줄 해석 · ${esc(view.prob.band)}</span><strong>${esc(view.prob.copy)}</strong><p>${esc(view.trend)}</p></div>
     <div class="peek-glance">
-      <div><span>판정 시계</span><strong>${esc(view.deadline.short)}</strong></div>
+      <div><span>판정 일정</span><strong>${esc(view.deadline.short)}</strong></div>
       <div><span>다음 확인</span><strong>${esc(view.deadline.next)}</strong></div>
     </div>
-    ${view.drivers.length?`<div class="peek-drivers"><span class="peek-driver-label">관찰 변수</span><div class="peek-driver-list">${view.drivers.map(x=>`<span>${esc(x)}</span>`).join('')}</div></div>`:''}`;
+    ${view.drivers.length?`<div class="peek-drivers"><span class="peek-driver-label">살펴볼 요인</span><div class="peek-driver-list">${view.drivers.map(x=>`<span>${esc(x)}</span>`).join('')}</div></div>`:''}`;
   peekAnchor=anchor;anchor.setAttribute('aria-describedby','quick-peek');quickPeek.hidden=false;quickPeek.setAttribute('aria-hidden','false');
   requestAnimationFrame(()=>{const r=anchor.getBoundingClientRect(),w=quickPeek.offsetWidth,h=quickPeek.offsetHeight;
     let left=r.right+14,top=r.top+(r.height-h)/2;if(left+w>window.innerWidth-14)left=r.left-w-14;
@@ -607,16 +618,16 @@ function briefingScenes(){
   const next=upcoming(1)[0]||featured,d=featured?latestDelta(featured.id):null;
   const featuredReady=hasNumeric(featured?.latest_prob),nextReady=hasNumeric(next?.latest_prob);
   return [
-    {eyebrow:'01 · MARKET STANCE',lead:thesis.lead,accent:thesis.accent,metric:vintage.status==='stale'?'STALE':upProb,unit:vintage.status==='stale'?'':'%',pending:vintage.status==='stale',description:vintage.status==='stale'?`보관된 ${vintage.asof} 경로는 시장 맵에서 확인할 수 있지만 현재 판단에는 사용하지 않습니다.`:`상승 경로 ${upProb}%와 조정·횡보 ${rangeProb}%를 분리해 읽습니다. 두 체계는 질문별 확률과 합산하지 않습니다.`,visual:vintage.status==='stale'?0:upProb},
-    {eyebrow:'02 · FEATURED FORECAST',lead:'대표 예측의 현재 확률',accent:featured?.title||'진행 중인 질문',metric:featuredReady?featured.latest_prob:'산출 전',unit:featuredReady?'%':'',pending:!featuredReady,description:featuredReady?`${roundLabel(featured.n_rounds)} · ${d==null?'첫 예측':`직전 회차 대비 ${d>=0?'+':''}${d}%p`} · ${featured.domain}`:'아직 등록된 예측 회차가 없습니다.',visual:featuredReady?featured.latest_prob:0,qid:featured?.id},
-    {eyebrow:'03 · NEXT DECISION',lead:'다음 판정일을 먼저 확인하세요.',accent:next?.deadline||'예정된 판정 없음',metric:nextReady?next.latest_prob:'산출 전',unit:nextReady?'%':'',pending:!nextReady,description:next?`${next.title}${nextReady?'':' · 아직 등록된 예측 회차 없음'}`:'현재 등록된 판정 일정이 없습니다.',visual:nextReady?next.latest_prob:0,qid:next?.id}
+    {eyebrow:'시장 판단',lead:thesis.lead,accent:thesis.accent,metric:vintage.status==='stale'?'과거 자료':upProb,unit:vintage.status==='stale'?'':'%',pending:vintage.status==='stale',description:vintage.status==='stale'?`보관된 ${vintage.asof} 경로는 시장 맵에서 확인할 수 있지만 현재 판단에는 사용하지 않습니다.`:`상승 경로 ${upProb}%와 조정·횡보 ${rangeProb}%를 분리해 읽습니다. 두 체계는 질문별 확률과 합산하지 않습니다.`,visual:vintage.status==='stale'?0:upProb},
+    {eyebrow:'대표 예측',lead:'대표 예측의 현재 확률',accent:featured?questionTitle(featured):'진행 중인 질문',metric:featuredReady?featured.latest_prob:'산출 전',unit:featuredReady?'%':'',pending:!featuredReady,description:featuredReady?`${roundLabel(featured.n_rounds)} · ${d==null?'첫 예측':`이전 예측 대비 ${d>=0?'+':''}${d}%포인트`} · ${humanDomain(featured.domain)}`:'아직 등록된 예측 회차가 없습니다.',visual:featuredReady?featured.latest_prob:0,qid:featured?.id},
+    {eyebrow:'다음 판정',lead:'다음 판정일을 먼저 확인하세요.',accent:next?.deadline||'예정된 판정 없음',metric:nextReady?next.latest_prob:'산출 전',unit:nextReady?'%':'',pending:!nextReady,description:next?`${questionTitle(next)}${nextReady?'':' · 아직 등록된 예측 회차 없음'}`:'현재 등록된 판정 일정이 없습니다.',visual:nextReady?next.latest_prob:0,qid:next?.id}
   ];
 }
 function renderBriefingStep(){
   const scenes=briefingScenes(),scene=scenes[briefingIndex],total=scenes.length;
   briefingStepLabel.textContent=String(briefingIndex+1).padStart(2,'0')+' / '+String(total).padStart(2,'0');
   [...briefingProgress.children].forEach((x,i)=>{x.classList.toggle('is-complete',i<briefingIndex);x.classList.toggle('is-active',i===briefingIndex);});
-  briefingPrev.disabled=briefingIndex===0;briefingNext.textContent=briefingIndex===total-1?'DONE':'NEXT →';
+  briefingPrev.disabled=briefingIndex===0;briefingNext.textContent=briefingIndex===total-1?'마침':'다음 →';
   briefingContent.innerHTML=`<div class="briefing-scene"><div class="briefing-copy">
     <p class="eyebrow">${esc(scene.eyebrow)}</p><h2>${esc(scene.lead)}<em>${esc(scene.accent)}</em></h2>
     <p>${esc(scene.description)}</p>${scene.qid?`<button type="button" class="briefing-detail" data-brief-q="${esc(scene.qid)}">예측 상세 열기 ↗</button>`:''}
@@ -643,7 +654,7 @@ function currentDescriptor(){
   const hash=location.hash||'#today';
   if(hash.startsWith('#records/question/')){
     const id=hash.slice(18),q=DATA?.questions?.find(x=>x.id===id);
-    return q?{hash,title:q.title,type:'question'}:null;
+    return q?{hash,title:questionTitle(q),type:'question'}:null;
   }
   if(hash.startsWith('#records/compare/'))return {hash,title:'예측 질문 비교',type:'route'};
   const r=COMMAND_ROUTES.find(x=>x.hash===hash);
@@ -654,6 +665,10 @@ function descriptorExists(item){
   if(item.hash.startsWith('#records/question/'))return !!DATA?.questions?.some(q=>'#records/question/'+q.id===item.hash);
   if(item.hash.startsWith('#records/compare/'))return item.hash.slice(17).split(',').filter(id=>DATA?.questions?.some(q=>q.id===id)).length>=2;
   return COMMAND_ROUTES.some(r=>r.hash===item.hash);
+}
+function descriptorTitle(item){
+  const q=(DATA?.questions||[]).find(q=>item.hash==='#records/question/'+q.id||item.hash==='#q/'+q.id);
+  return q?questionTitle(q):COMMAND_ROUTES.find(route=>route.hash===item.hash)?.title||recordsText(item.title);
 }
 function isCurrentPinned(){const d=currentDescriptor();return !!d&&UI_STATE.pins.some(x=>x.hash===d.hash);}
 function updateUtilityButtons(){
@@ -721,7 +736,7 @@ function configureShareTargets(payload){
     x:`https://twitter.com/intent/tweet?text=${encodedText}&url=${encodedUrl}`
   };
   Object.entries(targets).forEach(([target,href])=>{const link=shareLayer.querySelector(`[data-share-target="${target}"]`);if(link)link.href=href;});
-  shareSummary.innerHTML=`<strong>${esc(payload.title)}</strong><p>${esc(payload.text.replace(`\n${payload.url}`,''))}</p><code>${esc(payload.url)}</code>`;
+  shareSummary.innerHTML=`<strong>${esc(payload.title)}</strong><p>${esc(payload.text.replace(`\n${payload.url}`,''))}</p><a href="${esc(payload.url)}">현재 화면 링크 열기</a>`;
   if(self.QrCreator&&shareQrCanvas)QrCreator.render({text:payload.url,size:188,ecLevel:'M',fill:'#1d2925',background:'#ffffff',radius:.15,quiet:2},shareQrCanvas);
 }
 function setShare(open,restoreFocus=true){
@@ -742,10 +757,6 @@ shareClose.addEventListener('click',()=>setShare(false));document.getElementById
 shareLayer.addEventListener('click',event=>{const copy=event.target.closest('[data-share-target="copy"]');if(!copy)return;copyText(honestSharePayload().url).then(()=>showToast('현재 화면 링크를 복사했습니다.')).catch(()=>showToast('링크를 복사하지 못했습니다.','warning'));});
 document.addEventListener('keydown',event=>{if(shareLayer.hidden)return;if(event.key==='Tab')trapFocus(event,sharePopover);else if(event.key==='Escape'){event.preventDefault();setShare(false);}});
 
-function copyCurrentSummary(){
-  const d=currentDescriptor(),headline=document.querySelector('main h1')?.textContent.trim()||d?.title||document.title;
-  copyText(`${headline}\n${location.href}`).then(()=>showToast('화면 요약을 복사했습니다.')).catch(()=>showToast('요약을 복사하지 못했습니다.','warning'));
-}
 function freshnessInfo(){
   const raw=DATA?.meta?.generated||'',stamp=Date.parse(/[zZ]|[+-]\d{2}:?\d{2}$/.test(raw)?raw:raw+'+09:00');
   const hours=Number.isFinite(stamp)?Math.max(0,(Date.now()-stamp)/36e5):999;
@@ -758,41 +769,34 @@ function freshnessInfo(){
 function updateFreshnessBadges(){
   const f=freshnessInfo();
   document.querySelectorAll('.rail-status,.drawer-meta').forEach(x=>{x.classList.remove('status-current','status-aging','status-stale');x.classList.add(f.cls);});
-  document.querySelectorAll('.freshness-label').forEach(x=>x.textContent=f.label);
+  document.querySelectorAll('.freshness-label').forEach(x=>x.textContent=freshnessLabel(f));
 }
+function freshnessLabel(info){return {CURRENT:'최신 자료',AGING:'갱신 확인 필요',STALE:'오래된 자료'}[info.label]||'자료 상태 확인 필요';}
 function renderUtilityPanel(){
-  const f=freshnessInfo(),questions=DATA?.questions||[],history=DATA?.forecast_history||{};
-  /* 뺄셈(전체−진행)은 폐기(void)까지 '판정 완료'로 흡수한다 — status로 직접 센다. */
-  const by=s=>questions.filter(q=>q.status===s).length,active=by('active'),resolved=by('resolved'),voided=by('void');
-  const rounds=Object.values(history).reduce((n,x)=>n+(Array.isArray(x)?x.length:0),0);
-  const generated=(DATA?.meta?.generated||'—').replace('T',' ').slice(0,16)+' KST',note=currentNote(),pinnedQs=myRadarQuestions();
-  utilityContent.innerHTML=`${reviewQueuePanel()}<section class="utility-section"><div class="utility-label"><b>데이터 상태</b><small>이 사이트가 언제 데이터로 만들어졌는지</small></div>
-    <div class="freshness-card ${f.cls}"><div><b>${f.label}</b><small>자기완결 스냅샷</small></div><strong>${esc(generated)}</strong></div>
-    <div class="utility-stats"><div><span>질문</span><strong>${questions.length}</strong></div><div><span>진행 중</span><strong>${active}</strong></div><div><span>판정 완료</span><strong>${resolved}</strong></div><div><span>폐기</span><strong>${voided}</strong></div><div><span>기록된 예측 회차</span><strong>${rounds}</strong></div></div></section>
-    <section class="utility-section"><div class="utility-label"><b>보기 방식</b><small>글자 간격과 화면 움직임을 취향대로</small></div><div class="segmented-control">
-      <button type="button" data-util="density" data-value="comfortable" class="${UI_STATE.density==='comfortable'?'active':''}">여유 있게<small>Comfortable</small></button>
-      <button type="button" data-util="density" data-value="compact" class="${UI_STATE.density==='compact'?'active':''}">빽빽하게<small>Compact</small></button></div>
-    <div class="segmented-control" style="margin-top:8px">
-      <button type="button" data-util="motion" data-value="adaptive" class="${UI_STATE.motion==='adaptive'?'active':''}">움직임 기본<small>Adaptive</small></button>
-      <button type="button" data-util="motion" data-value="reduced" class="${UI_STATE.motion==='reduced'?'active':''}">움직임 줄이기<small>Reduced</small></button></div></section>
-    <section class="utility-section"><div class="utility-label"><b>빠른 작업</b><small>자주 쓰는 기능 모음</small></div><div class="utility-list">
-      <button type="button" data-util="pin">현재 화면 ${isCurrentPinned()?'고정 해제':'고정'}<span>${isCurrentPinned()?'★':'☆'}</span></button>
-      <button type="button" data-util="briefing">3단계 시장 브리핑<span>B</span></button>
-      <button type="button" data-util="focus">${document.body.classList.contains('focus-mode')?'집중 모드 종료':'집중 모드 시작'}<span>F</span></button>
-      <button type="button" data-util="shortcuts">키보드 단축키<span>?</span></button></div></section>
-    <section class="utility-section"><div class="utility-label"><b>내 레이더</b><small>고정한 질문 ${pinnedQs.length}개 — 확률을 바로 확인</small></div><div class="utility-list">
-      ${pinnedQs.length?pinnedQs.slice(0,5).map(q=>`<button type="button" data-open-q="${esc(q.id)}">${esc(q.title)}<span>${p1(q.latest_prob)}</span></button>`).join(''):
-      '<button type="button" data-util-route="#records">아직 없습니다 — 기록 화면에서 ☆을 눌러 추가<span>＋</span></button>'}</div></section>
-    <section class="utility-section"><div class="utility-label"><b>화면 메모</b><small>이 기기에만 저장 — 서버로 안 감</small></div><div class="note-editor">
-      <label for="workspace-note" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)">현재 화면 메모</label>
-      <textarea id="workspace-note" maxlength="700" placeholder="이 화면에 대한 판단, 확인할 조건, 다음 행동을 기록하세요.">${esc(note)}</textarea>
-      <div class="note-meta"><span id="note-save-state">현재 기기에 저장됨 · <b id="note-count">${note.length}</b>/700</span><button type="button" data-util="copy-note">메모 복사</button></div>
+  const f=freshnessInfo(),raw=DATA?.meta?.generated;
+  const generated=raw?raw.replace('T',' ').slice(0,16)+' KST':'확인 불가',note=currentNote(),pinnedQs=myRadarQuestions();
+  utilityContent.innerHTML=`<section class="utility-section"><div class="utility-label"><b>데이터 기준</b></div>
+    <div class="freshness-card ${f.cls}"><div><b>${freshnessLabel(f)}</b></div><strong>${esc(generated)}</strong></div>
+    <a class="utility-data-link" href="#trust" data-util-route="#trust">데이터 상세 <span aria-hidden="true">↗</span></a></section>
+    <section class="utility-section"><div class="utility-label"><label for="workspace-note"><b>화면 메모</b></label><small>이 기기에 자동 저장</small></div><div class="note-editor">
+      <textarea id="workspace-note" rows="5" maxlength="700" placeholder="메모 입력">${esc(note)}</textarea>
+      <div class="note-meta"><span><span id="note-save-state"></span><b id="note-count">${note.length}</b>/700</span><button type="button" data-util="copy-note">복사</button></div>
     </div></section>
-    <section class="utility-section"><div class="utility-label"><b>내보내기 · 공유</b><small>지금 보는 화면 그대로</small></div><div class="utility-list">
-      <button type="button" data-util="share">현재 화면 공유<span>↗</span></button>
-      <button type="button" data-util="copy">링크 복사<span>⌘C</span></button>
-      <button type="button" data-util="summary">화면 요약 복사<span>TXT</span></button>
-      <button type="button" data-util="print">인쇄 / PDF 저장<span>PDF</span></button></div></section>`;
+    ${pinnedQs.length?`<section class="utility-section"><div class="utility-label"><b>관심 질문</b><small>${pinnedQs.length}개</small></div><div class="utility-list">
+      ${pinnedQs.map(q=>`<button type="button" data-open-q="${esc(q.id)}"><b>${esc(questionTitle(q))}</b><span>${p1(q.latest_prob)}</span></button>`).join('')}</div></section>`:''}
+    <details class="utility-settings"><summary>화면 설정</summary><div class="utility-settings-body">
+      <div class="utility-setting-row"><span>간격</span><div class="segmented-control" role="group" aria-label="화면 간격">
+        <button type="button" data-util="density" data-value="comfortable">기본</button><button type="button" data-util="density" data-value="compact">좁게</button></div></div>
+      <div class="utility-setting-row"><span>애니메이션</span><div class="segmented-control" role="group" aria-label="애니메이션">
+        <button type="button" data-util="motion" data-value="adaptive">기본</button><button type="button" data-util="motion" data-value="reduced">줄이기</button></div></div>
+    </div></details>`;
+  updateUtilityPreferences();
+}
+function updateUtilityPreferences(){
+  utilityContent.querySelectorAll('[data-util="density"],[data-util="motion"]').forEach(button=>{
+    const active=UI_STATE[button.dataset.util]===button.dataset.value;
+    button.classList.toggle('active',active);button.setAttribute('aria-pressed',String(active));
+  });
 }
 function setUtility(open,restoreFocus=true){
   if(open){
@@ -823,11 +827,11 @@ function setFocusMode(on){
 }
 function setDensity(value){
   UI_STATE.density=value==='compact'?'compact':'comfortable';saveUIState();document.body.classList.toggle('density-compact',UI_STATE.density==='compact');
-  if(!utilityLayer.hidden)renderUtilityPanel();showToast(UI_STATE.density==='compact'?'Compact 보기를 적용했습니다.':'Comfortable 보기를 적용했습니다.');
+  updateUtilityPreferences();showToast(UI_STATE.density==='compact'?'화면 간격을 좁혔습니다.':'기본 화면 간격을 적용했습니다.');
 }
 function printCurrentView(){setUtility(false,false);setTimeout(()=>window.print(),80);}
 function trapFocus(e,container){
-  if(e.key!=='Tab')return;const nodes=[...container.querySelectorAll('button,input,textarea,select,[href],[tabindex]:not([tabindex="-1"])')].filter(x=>!x.disabled&&x.offsetParent!==null);
+  if(e.key!=='Tab')return;const nodes=[...container.querySelectorAll('button,input,textarea,select,summary,[href],[tabindex]:not([tabindex="-1"])')].filter(x=>!x.disabled&&x.offsetParent!==null&&!x.closest('details:not([open]) > :not(summary)'));
   if(!nodes.length)return;const first=nodes[0],last=nodes[nodes.length-1];
   if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus();}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus();}
 }
@@ -836,17 +840,15 @@ utilityClose.addEventListener('click',()=>setUtility(false));
 document.getElementById('shortcut-scrim').addEventListener('click',()=>setShortcuts(false));
 shortcutClose.addEventListener('click',()=>setShortcuts(false));
 focusExit.addEventListener('click',()=>setFocusMode(false));
-utilityContent.addEventListener('click',e=>{const dismiss=e.target.closest('[data-review-dismiss]');if(dismiss){dismissReviewQuestion(dismiss.dataset.reviewDismiss);renderUtilityPanel();showToast('이번 세션의 검토 큐에서 숨겼습니다.');return;}
+utilityContent.addEventListener('click',e=>{
   const q=e.target.closest('[data-open-q]');if(q){setUtility(false,false);location.hash='#records/question/'+q.dataset.openQ;return;}
-  const routeButton=e.target.closest('[data-util-route]');if(routeButton){setUtility(false,false);location.hash=routeButton.dataset.utilRoute;return;}
+  const routeButton=e.target.closest('[data-util-route]');if(routeButton){e.preventDefault();setUtility(false,false);location.hash=routeButton.dataset.utilRoute;return;}
   const b=e.target.closest('button[data-util]');if(!b)return;const a=b.dataset.util;
-  if(a==='density')setDensity(b.dataset.value);else if(a==='motion')setMotion(b.dataset.value);else if(a==='pin'){toggleCurrentPin();renderUtilityPanel();}else if(a==='focus')setFocusMode(!document.body.classList.contains('focus-mode'));
-  else if(a==='briefing')setBriefing(true);else if(a==='shortcuts')setShortcuts(true);else if(a==='copy-note')copyCurrentNote();
-  else if(a==='share')shareCurrentView(true);else if(a==='copy')shareCurrentView(false);else if(a==='summary')copyCurrentSummary();else if(a==='print')printCurrentView();
+  if(a==='density')setDensity(b.dataset.value);else if(a==='motion')setMotion(b.dataset.value);else if(a==='copy-note')copyCurrentNote();
 });
-utilityContent.addEventListener('input',e=>{if(e.target.id!=='workspace-note')return;saveCurrentNote(e.target.value);
+utilityContent.addEventListener('input',e=>{if(e.target.id!=='workspace-note')return;const saved=saveCurrentNote(e.target.value);
   const count=utilityContent.querySelector('#note-count');if(count)count.textContent=e.target.value.length;
-  const state=utilityContent.querySelector('#note-save-state');if(state)state.firstChild.textContent='현재 기기에 저장됨 · ';
+  const state=utilityContent.querySelector('#note-save-state');if(state)state.textContent=saved?'저장됨 · ':'저장 실패 · ';
 });
 document.addEventListener('click',e=>{const b=e.target.closest('[data-action]');if(!b)return;const a=b.dataset.action;
   if(a==='pin')toggleCurrentPin();else if(a==='share')shareCurrentView(true);else if(a==='utility')setUtility(true);else if(a==='briefing')setBriefing(true);
@@ -890,10 +892,10 @@ const MID_CATEGORIES={
     {key:'credit',label:'신용',hash:'#statistics/credit',hint:'신용잔고·대출 심사·상환 부담'}
   ],
   records:[
-    {key:'questions',label:'질문 목록',hash:'#records',hint:'등록 질문과 모든 라운드'},
-    {key:'performance',label:'성과 검증',hash:'#records/performance',hint:'Brier·신뢰도 곡선'},
+    {key:'questions',label:'질문 목록',hash:'#records',hint:'등록된 질문과 예측 이력'},
+    {key:'performance',label:'성과 확인',hash:'#records/performance',hint:'예측과 실제 결과 비교'},
     {key:'journal',label:'변경 일지',hash:'#records/journal',hint:'언제 무엇이 왜 바뀌었나'},
-    {key:'compare',label:'비교 작업공간',hash:'#records/compare',hint:'선택한 질문 나란히 보기',available:()=>cleanCompareIds().length>=2}
+    {key:'compare',label:'질문 비교',hash:'#records/compare',hint:'선택한 질문 나란히 보기',available:()=>cleanCompareIds().length>=2}
   ],
   timeseries:[
     {key:'summary',label:'전망 요약',hash:'#timeseries',hint:'기간별 분포 요약'},
@@ -947,58 +949,59 @@ function paintRailSubNav(navView,rawHash){
 }
 function commandCatalog(){
   const actions=[
-    {id:'briefing',code:'B',title:'3단계 시장 브리핑',hint:'현재 데이터를 큰 장면으로 빠르게 읽기',group:'작업',search:'briefing tour story 브리핑',run:()=>setBriefing(true)},
-    {id:'pin-current',code:isCurrentPinned()?'★':'☆',title:isCurrentPinned()?'현재 화면 고정 해제':'현재 화면 고정',hint:'브라우저에 즐겨찾기 저장',group:'작업',search:'pin favorite 고정',run:toggleCurrentPin},
-    {id:'share-current',code:'↗',title:'현재 화면 공유',hint:'기기 공유 또는 링크 복사',group:'작업',search:'share copy link 공유',run:()=>shareCurrentView(true)},
-    ...(cleanCompareIds().length>=2?[{id:'compare-selected',code:'⇄',title:'선택한 예측 비교',hint:`${cleanCompareIds().length}개 질문 나란히 보기`,group:'작업',search:'compare 비교',run:()=>location.hash='#records/compare/'+cleanCompareIds().join(',')}]:[]),
-    {id:'calendar-all',code:'CAL',title:'판정일 캘린더 저장',hint:'활성 질문을 ICS로 내보내기',group:'작업',search:'calendar ics 일정 판정일',run:()=>downloadQuestionCalendar()},
-    {id:'current-note',code:'N',title:'현재 화면 메모',hint:'이 기기에 research note 저장',group:'작업',search:'note memo research 메모',run:openCurrentNote},
-    {id:'data-status',code:'●',title:'데이터 상태',hint:'갱신 시각과 snapshot 범위',group:'작업',search:'data status freshness 갱신',run:()=>setUtility(true)},
-    {id:'focus-mode',code:'F',title:document.body.classList.contains('focus-mode')?'집중 모드 종료':'집중 모드',hint:'navigation을 숨기고 내용에 집중',group:'작업',search:'focus present 집중',run:()=>setFocusMode(!document.body.classList.contains('focus-mode'))},
-    {id:'density',code:'≡',title:'보기 밀도 전환',hint:`현재 ${UI_STATE.density}`,group:'작업',search:'density compact comfortable 밀도',run:()=>setDensity(UI_STATE.density==='compact'?'comfortable':'compact')},
-    {id:'print',code:'PDF',title:'인쇄 / PDF 저장',hint:'현재 화면만 보고서로 출력',group:'작업',search:'print export pdf 인쇄',run:printCurrentView},
-    {id:'shortcuts',code:'?',title:'키보드 단축키',hint:'사용 가능한 명령 보기',group:'작업',search:'keyboard help shortcut 단축키',run:()=>setShortcuts(true)}
+    {id:'current-note',code:'✎',title:'화면 메모',group:'기능',search:'note memo 메모',run:openCurrentNote},
+    {id:'copy-link',code:'↗',title:'링크 복사',group:'기능',search:'share copy link 공유 링크 복사',run:()=>shareCurrentView(false)},
+    {id:'data-status',code:'●',title:'데이터 기준·설정',group:'기능',search:'data status freshness 갱신 자료 간격 애니메이션 설정',run:()=>setUtility(true)},
+    ...(cleanCompareIds().length>=2?[{id:'compare-selected',code:'⇄',title:'선택한 질문 비교',group:'기능',search:'compare 비교',run:()=>location.hash='#records/compare/'+cleanCompareIds().join(',')}]:[])
   ];
-  const pins=UI_STATE.pins.filter(descriptorExists).map((x,i)=>({...x,id:'pin-'+i,code:'★',hint:x.type==='question'?'고정한 예측 질문':'고정한 화면',group:'고정',search:x.title.toLowerCase()}));
-  const recent=UI_STATE.recent.filter(descriptorExists).map((x,i)=>({...x,id:'recent-'+i,code:'↺',hint:x.type==='question'?'최근 본 예측 질문':'최근 본 화면',group:'최근',search:x.title.toLowerCase()}));
-  const routes=COMMAND_ROUTES.map(x=>({...x,group:'화면'}));
-  const qs=(DATA?.questions||[]).map(q=>({id:'q-'+q.id,hash:'#records/question/'+q.id,code:(hasNumeric(q.latest_prob)?q.latest_prob+'%':'대기'),title:q.title,hint:`${humanDomain(q.domain)} · ${questionStatusLabel(q).text}`,group:'예측 질문',search:[q.title,q.id,q.domain,humanDomain(q.domain),...(q.drivers||[]),(q.drivers||[]).map(humanDriver)].join(' ').toLowerCase()}));
-  return actions.concat(pins,recent,routes,qs);
+  const pins=UI_STATE.pins.filter(descriptorExists).map((x,i)=>({...x,title:descriptorTitle(x),id:'pin-'+i,code:'★',group:'고정한 항목',search:descriptorTitle(x).toLowerCase()}));
+  const routes=COMMAND_ROUTES.filter(x=>{
+    const item=Object.values(MID_CATEGORIES).flat().find(item=>item.hash===x.hash);
+    return !item?.available||item.available();
+  }).map(x=>({...x,group:'화면'}));
+  const qs=(DATA?.questions||[]).map(q=>({id:'q-'+q.id,hash:'#records/question/'+q.id,code:(hasNumeric(q.latest_prob)?q.latest_prob+'%':'대기'),title:questionTitle(q),hint:`${humanDomain(q.domain)} · ${questionStatusLabel(q).text}`,group:'질문',search:[q.title,q.id,q.domain,humanDomain(q.domain),...(q.drivers||[]),(q.drivers||[]).map(humanDriver)].join(' ').toLowerCase()}));
+  return routes.concat(qs,pins,actions);
 }
 let activeCommandItems=[];
-const COMMAND_GROUP_HINTS={'화면':'번호를 눌러 바로 이동','고정':'별표로 즐겨찾기한 곳','최근':'최근에 본 곳','작업':'자주 쓰는 기능','예측 질문':'질문 제목·도메인으로 검색'};
 function renderCommandResults(query=''){
   const needle=query.trim().toLowerCase();
   const catalog=commandCatalog();
   let items;
-  if(needle)items=catalog.filter(x=>x.title.toLowerCase().includes(needle)||(x.hint||'').toLowerCase().includes(needle)||(x.search||'').includes(needle)).slice(0,12);
-  else{
-    /* 빈 상태는 '어디로 갈까'가 먼저다: 화면 → 고정 → 최근 → 작업 → 예측 질문 */
-    const order=['화면','고정','최근','작업','예측 질문'],limits={화면:6,고정:4,최근:4,작업:6,'예측 질문':3};
-    items=order.flatMap(group=>catalog.filter(x=>x.group===group).slice(0,limits[group]));
+  if(needle){
+    const seen=new Set();
+    items=catalog.filter(x=>x.title.toLowerCase().includes(needle)||(x.hint||'').toLowerCase().includes(needle)||(x.search||'').includes(needle))
+      .filter(x=>{const key=x.hash||x.id;if(seen.has(key))return false;seen.add(key);return true;}).slice(0,12);
   }
-  if(!items.length){activeCommandItems=[];commandResults.innerHTML='<div class="command-empty">일치하는 화면이나 예측 질문이 없습니다.<small>화면 이름(오늘·통계·기록…), 기능(공유·메모…), 질문 키워드로 검색해 보세요.</small></div>';return;}
+  else{
+    const screens=catalog.filter(x=>x.group==='화면').slice(0,6),screenHashes=new Set(screens.map(x=>x.hash));
+    items=screens.concat(catalog.filter(x=>x.group==='고정한 항목'&&!screenHashes.has(x.hash)).slice(0,3),
+      catalog.filter(x=>['current-note','copy-link','compare-selected'].includes(x.id)));
+  }
+  if(!items.length){activeCommandItems=[];commandResults.innerHTML='<div class="command-empty" role="status">검색 결과가 없습니다.</div>';return;}
   activeCommandItems=items;
   const emptyState=!needle;
   let html='',group='',screenTiles=[];
   const flush=()=>{if(screenTiles.length){html+=`<div class="command-screens">${screenTiles.join('')}</div>`;screenTiles=[];}};
   items.forEach((x,i)=>{
-    if(x.group!==group){flush();group=x.group;html+=`<div class="command-group"><b>${esc(group)}</b><small>${esc(COMMAND_GROUP_HINTS[group]||'')}</small></div>`;}
+    if(x.group!==group){flush();group=x.group;html+=`<div class="command-group"><b>${esc(group)}</b></div>`;}
     if(emptyState&&group==='화면'&&!x.title.includes('·')){
-      screenTiles.push(`<button type="button" class="command-result command-screen${i===0?' is-active':''}" data-command-index="${i}"><i>${esc(x.code)}</i><b>${esc(x.title)}</b><small>${esc(x.hint)}</small></button>`);
+      screenTiles.push(`<button type="button" class="command-result command-screen${i===0?' is-active':''}" data-command-index="${i}"><b>${esc(x.title)}</b></button>`);
       return;
     }
-    html+=`<button type="button" class="command-result${i===0?' is-active':''}" data-command-index="${i}"><i>${esc(x.code)}</i><span><b>${esc(x.title)}</b><small>${esc(x.hint)}</small></span><kbd class="command-enter">열기 ↵</kbd></button>`;
+    html+=`<button type="button" class="command-result${i===0?' is-active':''}" data-command-index="${i}"><i>${esc(x.code)}</i><span><b>${esc(x.title)}</b>${x.group==='질문'?`<small>${esc(x.hint)}</small>`:''}</span></button>`;
   });
   flush();
   commandResults.innerHTML=html;
 }
 function setCommand(open,restoreFocus=true){
+  if(open)commandReturnFocus=document.body.classList.contains('drawer-open')?menuOpen:
+    !utilityLayer.hidden?utilityReturnFocus:!shortcutLayer.hidden?shortcutReturnFocus:
+    !briefingLayer.hidden?briefingReturnFocus:!shareLayer.hidden?shareReturnFocus:document.activeElement;
   if(open&&document.body.classList.contains('drawer-open'))setDrawer(false,false);
   if(open){closeQuickPeek();if(!briefingLayer.hidden)setBriefing(false,false);}
   if(open&&!utilityLayer.hidden)setUtility(false,false);
   if(open&&!shortcutLayer.hidden)setShortcuts(false,false);
-  if(open)commandReturnFocus=document.activeElement;
+  if(open&&!shareLayer.hidden)setShare(false,false);
   commandLayer.hidden=!open;
   commandLayer.setAttribute('aria-hidden',String(!open));
   document.body.classList.toggle('command-open',open);
@@ -1011,17 +1014,19 @@ function bindCommandTriggers(){
 }
 bindCommandTriggers();
 commandScrim.addEventListener('click',()=>setCommand(false));
+document.getElementById('command-close').addEventListener('click',()=>setCommand(false));
 commandInput.addEventListener('input',e=>renderCommandResults(e.target.value));
 commandResults.addEventListener('click',e=>{const b=e.target.closest('button[data-command-index]');if(!b)return;const item=activeCommandItems[Number(b.dataset.commandIndex)];if(!item)return;
-  setCommand(false,false);if(item.run)item.run();else if(item.hash)location.hash=item.hash;
+  setCommand(false);if(item.run)item.run();else if(item.hash)location.hash=item.hash;
 });
 document.addEventListener('keydown',e=>{
+  if(e.isComposing)return;
   const target=e.target,editing=target?.matches?.('input,select,textarea,[contenteditable="true"]');
   if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==='k'){e.preventDefault();setCommand(commandLayer.hidden);return;}
   if(e.key==='/'&&!editing&&commandLayer.hidden){e.preventDefault();setCommand(true);return;}
   if(e.key==='Escape'&&!commandLayer.hidden){e.preventDefault();setCommand(false);return;}
   if(e.key==='Tab'&&!commandLayer.hidden){trapFocus(e,commandLayer.querySelector('.command-palette'));return;}
-  if(!commandLayer.hidden&&e.key==='Enter'){const active=commandResults.querySelector('.command-result.is-active')||commandResults.querySelector('.command-result');if(active){e.preventDefault();active.click();}return;}
+  if(!commandLayer.hidden&&e.key==='Enter'&&(target===commandInput||target?.closest?.('.command-result'))){const active=target.closest('.command-result')||commandResults.querySelector('.command-result.is-active')||commandResults.querySelector('.command-result');if(active){e.preventDefault();active.click();}return;}
   if(commandLayer.hidden||!['ArrowDown','ArrowUp'].includes(e.key))return;
   e.preventDefault();const buttons=[...commandResults.querySelectorAll('.command-result')];if(!buttons.length)return;
   let i=buttons.indexOf(document.activeElement);i=e.key==='ArrowDown'?Math.min(buttons.length-1,i+1):Math.max(0,i<0?0:i-1);
@@ -2339,7 +2344,7 @@ function enhanceChartZoom(root=document){
 }
 function contextTabs(group,current){
   const groups={
-    research:[['questions','질문 목록','#records'],['performance','성과 검증','#records/performance'],['journal','변경 일지','#records/journal'],['compare','비교 작업공간','#records/compare/'+cleanCompareIds().join(',')]],
+    research:[['questions','질문 목록','#records'],['performance','성과 확인','#records/performance'],['journal','변경 일지','#records/journal'],['compare','질문 비교','#records/compare/'+cleanCompareIds().join(',')]],
     replay:[['ask','기간 조회','#future/lookup'],['asof','AS-OF 타임머신','#records/journal']],
     track:[['track','요약과 Calibration','#trust']]
   };
@@ -2392,7 +2397,7 @@ function parseCanonicalRoute(rawHash){
   if(parts[0]==='records'){
     if(parts[1]==='performance')return {section:'records',view:'track',arg:{trackMode:'performance'}};
     if(parts[1]==='question'&&parts[2])return {section:'records',view:'q',arg:parts.slice(2).join('/')};
-    if(parts[1]==='compare'&&parts[2])return {section:'records',view:'compare',arg:parts.slice(2).join('/')};
+    if(parts[1]==='compare')return {section:'records',view:'compare',arg:parts.slice(2).join('/')};
     if(parts[1]==='journal'){
       if(parts[2]==='question'&&parts[3])return {section:'records',view:'asof',arg:{question:parts.slice(3).join('/')}};
       if(/^\d{4}-\d{2}-\d{2}$/.test(parts[2]||''))return {section:'records',view:'asof',arg:{mode:'replay',date:parts[2]}};
@@ -2415,7 +2420,7 @@ function renderFuturePathsLoadState(summary,error=null){
    배지로 섞여 나온다. */
 function questionStatusLabel(q){
   if(q.status==='void')return {cls:'status-void',text:'폐기',title:'폐기된 질문 — 기한까지 예측 미실행, 채점 대상 아님'};
-  if(q.status==='resolved')return q.resolved?{cls:'status-resolved',text:'완료',title:'원장에 채점 기록이 있는 질문'}:{cls:'status-resolved is-unscored',text:'완료 · 무예측',title:'기한 내 예측 미실행 — 원장 미기록, 캘리브레이션 표본 아님'};
+  if(q.status==='resolved')return q.resolved?{cls:'status-resolved',text:'완료',title:'결과와 예측 점수가 기록된 질문'}:{cls:'status-resolved is-unscored',text:'완료 · 예측 없음',title:'기한 내 예측이 없어 성과 계산에 포함되지 않습니다'};
   return {cls:'status-active',text:'진행 중',title:'예측 진행 중'};
 }
 const questionStatusBadge=q=>{const s=questionStatusLabel(q);return `<span class="status ${s.cls}" title="${esc(s.title)}">${s.text}</span>`;};
@@ -3593,10 +3598,6 @@ function analogPanel(){
     <button type="button" data-analog-focus="ALL" aria-pressed="true"><i></i>전체</button>
     ${eras.map(e=>`<button type="button" data-analog-focus="${e}" style="--focus-color:${ERA_META[e][1]}" aria-pressed="false"><i></i>${ERA_META[e][0]}</button>`).join('')}</div>`;
   const rg=ctx.regime||{},br=ctx.breadth||{},cc=ctx.concentration||{};
-  const forward=model.forward_reference||{},smallForward=forward.n>0&&forward.n<20;
-  const forwardCases=Array.isArray(forward.cases)?forward.cases:[];
-  const horizonCell=(row,key)=>hasNumeric(row?.[key])?signedDelta(Number(row[key])*100,1,'%'):'관측 없음';
-  const forwardMarkup=smallForward?`<section class="analog-case-list" aria-label="유사 국면 이후 흐름"><div><div><p class="eyebrow">유사 구간 이후 흐름</p><h3>${num(forward.n)}개 사례</h3></div><span class="count-chip">기준 ${esc(model.run_asof||'미산출')}</span></div><div>${forwardCases.map((row,index)=>`<article><strong>${esc(row.date||`사례 ${index+1}`)}</strong><span>1M ${horizonCell(row,'fwd_1m')}</span><span>3M ${horizonCell(row,'fwd_3m')}</span><span>6M ${horizonCell(row,'fwd_6m')}</span><span>12M ${horizonCell(row,'fwd_12m')}</span></article>`).join('')||'<p>표시할 사례가 없습니다.</p>'}</div></section>`:'';
   const ctxItems=[
     rg.recession_flag!=null?['경기 국면',rg.recession_flag?'침체':'확장']:null,
     br.pct_above_200dma!=null?['시장 폭','200일선 '+br.pct_above_200dma+'%']:null,
@@ -3606,7 +3607,6 @@ function analogPanel(){
   const w=el(`<div class="chart-panel analysis-panel">
     <p class="eyebrow">START-ALIGNED · LOG SCALE</p>
     <div class="panel-head"><h2>과거 혁신 사이클 비교</h2><span class="count-chip">${eras.length}개 사이클</span></div>
-    ${forwardMarkup}
     ${focusControls}
     <div class="chart-wrap"><div id="ovchart"></div></div>
     <p class="chart-note innovation-anchor-note">모든 선은 각 사이클 시작월을 100으로 맞췄습니다. 정점 정렬이 아니며, 다우는 1925-01 시작 후 1929-09 정점이 M+56에 표시됩니다.</p>
@@ -3767,7 +3767,6 @@ function liquidityPanel(){
   const w=el(`<div class="chart-panel analysis-panel liquidity-panel">
     <p class="eyebrow">시장 자금 흐름 · 참고 지표</p>
     <div class="panel-head"><div><h2>유동성이 늘고 줄어든 구간</h2><p>시장에 풀린 자금과 NASDAQ·Bitcoin의 실제 26주 수익률을 같은 주간축에서 봅니다.</p></div><span class="count-chip">기준 ${esc(model.asof)}</span></div>
-    <section class="plain-insight" aria-label="유동성 그래프 읽는 법"><article><span>한 그래프 · 왼쪽 축</span><strong>Fed 순유동성 52주 z</strong><p>0은 최근 1년 평균, +는 평균보다 많고 −는 적다는 뜻입니다.</p></article><article><span>한 그래프 · 오른쪽 축</span><strong>26주 실제 수익률</strong><p>NASDAQ과 Bitcoin의 같은 주간 움직임을 유동성 선과 바로 겹쳐 봅니다.</p></article><article><span>주의</span><strong>축과 단위가 다릅니다</strong><p>겹쳐 움직여도 인과관계나 상승 보장은 아닙니다.</p></article></section>
     <div class="liquidity-zone zone-${esc(model.zone)}"><span>현재 구간</span><strong>${esc(zoneLabel)}</strong><small>최근 4주 Fed 순유동성 ${signedDelta(model.zone_metric?.value,2,'%')}</small></div>
     <div class="chart-wrap"><div id="liquidity-chart"></div></div>
     <details class="scenario-v52-method liquidity-details"><summary>데이터 출처와 시차 통계 보기</summary><div class="liquidity-source-grid"><div><span>실질 M2 전년비</span><strong>수집 전</strong><small>${esc(model.real_m2?.reason||'시점별 원본 자료가 필요합니다.')}</small></div><div><span>스테이블코인 공급</span><strong>${stablecoinProgress}</strong><small>원천 안정성 확인 중 · 자동 반영하지 않음</small></div><div><span>BTC ETF 자금 흐름</span><strong>수집 전</strong><small>독립 출처 두 곳의 교차검증이 필요합니다.</small></div></div>
@@ -4163,7 +4162,7 @@ function drawFlow(host,sc,focus='ALL',lookupDate=null,displayYear=2026,showSampl
 
 // ── 예측 목록 ──
 const QUESTION_PRESETS=[
-  ['all','전체'],['review','우선 검토'],['moving','확률 이동'],['due','30일 내 판정'],['pinned','MY RADAR']
+  ['all','전체'],['review','우선 검토'],['moving','확률이 바뀐 질문'],['due','30일 내 판정'],['pinned','관심 질문']
 ];
 function researchPriority(q){
   const delta=latestDelta(q.id),days=q.deadline?dayDiff(generatedDay(),q.deadline):null;
@@ -4199,28 +4198,28 @@ function renderQuestions(){
   const root=el('<div></div>');
   appendContextTabs(root,'research','questions');
   root.appendChild(el(`<div class="page-heading"><div>
-    <p class="eyebrow">예측 목록 · Question Registry</p>
-    <h1>예측 질문과 모든 라운드를 탐색합니다</h1>
-    <p class="page-lede">기한·임계값·판정기준이 정해진 예측만 등록됩니다. 행을 클릭하면 근거와 회차 이력을 볼 수 있습니다.</p>
+    <p class="eyebrow">예측 질문 목록</p>
+    <h1>질문별 예측과 변경 이력을 확인합니다</h1>
+    <p class="page-lede">언제, 어떤 조건으로 결과를 판단할지 정한 질문입니다. 질문을 선택하면 근거와 이전 예측을 볼 수 있습니다.</p>
   </div><div class="heading-stat" style="min-height:170px;justify-content:flex-end;display:flex;flex-direction:column">
     <span class="micro">등록 질문</span><strong style="color:var(--lime);font-family:var(--mono);font-size:clamp(28px,3vw,46px);margin:11px 0">${DATA.questions.length}</strong>
     <span class="micro" id="qcount">결과에 표시됨</span></div></div>`));
   const researchControls=el(`<div class="research-controls">
     <div class="research-presets" role="group" aria-label="예측 질문 빠른 필터">${QUESTION_PRESETS.map(([id,label])=>`<button type="button" data-question-preset="${id}" aria-pressed="${id===activePreset}">${label}</button>`).join('')}</div>
     <div class="research-display" role="group" aria-label="예측 목록 보기 방식">
-      <button type="button" data-question-layout="table" aria-pressed="${activeLayout==='table'}" aria-label="표 보기">▤ <span>TABLE</span></button>
-      <button type="button" data-question-layout="cards" aria-pressed="${activeLayout==='cards'}" aria-label="카드 보기">▦ <span>CARDS</span></button>
+      <button type="button" data-question-layout="table" aria-pressed="${activeLayout==='table'}" aria-label="표 보기">▤ <span>표</span></button>
+      <button type="button" data-question-layout="cards" aria-pressed="${activeLayout==='cards'}" aria-label="카드 보기">▦ <span>카드</span></button>
     </div>
     <label class="research-sort">정렬<select id="fso" aria-label="예측 질문 정렬">
       <option value="priority">검토 우선순위</option><option value="deadline">판정일</option><option value="probability">확률 높은 순</option>
-      <option value="movement">변동 큰 순</option><option value="updated">최신 회차</option>
+      <option value="movement">변동 큰 순</option><option value="updated">최신 예측</option>
     </select></label>
   </div>`);
   root.appendChild(researchControls);
   const bar=el(`<div class="filter-bar">
     <label class="search-field"><span>⌕</span><input type="text" id="fq" placeholder="질문 검색…" aria-label="질문 검색" aria-controls="question-mobile-list qtbl"></label>
     <label>분야<select id="fd" aria-label="분야"><option value="">전체</option>${domains.map(d=>`<option value="${esc(d)}">${esc(humanDomain(d))}</option>`).join('')}</select></label>
-    <label>테마<select id="fdr" aria-label="테마"><option value="">전체</option>${themes.map(d=>`<option value="${esc(d)}">${esc(humanDriver(d))}</option>`).join('')}</select></label>
+    <label>살펴볼 요인<select id="fdr" aria-label="살펴볼 요인"><option value="">전체</option>${themes.map(d=>`<option value="${esc(d)}">${esc(humanDriver(d))}</option>`).join('')}</select></label>
     <label>상태<select id="fs" aria-label="상태"><option value="">진행+완료</option><option value="active">진행 중</option><option value="resolved">완료</option><option value="void">폐기</option></select></label>
     <button type="button" class="calendar-action" id="freset">필터 초기화</button>
   </div>`);
@@ -4241,31 +4240,31 @@ function renderQuestions(){
     researchControls.querySelectorAll('[data-question-layout]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.questionLayout===activeLayout)));
     const d=$('#fd').value,dr=$('#fdr').value,st=$('#fs').value,q=$('#fq').value.toLowerCase(),sort=$('#fso').value;
     const rows=sortResearchQuestions(DATA.questions.filter(x=>(!d||x.domain===d)&&(!dr||(x.drivers||[]).includes(dr))&&(st?x.status===st:x.status!=='void')&&
-      (!q||x.title.toLowerCase().includes(q))&&questionMatchesPreset(x,activePreset)),sort);
+      (!q||questionTitle(x).toLowerCase().includes(q)||x.title.toLowerCase().includes(q))&&questionMatchesPreset(x,activePreset)),sort);
     const qc=document.getElementById('qcount');if(qc)qc.textContent=`${rows.length}건 표시`;
     const probs=rows.map(x=>x.latest_prob).filter(Number.isFinite),med=median(probs);
     const rising=rows.filter(x=>(latestDelta(x.id)||0)>0).length,falling=rows.filter(x=>(latestDelta(x.id)||0)<0).length;
     const due30=rows.filter(x=>{const n=x.deadline?dayDiff(generatedDay(),x.deadline):null;return n!=null&&n>=0&&n<=30;}).length;
     insights.innerHTML=`<div><span>표시 질문</span><strong>${rows.length}</strong></div><div><span>확률 중앙값</span><strong>${med==null?'—':Math.round(med)+'%'}</strong></div><div><span>상승 / 하락</span><strong>${rising} / ${falling}</strong></div><div><span>30일 내 판정</span><strong>${due30}</strong></div>`;
-    $('#qtbl').innerHTML=`<caption class="sr-only">필터를 적용한 예측 질문 목록 ${rows.length}건</caption><thead><tr><th scope="col">예측 질문</th><th scope="col">분야</th><th scope="col">테마</th><th scope="col" class="r">현재 확률</th><th scope="col" class="r">회차</th><th scope="col" class="r">상태</th><th scope="col" class="r">작업</th></tr></thead>
+    $('#qtbl').innerHTML=`<caption class="sr-only">필터를 적용한 예측 질문 목록 ${rows.length}건</caption><thead><tr><th scope="col">예측 질문</th><th scope="col">분야</th><th scope="col">살펴볼 요인</th><th scope="col" class="r">현재 확률</th><th scope="col" class="r">예측 횟수</th><th scope="col" class="r">상태</th><th scope="col" class="r">작업</th></tr></thead>
     <tbody>${rows.map(x=>`<tr tabindex="0" data-q="${esc(x.id)}">
-      <td><b>${esc(x.title)}</b><small>${esc(x.id)}</small></td><td>${esc(humanDomain(x.domain))}</td>
+      <td><b>${esc(questionTitle(x))}</b></td><td>${esc(humanDomain(x.domain))}</td>
       <td>${(x.drivers||[]).slice(0,2).map(dv=>`<button type="button" class="tag tag-button" data-filter-driver="${esc(dv)}">${esc(humanDriver(dv))}</button>`).join(' ')||'—'}</td>
       <td class="r"><span class="table-prob">${p1(x.latest_prob)}</span>${Array.isArray(x.latest_ci80)&&x.latest_ci80[0]!=null?`<small class="table-ci">80% 구간 ${Math.round(Number(x.latest_ci80[0]))}–${Math.round(Number(x.latest_ci80[1]))}%</small>`:''}</td>
       <td class="r num">${Number(x.n_rounds)>0?x.n_rounds:'산출 전'}</td>
       <td class="r">${questionStatusBadge(x)}</td>
-      <td><div class="question-actions"><button type="button" class="question-action" data-pin-q="${esc(x.id)}" aria-label="개인 레이더에 고정">☆</button><button type="button" class="question-action compare" data-compare-q="${esc(x.id)}" aria-label="비교 선택" aria-pressed="false">⇄</button></div></td></tr>`).join('')}</tbody>`;
+      <td><div class="question-actions"><button type="button" class="question-action" data-pin-q="${esc(x.id)}" aria-label="관심 질문에 고정">☆</button><button type="button" class="question-action compare" data-compare-q="${esc(x.id)}" aria-label="비교 선택" aria-pressed="false">⇄</button></div></td></tr>`).join('')}</tbody>`;
     cards.innerHTML=rows.map(x=>{const delta=latestDelta(x.id),clock=deadlineWindow(x);
       return `<article class="mobile-question-card" data-q="${esc(x.id)}">
         <div class="mobile-question-head"><span>${esc(humanDomain(x.domain))} · ${roundLabel(x.n_rounds)}</span>${questionStatusBadge(x)}</div>
-        <h2>${esc(x.title)}</h2><div class="mobile-question-id">${esc(x.id)}</div>
+        <h2>${esc(questionTitle(x))}</h2>
         <div class="mobile-question-facts">
           <div><span>현재 확률</span><strong>${p1(x.latest_prob)}</strong>${Array.isArray(x.latest_ci80)&&x.latest_ci80[0]!=null?`<small class="table-ci">80% 구간 ${Math.round(Number(x.latest_ci80[0]))}–${Math.round(Number(x.latest_ci80[1]))}%</small>`:''}</div>
-          <div><span>직전 대비</span><strong class="${delta>0?'edge-pos':delta<0?'edge-neg':''}">${delta==null?'첫 기준선':`${delta>0?'+':''}${delta}%p`}</strong></div>
-          <div><span>판정 시계</span><strong>${esc(clock.short)}</strong></div>
+          <div><span>직전 대비</span><strong class="${delta>0?'edge-pos':delta<0?'edge-neg':''}">${delta==null?'이전 예측 없음':`${delta>0?'+':''}${delta}%포인트`}</strong></div>
+          <div><span>판정 일정</span><strong>${esc(clock.short)}</strong></div>
         </div>
-        <div class="mobile-question-tags">${(x.drivers||[]).slice(0,3).map(dv=>`<button type="button" class="tag tag-button" data-filter-driver="${esc(dv)}">${esc(humanDriver(dv))}</button>`).join(' ')||'<span class="tag">관찰 변수 없음</span>'}</div>
-        <div class="mobile-question-actions"><button type="button" data-pin-q="${esc(x.id)}" aria-label="개인 레이더에 고정">☆</button><button type="button" data-compare-q="${esc(x.id)}" aria-label="비교 선택" aria-pressed="false">⇄</button><a href="#q/${esc(x.id)}">상세 근거 보기</a></div>
+        <div class="mobile-question-tags">${(x.drivers||[]).slice(0,3).map(dv=>`<button type="button" class="tag tag-button" data-filter-driver="${esc(dv)}">${esc(humanDriver(dv))}</button>`).join(' ')||'<span class="tag">살펴볼 요인 없음</span>'}</div>
+        <div class="mobile-question-actions"><button type="button" data-pin-q="${esc(x.id)}" aria-label="관심 질문에 고정">☆</button><button type="button" data-compare-q="${esc(x.id)}" aria-label="비교 선택" aria-pressed="false">⇄</button><a href="#q/${esc(x.id)}">상세 근거 보기</a></div>
       </article>`;}).join('')||'<p class="empty">조건에 맞는 예측 질문이 없습니다.</p>';
     $('#qtbl').querySelectorAll('tr[data-q]').forEach(tr=>{const go=()=>location.hash='#q/'+tr.dataset.q;
       tr.onclick=e=>{if(!e.target.closest('button'))go();};tr.onkeydown=e=>{if(e.key==='Enter'&&e.target===tr)go();};});
@@ -4292,37 +4291,37 @@ function renderQuestions(){
 // ── 예측 비교 작업공간 ──
 const COMPARE_COLORS=['#ff4f17','#247d78','#c9002d'];
 function renderCompare(arg=''){
-  const ids=cleanCompareIds(String(arg||'').split(',').filter(Boolean));
+  const ids=arg?cleanCompareIds(String(arg).split(',').filter(Boolean)):cleanCompareIds();
   if(ids.length<2){
-    const empty=el('<div><div class="page-heading"><div><p class="eyebrow">예측 비교 · Compare Lab</p><h1>비교할 질문을 두 개 이상 선택하세요</h1><p class="page-lede">예측 목록의 ⇄ 버튼으로 최대 세 개 질문을 선택할 수 있습니다.</p></div></div><p class="empty"><a class="back-button" href="#questions">예측 목록으로 이동</a></p></div>');mount(empty);return;
+    const empty=el('<div></div>');appendContextTabs(empty,'research','compare');empty.appendChild(el('<div class="page-heading"><div><p class="eyebrow">질문 비교</p><h1>비교할 질문을 두 개 이상 선택하세요</h1><p class="page-lede">예측 목록의 ⇄ 버튼으로 최대 세 개 질문을 선택할 수 있습니다.</p></div></div>'));empty.appendChild(el('<p class="empty"><a class="back-button" href="#questions">예측 목록으로 이동</a></p>'));mount(empty);return;
   }
   setCompareQuestions(ids);const qs=ids.map(id=>DATA.questions.find(q=>q.id===id)).filter(Boolean);
   const root=el('<div></div>');
   appendContextTabs(root,'research','compare');
-  root.appendChild(el(`<div class="page-heading"><div><p class="eyebrow">예측 비교 · Compare Lab</p><h1>질문의 확률과 시간 구조를 나란히 봅니다</h1>
-    <p class="page-lede">서로 다른 질문의 확률을 합산하지 않고, 변화 방향·판정 시점·회차 이력을 같은 틀에서 비교합니다.</p></div>
-    <div class="heading-stat" style="min-height:170px;justify-content:flex-end;display:flex;flex-direction:column"><span class="micro">SELECTED</span><strong style="font-family:var(--mono);font-size:46px;margin:10px 0">${qs.length}</strong><button type="button" class="calendar-action" data-calendar-selected>선택 일정 저장</button></div></div>`));
+  root.appendChild(el(`<div class="page-heading"><div><p class="eyebrow">질문 비교</p><h1>확률 변화와 판정 일정을 나란히 봅니다</h1>
+    <p class="page-lede">서로 다른 질문의 확률을 합산하지 않고, 변화 방향·판정 시점·예측 이력을 같은 틀에서 비교합니다.</p></div>
+    <div class="heading-stat" style="min-height:170px;justify-content:flex-end;display:flex;flex-direction:column"><span class="micro">선택한 질문</span><strong style="font-family:var(--mono);font-size:46px;margin:10px 0">${qs.length}</strong><button type="button" class="calendar-action" data-calendar-selected>선택 일정 저장</button></div></div>`));
   const grid=el(`<div class="compare-grid" style="--compare-count:${qs.length}">${qs.map((q,i)=>{const d=latestDelta(q.id),clock=deadlineWindow(q);
     const available=hasNumeric(q.latest_prob);
-    return `<article class="compare-card" style="border-top:7px solid ${COMPARE_COLORS[i]}"><header><div><span class="radar-eyebrow">${esc(humanDomain(q.domain))} · ${roundLabel(q.n_rounds)}</span><h2>${esc(q.title)}</h2></div><button type="button" data-remove-compare-page="${esc(q.id)}" aria-label="비교에서 제거">×</button></header>
+    return `<article class="compare-card" style="border-top:7px solid ${COMPARE_COLORS[i]}"><header><div><span class="radar-eyebrow">${esc(humanDomain(q.domain))} · ${roundLabel(q.n_rounds)}</span><h2>${esc(questionTitle(q))}</h2></div><button type="button" data-remove-compare-page="${esc(q.id)}" aria-label="비교에서 제거">×</button></header>
       <div class="compare-prob${available?'':' is-pending'}">${available?`<strong>${q.latest_prob}</strong><span>%</span>`:'<strong>산출 전</strong>'}</div>
-      <div class="compare-facts"><div><span>직전 대비</span><strong class="${d>0?'edge-pos':d<0?'edge-neg':''}">${!available?'비교 이력 없음':d==null?'첫 기준선':`${d>0?'+':''}${d}%p`}</strong></div>
-        <div><span>판정 시계</span><strong>${esc(clock.short)}</strong></div><div><span>관찰 변수</span><strong>${esc((q.drivers||[]).slice(0,2).map(humanDriver).join(' · ')||'—')}</strong></div></div>
-      <footer><a href="#q/${esc(q.id)}">상세 근거 보기</a><button type="button" data-pin-q="${esc(q.id)}"><span data-pin-icon>☆</span> 레이더</button></footer></article>`;}).join('')}</div>`);
+      <div class="compare-facts"><div><span>직전 대비</span><strong class="${d>0?'edge-pos':d<0?'edge-neg':''}">${!available?'비교 이력 없음':d==null?'이전 예측 없음':`${d>0?'+':''}${d}%포인트`}</strong></div>
+        <div><span>판정 일정</span><strong>${esc(clock.short)}</strong></div><div><span>살펴볼 요인</span><strong>${esc((q.drivers||[]).slice(0,2).map(humanDriver).join(' · ')||'—')}</strong></div></div>
+      <footer><a href="#q/${esc(q.id)}">상세 근거 보기</a><button type="button" data-pin-q="${esc(q.id)}"><span data-pin-icon>☆</span> 관심 질문</button></footer></article>`;}).join('')}</div>`);
   root.appendChild(grid);
-  const chart=el(`<div class="chart-panel analysis-panel"><div class="panel-head"><h2>예측 확률 회차 비교</h2><div class="band-inline">${qs.map((q,i)=>`<span><b style="background:${COMPARE_COLORS[i]}"></b>${esc(q.title.length>24?q.title.slice(0,24)+'…':q.title)}</span>`).join('')}</div></div><div class="chart-wrap"><div id="compare-history" class="compare-history-shell"></div></div><p class="chart-note">차트 위에서 마우스를 움직이거나 좌우 화살표로 날짜를 옮기면, 그 날짜까지 나온 <b>가장 최근 회차</b>를 보여줍니다. 질문끼리 확률을 더하거나 우열을 가리는 화면이 아닙니다.</p></div>`);
+  const chart=el(`<div class="chart-panel analysis-panel"><div class="panel-head"><h2>예측 확률의 변화 비교</h2><div class="band-inline">${qs.map((q,i)=>`<span><b style="background:${COMPARE_COLORS[i]}"></b>${esc(questionTitle(q))}</span>`).join('')}</div></div><div class="chart-wrap"><div id="compare-history" class="compare-history-shell"></div></div><p class="chart-note">차트 위에서 마우스를 움직이거나 좌우 화살표로 날짜를 옮기면, 그 날짜까지 나온 <b>가장 최근 예측</b>을 보여줍니다. 질문끼리 확률을 더하거나 우열을 가리는 화면이 아닙니다.</p></div>`);
   root.appendChild(chart);mount(root);drawCompareHistory($('#compare-history',chart),qs);
   root.querySelectorAll('[data-remove-compare-page]').forEach(b=>b.onclick=()=>{const next=cleanCompareIds().filter(id=>id!==b.dataset.removeComparePage);setCompareQuestions(next);location.hash=next.length>=2?'#compare/'+next.join(','):'#questions';});
   root.querySelector('[data-calendar-selected]').onclick=()=>downloadQuestionCalendar(qs.map(q=>q.id));
 }
 function drawCompareHistory(host,questions){
   const series=questions.map(q=>({q,values:[...(DATA.forecast_history?.[q.id]||[])].sort((a,b)=>String(a.forecast_ts||'').localeCompare(String(b.forecast_ts||'')))})).filter(x=>x.values.length);
-  if(!series.length){host.innerHTML='<p class="empty">비교할 회차 이력이 없습니다.</p>';return;}
+  if(!series.length){host.innerHTML='<p class="empty">비교할 예측 이력이 없습니다.</p>';return;}
   const dates=[...new Set(series.flatMap(s=>s.values.map(v=>(v.forecast_ts||'').slice(0,10))).filter(Boolean))].sort();
   let t0=Date.parse(dates[0]),t1=Date.parse(dates[dates.length-1]);if(t0===t1){t0-=86400000;t1+=86400000;}
   const NS='http://www.w3.org/2000/svg',W=1000,H=300,ML=48,MR=24,MT=24,MB=34,PW=W-ML-MR,PH=H-MT-MB;
   const X=d=>ML+PW*(Date.parse(d)-t0)/(t1-t0),Y=p=>MT+PH*(1-p/100);
-  const svg=document.createElementNS(NS,'svg');svg.setAttribute('viewBox',`0 0 ${W} ${H}`);svg.setAttribute('width','100%');svg.setAttribute('role','img');svg.setAttribute('tabindex','0');svg.setAttribute('aria-label','선택한 예측 질문의 회차별 확률 비교. 좌우 화살표로 기준 날짜 이동');
+  const svg=document.createElementNS(NS,'svg');svg.setAttribute('viewBox',`0 0 ${W} ${H}`);svg.setAttribute('width','100%');svg.setAttribute('role','img');svg.setAttribute('tabindex','0');svg.setAttribute('aria-label','선택한 예측 질문의 예측별 확률 비교. 좌우 화살표로 기준 날짜 이동');
   const mk=(tag,attrs)=>{const node=document.createElementNS(NS,tag);Object.entries(attrs).forEach(([k,v])=>node.setAttribute(k,v));return node;};
   const tx=(x,y,value,attrs={})=>{const node=mk('text',{x,y,fill:attrs.fill||'#5f5d57','font-size':attrs.fs||12,'text-anchor':attrs.anc||'start'});node.textContent=value;return node;};
   [0,25,50,75,100].forEach(v=>{svg.appendChild(mk('line',{x1:ML,y1:Y(v),x2:ML+PW,y2:Y(v),stroke:'rgba(17,17,15,.09)'}));svg.appendChild(tx(ML-7,Y(v)+3,v+'%',{anc:'end'}));});
@@ -4342,8 +4341,8 @@ function drawCompareHistory(host,questions){
     cursorIndex=Math.max(0,Math.min(dates.length-1,index));const date=dates[cursorIndex],x=X(date);
     cursor.setAttribute('x1',x);cursor.setAttribute('x2',x);
     const values=series.map((s,i)=>{const value=valueAt(s,date);if(value){markers[i].setAttribute('cx',x);markers[i].setAttribute('cy',Y(value.probability));markers[i].style.display='';}else markers[i].style.display='none';return value;});
-    readout.innerHTML=`<div class="compare-date"><span>AS OF</span><strong>${esc(date)}</strong></div>${series.map((s,i)=>{const value=values[i],record=(value?.forecast_ts||'').slice(0,10);
-      return `<div><span>${esc(s.q.title.length>28?s.q.title.slice(0,28)+'…':s.q.title)}</span><strong style="color:${COMPARE_COLORS[i]}">${value?p1(value.probability):'기록 없음'}</strong><small>${value?`최근 회차 ${esc(record)}`:'선택 날짜 이전 기록 없음'}</small></div>`;}).join('')}`;
+    readout.innerHTML=`<div class="compare-date"><span>기준 날짜</span><strong>${esc(date)}</strong></div>${series.map((s,i)=>{const value=values[i],record=(value?.forecast_ts||'').slice(0,10);
+      return `<div><span>${esc(questionTitle(s.q))}</span><strong style="color:${COMPARE_COLORS[i]}">${value?p1(value.probability):'기록 없음'}</strong><small>${value?`최근 예측 ${esc(record)}`:'선택 날짜 이전 기록 없음'}</small></div>`;}).join('')}`;
     svg.setAttribute('aria-label',`예측 확률 비교, 기준 날짜 ${date}. 좌우 화살표로 이동`);
   };
   const indexFromPointer=event=>{const rect=svg.getBoundingClientRect(),viewX=(event.clientX-rect.left)*(W/rect.width);
@@ -4367,40 +4366,59 @@ const BODY_DICTIONARY=[
   '확률','예측','근거','출처','판정','시나리오','시장','기준','해소','상승','하락','최종','질문','현재','발생','조정','리스크','참조','실적','전망','분기',
   'general(종합) + devil(데블스 애드버킷) 서브에이전트 2개 병렬 — 증거 부록:',
   '증거 부록(`_r1_evidence.md`)','| ↓ | −2%p |','| ↓ | −3%p |','| ↓ | −1%p |','| ↑ | +2%p |',
-  'CME FedWatch','- **직전 대비**:','| ↓ | −4%p |','| base rate | 값 |','| ↑ | +1%p |','| ↑ | +3%p |','| ↑ | +4%p |'
+  'CME FedWatch','- **직전 대비**:','| ↓ | −4%p |','| base rate | 값 |','| ↑ | +1%p |','| ↑ | +3%p |','| ↑ | +4%p |',
+  '컨센서스','매출총이익률','가이던스','최초 공표','전년 대비','전분기 대비',
+  'https://www.federalreserve.gov/newsevents/speech/warsh20260828a.htm',
+  'https://advantage.factset.com/hubfs/Website/Resources%20Section/Research%20Desk/Earnings%20Insight/EarningsInsight_082826.pdf',
+  'https://www.cnbc.com/2026/08/28/-september-fed-decision-now-a-coin-flip-as-rate-hike-odds-increase.html',
+  'https://www.bls.gov/news.release/empsit.nr0.htm',
+  'https://nvidianews.nvidia.com/news/nvidia-announces-financial-results-for-second-quarter-fiscal-2027',
+  'https://www.federalreserve.gov/newsevents/pressreleases/monetary20260729a.htm',
+  'https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm',
+  'https://www.morganstanley.com/insights/articles/2026-us-midterm-elections-stock-market-impact'
 ];
 function decodeForecastBody(text){return BODY_DICTIONARY.reduce((value,phrase,index)=>value.split(String.fromCharCode(0xE000+index)).join(phrase),text||'');}
 function signedPoint(value){
   if(!hasNumeric(value))return '기록 없음';
   const rounded=Math.round(Number(value)*10)/10;
-  return `${rounded>0?'+':''}${rounded}%p`;
+  return `${rounded>0?'+':''}${rounded}%포인트`;
 }
 function confidenceBand(round){
   return hasNumeric(round?.ci80_lo)&&hasNumeric(round?.ci80_hi)?`${Number(round.ci80_lo)}–${Number(round.ci80_hi)}%`:'기록 없음';
 }
 function reasoningText(round){
   const text=decodeForecastBody(round?.body).trim();
-  if(text)return text;
-  return round?.source_uri?'이전 회차 원문은 자기완결 화면의 용량을 위해 생략했습니다. 근거 문서 링크에서 원문을 확인할 수 있습니다.':'이 회차에는 저장된 근거 원문이 없습니다. 확률·신뢰구간·출처 수 등 구조화 기록은 위의 변화 요약에서 확인할 수 있습니다.';
+  if(text)return recordsText(text,{forecast:round});
+  return round?.source_uri?'이 파일에 포함되지 않은 이전 근거는 원본 자료 보기에서 확인할 수 있습니다. 온라인 기록 화면에서는 전체 근거를 제공합니다.':'이 예측에는 저장된 근거 본문이 없습니다. 확률·예상 범위·출처 수는 위의 변화 설명에서 확인할 수 있습니다.';
+}
+function recordSourceLink(round){
+  const path=round?.source_uri,base=DATA.meta?.public_repository_url;
+  if(!path||!base)return '';
+  return `<a class="record-source" href="${esc(base+'/blob/main/'+path)}" target="_blank" rel="noopener">원본 자료 보기 ↗</a>`;
+}
+function recordChangeReason(round){
+  const body=decodeForecastBody(round?.body),lines=body.split('\n');
+  const explicit=lines.find(line=>/^\s*[-*]?\s*(?:\*\*)?직전(?: 예측)? 대비/.test(line));
+  return recordsText(explicit||round?.change_note||'',{forecast:round});
 }
 function evidenceDeltaMarkup(current,previous){
-  const method=current.method||current.model||'기록 없음';
-  if(!previous)return `<section class="round-delta baseline" aria-label="첫 예측 회차">
-    <div class="round-delta-head"><span>WHAT CHANGED</span><strong>첫 기준선</strong><p>이 회차가 이후 변화를 비교하는 기준입니다.</p></div>
+  const method=RecordsCopy.method(current);
+  if(!previous)return `<section class="round-delta baseline" aria-label="첫 예측">
+    <div class="round-delta-head"><span>예측의 시작</span><strong>첫 예측</strong><p>이 예측을 기준으로 이후 변화를 비교합니다.</p></div>
     <div class="round-delta-grid">
       <div><span>예측 확률</span><strong>${p1(current.probability)}</strong><small>최초 기록</small></div>
       <div><span>80% 구간</span><strong>${confidenceBand(current)}</strong><small>현재 범위</small></div>
       <div><span>근거 출처</span><strong>${Number(current.sources_count)||0}</strong><small>등록 출처</small></div>
-      <div><span>산출 방법</span><strong>${esc(method)}</strong><small>현재 회차</small></div>
+      <div><span>산출 방법</span><strong>${esc(method)}</strong><small>현재 예측</small></div>
     </div></section>`;
   const delta=Number(current.probability)-Number(previous.probability),magnitude=Math.abs(delta);
   const level=magnitude>=10?'큰 폭 재평가':magnitude>=5?'의미 있는 재평가':magnitude>0?'소폭 조정':'확률 유지';
   const direction=delta>0?'상향':delta<0?'하향':'유지';
   const currentSources=Number(current.sources_count)||0,previousSources=Number(previous.sources_count)||0,sourceDelta=currentSources-previousSources;
-  const previousMethod=previous.method||previous.model||'기록 없음',methodChanged=previousMethod!==method;
+  const previousMethod=RecordsCopy.method(previous),methodChanged=(previous.method||previous.model)!==(current.method||current.model);
   const sourceNote=methodChanged?`이전 기록 ${previousSources} · 집계 기준 상이`:`${previousSources} → ${currentSources}${sourceDelta?` · ${sourceDelta>0?'+':''}${sourceDelta}`:' · 유지'}`;
-  return `<section class="round-delta${magnitude>=5?' is-material':''}" aria-label="이전 회차 대비 변화">
-    <div class="round-delta-head"><span>WHAT CHANGED · R${previous.round} → R${current.round}</span><strong>${level}</strong><p>예측 확률을 ${direction} 조정했습니다. 아래 항목은 저장된 두 회차 기록의 직접 비교입니다.</p></div>
+  return `<section class="round-delta${magnitude>=5?' is-material':''}" aria-label="이전 예측 대비 변화">
+    <div class="round-delta-head"><span>이전 예측에서 달라진 점 · ${roundLabel(previous.round)} → ${roundLabel(current.round)}</span><strong>${level}</strong><p>예측 확률 ${direction}. 저장된 두 예측의 확률·예상 범위·근거를 비교합니다.</p></div>
     <div class="round-delta-grid">
       <div><span>확률 변화</span><strong class="${delta>0?'edge-pos':delta<0?'edge-neg':''}">${signedPoint(delta)}</strong><small>${p1(previous.probability)} → ${p1(current.probability)}</small></div>
       <div><span>80% 구간</span><strong>${confidenceBand(current)}</strong><small>이전 ${confidenceBand(previous)}</small></div>
@@ -4410,7 +4428,7 @@ function evidenceDeltaMarkup(current,previous){
 }
 function physicalEventContextMarkup(q){
   const context=q?.proximity_context||{};if(q?.probability_space!=='physical_event'||context.status!=='ok')return '';
-  return `<section class="question-proximity" aria-label="사전등록 사건 임계 근접도"><div><span>THRESHOLD CONTEXT · 결합 금지</span><strong>임계까지 ${num(context.threshold_distance_pct)}%</strong></div><div><span>남은 판정 구간</span><strong>${num(context.remaining_trading_sessions)}거래일</strong></div><div><span>${esc(context.label||'무드리프트 기계적 기준')}</span><strong>≈${num(context.driftless_mechanical_touch_pct)}%</strong></div><p>임계 거리와 기간만으로 만든 해석 보조값입니다. 등록된 사건 확률이나 다른 확률공간과 합산하지 않습니다.</p></section>`;
+  return `<section class="question-proximity" aria-label="판정 조건까지 남은 거리"><div><span>판정 조건까지 남은 거리</span><strong>기준값까지 ${num(context.threshold_distance_pct)}%</strong></div><div><span>남은 판정 기간</span><strong>${num(context.remaining_trading_sessions)}거래일</strong></div><div><span>상승·하락 추세를 가정하지 않은 참고 계산</span><strong>≈${num(context.driftless_mechanical_touch_pct)}%</strong></div><p>기준값까지 거리와 남은 기간으로 계산한 참고값입니다. 등록된 사건의 예측 확률과 계산 기준이 다르므로 서로 더하지 않습니다.</p></section>`;
 }
 function renderDetail(qid){
   const q=DATA.questions.find(x=>x.id===qid);const hist=DATA.forecast_history[qid]||[];const res=DATA.resolutions[qid]||[];
@@ -4419,79 +4437,77 @@ function renderDetail(qid){
   if(!q){root.appendChild(el('<p class="empty">해당 예측을 찾을 수 없습니다.</p>'));mount(root);return;}
   const back=el('<a class="back-button" href="#questions">← 예측 목록</a>');root.appendChild(back);
   const latest=hist.length?hist[hist.length-1].probability:(hasNumeric(q.latest_prob)?q.latest_prob:null),available=hasNumeric(latest);
-  const lastRound=hist.length?hist[hist.length-1]:null,ciText=lastRound&&lastRound.ci80_lo!=null&&lastRound.ci80_hi!=null?` · 80% 구간 ${Math.round(Number(lastRound.ci80_lo))}–${Math.round(Number(lastRound.ci80_hi))}%`:'';
+  const lastRound=hist.length?hist[hist.length-1]:null,ciText=lastRound&&lastRound.ci80_lo!=null&&lastRound.ci80_hi!=null?` · 80% 예상 범위 ${Math.round(Number(lastRound.ci80_lo))}–${Math.round(Number(lastRound.ci80_hi))}%`:'';
   root.appendChild(el(`<div class="detail-hero">
-    <div><h1>${esc(q.title)}</h1>
+    <div><h1>${esc(questionTitle(q))}</h1>
       <div class="meta">${esc(humanDomain(q.domain))} · ${questionStatusLabel(q).text} · 기한 ${esc(q.deadline||'수시')}</div>
       <div class="tag-list" style="justify-content:flex-start">${(q.drivers||[]).map(d=>`<span class="tag">${esc(humanDriver(d))}</span>`).join(' ')}</div>
-      <div class="detail-actions"><button type="button" data-pin-q="${esc(q.id)}" aria-pressed="false"><span data-pin-icon>☆</span> MY RADAR</button><button type="button" data-compare-q="${esc(q.id)}" aria-pressed="false">⇄ 비교 선택</button>${q.deadline?`<button type="button" data-calendar-q="${esc(q.id)}">CAL 판정일 저장</button>`:''}</div>
+      <div class="detail-actions"><button type="button" data-pin-q="${esc(q.id)}" aria-pressed="false"><span data-pin-icon>☆</span> 관심 질문</button><button type="button" data-compare-q="${esc(q.id)}" aria-pressed="false">⇄ 비교 선택</button>${q.deadline?`<button type="button" data-calendar-q="${esc(q.id)}">판정일 저장</button>`:''}</div>
     </div>
-    <div class="prob-orb${available?'':' is-pending'}" style="--prob:${available?Number(latest):0}"><strong>${available?latest:'산출 전'}</strong>${available?'<span>%</span>':''}<small>최신 예측 확률${ciText}</small></div>
+    <div class="prob-orb${available?'':' is-pending'}" style="--prob:${available?Number(latest):0}"><div class="record-prob-content"><strong>${available?latest:'산출 전'}</strong>${available?'<span>%</span>':''}<small title="80% 예상 범위는 예측 과정에서 제시한 불확실성 범위이며, 실제 적중률이 80%로 검증됐다는 뜻이 아닙니다.">최신 예측 확률${ciText}</small></div></div>
   </div>`));
-  /* 판정기준·판정출처는 질문의 정체성이다(첫 예측 이후 변경 금지). 확률만 있고 '무엇을 어떻게
-     판정하는가'가 없으면 독자는 숫자를 검증할 수 없다. 레지스트리 원문 그대로 전재한다. */
-  if(q.resolution||q.resolution_source)root.appendChild(el(`<section class="question-criteria" aria-label="판정 기준과 출처"><div><span>판정 기준 · 첫 예측 이후 변경 금지</span><p>${esc(q.resolution||'기록 없음')}</p></div><div><span>판정 출처</span><p>${esc(q.resolution_source||'기록 없음')}</p></div></section>`));
+  /* 원본 기준은 그대로 보존하고 표시본만 풀어 쓴다. 조건·예외·경계값은 바꾸지 않는다. */
+  if(q.resolution||q.resolution_source)root.appendChild(el(`<section class="question-criteria" aria-label="판정 기준과 출처"><div><span>결과를 판단하는 기준 · 첫 예측 이후 유지</span><div class="records-prose">${RecordsCopy.html(RecordsCopy.criteria(q)||'기록 없음')}</div></div><div><span>결과를 확인할 자료</span><div class="records-prose">${RecordsCopy.html(recordsText(q.resolution_source||'기록 없음'))}</div>${recordSourceLink({source_uri:'questions/registry.yaml'})}</div></section>`));
   const proximityMarkup=physicalEventContextMarkup(q);if(proximityMarkup)root.appendChild(el(proximityMarkup));
   /* 옵션 내재확률은 risk-neutral 측도의 프록시라 사건확률과 같은 축에서 차감할 수 있는 수가 아니다.
      범례와 주석에서 그 사실을 분리해 말한다 — edge 판독은 P3 게이트 뒤의 일이다. */
   const marketSources=new Set(((DATA.market_runs||[]).filter(row=>row.question_id===q.id)).map(row=>String(row.source||'')));
   const marketLabel=marketSources.has('options_bl')
-    ? (marketSources.size>1?'시장 반영 (옵션 위험중립 프록시 포함)':'시장 반영 (옵션 위험중립 프록시)')
+    ? (marketSources.size>1?'시장 가격 참고값 (옵션 가격 추정 포함)':'옵션 가격에서 역산한 참고값')
     : '시장 반영';
   const marketNote=marketSources.has('options_bl')
-    ? '<p class="chart-note">옵션에서 뽑은 확률은 risk-neutral 측도 + 프록시 가정 값입니다. 사건확률(AI 예측)과 같은 축에 그려 두었지만 서로 빼거나 우열을 가리는 수가 아니며, edge 판독은 P3 게이트 통과 뒤로 미뤄져 있습니다.</p>'
+    ? '<p class="chart-note">옵션 가격에서 역산한 값에는 위험 부담에 대한 보상과 대용 상품을 사용한 가정이 포함됩니다. 실제 사건의 발생 가능성과 계산 기준이 달라, 예측 확률과의 차이를 투자 신호로 해석하지 않습니다. 투자 신호 활용은 별도의 성과 검증 기준을 충족한 뒤에만 검토합니다.</p>'
     : '';
-  const chartPanel=el(`<div class="chart-panel analysis-panel"><div class="panel-head"><h2>AI · 모델 · 시장 확률 추이</h2>
-    <div class="band-inline"><span><b style="background:#ff4f17"></b>AI 예측</span><span><b style="background:#247d78"></b>모델 앙상블</span><span><b style="background:#706f68"></b>${esc(marketLabel)}</span></div></div>
+  const chartPanel=el(`<div class="chart-panel analysis-panel"><div class="panel-head"><h2>예측과 시장 참고값의 변화</h2>
+    <div class="band-inline"><span><b style="background:#ff4f17"></b>인공지능 예측</span><span><b style="background:#247d78"></b>통계 모델들의 종합 예측</span><span><b style="background:#706f68"></b>${esc(marketLabel)}</span></div></div>
     <div class="chart-wrap"><div id="hist"></div></div>${marketNote}</div>`);
   root.appendChild(chartPanel);
   const layout=el(`<div class="detail-layout">
-    <div class="round-sidebar"><p class="eyebrow">회차</p><div id="rnds"></div></div>
+    <div class="round-sidebar"><p class="eyebrow">예측</p><div id="rnds"></div></div>
     <div class="reasoning-panel">
       <div class="reasoning-top" id="rtop"></div>
       <div class="model-line" id="rmodel"></div>
+      <p class="records-display-note">근거 전체를 읽기 쉽게 풀어 쓴 설명입니다. 원래 문장은 원본 자료 보기에서 확인할 수 있습니다.</p>
       <div class="round-delta-slot" id="round-delta"></div>
       <div class="reasoning-compare-tools" id="reason-compare-tools"></div>
       <div class="reasoning-compare" id="reason-compare" hidden></div>
-      <pre class="reasoning-body" id="reason"></pre>
+      <div class="reasoning-body records-prose" id="reason"></div>
     </div></div>`);
   root.appendChild(layout);
   if(res.length){
-    /* 대표 산정에서 제외된 회차(research_status=failed)는 원장 값 그대로 보이되 제외 표식을 붙인다.
-       판정 근거·출처(notes)는 원장 원문이라 치환 없이 전재한다 — 확률만 있고 '무엇을 어떻게 판정했는가'가
-       없는 화면을 만들지 않는다. */
+  /* 점수·제외 여부는 원본 그대로 두고 판정 설명만 표시 단계에서 풀어 쓴다. */
     const eligibility=new Map();(Array.isArray(DATA.clusters)?DATA.clusters:Object.values(DATA.clusters||{})).forEach(ev=>(ev?.rounds||[]).forEach(rd=>eligibility.set(rd.forecast_id,rd.eligible_primary)));
     root.appendChild(el(`<div class="resolution-card">
-    ${res.map(r=>{const excluded=eligibility.get(r.forecast_id)===0;return `<div><span>결과</span><strong class="${r.outcome===1?'':'no'}">${r.outcome===1?'적중':'미발생'}</strong></div>
-    <div><span>Brier</span><strong>${Number(r.brier).toFixed(3)}</strong>${excluded?'<em class="excluded-badge" title="research_status=failed — 리서치 전멸 상태에서 생산된 회차. 원장에는 전량 채점하되 대표 Brier·게이트 표본에서 제외">대표 산정 제외</em>':''}</div>
-    <p>예측 확률 ${r.probability}% · 확정일 ${esc(r.resolved_date)} · 0에 가까울수록 정확한 예측입니다.${excluded?' 이 회차는 대표 Brier·게이트 표본에서 제외됩니다(리서치 전멸 생산분 — 원장 값은 무수정).':''}</p>
-    ${r.notes?`<details class="resolution-note"><summary>판정 근거·출처 (원장 원문)</summary><p>${esc(r.notes)}</p></details>`:''}`;}).join('')}</div>`));}
+    ${res.map(r=>{const excluded=eligibility.get(r.forecast_id)===0;return `<div><span>실제 결과</span><strong class="${r.outcome===1?'':'no'}">${r.outcome===1?'발생':'미발생'}</strong></div>
+    <div><span>예측 오차 점수</span><strong>${Number(r.brier).toFixed(3)}</strong>${excluded?'<em class="excluded-badge" title="근거 수집 실패로 대표 성과 계산에서 제외됩니다. 실제 결과와 점수는 기록에 보존됩니다.">대표 성과 계산에서 제외</em>':''}</div>
+    <p>예측 확률 ${r.probability}% · 확정일 ${esc(r.resolved_date)} · 오차 점수는 0에 가까울수록 좋습니다.${excluded?' 근거 수집 실패로 이 예측은 대표 성과 계산과 검증 대상에서 제외됩니다.':''}</p>
+    ${r.notes?`<details class="resolution-note"><summary>판정 근거와 출처 보기</summary><div class="records-prose">${RecordsCopy.html(recordsText(r.notes,{resolution:r}))}</div>${recordSourceLink(hist.find(h=>h.forecast_id===r.forecast_id))}</details>`:''}`;}).join('')}</div>`));}
   mount(root);
   drawHistory($('#hist',chartPanel),hist,DATA.ml_runs.filter(r=>r.question_id===qid),DATA.market_runs.filter(r=>r.question_id===qid));
   const showReason=h=>{
     const roundIndex=hist.findIndex(item=>item===h||(h.forecast_id&&item.forecast_id===h.forecast_id)),previous=roundIndex>0?hist[roundIndex-1]:null;
     $('#rtop',layout).innerHTML=`<div><span>예측 확률</span><strong>${h.probability}%</strong></div>
-      <div><span>회차</span><strong>${h.round}R</strong></div>
+      <div><span>예측 순서</span><strong>${roundLabel(h.round)}</strong></div>
       <div><span>출처</span><strong>${h.sources_count||0}</strong></div>`;
-    $('#rmodel',layout).textContent=`예측일 ${(h.forecast_ts||'').slice(0,10)} · ${h.round}회차 · ${h.method||h.model||'산출 방법 기록 없음'}${h.research_status==='failed'?' · 리서치 전멸 상태 생산분 — 대표 Brier·게이트 표본 제외':h.research_status==='degraded'?' · 리서치 저하 상태 생산분':''}`;
+    $('#rmodel',layout).textContent=`예측일 ${(h.forecast_ts||'').slice(0,10)} · ${roundLabel(h.round)} · ${RecordsCopy.method(h)}${h.research_status==='failed'?' · 근거 수집 실패로 대표 성과 계산에서 제외':h.research_status==='degraded'?' · 일부 근거를 확보하지 못한 예측':''}`;
     $('#round-delta',layout).innerHTML=evidenceDeltaMarkup(h,previous);
     const reason=$('#reason',layout),compare=$('#reason-compare',layout),tools=$('#reason-compare-tools',layout);
-    reason.textContent=reasoningText(h);reason.hidden=false;compare.hidden=true;compare.innerHTML='';
-    tools.innerHTML=previous?`<button type="button" class="reasoning-compare-toggle" aria-expanded="false">⇄ 이전 회차와 근거 나란히 보기</button>`:'';
+    reason.innerHTML=RecordsCopy.html(reasoningText(h))+recordSourceLink(h);reason.hidden=false;compare.hidden=true;compare.innerHTML='';
+    tools.innerHTML=previous?`<button type="button" class="reasoning-compare-toggle" aria-expanded="false">⇄ 이전 예측과 근거 나란히 보기</button>`:'';
     const toggle=tools.querySelector('button');
     if(toggle)toggle.onclick=()=>{
       const open=toggle.getAttribute('aria-expanded')!=='true';toggle.setAttribute('aria-expanded',String(open));
-      toggle.textContent=open?'현재 회차만 보기':'⇄ 이전 회차와 근거 나란히 보기';reason.hidden=open;compare.hidden=!open;
-      if(open)compare.innerHTML=`<section><header><span>PREVIOUS · R${previous.round}</span><strong>${p1(previous.probability)}</strong></header><pre>${esc(reasoningText(previous))}</pre></section>
-        <section><header><span>CURRENT · R${h.round}</span><strong>${p1(h.probability)}</strong></header><pre>${esc(reasoningText(h))}</pre></section>`;
+      toggle.textContent=open?'현재 예측만 보기':'⇄ 이전 예측과 근거 나란히 보기';reason.hidden=open;compare.hidden=!open;
+      if(open)compare.innerHTML=`<section><header><span>이전 · ${roundLabel(previous.round)}</span><strong>${p1(previous.probability)}</strong></header><div class="records-prose">${RecordsCopy.html(reasoningText(previous))}${recordSourceLink(previous)}</div></section>
+        <section><header><span>현재 · ${roundLabel(h.round)}</span><strong>${p1(h.probability)}</strong></header><div class="records-prose">${RecordsCopy.html(reasoningText(h))}${recordSourceLink(h)}</div></section>`;
     };
     layout.querySelectorAll('#rnds button').forEach(b=>b.classList.toggle('active',+b.dataset.r===h.round));
   };
   const rn=$('#rnds',layout);
-  hist.forEach(h=>{const b=el(`<button type="button" data-r="${h.round}"><span>R${h.round}</span><b>${h.probability}%</b><small>${(h.forecast_ts||'').slice(5,10)}</small></button>`);
+  hist.forEach(h=>{const b=el(`<button type="button" data-r="${h.round}"><span>${roundLabel(h.round)}</span><b>${h.probability}%</b><small>${(h.forecast_ts||'').slice(5,10)}</small></button>`);
     b.onclick=()=>showReason(h);rn.appendChild(b);});
   if(hist.length)showReason(hist[hist.length-1]);
-  else{$('#reason',layout).textContent='기록된 회차가 없습니다.';}
+  else{$('#reason',layout).textContent='기록된 예측이 없습니다.';}
 }
 function drawHistory(host,hist,mlRuns,mktRuns){
   if(!hist.length){host.innerHTML='<span class="chart-note">기록 없음</span>';return;}
@@ -4539,12 +4555,14 @@ function renderDecisionJournal(initial){
   const first=allDates[0]||generatedDay(),maxd=allDates.at(-1)||generatedDay();
   const root=el('<div class="decision-journal-page"></div>');
   appendContextTabs(root,'research','journal');
-  root.appendChild(el(`<div class="page-heading"><div><p class="eyebrow">DECISION JOURNAL · IMMUTABLE HISTORY</p><h1>예측 변경 일지</h1><p class="page-lede">언제, 무엇이, 왜 바뀌었는지 지우지 않고 쌓는 기록입니다. 과거 판단을 현재 정보로 덮어쓰지 않습니다. 특정 날짜의 미래 분포는 <a href="#future/lookup">미래 탐색의 기간 조회 ↗</a>에서 봅니다.</p></div></div>`));
-  root.appendChild(el(`<section class="journal-provenance" aria-label="불변 기록 안내"><div><span>APPEND-ONLY PROVENANCE</span><strong>사후 수정이 불가능한 원본에서 생성됩니다</strong><p>기존 예측은 지우지 않고 새 라운드만 추가합니다. 원본 해시는 원장 감사에서 다시 검증됩니다.</p></div><dl><div><dt>인덱스</dt><dd>${esc((DATA.trust?.index?.head||'검증 대기').slice(0,12))}</dd></div><div><dt>원장 감사</dt><dd>${esc((DATA.trust?.ledger_audit_at||'검증 대기').slice(0,10))}</dd></div></dl></section>`));
-  if(methodEvents.length)root.appendChild(el(`<section class="method-change-feed" aria-label="방법론 변경 기록"><p class="eyebrow">METHOD CHANGE</p>${methodEvents.map(item=>{const base=DATA.meta?.public_repository_url||'';const href=item.report&&base?`${base}/blob/main/${item.report}`:'';return `<article><time>${esc(item.date)}</time><div><strong>${esc(item.title)}</strong><p>${esc(item.reason)}</p><small>snapshot ${esc(item.snapshot_id)}</small>${href?`<a href="${esc(href)}" target="_blank" rel="noopener">구현 보고서 ↗</a>`:''}</div></article>`;}).join('')}</section>`));
+  root.appendChild(el(`<div class="page-heading"><div><p class="eyebrow">예측 변경 기록</p><h1>예측 변경 일지</h1><p class="page-lede">언제, 무엇이, 왜 바뀌었는지 쌓아 가는 기록입니다. 과거 판단을 현재 정보로 덮어쓰지 않습니다. 특정 기간의 미래 예상 범위는 <a href="#future/lookup">미래 탐색의 기간 조회 ↗</a>에서 봅니다.</p></div></div>`));
+  const audit=DATA.trust||{},auditAt=audit.ledger_audit_at,violations=audit.ledger_summary?.violation;
+  const auditState=!auditAt?'검사 기록 없음':violations==null?'검사 결과 확인 필요':Number(violations)>0?`구조 검사 위반 ${violations}건`:'구조 검사 위반 없음';
+  root.appendChild(el(`<section class="journal-provenance" aria-label="과거 기록 보존 안내"><div><span>과거 예측은 보존됩니다</span><strong>기존 기록을 덮어쓰지 않고 새 예측을 추가합니다</strong><p>아래 문장은 원본 내용을 읽기 쉽게 풀어 쓴 설명입니다. 날짜·수치·조건은 유지하며 원본 자료도 확인할 수 있습니다.</p></div><dl><div><dt>원본 기록 검사</dt><dd>${esc(auditState)}</dd></div><div><dt>마지막 검사일</dt><dd>${esc(String(auditAt||'검사 기록 없음').slice(0,10))}</dd></div></dl></section>`));
+  if(methodEvents.length)root.appendChild(el(`<section class="method-change-feed" aria-label="예측 방식 변경 기록"><p class="eyebrow">예측 방식 변경</p>${methodEvents.map(item=>{const copy=RecordsMethodCopy.get(item),base=DATA.meta?.public_repository_url||'';const href=item.report&&base?`${base}/blob/main/${item.report}`:base?`${base}/blob/main/data/method_changes.jsonl`:'';return `<article><time>${esc(item.date)}</time><div><strong>${esc(copy.title)}</strong><div class="records-prose">${RecordsCopy.html(copy.reason)}</div>${href?`<a href="${esc(href)}" target="_blank" rel="noopener">자세한 변경 자료 보기 ↗</a>`:''}</div></article>`;}).join('')}</section>`));
   const mode=el(`<div class="journal-mode" role="group" aria-label="일지 보기 방식"><button type="button" data-journal-mode="feed" aria-pressed="true">변경 일지</button><button type="button" data-journal-mode="replay" aria-pressed="false">그날로 돌아가기</button></div>`);
   root.appendChild(mode);
-  const feed=el(`<section class="journal-feed-panel" data-journal-panel="feed"><div class="journal-feed-intro"><strong>${selectedQuestion?esc(qMap[selectedQuestion]?.title||selectedQuestion):'전체 질문'} · ${events.length}건의 판단 변경</strong><span>주 단위로 묶고 변화 폭이 큰 기록을 먼저 보여줍니다.</span></div><div class="decision-feed" role="feed" aria-label="예측 변경 기록">${events.length?Object.entries(grouped).sort((a,b)=>b[0].localeCompare(a[0])).map(([week,items])=>`<section class="journal-week"><h2>${esc(week)} 주간</h2>${items.map(event=>{const positive=event.delta>0,source=event.current.source_uri?`https://github.com/sung-jinpark/Jin-s-investing-prediction/blob/main/${event.current.source_uri}`:'';return `<article class="journal-event" tabindex="0" aria-label="${esc(event.q?.title||event.qid)} ${positive?'상향':'하향'} ${Math.abs(event.delta)} 퍼센트포인트"><time>${esc(event.date)}</time><div><a class="journal-question" href="#q/${esc(event.qid)}">${esc(event.q?.title||event.qid)}</a><p><span class="journal-prob">${event.previous.probability}%</span><i>→</i><span class="journal-prob">${event.current.probability}%</span><b class="${positive?'edge-pos':'edge-neg'}">${positive?'+':''}${event.delta}%p</b></p>${event.current.change_note?`<blockquote${event.current.change_note_fallback?' class="is-excerpt"':''}>${event.current.change_note_fallback?'<small>변경 사유 줄이 별도 기록되지 않은 회차 — 원문 첫 문단 발췌</small>':'<small>회차가 기록한 변경 사유</small>'}${esc(event.current.change_note)}</blockquote>`:''}${source?`<a class="journal-source" href="${esc(source)}" target="_blank" rel="noopener">근거 문서 ↗</a>`:''}</div></article>`;}).join('')}</section>`).join(''):'<div class="journal-empty"><strong>표시할 확률 변경이 없습니다.</strong><p>첫 라운드만 있거나 확률이 그대로인 질문은 변경 이벤트로 만들지 않습니다.</p></div>'}</div></section>`);
+  const feed=el(`<section class="journal-feed-panel" data-journal-panel="feed"><div class="journal-feed-intro"><strong>${selectedQuestion?esc(qMap[selectedQuestion]?questionTitle(qMap[selectedQuestion]):'질문 제목 확인 필요'):'전체 질문'} · ${events.length}건의 판단 변경</strong><span>주 단위로 묶고 변화 폭이 큰 기록을 먼저 보여줍니다.</span></div><div class="decision-feed" role="feed" aria-label="예측 변경 기록">${events.length?Object.entries(grouped).sort((a,b)=>b[0].localeCompare(a[0])).map(([week,items])=>`<section class="journal-week"><h2>${esc(week)} 주간</h2>${items.map(event=>{const positive=event.delta>0,title=event.q?questionTitle(event.q):'질문 제목 확인 필요';return `<article class="journal-event" tabindex="0" aria-label="${esc(title)} ${positive?'상향':'하향'} ${Math.abs(event.delta)} 퍼센트포인트"><time>${esc(event.date)}</time><div><a class="journal-question" href="#q/${esc(event.qid)}">${esc(title)}</a><p><span class="journal-prob">${event.previous.probability}%</span><i>→</i><span class="journal-prob">${event.current.probability}%</span><b class="${positive?'edge-pos':'edge-neg'}">${positive?'+':''}${event.delta}%포인트</b></p>${event.current.change_note?`<blockquote${event.current.change_note_fallback?' class="is-excerpt"':''}>${event.current.change_note_fallback?'<small>변경 사유가 별도 기록되지 않아 근거 본문의 일부를 제공합니다</small>':'<small>이 예측에 기록된 변경 이유</small>'}<div class="records-prose">${RecordsCopy.html(recordChangeReason(event.current))}</div></blockquote>`:''}${recordSourceLink(event.current)}</div></article>`;}).join('')}</section>`).join(''):'<div class="journal-empty"><strong>표시할 확률 변경이 없습니다.</strong><p>첫 예측만 있거나 확률이 바뀌지 않은 질문은 변경 기록에 표시되지 않습니다.</p></div>'}</div></section>`);
   const replay=el(`<section class="journal-replay-panel" data-journal-panel="replay" hidden><div class="replay-controls"><label for="journal-date">기준일<input type="date" id="journal-date" min="${first}" max="${maxd}" value="${state.date||maxd}"></label><div class="replay-presets"><button type="button" data-replay-date="${first}">최초 기록</button><button type="button" data-replay-offset="-30">1개월 전</button><button type="button" data-replay-offset="-7">1주 전</button><button type="button" data-replay-date="${maxd}">최신</button></div></div><div id="journal-replay-summary" class="journal-replay-summary"></div><div class="table-shell"><table id="journal-replay-table"></table></div></section>`);
   root.append(feed,replay);mount(root);
   const rowsAt=D=>questions.filter(q=>!selectedQuestion||q.id===selectedQuestion).map(q=>{const hist=(histories[q.id]||[]).filter(h=>String(h.forecast_ts||'').slice(0,10)<=D);if(!hist.length)return null;const then=hist.at(-1),latest=(histories[q.id]||[]).at(-1)||then,ml=(DATA.ml_runs||[]).filter(m=>m.question_id===q.id&&String(m.run_ts||'').slice(0,10)<=D).at(-1),market=(DATA.market_runs||[]).filter(m=>m.question_id===q.id&&String(m.run_ts||'').slice(0,10)<=D).at(-1);return {q,then,latest,ml,market,delta:Number(latest.probability)-Number(then.probability)};}).filter(Boolean);
@@ -4552,8 +4570,8 @@ function renderDecisionJournal(initial){
     /* 시장 참고값 열은 옵션 위험중립 프록시(options_bl)와 예측시장이 섞인다 — CLAUDE.md는 옵션 내재확률에
        risk-neutral 측도·프록시 가정을 항상 병기하라고 못박는다. 공식 확률 옆에 나란히 둘수록 더 그렇다. */
     const marketSources=new Set(rows.map(row=>row.market?.source).filter(Boolean)),hasOptions=marketSources.has('options_bl'),mixedMarket=marketSources.size>1;
-    $('#journal-replay-summary',replay).innerHTML=`<strong>${esc(D)} 이후 ${changed.length}개 질문의 판단이 바뀌었습니다.</strong><span>평균 절대 변화 ${average.toFixed(1)}%p · 과거 시점 이후 정보는 당시 값에서 제외했습니다.${hasOptions?' 옵션에서 뽑은 시장 참고값은 risk-neutral 측도 + 프록시 가정 값이라 물리적 확률과 다릅니다 — edge 판독은 P3 게이트 통과 뒤로 미뤄져 있습니다.':''}</span>`;
-    $('#journal-replay-table',replay).innerHTML=`<caption class="sr-only">${esc(D)} 당시와 현재 공식 확률 비교</caption><thead><tr><th>질문</th><th class="r">그날의 공식 확률</th>${hasMl?'<th class="r">그날의 모델 참고값</th>':''}${hasMarket?`<th class="r">그날의 시장 참고값${hasOptions?(mixedMarket?' (측도 상이)':' (옵션 위험중립 프록시)'):''}</th>`:''}<th class="r">현재 공식 확률</th><th class="r">변화</th></tr></thead><tbody>${rows.map(row=>`<tr><td><a href="#q/${esc(row.q.id)}">${esc(row.q.title)}</a></td><td class="r"><span class="table-prob">${row.then.probability}%</span></td>${hasMl?`<td class="r num">${row.ml?pct(row.ml.prob):'—'}</td>`:''}${hasMarket?`<td class="r num">${row.market?`${pct(row.market.prob)}${row.market.source==='options_bl'?'<small> 위험중립</small>':''}`:'—'}</td>`:''}<td class="r"><span class="table-prob">${row.latest.probability}%</span></td><td class="r num ${row.delta>0?'edge-pos':row.delta<0?'edge-neg':''}">${row.delta>0?'+':''}${row.delta.toFixed(0)}%p</td></tr>`).join('')}</tbody>`;
+    $('#journal-replay-summary',replay).innerHTML=`<strong>${esc(D)} 이후 ${changed.length}개 질문의 예측 확률이 1%포인트 이상 바뀌었습니다.</strong><span>상승·하락의 크기를 평균하면 ${average.toFixed(1)}%포인트입니다. 선택한 날짜 뒤의 정보는 당시 값에 포함하지 않았습니다.${hasOptions?' 옵션 가격 참고값에는 위험 부담에 대한 보상과 대용 상품을 사용한 가정이 포함되어 실제 발생 가능성과 계산 기준이 다릅니다. 이 차이를 투자 신호로 해석하지 않으며 별도의 성과 검증이 필요합니다.':''}</span>`;
+    $('#journal-replay-table',replay).innerHTML=`<caption class="sr-only">${esc(D)} 당시와 현재 예측 확률 비교</caption><thead><tr><th>질문</th><th class="r">선택한 날짜의 예측 확률</th>${hasMl?'<th class="r">그날의 모델 참고값</th>':''}${hasMarket?`<th class="r">그날의 시장 참고값${hasOptions?(mixedMarket?' (계산 기준 다름)':' (옵션 가격 추정)'):''}</th>`:''}<th class="r">현재 예측 확률</th><th class="r">변화</th></tr></thead><tbody>${rows.map(row=>`<tr><td><a href="#q/${esc(row.q.id)}">${esc(questionTitle(row.q))}</a></td><td class="r"><span class="table-prob">${row.then.probability}%</span></td>${hasMl?`<td class="r num">${row.ml?pct(row.ml.prob):'—'}</td>`:''}${hasMarket?`<td class="r num">${row.market?`${pct(row.market.prob)}${row.market.source==='options_bl'?'<small> 옵션 가격 추정</small>':''}`:'—'}</td>`:''}<td class="r"><span class="table-prob">${row.latest.probability}%</span></td><td class="r num ${row.delta>0?'edge-pos':row.delta<0?'edge-neg':''}">${row.delta>0?'+':''}${row.delta.toFixed(0)}%포인트</td></tr>`).join('')}</tbody>`;
   };
   const setMode=next=>{const replayOn=next==='replay';feed.hidden=replayOn;replay.hidden=!replayOn;mode.querySelectorAll('[data-journal-mode]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.journalMode===next)));if(replayOn)drawReplay($('#journal-date',replay).value);};
   mode.querySelectorAll('[data-journal-mode]').forEach(button=>button.onclick=()=>setMode(button.dataset.journalMode));
@@ -4570,7 +4588,7 @@ function renderTrack(initial){
   const root=el(`<div class="track-page" data-track-mode="${trackMode}"></div>`);
   if(trackMode==='performance')appendContextTabs(root,'research','performance');
   if(trackMode==='operator')root.appendChild(el(`<section class="trust-readiness" aria-label="AI 자본사이클 준비 상태"><div><span>AI 자본사이클</span><strong>${ai.status==='blocked'||aiCoverage<aiThreshold?'준비 중 · 판정 보류':'검증 지도 준비'}</strong></div><p>확보된 입력 ${Math.round(aiCoverage*100)}% · 자동 복귀 기준 ${Math.round(aiThreshold*100)}% (coverage≥${aiThreshold.toFixed(1)}).</p><a href="#future/ai-regime">상태 상세</a></section>`));
-  const heading=trackMode==='performance'?['성과 검증 · Calibration','확정된 질문의 성과를 어떻게 검증하는가','확률과 실제 결과의 간격을 기록합니다. 고유 결과가 충분해지기 전에는 성능 판단을 유보합니다.']:trackMode==='operator'?['OPERATOR MODE · AUDIT','운영 상태와 모델 후보를 점검합니다','일반 화면에서 숨긴 원장 경고·모델 후보·정정 대기를 운영 목적으로 확인합니다.']:['데이터와 신뢰','데이터가 어디서 오고 어떻게 검증되는가','원천 수집부터 시점 검사, 변경 이력, 화면 표시까지 한눈에 확인합니다.'];
+  const heading=trackMode==='performance'?['성과 확인','예측과 실제 결과를 비교합니다','예측 확률과 실제 결과의 차이를 기록합니다. 서로 다른 확정 결과가 충분히 쌓이기 전에는 성과 판단을 유보합니다.']:trackMode==='operator'?['OPERATOR MODE · AUDIT','운영 상태와 모델 후보를 점검합니다','일반 화면에서 숨긴 원장 경고·모델 후보·정정 대기를 운영 목적으로 확인합니다.']:['데이터와 신뢰','데이터가 어디서 오고 어떻게 검증되는가','원천 수집부터 시점 검사, 변경 이력, 화면 표시까지 한눈에 확인합니다.'];
   root.appendChild(el(`<div class="page-heading"><div>
     <p class="eyebrow">${heading[0]}</p>
     <h1>${heading[1]}</h1>
@@ -4580,31 +4598,31 @@ function renderTrack(initial){
   if(trackMode==='performance'){
   const gAll=c.gate_all||{};
   root.appendChild(el(`<div class="track-kpis">
-    <div><span>채점된 회차</span><strong>${gAll.n_resolved!=null?gAll.n_resolved:(g.n_resolved||0)}</strong><small>원장 전량${c.n_excluded?` · 대표 산정 ${g.n_resolved||0} (제외 ${c.n_excluded})`:''}</small></div>
-    <div><span>고유 결과</span><strong>${unique}</strong><small>게이트 후보 표본 단위</small></div>
-    <div><span>대표 Brier</span><strong>${g.brier!=null?Number(g.brier).toFixed(3):'—'}</strong><small>v_brier_primary · 게이트 판정 기준</small></div>
-    <div><span>P3 게이트</span><strong>${g.gate_p3?'통과':'미통과'}</strong><small>해소 문항 ${g.n_questions!=null?g.n_questions:(g.n_resolved||0)}/50 · 대표 Brier ${g.brier!=null?Number(g.brier).toFixed(3):'—'} &lt; 0.18 — 두 조건 모두 충족해야 통과</small></div>
-    <div><span>이벤트 가중 Brier</span><strong>${gv2.brier!=null?Number(gv2.brier).toFixed(3):'—'}</strong><small>후보 지표 · 표시 전용</small></div>
-    <div><span>이벤트 가중 Brier 95% CI 상한</span><strong>${gv2.bootstrap?.ci_hi!=null?Number(gv2.bootstrap.ci_hi).toFixed(3):'—'}</strong><small>cluster bootstrap · n=${gv2.bootstrap?.n_unique??'—'} · 대표 Brier의 구간이 아닙니다</small></div>
+    <div><span>채점한 전체 예측</span><strong>${gAll.n_resolved!=null?gAll.n_resolved:(g.n_resolved||0)}</strong><small>저장된 점수 전체${c.n_excluded?` · 대표 성과 계산에 ${g.n_resolved||0}건 포함, ${c.n_excluded}건 제외`:''}</small></div>
+    <div><span>서로 다른 확정 결과</span><strong>${unique}</strong><small>같은 사건의 반복 예측은 하나로 묶습니다</small></div>
+    <div><span>대표 예측 오차 점수</span><strong>${g.brier!=null?Number(g.brier).toFixed(3):'—'}</strong><small>근거 수집 실패를 제외한 예측의 평균 · 낮을수록 좋음</small></div>
+    <div><span>성과 검증 기준</span><strong>${g.gate_p3?'기준 충족':'기준 미달'}</strong><small>결과가 확정된 질문 ${g.n_questions!=null?g.n_questions:(g.n_resolved||0)}개 / 필요 50개 · 대표 오차 점수 ${g.brier!=null?Number(g.brier).toFixed(3):'—'} / 필요 0.18 미만 · 두 조건을 모두 충족해야 합니다</small></div>
+    <div><span>사건별 비중을 맞춘 참고 오차</span><strong>${gv2.brier!=null?Number(gv2.brier).toFixed(3):'—'}</strong><small>같은 사건을 반복 예측한 횟수의 영향을 줄인 참고 점수 · 검증 판정에는 사용하지 않음</small></div>
+    <div><span>참고 오차의 95% 불확실성 범위 상단</span><strong>${gv2.bootstrap?.ci_hi!=null?Number(gv2.bootstrap.ci_hi).toFixed(3):'—'}</strong><small>사건 ${gv2.bootstrap?.n_unique??'—'}개를 묶어서 반복 추출한 추정 범위 · 대표 오차 점수의 범위와 다릅니다</small></div>
   </div>`));
-  root.appendChild(el(`<p class="status-note">P3 게이트 판정은 <b>대표 Brier</b>(v_brier_primary — 리서치 전멸 생산분 제외 표본) 기준이며, 두 조건(해소 50문항+ AND 대표 Brier &lt; 0.18)을 모두 충족해야 통과입니다. 현재 판정은 <b>${g.gate_p3?'통과':'미통과'}</b>입니다${g.gate_p3?'':' — 표본 조건 미달'}. 이벤트 가중 Brier는 같은 원장을 다르게 집계한 후보 지표이며 게이트 판정에 쓰이지 않습니다.${c.n_excluded?` 대표 집계에서 제외된 예측 ${c.n_excluded}건이 있습니다.`:''}</p>`));
-  if(unique<30)root.appendChild(el(`<p class="status-note">고유 결과 ${unique}건 · 원장 ${gAll.n_resolved!=null?gAll.n_resolved:(g.n_resolved||0)}회차(대표 산정 ${g.n_resolved||0}회차${c.n_excluded?`, failed 제외 ${c.n_excluded}건`:''}) — 반복 업데이트를 독립 표본으로 세지 않습니다. 고유 결과 30건 전에는 신뢰도 곡선과 모델 우열 판정을 숨깁니다.</p>`));
+  root.appendChild(el(`<p class="status-note">성과 검증에는 <b>대표 예측 오차 점수</b>를 사용합니다. 근거 수집에 실패한 예측은 제외하며, 결과가 확정된 질문 50개 이상과 대표 오차 점수 0.18 미만을 모두 충족해야 합니다. 현재는 <b>${g.gate_p3?'기준을 충족했습니다':'기준을 아직 충족하지 못했습니다'}</b>. 사건별 비중을 맞춘 참고 오차는 별도의 집계이며 이 판정에 사용하지 않습니다.${c.n_excluded?` 대표 성과 계산에서 제외된 예측은 ${c.n_excluded}건입니다.`:''}</p>`));
+  if(unique<30)root.appendChild(el(`<p class="status-note">서로 다른 확정 결과 ${unique}건 · 채점한 전체 예측 ${gAll.n_resolved!=null?gAll.n_resolved:(g.n_resolved||0)}건(대표 성과 계산 ${g.n_resolved||0}건${c.n_excluded?`, 근거 수집 실패로 제외 ${c.n_excluded}건`:''}). 같은 사건의 반복 예측을 서로 독립적인 결과로 세지 않습니다. 서로 다른 확정 결과 30건이 쌓이면 예측 확률과 실제 발생 비율의 비교 및 모델 간 성과 판단을 제공합니다.</p>`));
   const cv=c.curve||[];
   const grid=el('<div class="section-grid"></div>');
-  if(cv.length&&unique>=30){grid.appendChild(el(`<div class="panel"><div class="panel-head"><h2>신뢰도 곡선</h2><span class="vintage-note">예측 대 실제</span></div>
-    <div class="table-shell" style="border:0"><table style="min-width:0"><caption class="sr-only">확률대별 예측 캘리브레이션</caption><thead><tr><th scope="col">확률대</th><th scope="col" class="r">표본</th><th scope="col" class="r">평균 예측</th><th scope="col" class="r">실제 적중</th></tr></thead>
+  if(cv.length&&unique>=30){grid.appendChild(el(`<div class="panel"><div class="panel-head"><h2>예측 확률과 실제 발생 비율</h2><span class="vintage-note">예측 대 실제</span></div>
+    <div class="table-shell" style="border:0"><table style="min-width:0"><caption class="sr-only">확률대별 예측과 실제 발생 비율 비교</caption><thead><tr><th scope="col">확률대</th><th scope="col" class="r">표본</th><th scope="col" class="r">평균 예측</th><th scope="col" class="r">실제 발생</th></tr></thead>
     <tbody>${cv.map(r=>`<tr><td class="num">${r.decile*10}–${r.decile*10+10}%</td><td class="r num">${r.n}</td>
       <td class="r num">${pct(r.avg_forecast)}</td><td class="r num">${pct(r.avg_outcome)}</td></tr>`).join('')}</tbody></table></div>
-    <p class="chart-note">평균 예측 확률과 실제 적중률이 가까울수록 잘 보정된 예측입니다.</p></div>`));}
-  else grid.appendChild(el(`<div class="panel insufficient-panel"><div class="panel-head"><h2>신뢰도 곡선</h2><span class="semantic-state">표본 부족</span></div><p>고유 결과가 30건에 도달하면 reliability curve와 Murphy decomposition을 공개합니다. 현재는 숫자를 과해석하지 않도록 의도적으로 숨겼습니다.</p></div>`));
+    <p class="chart-note">평균 예측 확률과 실제 발생률이 가까울수록 잘 보정된 예측입니다.</p></div>`));}
+  else grid.appendChild(el(`<div class="panel insufficient-panel"><div class="panel-head"><h2>예측 확률과 실제 발생 비율</h2><span class="semantic-state">확정 결과 부족</span></div><p>서로 다른 확정 결과가 30건에 도달하면 예측 확률과 실제 발생 비율, 예측 오차의 원인별 분석을 제공합니다. 현재는 결과가 적어 이 비교를 제시하지 않습니다.</p></div>`));
   const ds=(c.domain_skill||[]).filter(r=>r.n>0);
   /* Brier는 낮을수록 좋은 평균제곱오차다 — '정확도'라 부르면 높을수록 좋은 적중률로 읽힌다.
      무능 차단(Brier>0.22)은 n≥10에서만 발동하므로 소표본 행에는 단정 배지를 달지 않는다. */
-  if(ds.length){grid.appendChild(el(`<div class="panel"><div class="panel-head"><h2>분야별 Brier (낮을수록 좋음)</h2><span class="vintage-note">${ds.length}개 분야 · 전량 기준 · 0=완벽, 0.25=동전던지기</span></div>
+  if(ds.length){grid.appendChild(el(`<div class="panel"><div class="panel-head"><h2>분야별 예측 오차 점수</h2><span class="vintage-note">${ds.length}개 분야 · 전체 채점 기준 · 0은 오차 없음, 0.25는 모든 사건에 50%를 예측했을 때의 점수</span></div>
     <div class="deadline-list" style="border-top:1px solid var(--line)">${ds.map(r=>{const rep=Number(r.brier_primary??r.brier);const over=rep>0.22;return `<div style="padding:19px 0;display:grid;grid-template-columns:1fr auto;gap:6px;border-bottom:1px solid var(--line)">
-      <span style="font-size:13px;font-weight:650">${esc(humanDomain(r.domain))}${r.blocked?' <span data-badge-type="state">시그널 차단 · 정보 제공만 (Brier&gt;0.22 · n≥10)</span>':''}</span>
+      <span style="font-size:13px;font-weight:650">${esc(humanDomain(r.domain))}${r.blocked?' <span data-badge-type="state">참고 정보만 제공 · 대표 오차 점수 0.22 초과, 채점 예측 10건 이상</span>':''}</span>
       <strong style="font-family:var(--mono);font-size:17px">${r.brier!=null?Number(r.brier).toFixed(3):'—'}</strong>
-      <small style="grid-column:1/3;color:var(--muted);font-family:var(--mono);font-size:var(--type-micro)">표본 ${r.n}건${r.brier_primary!=null&&Number(r.brier_primary)!==Number(r.brier)?` · 대표 기준 ${Number(r.brier_primary).toFixed(3)} (표본 ${r.n_primary}건)`:''}${over&&!r.blocked?' · Brier 0.22 초과이나 차단 기준(n≥10) 미달 — 판정 보류':''}${Number(r.n)<10?' · 소표본, 해석 보류':''}</small></div>`;}).join('')}</div></div>`));}
+      <small style="grid-column:1/3;color:var(--muted);font-family:var(--mono);font-size:var(--type-micro)">채점한 예측 ${r.n}건${r.brier_primary!=null&&Number(r.brier_primary)!==Number(r.brier)?` · 근거 수집 실패를 제외한 대표 점수 ${Number(r.brier_primary).toFixed(3)} (${r.n_primary}건)`:''}${over&&!r.blocked?' · 대표 오차 점수는 0.22를 넘었지만 채점 예측이 10건 미만이므로 제한 여부 판단 보류':''}${Number(r.n)<10?' · 예측 건수가 적어 해석 보류':''}</small></div>`;}).join('')}</div></div>`));}
   if(grid.children.length)root.appendChild(grid);
   }
   if(trackMode!=='performance'){
@@ -4661,11 +4679,11 @@ function renderHeaderStrip(){
   const items=[];
   if(anchor!=null){const vsAth=ath?((anchor/ath-1)*100):null;
     items.push({k:'NASDAQ 종합',v:num(Math.round(anchor)),sub:vintage.status==='stale'?`보관값 · ${sc.asof}`:`${sc.asof} · 전고점 대비 ${vsAth>=0?'+':''}${vsAth.toFixed(1)}%`,cls:vintage.status==='stale'?'stale':vsAth!=null?(vsAth>=0?'up':'down'):''});}
-  if(ath!=null)items.push({k:'전고점 ATH',v:num(Math.round(ath)),sub:'52주 기준'});
+  if(ath!=null)items.push({k:'이전 최고점',v:num(Math.round(ath)),sub:'52주 기준'});
   if(corr!=null)items.push({k:'−10% 조정선',v:num(Math.round(corr)),sub:'지지 기준'});
   if(br.pct_above_200dma!=null)items.push({k:'시장 폭',v:br.pct_above_200dma+'%',sub:'200일선 상회'});
   if(rg.recession_flag!=null)items.push({k:'경기 국면',v:rg.recession_flag?'침체':'확장',sub:'NBER 기준',cls:rg.recession_flag?'down':'up'});
-  else if(rg.hy_spread_pct!=null)items.push({k:'신용 스프레드',v:rg.hy_spread_pct.toFixed(2)+'%',sub:'HY OAS'});
+  else if(rg.hy_spread_pct!=null)items.push({k:'신용 가산금리',v:rg.hy_spread_pct.toFixed(2)+'%',sub:'저신용 회사채 기준'});
   const strip=document.getElementById('mktstrip');
   if(!items.length){strip.style.display='none';return;}
   strip.innerHTML=items.map(it=>`<div><span>${esc(it.k)}</span>${it.sub?`<small>${esc(it.sub)}</small>`:''}<strong class="${it.cls||''}">${esc(it.v)}</strong></div>`).join('');
@@ -4680,13 +4698,14 @@ function renderHeaderStrip(){
   try{DATA=await loadData();}
   catch(error){app().innerHTML=`<div class="loader-wrap">데이터를 불러오지 못했습니다.<br><small>${esc(String(error&&error.message||error))}</small><br><button type="button" onclick="location.reload()">다시 시도</button></div>`;return;}
   if(!DATA){app().innerHTML='<div class="loader-wrap">데이터를 불러오지 못했습니다.<br><button type="button" onclick="location.reload()">다시 시도</button></div>';return;}
+  RecordsCopy.configure(DATA);
   document.body.classList.toggle('density-compact',UI_STATE.density==='compact');
   document.body.classList.toggle('motion-reduced',UI_STATE.motion==='reduced');
   try{if(sessionStorage.getItem('jin-focus')==='1'){document.body.classList.add('focus-mode');focusExit.hidden=false;}}catch(_){}
-  const generated='갱신 '+DATA.meta.generated.replace('T',' ').slice(0,16)+' KST';
+  const generated='갱신 '+DATA.meta.generated.replace('T',' ').slice(0,16)+' 한국 시간';
   document.getElementById('asof').textContent=generated;
   document.getElementById('drawer-asof').textContent=generated;
-  const ph=document.getElementById('phase');if(ph&&DATA.meta.phase)ph.textContent=DATA.meta.phase;
+  const ph=document.getElementById('phase');if(ph&&DATA.meta.phase)ph.textContent='참고 의견';
   updateFreshnessBadges();updateUtilityButtons();renderCompareTray();
   renderHeaderStrip();
   route();

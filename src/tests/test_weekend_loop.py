@@ -10,7 +10,33 @@ from pathlib import Path
 import pytest
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
-BASH = shutil.which("bash")
+
+
+def _find_bash() -> str | None:
+    candidates: list[Path] = []
+    if os.name == "nt" and (git := shutil.which("git")):
+        # Windows' PATH may find the WSL launcher even when /bin/bash is
+        # unavailable. This supervisor targets Git Bash, shipped beside Git.
+        for parent in Path(git).resolve().parents[:3]:
+            candidates.extend((parent / "bin/bash.exe", parent / "usr/bin/bash.exe"))
+    if bash := shutil.which("bash"):
+        candidates.append(Path(bash))
+    for candidate in dict.fromkeys(candidates):
+        if not candidate.is_file():
+            continue
+        try:
+            result = subprocess.run(
+                [str(candidate), "-c", 'test -n "$BASH_VERSION"'],
+                capture_output=True, timeout=10,
+            )
+        except (OSError, subprocess.TimeoutExpired):
+            continue
+        if result.returncode == 0:
+            return str(candidate)
+    return None
+
+
+BASH = _find_bash()
 
 pytestmark = pytest.mark.skipif(BASH is None, reason="bash is unavailable")
 

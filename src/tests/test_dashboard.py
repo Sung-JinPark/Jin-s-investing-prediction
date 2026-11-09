@@ -39,6 +39,18 @@ REGISTRY_YAML = textwrap.dedent("""\
 LEDGER = "resolved_date,question_id,forecast_id,forecast_date,probability,outcome,brier,domain,notes\n"
 
 
+@pytest.fixture(autouse=True)
+def _keep_repository_forecast_anchor_read_only(monkeypatch: pytest.MonkeyPatch) -> None:
+    """A disposable index must not refresh the real repository's hash anchor."""
+    original = ingest._write_hash_anchor
+
+    def write_fixture_anchor(conn, root):
+        if Path(root).resolve() != dashboard.config.ROOT.resolve():
+            original(conn, root)
+
+    monkeypatch.setattr(ingest, "_write_hash_anchor", write_fixture_anchor)
+
+
 @pytest.fixture
 def repo(tmp_path: Path) -> Path:
     (tmp_path / "questions").mkdir()
@@ -604,10 +616,10 @@ def test_workspace_utility_contract() -> None:
     assert "@media print" in html
     assert "COMMAND_ROUTES" in html and "commandCatalog" in html
     assert "data-command-index" in html
-    assert "WHY IT MATTERS" in html and "DECISION WINDOW" in html
-    assert "한 줄 해석" in html and "관찰 변수" in html
+    assert "이 예측을 살펴볼 이유" in html and "판정 일정" in html
+    assert "한 줄 해석" in html and "살펴볼 요인" in html
     assert "probability==null||probability===''" in html
-    assert "WHAT CHANGED" in html and "MY RADAR" in html
+    assert "이전 예측에서 달라진 점" in html and "관심 질문" in html
     # 'SCENARIO VINTAGE' 라벨은 렌더되지 않던 vintageReceipt 안에만 있었다.
     # 신선도 판정 로직 자체(scenarioVintage)는 그대로 살아 있어야 한다.
     assert "function scenarioVintage()" in html and "SCENARIO VINTAGE" not in html
@@ -629,13 +641,13 @@ def test_workspace_utility_contract() -> None:
     assert 'class="table-shell question-table-shell"' in html
     assert 'class="mobile-question-card"' in html
     assert "className='compare-readout'" in html
-    assert "REVIEW QUEUE" in html and "data-review-dismiss" in html
+    assert "검토할 질문" in html and "data-review-dismiss" in html
     assert "compareCollapsed" in html and "compareAutoExpanded" in html
     assert "questionView" in html and "검토 우선순위" in html
     assert "version:4" in html and "layout:'table'" in html
-    assert "WHAT CHANGED · R${previous.round} → R${current.round}" in html
-    assert "이전 회차와 근거 나란히 보기" in html
-    assert "저장된 근거 원문이 없습니다" in html
+    assert "이전 예측에서 달라진 점 · ${roundLabel(previous.round)} → ${roundLabel(current.round)}" in html
+    assert "이전 예측과 근거 나란히 보기" in html
+    assert "저장된 근거 본문이 없습니다" in html
     assert "집계 기준 상이" in html and "const maxIndex=focus==='ALL'?CAP" in html
     assert "research-layout-cards" in html and "analog-readout" in html
     assert "tip-series" in html and "--tip-series" in html
@@ -651,7 +663,8 @@ def test_workspace_utility_contract() -> None:
     assert "peek-title" not in html and "peek-metric" not in html
     assert 'role="tablist" aria-label="시장 지도 분석 공간"' in html
     assert "REFERENCE ONLY · 확률 아님" not in html
-    assert "유사 구간 이후 흐름" in html
+    assert "유사 구간 이후 흐름" not in html
+    assert "analog-case-list" not in html
     assert "forward n&lt;20" not in html and "median emphasis disabled" not in html
     assert "DB-CONDITIONED PATH · MONTHLY RISK WINDOW" in html
     assert "상승·회복 사이의 조정을 역사 DB로 복원했습니다" in html
@@ -734,7 +747,7 @@ def test_forecast_lookup_ui_contract() -> None:
         "선택 3시대 원형 → 목표", "기하 detrend 잔차", "공용 strength",
         "무드리프트 기계적 기준", "임계까지 ${num(proximity.threshold_distance_pct)}%",
         "trailing 252거래일 μ의 추세 지속 가정", "physicalEventContextMarkup",
-        "등록된 사건 확률이나 다른 확률공간과 합산하지 않습니다",
+        "등록된 사건의 예측 확률과 계산 기준이 다르므로 서로 더하지 않습니다",
     ):
         assert required in html
     assert "lookup-metrics" in html and "lookup-primary" in html
@@ -1205,9 +1218,10 @@ def test_v5_2_future_view_uses_one_log_scale_and_restores_research_panels() -> N
     assert "compareTray.hidden=!ids.length||!location.hash.startsWith('#records')" in html
 
 
-def test_v53_honesty_surfaces_survive_without_deletion() -> None:
-    conn = ingest.connect(dashboard.config.DB_PATH)
+def test_v53_honesty_surfaces_survive_without_deletion(tmp_path: Path) -> None:
+    conn = ingest.connect(tmp_path / "index.db")
     try:
+        ingest.sync(conn, dashboard.config.ROOT)
         model = dashboard.build_read_model(conn, dashboard.config.ROOT)
     finally:
         conn.close()
@@ -1340,7 +1354,7 @@ def test_liquidity_series_share_one_plot_with_explicit_dual_axes() -> None:
 def test_decision_journal_share_and_contrast_contract() -> None:
     html = dashboard.load_template()
     for required in (
-        "예측 변경 일지", "그날로 돌아가기", "APPEND-ONLY PROVENANCE",
+        "예측 변경 일지", "그날로 돌아가기", "과거 예측은 보존됩니다",
         'role="feed"', "change_note", "#asof=", "share-popover",
         "기준일 ${asof}", "조건부 시나리오이며 단일 가격 제시·투자자문이 아닙니다",
         # 화면마다 기준일과 확률 공간이 다르다 — 공유 텍스트도 그 화면 것을 쓴다(검수 260904).
