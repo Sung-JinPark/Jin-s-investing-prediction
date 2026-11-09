@@ -215,7 +215,8 @@ def jpx_outline_links(html: str) -> dict[str, str]:
     """JPX 영문 신규상장 표 — 코드 → 영문 개요 PDF 경로."""
     links: dict[str, str] = {}
     for match in re.finditer(r'<span id="([0-9A-Z]{4})"></span>(.*?)</tr>', html, re.S):
-        pdf = re.search(r'href="([^"]*OutlineEN\.pdf)"', match.group(2))
+        # JPX 가 파일명을 'OutlinetEN.pdf' 처럼 틀리게 올리기도 한다(2026-11 Allganize·estie 실측) — 'Outline…EN.pdf' 를 받는다.
+        pdf = re.search(r'href="([^"]*Outline[A-Za-z]*EN\.pdf)"', match.group(2))
         if pdf:
             links[match.group(1)] = JPX_ROOT + pdf.group(1)
     return links

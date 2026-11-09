@@ -650,8 +650,9 @@ def _auto_rule_disclosure(root: Path) -> dict[str, Any] | None:
         "contract": RULES_RELATIVE.as_posix(),
         "reviewer": REVIEWER,
         "rules_fixed_at": rules.get("rules_fixed_at"),
-        "auto_counted": sum(1 for row in additions if row["note"].startswith(NOTE_PREFIX)),
-        "auto_not_counted": sum(1 for row in load_reviews(root) if row.get("reviewer") == REVIEWER),
+        # 규칙 버전과 무관하게 자동 판정분 전부(v2 시절 기록 포함) — 화면이 자동분의 무게를 읽게 한다.
+        "auto_counted": sum(1 for row in additions if row["note"].startswith("auto_rule_")),
+        "auto_not_counted": sum(1 for row in load_reviews(root) if str(row.get("reviewer") or "").startswith("auto_rule_")),
         "holdout": {key: holdout.get(key) for key in ("n", "recall", "precision", "agreement", "count_ratio")},
         # v3 새 검증 구간(앞 버전이 보지 않은 시장) — 측정 결과가 계약에 기록돼 있을 때만
         "new_venue_validation": {key: ((rules.get("validation") or {}).get("result") or {}).get(key)
