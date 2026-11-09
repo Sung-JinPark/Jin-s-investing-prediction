@@ -1,0 +1,134 @@
+{
+  "content_hash": "82367606aee204366bb661f522953a9dae253a85c9180a2f5578197cafeb315c",
+  "embargo_sessions": 5,
+  "knowledge_cutoff": "2026-11-07T09:18:18+00:00",
+  "model_id": "shadow.mf_dfm_ridge_varx_v1",
+  "model_version": 1,
+  "pit_leakage_count": 0,
+  "purge_sessions": 63,
+  "run_id": "ts-backtest-530b08494973342b1a7675b5",
+  "schema_version": 1,
+  "scores": [],
+  "source_hash": "1026f27c30b4aec027ff4a22e342c2d57cb2caffa34b0d31a3111c728af6a1aa",
+  "source_snapshot": {
+    "recorded_at": "2026-11-07T09:19:12+00:00",
+    "row_count": 1522512,
+    "schema_version": 1,
+    "series": {
+      "BAMLH0A0HYM2": {
+        "count": 842,
+        "merkle_root": "9481bed0f0177da3fed60b2350ab25415d387caf57b82301144b6c51c5f81dc2"
+      },
+      "CPIAUCSL": {
+        "count": 1924,
+        "merkle_root": "e515944ce2ec55e3de60d8ce2d42ec416ee1b9bc1dd01a01631548d32c8d57a4"
+      },
+      "CPILFESL": {
+        "count": 1781,
+        "merkle_root": "3b23decb7670785109d02e3f9576d7157757e9b0c33c74642cef509a929fe038"
+      },
+      "DFF": {
+        "count": 9467,
+        "merkle_root": "3142c4eec5538556f1b4c9d5ea5c6627dcacaf722e65c5b4bb547031be6f9014"
+      },
+      "DGS2": {
+        "count": 5350,
+        "merkle_root": "f3dffb6d86822fc705d3b3d7857a3d901ecd1a73e8fd125ae4aa97b7a845b5f3"
+      },
+      "DTWEXB": {
+        "count": 28690,
+        "merkle_root": "3347deef974d238cc2e9bf480468effe1bffac9b45ca259b1f0f30754954e417"
+      },
+      "DTWEXBGS": {
+        "count": 18483,
+        "merkle_root": "930c40e964ba63703a25b4bd78fc75f4e123d3a89fd495388e859c2c38c7e669"
+      },
+      "GDPC1": {
+        "count": 3854,
+        "merkle_root": "083efeb81bdc6d9abf446068b4f5ea811a8a5ef3e39e370928942eef52efe8ef"
+      },
+      "HOUST": {
+        "count": 2170,
+        "merkle_root": "2acda4196959a781e9624395b265acdd71315b196327c137febd74175ee9aab3"
+      },
+      "INDPRO": {
+        "count": 31430,
+        "merkle_root": "99c158afe725c0b8ec1a23130c6644d9620b783fe9ec06b824f6e81e3e379a3c"
+      },
+      "M2SL": {
+        "count": 23045,
+        "merkle_root": "992e8a2ae73ec2fb0479a95216e4ea227cd03d24ce90b2163e122e04af5ea577"
+      },
+      "NASDAQCOM": {
+        "count": 4810,
+        "merkle_root": "0282d5aa2f8d0fe441a1a63a6531c340773e2575f3b0dd0c85b57064ac22fc30"
+      },
+      "NFCI": {
+        "count": 932787,
+        "merkle_root": "3c1bcac24e0ab8a18d5e4732bfeb38c484214369745fd1ad8dbb79b42eaf745f"
+      },
+      "PAYEMS": {
+        "count": 7624,
+        "merkle_root": "9031389e8efbf8e9f2e9fb94f57b51f8595c357010d58515a156a965dc00d319"
+      },
+      "PCEPI": {
+        "count": 7669,
+        "merkle_root": "f3fa302b0da2df2bcba64e91228a26d134f99d06631a4c8f642e8f2d5e04ff48"
+      },
+      "PCEPILFE": {
+        "count": 7709,
+        "merkle_root": "55c31c81b51c3bdc16a3828a1376d7bd3a1ca1b62b61cd5663794c43ffa03b3e"
+      },
+      "RRPONTSYD": {
+        "count": 3801,
+        "merkle_root": "25467fecb36e6edb546523085252ba4ce1ba19e5fded83925c04fbf0a99d9a22"
+      },
+      "RSAFS": {
+        "count": 5453,
+        "merkle_root": "d22206093fefaac2061350a2422c165996ebbf1832b65a2c93ea17eb870c9c24"
+      },
+      "T10Y2Y": {
+        "count": 3201,
+        "merkle_root": "c7ee9fe78f99c67fdfd0059e80ad95c169325bf3960938004ce4ff70108effea"
+      },
+      "TOTCI": {
+        "count": 166803,
+        "merkle_root": "ed0c95524f5d86794150eef053f7ace67ee239157a059eadc51332d69e6f11aa"
+      },
+      "TOTLL": {
+        "count": 191582,
+        "merkle_root": "5eb9d1fee97301a063aef60b92c6b752fae58ac9d699dbe816545bdda2587b55"
+      },
+      "UNRATE": {
+        "count": 755,
+        "merkle_root": "3c0da478417b7c3a729ef52397fc698eb34dc4285e3d20d68dbe361990d006ff"
+      },
+      "VIXCLS": {
+        "count": 4066,
+        "merkle_root": "11d5bb347820a745e78987ee553e3bc727eac47a89f5cef9e1e3a66b95681bb1"
+      },
+      "WALCL": {
+        "count": 1339,
+        "merkle_root": "697c16da5ca2743063d8f8432fae4757d0daa902a8c8f13a5f0938c055c4dd93"
+      },
+      "WRMFNS": {
+        "count": 55686,
+        "merkle_root": "49dd241e802f944731455526c95720901ef9cc31c65866d3e715017897c3e920"
+      },
+      "WTREGEN": {
+        "count": 2191,
+        "merkle_root": "39343a8895a378925363b4fe32d9de067ad7ad3fc480e1392f5451f3dae7b93e"
+      }
+    }
+  },
+  "summary": {
+    "gate_pass": false,
+    "horizons": {},
+    "origin_count": 0,
+    "reasons": [
+      "PIT common sample has fewer than 800 completed sessions"
+    ],
+    "schema_version": 1,
+    "status": "hold"
+  }
+}
