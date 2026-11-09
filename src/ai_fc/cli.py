@@ -1788,6 +1788,31 @@ def cmd_statistics_freshness(
         raise typer.Exit(code=1)
 
 
+@app.command("overheat-watchdog")
+def cmd_overheat_watchdog(
+    output: Path | None = typer.Option(None, "--output", help="감시 결과 JSON 저장 경로"),
+    markdown: Path | None = typer.Option(None, "--markdown", help="이슈 본문용 마크다운 저장 경로"),
+    last_success: str | None = typer.Option(None, "--last-success",
+                                            help="마지막으로 성공한 statistics-refresh 시각(ISO, 워크플로가 넘긴다)"),
+    no_live: bool = typer.Option(False, "--no-live", help="배포 사이트 data.json 을 읽지 않는다"),
+) -> None:
+    """닷컴 대비 과열도 자동 감시 — 원천 대조·갱신 생존·라이브 사이트·IPO·테마 상장 감시를 독립 점검."""
+    import os
+
+    from .overheat_watchdog import render_markdown, run_watchdog
+
+    report = run_watchdog(config.ROOT, fred_key=os.environ.get("FRED_API_KEY") or None,
+                          last_success=last_success, live=None if no_live else "fetch")
+    text = render_markdown(report)
+    if output is not None:
+        output.parent.mkdir(parents=True, exist_ok=True)
+        output.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    if markdown is not None:
+        markdown.parent.mkdir(parents=True, exist_ok=True)
+        markdown.write_text(text, encoding="utf-8")
+    typer.echo(text)
+
+
 @app.command("ipo-reference-batch")
 def cmd_ipo_reference_batch() -> None:
     """IPO 학술 원천 변경을 확인하고 현재 구간 검토 배치를 기록한다."""
