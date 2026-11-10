@@ -1,6 +1,6 @@
 {
   "as_of": "2026-10-30",
-  "content_hash": "6bf33968b9e522fa8ca4850cd1730396e8244845c0cc9fe0397343f8444a1909",
+  "content_hash": "0559b42412c704e2910508aa773f972c8ddddd7a5855e0e4224089740623e7c3",
   "display_state": "validation_pending",
   "footnote": "*미국 시장·미국 공식 거시자료 기준 · 참고 의견",
   "gate": {
@@ -11,41 +11,41 @@
     "sealed_gate_pass": true,
     "sealed_run_id": "tsv8-sealed-64345a816b4857171915d5b8"
   },
-  "knowledge_cutoff": "2026-11-10T02:56:07+00:00",
+  "knowledge_cutoff": "2026-11-10T03:10:08+00:00",
   "model_id": "shadow.mf_dfm_varx_calibrated_v8",
   "model_version": 8,
   "operational": {
     "freshness": [
       {
-        "age_hours": 74.93565351444444,
+        "age_hours": 75.1691755425,
         "group": "NASDAQCOM",
         "limit_hours": 48.0,
         "observation_time": "2026-11-06",
         "status": "stale"
       },
       {
-        "age_hours": 2.9356535144444442,
+        "age_hours": 3.1691755425,
         "group": "VIX",
         "limit_hours": 48.0,
         "observation_time": "2026-11-09",
         "status": "fresh"
       },
       {
-        "age_hours": 2.9356535144444442,
+        "age_hours": 3.1691755425,
         "group": "DGS2",
         "limit_hours": 48.0,
         "observation_time": "2026-11-09",
         "status": "fresh"
       },
       {
-        "age_hours": 2.9356535144444442,
+        "age_hours": 3.1691755425,
         "group": "DGS10",
         "limit_hours": 48.0,
         "observation_time": "2026-11-09",
         "status": "fresh"
       },
       {
-        "age_hours": 74.93565351444444,
+        "age_hours": 75.1691755425,
         "group": "DTWEXBGS_or_DTWEXB",
         "limit_hours": 216.0,
         "observation_time": "2026-11-06",
