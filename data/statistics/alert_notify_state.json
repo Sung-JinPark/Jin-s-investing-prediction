@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "dataset_id": "statistics_approach_alert_notify_state_v1",
-  "checked_at": "2026-11-09T16:25:06+00:00",
+  "checked_at": "2026-11-10T00:08:03+00:00",
   "statuses": {
     "m2_nasdaq": "ok",
     "margin_credit_proxy": "ok",
