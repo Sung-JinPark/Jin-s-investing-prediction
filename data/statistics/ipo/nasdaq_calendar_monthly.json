@@ -40,7 +40,7 @@
   ],
   "stores": "monthly counts only; no deal lists",
   "provisional_after": "2025-12",
-  "status": "current",
+  "status": "stale",
   "months": {
     "2026-01": {
       "priced_total": 35,
@@ -120,7 +120,7 @@
       "fetched_at": "2026-11-10T08:32:25+00:00",
       "response_sha256": "ebc22b69eccd132a5d5ccdb91eb809adbe6b8f9acb684783bece5ebb3c26f0d6",
       "complete": true,
-      "stale": false
+      "stale": true
     },
     "2026-11": {
       "priced_total": 1,
@@ -128,7 +128,7 @@
       "fetched_at": "2026-11-10T08:32:25+00:00",
       "response_sha256": "896dc0064e56f80f8a0d01016bd4b2f0e56cf6f314e6ae690f0372d31377804c",
       "complete": false,
-      "stale": false
+      "stale": true
     }
   }
 }
