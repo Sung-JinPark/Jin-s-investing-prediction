@@ -219,3 +219,15 @@ def test_c13_kernel_hash_scope_excludes_research_layer() -> None:
         assert "mts_research" not in text.replace("mts_research.sessions", "").replace(
             "mts_research.v8_xnas_labels", ""), name
         assert "import ai_fc.mts_research" not in text and "from ai_fc.mts_research" not in text
+
+
+def test_c14_mde_transcription_matches_summary_when_computed(contract: dict) -> None:
+    """r3 리뷰 비차단 4: mde.status computed 이면 계약 per_arm·values_by_horizon 은 mde_v1.json 값의 기계 전사다.
+    상태 조건부 단언이라 r2 상태(not_computed)에서는 아무것도 고정하지 않는다(N18)."""
+    mde = contract["mde"]
+    if mde.get("status") != "computed":
+        assert mde.get("per_arm") is None
+        return
+    summary = json.loads((ROOT / c.MDE_SUMMARY_RELATIVE).read_text(encoding="utf-8"))
+    assert mde["per_arm"] == summary["per_arm"]
+    assert mde["values_by_horizon"] == summary["values_by_horizon"]

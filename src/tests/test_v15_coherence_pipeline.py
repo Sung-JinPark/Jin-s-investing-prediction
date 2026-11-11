@@ -461,3 +461,47 @@ def test_p24_a5_source_delay_is_origin_unavailable_and_scheduled_retry_skips(ope
     assert retry["a5_due"] is False and "a5_origin_unavailable_this_iso_week" in retry["reasons"]
     manual = plan_run(root, event="workflow_dispatch", mode="a5_issue", now=at_0640, git_runner=runner)
     assert manual["a5_due"] is True
+
+
+def test_p25_verify_checks_effect_keys_not_the_excludes_disclosure(tmp_path: Path) -> None:
+    """r3 정렬: 실 mde_v1 은 `excludes` 목록에 두 이름을 값으로 공시한다 — verify 는 키만 검사해야 한다(거짓 경보 회귀)."""
+    import hashlib
+
+    root = make_root(tmp_path)
+    prereg = root / "data/timeseries_v15/prereg"
+
+    def write_summary(per_arm: dict) -> None:
+        replay = prereg / "mde_replay_A0.json"
+        replay.write_text("{}\n", encoding="utf-8", newline="\n")
+        summary = {"schema_version": 1, "kind": "v15_mde_summary",
+                   "excludes": ["design_delta_rel", "power_at_design_estimate"], "per_arm": per_arm,
+                   "replay_sha256": {"A0": hashlib.sha256(replay.read_bytes()).hexdigest()}}
+        (prereg / "mde_v1.json").write_text(json.dumps(summary, sort_keys=True) + "\n", encoding="utf-8", newline="\n")
+
+    write_summary({"A1": {"5": {"mde_rel_at_nmin": 0.01, "status": "computed"}}})
+    assert not [e for e in p.verify_v15(root)["errors"] if "효과 추정치" in e]
+    write_summary({"A1": {"5": {"mde_rel_at_nmin": 0.01, "design_delta_rel": -0.02}}})
+    assert [e for e in p.verify_v15(root)["errors"] if "효과 추정치" in e]
+    write_summary({"A5": {"5": {"power_at_design_estimate": 0.4}}})
+    assert [e for e in p.verify_v15(root)["errors"] if "효과 추정치" in e]
+
+
+def test_p26_a5_issue_before_first_origin_is_not_due(opened) -> None:
+    """r3 리뷰 비차단 2: 기대 원점이 live.first_origin_not_before 보다 이르면 A5 를 발행하지 않는다 — 판정에서
+    before_first_origin 으로 빠질 행이 그 ISO 주 슬롯을 차지해 월요일 정규 발행을 막는 함정을 기계로 막는다."""
+    root, _, _ = opened
+    path = root / "data/contracts/multivariate_timeseries_v15_coherence.yaml"
+    text = path.read_text(encoding="utf-8")
+    assert text.count("first_origin_not_before: '2026-01-02'") == 1
+    path.write_text(text.replace("first_origin_not_before: '2026-01-02'", "first_origin_not_before: '2026-11-13'"),
+                    encoding="utf-8", newline="\n")
+
+    def runner(args):
+        return "a" * 40
+
+    thursday = datetime(2026, 11, 12, 15, 0, tzinfo=timezone.utc)  # 11-12 종가 전 → 기대 원점 2026-11-11(W46)
+    early = plan_run(root, event="workflow_dispatch", mode="a5_issue", now=thursday, git_runner=runner)
+    assert early["a5_due"] is False and "a5_before_first_origin" in early["reasons"]
+    monday = datetime(2026, 11, 16, 3, 40, tzinfo=timezone.utc)  # 기대 원점 2026-11-13 = 첫 원점
+    regular = plan_run(root, event="schedule", schedule="40 3 * * 1", now=monday, git_runner=runner)
+    assert regular["a5_due"] is True and regular["a5_expected_origin"] == "2026-11-13"

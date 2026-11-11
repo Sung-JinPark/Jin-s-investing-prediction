@@ -6,6 +6,7 @@
 from __future__ import annotations
 
 import json
+import re
 import shutil
 from dataclasses import dataclass
 from datetime import date, timedelta
@@ -45,12 +46,41 @@ def make_root(tmp_path: Path, *, track_open: bool = False) -> Path:
     for relative in _COPY_DIRS:
         shutil.copytree(ROOT / relative, root / relative,
                         ignore=shutil.ignore_patterns("__pycache__", "*.pyc"))
+    reset_r3_allowlist(root)
     if track_open:
         set_track_open(root, True)
     return root
 
 
 FIXTURE_FIRST_ORIGIN = "2026-01-02"
+
+
+def reset_r3_allowlist(root: Path) -> None:
+    """tmp 사본 계약을 r2 상태(r3 허용 목록 키 미기입·track_open·armed false)로 되돌린다.
+
+    실계약은 r3 뒤 track_open true 지만 tmp 사본에는 실 prereg(mde_v1·identity 시도)를 복사하지 않는다 — 상태 의존
+    단언은 실계약에 고정하지 않는다(spec_U3 리뷰 N18). r3 허용 목록 값만 되돌리므로 rule_hash 는 그대로다(C10).
+    r2 상태 계약에는 아무것도 바꾸지 않는다(멱등).
+    """
+    import yaml
+
+    path = root / "data/contracts/multivariate_timeseries_v15_coherence.yaml"
+    text = path.read_text(encoding="utf-8")
+    text = re.sub(r"(?m)^(  first_origin_not_before: )'\d{4}-\d{2}-\d{2}'", r"\g<1>null", text, count=1)
+    text = text.replace("mde:\n  status: computed\n", "mde:\n  status: not_computed\n", 1)
+    text = re.sub(r"(?m)^  values_by_horizon: \{.*\}$",
+                  "  values_by_horizon: {'5': null, '21': null, '63': null}", text, count=1)
+    text = re.sub(r"(?m)^  per_arm:\n(?:    .*\n)+", "  per_arm: null\n", text, count=1)
+    text = re.sub(r"(?m)^    summary_sha256: '[0-9a-f]{64}'$", "    summary_sha256: null", text, count=1)
+    text = text.replace("development_protocol:\n  track_open: true\n", "development_protocol:\n  track_open: false\n", 1)
+    text = text.replace("gates:\n  armed: true\n", "gates:\n  armed: false\n", 1)
+    path.write_text(text, encoding="utf-8", newline="\n")
+    data = yaml.safe_load(text)
+    assert data["live"]["first_origin_not_before"] is None
+    assert data["mde"]["status"] == "not_computed" and data["mde"]["per_arm"] is None
+    assert data["mde"]["values_by_horizon"] == {"5": None, "21": None, "63": None}
+    assert data["mde"]["artifacts"]["summary_sha256"] is None
+    assert data["development_protocol"]["track_open"] is False and data["gates"]["armed"] is False
 
 
 def _replace_once(text: str, old: str, new: str) -> str:

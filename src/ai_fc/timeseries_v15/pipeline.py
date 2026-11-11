@@ -749,6 +749,21 @@ def fork_patch_errors(root: Path, manifest: Mapping[str, Any]) -> list[str]:
     return errors
 
 
+def _mapping_keys(node: Any) -> set[str]:
+    """중첩 dict·list 안 모든 dict 키(값 문자열은 세지 않는다)."""
+    if isinstance(node, Mapping):
+        keys = {str(key) for key in node}
+        for value in node.values():
+            keys |= _mapping_keys(value)
+        return keys
+    if isinstance(node, list):
+        keys: set[str] = set()
+        for value in node:
+            keys |= _mapping_keys(value)
+        return keys
+    return set()
+
+
 def _prereg_errors(root: Path, contract: Mapping[str, Any]) -> list[str]:
     errors: list[str] = []
     manifest_path = root / FORK_PATCH_RELATIVE
@@ -777,7 +792,8 @@ def _prereg_errors(root: Path, contract: Mapping[str, Any]) -> list[str]:
             replay = root / PREREG_RELATIVE / f"mde_replay_{arm}.json"
             if not replay.is_file() or hashlib.sha256(replay.read_bytes()).hexdigest() != digest:
                 errors.append(f"mde_replay_{arm}.json sha256 불일치")
-        if "design_delta_rel" in json.dumps(payload) or "power_at_design_estimate" in json.dumps(payload.get("per_arm")):
+        # 키로만 검사한다 — 요약의 `excludes` 목록이 두 이름을 값으로 공시하므로 문자열 포함 검사는 거짓 경보다.
+        if _mapping_keys(payload) & {"design_delta_rel", "power_at_design_estimate"}:
             errors.append("mde_v1 에 효과 추정치 키가 있다")
     elif contract.get("mde", {}).get("status") == "computed":
         errors.append("mde.status computed 인데 mde_v1.json 이 없다")
