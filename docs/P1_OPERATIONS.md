@@ -196,6 +196,13 @@ Register-ScheduledTask -TaskName "ai-fc-due-digest" -Action $action -Trigger $tr
 텔레그램 연동: `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID` 환경변수 설정 후 `python -m ai_fc notify --test`.
 due 계산은 순수 함수라 PC가 꺼져 있던 날이 있어도 다음 실행에서 자동 복구된다.
 
+### V13 라이브 판정 체크포인트 (V13-D15)
+- `python -m ai_fc due`(또는 아침 `due --notify` 다이제스트)에 `[V13 판정 도래]` 가 뜨면 같은 날 **대화형 세션에서** 실행: `python -m ai_fc timeseries-v13-vol-apply-verdict --approval-receipt v13-approval:V13-D15:2026-11-11:r1` (예약 작업·cron 에이전트·워크플로로 돌리지 않는다)
+- 먼저 `--dry-run` 으로 출력 확인 → 실제 실행 → `--verify-only` 초록 확인 → `git add data/timeseries_v13/ledgers/live_verdict_applications.jsonl` 만 경로 지정 → PR(verify.yml 초록 뒤 머지).
+- 결과는 표본이 해상 원장 첫 기록 순 앞 k 개라 실행 날짜와 무관하다. 강등은 되돌리지 않는다. T7 행이 생기면 출력의 followups 2건을 이어서 한다.
+- V13 라이브 워크플로 로그에 `verdict_applications:` 경고가 보이면 `--verify-only` 로 원인 확인(그 워크플로는 이 경고로 멈추지 않는다).
+- 예상 첫 도래: rv_h5 성숙 60 ≈ 2026-12-10, vix25_h21·rv_h21 ≈ 2027-01-05 [미검증 — 원점 유실·원천 지연 시 밀림]. 참고 의견, 매매 신호 아님.
+
 ## 데스크톱 앱 예약 작업 (무인 실행, 2026-10-26 정비)
 
 토요일 KST 순서: `weekly-model-refresh` 09:00 → `weekly-ml-reference` 10:00 → `weekly-forecast-3` 11:30.

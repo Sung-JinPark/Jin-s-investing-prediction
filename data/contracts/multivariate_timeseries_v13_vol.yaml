@@ -577,6 +577,9 @@ amendments_applied:
 decisions_resolved:
   V13-D12: 원점 백필(앞으로만·late_capture 등급) — 2026-10-22, 영수증 v13-approval:V13-D12:2026-10-22:r1 (origin_backfill 키)
   V13-D13: 라이브 판정불가 라벨(제한-추가형) 등록 — 2026-10-22, 영수증 v13-approval:V13-D13:2026-10-22:r1 (live_claim_restriction 키)
+  V13-D14: 라이브 판정 보고 확장(print_only — 로그점수·Murphy 신뢰도·사전 상수 기준선(등록 기후·두 반창 대칭)·RV 기계확정) — 2026-11-11, 영수증 v13-approval:V13-D14:2026-11-11:r1 (live_forward_verdict_report_extension 키)
+  V13-D15: 라이브 판정 적용 사전 승인(통과 3셀·체크포인트 60/+20·T7 ①~③, 조기 적용 금지, 대화형 세션 사람 실행) — 2026-11-11, 영수증 v13-approval:V13-D15:2026-11-11:r1 (live_verdict_application 키)
+  V13-D16: 점프 위험 미표현 caveat 라벨(표시 전용) — 2026-11-11, 영수증 v13-approval:V13-D16:2026-11-11:r1 (live_display_caveats 키)
   V13-D1: 트랙 개시 (2026-09-07, 계약 주석 승계)
   V13-D2: V13-D2′ 로 대체 — 게이트 임계 형(CI90 하한>0 + 양방향 + 신뢰도 보고) 승인 + PB 기준선·홀드아웃 게이트 사전등록 (2026-09-08)
   V13-D4: T2 숨김 패널 진입 — gates.armed true · X1 6항 검수 통과 (2026-09-08)
@@ -830,3 +833,104 @@ live_claim_restriction:
     따라서 60 도달 시점의 h21/h63 셀은 어떤 결과가 나와도 pass 를 주장할 수 없다 — 강등은 걸릴 수 있다.
   disclosure: 라벨은 집계 시점의 누적값으로 매번 다시 계산한다(원장 무수정). 표본이 자라 임계를 넘으면 라벨은 저절로 떨어진다
   not_a_rule_change: live_forward_gate·live_forward_termination·live_forward_verdict_report 바이트 무수정. 추가 제약이며 완화 0
+
+# ── V13-D14·D15·D16 — 등록 2026-11-11 (위임 지시 "네가 최적의 선택을 내려서 u1~u7까지 다 진행시켜") ──────────
+# live_forward_gate(2026-09-08)·live_forward_termination(2026-09-10)·live_forward_verdict_report(2026-10-21)·
+# live_claim_restriction(2026-10-22) 바이트는 건드리지 않는다. 신규 키로만 추가한다.
+# 등록 시점 실측(2026-11-11): 성숙 원점 h5 38 · h21 23 · h63 0 — 어떤 셀도 60 에 닿지 않았다.
+# 공시: vix25_h21 이 60 체크포인트에서 강등후보가 될 것이라는 산술 예상(DECISIONS 2026-11-11 선공시)을 **본 뒤** 의 등록이다.
+# 그래서 적용 범위를 vix25_h21 하나가 아니라 통과 3셀 전부·모든 체크포인트로 대칭 고정했다(선택 적용 차단).
+# 이 범위는 위임 메모의 결정("vix25_h21 60원점 강등 사전 승인")을 넘는 확대다 — 철회는 approvals.jsonl 에 supersedes 한 줄.
+live_forward_verdict_report_extension:
+  registered: "2026-11-11"
+  approval_receipt: v13-approval:V13-D14:2026-11-11:r1
+  extends: live_forward_verdict_report                    # 그 블록의 output print_only · ledger_write false · applies_demotion false 승계
+  output: print_only
+  ledger_write: false
+  judgement_leg: false                                    # 아래 필드는 status·T7 산술에 들어가지 않는다
+  fields:
+    log_score: 평균 음의 로그우도(nats) — 모형 · 기후 · 두 반창 상수. p ∉ (0,1) 이면 null(클리핑 없음). 계약 gate.scoring [brier, log_score] 의 라이브 보고
+    reliability: scoring.murphy_reliability 10등분 그대로(rel/res/unc/brier_check/curve) — 계약 gate.reliability 의 라이브 보고. 새 구간 선택 없음
+    constant_baselines:
+      climatology: 동결 아티팩트 cells[*].clim_base_rate(설계창 2007~2014) — 2026-09-07 등록 기준선
+      design_half_constants: ladder_pb_baseline.json cells[*].pb_vs_clim 의 early_to_late.clim_base_rate(전반창 2007~2010 빈도)와 late_to_early.clim_base_rate(후반창 2011~2014 빈도)를 **항상 둘 다** — 한쪽만 고르는 경로 없음. 파일 sha256 == gates.design_evidence.persistence_pb.sha256 일 때만, 아니면 null
+      design_half_constants_provenance: 값은 2026-09-08 해시 고정(라이브 성숙 전). 보고 필드로 넣은 시점은 2026-11-11(라이브 결과 후)이라 반창을 고르면 갈림길이 되므로 대칭으로만 낸다. 판정·skill·무능 주장 근거 아님. n·사건 수·단일 국면 caveat 를 함께 인쇄
+      excluded: VIX [16,21) 평온 밴드 상수 — 라이브 결과 뒤 감사가 고른 좌표라 이 verb 에 넣지 않는다(연구 진단 v13-diagnostics 에만)
+    mechanical: RV 셀만 — 원점 정보만으로 정해지는 rv21 하한 max_k floor > theta(0.1694) 인 원점(기계 확정). mechanical_positives/events · 비기계 부분집합 Brier. 불변식 기계 확정 ⇒ 라벨 1, 위반 시 숫자 없이 invariant_violation. 패널 없음·위치 0 이면 archive_unavailable. 패널은 최신 개정 아카이브(PIT 아님) — panel_vintage 로 공시
+    checkpoint: 성숙 n >= 60 이면 도달한 최대 체크포인트 k 의 절단 표본(live_verdict_application.checkpoint_sample 규칙) 산술, draws 120 강제(CLI --draws 무관) — live_verdict_application 과 같은 값
+    applied: 적용 원장(live_verdict_application.ledger) 셀 요약 — 읽기만
+  as_of_option: 실데이터 재현용 resolved_session <= as_of 절단(인쇄 전용)
+  not_a_rule_change: 보고 필드 추가. 완화 0 · 강화 0 · status 산술 0바이트 변경(_evaluate_cell 무수정)
+
+live_verdict_application:
+  registered: "2026-11-11"
+  registered_before_any_cell_reached_minimum: true
+  approval_receipt: v13-approval:V13-D15:2026-11-11:r1
+  verb: timeseries-v13-vol-apply-verdict — 사람이 대화형 세션에서 실행한다(자동화 밖 — live_forward_verdict_report.re_verdict_cadence 문언 승계). GitHub Actions·데스크톱 예약 작업·cron 에이전트 실행 금지(CI 환경변수면 verb 가 거부). 영수증이 없거나 범위가 맞지 않으면 원장을 읽기 전에 거부
+  standing_preapproval: |
+    re_verdict_cadence 의 "판정 적용은 매번 사용자 승인" 을 이 영수증 하나가 모든 체크포인트에 대해 미리 충족한다.
+    방향은 제한뿐(강등·종결)이고 산술·표본·시점 재량이 없으므로 사전 승인이 결과를 고르는 통로가 되지 않는다.
+    철회는 approvals.jsonl 에 이 영수증을 supersedes 하는 행 append — 그 뒤 verb 는 거부한다. 이미 쓴 행은 되돌리지 않는다(append-only)
+  scope_cells_source: publication.holdout_pass_cells       # vix25_h21 · rv_h5 · rv_h21 — 결과 후 목록 변경 금지(T7.prohibitions 승계)
+  checkpoints: {first: 60, step: 20}                       # first == live_forward_gate.minimum_matured_origins_per_cell 이어야 한다(다르면 verb 거부)
+  checkpoint_sample: |
+    셀의 distinct 해상 행(dedupe_rule) 중 해상 원장에 (cell, origin) 이 처음 기록된 순서(파일 행 순서)로 앞 k 개를 고르고,
+    블록 부트스트랩을 위해 origin 오름차순으로 재정렬한다. 같은 키의 값은 dedupe_rule(핀 sha 행 우선)로, 위치는 첫 등장 자리로 정한다.
+    append-only 원장의 앞 k 개는 이후 어떤 append(지연 해상·late_capture 백필)로도 바뀌지 않는다 — 늦게 실행해도 같은 표본·같은 결과(실행 시점 재량 0).
+    고른 행의 resolution_id 목록을 적용 행에 저장하고, 재계산은 그 목록으로 한다.
+  arithmetic: live_verdict._evaluate_cell 그대로 — ℓ13 · B2000 · seed 20260907 · CI90 · y-block 귀무 120 draws(내부 B300) · 임계 0.10. draws 는 인자로 바꿀 수 없다
+  outcomes:
+    demotion_candidate: demotion_applied — 그 셀 표시 hold(숫자 제거) · 배선 자격 상실. 영구(자동 재무장 없음, 재개는 사용자 결정)
+    gate_passed_descriptive: no_demotion — 기록만. 승격·배선·BSS 주장 근거 아님(V13-D13 라벨 그대로)
+    verdict_void_negative_control: verdict_void — 기록만. 강등도 확인도 아님, 다음 체크포인트에서 다시 계산
+    after_demotion: recorded_after_demotion — 이미 강등된 셀의 이후 체크포인트는 기록만(표시 효과 없음)
+  early_application_prohibited: 성숙 n < k 이면 그 체크포인트 행을 만들 경로가 없다. 표시·배선은 적용 원장 행만 읽는다(산문·수동 목록 없음)
+  t7:
+    condition: 통과 3셀 전부 k=60 행이 있고 demotion_applied 셀(체크포인트 무관 누적) >= 2
+    cumulative_interpretation: 계약 T7 "통과 3셀 전부 60 도달 뒤 2셀 이상 강등" 을 '어느 체크포인트에서든 강등된 셀 수(누적·영구)' 로 읽는다(k60 void → k80 강등도 센다). 어떤 셀도 60 에 닿기 전(2026-11-11) 확정한 해석이며 방향은 제한(종결이 쉬워짐)
+    on_trigger_mechanical: t7_termination 행 append → 카드 전체 hold (T7.on_trigger ①)
+    on_trigger_followups: [종결 판정서 docs/review/V13_T7_TERMINATION_<YYYYMMDD>.md 작성, 계약 신규 키 t7_application 기록(status 동결·남은 홀드아웃 슬롯 보존)]   # ②③ — 같은 영수증으로 사전 승인, verb 가 체크리스트를 인쇄
+  ledger: data/timeseries_v13/ledgers/live_verdict_applications.jsonl   # append-only, key=application_id
+  row_kinds: [checkpoint_verdict, t7_termination]
+  overdue_handling: 체크포인트 도달 뒤 행이 없으면 verify 경고 · `ai_fc due` 경고 · `due --notify` 텔레그램 다이제스트 · 카드 '판정 대기' 라벨. CI 실패로 만들지 않는다(축적 정지 방지)
+  verify: |
+    엄격 검사(행 해시·영수증·체크포인트 접두·resolution_ids·재계산·T7 조건)는 `timeseries-v13-vol-apply-verdict --verify-only`(사람)와
+    verify.yml 의 pytest 실원장 테스트에서 실패시킨다. 보호 라이브 워크플로의 `timeseries-v13-vol-verify` 에서는 같은 검사 결과를 warnings 로만 싣고
+    종료코드에 넣지 않는다(적용 원장 손상이 V13 축적을 멈추는 경로 0). 재계산 비교: status 정확 일치, 수치 abs <= 1e-9, 행의 numpy_version 과
+    현재 major.minor 가 다르면 재계산 비교만 건너뛰고 경고(NumPy Generator 스트림은 버전 간 동일 보장 없음)
+  not_a_rule_change: live_forward_gate·live_forward_termination·live_forward_verdict_report·live_claim_restriction 바이트 무수정. 규칙 산술 변경 0 · 완화 0. 적용 경로의 신설
+  disclosed_limit: |
+    체크포인트마다 다시 보므로(60·80·…) 영구 강등의 거짓 강등률은 1회 판정보다 크다 — 등록된 re_verdict_cadence 의 귀결이며 방향은 보수(KNOWN_LIMITS 69).
+    크기 추정(설계창 2007~2014 결정론 재생 — 수치모델 예외, timeseries_v13.verdict_replay, 2026-11-11 로컬 1회 727s): 셀당 비중첩 120원점 에피소드 16개 × 체크포인트 60·80·100·120, draws 120, 동결 계수.
+    vix25_h21 — 어느 체크포인트든 강등 4/16 = 0.25 (Wilson90 0.12~0.45) · k60 만 2/16 = 0.125 (0.04~0.32) · k60 판정무효 14/16.
+    rv_h5 — 0/16 = 0.00 (0.00~0.14) · k60 만 0/16 · k60 판정무효 11/16.
+    rv_h21 — 8/16 = 0.50 (0.31~0.69) · k60 만 8/16 = 0.50 · k60 판정무효 8/16 (h21 은 n=60 에서 유효 블록이 적어 CI 하한이 0 을 자주 넘지 못한다).
+    caveat: 계수가 그 설계창에 적합돼 있어 in-sample skill 이 과대 → 이 값은 라이브 거짓 강등률의 하한 성격. base rate 참조이지 판정 근거 아님
+
+live_display_caveats:
+  registered: "2026-11-11"
+  approval_receipt: v13-approval:V13-D16:2026-11-11:r1
+  form: display_only_label                                # 숫자·게이트·표시 tier·셀 목록 무변경
+  applies_when: status == live
+  caveats:
+    - id: jump_risk_unmodeled
+      label: "▲ 점프 위험 미표현 · 설계창 최대 점프 초과(2026-11-05)"
+      hint_key: v13_jump_hint
+      facts:
+        model_structure: champion persistence_pb — 당일 수준 단일 피처 로짓. 1일 급등(점프) 성분 없음 — 평온 수준에서 하루 급등을 내다보지 못한다(급등일 종가 뒤에는 바로 올라간다)
+        pre_jump_origin: {origin: "2026-11-04", vix_close: 16.61, p_vix25_h5: 0.015807}
+        design_window: ["2007-01-01", "2014-12-31"]
+        design_max_vix_log_jump: 0.496
+        design_max_session: "2007-02-27"
+        live_exceedance_session: "2026-11-05"
+        live_exceedance_log_jump: 0.5286
+        live_exceedance_vix: [16.61, 28.18]
+        design_days_at_or_above: 0
+        single_episode: true
+        source: ai_fc.mts_research.audits.v13_live_diagnostics.jump_support_fact → data/mts_research/derived/v13_live_diagnostics.json (as_of 2026-11-09)
+        scope_note: 2015~2026-09 구간 순위는 홀드아웃·봉인 바이트 신규 열람이라 계산하지 않는다
+      removal_rule: 카드 모형에 점프 성분이 생기기 전에는 내리지 않는다(V15_vol R2 섀도는 이 카드 모형이 아니다). 사람 판단으로 제거 금지
+  prohibitions:
+    - 이 라벨로 셀 숨김·강등·재예측·게이트를 트리거하지 않는다
+    - 다른 probability_space(V8·daily6m) 수치와 결합한 배지를 만들지 않는다
+  not_a_rule_change: 표시 라벨 추가. 게이트·계수·표시 tier·셀 숫자 무변경

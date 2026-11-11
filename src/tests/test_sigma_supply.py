@@ -243,7 +243,10 @@ def test_wiring_is_fail_closed_with_zero_targets() -> None:
     status = wiring_status(ROOT)
     assert status["scoreboard_error"] is None, "실제 저장소의 라이브 스코어보드는 읽혀야 한다"
     # 라이브 라벨은 집계 시점의 누적값이라 날마다 바뀐다 — 두 셀의 행방은 항등식으로만 고정한다
-    assert set(status["eligible_cells"]) | set(status["blocked_by_claim_restriction"]) == {"rv_h5", "rv_h21"}
+    # V13-D15 이후 라이브 강등(blocked_by_live_demotion)도 행방의 한 축이다 — 강등은 eligible 과 서로소
+    assert (set(status["eligible_cells"]) | set(status["blocked_by_claim_restriction"])
+            | set(status["blocked_by_live_demotion"])) == {"rv_h5", "rv_h21"}
+    assert set(status["eligible_cells"]).isdisjoint(status["blocked_by_live_demotion"])
     assert set(status["eligible_cells"]).isdisjoint(status["blocked_by_claim_restriction"])
     assert tuple(status["eligible_cells"]) == eligible_cells(ROOT)
     assert status["targets"] == 0 and status["fail_closed"] is True

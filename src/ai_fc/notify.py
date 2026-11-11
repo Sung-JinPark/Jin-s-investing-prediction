@@ -23,8 +23,10 @@ def send_message(text: str) -> bool:
         return False
 
 
-def send_digest(due: list[DueItem]) -> bool:
-    if not due:
+def send_digest(due: list[DueItem], *, extra_lines: list[str] | None = None) -> bool:
+    """due 다이제스트. extra_lines(V13-D15 '[V13 판정 도래]' 줄 등)가 있으면 due 가 비어도 다이제스트로 보낸다."""
+    extra = [str(line) for line in (extra_lines or []) if str(line).strip()]
+    if not due and not extra:
         return send_message("✅ ai-fc: due 없음 — 모든 질문이 cadence 내")
     lines = ["📋 ai-fc due 다이제스트"]
     for kind, icon in (("resolve", "⚖️"), ("forecast", "🔮"), ("stale", "⚠️"), ("manual-review", "✋")):
@@ -32,4 +34,7 @@ def send_digest(due: list[DueItem]) -> bool:
         if items:
             lines.append(f"\n{icon} {kind} ({len(items)})")
             lines += [f"· {d.question_id} — {d.reason}" for d in items[:10]]
+    if extra:
+        lines.append(f"\n⚖️ V13 판정 도래 ({len(extra)})")
+        lines += [f"· {line}" for line in extra[:10]]
     return send_message("\n".join(lines))

@@ -33,6 +33,7 @@ from .timeseries_v13.contracts import (
     sha256_file,
 )
 from .timeseries_v13.freshness import freshness_report
+from .timeseries_v13 import verdict_ledger
 
 GATE_KEYS = ("design_gate_pass", "armed", "coefficients_pinned", "freshness_pass")
 ISOLATION_KEYS = ("combined_with_official_forecasts", "combined_with_scenario_v5_2", "combined_with_timeseries_v8")
@@ -117,10 +118,42 @@ def _coefficients_pinned(root: Path, latest: dict[str, Any], contract: dict[str,
     return True, None
 
 
+CAVEAT_FACT_KEYS = ("design_max_vix_log_jump", "design_max_session", "live_exceedance_session",
+                    "live_exceedance_log_jump")
+
+
+def _caveats_from_contract(contract: dict[str, Any]) -> tuple[list[dict[str, Any]], bool]:
+    """V13-D16 `live_display_caveats` → 표시 라벨 목록. (목록, 형식 유효). 키가 없으면 ([], True)."""
+    block = contract.get("live_display_caveats")
+    if block is None:
+        return [], True
+    try:
+        out = []
+        for item in block["caveats"]:
+            label = str(item["label"]).strip()
+            hint = str(item["hint_key"]).strip()
+            facts = item["facts"]
+            if not label or not hint or not str(item["id"]).strip():
+                return [], False
+            out.append({"id": str(item["id"]), "label": label, "hint_key": hint,
+                        "facts": {key: facts[key] for key in CAVEAT_FACT_KEYS}})
+        return out, bool(out)
+    except (KeyError, TypeError, AttributeError):
+        return [], False
+
+
 def build_projection(latest: dict[str, Any] | None, *, tier: str, contract: dict[str, Any],
                      freshness: dict[str, Any] | None, pin_ok: bool, pin_reason: str | None,
                      armed_now: bool | None = None,
-                     matured: dict[str, int] | None = None) -> dict[str, Any]:
+                     matured: dict[str, int] | None = None,
+                     applications: dict[str, Any] | None = None,
+                     caveats: list[dict[str, Any]] | None = None) -> dict[str, Any]:
+    """표시 투영. `applications` 는 V13-D15 적용 원장 판독(verdict_ledger.read_applications) 결과.
+
+    None 은 **단위 테스트 호환 전용**이다 — 운영 경로(`load_projection`)는 None 을 넘기지 않는다(예외도
+    unreadable dict 로 바꿔 넘긴다). 판독 실패(unreadable)면 어느 셀이 강등됐는지 모르므로 숨긴다(hold).
+    `caveats` 를 주지 않으면 계약 `live_display_caveats`(V13-D16)를 읽는다 — 라벨은 게이트에 연결하지 않는다.
+    """
     if tier not in DISPLAY_TIERS:
         tier = DISPLAY_TIERS[0]
     publication = contract.get("publication") or {}
@@ -152,6 +185,19 @@ def build_projection(latest: dict[str, Any] | None, *, tier: str, contract: dict
                 f"stale_at_build: missing_sessions={freshness.get('missing_sessions')} > {freshness.get('max_missing_sessions')}")
         else:
             status = "live"
+    # V13-D15 적용 원장 — 판독 실패면 hold(fail-closed), T7 행이 있으면 카드 전체 hold. 부재는 ok(빈 원장)라 영향 없음.
+    demoted: list[str] = []
+    if applications is not None:
+        if applications.get("status") != "ok":
+            if status == "live":
+                status = "hold"
+            reasons.append("verdict_applications_unreadable")
+        else:
+            demoted = [str(c) for c in (applications.get("demoted") or [])]
+            if applications.get("t7") is not None:
+                if status == "live":
+                    status = "hold"
+                reasons.append("t7_terminated — live_forward_termination.T7 (재개는 사용자 결정)")
     if tier == "t0_internal" and status == "live":
         status = "internal"
         reasons.append("display_tier t0_internal — numbers stripped (V13-D4 pending)")
@@ -209,6 +255,18 @@ def build_projection(latest: dict[str, Any] | None, *, tier: str, contract: dict
         badges[name] = {"holdout": state,
                         "matured_origins": int(counts.get(name, 0)),
                         "minimum_required": minimum}
+    # V13-D15 — 셀 배지에 적용 원장 요약(가장 최근 행)과 '판정 대기' 체크포인트를 원장에서 파생한다.
+    step = int((((contract.get("live_verdict_application") or {}).get("checkpoints") or {}).get("step"))
+               or verdict_ledger.DEFAULT_STEP)
+    pending = {}
+    if applications is not None and applications.get("status") == "ok":
+        pending = {item["cell"]: item["checkpoint"] for item in verdict_ledger.pending_checkpoints(
+            {k: int(v) for k, v in counts.items()}, applications, pass_cells, first=minimum, step=step)
+            if not item.get("error")}
+    if applications is not None:
+        for name in CELL_ORDER:
+            badges[name]["live_verdict"] = verdict_ledger.cell_application_summary(applications, name)
+            badges[name]["verdict_pending_checkpoint"] = pending.get(name)
     projection["cell_badges"] = badges
     projection["live_forward"] = {
         "minimum_matured_origins_per_cell": minimum,
@@ -221,7 +279,10 @@ def build_projection(latest: dict[str, Any] | None, *, tier: str, contract: dict
         projection["inputs"] = dict(latest.get("inputs") or {})  # type: ignore[union-attr]
         # 홀드아웃 부분 실패(partial) 셀은 숫자 대신 표시 불가 — PASS 셀만 싣는다 (계약 wiring_eligibility).
         projection["cells"] = {name: dict(latest["cells"][name]) for name in CELL_ORDER  # type: ignore[index]
-                               if name in latest["cells"] and name not in holdout_fail_cells}  # type: ignore[index]
+                               if name in latest["cells"] and name not in holdout_fail_cells  # type: ignore[index]
+                               and name not in demoted}
+        if demoted:
+            projection["live_demoted_cells"] = [c for c in CELL_ORDER if c in demoted]
         if holdout_fail_cells:
             projection["holdout_fail_cells"] = [c for c in CELL_ORDER if c in holdout_fail_cells]
             projection["holdout_pass_cells"] = [c for c in CELL_ORDER
@@ -230,7 +291,15 @@ def build_projection(latest: dict[str, Any] | None, *, tier: str, contract: dict
             projection.pop("cells"); projection.pop("inputs")
             projection["status"] = "hold"; projection["numbers_visible"] = False
             projection["display_state"] = "validation_pending"
-            projection["gate"]["reasons"] = reasons + ["holdout_failed_all_cells"]
+            projection["gate"]["reasons"] = reasons + ["holdout_failed_all_cells"] + (
+                ["live_demotion_all_cells"] if demoted else [])
+        else:
+            # V13-D16 점프 caveat — live 일 때만. 형식 오류면 라벨만 빼고 숫자는 유지(라벨은 게이트가 아니다).
+            items, valid = (caveats, True) if caveats is not None else _caveats_from_contract(contract)
+            if valid and items:
+                projection["caveats"] = [dict(item) for item in items]
+            elif not valid:
+                projection["gate"]["reasons"].append("caveat_contract_invalid")
     return projection
 
 
@@ -247,10 +316,15 @@ def load_projection(root: Path, *, now: datetime | None = None) -> dict[str, Any
         matured = matured_counts(root)
     except Exception:
         matured = {}
+    # V13-D15 적용 원장 — 리더는 던지지 않지만 import·기타 예외도 unreadable 로 바꿔 넘긴다(None 금지 — fail-closed).
+    try:
+        applications = verdict_ledger.read_applications(root)
+    except Exception as exc:  # noqa: BLE001 — 읽지 못하면 숨긴다
+        applications = verdict_ledger.unreadable_from_exception(exc)
     pointer = root / LATEST_RELATIVE
     if not pointer.is_file():
         return build_projection(None, tier=tier, contract=contract, freshness=None, pin_ok=False,
-                                pin_reason=None, matured=matured)
+                                pin_reason=None, matured=matured, applications=applications)
     try:
         latest = json.loads(pointer.read_text(encoding="utf-8"))
         if not isinstance(latest, dict):
@@ -260,7 +334,7 @@ def load_projection(root: Path, *, now: datetime | None = None) -> dict[str, Any
         reason = f"pointer invalid: {exc}"
         stub = {"status": "hold", "gate": {"reasons": [reason]}, "as_of": None, "knowledge_cutoff": None}
         return build_projection(stub, tier=tier, contract=contract, freshness=None, pin_ok=False,
-                                pin_reason=None, matured=matured)
+                                pin_reason=None, matured=matured, applications=applications)
     pin_ok, pin_reason = _coefficients_pinned(root, latest, contract)
     max_missing = int(((contract.get("live_display") or {}).get("freshness") or {}).get("max_missing_sessions", 1))
     freshness = None
@@ -271,5 +345,5 @@ def load_projection(root: Path, *, now: datetime | None = None) -> dict[str, Any
             freshness = {"status": "unknown", "missing_sessions": None, "max_missing_sessions": max_missing,
                          "error": str(exc)}
     return build_projection(latest, tier=tier, contract=contract, freshness=freshness, pin_ok=pin_ok,
-                            matured=matured,
+                            matured=matured, applications=applications,
                             pin_reason=pin_reason)

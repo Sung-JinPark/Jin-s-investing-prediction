@@ -32,7 +32,7 @@ CI90 하한 ≤ 0 이면 그 셀 표시 hold" 와 "y-block 귀무 통과율 ≤ 
 from __future__ import annotations
 
 import json
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -40,8 +40,10 @@ import numpy as np
 
 from . import contracts as C
 from . import scoring as S
+from . import verdict_ledger as VL
+from . import verdict_report as VR
 from .live_scoreboard import claim_restriction_for, claim_thresholds
-from .resolve import (RESOLUTION_LEDGER_RELATIVE, _read_rows, distinct_origin_count,
+from .resolve import (HISTORY_START, RESOLUTION_LEDGER_RELATIVE, _read_rows, distinct_origin_count,
                       distinct_resolutions, pinned_coefficients_sha)
 
 CLAIM_BLOCKED_NOTE = "positive claim blocked (V13-D13 live_claim_restriction)"
@@ -50,12 +52,24 @@ NULL_DRAWS = 120       # holdout.py 와 같은 귀무 추출 수
 NULL_BOOT_B = 300      # holdout.py `_decide` 와 같은 내부 부트스트랩 반복
 
 
-def _cell_rows(root: Path) -> dict[str, list[dict[str, Any]]]:
-    rows = distinct_resolutions(_read_rows(root / RESOLUTION_LEDGER_RELATIVE),
-                                pinned_sha=pinned_coefficients_sha(root))
+def _file_order_cell_rows(root: Path, *, as_of: str | None = None) -> dict[str, list[dict[str, Any]]]:
+    """셀별 distinct 해상 행 — **정렬하지 않는다**: (cell, origin) 이 해상 원장에 처음 기록된 순서(V13-D15 표본 규칙).
+
+    값은 dedupe_rule(핀 sha 행 우선), 위치는 첫 등장 자리(dict 삽입 순서). `as_of` 가 있으면 먼저
+    resolved_session <= as_of 행만 남긴다(실데이터 오라클 재현용).
+    """
+    raw = _read_rows(root / RESOLUTION_LEDGER_RELATIVE)
+    if as_of:
+        raw = [r for r in raw if str(r.get("resolved_session")) <= as_of]
+    rows = distinct_resolutions(raw, pinned_sha=pinned_coefficients_sha(root))
     by_cell: dict[str, list[dict[str, Any]]] = {}
     for row in rows:
         by_cell.setdefault(str(row.get("cell")), []).append(row)
+    return by_cell
+
+
+def _cell_rows(root: Path, as_of: str | None = None) -> dict[str, list[dict[str, Any]]]:
+    by_cell = {name: list(rows) for name, rows in _file_order_cell_rows(root, as_of=as_of).items()}
     for name in by_cell:
         by_cell[name].sort(key=lambda r: str(r.get("origin")))      # 블록 부트스트랩은 시간 순서가 전제
     return by_cell
@@ -128,21 +142,80 @@ def resolution_disclosure(n: int, h: int, block: int = C.BLOCK_LENGTH) -> dict[s
             "low_resolution": bool(n and (n / block < 8 or h > block))}
 
 
-def live_verdict(root: Path, *, draws: int = NULL_DRAWS, now: datetime | None = None) -> dict[str, Any]:
-    """셀별 라이브 전진 판정 산술을 **인쇄용으로** 계산한다. 쓰기 0."""
-    contract = C.load_contract_v13(root)
+def verdict_parameters(contract: dict[str, Any]) -> dict[str, Any]:
+    """live_forward_gate·degeneracy_guard·T7·V13-D13 임계 — print(live-verdict) 와 apply 가 같은 값을 쓴다."""
     gate = contract.get("live_forward_gate") or {}
-    minimum = int(gate.get("minimum_matured_origins_per_cell") or 60)
     rules = ((contract.get("degeneracy_guard") or {}).get("rules") or {})
-    min_events = int(rules.get("min_events_per_half_per_class") or 20)
-    min_episodes = int(rules.get("min_episodes_per_half_per_class") or 5)
     publication = contract.get("publication") or {}
-    pass_cells = [str(c) for c in (publication.get("holdout_pass_cells") or [])]
-    t7 = ((contract.get("live_forward_termination") or {}).get("T7") or {})
+    return {
+        "minimum": int(gate.get("minimum_matured_origins_per_cell") or 60),
+        "min_events": int(rules.get("min_events_per_half_per_class") or 20),
+        "min_episodes": int(rules.get("min_episodes_per_half_per_class") or 5),
+        "pass_cells": [str(c) for c in (publication.get("holdout_pass_cells") or [])],
+        "t7": ((contract.get("live_forward_termination") or {}).get("T7") or {}),
+        "claim": claim_thresholds(contract),          # V13-D13 임계(20/5) — 계약을 못 읽으면 예비값
+    }
 
-    claim = claim_thresholds(contract)                 # V13-D13 임계(20/5) — 계약을 못 읽으면 예비값
 
-    by_cell = _cell_rows(root)
+def checkpoint_step(contract: dict[str, Any]) -> int:
+    block = contract.get("live_verdict_application") or {}
+    return int(((block.get("checkpoints") or {}).get("step")) or VL.DEFAULT_STEP)
+
+
+def load_report_panel(root: Path) -> tuple[dict[str, Any] | None, str]:
+    """보고 확장(기계 확정)용 V13 패널 — 최신 개정 아카이브(PIT 아님). 실패·빈 패널이면 archive_unavailable."""
+    try:
+        from ..timeseries_v2.market_archive import read_market_observations
+        from . import features as F
+
+        panel = F.build_panel(read_market_observations(root), start=HISTORY_START)
+    except Exception:  # noqa: BLE001 — 인쇄 전용 필드라 대체값 없이 비운다
+        return None, "archive_unavailable"
+    if panel is None or len(panel.get("dates", [])) == 0:
+        return None, "archive_unavailable"
+    return panel, "ok"
+
+
+def _validated_as_of(value: str) -> str:
+    """`--as-of` 는 YYYY-MM-DD 만 받는다. 절단은 문자열 비교라 '2026-11-9' 같은 표기는 조용히 틀린 표본을 만든다."""
+    text = str(value).strip()
+    try:
+        parsed = date.fromisoformat(text)
+    except ValueError as exc:
+        raise ValueError(f"--as-of must be YYYY-MM-DD, got {value!r}") from exc
+    if len(text) != 10 or parsed.isoformat() != text:
+        raise ValueError(f"--as-of must be YYYY-MM-DD, got {value!r}")
+    return text
+
+
+def live_verdict(root: Path, *, draws: int = NULL_DRAWS, now: datetime | None = None,
+                 as_of: str | None = None, panel: dict[str, Any] | None = None) -> dict[str, Any]:
+    """셀별 라이브 전진 판정 산술을 **인쇄용으로** 계산한다. 쓰기 0.
+
+    V13-D14: 셀별 `report`(로그점수·Murphy·두 반창 상수·RV 기계확정 — 판정 다리 아님),
+    `checkpoint`(도달한 최대 체크포인트 k 의 절단 표본 산술, draws 120 고정 — apply 가 쓸 값과 같다),
+    `applied`(적용 원장 요약). `as_of` 는 resolved_session <= as_of 절단(재현용).
+    """
+    if as_of is not None:
+        as_of = _validated_as_of(as_of)
+    contract = C.load_contract_v13(root)
+    params = verdict_parameters(contract)
+    minimum = params["minimum"]
+    min_events = params["min_events"]
+    min_episodes = params["min_episodes"]
+    pass_cells = params["pass_cells"]
+    t7 = params["t7"]
+    claim = params["claim"]
+    step = checkpoint_step(contract)
+
+    by_cell = _cell_rows(root, as_of=as_of)
+    file_order = _file_order_cell_rows(root, as_of=as_of)
+    if panel is None:
+        panel, panel_status = load_report_panel(root)
+    else:
+        panel_status = "ok" if len(panel.get("dates", [])) else "archive_unavailable"
+    half = VR.design_half_constants(root, contract)
+    applications = VL.read_applications(root)
     live_rows = _read_rows(root / C.LIVE_LEDGER_RELATIVE)
     horizons = {spec["name"]: int(spec["h"]) for spec in C.cell_specs()}
     cells = {}
@@ -157,6 +230,19 @@ def live_verdict(root: Path, *, draws: int = NULL_DRAWS, now: datetime | None = 
         cell["claim_block_reasons"] = label["claim_block_reasons"]
         if cell.get("status") == "gate_passed_descriptive" and label["claim_blocked"]:
             cell["status_note"] = CLAIM_BLOCKED_NOTE
+        # ── V13-D14 보고 확장 — status 를 읽기만 한다(판정 다리 아님) ──
+        cell["report"] = VR.report_extension(name, rows, panel=panel, panel_status=panel_status,
+                                             half_constants=half)
+        k = VL.reached_checkpoint(len(rows), first=minimum, step=step)
+        if k is not None:
+            sample = VL.checkpoint_sample(file_order.get(name, []), k)   # 첫 기록 순 앞 k → origin 재정렬
+            cp = _evaluate_cell(sample, minimum=minimum, min_events=min_events,
+                                min_episodes=min_episodes, draws=NULL_DRAWS)   # CLI --draws 와 무관하게 120
+            cell["checkpoint"] = {"k": k, "status": cp["status"],
+                                  "ci90": cp["paired_loss_vs_climatology"]["ci90"],
+                                  "negative_control_pass_rate": cp["negative_control_pass_rate"],
+                                  "draws": NULL_DRAWS, "sample_rule": "ledger_first_recorded_k"}
+        cell["applied"] = VL.cell_application_summary(applications, name)
         cells[name] = cell
 
     evaluable = [c for c in pass_cells if cells.get(c, {}).get("matured", 0) >= minimum]
@@ -171,6 +257,8 @@ def live_verdict(root: Path, *, draws: int = NULL_DRAWS, now: datetime | None = 
         "note": "T7 는 통과 3셀 전부가 60 에 닿은 뒤 2셀 이상 강등일 때 종결. 이 출력은 산술이며 적용이 아니다.",
     }
     stamp = (now or datetime.now(timezone.utc)).isoformat(timespec="seconds")
+    block = contract.get("live_forward_verdict_report_extension") or {}
+    matured = {name: int(cells[name]["matured"]) for name in cells}
     return {
         "schema": "v13_vol_live_verdict_dry_run",
         "read_only": True,
@@ -183,6 +271,13 @@ def live_verdict(root: Path, *, draws: int = NULL_DRAWS, now: datetime | None = 
         "claim_restriction": claim,
         "cells": cells,
         "T7": t7_out,
+        "report_extension": {"registered": block.get("registered"), "approval_receipt": block.get("approval_receipt"),
+                             "print_only": True, "judgement_leg": False},
+        "applications": {"status": applications["status"], "demoted_cells": sorted(applications["demoted"]),
+                         "t7_applied": applications["t7"] is not None,
+                         "pending": VL.pending_checkpoints(matured, applications, pass_cells,
+                                                           first=minimum, step=step)},
+        "as_of": as_of,
         "disclaimer": "참고 의견. 판정 적용(강등·종결)은 사용자 승인 영수증 뒤의 별도 단계이며 이 출력은 산술만 보여 준다.",
     }
 
@@ -208,7 +303,54 @@ def render_table(result: dict[str, Any]) -> str:
     t7 = result["T7"]
     lines.append("T7: 범위 {} · 60도달 {} · 강등후보 {} · would_trigger={}".format(
         t7["scope_cells"], t7["cells_at_minimum"], t7["demotion_candidates"], t7["would_trigger"]))
+    lines.extend(render_report_block(result))
     return "\n".join(lines)
+
+
+def _fmt(value: Any, spec: str = "{:.4f}") -> str:
+    return spec.format(value) if isinstance(value, (int, float)) and not isinstance(value, bool) else "—"
+
+
+def render_report_block(result: dict[str, Any]) -> list[str]:
+    """V13-D14 보조 블록 — 기존 표 아래. 판정 다리 아님. 우열 문장 없음(숫자만 대칭 병기)."""
+    cells = result.get("cells") or {}
+    if not any("report" in c for c in cells.values()):
+        return []
+    lines = ["", "보고(판정 다리 아님 · V13-D14 · 반창 상수는 대칭 병기, 단일 국면 표본)",
+             "{:11s} {:31s} {:13s} {:13s} {}".format("셀", "로그 모형/기후/전반/후반", "rel/res", "기계확정 k/e",
+                                                     "체크포인트")]
+    for name, c in cells.items():
+        rep = c.get("report") or {}
+        if not rep.get("n"):
+            continue
+        ls = rep.get("log_score") or {}
+        half = (rep.get("constant_baselines") or {}).get("design_half_constants") or {}
+        early = (half.get("early_fit") or {}).get("log_score") if half.get("status") == "ok" else None
+        late = (half.get("late_fit") or {}).get("log_score") if half.get("status") == "ok" else None
+        logs = "/".join(_fmt(v) for v in (ls.get("model"), ls.get("climatology"), early, late))
+        rel = rep.get("reliability") or {}
+        relres = "{}/{}".format(_fmt(rel.get("reliability"), "{:.3f}"), _fmt(rel.get("resolution"), "{:.3f}"))
+        mech = rep.get("mechanical") or {}
+        if mech.get("status") in {"ok", "partial"}:
+            mk = "{}/{}".format(mech.get("mechanical_positives"), mech.get("events"))
+        elif mech.get("status") == "invariant_violation":
+            mk = "불변식위반!"
+        elif mech.get("status") == "archive_unavailable":
+            mk = "아카이브없음"
+        else:
+            mk = "—"
+        cp = c.get("checkpoint")
+        cps = "k{} {}".format(cp["k"], cp["status"]) if cp else "—"
+        applied = c.get("applied")
+        if applied:
+            cps += " · 적용 k{} {}".format(applied.get("checkpoint"), applied.get("outcome"))
+        lines.append("{:11s} {:31s} {:13s} {:13s} {}".format(name, logs, relres, mk, cps))
+    apps = result.get("applications") or {}
+    pending = apps.get("pending") or []
+    lines.append("적용 원장: {} · 강등 {} · T7 {} · 도래 {}".format(
+        apps.get("status"), apps.get("demoted_cells") or [], "적용" if apps.get("t7_applied") else "없음",
+        ["{}:k{}".format(p.get("cell"), p.get("checkpoint")) if not p.get("error") else p["error"] for p in pending]))
+    return lines
 
 
 def main_json(result: dict[str, Any]) -> str:
