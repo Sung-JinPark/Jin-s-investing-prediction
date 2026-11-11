@@ -286,6 +286,7 @@ provisional_fills.DTWEXBGS`, 채점 제외). **남는 한계(유효)**: 원인 �
     입력 계보는 전부 같았지만 VARX 계수가 8.6e-16 달라 `inputs_differ(path_hash)` 였다. CI 에서는 두 워크플로가 같은 설치 명령을 쓰지만 러너 CPU·패키지 갱신 차로
     `inputs_differ` 가 날 수 있다 [미검증] — run 마다 `reduction_identity.runtime`·`v1_runtime`·`fit_residual_hash_equal` 과 크기 진단 `magnitude`(재구성 vs v1 band 로그 최대 차, 적합 계수 최대 차, 기계·BLAS 빌드)를 기록해 원인과 크기를 가른다(1차 표본 제외, 결손처럼 센다). 통과 규칙에 허용오차를 넣는 것은 새 계약 사안이다.
     솎음 표본은 첫 미해소 적격 원점에서 멈춘다(표본 접두 고정). 한 원점의 해소가 영구 누락되면 판정 시점이 무기한 밀린다 — scorecard `thinned.h*.blocking_origin`·`blocking_sessions_behind` 와 verify `warnings`(목표 리드 + 10세션 초과)로 드러낸다(비게이트).
+    **→ 2026-11-12 계약 r3 로 개정(72번):** 첫 main run 이 정확히 이 경우(CI 끼리, 런타임 동일, 계수 차 ≤7.5e-16)였다. 허용오차 동일 입력(`pair_eligibility=tolerance_equivalent`, 1e-12)을 1차 표본에 넣는다.
 65. **[신설 2026-11-11 — V15-VOL 섀도 판정 시점]** V15-VOL 판정은 셀별 n≥60·블록≥5·사건/비사건 ≥20·국면 ≥5/5 를 모두 채워야 한다.
     설계창(2007-2014) 실측으로 그 도달까지 중앙 311(vix25_h5)~650(vix25_h21) 원점, h63 셀 1049~1220, 창 안 미도달 23~84% — 첫 판정은 중앙 추정
     2028 이후, h21·h63 은 2029+ [추정], h63 셀은 사실상 장기 미판정. 가족이 완결되기 전 비기각은 잠정 라벨(not_rejected_provisional)이고 fail 은 쓰이지 않는다.
@@ -310,3 +311,9 @@ provisional_fills.DTWEXBGS`, 채점 제외). **남는 한계(유효)**: 원인 �
     놓여(뒤 단계 실패에도 보고 보존) artifact 서비스 장애 하루는 checkpoint·모델 커밋을 건너뛰고 success 전용 하류 리스너도 그날 쉰다(맨 끝 always()
     관문 업로드 실패도 커밋 뒤 결론을 적색으로 만든다). 2026-12-05 부터 첫 토요일 run 이 success 로 끝나 그날도 하류 리스너가 발화한다.
     `gh api --jq` 의 expired artifact 필터는 테스트 스텁이 우회한다 [미검증 — 머지 뒤 첫 main run 로그로 확인].
+72. **[신설 2026-11-12 — daily6m v2 계약 r3 허용오차 쌍]** 1차 표본은 비트 동일(`identical_inputs`)에 더해 **허용오차 동일 입력**(`tolerance_equivalent`: inputs_differ(path_hash) 중 v1 code·런타임·
+    block/λ·투영 외생값 같음, 계수·로그 band·scaler 최대 절대차 ≤ 1e-12, 적합 구조·앵커·요인 내용·세션별 관측 선택 같음, 재구성 v1 격자 저장)을 받는다. 이 run 의 v1 격자는 **v2 가 재구성한 것**이라
+    v1 실제 경로와 ulp 수준(≤1e-12, 저장 반올림 5e-11 이하)만큼 다를 수 있다. 판정 가족·Holm·n 은 그대로다. 결과 전 개정이다(쌍 해소 0·판정 0, 2026-11-11T17:09Z origin/main 1e198f9b · 재확인 18:06Z 95875863) — 기존 run 분류는 하나도 바뀌지 않는다. 규칙 코드(pairing.py)는 게이트 해시에 묶여 편집하면 새 계약이 필요하다.
+    첫 run `daily6m-v2-9cc54ec9…`(원점 2026-11-10)는 r2 가 증거·v1 격자를 기록하지 않아 **제외**로 남는다(사후 재구성으로 넣지 않는다). r2 정체성(계약 ddf1d6f3…·코드 441c4984…)의 run 은 첫 r3 run 이전에만 적재된다.
+    v1 이 장래 다른 numpy·scipy 로 돌면 `runtime_equal` 이 깨져 다시 제외된다(설치 명령은 같지만 버전 고정은 아님). v1 run 의 실행 CPU 는 기록이 없어 ulp 차의 원인 코어를 사후에 특정할 수 없다 —
+    v2 run 은 런타임 BLAS 코어(threadpoolctl)와 CPU 모델명을 진단으로만 남긴다. 기존 `openblas configuration` 문자열(예: SkylakeX)은 numpy 휠 빌드 정보일 수 있어 러너 코어 증거가 아니다[미검증].

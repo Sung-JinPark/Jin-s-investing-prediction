@@ -33,14 +33,28 @@ def paths_for(seed: int, horizon: int, scale: float = 0.01) -> np.ndarray:
     return 100.0 * np.exp(np.cumsum(rng.normal(0, scale, (400, horizon)), axis=1))
 
 
-def make_v1_run(origin: str, run_id: str, *, identical: bool = True) -> dict:
+def make_v1_run(origin: str, run_id: str, *, identical: bool = True, tolerance: bool = False) -> dict:
     dates = ORIGINS[origin]
     v1_paths = paths_for(len(run_id), len(dates))
     records = K.summarize_compact(v1_paths, anchor=100.0, future_dates=dates)
     return {"run_id": run_id, "content_hash": hashlib.sha256(run_id.encode()).hexdigest(), "anchor_date": origin,
             "dates": dates, "records": records, "path_hash": "p" * 64, "model_code_hash": "c" * 64,
             "contract_hash": "k" * 64, "path_count": 400, "anchor": {"value": 100.0},
-            "model_config": {"block_length": 10, "ewma_lambda": 0.97}, "_paths": v1_paths, "_identical": identical}
+            "model_config": {"block_length": 10, "ewma_lambda": 0.97}, "_paths": v1_paths, "_identical": identical,
+            "_tolerance": tolerance}
+
+
+def tolerance_evidence(*, coefficient_gap: float = 4.2e-16, band_gap: float = 8.0e-16) -> dict:
+    """reduction_identity of an inputs_differ(path_hash) run whose recorded evidence meets every r3 criterion."""
+    runtime = {"numpy": "2.5.4", "scipy": "1.18.1", "pandas": "2.3.3", "statsmodels": "0.14.6", "python": "3.12.16"}
+    structure = {"equal": True, "differing_keys": [], "max_abs_scaler_diff": 0.0}
+    return {"equal": False, "v1_code_hash_equal": True, "block_length": 10, "ewma_lambda": 0.97,
+            "runtime": runtime, "v1_runtime": dict(runtime),
+            "magnitude": {"max_abs_log_band_diff": band_gap,
+                          "max_abs_coefficient_diff": {"expanding": coefficient_gap, "rolling": coefficient_gap}},
+            "input_evidence": {"anchor_equal": True, "fit_structure": {"expanding": structure, "rolling": dict(structure)},
+                               "lineage": {"recorded": True, "market_rows_same_observations": True,
+                                           "factor_rows_equal_excluding_materialization": True}}}
 
 
 def fake_generate(bundle, *, anchor, as_of, future_dates, v1_run, previous_selection, constants, path_count=None, root=None):
@@ -50,7 +64,7 @@ def fake_generate(bundle, *, anchor, as_of, future_dates, v1_run, previous_selec
     term[:, 1:] = 100.0 * np.exp(np.log(main[:, 1:] / 100.0) * 1.3)
     zero = main * 0.995
     arm_paths = {"main": main, "term_structure": term, "zero_drift": zero}
-    identical = v1_run["_identical"]
+    identical, tolerance = v1_run["_identical"], v1_run.get("_tolerance", False)
     chosen = [21, 0.94] if previous_selection else [10, 0.97]
     payload = {
         "schema_version": 1, "model_id": C.MODEL_ID, "model_version": C.MODEL_VERSION, "contract_id": C.CONTRACT_ID,
@@ -68,9 +82,14 @@ def fake_generate(bundle, *, anchor, as_of, future_dates, v1_run, previous_selec
         "v1_reference": {"run_id": v1_run["run_id"], "records": [{"date": r["date"], "band_index": r["band_index"],
                                                                     "probability_up_from_previous": r["probability_up_from_previous"]}
                                                                    for r in v1_run["records"]],
-                         "quantile_grid": K.quantile_grid(v1_run["_paths"], anchor=100.0).tolist() if identical else None},
+                         "block_length": 10, "ewma_lambda": 0.97, "issuance_exogenous": [0.1, -0.2, 0.0],
+                         "quantile_grid": K.quantile_grid(v1_run["_paths"], anchor=100.0).tolist() if identical or tolerance else None},
         "footnote": C.FOOTNOTE,
     }
+    if tolerance:
+        payload["reduction_identity"] = tolerance_evidence()
+        payload["projection_exogenous"] = {"source": "v1_run_model_config", "values": [0.1, -0.2, 0.0]}
+    payload["pair_eligibility"] = C.classify_pair(payload)
     payload["content_hash"] = C.canonical_hash(payload)
     return payload, arm_paths
 
@@ -104,8 +123,8 @@ def store(tmp_path, monkeypatch):
     return root, runs, clock
 
 
-def add_v1_forecast(root, runs, origin, run_id, *, identical=True):
-    run = make_v1_run(origin, run_id, identical=identical)
+def add_v1_forecast(root, runs, origin, run_id, *, identical=True, tolerance=False):
+    run = make_v1_run(origin, run_id, identical=identical, tolerance=tolerance)
     runs[run_id] = run
     iso = "2026-W41" if origin == "2026-10-09" else "2026-W42"
     P._append(root, v1C.FORECAST_LEDGER, {"forecast_id": run_id, "as_of": ISSUE[origin], "origin_session": origin, "iso_week": iso,
@@ -382,9 +401,12 @@ def test_gating_code_hash_covers_numerical_files_only(tmp_path):
             handle.write("\n# comment\n")
     assert C.model_code_hash(tmp_path) == before
     assert C.orchestration_code_hashes(tmp_path) != C.orchestration_code_hashes(REPO)
-    with (tmp_path / "src/ai_fc/timeseries_daily6m_v2/kernel.py").open("a", encoding="utf-8") as handle:
-        handle.write("\n# numerical file edit\n")
-    assert C.model_code_hash(tmp_path) != before
+    for relative in ("src/ai_fc/timeseries_daily6m_v2/kernel.py",
+                     "src/ai_fc/timeseries_daily6m_v2/pairing.py"):   # r3: the pairing rule is gated like the kernel
+        with (tmp_path / relative).open("a", encoding="utf-8") as handle:
+            handle.write("\n# gated file edit\n")
+        assert C.model_code_hash(tmp_path) != before
+        before = C.model_code_hash(tmp_path)
 
 
 def test_resolve_as_of_guards(store):
@@ -424,3 +446,83 @@ def test_path_artifact_is_saved_and_verified(store):
     artifact = root / run["path_artifact"]["path"]
     assert artifact.exists() and artifact.is_relative_to(root / "outputs/timeseries_daily6m_v2/paths")
     assert V.verify_daily6m_v2(root)["ok"] is True
+
+
+# ---------------------------------------------------------------- r3 pairing eligibility (2026-11-12)
+def test_r3_tolerance_equivalent_run_is_scored_on_the_primary_metric(store):
+    root, runs, clock = store
+    v1a = add_v1_forecast(root, runs, "2026-10-09", "daily6m-a", identical=False, tolerance=True)
+    issued = V.forecast_daily6m_v2(root, as_of=ISSUE["2026-10-09"], save_paths=False)
+    assert issued["pair_status"] == "inputs_differ" and issued["pair_eligibility"] == "tolerance_equivalent"
+    row = V.read_chain(root, C.FORECAST_LEDGER)[0]
+    assert row["pair_status"] == "inputs_differ" and row["pair_eligibility"] == "tolerance_equivalent"
+    run = V.load_run(root, row)
+    assert run["pair_eligibility"]["failed"] == [] and run["v1_reference"]["quantile_grid"] is not None
+    add_v1_resolution(root, v1a, "2026-10-12", 101.0, 100.0)
+    clock.update(now="2026-10-20T02:00:00+00:00")
+    V.resolve_daily6m_v2(root, as_of="2026-10-20T01:00:00+00:00")
+    rows = V.read_chain(root, C.RESOLUTION_LEDGER)
+    assert len(rows) == 3 and all(r["pair_eligibility"] == "tolerance_equivalent" and r["v1_crps39"] is not None for r in rows)
+    result = V.verify_daily6m_v2(root)
+    assert result["ok"] is True
+    assert result["diagnostics"]["pair_eligibility_counts"] == {"identical_inputs": 0, "tolerance_equivalent": 1, "excluded": 0}
+
+
+def test_r3_plain_inputs_differ_run_is_excluded_without_a_v1_grid(store):
+    root, runs, _ = store
+    add_v1_forecast(root, runs, "2026-10-09", "daily6m-a", identical=False)
+    assert V.forecast_daily6m_v2(root, as_of=ISSUE["2026-10-09"], save_paths=False)["pair_eligibility"] == "excluded"
+    run = V.load_run(root, V.read_chain(root, C.FORECAST_LEDGER)[0])
+    assert run["v1_reference"]["quantile_grid"] is None and "v1_reference_grid_recorded" in run["pair_eligibility"]["failed"]
+
+
+def test_r3_recorded_eligibility_must_replay(store):
+    root, runs, _ = store
+    add_v1_forecast(root, runs, "2026-10-09", "daily6m-a", identical=False, tolerance=True)
+    V.forecast_daily6m_v2(root, as_of=ISSUE["2026-10-09"], save_paths=False)
+    # evidence beyond the tolerance while the recorded block still says tolerance_equivalent
+    rewrite_run(root, 0, lambda r: r["reduction_identity"]["magnitude"].__setitem__("max_abs_log_band_diff", 1e-9))
+    assert first_error(root) == "v2 pair eligibility does not replay from the run's recorded fields"
+
+
+def _as_prior_identity(run):
+    prior = C.PRIOR_IDENTITIES[0]
+    run.pop("pair_eligibility")
+    run["contract_hash"], run["model_code_hash"] = prior["contract_hash"], prior["model_code_hash"]
+
+
+def _drop_row_eligibility(root, position):
+    rows = V.read_chain(root, C.FORECAST_LEDGER)
+    rows[position].pop("pair_eligibility")
+    rechain(root, C.FORECAST_LEDGER, rows)
+
+
+def test_r2_prior_identity_run_stays_loadable_and_is_classified_from_recorded_fields(store):
+    root, runs, _ = store
+    add_v1_forecast(root, runs, "2026-10-09", "daily6m-a", identical=False)
+    V.forecast_daily6m_v2(root, as_of=ISSUE["2026-10-09"], save_paths=False)
+    rewrite_run(root, 0, _as_prior_identity)
+    _drop_row_eligibility(root, 0)
+    run = V.load_run(root, V.read_chain(root, C.FORECAST_LEDGER)[0])
+    assert "pair_eligibility" not in run
+    result = V.verify_daily6m_v2(root)
+    assert result["ok"] is True
+    assert result["diagnostics"]["prior_identity_runs"][0]["status"] == "excluded"
+    assert result["diagnostics"]["pair_eligibility_counts"]["excluded"] == 1
+    # a prior-identity run that claims r3 eligibility, or an unknown identity, is refused
+    rewrite_run(root, 0, lambda r: r.__setitem__("model_code_hash", "0" * 64))
+    assert first_error(root) == "v2 contract or numerical code identity changed"
+
+
+def test_r2_prior_identity_run_after_an_r3_run_is_refused(store):
+    root = _issue_two(store)
+    rewrite_run(root, 1, _as_prior_identity)
+    _drop_row_eligibility(root, 1)
+    assert first_error(root) == "prior-identity v2 run issued after an r3 run"
+
+
+def test_current_identity_run_without_pair_eligibility_is_refused(store):
+    root = _issue_two(store)
+    rewrite_run(root, 0, lambda r: r.pop("pair_eligibility"))
+    _drop_row_eligibility(root, 0)
+    assert first_error(root) == "v2 contract or numerical code identity changed"

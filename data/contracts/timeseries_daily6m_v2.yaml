@@ -97,9 +97,23 @@ pairing:
   reduction_identity: {method: resimulate_v1_configuration_with_v1_seed_recorded_block_lambda_and_v1_issuance_exogenous,
                        pass_rule: path_hash_equal_and_v1_model_code_hash_at_issue_equals_v1_run, on_fail: issue_with_pair_status_inputs_differ}
   missing_pair_disclosure: counted_in_scorecard
+  tolerance_equivalence:                # r3 (2026-11-12, 결과 전 개정) — pair_status 는 기록값 그대로, 1차 표본 자격만 규칙으로 파생
+    rule_id: r3
+    applies_to: pair_status_inputs_differ_reason_path_hash
+    pair_status: unchanged_recorded_value
+    tolerance_abs: 1.0e-12               # 계수·로그 band·scaler 최대 절대차 (실측 ulp 차 4.2e-16~8.0e-16, 저장 격자 반올림 5e-11 보다 작다)
+    criteria: [path_hash_only, v1_code_hash_equal, runtime_equal, selection_reused, projection_exogenous_from_v1,
+               coefficients_within_tolerance, bands_within_tolerance, fit_structure_equal, anchor_equal,
+               factor_rows_equal_excluding_materialization, market_rows_same_observations]
+    status: {identical_inputs: pair_status_identical_inputs, tolerance_equivalent: all_criteria_true_and_v1_reference_grid_recorded,
+             excluded: otherwise}
+    v1_reference_grid: reconstructed_grid_rounded_10dp_stored_only_when_all_criteria_true
+    record: {run: pair_eligibility, forecast_ledger: pair_eligibility, resolution_ledger: pair_eligibility_when_run_records_it}
+    runs_without_pair_eligibility: prior_identity_only_classified_from_recorded_fields_no_posthoc_recompute
+    lineage_metadata_differences: diagnostic_only   # 원천 교체(captured→native)·재캡처 receipt·DFM 캐시 체크아웃 mtime 은 값이 아니다
 evaluation:
   resolution_source: v1_resolutions_ledger_active_rows
-  primary_sample: pair_status_identical_inputs
+  primary_sample: pair_eligibility_identical_inputs_or_tolerance_equivalent   # r3 (r2: pair_status_identical_inputs)
   metrics:
     primary: crps_quantile_grid_39_trapezoid_log_return     # tau = i/40, i=1..39; 꼬리 [0,0.025]·[0.975,1] 적분 밖
     secondary: [coverage80_abs_error, qs5_band_crosscheck, brier_daily_up]   # CI 공시만, 라벨 없음
@@ -163,3 +177,60 @@ approvals:
   ledger: data/timeseries_daily6m_v2/ledgers/approvals.jsonl
   receipt_id: "daily6m-v2-approval:U4:2026-11-11:r1"
   receipt_form: delegated_bundle_instruction_literal_template_match_false
+  revision_receipts: ["daily6m-v2-approval:U4:2026-11-12:contract-r3"]
+revisions:
+  # r1 = 리뷰 전 초안, r2 = 등록본(2026-11-11, frozen ddf1d6f3…). 이후 개정은 append 만 — 이전 블록은 고치지 않는다.
+  - revision: r3
+    revised_on: "2026-11-12"
+    kind: pre_outcome_amendment_pairing_eligibility
+    approval_receipt: "daily6m-v2-approval:U4:2026-11-12:contract-r3"
+    reason: >-
+      첫 main 발행 run daily6m-v2-9cc54ec98c2d1051208c45de(2026-11-11T16:54:16Z)이 inputs_differ(path_hash) 였다.
+      v1 code hash·수치 런타임(numpy 2.5.4·scipy 1.18.1·pandas 2.3.3·statsmodels 0.14.6·python 3.12.16·exchange_calendars 4.13.2)은
+      v1 과 같고 차이는 ulp 수준(계수 최대 차 expanding 4.2e-16·rolling 7.5e-16, 재구성 vs v1 로그 band 최대 차 8.0e-16)이다.
+      OpenBLAS DYNAMIC_ARCH 는 러너 CPU 마다 다른 커널을 고르므로 v1·v2 가 다른 러너에 앉으면 비트 동일 쌍 조건은 구조적으로 거의 불가능하다(설계 리뷰 N1 예견).
+    trigger:
+      run_id: daily6m-v2-9cc54ec98c2d1051208c45de
+      pair_status: inputs_differ
+      inputs_differ_reason: path_hash
+      v1_code_hash_equal: true
+      runtime_equal: true
+      fit_residual_hash_equal: {expanding: false, rolling: false}
+      max_abs_coefficient_diff: {expanding: 4.163336342344337e-16, rolling: 7.494005416219807e-16}
+      max_abs_log_band_diff: 8.049116928532385e-16
+      blas_build_string: "OpenBLAS 0.3.34.106.0 USE64BITINT DYNAMIC_ARCH NO_AFFINITY SkylakeX MAX_THREADS=64"   # numpy 빌드 정보 — 러너 런타임 코어 증거 아님 [미검증]
+      input_diagnosis: >-
+        진단 전용(분류 근거 아님, 로컬 재구성): v2 발행 시각 번들 계보 해시가 run 기록 digest 와 일치했고, v1 기록 계보 대비
+        시장 15,696행 중 1행(VIXCLS 2026-11-10: captured_forward → native_pit, 값 19.46 동일)의 출처 메타만 달랐으며
+        요인 3,218행은 cache_materialized_at(체크아웃 mtime) 외 동일했다.
+    pre_outcome_evidence:                 # 원장·스코어카드 직접 확인 (첫 확인 17:09:43Z @1e198f9b, 재확인 아래 시각 — 값 동일)
+      checked_at: "2026-11-11T18:06:23Z"
+      origin_main_head: 95875863594d1e5bc96f378bdb7075fcc97c6d49
+      first_checked: {at: "2026-11-11T17:09:43Z", origin_main_head: 1e198f9bfa4c1ccc089bc98ded73eed401b26f1c}
+      paired_v1_target_h1: {session: "2026-11-11", closes_at: "2026-11-11T21:00:00Z"}   # 확인 시각에 첫 목표 세션이 아직 마감 전
+      v2_forecast_rows: 1
+      v2_resolution_rows: 0                 # ledgers/resolutions.jsonl 미존재
+      v2_verdict_rows: 0                    # ledgers/verdicts.jsonl 미존재
+      v1_resolution_rows_for_paired_v1_runs: 0   # daily6m-95302ab6e0b64b447135566f 의 해소 행 0 (v1 해소 원장 148행)
+      scorecard_n_scored: {h1: 0, h5: 0, h21: 0, h63: 0, h126: 0}
+      reclassified_existing_runs: none      # r2 run 은 r3 에서도 같은 분류 — identical_inputs 포함, inputs_differ 는 v1 격자 미기록으로 제외
+    validity_invariant: >-
+      r3 는 결과와 무관한 규칙이며 기존 run 을 하나도 재분류하지 않는다 — verify 가 매번 prior identity run 을 r3 로 분류해 r2 의미와
+      다르면 실패한다. 위 0 건 증거는 개정 시점 기록이다(효력 조건이 아니다). 머지 시점에 쌍 해소 행이 생겨도 그 행은 r2 run 의 것이라 표본에 들어가지 않는다.
+    prior_identity: {revision: r2, contract_hash: ddf1d6f33289e9c3898d083759326dd625876c44b4d3560f42873b4627d19958,
+                     model_code_hash: 441c4984029aab1fedde25459305d38820566a38edd1ab55af6753323a55b8b0}
+    prior_identity_runs: loadable_without_pair_eligibility_only_before_the_first_r3_run   # 파일·원장 무수정, 재계산 삽입 없음
+    trigger_run_classification_r3: {status: excluded, failed: [fit_structure_equal, anchor_equal, factor_rows_equal_excluding_materialization,
+                                                               market_rows_same_observations, v1_reference_grid_recorded]}
+    tolerance_basis: >-
+      1e-12 는 실측 차(≤8.0e-16)의 약 1,200 배, 1.0 근처 ulp(2.2e-16)의 약 4,500 배 여유다. 반대로 실질 입력 차보다는 몇 자릿수 작다 —
+      3,138행 적합에서 관측 한 값의 1e-6 수정만으로도 계수가 1e-9 대로 움직이고, 앵커 0.01pt(2.5e4 수준) 차는 로그 4e-7 이다.
+      계약이 이미 받아들인 저장 격자 반올림(소수 10자리, 최대 5e-11)과 band 검사(1e-9)보다 엄격하고, CRPS39 차(라벨 판단 단위 1e-4~1e-3)에 주는 영향은 1e-12 이하다.
+    unchanged: [evaluation.metrics, evaluation.inference_sample, evaluation.family, evaluation.multiplicity, evaluation.bootstrap,
+                evaluation.p_value, evaluation.labels, evaluation.verdict_timing, publication.promotion, design_constants, model]
+    unchanged_note: 판정 가족·Holm m5·n(h1 50·h5 50·h21 30)·라벨·단일 관찰·상수·세 팔 생성 규칙 무변경. 바뀐 것은 1차 표본 자격과 그 증거 기록뿐
+    alternatives_considered:
+      - "OPENBLAS_CORETYPE 고정·단일 스레드: v1 은 봉인·보호 워크플로라 적용 불가, v1 과거 run 의 코어도 미기록 — v2 만 고정하면 v1 이 다른 코어에 앉을 때 오히려 늘 어긋난다. 채택 안 함(v2 워크플로 무변경)"
+      - "새 pair_status 값: 기존 행은 불변이고 pair_status 는 비트 동일성 사실 기록이라 의미를 섞지 않는다 — 별도 pair_eligibility 로 파생"
+      - "기존 run 을 v1 경로·격자 사후 재구성으로 포함: 기록 증거만으로 판정한다는 원칙 위반 — 제외(결손처럼 센다)"
+      - "계보 해시 동일을 기준으로: captured→native 원천 교체·체크아웃 mtime 이 값 변화 없이 해시를 바꾼다 — 관측 선택(observation_time)·요인 내용만 기준, 나머지 메타는 진단"
