@@ -1,0 +1,317 @@
+version: 2026-11-11.v6.1
+contract_id: dotcom_overheat_index_v6_1
+supersedes: dotcom_overheat_index_v5      # v1~v5 와 v6(사전등록본, 탈락)은 역사 기록으로 그대로 둔다
+amends: dotcom_overheat_index_v6          # 사후 개정 — 아래 revision 블록
+status: shadow_parallel_display           # v5 가 대표값. 게이트 통과 시 '새 산식(검증 중)' 병행 표시
+rules_fixed_at: "2026-11-11T04:41:43Z"   # v6.1 의 규칙을 v6.1 재현 실행 전에 고정했다
+gate_as_of: "2026-11-09"                  # v6.0 판정과 같은 기준일·같은 입력(아래 지문)에서 판정한다
+gate_input_sha256: 8516c2415b86be0909f16da243fcb1438b0a382bb1a231a34052815b39bb378e
+scope: dotcom_ai_comparison_display_only
+probability_space: reference_only
+model_use: false
+official_forecast_input: false
+combine_with_official_forecasts: false
+combine_with_scenario: false
+trading_signal: false
+
+change_log:
+  - date: 2026-11-11
+    decided_by: user
+    decision_record: docs/DECISIONS.md (2026-11-11 닷컴 대비 과열도 v6)
+    owner_decisions:
+      - ipo_family_scores_ritter_net_count_and_first_day_return__theme_listing_count_is_display_only
+      - ritter_ipoall_first_day_return_column_admitted_as_numeric_input
+      - mark_to_market_estimates_allowed_as_index_inputs_when_out_of_sample_test_passes
+      - parallel_display_then_promote_after_one_z1_release
+    reverses_v1_v5_principles:
+      - aggregation: median_of_category_medians -> declared_family_budgets_linear_mean
+      - bounds: unclamped -> contribution_clamp_for_aggregation_only (원값은 행마다 표시)
+      - scale: dotcom_window_range_position -> long_run_median_zero_and_peak_state_100
+      - fitting: none -> 가중치는 여전히 추정하지 않는다. 추정되는 것은 시가 연동 계수 beta 하나뿐(1995~2019 고정 구간)
+    why: >
+      v5 는 14개 중 12개 지표의 영향이 0 이었고(분기 자료 2개의 평균), 일간 입력이 없었으며, 일부 지표가 수준이 아니라
+      시대 시작 이후 상승률을 쟀고, 닷컴 정점에서 반대로 읽히던 지표(스프레드·금융여건·IPO 건수)를 채점했다.
+
+revision:                                 # 사후 개정(post-hoc amendment) — 확증이 아니다
+  of: dotcom_overheat_index_v6 (rules_fixed_at 2026-11-11T03:58:55Z, commit 02a72aed)
+  v6_0_outcome: failed — V9 (20 < 30), V10 (11.0 / 11.4 > 10), V12 (band width 50.1 > 35); 판정 기록 commit de0658c8
+  author_had_seen: v6.0 의 편입 결과·게이트 값·오늘의 지표별 점수 전부
+  the_one_change: weight_rule.single_member_family_cap 삭제 (선언 예산을 비어 있지 않은 부문에 비례 재정규화, 부문 안 균등)
+  why_this_is_a_rule_defect_not_tuning: >
+    상한 조항은 단일 지표 부문이 하나일 것을 전제로 썼다. 편입 결과 단일 지표 부문이 셋이 되자 초과분 전부가
+    speed 로 몰려 70(지표당 35)이 됐다 — 선언 예산(최대 25) 어디에도 없는 크기이고, 조항의 목적(한 지표 쏠림 방지)과
+    반대다. 이 결함은 점수 없이 가중치 산술만으로 확인된다. V9 는 가중치만으로 정해지므로, v6.0 의 V9 실패는
+    지수의 행동이 아니라 규칙이 자기 게이트와 모순된다는 증거다.
+  how_the_repair_was_chosen: >
+    결과 수치(오늘 점수, 각 안이 지수·게이트에 미치는 영향)를 받지 못한 독립 심사 5명(사전등록 방법론·합성지표 통계·
+    금융경제·독자 대변·적대적 심사)에게 세 안(P 예산 재정규화 / C 지표 상한 20 / E 부문 균등)을 원칙만으로 고르게 했다.
+    5명 전원 P. 이유: 새 숫자 0개, 부문이 모두 차면 선언 예산을 그대로 재현하는 유일한 안, 계약의 기존 결측 처리
+    (빼고 재정규화)와 같은 연산, 실패한 V9 에 가장 불리한 안(비가격 가중 P 37.5 · C 40 · E 50).
+  unchanged: 후보 지표·척도·기준값 규칙·편입 시험 A1~A7(문언 그대로)·변형 목록·게이트 임계값 V1~V12·판정 기준일
+  not_done_on_purpose:
+    - A5 를 '발표일에 화면에 보이는 계단'으로 다시 읽지 않았다(심사 5명 전원 문언 유지). 그 독해는 탈락 후보
+      part_household_equity 하나만 살릴 수 있고, 추정 계수의 표본 내 구간(1995~2019)과 겹친다.
+    - 지표 단위 상한·부문 균등 같은 대체 안전장치를 새로 넣지 않았다. 쏠림은 공시하고(단일 지표 최대 가중,
+      가격 항 가중) 임계값이 그대로인 V9·V10 이 감시한다.
+  stop_rule: >
+    이 재실행이 계약의 'gates are re-run once' 에 해당하는 유일한 재실행이다. v6.1 이 실패하면 가중 규칙을 다시
+    고치지 않고 음성 결과로 닫는다. 이후 개정은 새 후보 지표를 처음 보는 상태로 편입 시험하는 경로뿐이다.
+  status_of_gates: 전부 '결과를 본 뒤 판정'(확인용). 진짜 검증은 forward_only 항목이다.
+  thresholds_unchanged_is_not_gates_unchanged: 가중 규칙이 바뀌면 V9·V10·V12 의 실질 난이도가 달라진다.
+  promotion_clock: v6.1 동결 시점부터 다시 센다(2026Q3 Z.1 발표를 한 번 거친 뒤 대표값 교체 검토).
+
+clarifications:                           # v6.0 문언이 비워 둔 운영 정의 — v6.0 판정 코드가 이미 쓰던 것, 판정 불변
+  empty_family: 편입 지표가 없는 부문은 빼고 예산 비율로 재정규화한다. 화면에는 '편입 지표 없음(미측정)'으로 표시.
+  variants_follow_weight_rule: 범위 변형도 같은 가중 규칙을 쓴다(예산만 바꾸거나 부문을 뺀 뒤 재정규화).
+  live_weight: 편입 시점 가중(합 100) 가운데 오늘 값이 있는 지표의 몫. 70 미만이면 보류.
+  unscored_dates_in_A4: 채점되지 않는 날(A7 건수 부족 등)은 저점·월말 두 조건 모두에서 건너뛰고 개수를 기록.
+  native_frequency_daily: 일간형(daily, daily_numerator)의 0 기준·MAD 표본은 구간 안 모든 거래일.
+  anchor_drift: 다시 계산한 기준값이 동결값에서 (peak − zero) 폭의 1%(= 점수 1점) 넘게 움직이면 보류.
+  release_day_in_V8: 본 사양 지표가 참조하는 월·분기 기간이 바뀐 거래일.
+  price_term_in_V9: speed_r24, speed_d200, val_nasdaq_m2, val_equity_profit, part_household_equity (시가 연동 추정 대상 포함).
+  shock_in_V10: 기준일 종가만 ±10% (이동 평균 창의 과거 값은 그대로), 두 방향 모두 충족.
+  V4_per_variant: 변형마다 자기 2021년 최고값을 자기 2000-03-10 값과 비교한다. 20~70 조건은 본 사양에만.
+  holds_fail_closed: 평가 구간에 보류·결측이 있으면 그 게이트는 실패다. 대상이 0개인 게이트(V7, V11)는 '해당 없음'으로 적는다.
+  ritter_replay: 재현은 Ritter 를 월말+45일 지연의 월간 자료로 다룬다(실제 갱신은 연 1회 안팎 — known_limits).
+
+display_notes:
+  revision: 사전등록안(v6.0)은 자체 게이트에서 탈락했고, 이 값은 가중 규칙 한 가지를 고친 사후 개정안이다. 게이트 통과는 확인용이다.
+
+# 이 지수는 확률이 아니다. "2000년 3월 정점 당시 상태와 얼마나 닮았나" 를 몇 개 차원에서 잰 유사도 점수다.
+# 100 은 발견이 아니라 정의다. 사례가 하나라 민감도(붕괴를 맞히는가)는 검증할 수 없고, 특이도(아무 일 없을 때
+# 낮게 머무는가)만 검증할 수 있다.
+
+peak_knowledge_hyperparameters:           # 2000년 정점 지식이 들어간 선택 — 전부 공시한다
+  - peak_date 2000-03-10 (NASDAQ 종가 정점) / 2000-03 / 2000Q1
+  - zero_anchor_window 1995-01..2019-12
+  - contribution_clamp [-50, 150]
+  - horizons 24개월 수익률 · 200거래일 평균
+  - bridge_beta_window 1995Q2..2019Q4
+  - bear_low_dates 2002-10-09 · 2009-03-09 · 2022-12-28
+  - admission thresholds (A3 2.0 · A4 50/80 · A5 25 · A6 20% · A7 50)
+
+scale:
+  formula: "s_i = 100 * (x_i - zero_i) / (peak_i - zero_i)"
+  contribution_clamp: [-50, 150]          # 합산에만 적용. 행에는 원값과 capped 표시
+  peak:
+    daily: value on 2000-03-10 computed with the live operator and the fixed publication lags below
+    monthly: value for 2000-03
+    quarterly_and_estimated: official 2000Q1 value (no bridge coefficient inside the anchor)
+  zero:
+    return_type: 0
+    level_type: median over 1995-01..2019-12 of the indicator at its native frequency (frozen before the current era)
+  anchors_are_frozen_literals: true       # 아래 frozen 블록. 원장 개정이 기준값을 1% 넘게 움직이면 지수는 '보류'
+  no_era_rebasing: true                   # 시대 시작=100 재기준 금지 — 두 시대 같은 무차원 정의
+  no_detrending_in_scored_set: true
+
+publication_lags_days:                    # 재현(당시 화면에 보였을 값)에 쓰는 고정 지연 — 기간 말일 기준
+  NASDAQCOM: 0
+  M2SL: 28
+  z1: 75                                  # NCBEILQ027S · FL663067003 · BOGZ1LM153064475Q · DABSHNO · BOGZ1LM893064105Q
+  GDP: 30
+  Y034RC1Q027SBEA: 30
+  W328RC1Q027SBEA: 65
+  RITTER_IPOALL_MONTHLY: 45               # 재현용. 실제 갱신은 연 1회 안팎 — 화면에 자료월을 표시한다
+staleness_limits_days:                    # 기간 말일로부터 이보다 오래되면 그 지표를 빼고 재정규화
+  daily: 10
+  monthly: 120
+  quarterly: 230
+  ritter: 520
+hold_when_live_weight_below: 70
+
+families:
+  speed: {label: 상승 속도, budget: 25, why: 급등·가속이 붕괴 확률을 올린다(Greenwood-Shleifer-You 2019). 매일 관측}
+  valuation: {label: 밸류에이션, budget: 25, why: 과열의 필요조건 — 얼마나 높은가}
+  ipo: {label: IPO 창구, budget: 15, why: 닷컴의 핵심 경로. 자료가 연 1회 갱신되고 AI 붐은 비상장 조달이 많아 낮게 둔다}
+  participation: {label: 참여·레버리지, budget: 20, why: 개인 참여와 신용이 증폭}
+  real: {label: 실물 투자, budget: 15, why: 과잉투자는 결과이자 증폭}
+weight_rule:
+  within_family: equal
+  rule: declared family budgets renormalised over non-empty families, equal inside a family, no cap
+  retired: single_member_family_cap 10 (v6.0 — 단일 지표 부문이 여럿이면 초과분이 한 부문에 몰린다)
+  recompute_when_admission_changes: true
+  no_weight_is_estimated_from_1995_2000: true
+  rationale: >
+    사례가 하나라 예측력 기반 가중(AUROC 등)은 과적합이다. 시제품의 자료 기반 규칙 두 가지는 균등에서 5점 이내만
+    움직였다 — 범위 변형(weights_data_rule_a/b)으로 공개한다.
+
+indicators:                               # 후보. 편입 시험 결과는 frozen.admission 에 기록(탈락 포함)
+  - id: speed_r24
+    family: speed
+    label: NASDAQ 2년 상승률
+    kind: return
+    frequency: daily
+    definition: ln(N_t / mean(N over the 40 sessions centred 504 sessions back))
+    source_ids: [NASDAQCOM]
+    direction: higher_is_hotter
+    literature: Greenwood-Shleifer-You 2019 (2년 급등)
+  - id: speed_d200
+    family: speed
+    label: NASDAQ 200일 평균 대비 이격
+    kind: return
+    frequency: daily
+    definition: N_t / mean(N over the last 200 sessions) - 1
+    source_ids: [NASDAQCOM]
+    direction: higher_is_hotter
+  - id: val_nasdaq_m2
+    family: valuation
+    label: 통화량 대비 NASDAQ 수준
+    kind: level
+    frequency: daily_numerator
+    definition: N_t / latest released M2SL (billions) — level, no rebasing
+    source_ids: [NASDAQCOM, M2SL]
+    direction: higher_is_hotter
+  - id: val_equity_profit
+    family: valuation
+    label: 기업가치 ÷ 세후이익
+    kind: level
+    frequency: quarterly
+    estimate: nasdaq_mark_to_market
+    definition: NCBEILQ027S / (W328RC1Q027SBEA * 1000)
+    source_ids: [NCBEILQ027S, W328RC1Q027SBEA]
+    direction: higher_is_hotter
+  - id: ipo_count_12m
+    family: ipo
+    label: IPO 건수(미국 운영기업 12개월)
+    kind: level
+    frequency: monthly
+    definition: Ritter IPOALL net count, trailing 12-month sum (테마 상장 가산 없음 — 가산 건수는 IPO 카드에 표시만)
+    source_ids: [RITTER_IPOALL_MONTHLY]
+    direction: higher_is_hotter
+  - id: ipo_first_day_12m
+    family: ipo
+    label: IPO 첫날 평균 수익률(12개월)
+    kind: level
+    frequency: monthly
+    definition: trailing 12-month net-count-weighted mean of the IPOALL monthly average first-day return (%)
+    min_deals_12m: 50
+    source_ids: [RITTER_IPOALL_MONTHLY]
+    direction: higher_is_hotter
+    literature: Ritter hot-issue markets · Baker-Wurgler 2006
+  - id: part_margin_gdp
+    family: participation
+    label: 증거금 신용 ÷ GDP
+    kind: level
+    frequency: quarterly
+    definition: FL663067003 / (GDP * 1000)
+    source_ids: [FL663067003, GDP]
+    direction: higher_is_hotter
+    requires_series_audit: FL663067003 (2026Q2 +19% 급증) — 감사 실패 시 참고로
+  - id: part_household_equity
+    family: participation
+    label: 가계 주식 ÷ 가계 현금성 자산
+    kind: level
+    frequency: quarterly
+    estimate: nasdaq_mark_to_market
+    definition: BOGZ1LM153064475Q / DABSHNO
+    source_ids: [BOGZ1LM153064475Q, DABSHNO]
+    direction: higher_is_hotter
+  - id: real_it_equipment_gdp
+    family: real
+    label: 정보처리 장비 투자 ÷ GDP
+    kind: level
+    frequency: quarterly
+    definition: Y034RC1Q027SBEA / GDP
+    source_ids: [Y034RC1Q027SBEA, GDP]
+    direction: higher_is_hotter
+
+estimate:                                 # '잠정'(표시 전용)과 다른 상태 — 지수 입력으로 쓰는 추정
+  status_label: 시가 연동 추정
+  operator: "X_t = X_q * (N_t / N_q_end) ^ beta"
+  beta_rule: OLS slope of quarterly dln(X) on quarter-end dln(NASDAQCOM), 1995Q2..2019Q4, frozen
+  replaced_at_official_release: true
+  trueup_log: data/statistics/overheat/trueup.jsonl
+
+admission_tests:                          # 둥근 임계값. 시험해 본 지표는 탈락 포함 전부 기록
+  A1: same dimensionless definition and approved source in both eras, continuous 1995 -> today
+  A2: direction fixed in advance from the literature (not from 2000 data)
+  A3: {rule: "(peak - zero) / (1.4826 * MAD over 1995-01..2019-12) >= 2.0", note: 정점 지식 사용 — 분모가 0 근처가 되지 않게 하는 조건}
+  A4: {rule: "score <= 50 at 2002-10-09, 2009-03-09 and 2022-12-28; score <= 80 at every month-end 2001-07..2022-12"}
+  A5: {rule: 95th percentile of absolute release-to-release score change over 2001-07..2022-12 <= 25, applies_to: non_daily}
+  A6: {rule: one-quarter-ahead estimate error (mean abs log error) on 2020Q1.. <= 0.8 * carry-forward error, applies_to: estimated, on_fail: 추정 없이 유지}
+  A7: {rule: ipo_first_day_12m is unscored when the 12-month net IPO count is below 50}
+  phase1_blindness: seen                  # 1단계 지표는 탐색 시제품에서 이미 값을 봤다 — 확인용이지 사전 검증이 아니다
+
+aggregation:
+  rule: composite = sum over families of weight_f * mean(clamped member scores)
+  linear_contributions: true
+  headline: integer index points, label '닷컴 정점 = 100' (no percent sign)
+  below_zero_label: 평상 이하
+  companions: [four_week_change, trailing_12m_high_with_date, family_bars, data_age_split]
+  never_show: one_day_change_in_headline
+
+band:
+  label: 가정 범위
+  rule: min and max over the base specification and the named variants below (not a probability interval)
+  variants:
+    - {id: drop_speed, change: leave the speed family out}
+    - {id: drop_valuation, change: leave the valuation family out}
+    - {id: drop_ipo, change: leave the ipo family out}
+    - {id: drop_participation, change: leave the participation family out}
+    - {id: drop_real, change: leave the real family out}
+    - {id: equal_family, change: equal budgets across families}
+    - {id: weights_data_rule_a, change: "budgets speed 21.5 / valuation 22.4 / ipo 20.4 / participation 20.3 / real 15.4 (시제품: 정점 판별력 x 중복 벌점)"}
+    - {id: weights_data_rule_b, change: "budgets speed 27.0 / valuation 24.5 / ipo 19.0 / participation 17.8 / real 11.8 (시제품: 사전점수 x 상관 벌점)"}
+    - {id: zero_1995_mean, change: level-type zero anchor = mean of 1995 observations}
+    - {id: peak_window_max, change: peak anchor = maximum over 1995-01..1999-12 (v5 식 기준)}
+    - {id: peak_live_0310, change: estimated indicators use the as-displayed 2000-03-10 value as the peak anchor}
+    - {id: no_estimate, change: quarterly ratios carried forward without mark-to-market}
+    - {id: margin_over_equity, change: margin credit divided by BOGZ1LM893064105Q instead of GDP}
+    - {id: no_clamp, change: contributions unclamped}
+
+gates:                                    # 고정 발표 지연 재현 위에서 판정. 임계값은 고치지 않는다
+  construction_checks:                    # 정의상 성립 — 검증이라 부르지 않는다(구현 회귀 확인)
+    - {id: C1, rule: retro composite at 2000-03-31 using official-period data is between 80 and 120, blindness: seen_after_v6_0}
+    - {id: C2, rule: as-displayed composite on 2000-03-10 is reported and drawn on the gauge, blindness: seen_after_v6_0}
+    - {id: C3, rule: as-displayed composite 1996-12-31 < 1998-12-31 < 1999-12-31 < 2000-03-10, blindness: seen_after_v6_0}
+    - {id: C4, rule: composite changed on at least 45 of the last 60 sessions at 0.1 resolution, blindness: seen_after_v6_0}
+    - {id: C5, rule: v5 versus v6 on one ledger snapshot with contributions listed for the latest date, blindness: seen_after_v6_0}
+  falsifiable:
+    - {id: V1, rule: maximum month-end composite over 2001-07..2022-12 <= 60 (month reported), blindness: seen_after_v6_0}
+    - {id: V2, rule: "composite <= 25 at 2002-10-09, 2009-03-09 and 2022-12-28", blindness: seen_after_v6_0}
+    - {id: V3, rule: composite at 2007-10-31 <= 30, blindness: seen_after_v6_0}
+    - {id: V4, rule: maximum composite over 2021-01..2021-12 is between 20 and 70 and below the 2000-03-10 value in every variant, blindness: seen_after_v6_0}
+    - {id: V5, rule: median month-end composite over 2003-01..2006-12 and over 2012-01..2016-12 <= 15, blindness: seen_after_v6_0}
+    - {id: V6, rule: maximum month-end composite over 2010-01..2011-12 <= 40, blindness: seen_after_v6_0}
+    - {id: V7, rule: every estimated indicator kept in the scored set passes A6, blindness: seen_after_v6_0}
+    - {id: V8, rule: largest one-session composite change on an official-release day since 2023-01 <= 5, blindness: seen_after_v6_0}
+    - {id: V9, rule: weight carrying no NASDAQ price term >= 30, blindness: seen_after_v6_0}
+    - {id: V10, rule: a +10% and a -10% NASDAQ move change today's composite by <= 10 points, blindness: seen_after_v6_0}
+    - {id: V11, rule: weight sitting on a clamp today <= 25, blindness: seen_after_v6_0}
+    - {id: V12, rule: band width today <= 35 and every variant >= 75 at 2000-03-31 (retro), blindness: seen_after_v6_0}
+  reported_not_gated: [daily R-squared of composite change on NASDAQ return, monthly R-squared, per-indicator A-test table]
+  forward_only:                           # 결과를 아직 모른다 — 감시가 보고
+    - estimate true-up error at the 2026Q3 Z.1 release
+    - composite step at the next GDP release
+  on_failure: v5 stays the only public value; no further weight-rule revision (revision.stop_rule); thresholds are never edited
+
+context_panels:                           # 채점하지 않고 표시만
+  conditions_strip:                       # 닷컴 정점으로 갈수록 조여지던 지표 — '완화=과열' 로 채점하면 정점에서 지수를 깎는다
+    - {chart: financial_conditions, series: 현재}
+    - {chart: corporate_bond_pressure, series: 현재 스프레드}
+    - {chart: loan_standards, series: 현재}
+  reference: [spx_per_federal_debt, corporate_bond_issuance, consumer_credit_growth, household_debt_service, unemployment_rate, ipo_count_operating_12m (테마 가산 포함 건수)]
+
+rejected:                                 # 검토했으나 쓰지 않는다
+  - {id: ice_hy_oas, why: FRED 가 3년치만 제공}
+  - {id: put_call_aaii_finra_margin_top10, why: 유료·회원 전용·저장소 계약상 금지}
+  - {id: vix_realised_vol_baa_spread, why: 2000년 정점으로 갈수록 올랐다 — 과열 방향이 아니다}
+  - {id: lppl, why: "저장소 자체 기록상 정점 1개월 전에야 수렴, 사전값이 정점을 내포"}
+  - {id: gap_transforms, why: 시작 시점 인공물의 재발 — 채점에 쓰지 않는다}
+next_versions:                            # 각 편입은 새 계약 개정 + 게이트 전체 재실행, 편입 시험은 처음 보는 상태로
+  v6_2_approved_hosts: [BSADF on log NASDAQ, NASDAQ100/Composite 24m relative return, A679RC1Q027SBEA/GDP, IPHITEK2S, Z.1 fund equity purchases/GDP]
+  v6_3_new_sources: [Shiller CAPE, excess CAPE yield, French BusEq market-cap share]
+
+known_limits:
+  - 선언한 5개 부문 가운데 참여·레버리지에는 편입 시험을 통과한 지표가 없다(미측정). 그 예산 20 은 나머지 4개 부문에 비례 배분됐다.
+  - 밸류에이션·IPO·실물 부문은 지표가 하나씩이다. 단일 지표 최대 가중과 NASDAQ 가격 항 가중을 화면에 공시한다.
+  - 탈락 후보(기업가치÷세후이익, IPO 첫날 수익률, 증거금÷GDP, 가계 주식 배분)는 참고로만 본다. 다시 심사하려면 새 개정이 필요하다.
+  - 범위 변형 가운데 본 사양과 값이 같은 것(빈 부문·탈락 지표에 걸린 변형)은 범위를 넓히지 않는다 — 유효 변형 수를 함께 적는다.
+  - 닷컴형 주식 과열만 잰다. 2007년 정점(신용 주도)에서 시제품은 11~14 였다 — 낮다고 안전하다는 뜻이 아니다.
+  - 정점 뒤에는 값이 빨리 내려간다. 그래서 최근 12개월 최고값을 함께 보인다.
+  - 100 은 사후 자료 기준 2000년 3월 상태다. 당시 화면에 보였을 값(발표 지연 적용)은 별도로 공시한다.
+  - 과거 구간은 최신 개정 자료 + 고정 발표 지연으로 소급 재계산한 것이지 실시간 기록이 아니다(basis retro_backfill).
+  - IPO 부문은 Ritter 갱신이 연 1회 안팎이라 가장 늦다. 비상장 조달(AI)은 잡지 못한다.
+  - 참여·레버리지 점수는 분모 선택에 민감하다(GDP 대 주식가치) — 범위 변형에 포함.
+
+frozen: {}                                # tools/verify_overheat_v6_shadow.py --write-frozen 이 채운다
