@@ -11,7 +11,7 @@ import pytest
 from ai_fc.timeseries_v15_vol import contracts as C
 from ai_fc.timeseries_v15_vol import shadow as SH
 from ai_fc.timeseries_v15_vol import verdict as V
-from v15_vol_fixtures import (ARMING, V13_LIVE, V15_SHADOW, arm, edit_contract, make_root, protected_hashes,
+from v15_vol_fixtures import (ARMING, V13_LIVE, V15_SHADOW, arm, edit_contract, load_contract, make_root, protected_hashes,
                               read_jsonl, write_arming, write_jsonl)
 
 NOW = datetime(2026, 11, 11, 12, 0, tzinfo=timezone.utc)
@@ -61,8 +61,20 @@ def live_root(tmp_path: Path) -> Path:
 
 def test_unarmed_contract_holds_without_writes(tmp_path: Path) -> None:
     root = make_root(tmp_path)
+    # 실계약은 커밋 B 뒤 armed 다 — 미무장(커밋 A) 상태는 tmp 사본에서 명시적으로 되돌려 검사한다.
+    edit_contract(root, lambda payload: payload["gates"].__setitem__("armed", False))
     result = SH.publish_shadow_v15_vol(root, now=NOW)
     assert result == {"status": "hold", "reasons": ["not_armed"], "appended": 0}
+    assert not (root / V15_SHADOW).exists() and not (root / ARMING).exists()
+    assert SH.verify_shadow_v15_vol(root)["ok"]
+
+
+def test_real_armed_contract_holds_arming_pending_ci_outside_main_ci(tmp_path: Path) -> None:
+    """커밋 B 상태(실계약 그대로, 무장행 없음) — CI 무장 맥락 밖(로컬·PR)에서는 쓰기 0 hold."""
+    root = make_root(tmp_path)
+    assert load_contract(root)["gates"]["armed"] is True
+    result = SH.publish_shadow_v15_vol(root, now=NOW)
+    assert result == {"status": "hold", "reasons": ["arming_pending_ci"], "appended": 0}
     assert not (root / V15_SHADOW).exists() and not (root / ARMING).exists()
     assert SH.verify_shadow_v15_vol(root)["ok"]
 
