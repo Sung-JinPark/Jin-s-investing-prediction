@@ -1,0 +1,26 @@
+{
+  "computed_at": "2026-11-11T18:24:46+00:00",
+  "content_hash": "482bd09770fa02f956344aefdda3b13b9a2884cdc3a466ed25e092421275609b",
+  "exchange_calendars_version": "4.13.2",
+  "kernel_code_hash": "4e93e3f24af87285e3e768814345cdcb88cf7a1fdef0318c387c61462185b162",
+  "kind": "v15_a0_live_identity_attempt",
+  "max_abs_diff": 2.185751579730777e-16,
+  "mismatched_fields": [],
+  "notice": "참고 의견, 매매 신호 아님",
+  "outcome_blind": true,
+  "runtime_manifest": {
+    "numpy": "2.5.4",
+    "pandas": "2.3.3",
+    "python": "3.12.16",
+    "scipy": "1.18.1",
+    "statsmodels": "0.14.6"
+  },
+  "schema_version": 1,
+  "snapshot_method": "rev_list_first_parent_before_cutoff",
+  "snapshot_sha": "527016b1fde8091d9883456fd8aa90492c85c392",
+  "status": "PASS",
+  "tolerance": 1e-12,
+  "v8_forecast_id": "tsv8-shadow-4b072b50fb416b25128483fd",
+  "v8_knowledge_cutoff": "2026-11-10T11:04:48+00:00",
+  "v8_origin": "2026-11-06"
+}
