@@ -3028,3 +3028,43 @@ V15 가 매일 기록·채점하는 이 양은 V14 라이브 전진(V14-D10 미�
 **후속 일정.** U2a 달력 정정은 2026-12-29 전 머지 · U6 첫 체크포인트(rv_h5) 약 2026-12-10, vix25_h21·rv_h21 약 2027-01-05 — 사람이 대화형 세션에서 실행 ·
 U3 r3 PR(머지 뒤 mde_replay·A0 identity 디스패치, PASS 면 허용 목록만) · U5 effective_from 1줄(머지 뒤 첫 main 예약 무장행) · U4 첫 v2 run 의 `pair_status` 확인 ·
 U1 첫 dispatch 의 소급 append 확인.
+
+## 2026-11-12 — daily6m v2 계약 r3: 결과 전 '허용오차 동일 입력' 쌍 자격 (U4 후속, 위임 지시)
+
+**지시.** "네가 나머지 작업 다 완료시켜.  네가 최적의 선택을 내려서 u1~u7까지 다 진행시켜" — U4 설계 리뷰 N1 이 "허용오차 통과 규칙은 소유자의 새 계약 결정"으로 남긴 항목을
+위임 범위 안에서 집행한다. 영수증 `data/timeseries_daily6m_v2/ledgers/approvals.jsonl` 2행 `daily6m-v2-approval:U4:2026-11-12:contract-r3`(approval_text = 원문,
+template_text = 결정 요약, `delegated_bundle_instruction`, literal_template_match false, approved_at = r1 과 같은 지시 수신 상한 2026-11-11T09:03:44Z, recorded_at 별도). 철회 행이 아니다.
+
+**왜.** 첫 main run `daily6m-v2-9cc54ec98c2d1051208c45de`(2026-11-11T16:54:16Z)가 `inputs_differ(path_hash)` 였다. v1 code hash·런타임(numpy 2.5.4·scipy 1.18.1·pandas 2.3.3·
+statsmodels 0.14.6·python 3.12.16)은 v1 과 같고, 적합 residual hash 만 달랐으며 크기는 ulp 수준이다 — 계수 최대 차 expanding 4.2e-16·rolling 7.5e-16, 재구성 vs v1 로그 band 최대 차 8.0e-16.
+OpenBLAS DYNAMIC_ARCH 가 러너 CPU 마다 다른 커널을 고르므로 v1·v2 가 다른 러너에 앉으면 비트 동일 쌍은 구조적으로 드물다(1차 표본이 거의 비게 된다).
+진단(분류 근거 아님, 로컬 재구성): v2 발행 시각 번들 계보를 다시 만들면 run 의 digest 와 같고, v1 기록 계보와는 시장 15,696행 중 1행(VIXCLS 2026-11-10 이 v1 때 CBOE 캡처, v2 때 ALFRED 네이티브 —
+값 19.46 동일)의 출처 메타와 요인 3,218행의 `cache_materialized_at`(체크아웃 mtime)만 달랐다. 입력 값은 같았다.
+같은 날 로컬(Windows numpy 2.4.3)로 새 코드를 돌리면 새 증거 필드(적합 구조·scaler 차 0.0·앵커·관측 선택·요인 내용)가 모두 참이고 런타임만 달라 `excluded` 였다 — 규칙이 의도대로 동작.
+
+**결과 전 증거(원장 직접 확인, 2026-11-11T17:09:43Z origin/main 1e198f9b · 재확인 2026-11-11T18:06:23Z(KST 11-12 03:06) origin/main 95875863 — 값 동일).** v2 forecasts 1행 · resolutions.jsonl 없음(0행) · verdicts.jsonl 없음(0행) · 짝 v1 run
+`daily6m-95302ab6e0b64b447135566f` 의 v1 해소 행 0(v1 해소 원장 148행) · 스코어카드 솎음 n_scored h1·h5·h21·h63·h126 모두 0 · 짝 원점 2026-11-10 의 h1 목표 세션(2026-11-11)은 확인 시각에 아직 마감 전(21:00Z). 계약 `revisions[r3].pre_outcome_evidence` 에 같은 값을 남겼다(로더가 v2_resolution_rows·v2_verdict_rows 0 을 검사).
+더 강한 근거: r3 는 **기존 run 의 분류를 하나도 바꾸지 않는다** — r2 run 은 v1 격자를 identical_inputs 일 때만 저장했으므로 r2 inputs_differ run 은 r3 에서도 제외다. 효력은 r3 코드로 발행되는 run 부터다. 그래서 영수증의 효력 조건은 '0 행' 수치가 아니라 이 불변식(결과 무관 규칙·기존 run 재분류 0, verify 가 매번 재확인)으로 적었다(계약 `validity_invariant`) — 머지 전에 r2 run 의 해소 행이 생겨도 그 행은 표본 밖이다.
+
+**무엇을.** (1) `pair_status` 는 비트 동일성 사실 기록으로 그대로 두고, 새 필드 `pair_eligibility`(identical_inputs | tolerance_equivalent | excluded)를 run·forecast 원장 행·(r3 run 의) 해소 행에 기록한다.
+(2) tolerance_equivalent = inputs_differ(path_hash) ∧ v1 code hash 같음 ∧ 런타임 dict 같음 ∧ block/λ·투영 외생값이 v1 기록값 ∧ 계수·로그 band 최대 절대차 ≤ 1e-12 ∧ 적합 구조(lag·alpha·이름·창·잔차 수) 같음 + scaler(중앙값·IQR, BLAS 무관 순서통계) ≤ 1e-12
+∧ 앵커 값 같음 ∧ 요인 행 내용 같음(mtime 제외) ∧ 세션별 관측 선택(observation_time·carried) 같음 ∧ 재구성 v1 39분위 격자 저장. 기준은 전부 run 자신의 기록 필드에서 결정론으로 나오고 verify 가 재생한다.
+(3) 기준을 통과하면 재구성 v1 격자(소수 10자리)를 저장해 1차 지표 CRPS39 를 계산할 수 있게 한다. (4) 1차 표본 = identical_inputs ∪ tolerance_equivalent(`evaluation.primary_sample` 만 바뀜).
+(5) 계약·수치 코드 해시가 바뀌므로 r2 정체성(contract ddf1d6f3… · model code 441c4984…)을 `PRIOR_IDENTITIES`·계약 `revisions[r3].prior_identity` 에 핀했다 — 그 정체성의 run 은 `pair_eligibility` 없이만,
+첫 r3 run 이전에만 적재된다. 새 계약 frozen hash 700e909326f7408f082d6ed0d13f91129b014c7a21eb390f530a8bd606aea74a · v2 model_code_hash 421bcca60c171ab27badf593d17fd31341b31e7c9627976cecb965f3882e272c.
+규칙 코드(기준·허용오차·classify_pair)는 새 파일 `src/ai_fc/timeseries_daily6m_v2/pairing.py` 에 두고 **게이트 해시(NUMERICAL_CODE_PATHS)에 넣었다** — 이 코드가 v1 격자 저장(1차 지표 v1_crps39 의 입력)과 1차 표본 자격을 정하므로, 느슨해지는 편집이 비게이트 진단(runs_with_changed_orchestration_code)으로만 드러나며 새 run 을 들이는 일을 막는다. contracts.py 는 재수출과 계약 문자열·r2 정체성 핀만 맡는다.
+r3 블록 3개(tolerance_equivalence·revisions·revision_receipts)를 빼고 primary_sample 을 되돌리면 r2 frozen hash 가 정확히 재현된다(테스트로 고정).
+
+**허용오차 근거.** 1e-12 는 실측 차(≤8.0e-16)의 약 1,200 배, 1.0 근처 ulp(2.2e-16)의 약 4,500 배 여유다. 실질 입력 차보다는 몇 자릿수 작다 — 합성 시험에서 관측 한 값 1e-6 수정은 계수·band 기준을 모두 깨고,
+앵커 0.01pt 차는 로그 4e-7 이다. 계약이 이미 받아들인 저장 격자 반올림(소수 10자리, 최대 5e-11)·band 검사(1e-9)보다 엄격하고, CRPS39 차(라벨 판단 단위 1e-4~1e-3)에 주는 영향은 1e-12 이하다.
+
+**무변경.** 판정 가족 5·Holm 단측 0.05(m5)·n(h1 50·h5 50·h21 30)·iid 부트스트랩·p 값 정의·라벨·단일 관찰 시점·승격 조건·설계 상수·세 팔 생성 규칙. 기존 원장 행·run 파일·v1 바이트·보호 워크플로 0 변경.
+
+**대안과 기각 근거.** (a) OPENBLAS_CORETYPE 고정·단일 스레드: v1 은 봉인·보호 워크플로라 못 바꾸고 v1 과거 run 의 코어도 기록이 없다. v2 만 고정하면 v1 이 다른 코어에 앉을 때 오히려 늘 어긋나므로 v2 워크플로에도 넣지 않았다.
+대신 v2 run 에 런타임 BLAS 코어(threadpoolctl architecture·스레드 수)와 CPU 모델명을 진단으로 기록한다 — 기존 `openblas configuration` 문자열은 numpy 휠 빌드 정보라 러너 코어 증거가 아니다[미검증].
+(b) 새 pair_status 값: 사실 기록과 자격 판정을 섞는다 — 기각. (c) 기존 run 을 v1 경로·격자 사후 재구성으로 포함: 기록 증거만으로 판정한다는 원칙 위반 — 기각(제외로 센다).
+(d) 계보 해시 동일을 기준으로: captured→native 원천 교체·체크아웃 mtime 이 값 변화 없이 해시를 바꾼다(위 실측) — 관측 선택·요인 내용만 기준, 나머지는 진단.
+
+**실데이터 분류(테스트로 고정).** `daily6m-v2-9cc54ec98c2d1051208c45de` → excluded. 통과: path_hash_only·v1_code_hash_equal·runtime_equal·selection_reused·projection_exogenous_from_v1·coefficients·bands.
+실패: fit_structure_equal·anchor_equal·factor_rows·market_rows(r2 가 기록하지 않은 증거) + v1_reference_grid_recorded. 원점 2026-11-10 은 솎음 표본에서 결손처럼 센다(n_excluded). 한계: KNOWN_LIMITS 68.
+`data/method_changes.jsonl` 은 append 하지 않았다 — 그 원장은 사이트 결정 일지(공개 표시·모델 사용 변경)용이고 U4 등록 때도 쓰지 않았다(v2 는 비공개 섀도, 표시·확률 무변경).

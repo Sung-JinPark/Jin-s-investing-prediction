@@ -961,7 +961,8 @@ def cmd_daily6m_v2_forecast(as_of: str | None = typer.Option(None, "--as-of")) -
 
     result = _timeseries_exit(forecast_daily6m_v2, config.ROOT, as_of=as_of)
     typer.echo(json.dumps({k: result.get(k) for k in ("status", "run_id", "paired_v1_forecast_id", "pair_status",
-                                                      "origin_session", "skipped", "reasons")}, ensure_ascii=False, indent=2))
+                                                      "pair_eligibility", "origin_session", "skipped", "reasons")},
+                          ensure_ascii=False, indent=2))
 
 
 @app.command("daily6m-v2-resolve")

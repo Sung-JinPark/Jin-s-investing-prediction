@@ -9,6 +9,12 @@ from typing import Any
 
 from ai_fc.timeseries_daily6m.contracts import canonical_hash  # same canonical JSON as the parent track
 
+from .pairing import (  # noqa: F401 - the r3 rule is re-exported for callers and tests
+    EQUIVALENCE_CRITERIA, FACTOR_VOLATILE_KEYS, FIT_STRUCTURE_KEYS, GRID_CRITERION, MARKET_OBSERVATION_KEYS,
+    PAIR_RULE_REVISION, PAIR_TOLERANCE, PRIMARY_ELIGIBILITY, classify_pair, equivalence_criteria,
+    fit_structure_comparison, ledger_pair_eligibility, lineage_comparison,
+)
+
 MODEL_ID = "research.nasdaq_daily6m_varx_v2"
 MODEL_VERSION = 1
 CONTRACT_ID = "timeseries_daily6m_v2"
@@ -57,7 +63,7 @@ EXPECTED_SELECTION = {
 
 EXPECTED_EVALUATION_SUBSET = {
     "resolution_source": "v1_resolutions_ledger_active_rows",
-    "primary_sample": "pair_status_identical_inputs",
+    "primary_sample": "pair_eligibility_identical_inputs_or_tolerance_equivalent",   # r3 (was pair_status_identical_inputs)
     "differences": "paired_same_run_arm_minus_v1",
     "bootstrap": {"kind": "iid", "replicates": 9999, "rng_key": [20261111, "lead", "arm_index"], "ci": "percentile_90"},
     "family": list(FAMILY),
@@ -87,6 +93,34 @@ EXPECTED_LABELS = {"superior": "holm_reject_and_negative_mean", "inferior": "ci9
                    "indistinguishable": "otherwise"}
 EXPECTED_P_VALUE = "one_sided_share_of_bootstrap_means_ge_0_plus_one_over_B_plus_one"
 EXPECTED_SECONDARY = ("coverage80_abs_error", "qs5_band_crosscheck", "brier_daily_up")
+
+# ---------------------------------------------------------------- r3 pairing eligibility (pre-outcome amendment, 2026-11-12)
+# The rule itself (thresholds, criteria, classify_pair) lives in pairing.py, which is part of the gating
+# model_code_hash; this module re-exports it (import at the top) and pins the contract text and the prior
+# (r2) run identity.
+R3_UNCHANGED = ("evaluation.metrics", "evaluation.inference_sample", "evaluation.family", "evaluation.multiplicity",
+                "evaluation.bootstrap", "evaluation.p_value", "evaluation.labels", "evaluation.verdict_timing",
+                "publication.promotion", "design_constants", "model")
+# Runs issued under the registered r2 contract stay loadable: they never record pair_eligibility and r3
+# classifies them from their recorded fields (an r2 inputs_differ run never stored a v1 grid -> excluded).
+PRIOR_IDENTITIES = (
+    {"revision": "r2", "contract_hash": "ddf1d6f33289e9c3898d083759326dd625876c44b4d3560f42873b4627d19958",
+     "model_code_hash": "441c4984029aab1fedde25459305d38820566a38edd1ab55af6753323a55b8b0"},
+)
+EXPECTED_TOLERANCE_EQUIVALENCE = {
+    "rule_id": PAIR_RULE_REVISION,
+    "applies_to": "pair_status_inputs_differ_reason_path_hash",
+    "pair_status": "unchanged_recorded_value",
+    "tolerance_abs": PAIR_TOLERANCE,
+    "criteria": list(EQUIVALENCE_CRITERIA),
+    "status": {"identical_inputs": "pair_status_identical_inputs",
+               "tolerance_equivalent": "all_criteria_true_and_v1_reference_grid_recorded",
+               "excluded": "otherwise"},
+    "v1_reference_grid": "reconstructed_grid_rounded_10dp_stored_only_when_all_criteria_true",
+    "record": {"run": "pair_eligibility", "forecast_ledger": "pair_eligibility", "resolution_ledger": "pair_eligibility_when_run_records_it"},
+    "runs_without_pair_eligibility": "prior_identity_only_classified_from_recorded_fields_no_posthoc_recompute",
+    "lineage_metadata_differences": "diagnostic_only",
+}
 
 
 def load_contract(root: Path) -> dict[str, Any]:
@@ -151,6 +185,16 @@ def load_contract(root: Path) -> dict[str, Any]:
     constants = contract.get("design_constants") or {}
     if constants.get("path") != CONSTANTS_RELATIVE.as_posix() or not isinstance(constants.get("canonical_hash"), str):
         raise Daily6mV2ContractError("daily6m v2 design constants pin missing")
+    # r3 (2026-11-12): tolerance pairing rule and the prior (r2) run identity it keeps loadable
+    if (contract.get("pairing") or {}).get("tolerance_equivalence") != EXPECTED_TOLERANCE_EQUIVALENCE:
+        raise Daily6mV2ContractError("daily6m v2 r3 tolerance pairing rule differs from the implementation")
+    revisions = contract.get("revisions") or []
+    r3 = [item for item in revisions if isinstance(item, dict) and item.get("revision") == PAIR_RULE_REVISION]
+    evidence = (r3[0].get("pre_outcome_evidence") or {}) if len(r3) == 1 else {}
+    if (len(r3) != 1 or [r3[0].get("prior_identity")] != [dict(item) for item in PRIOR_IDENTITIES]
+            or evidence.get("v2_resolution_rows") != 0 or evidence.get("v2_verdict_rows") != 0
+            or r3[0].get("unchanged") != list(R3_UNCHANGED)):
+        raise Daily6mV2ContractError("daily6m v2 r3 revision block (prior identity, pre-outcome evidence) mismatch")
     return contract
 
 
@@ -164,15 +208,20 @@ def load_constants(root: Path, contract: dict[str, Any] | None = None) -> dict[s
     return constants
 
 
-# Gating identity (B2, 2026-11-11 review): only the files whose bytes can change a
-# forecast number.  load_run refuses a run whose model_code_hash differs from this,
-# so an edit here needs a new contract.  Orchestration files (contracts, pipeline,
-# scorecard) are hashed separately as non-gating diagnostics: resolution replay
-# (score_row) and verdict replay (recompute_verdict) already re-derive every stored
-# number byte for byte, so a comment or logging edit must not stop the track.
+# Gating identity (B2, 2026-11-11 review; widened by r3, 2026-11-12): the files whose
+# bytes can change a forecast number OR which runs enter the primary sample.  pairing.py
+# decides whether a run stores the reconstructed v1 grid (input of the primary metric
+# v1_crps39) and its pair_eligibility, so a more lenient edit there must not admit new
+# runs silently — it is gated like the kernel.  load_run refuses a run whose
+# model_code_hash differs from this, so an edit here needs a new contract.  Orchestration
+# files (contracts, pipeline, scorecard) are hashed separately as non-gating diagnostics:
+# resolution replay (score_row) and verdict replay (recompute_verdict) already re-derive
+# every stored number byte for byte, and validate_run replays classify_pair, so a comment
+# or logging edit must not stop the track.
 NUMERICAL_CODE_PATHS = (
     "src/ai_fc/timeseries_daily6m_v2/kernel.py",
     "src/ai_fc/timeseries_daily6m_v2/model.py",
+    "src/ai_fc/timeseries_daily6m_v2/pairing.py",
     "src/ai_fc/timeseries/model.py",
     "src/ai_fc/timeseries/backtest.py",
     "src/ai_fc/timeseries_v2/model.py",

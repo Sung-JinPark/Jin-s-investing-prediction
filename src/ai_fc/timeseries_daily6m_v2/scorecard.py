@@ -2,7 +2,8 @@
 
 Inference (labels) uses only non-overlapping thinned samples: for lead k the
 eligible origins are XNAS sessions with phase index i(o) mod k == 0, counted
-from the first v2 origin.  Missing origins and inputs_differ runs are counted,
+from the first v2 origin.  Missing origins and runs outside the primary sample
+(r3 pair_eligibility not identical_inputs / tolerance_equivalent) are counted,
 never replaced.  The first n_k scored eligible origins (in origin order) form
 the sample; each p value is computed once, when its sample first reaches n_k,
 and is frozen in the append-only verdict ledger.  Every other number here is
@@ -18,8 +19,8 @@ from typing import Any
 import numpy as np
 
 from .contracts import (
-    ARM_INDEX, ARMS, SCORECARD_RELATIVE, THRESHOLDS, VERDICT_LEDGER, canonical_hash, frozen_hash, load_contract,
-    scorecard_code_hash,
+    ARM_INDEX, ARMS, PAIR_RULE_REVISION, PRIMARY_ELIGIBILITY, SCORECARD_RELATIVE, THRESHOLDS, VERDICT_LEDGER, canonical_hash,
+    frozen_hash, ledger_pair_eligibility, load_contract, scorecard_code_hash,
 )
 
 SEED = 20261111
@@ -147,7 +148,7 @@ def thinned_sample(index: dict[str, Any], lead: int, n_target: int | None) -> di
     changes it).  The blocking origin is reported so a permanently missing resolution is visible
     (review N2) instead of stalling the verdict silently.
     """
-    origins, differences, missing, excluded, no_target = [], {arm: [] for arm in ARMS}, 0, 0, 0
+    origins, differences, missing, excluded, no_target, tolerance = [], {arm: [] for arm in ARMS}, 0, 0, 0, 0
     secondary = {arm: {"hit80": [], "v1_hit80": [], "qs5": [], "brier": []} for arm in ARMS}
     blocking_origin, blocking_position = None, None
     for position, origin in enumerate(index["sessions"]):
@@ -159,7 +160,8 @@ def thinned_sample(index: dict[str, Any], lead: int, n_target: int | None) -> di
         if run is None:
             missing += 1
             continue
-        if run["pair_status"] != "identical_inputs":
+        eligibility = ledger_pair_eligibility(run)
+        if eligibility not in PRIMARY_ELIGIBILITY:   # r3: identical_inputs or tolerance_equivalent only
             excluded += 1
             continue
         if int(run["horizon_sessions"]) < lead:
@@ -170,6 +172,7 @@ def thinned_sample(index: dict[str, Any], lead: int, n_target: int | None) -> di
             blocking_origin, blocking_position = origin, position
             break
         origins.append(origin)
+        tolerance += int(eligibility == "tolerance_equivalent")
         for arm, row in rows.items():
             differences[arm].append(float(row["crps39"]) - float(row["v1_crps39"]))
             secondary[arm]["hit80"].append(float(bool(row["hit80"])))
@@ -179,6 +182,7 @@ def thinned_sample(index: dict[str, Any], lead: int, n_target: int | None) -> di
     last_position = len(index["sessions"]) - 1
     return {"origins": origins, "differences": differences, "secondary": secondary,
             "n_missing": missing, "n_excluded": excluded, "n_no_target": no_target, "n_scored": len(origins),
+            "n_tolerance_equivalent": tolerance,
             "n_pending_blocking": int(blocking_origin is not None), "blocking_origin": blocking_origin,
             "blocking_sessions_behind": None if blocking_position is None else last_position - blocking_position}
 
@@ -228,7 +232,9 @@ def _verdict_body(kind: str, forecasts, resolutions, contract_hash: str, frozen_
                             "recorded_as_of": _recorded_as_of(resolutions), "ledger_cut": _ledger_cut(forecasts, resolutions),
                             "phase_origin": index["phase_origin"], "lead": lead,
                             "sample_origin_hash": canonical_hash(sample["origins"]),
-                            "n_missing": sample["n_missing"], "n_excluded": sample["n_excluded"], "contract_hash": contract_hash}
+                            "n_missing": sample["n_missing"], "n_excluded": sample["n_excluded"],
+                            "n_tolerance_equivalent": sample["n_tolerance_equivalent"], "pair_rule": PAIR_RULE_REVISION,
+                            "contract_hash": contract_hash}
     if kind == "h1_p_values_frozen":
         body["by_test"] = by_test
         body["labels"] = None
@@ -271,8 +277,12 @@ def recompute_verdict(root: Path, row: dict[str, Any], *, forecasts, resolutions
 
 
 # ---------------------------------------------------------------- descriptive
+def _primary_row(row: dict[str, Any]) -> bool:
+    return ledger_pair_eligibility(row) in PRIMARY_ELIGIBILITY and row.get("v1_crps39") is not None
+
+
 def _descriptive(index: dict[str, Any], resolutions) -> dict[str, Any]:
-    active = [row for row in _active(resolutions) if row["pair_status"] == "identical_inputs"]
+    active = [row for row in _active(resolutions) if _primary_row(row)]
     representative_ids = {row["forecast_id"] for row in index["representative"].values()}
     target: dict[str, Any] = {}
     for arm in ARMS:
@@ -293,7 +303,7 @@ def _descriptive(index: dict[str, Any], resolutions) -> dict[str, Any]:
             values = [float(row["crps39"]) - float(row["v1_crps39"]) for row in active
                       if row["arm"] == arm and low <= int(row["lead"]) <= high]
             buckets[name][arm] = {"n_rows": len(values), "mean_delta": float(np.mean(values)) if values else None}
-    differ = [row for row in _active(resolutions) if row["pair_status"] != "identical_inputs"]
+    differ = [row for row in _active(resolutions) if not _primary_row(row)]   # outside the primary sample (r3)
     sensitivity = {arm: {"n_rows": sum(1 for row in differ if row["arm"] == arm),
                          "qs5_mean_delta": (float(np.mean([float(row["qs5"]) - float(row["v1_qs5"]) for row in differ if row["arm"] == arm]))
                                             if any(row["arm"] == arm for row in differ) else None)} for arm in ARMS}
@@ -334,14 +344,19 @@ def build_scorecard(forecasts, resolutions, verdicts) -> dict[str, Any]:
             by_arm[arm] = result
         thinned[f"h{lead}"] = {"n_target": n_target, "n_scored": sample["n_scored"], "n_missing": sample["n_missing"],
                                "n_excluded": sample["n_excluded"], "n_no_target": sample["n_no_target"],
+                               "n_tolerance_equivalent": sample["n_tolerance_equivalent"],
                                "n_pending_blocking": sample["n_pending_blocking"], "blocking_origin": sample["blocking_origin"],
                                "blocking_sessions_behind": sample["blocking_sessions_behind"], "by_arm": by_arm}
     first_cut = min((row["ledger_cut"]["resolutions_rows"] for row in verdicts), default=None)
     post = 0 if first_cut is None else sum(1 for row in resolutions[first_cut:] if row.get("resolution_kind") == "correction")
     missing_pairs = sum(1 for origin in index["sessions"] if origin not in index["representative"])
+    eligibility = {"identical_inputs": 0, "tolerance_equivalent": 0, "excluded": 0}
+    for row in forecasts:
+        eligibility[ledger_pair_eligibility(row)] += 1
     return {
         "schema_version": 1, "as_of": _recorded_as_of(resolutions), "phase_origin": index["phase_origin"],
-        "n_runs": len(forecasts), "n_pairs_missing": missing_pairs, "thinned": thinned,
+        "n_runs": len(forecasts), "n_pairs_missing": missing_pairs,
+        "pair_eligibility": {"rule": PAIR_RULE_REVISION, "runs": eligibility}, "thinned": thinned,
         "verdicts": [{key: value for key, value in row.items()} for row in verdicts],
         "descriptive": {**_descriptive(index, resolutions), "post_verdict_v1_revisions": post},
         "warnings": stalled_scans(index),
