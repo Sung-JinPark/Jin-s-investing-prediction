@@ -139,12 +139,12 @@
     "policy": "아카이브 날짜를 달력으로 쓰지 않는다 — 비세션 행은 무시하고 목록으로만 보고",
     "window": [
       "1995-01-03",
-      "2026-11-09"
+      "2026-11-10"
     ],
     "xnas_sessions_missing_nasdaqcom": [],
     "xnas_sessions_missing_nasdaqcom_since_first_origin": []
   },
-  "as_of_session": "2026-11-09",
+  "as_of_session": "2026-11-10",
   "bootstrap": {
     "caveats": [
       "serial overlap ignored — 주간 원점의 h21 창은 약 16/21 세션이 겹친다. 원점 i.i.d. 복원추출이라 CI 가 좁게 나올 수 있다(설계 §1.1 은 h21 에 블록 부트스트랩)",
@@ -442,23 +442,20 @@
   "integrity": {
     "archive_xnas_missing_since_first_origin": [],
     "calendar_vs_nyse_yaml": {
-      "mismatches": [
-        "2025-01-09",
-        "2027-12-31"
-      ],
+      "mismatches": [],
       "mismatches_in_v8_realized_window": [],
       "note": "V8 원점~as_of 구간 불일치만 실패로 센다. 그 밖의 불일치는 계약 yaml 쪽 누락(일회성 휴장·토요일 신정 규칙)일 수 있어 보고만 한다 — 달력 엔진은 XNAS.",
       "status": "checked",
       "window": [
         "2025-01-01",
-        "2028-01-03"
+        "2028-01-04"
       ]
     },
     "daily6m": {
       "mismatches": [],
-      "n_dates": 18,
-      "n_forecasts": 15,
-      "n_rows": 132,
+      "n_dates": 19,
+      "n_forecasts": 16,
+      "n_rows": 148,
       "status": "checked"
     },
     "diagnostics_chain": {
@@ -470,7 +467,7 @@
     "status": "PASS",
     "v13": {
       "mismatches": [],
-      "n": 189,
+      "n": 195,
       "status": "checked"
     },
     "v8": {
@@ -682,7 +679,7 @@
         "grid_target_session": "2026-11-10",
         "h": 21,
         "ledger_resolution_eta": "2026-11-17T03:10:00+00:00",
-        "official_resolution_status": "pending_grid",
+        "official_resolution_status": "pending_h10",
         "origin": "2026-10-09",
         "state": "provisional",
         "xnas_target_session": "2026-11-09"
