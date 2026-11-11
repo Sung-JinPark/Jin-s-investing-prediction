@@ -168,6 +168,9 @@ C9_PATTERN_SINCE = date(2022, 5, 1)  # Cboe 평일 휴장일 VIX 발행 패턴 �
 C11_HORIZONS = (1, 5, 21, 63)
 VOL_LOOKBACK_DAYS = 2400          # EWMA 초기값 영향 λ^1500 < 1e-19 — 전 이력과 사실상 같은 값
 CALENDAR_START = date(2013, 12, 1)
+CATCH_UP_MAX_SESSIONS = 30        # --catch-up 한 번에 볼 최대 세션 — 이보다 긴 공백은 사람이 본다 (exit 4, U1)
+HOLE_GRACE_SESSIONS = 5           # 종가 결측 세션은 s 뒤 5번째 세션 종가+15분까지 대기 (U1)
+READINESS_SURFACES = ("v8_daily_display", "v13_vol")   # 명목 마감 전 append 준비 조건 표면 (U1)
 SERIES_CADENCE: dict[str, str] = {
     "NASDAQCOM": "daily", "VIX": "daily", "DGS2": "daily", "DGS10": "daily",
     "DTWEXBGS": "weekly", "FED_EBP": "monthly",
@@ -1516,8 +1519,14 @@ def build_derived_summary(rows: list[dict[str, Any]]) -> dict[str, Any]:
         "last_as_of": latest["as_of"] if latest else None,
         "retrospective_rows": sum(1 for row in ordered if row.get("retrospective")),
         "latest": None if latest is None else {
-            key: latest[key] for key in ("coherence_id", "as_of", "computed_at", "retrospective", "status",
-                                         "flags", "n", "result_hash")},
+            **{key: latest[key] for key in ("coherence_id", "as_of", "computed_at", "retrospective", "status",
+                                            "flags", "n", "result_hash")},
+            # 표시 진단 차선(U1)이 읽는 4필드 — 원장 행 스키마는 무변경, derived 만 확장
+            "threshold_hash": latest.get("threshold_hash"),
+            "threshold_status": latest.get("threshold_status"),
+            "c12_stalled_series": list(((latest.get("C12") or {}).get("stalled_series")) or []),
+            "c6_triggered": list(((latest.get("C6") or {}).get("triggered")) or []),
+        },
         "indicator_summary": summary,
         "in_sample_note": "재생 경보 수는 표본 내 서술이다 — 검증된 성능으로 제시하지 않는다.",
         "in_sample_threshold_keys": ["C1", "C3a", "C3b", "C4", "C6", "C10"],
@@ -1572,8 +1581,134 @@ def default_as_of(inputs: MonitorInputs) -> date:
     return day
 
 
+def hole_deadline(as_of: date, cal: XnasCalendar) -> datetime:
+    """종가 결측 세션을 '결손'으로 확정하는 시각 — s 뒤 HOLE_GRACE_SESSIONS 번째 세션 종가+15분 (U1)."""
+    from ..sessions import SESSION_SETTLE_SECONDS
+
+    close = cal.row(cal.following(as_of, HOLE_GRACE_SESSIONS)).close_utc.astimezone(timezone.utc)
+    return close + timedelta(seconds=SESSION_SETTLE_SECONDS)
+
+
+def _v8_confirmed(inputs: MonitorInputs, day: date) -> bool:
+    """그 원점의 유효(대체 안 된) V8 일일 표시 행이 confirmed 인가. provisional 은 아직 대체될 표면이다."""
+    if "display" not in inputs.data:
+        return False
+    row = _effective_display(inputs.data["display"]).get(day)
+    return bool(row) and row.get("input_state") == "confirmed" and not (row.get("provisional_inputs") or [])
+
+
+def plan_catch_up(inputs: MonitorInputs, recorded: set[date], through: date,
+                  computed_at: datetime) -> dict[str, Any]:
+    """원장 최대 as_of 다음 세션부터 through 까지 — 순서대로 append 할 세션, 대기, 결손 (U1).
+
+    원장이 비면 through 하루만 본다(무제한 과거 백필 금지).
+    준비 = (READINESS_SURFACES 전부 존재 ∧ V8 표시 행 confirmed) 또는 계산 시각 > nominal_deadline(s).
+    종가 결측은 hole_deadline(s) 전이면 대기, 뒤면 결손(건너뜀, identity 미점유).
+    대기 세션을 만나면 거기서 멈춘다 — 원장은 as_of 오름차순으로만 자란다.
+    """
+    cal = xnas_calendar_for(through)
+    last = max(recorded) if recorded else None
+    sessions = [through] if last is None else cal.between(last, through)   # last < s <= through
+    to_append: list[date] = []
+    holes: list[dict[str, Any]] = []
+    waiting: dict[str, Any] | None = None
+    for day in sessions:
+        if day in recorded:
+            continue
+        deadline = nominal_deadline(day, cal)
+        closes = archive_closes_present(inputs, day)
+        if not all(closes.values()):
+            grace = hole_deadline(day, cal)
+            if computed_at <= grace:
+                waiting = {"as_of": day.isoformat(), "reason": "pending_archive",
+                           "archive_closes_present": closes, "hole_deadline": grace.isoformat()}
+                break
+            holes.append({"as_of": day.isoformat(), "archive_closes_present": closes})
+            continue
+        if computed_at <= deadline:
+            present = _n_origins(inputs, day, cal)
+            missing = [name for name in READINESS_SURFACES if not present.get(name)]
+            if missing:
+                waiting = {"as_of": day.isoformat(), "reason": "waiting_inputs",
+                           "missing_surfaces": missing, "deadline": deadline.isoformat()}
+                break
+            if not _v8_confirmed(inputs, day):
+                waiting = {"as_of": day.isoformat(), "reason": "waiting_confirmed_v8",
+                           "deadline": deadline.isoformat()}
+                break
+        to_append.append(day)
+    return {"through": through.isoformat(), "last_recorded": None if last is None else last.isoformat(),
+            "gap_sessions": len(sessions), "to_append": to_append, "archive_holes": holes, "waiting": waiting}
+
+
+def run_catch_up_cli(root: Path, args: argparse.Namespace) -> tuple[int, dict[str, Any]]:
+    """coherence-monitor --catch-up (U1). --append 없으면 계획만(dry-run).
+
+    exit: 0 정상(대기·최신 포함) · 2 임계/원장 · 4 전제·한도.
+    """
+    from ..artifacts import MtsArtifactError, append_event, read_chain, writer_lock
+    from ..monitor_thresholds import NOTICE, load_pinned_thresholds
+
+    append = bool(getattr(args, "append", False))
+    base: dict[str, Any] = {
+        "tool": "coherence-monitor", "monitor_version": MONITOR_VERSION,
+        "mode": "catch_up_append" if append else "catch_up_dry_run",
+        "ledger": MONITOR_LEDGER_RELATIVE.as_posix(), "derived": MONITOR_DERIVED_RELATIVE.as_posix(),
+        "display_only": True, "scoring_excluded": True, "notice": NOTICE, "network_fetch_enabled": False,
+    }
+    try:
+        now_arg = getattr(args, "now", None)
+        computed_at = _parse_ts(now_arg) if now_arg else datetime.now(timezone.utc)
+        inputs = load_monitor_inputs(root)
+        through = date.fromisoformat(args.as_of) if getattr(args, "as_of", None) else default_as_of(inputs)
+        if not xnas_calendar_for(through).is_session(through):
+            raise MtsCoherenceError(f"as_of 가 XNAS 세션이 아니다: {through}")
+    except (ValueError, MtsCoherenceError, _InputMissing) as exc:
+        return 4, {**base, "status": "precondition_failed", "error": str(exc), "appended": 0}
+    thresholds, threshold_status = load_pinned_thresholds(root)
+    if threshold_status != "ok":
+        return 2, {**base, "status": threshold_status, "appended": 0}
+    try:
+        recorded = {date.fromisoformat(row["as_of"]) for row in read_chain(root, MONITOR_LEDGER_RELATIVE)}
+    except MtsArtifactError as exc:
+        return 2, {**base, "status": "ledger_error", "error": str(exc), "appended": 0}
+    try:
+        plan = plan_catch_up(inputs, recorded, through, computed_at)
+    except MtsCoherenceError as exc:          # hole_deadline 이 달력 창 밖 등
+        return 4, {**base, "status": "precondition_failed", "error": str(exc), "appended": 0}
+    if plan["gap_sessions"] > CATCH_UP_MAX_SESSIONS:
+        return 4, {**base, "status": "catch_up_gap_exceeds_limit", "limit": CATCH_UP_MAX_SESSIONS,
+                   **{key: value for key, value in plan.items() if key != "to_append"}, "appended": 0}
+    appended: list[dict[str, Any]] = []
+    derived = None
+    if append:
+        try:
+            with writer_lock(root):
+                current = {row["coherence_id"] for row in read_chain(root, MONITOR_LEDGER_RELATIVE)}
+                for day in plan["to_append"]:
+                    if monitor_identity(day) in current:
+                        continue
+                    row = build_monitor_row(root, day, thresholds=thresholds, threshold_status="ok",
+                                            inputs=inputs, computed_at=computed_at)
+                    append_event(root, MONITOR_LEDGER_RELATIVE, row)
+                    appended.append({"coherence_id": row["coherence_id"], "flags": row["flags"],
+                                     "retrospective": row["retrospective"], "n": row["n"]})
+                derived = write_derived(root)      # 추가 0행이어도 재생성 — 형식 갱신이 한 번에 반영되게
+        except MtsArtifactError as exc:
+            return 2, {**base, "status": "ledger_error", "error": str(exc), "appended": len(appended)}
+    status = ("appended" if appended else
+              plan["waiting"]["reason"] if plan["waiting"] else
+              "planned" if (not append and plan["to_append"]) else "up_to_date")
+    return 0, {**base, "status": status, "through": plan["through"], "last_recorded_before": plan["last_recorded"],
+               "planned": [day.isoformat() for day in plan["to_append"]], "appended": len(appended),
+               "appended_rows": appended, "archive_holes": plan["archive_holes"], "waiting": plan["waiting"],
+               "derived_n_dates": None if derived is None else derived["n_dates"]}
+
+
 def run_monitor_cli(root: Path, args: argparse.Namespace) -> tuple[int, dict[str, Any]]:
     """coherence-monitor verb — 기본 dry-run, --append 일 때만 연구 원장·derived 에 쓴다."""
+    if getattr(args, "catch_up", False):
+        return run_catch_up_cli(root, args)
     from ..artifacts import MtsArtifactError, append_event, read_chain, writer_lock
     from ..monitor_thresholds import NOTICE, load_pinned_thresholds
 

@@ -367,6 +367,13 @@
   "last_as_of": "2026-11-09",
   "latest": {
     "as_of": "2026-11-09",
+    "c12_stalled_series": [
+      "FED_EBP"
+    ],
+    "c6_triggered": [
+      "switch",
+      "near_tie"
+    ],
     "coherence_id": "coh-2026-11-09-v1",
     "computed_at": "2026-11-11T04:24:02.370585+00:00",
     "flags": [
@@ -379,7 +386,9 @@
     "n": 11,
     "result_hash": "a156e43af2f4b8ddbc0d50680299a04da96a7e1e56abe13e6ad0cd4a38e1d48c",
     "retrospective": true,
-    "status": "ok"
+    "status": "ok",
+    "threshold_hash": "bcc24081030d654a845a50dd4a434aebb11b6c0fae7213bcbae4457577702d76",
+    "threshold_status": "ok"
   },
   "ledger": "data/mts_research/ledgers/coherence_daily.jsonl",
   "ledger_last_content_hash": "e5018f7ceed1163f999dd2eef70d066ff21f9582a8e874f71ae4ff5fdca30537",

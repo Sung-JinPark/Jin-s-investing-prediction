@@ -325,6 +325,7 @@ def test_payload_budget_declarations_match_code() -> None:
     assert budgets["data_json_max_bytes"] == dashboard.DATA_JSON_BUDGET_BYTES
     assert budgets["band_calibration_json_max_bytes"] == dashboard.BAND_CALIBRATION_BUDGET_BYTES
     assert budgets["timeseries_v13_vol_max_bytes"] == dashboard.TIMESERIES_V13_VOL_BUDGET_BYTES
+    assert budgets["mts_display_diagnostics_max_bytes"] == dashboard.MTS_DISPLAY_DIAGNOSTICS_BUDGET_BYTES
 
 
 def test_score_card_discloses_bounds_and_shadow_progress_as_labels_only() -> None:

@@ -93,6 +93,8 @@ PAYLOAD_WARN_RATIO = 0.9
 # 전용 예산 24KB(표시 설계서 §3) — 9셀·80% 대역·게이트·caveat 이상으로 자라면 빌드가 실패한다.
 TIMESERIES_V13_VOL_BUDGET_BYTES = 24_000
 TIMESERIES_V13_VOL_FILENAME = "timeseries_v13_vol.json"
+# MTS 표시 진단(U1) 인라인 키 — 배지 ≤6 + basis 3종 접기. 실측 약 3KB(2026-11-11) — 계약 budget_bytes 와 같은 값.
+MTS_DISPLAY_DIAGNOSTICS_BUDGET_BYTES = 8_000
 TIMESERIES_DAILY_BUDGET_BYTES = 128 * 1024
 TIMESERIES_DAILY_FILENAME = "timeseries_daily.json"
 TRENDLINES_SUMMARY_BUDGET_BYTES = 16 * 1024
@@ -895,6 +897,18 @@ def build_read_model(
         timeseries_v5 if timeseries_v5 is not None
         else (load_timeseries_v2_projection(root) or timeseries_v1)
     )
+    # MTS 감시 배지(U1) — 표시 진단 계약이 연 별도 차선. V8 카드 숫자는 위 projection 이 그대로 소유한다.
+    try:
+        from .mts_display_diagnostics import load_projection as load_mts_display_diagnostics
+    except ImportError as exc:          # 차선 결측이 사이트 빌드를 죽이지 않는다 — 배지 0
+        mts_display_diagnostics = {"schema_version": 1, "contract_id": "mts_display_diagnostics_v1",
+                                   "status": f"unavailable:{type(exc).__name__}", "display_only": True,
+                                   "numbers_changed": False, "auto_reforecast": False,
+                                   "notice": "참고 의견, 매매 신호 아님", "basis_mixing": "prohibited",
+                                   "badges": [], "live": None}
+    else:
+        mts_display_diagnostics = _guard_mts_display_diagnostics_budget(
+            load_mts_display_diagnostics(root, timeseries=timeseries))
     # V13-VOL 변동성 base rate — 가격 카드(timeseries 슬롯)와 결합하지 않는 별도 표면.
     # 로더는 항상 dict(absent/internal/hold/live)를 돌려주고 숫자는 네 게이트·핀·빌드 시점 신선도가 전부 성립할 때만 싣는다.
     from .timeseries_v13_vol_display import load_projection as load_timeseries_v13_vol_projection
@@ -1138,6 +1152,7 @@ def build_read_model(
         "dotcom_overheat": dotcom_overheat,
         "timeseries": timeseries,
         "timeseries_v13_vol": timeseries_v13_vol,
+        "mts_display_diagnostics": mts_display_diagnostics,
         "market_mood": market_mood,
         "timeseries_daily": timeseries_daily,
         "timeseries_daily_record": timeseries_daily_record,
@@ -1392,6 +1407,23 @@ def split_future_paths(read_model: dict) -> tuple[dict, dict | None]:
             f"{payload_size / FUTURE_PATHS_BUDGET_BYTES:.1%} of its budget"
         )
     return base, payload
+
+
+def _guard_mts_display_diagnostics_budget(projection: dict) -> dict:
+    """MTS 표시 진단 인라인 키 크기 가드(U1) — 초과는 빌드 실패, 90% 부터 경고."""
+    payload_size = len(json.dumps(
+        projection, ensure_ascii=False, default=str, separators=(",", ":")
+    ).encode("utf-8"))
+    if payload_size > MTS_DISPLAY_DIAGNOSTICS_BUDGET_BYTES:
+        raise ValueError(
+            f"mts_display_diagnostics budget exceeded: {payload_size} > {MTS_DISPLAY_DIAGNOSTICS_BUDGET_BYTES}"
+        )
+    if payload_size > MTS_DISPLAY_DIAGNOSTICS_BUDGET_BYTES * PAYLOAD_WARN_RATIO:
+        print(
+            f"warning: mts_display_diagnostics {payload_size}B is "
+            f"{payload_size / MTS_DISPLAY_DIAGNOSTICS_BUDGET_BYTES:.1%} of its budget"
+        )
+    return projection
 
 
 def _guard_timeseries_v13_vol_budget(projection: dict) -> dict:

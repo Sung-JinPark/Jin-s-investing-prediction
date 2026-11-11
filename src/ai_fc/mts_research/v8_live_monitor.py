@@ -49,6 +49,7 @@ V8 운영 게이트(operational_gate)는 h63 해소 원점 26개가 쌓여야 �
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import math
 import os
@@ -1010,6 +1011,26 @@ def _disclosures(root: Path, context: _Context, thresholds: Mapping[str, Any]) -
     }
 
 
+_FINGERPRINT_CODE = ("v8_live_monitor.py", "v8_xnas_labels.py")   # 같은 패키지 디렉터리 (U1 --if-stale)
+
+
+def input_fingerprint(context: Any, root: Path) -> str:
+    """같은 입력·같은 코드면 같은 지문 (U1 --if-stale).
+
+    해소 행 id·XNAS 진단 키(단계 포함)·as_of·임계·버전·코드 2파일·봉인 원장 바이트를 본다.
+    """
+    here = Path(__file__).resolve().parent
+    sealed = Path(root) / SEALED_LEDGER
+    return canonical_hash({
+        "as_of": context.as_of.isoformat(),
+        "resolution_ids": sorted(str(r["resolution_id"]) for r in context.resolutions),
+        "xnas_keys": sorted(str(r.get("diagnostic_key") or r.get("diagnostic_id")) for r in context.xnas_rows),
+        "threshold_hash": PINNED_THRESHOLD_HASH, "monitor_version": MONITOR_VERSION, "schema_version": SCHEMA_VERSION,
+        "code_sha256": {name: hashlib.sha256((here / name).read_bytes()).hexdigest() for name in _FINGERPRINT_CODE},
+        "sealed_sha256": hashlib.sha256(sealed.read_bytes()).hexdigest() if sealed.is_file() else None,
+    })
+
+
 def run_monitor(root: Path, *, thresholds: dict | None, threshold_status: str = "ok",
                 now: datetime | None = None, as_of: date | None = None,
                 with_twins: bool = True, resolution_ids: Sequence[str] | None = None) -> dict:
@@ -1073,6 +1094,7 @@ def run_monitor(root: Path, *, thresholds: dict | None, threshold_status: str = 
         "n_origins": len({r.origin for r in bases[GRID_BASIS]}),
         "n_dates": len({r.target for r in bases[GRID_BASIS]}),
         "n_note": "n·n_origins·n_dates 는 1차 basis(원장 grid) 해소 행 기준",
+        "input_fingerprint": input_fingerprint(context, root),
         "single_episode": len(all_shocks) == 1,
         "shock_days": all_shocks,
         "label_bases": [GRID_BASIS, LABEL_BASIS],
@@ -1195,6 +1217,25 @@ def _plain(report: Mapping[str, Any]) -> dict[str, Any]:
 def run_cli(root: Path, args: argparse.Namespace) -> tuple[int, dict]:
     """dry-run(기본): 보고서 출력. --append: 원장 1행(멱등) + derived 재생성."""
     thresholds, threshold_status = load_pinned_thresholds(root)
+    if getattr(args, "if_stale", False) and getattr(args, "append", False) and thresholds is not None:
+        # U1: 입력·코드·봉인 원장 지문이 직전 derived 와 같고 그 행이 원장에 있으면 건너뛴다(세션당 1회는 재계산)
+        try:
+            now = _parse_now(getattr(args, "now", None))
+            as_of_raw = getattr(args, "as_of", None)
+            context = _load_context(root, now=now, as_of=date.fromisoformat(as_of_raw) if as_of_raw else None)
+            fingerprint = input_fingerprint(context, root)
+            path = root / DERIVED_RELATIVE
+            derived = json.loads(path.read_text(encoding="utf-8")) if path.is_file() else {}
+            recorded = {row.get("monitor_id") for row in read_chain(root, LEDGER_RELATIVE)}
+        except (MtsArtifactError, ValueError, KeyError, OSError) as exc:
+            return 4, {"status": "PREREQUISITE_MISSING", "detail": str(exc), "notice": NOTICE,
+                       "display_only": True, "scoring_excluded": True}
+        if (derived.get("input_fingerprint") == fingerprint and derived.get("status") == "ok"
+                and derived.get("threshold_hash") == PINNED_THRESHOLD_HASH
+                and derived.get("monitor_id") in recorded):
+            return 0, {"verb": "v8-live-monitor", "mode": "skipped_up_to_date", "input_fingerprint": fingerprint,
+                       "as_of_session": context.as_of.isoformat(), "notice": NOTICE,
+                       "display_only": True, "scoring_excluded": True}
     try:
         now = _parse_now(getattr(args, "now", None))
         as_of_raw = getattr(args, "as_of", None)

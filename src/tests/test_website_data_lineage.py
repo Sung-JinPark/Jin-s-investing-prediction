@@ -27,6 +27,7 @@ REQUIRED_SURFACES = {
     "band_calibration",
     "display_promotion",
     "multivariate_timeseries_shadow",
+    "mts_display_diagnostics",
 }
 
 REQUIRED_SURFACE_FIELDS = {
