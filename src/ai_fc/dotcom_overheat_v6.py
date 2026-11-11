@@ -378,12 +378,15 @@ def estimate_beta(inp: Inputs, key: str) -> float | None:
     return sum((x - mx) * (y - my) for x, y in zip(xs, ys)) / sxx if sxx else None
 
 
-def bridge_test(inp: Inputs, key: str, beta: float) -> dict[str, Any]:
-    """A6 — 2020Q1 이후 한 분기 앞 추정 오차 대 그대로 두기 오차(평균 절대 로그 오차)."""
+def bridge_test(inp: Inputs, key: str, beta: float, *, through: date | None = None) -> dict[str, Any]:
+    """A6 — 2020Q1 이후 한 분기 앞 추정 오차 대 그대로 두기 오차(평균 절대 로그 오차).
+
+    ``through`` 뒤에 끝난 분기는 쓰지 않는다(판정 기준일 고정).
+    """
     rows = official_quarterly(inp, key)
     est, carry = [], []
     for (f0, v0), (f1, v1) in zip(rows, rows[1:]):
-        if f1 < date(2020, 1, 1) or v0 <= 0 or v1 <= 0:
+        if f1 < date(2020, 1, 1) or v0 <= 0 or v1 <= 0 or (through is not None and _quarter_end(f1) > through):
             continue
         n0 = inp.close[inp.session_index(_quarter_end(f0))]
         n1 = inp.close[inp.session_index(_quarter_end(f1))]
@@ -518,8 +521,11 @@ def _base_spec(contract: dict[str, Any], frozen: dict[str, Any], **overrides: An
     return Spec(contract, **options)
 
 
-def admission(inp: Inputs, contract: dict[str, Any]) -> dict[str, Any]:
-    """편입 시험 A3~A7 을 후보 전부에 적용한다(탈락 포함 기록). 결과로 기준값·beta·편입·가중이 정해진다."""
+def admission(inp: Inputs, contract: dict[str, Any], *, through: date | None = None) -> dict[str, Any]:
+    """편입 시험 A3~A7 을 후보 전부에 적용한다(탈락 포함 기록). 결과로 기준값·beta·편입·가중이 정해진다.
+
+    A3~A5 의 구간은 2022-12 에서 끝난다. ``through``(판정 기준일)는 A6 표본이 그 뒤 분기를 쓰지 않게 한다.
+    """
     plain = Spec(contract)
     anchors: dict[str, dict[str, Any]] = {}
     a6_passed: list[str] = []
@@ -535,7 +541,7 @@ def admission(inp: Inputs, contract: dict[str, Any]) -> dict[str, Any]:
         if meta.get("estimate"):
             beta = estimate_beta(inp, key)
             if beta is not None:
-                row["A6"] = bridge_test(inp, key, beta)
+                row["A6"] = bridge_test(inp, key, beta, through=through)
                 entry["beta"] = round(beta, 4)
                 if row["A6"]["passed"]:
                     a6_passed.append(key)
@@ -546,8 +552,9 @@ def admission(inp: Inputs, contract: dict[str, Any]) -> dict[str, Any]:
     for key, anchor in anchors.items():
         row = tests[key]
         scale = 1.4826 * anchor["mad"]
-        d_value = (anchor["peak"] - anchor["zero"]) / scale if scale else float("inf")
-        row["A3"] = {"D": round(d_value, 2), "passed": d_value >= 2.0}
+        d_value = (anchor["peak"] - anchor["zero"]) / scale if scale else None  # MAD 0 = 퇴화 표본 → 탈락
+        row["A3"] = {"D": None if d_value is None else round(d_value, 2),
+                     "passed": d_value is not None and d_value >= 2.0}
         lows = [None if (item := indicator_value(inp, key, inp.session_index(low), spec)) is None
                 else score(item["value"], anchor) for low in BEAR_LOWS]
         monthly = [None if (item := indicator_value(inp, key, i, spec)) is None
@@ -581,11 +588,40 @@ def admission(inp: Inputs, contract: dict[str, Any]) -> dict[str, Any]:
             "tests": tests, "members": members, "weights": {f: round(w, 4) for f, w in weights.items()}}
 
 
+RULE_KEYS = ("contract_id", "version", "scale", "publication_lags_days", "staleness_limits_days",
+             "hold_when_live_weight_below", "families", "weight_rule", "indicators", "estimate", "admission_tests",
+             "aggregation", "band", "gates")
+
+
+def rules_digest(contract: dict[str, Any]) -> str:
+    """계약의 규칙 부분 지문. 동결 블록에 적어 두고 실행 때 대조한다 — 판정 뒤 규칙이 바뀌면 지수는 닫힌다."""
+    body = {key: contract.get(key) for key in RULE_KEYS}
+    text = json.dumps(body, ensure_ascii=False, sort_keys=True, separators=(",", ":"), default=str)
+    return hashlib.sha256(text.encode("utf-8")).hexdigest()
+
+
+def frozen_binding_problem(contract: dict[str, Any]) -> str | None:
+    """동결 판정을 믿어도 되는가 — 통과 판정, 규칙 지문 일치, 동결 가중 = 규칙이 내는 가중."""
+    frozen = contract.get("frozen") or {}
+    if not frozen.get("members"):
+        return "contract not frozen"
+    if frozen.get("verdict") != "passed":
+        return "gates not passed"
+    if frozen.get("rules_sha256") != rules_digest(contract):
+        return "frozen block does not match the contract rules"
+    budgets = {f: float(v["budget"]) for f, v in contract["families"].items()}
+    weights = family_weights(budgets, frozen["members"], contract_cap(contract))
+    recorded = frozen.get("weights") or {}
+    if set(weights) != set(recorded) or any(abs(weights[f] - float(recorded[f])) > 0.001 for f in weights):
+        return "frozen weights do not match the weight rule"
+    return None
+
+
 def spec_digest(contract: dict[str, Any]) -> str:
     """동결 사양의 지문 — 계약 판·편입·가중·기준값이 바뀌면 달라진다(이력 행이 어느 사양의 값인지 표시)."""
     frozen = contract.get("frozen") or {}
     body = {"contract": contract.get("contract_id"), "version": contract.get("version"),
-            "members": frozen.get("members"), "weights": frozen.get("weights"),
+            "rules": rules_digest(contract), "members": frozen.get("members"), "weights": frozen.get("weights"),
             "estimated": frozen.get("estimated"),
             "anchors": {k: [v.get("zero"), v.get("peak"), v.get("beta")] for k, v in
                         sorted((frozen.get("anchors") or {}).items())}}
@@ -725,6 +761,9 @@ def replay(inp: Inputs, contract: dict[str, Any], *, start: date = HISTORY_START
 
 
 def _value_on(history: list[dict[str, Any]], day: date) -> float | None:
+    """day 이하의 마지막 거래일 값. 재현 구간이 day 에 못 미치면 None(마지막 값으로 대신하지 않는다)."""
+    if not history or history[-1]["date"] < day:
+        return None
     chosen = None
     for row in history:
         if row["date"] <= day:
@@ -830,8 +869,10 @@ def evaluate_gates(inp: Inputs, contract: dict[str, Any], history: list[dict[str
     hi21 = bisect.bisect_right(inp.sessions, date(2021, 12, 31))
 
     def v4() -> dict[str, Any]:
+        if hi21 <= lo21 or last["date"] < inp.sessions[hi21 - 1]:
+            raise ValueError("replay does not cover 2021")
         table: dict[str, list[Any]] = {}
-        below = True
+        below, outside, base_top = True, [], 0.0
         for name in variants:
             values = [(need(evaluate(inp, contract, i, variant=name, cache=cache)["composite"]), i)
                       for i in range(lo21, hi21)]
@@ -839,8 +880,13 @@ def evaluate_gates(inp: Inputs, contract: dict[str, Any], history: list[dict[str
             peak = need(evaluate(inp, contract, peak_index, variant=name, cache=cache)["composite"])
             table[name or "base"] = [inp.sessions[at].isoformat(), round(top, 1), round(peak, 1)]
             below = below and top < peak
-        base = table["base"]
-        return {"value": base[:2], "passed": 20 <= base[1] <= 70 and below, "by_variant": table}
+            if name is None:
+                base_top = top
+            if not 20 <= top <= 70:
+                outside.append(name or "base")
+        # 20~70 조건은 본 사양에 적용한다(v6.1 clarifications.V4_per_variant). 문언을 '모든 변형'으로 읽은 결과도 남긴다.
+        return {"value": table["base"][:2], "passed": 20 <= base_top <= 70 and below, "by_variant": table,
+                "range_in_every_variant": not outside, "variants_outside_range": outside}
 
     def v5() -> dict[str, Any]:
         quiet = [statistics.median(v for _, v in month_values(a, b))
@@ -959,7 +1005,7 @@ def _conditions(root: Path, contract: dict[str, Any]) -> list[dict[str, Any]]:
         except ValueError:
             continue
         earlier = [p for p in points if str(p["date"])[:10] <= cutoff]
-        out.append({"chart": item["chart"], "title": chart.get("title"), "value": latest["value"],
+        out.append({"chart": item["chart"], "title": chart.get("title"), "value": round(latest["value"], 4),
                     "date": latest["date"],
                     "change_6m": round(latest["value"] - earlier[-1]["value"], 3) if earlier else None})
     return out
@@ -994,9 +1040,9 @@ def build_latest(root: Path, *, now: datetime | None = None, inp: Inputs | None 
         "trading_signal": False, "generated_at": now.isoformat(timespec="seconds"),
         "anchor_label": "닷컴 정점 = 100",
     }
-    if not frozen.get("members") or frozen.get("verdict") != "passed":
-        return {**base, "status": "unavailable",
-                "reason": "contract not frozen" if not frozen.get("members") else "gates not passed"}
+    problem = frozen_binding_problem(contract)
+    if problem:
+        return {**base, "status": "unavailable", "reason": problem}
     inp = inp or load_inputs(root)
     last = len(inp.sessions) - 1
     as_of = inp.sessions[last]
@@ -1024,7 +1070,7 @@ def build_latest(root: Path, *, now: datetime | None = None, inp: Inputs | None 
             split[row["basis"]] += weight
             indicators.append({
                 "id": key, "label": meta["label"], "family": family, "value": round(row["value"], 6),
-                "score": round(raw, 1), "capped": not lo_clamp <= raw <= hi_clamp, "weight": round(weight, 2),
+                "score": round(raw, 1), "capped": not lo_clamp < raw < hi_clamp, "weight": round(weight, 2),
                 "contribution": round(result["contributions"][key], 2), "basis": row["basis"],
                 "period": row["period"], "age_days": row["age_days"],
                 "zero": setup["anchors"][key]["zero"], "peak": setup["anchors"][key]["peak"],
@@ -1069,7 +1115,7 @@ def build_latest(root: Path, *, now: datetime | None = None, inp: Inputs | None 
         "capped_count": sum(1 for row in indicators if row.get("capped")),
         "data_age_split": {k: round(v, 1) for k, v in split.items()},
         "price_term_weight": round(sum(w for k, w in weights.items() if k in PRICE_TERM_INDICATORS), 1),
-        "max_indicator_weight": round(max(weights.values()), 1),
+        "max_indicator_weight": round(max(weights.values()), 2),
         "live_weight": result["live_weight"], "nasdaq_age_days": nasdaq_age,
         "conditions": _conditions(root, contract),
         "revision_note": (contract.get("display_notes") or {}).get("revision"),
@@ -1101,12 +1147,11 @@ def materialize(root: Path, *, now: datetime | None = None) -> dict[str, Any]:
     """
     now = now or datetime.now(timezone.utc)
     contract = load_contract(root)
-    frozen = contract.get("frozen") or {}
     history_path = root / HISTORY_RELATIVE
     stamp = now.isoformat(timespec="seconds")
     appended: list[dict[str, Any]] = []
     trueups: list[dict[str, Any]] = []
-    if not frozen.get("members") or frozen.get("verdict") != "passed":
+    if frozen_binding_problem(contract):
         latest = build_latest(root, now=now, contract=contract)
     else:
         inp = load_inputs(root)
@@ -1182,17 +1227,34 @@ def _append_trueups(root: Path, inp: Inputs, contract: dict[str, Any], *, now: d
 
 
 def load_latest(root: Path) -> dict[str, Any]:
-    """대시보드용 — 갱신 단계가 쓴 파일을 읽는다(빌드 때 원장을 다시 훑지 않는다)."""
+    """대시보드용 — 갱신 단계가 쓴 파일을 읽는다(빌드 때 원장을 다시 훑지 않는다).
+
+    파일이 있어도 그대로 믿지 않는다. 지금 계약의 동결 판정이 통과가 아니거나 파일이 다른 사양의 값이면 닫는다.
+    """
+    closed = {"status": "unavailable", "probability_space": "reference_only"}
     try:
-        return json.loads((root / LATEST_RELATIVE).read_text(encoding="utf-8"))
+        contract = load_contract(root)
+    except (OSError, yaml.YAMLError, OverheatV6Error):
+        return {**closed, "reason": "v6 contract unavailable"}
+    problem = frozen_binding_problem(contract)
+    if problem:
+        return {**closed, "reason": problem}
+    try:
+        payload = json.loads((root / LATEST_RELATIVE).read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError):
-        return {"status": "unavailable", "reason": "v6 output not generated", "probability_space": "reference_only"}
+        return {**closed, "reason": "v6 output not generated"}
+    if payload.get("status") == "ok" and payload.get("spec") != spec_digest(contract):
+        return {**closed, "reason": "v6 output belongs to another frozen specification"}
+    return payload
 
 
 def history_for_display(root: Path, *, spec: str | None = None, recent_sessions: int = 260) -> list[list[Any]]:
     """화면 이력 — 현재 사양의 월말 값 전체 + 최근 거래일. [날짜, 값, 'p'(게시) | 'r'(소급)]."""
     if spec is None:
-        spec = str(load_latest(root).get("spec") or "")
+        latest = load_latest(root)
+        if latest.get("status") != "ok":
+            return []
+        spec = str(latest.get("spec") or "")
     by_date = _history_index(_read_jsonl(root / HISTORY_RELATIVE), spec)
     dates = sorted(by_date)
     keep = set(dates[-recent_sessions:])

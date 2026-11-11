@@ -1,19 +1,21 @@
 """닷컴 대비 과열도 v6 — 그림자 검증: 편입 시험·게이트 판정·v5 대조를 한 원장 스냅샷에서 재현한다.
 
 읽기 전용이다(원천 호출 없음, 원장·스냅샷 무수정). 쓰는 것은 검토 산출물뿐이다:
-  * ``--report`` 로 준 Markdown 보고서와 같은 이름의 JSON
+  * ``--report`` 로 준 Markdown 보고서와 같은 이름의 JSON — ``docs/audit/`` 아래에만 쓴다
   * ``--write-frozen`` 을 주면 그 계약 파일 끝의 ``frozen`` 블록(편입·기준값·가중·판정)
 
-판정 기준일(``--as-of``)을 고정해 '오늘' 기준 게이트(V9~V12)가 실행 날짜에 따라 달라지지 않게 한다.
+판정 기준일을 고정해 '오늘' 기준 게이트(V9~V12)가 실행 날짜에 따라 달라지지 않게 한다. 계약에 ``gate_as_of`` 가
+있으면 그것만 쓴다. 한 번 판정이 적힌 ``frozen`` 블록은 다시 쓰지 않는다(재판정은 새 계약 개정으로만).
 
-    python tools/verify_overheat_v6_shadow.py --contract data/contracts/dotcom_overheat_index_v6.yaml \
-        --as-of 2026-11-09 --report docs/audit/overheat_v6_0_validation_20261111.md --write-frozen
+    python tools/verify_overheat_v6_shadow.py --contract data/contracts/dotcom_overheat_index_v6_1.yaml \
+        --report docs/audit/overheat_v6_1_validation_20261111.md
 """
 from __future__ import annotations
 
 import argparse
 import hashlib
 import json
+import os
 import sys
 from datetime import date, datetime, timezone
 from pathlib import Path
@@ -32,9 +34,16 @@ PROTECTED = (
     "data/statistics/ipo/ritter_ipoall_monthly.json",
     "data/contracts/dotcom_overheat_index_v5.yaml",
 )
+REPORT_DIR = Path("docs/audit")
 KEY_DATES = ("1996-12-31", "1998-12-31", "1999-12-31", "2000-03-10", "2000-03-31", "2002-10-09", "2007-10-31",
              "2009-03-09", "2011-02-28", "2021-02-08", "2021-11-19", "2022-12-28", "2025-12-31")
 FROZEN_MARKER = "\nfrozen:"
+
+
+class ToolError(SystemExit):
+    def __init__(self, message: str) -> None:
+        sys.stderr.write(message + "\n")
+        super().__init__(2)
 
 
 def file_digest(path: Path) -> str | None:
@@ -64,11 +73,12 @@ def input_digest(inp: v6.Inputs, as_of: date) -> str:
 
 
 def run(root: Path, contract_relative: Path, as_of: date) -> dict[str, Any]:
-    before = protected_digests(root)
     contract = v6.load_contract(root, contract_relative)
     inp = v6.load_inputs(root)
+    if inp.sessions[-1] < as_of:
+        raise ToolError(f"ledger ends {inp.sessions[-1]} before the gate date {as_of}")
     registered = contract.get("frozen") or {}
-    computed = v6.admission(inp, contract)
+    computed = v6.admission(inp, contract, through=as_of)
     contract["frozen"] = computed
     cache: dict[Any, Any] = {}
     history = v6.replay(inp, contract, end=as_of, cache=cache)
@@ -88,14 +98,15 @@ def run(root: Path, contract_relative: Path, as_of: date) -> dict[str, Any]:
                          "contribution": round(today["contributions"][key], 2),
                          "period": today["rows"][key]["period"], "basis": today["rows"][key]["basis"]})
     gates["construction_checks"]["C5"] = {
-        "value": {"v5": v5.get("overheat_pct"), "v6": None if today["composite"] is None else round(today["composite"], 1)},
+        "value": {"v5": v5.get("overheat_pct"),
+                  "v6": None if today["composite"] is None else round(today["composite"], 1)},
         "passed": today["composite"] is not None and v5.get("status") == "ok",
     }
     key_values = {d: (None if (v := v6._value_on(history, date.fromisoformat(d))) is None else round(v, 1))
                   for d in KEY_DATES}
     key_values[as_of.isoformat()] = None if today["composite"] is None else round(today["composite"], 1)
-    after = protected_digests(root)
-    verdict = "passed" if gates["all_falsifiable_passed"] and gates["construction_c1_c4_passed"] else "failed"
+    failed_checks = [k for k, c in gates["construction_checks"].items() if c.get("passed") is False]
+    verdict = "passed" if gates["all_falsifiable_passed"] and not failed_checks else "failed"
     same_as_registered = None
     if registered.get("members"):
         same_as_registered = {
@@ -105,19 +116,20 @@ def run(root: Path, contract_relative: Path, as_of: date) -> dict[str, Any]:
                 abs(float(registered["anchors"][k][f]) - float(computed["anchors"][k][f]))
                 <= 1e-6 * max(1.0, abs(float(computed["anchors"][k][f])))
                 for k in computed["anchors"] if k in (registered.get("anchors") or {}) for f in ("zero", "peak")),
+            "verdict": registered.get("verdict") == verdict,
+            "failed_gates": registered.get("failed_gates") == gates["failed"],
         }
     return {
-        "contract": str(contract_relative).replace("\\", "/"),
+        "contract": contract_relative.as_posix(),
         "contract_id": contract["contract_id"], "contract_version": contract["version"],
-        "rules_fixed_at": contract.get("rules_fixed_at"),
+        "rules_fixed_at": contract.get("rules_fixed_at"), "rules_sha256": v6.rules_digest(contract),
         "gate_as_of": as_of.isoformat(), "ledger_through": inp.sessions[-1].isoformat(),
         "input_sha256": input_digest(inp, as_of),
-        "admission": computed, "gates": gates, "verdict": verdict,
+        "admission": computed, "gates": gates, "verdict": verdict, "failed_construction_checks": failed_checks,
         "latest_rows": rows, "families_today": {k: round(v, 1) for k, v in today["families"].items()},
         "effective_weights": {k: round(v, 2) for k, v in (today.get("effective_weights") or {}).items()},
         "key_values": key_values, "v5": {"status": v5.get("status"), "index": v5.get("overheat_pct")},
         "frozen_matches_recomputation": same_as_registered,
-        "protected_unchanged": before == after, "protected_sha256": after,
     }
 
 
@@ -126,20 +138,30 @@ def frozen_block(report: dict[str, Any], stamp: str) -> dict[str, Any]:
     return {
         **report["admission"],
         "frozen_at": stamp, "gate_as_of": report["gate_as_of"], "input_sha256": report["input_sha256"],
+        "rules_sha256": report["rules_sha256"],
         "verdict": report["verdict"], "failed_gates": gates["failed"],
+        "failed_construction_checks": report["failed_construction_checks"],
         "gate_values": {k: g.get("value") for k, g in gates["falsifiable"].items()},
         "construction_values": {k: c.get("value") for k, c in gates["construction_checks"].items()},
     }
 
 
 def write_frozen(path: Path, block: dict[str, Any]) -> None:
+    """계약 파일 끝의 ``frozen`` 블록을 채운다. 비어 있을 때만, 그 뒤에 다른 내용이 없을 때만, 원자적으로."""
     text = path.read_text(encoding="utf-8")
     cut = text.rfind(FROZEN_MARKER)
     if cut < 0:
-        raise SystemExit(f"{path}: no trailing 'frozen:' block to replace")
+        raise ToolError(f"{path}: no trailing 'frozen:' block to fill")
+    tail = yaml.safe_load(text[cut:])
+    if not isinstance(tail, dict) or list(tail) != ["frozen"]:
+        raise ToolError(f"{path}: content after 'frozen:' is not only the frozen block")
+    if tail["frozen"]:
+        raise ToolError(f"{path}: frozen block already holds a verdict — a re-run needs a new contract revision")
     head = text[:cut].rstrip("\n") + "\n\n"
     body = yaml.safe_dump({"frozen": block}, allow_unicode=True, sort_keys=False, width=110)
-    path.write_bytes((head + body).encode("utf-8"))
+    scratch = path.with_suffix(path.suffix + ".tmp")
+    scratch.write_bytes((head + body).encode("utf-8"))
+    os.replace(scratch, path)
 
 
 def _mark(passed: Any) -> str:
@@ -148,6 +170,7 @@ def _mark(passed: Any) -> str:
 
 def markdown(report: dict[str, Any], rules: dict[str, str]) -> str:
     adm, gates = report["admission"], report["gates"]
+    failed = [*gates["failed"], *report["failed_construction_checks"]]
     lines = [
         f"# 닷컴 대비 과열도 {report['contract_id'].replace('dotcom_overheat_index_', '')} 그림자 검증",
         "",
@@ -155,31 +178,38 @@ def markdown(report: dict[str, Any], rules: dict[str, str]) -> str:
         f"- 판정 기준일: {report['gate_as_of']} · 원장 최신 거래일 {report['ledger_through']}",
         f"- 입력 지문(sha256): `{report['input_sha256']}`",
         f"- **판정: {'통과' if report['verdict'] == 'passed' else '탈락'}**"
-        + ("" if not gates["failed"] else f" — 실패 게이트 {', '.join(gates['failed'])}"),
+        + ("" if not failed else f" — 실패 {', '.join(failed)}"),
         f"- 보호 경로 무변경: {'예' if report['protected_unchanged'] else '아니오'}",
+        f"- 계약의 동결 블록과 이번 재계산 일치: {report['frozen_matches_recomputation']}",
         "",
         "참고 지표다. 확률이 아니며 매매 신호가 아니다. 과거 구간은 최신 개정 자료에 고정 발표 지연을 적용한 소급 재계산이다.",
+        "이 보고서는 동결 블록을 다시 쓰지 않는 재현 출력이다(동결 시각은 계약의 frozen.frozen_at).",
         "",
         "## 편입 시험",
         "",
-        "| 지표 | A3 (D≥2) | A4 저점 3곳 ≤50 | A4 월말 최고 ≤80 | A5 p95 ≤25 | A6 | 편입 |",
-        "|---|---|---|---|---|---|---|",
+        "| 지표 | A3 (D≥2) | A4 약세장 저점 3곳 ≤50 | A4 월말 최고 ≤80 | 미채점(저점/월말) | A5 p95 ≤25 | A6 추정/유지 오차 | 편입 |",
+        "|---|---|---|---|---|---|---|---|",
     ]
     for key, row in adm["tests"].items():
         if "A3" not in row:
-            lines.append(f"| {key} | — | — | — | — | — | 탈락({row.get('reason')}) |")
+            lines.append(f"| {key} | — | — | — | — | — | — | 탈락({row.get('reason')}) |")
             continue
+        a4 = row["A4"]
+        lows = [v for v in a4["bear_lows"] if v is not None]
+        lows_ok = bool(lows) and all(v <= 50 for v in lows)
+        month_ok = a4["max_2001_2022"] is not None and a4["max_2001_2022"] <= 80
         a6 = row.get("A6")
         a6_text = "—" if not a6 else f"{a6.get('mae_estimate')} / {a6.get('mae_carry')} {_mark(a6.get('passed'))}"
         a5 = row["A5"]
         a5_text = "일간" if "p95_step" not in a5 else f"{a5['p95_step']} {_mark(a5['passed'])}"
         lines.append(
-            f"| {key} | {row['A3']['D']} {_mark(row['A3']['passed'])} | {row['A4']['bear_lows']} | "
-            f"{row['A4']['max_2001_2022']} {_mark(row['A4']['passed'])} | {a5_text} | {a6_text} | "
-            f"{'편입' if row['admitted'] else '탈락'} |")
+            f"| {key} | {row['A3']['D']} {_mark(row['A3']['passed'])} | {a4['bear_lows']} {_mark(lows_ok)} | "
+            f"{a4['max_2001_2022']} {_mark(month_ok)} | {a4['unscored']['bear_lows']}/{a4['unscored']['month_ends']} | "
+            f"{a5_text} | {a6_text} | {'편입' if row['admitted'] else '탈락'} |")
     lines += ["", "편입 결과: " + "; ".join(f"{f} = {', '.join(ids) or '없음'}" for f, ids in adm["members"].items()),
               "", "부문 가중: " + ", ".join(f"{f} {w}" for f, w in adm["weights"].items()),
-              "", "## 구성 확인 (정의상 성립 — 검증이 아니다)", "", "| 항목 | 규칙 | 값 | 결과 |", "|---|---|---|---|"]
+              "", "## 구성 확인 (정의상 성립해야 하는 것 — 검증이 아니다)", "",
+              "| 항목 | 규칙 | 값 | 결과 |", "|---|---|---|---|"]
     for key, row in gates["construction_checks"].items():
         lines.append(f"| {key} | {rules.get(key, '')} | {row.get('value')} | {_mark(row.get('passed'))} |")
     lines += ["", "## 게이트 (틀릴 수 있는 검증 — 임계값은 v6.0 등록값 그대로)", "",
@@ -188,6 +218,12 @@ def markdown(report: dict[str, Any], rules: dict[str, str]) -> str:
         note = " (해당 없음 — 대상 0개)" if row.get("not_applicable") else ""
         reason = f" · {row['reason']}" if row.get("reason") else ""
         lines.append(f"| {key} | {rules.get(key, '')} | {row.get('value')}{reason} | {_mark(row.get('passed'))}{note} |")
+    v4 = gates["falsifiable"]["V4"]
+    if "range_in_every_variant" in v4:
+        outside = {name: v4["by_variant"][name][1] for name in v4["variants_outside_range"]}
+        lines += ["", "V4 의 두 독해: 20~70 조건을 본 사양에만 적용하면 "
+                  f"{_mark(v4['passed'])}, 모든 변형에 적용하면 {_mark(v4['passed'] and v4['range_in_every_variant'])}"
+                  + (f" (범위 밖 변형의 2021 최고: {outside})" if outside else "") + "."]
     band = gates["band_today"]
     lines += ["", "## 기준일의 값", "",
               f"- 지수 {report['key_values'][report['gate_as_of']]} · 가정 범위 "
@@ -219,37 +255,62 @@ def gate_rules(contract: dict[str, Any]) -> dict[str, str]:
     return rules
 
 
+def report_path(root: Path, value: str) -> Path:
+    out = (root / value).resolve()
+    allowed = (root / REPORT_DIR).resolve()
+    if out.parent != allowed or out.suffix != ".md" or not out.name.startswith("overheat_v6"):
+        raise ToolError(f"--report must be {REPORT_DIR.as_posix()}/overheat_v6*.md")
+    return out
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("--contract", default=str(v6.CONTRACT_RELATIVE))
-    parser.add_argument("--as-of", default=None, help="gate date (default: contract gate_as_of, else latest session)")
-    parser.add_argument("--report", default=None, help="Markdown report path (a .json twin is written beside it)")
-    parser.add_argument("--write-frozen", action="store_true")
+    parser.add_argument("--contract", default=v6.CONTRACT_RELATIVE.as_posix())
+    parser.add_argument("--as-of", default=None, help="gate date; only for a contract that does not fix gate_as_of")
+    parser.add_argument("--report", default=None, help="docs/audit/overheat_v6*.md (a .json twin is written beside it)")
+    parser.add_argument("--write-frozen", action="store_true", help="fill an EMPTY frozen block with this verdict")
     parser.add_argument("--root", default=str(ROOT))
     args = parser.parse_args()
     root = Path(args.root).resolve()
     relative = Path(args.contract)
     contract = v6.load_contract(root, relative)
-    as_of_text = args.as_of or contract.get("gate_as_of") or (contract.get("frozen") or {}).get("gate_as_of")
-    as_of = date.fromisoformat(str(as_of_text)) if as_of_text else v6.load_inputs(root).sessions[-1]
-    report = run(root, relative, as_of)
+    frozen = contract.get("frozen") or {}
+    fixed = contract.get("gate_as_of") or frozen.get("gate_as_of")
+    if fixed and args.as_of and str(args.as_of) != str(fixed):
+        raise ToolError(f"the contract fixes the gate date at {fixed}; --as-of {args.as_of} is refused")
+    as_of_text = fixed or args.as_of
+    if not as_of_text:
+        raise ToolError("no gate date: pass --as-of for a contract without gate_as_of")
+    if args.write_frozen and frozen:
+        raise ToolError("frozen block already holds a verdict — a re-run needs a new contract revision")
+    out = report_path(root, args.report) if args.report else None
+
+    before = protected_digests(root)
+    report = run(root, relative, date.fromisoformat(str(as_of_text)))
+    declared = contract.get("gate_input_sha256") or frozen.get("input_sha256")
+    report["input_matches_declared"] = None if not declared else declared == report["input_sha256"]
     stamp = datetime.now(timezone.utc).isoformat(timespec="seconds")
     report["generated_at"] = stamp
-    if args.report:
-        out = root / args.report
+    if args.write_frozen:
+        if report["input_matches_declared"] is False:
+            raise ToolError("ledger input differs from the contract's gate_input_sha256 — verdict not written")
+        write_frozen(root / relative, frozen_block(report, stamp))
+    report["protected_unchanged"] = before == protected_digests(root)
+    report["protected_sha256"] = before
+    if out:
         out.parent.mkdir(parents=True, exist_ok=True)
         out.write_text(markdown(report, gate_rules(contract)), encoding="utf-8", newline="\n")
         out.with_suffix(".json").write_text(
             json.dumps(report, ensure_ascii=False, indent=1, default=str) + "\n", encoding="utf-8", newline="\n")
-    if args.write_frozen:
-        write_frozen(root / relative, frozen_block(report, stamp))
     summary = {"verdict": report["verdict"], "failed": report["gates"]["failed"],
+               "failed_construction_checks": report["failed_construction_checks"],
                "value": report["key_values"][report["gate_as_of"]],
                "weights": report["admission"]["weights"],
                "frozen_matches_recomputation": report["frozen_matches_recomputation"],
+               "input_matches_declared": report["input_matches_declared"],
                "protected_unchanged": report["protected_unchanged"]}
     sys.stdout.buffer.write((json.dumps(summary, ensure_ascii=False) + "\n").encode("utf-8"))
-    return 0 if report["protected_unchanged"] else 1
+    return 0 if report["protected_unchanged"] and report["input_matches_declared"] is not False else 1
 
 
 if __name__ == "__main__":

@@ -3,6 +3,7 @@
  "contract_id": "dotcom_overheat_index_v6_1",
  "contract_version": "2026-11-11.v6.1",
  "rules_fixed_at": "2026-11-11T04:41:43Z",
+ "rules_sha256": "5c1718f1ab9b1f6744e611600b98087961d099026de25cb6a913682e0135ab1d",
  "gate_as_of": "2026-11-09",
  "ledger_through": "2026-11-09",
  "input_sha256": "8516c2415b86be0909f16da243fcb1438b0a382bb1a231a34052815b39bb378e",
@@ -451,7 +452,11 @@
       32.2,
       92.7
      ]
-    }
+    },
+    "range_in_every_variant": false,
+    "variants_outside_range": [
+     "zero_1995_mean"
+    ]
    },
    "V5": {
     "value": [
@@ -568,6 +573,9 @@
   }
  },
  "verdict": "failed",
+ "failed_construction_checks": [
+  "C3"
+ ],
  "latest_rows": [
   {
    "family": "speed",
@@ -650,14 +658,17 @@
  "frozen_matches_recomputation": {
   "members": true,
   "weights": true,
-  "anchors": true
+  "anchors": true,
+  "verdict": true,
+  "failed_gates": true
  },
+ "input_matches_declared": true,
+ "generated_at": "2026-11-11T05:18:52+00:00",
  "protected_unchanged": true,
  "protected_sha256": {
   "data/statistics/official_store/ledgers/normalized_observations.jsonl": "d619f6d2065be08add66510eb0201d3c8be7830ad18ec84b01503483c102683e",
   "data/statistics/dotcom_statistics_latest.json": "5f4d81f0192368dfd5c014fc2f965e73a5aedbb2daff1eb6ed3e4340f107097d",
   "data/statistics/ipo/ritter_ipoall_monthly.json": "a9cf4fbf4e30ec1d8a2359c3a0aa112a334899a574c78efef2093847e297dbde",
   "data/contracts/dotcom_overheat_index_v5.yaml": "2f0e2ebc5ca7879672bd58bf2de45813052009d4697ba1bbe1dd3517bd236022"
- },
- "generated_at": "2026-11-11T04:43:25+00:00"
+ }
 }
