@@ -68,7 +68,23 @@ jobs:
       - name: Append ALFRED native PIT macro vintages
         run: python -m ai_fc timeseries-refresh
       - name: Append official reconstructed market archives
-        run: python -m ai_fc timeseries-v2-refresh
+        id: market_refresh
+        shell: bash
+        # stdout 보고를 보존한다. market.failures(exit 0 이라 숨던 실패)는 이 run 밖의
+        # mts-ingest-triage 가 분류한다 — 이 run 의 결론과 하류 리스너는 market 분류에 묶이지 않는다.
+        run: |
+          mkdir -p .tmp
+          python -m ai_fc timeseries-v2-refresh | tee .tmp/v2-refresh-report.json
+      - name: Preserve the market refresh report for out-of-run triage
+        uses: actions/upload-artifact@v4
+        with:
+          name: v2-refresh-market-report
+          path: .tmp/v2-refresh-report.json
+          include-hidden-files: true
+          retention-days: 14
+          if-no-files-found: error
+          # 'Re-run failed jobs' 재시도가 1차 시도의 같은 이름 artifact 와 충돌(409)해 checkpoint 앞에서 멈추지 않게 한다.
+          overwrite: true
       - name: Checkpoint raw receipts and append-only observations before models
         id: checkpoint
         run: |
@@ -107,7 +123,13 @@ jobs:
         # weekday; the incremental, content-addressed cache build is idempotent
         # (0-2 warm-started refits per day), so verify must never wait for
         # Saturday to see a complete cache.
-        run: python -m ai_fc timeseries-v2-prepare
+        shell: bash
+        run: |
+          mkdir -p .tmp
+          python -m ai_fc timeseries-v2-prepare | tee .tmp/v2-prepare.json
+          cutoff="$(python -c 'import json,sys; print(json.load(open(sys.argv[1], encoding="utf-8"))["knowledge_cutoff"])' .tmp/v2-prepare.json)"
+          test -n "$cutoff"
+          echo "V2_PREPARE_CUTOFF=$cutoff" >> "$GITHUB_ENV"
       - name: Run one-time sealed evaluation when explicitly requested or absent on monthly Saturday
         shell: bash
         run: |
@@ -126,7 +148,8 @@ jobs:
           weekday="$(date -u +%u)"
           day="$(date -u +%d)"
           if [ "$weekday" = "6" ] && [ "$day" -le 7 ] && [ -f data/timeseries_v2/ledgers/sealed_evaluations.jsonl ]; then
-          python -m ai_fc timeseries-v2-monitor-backtest --path-count 20000
+          mkdir -p .tmp
+          python -m ai_fc.mts_research.triage_gate --kind v2_monitor --wrap-stderr-last-line --out .tmp/v2-monitor-triage.json -- python -m ai_fc timeseries-v2-monitor-backtest --path-count 20000
           else
             echo "Monthly fixed-winner monitoring is not due"
           fi
@@ -155,8 +178,10 @@ jobs:
             python -m ai_fc timeseries-v2-workbook
           fi
       - name: Verify V2 and run focused regression tests
+        shell: bash
         run: |
-          python -m ai_fc timeseries-v2-verify
+          mkdir -p .tmp
+          python -m ai_fc.mts_research.triage_gate --kind v2_verify --now "$V2_PREPARE_CUTOFF" --wrap-stdout .tmp/v2-verify-report.json --out .tmp/v2-verify-triage.json -- python -m ai_fc timeseries-v2-verify
           pytest src/tests/test_multivariate_timeseries_v2.py src/tests/test_ralph_timeseries.py -q
       - name: Commit V2 model, forecast, resolution, and review artifacts
         shell: bash
@@ -175,3 +200,17 @@ jobs:
             git pull --rebase origin main
             git push
           fi
+      - name: Preserve ingest-triage gate classifications
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: v2-ingest-triage-gates
+          # 분류 결과와 함께 원입력(verify 원보고·monitor 마지막 줄)을 남겨 날짜 경계 판정을 사후 재감사할 수 있게 한다.
+          path: |
+            .tmp/v2-*-triage.json
+            .tmp/v2-verify-report.json
+            .tmp/v2-monitor-triage.json.input.json
+          include-hidden-files: true
+          retention-days: 14
+          if-no-files-found: ignore
+          overwrite: true

@@ -1,0 +1,86 @@
+name: mts-ingest-triage
+
+# timeseries-v2-refresh 의 market 보고(exit 0 이라 숨던 market.failures)를 그 run 밖에서 분류한다.
+# 비라이터: 저장소에 쓰지 않는다. v2-refresh 결론은 데이터·모델 건강만 뜻하고, 하류 리스너
+# (pages·verify·timeseries-daily6m·v13·v8-daily)는 이 분류 결과에 묶이지 않는다.
+# 실패 = market 경보 → ops-failure-alert 감시 목록에 등록되어 있다.
+# 판정 시각은 상류 보고의 market.retrieved_at 이다 — 늦게 돌아도 판정은 같다(PIT).
+# 효력은 이 run 의 종료코드와 주석뿐이다 — 예측·게이트·승격·숨김·재예측과 무관(참고 의견, 매매 신호 아님).
+
+on:
+  workflow_run:
+    workflows: ["timeseries-v2-refresh"]
+    types: [completed]
+  workflow_dispatch:
+    inputs:
+      run_id:
+        description: "timeseries-v2-refresh run id to (re)classify"
+        required: true
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: mts-ingest-triage-${{ github.event.workflow_run.id || inputs.run_id }}
+  cancel-in-progress: false
+
+jobs:
+  classify:
+    if: ${{ github.event_name == 'workflow_dispatch' || (github.event.workflow_run.event != 'pull_request' && github.event.workflow_run.head_branch == 'main' && github.event.workflow_run.conclusion != 'cancelled' && github.event.workflow_run.conclusion != 'skipped') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      PYTHONUTF8: "1"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          # 봉인 파서 오류문 완전일치를 위해 timeseries-v2-refresh 와 같은 런타임을 쓴다.
+          python-version: "3.12.16"
+          cache: pip
+      - name: Install the same pinned runtime as timeseries-v2-refresh
+        run: pip install -e ".[pit,timeseries]" "numpy==2.5.4" "scipy==1.18.1" "pandas==2.3.3"
+      - name: Fetch the upstream market report
+        id: fetch
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_ID: ${{ github.event.workflow_run.id || inputs.run_id }}
+          UPSTREAM_CONCLUSION: ${{ github.event.workflow_run.conclusion || 'dispatch' }}
+        run: |
+          case "$RUN_ID" in
+            ''|*[!0-9]*)
+              echo "::error title=ingest-triage v2_refresh::run_id must be a positive integer"
+              exit 2
+              ;;
+          esac
+          mkdir -p .tmp/upstream
+          names="$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$RUN_ID/artifacts" --jq '.artifacts[] | select(.expired == false) | .name')"
+          if ! printf '%s\n' "$names" | grep -qx 'v2-refresh-market-report'; then
+            if [ "$UPSTREAM_CONCLUSION" = "failure" ]; then
+              echo "::notice title=ingest-triage v2_refresh::run $RUN_ID failed before preserving its market report; that run's own failure is the alert"
+              echo "present=false" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+            echo "::error title=ingest-triage v2_refresh::run $RUN_ID ($UPSTREAM_CONCLUSION) has no market report artifact"
+            exit 1
+          fi
+          gh run download "$RUN_ID" --repo "$GITHUB_REPOSITORY" -n v2-refresh-market-report -D .tmp/upstream
+          test -s .tmp/upstream/v2-refresh-report.json
+          echo "present=true" >> "$GITHUB_OUTPUT"
+      - name: Classify hidden market refresh failures
+        if: ${{ steps.fetch.outputs.present == 'true' }}
+        run: python -m ai_fc.mts_research.triage_gate --kind v2_refresh --report .tmp/upstream/v2-refresh-report.json --out .tmp/v2-refresh-triage.json
+      - name: Preserve the classification
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: v2-refresh-triage-${{ github.event.workflow_run.id || inputs.run_id }}
+          path: .tmp/v2-refresh-triage.json
+          include-hidden-files: true
+          retention-days: 14
+          if-no-files-found: ignore
+          overwrite: true

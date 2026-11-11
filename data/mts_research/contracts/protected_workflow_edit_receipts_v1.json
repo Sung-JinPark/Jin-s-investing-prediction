@@ -43,6 +43,77 @@
         "instructed_at_upper_bound": "2026-11-11T09:03:44Z"
       },
       "decision_ref": "docs/DECISIONS.md 2026-11-11 — MTS U2a"
+    },
+    {
+      "edit_id": "u2b-20261111-timeseries-v2-refresh",
+      "path": ".github/workflows/timeseries-v2-refresh.yml",
+      "pin": true,
+      "protected_by": [
+        "V7 protected_v6_baseline predecessor_workflow glob (src/ai_fc/timeseries_v7/protection.py:63)",
+        "src/tests/test_mts_research_protected_glob_names.py PROTECTED_GLOBS",
+        "FINAL_DESIGN §5-16"
+      ],
+      "manifests_searched": [
+        "V7 protected_v6_baseline",
+        "PROTECTED_GLOBS",
+        "V2 ralph.editable_scopes",
+        "scenario_v5.contracts.protected_hashes (data paths only)",
+        "model_code_hash sets",
+        "FINAL_DESIGN §5-16"
+      ],
+      "before": {
+        "git_commit": "db8b75cc",
+        "git_blob": "9f5320b3acf2af1e1c4e90933428e56dffeac26f",
+        "sha256": "f5473a4fb02a6b4f46f96e948348346181104ce291b47e32a96892ffade8edaa"
+      },
+      "after": {
+        "sha256": "a2d8d2e21da586ad98aa081de7203acbdd1b0894f9eb2a4d9f982b6486b07413"
+      },
+      "changed_steps": [
+        "Append official reconstructed market archives (id market_refresh, shell bash, tee .tmp/v2-refresh-report.json)",
+        "+ Preserve the market refresh report for out-of-run triage (upload-artifact v2-refresh-market-report, include-hidden-files, if-no-files-found error, retention 14, overwrite true)",
+        "Prepare origin-specific DFM caches before verification (shell bash, tee .tmp/v2-prepare.json, V2_PREPARE_CUTOFF=knowledge_cutoff -> GITHUB_ENV; prepare arguments unchanged)",
+        "Re-evaluate the frozen winner on the first Saturday (triage_gate --kind v2_monitor --wrap-stderr-last-line)",
+        "Verify V2 and run focused regression tests (shell bash, triage_gate --kind v2_verify --now \"$V2_PREPARE_CUTOFF\" --wrap-stdout)",
+        "+ Preserve ingest-triage gate classifications (upload-artifact v2-ingest-triage-gates: .tmp/v2-*-triage.json + raw verify report .tmp/v2-verify-report.json + monitor input .tmp/v2-monitor-triage.json.input.json, if always(), include-hidden-files, if-no-files-found ignore, retention 14, overwrite true)"
+      ],
+      "changed_effects": [
+        "first-Saturday by-design monitor exit (sealed gate_pass=false) no longer stops the run: refit, forecast/resolve, monthly workbook (dormant since 2026-08-21), verify and commit run again from 2026-12-05",
+        "verify date-boundary false failures (DFM cutoff vs prepare knowledge_cutoff) become exit 0 with a notice; every other verify failure keeps exit 1/3; wrapped exit codes other than 0/1 pass through unclassified",
+        "market.failures are NOT classified in this run — the run conclusion keeps its current meaning; classification runs in the non-writer workflow mts-ingest-triage (workflow_run completed, ops-failure-alert watched)",
+        "first-Saturday runs now conclude success, so the success-only downstream listeners (pages, verify, timeseries-daily6m -> daily6m-v2-shadow, v13, v8-daily) also fire on first Saturdays from 2026-12-05 (suppressed until now by the monitor failure)",
+        "new failure path: the market report upload sits before checkpoint without an if and continue-on-error is banned, so an artifact-service outage fails the run there — checkpoint/relay/model commit are skipped and the success-only downstream listeners skip that day; the final always() gate upload can likewise turn an already committed run red. Accepted to keep the report preserved even when later steps fail; overwrite true keeps 'Re-run failed jobs' from colliding (409) with the first attempt's artifact"
+      ],
+      "unchanged_invariants": [
+        "triggers/schedule 20 8 * * 2-6",
+        "checkpoint before prepare",
+        "relay dispatch targets",
+        "PR read-only strings x2",
+        "runtime pins python 3.12.16 numpy 2.5.4 scipy 1.18.1 pandas 2.3.3",
+        "commit allowlists",
+        "no continue-on-error",
+        "no --kind v2_refresh inside this workflow",
+        "run conclusion is not affected by market.failures (downstream listener definitions pages/verify/daily6m/v13/v8-daily unchanged)"
+      ],
+      "v7_baseline": {
+        "path": "data/timeseries_v7/manifests/protected_v6_baseline.json",
+        "action": "not_regenerated",
+        "reason": "동결된 V7 일회성 증거 — create_baseline 은 덮어쓰기 거부. 2026-11-11 실측 이미 어긋남",
+        "drift_measured": {
+          "at": "2026-11-11",
+          "changed": 162,
+          "added": 11566,
+          "removed": 204
+        }
+      },
+      "approval": {
+        "approval_form": "delegated_bundle_instruction",
+        "literal_template_match": false,
+        "approval_text": "네가 나머지 작업 다 완료시켜.  네가 최적의 선택을 내려서 u1~u7까지 다 진행시켜",
+        "template_text": "U2b 보호 워크플로 timeseries-v2-refresh.yml 배선 편집(market 보고 artifact 보존·prepare 컷오프·verify·monitor 관문·관문 결과 업로드) 승인",
+        "instructed_at_upper_bound": "2026-11-11T09:03:44Z"
+      },
+      "decision_ref": "docs/DECISIONS.md 2026-11-11 — MTS U2b"
     }
   ]
 }
