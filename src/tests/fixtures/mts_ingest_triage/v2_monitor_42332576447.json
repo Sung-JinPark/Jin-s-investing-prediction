@@ -1,0 +1,19 @@
+{
+  "fixture_schema": "mts_ingest_triage_fixture_v1",
+  "kind": "v2_monitor",
+  "log_line": "시계열 연구모델 중단: sealed evaluation failed; monitoring cannot reopen it",
+  "provenance": {
+    "captured_at": "2026-11-11",
+    "excerpt_rule": "monitor 단계의 종료 직전 표준출력 한 줄만 원문 그대로 옮김.",
+    "repository": "Sung-JinPark/Jin-s-investing-prediction",
+    "run_conclusion": "failure",
+    "run_created_at": "2026-11-07T03:08:14Z",
+    "run_event": "workflow_dispatch",
+    "run_id": 42332576447,
+    "run_updated_at": "2026-11-07T03:21:50Z",
+    "source": "gh run view --log",
+    "step": "python -m ai_fc timeseries-v2-monitor-backtest --path-count 20000",
+    "workflow": "timeseries-v2-refresh"
+  },
+  "report": null
+}

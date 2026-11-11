@@ -1,0 +1,37 @@
+{
+  "fixture_schema": "mts_ingest_triage_fixture_v1",
+  "history": [],
+  "kind": "daily6m_sources",
+  "provenance": {
+    "captured_at": "2026-11-11",
+    "excerpt_rule": "단계 stdout JSON 블록을 러너 접두(job·step·타임스탬프)만 떼고 원문 그대로 옮김. 환경변수·비밀값 줄은 포함하지 않음.",
+    "job": "sources / capture",
+    "log_timestamp": "2026-11-09T17:46:30.3087970Z",
+    "repository": "Sung-JinPark/Jin-s-investing-prediction",
+    "run_conclusion": "failure",
+    "run_created_at": "2026-11-09T17:45:23Z",
+    "run_event": "schedule",
+    "run_id": 42667699768,
+    "run_updated_at": "2026-11-09T17:56:27Z",
+    "source": "gh run view --log",
+    "step": "python -m ai_fc timeseries-daily6m-sources-capture --out .tmp/daily6m-sources-capture --report .tmp/daily6m-sources-capture-report.json",
+    "workflow": "timeseries-daily6m"
+  },
+  "report": {
+    "appended": 0,
+    "bundle_id": "daily6m-source-bundle-c98da33cb2dcf2dfe211e1e282454aa5",
+    "changed": false,
+    "completed_at": "2026-11-09T17:46:28.549955+00:00",
+    "observations": 2,
+    "receipts": 4,
+    "source_failures": [
+      {
+        "kind": "nasdaq_info",
+        "reason": "unconverted data remains:  12:44 PM ET"
+      }
+    ],
+    "source_pending": [],
+    "status": "partial",
+    "transport_failures": []
+  }
+}
