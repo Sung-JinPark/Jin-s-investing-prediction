@@ -1,0 +1,152 @@
+{
+  "schema_version": 1,
+  "dataset_id": "dotcom_overheat_profile",
+  "contract_id": "dotcom_overheat_profile_v1",
+  "contract_version": "2026-11-11.v1",
+  "source_contract": "dotcom_overheat_index_v6_1",
+  "source_admission_sha256": "97738eaa9bf9de50a2bf915a6cfd19ed80bbedb7ff10b3499e3fae6f03aa46b6",
+  "probability_space": "reference_only",
+  "model_use": false,
+  "official_forecast_input": false,
+  "trading_signal": false,
+  "composite": null,
+  "generated_at": "2026-11-11T08:45:25+00:00",
+  "anchor_label": "2000년 3월 = 100",
+  "max_age_days": 10,
+  "as_of": "2026-11-10",
+  "status": "ok",
+  "families": [
+    {
+      "id": "speed",
+      "label": "상승 속도",
+      "status": "ok",
+      "indicators": [
+        {
+          "id": "speed_r24",
+          "label": "NASDAQ 2년 상승률",
+          "frequency": "daily",
+          "zero_is": "return_zero",
+          "status": "ok",
+          "score": 28,
+          "score_raw": 27.8,
+          "beyond_peak": false,
+          "below_normal": false,
+          "period": "2026-11-10",
+          "age_days": 0,
+          "basis": "live",
+          "median_1995_2019": 23,
+          "change_4w": -11.1,
+          "high_12m": {
+            "value": 52,
+            "date": "2025-11-10"
+          }
+        },
+        {
+          "id": "speed_d200",
+          "label": "NASDAQ 200일 평균 대비 이격",
+          "frequency": "daily",
+          "zero_is": "return_zero",
+          "status": "ok",
+          "score": 0,
+          "score_raw": -0.4,
+          "beyond_peak": false,
+          "below_normal": true,
+          "period": "2026-11-10",
+          "age_days": 0,
+          "basis": "live",
+          "median_1995_2019": 11,
+          "change_4w": -17.4,
+          "high_12m": {
+            "value": 31,
+            "date": "2025-11-10"
+          }
+        }
+      ]
+    },
+    {
+      "id": "valuation",
+      "label": "밸류에이션",
+      "status": "ok",
+      "indicators": [
+        {
+          "id": "val_nasdaq_m2",
+          "label": "통화량 대비 NASDAQ 수준",
+          "frequency": "daily_numerator",
+          "zero_is": "median_1995_2019",
+          "status": "ok",
+          "score": 98,
+          "score_raw": 98.5,
+          "beyond_peak": false,
+          "below_normal": false,
+          "period": "2026-09",
+          "age_days": 41,
+          "basis": "live",
+          "change_4w": -13.1,
+          "high_12m": {
+            "value": 115,
+            "date": "2026-06-02"
+          }
+        }
+      ]
+    },
+    {
+      "id": "ipo",
+      "label": "IPO 창구",
+      "status": "ok",
+      "indicators": [
+        {
+          "id": "ipo_count_12m",
+          "label": "IPO 건수(미국 운영기업 12개월)",
+          "frequency": "monthly",
+          "zero_is": "median_1995_2019",
+          "status": "ok",
+          "score": -11,
+          "score_raw": -10.9,
+          "beyond_peak": false,
+          "below_normal": true,
+          "period": "2025-12",
+          "age_days": 314,
+          "basis": "carried",
+          "previous": {
+            "period": "2025-11",
+            "score": -12
+          }
+        }
+      ]
+    },
+    {
+      "id": "participation",
+      "label": "참여·레버리지",
+      "status": "unmeasured",
+      "indicators": []
+    },
+    {
+      "id": "real",
+      "label": "실물 투자",
+      "status": "ok",
+      "indicators": [
+        {
+          "id": "real_it_equipment_gdp",
+          "label": "정보처리 장비 투자 ÷ GDP",
+          "frequency": "quarterly",
+          "zero_is": "median_1995_2019",
+          "status": "ok",
+          "score": 105,
+          "score_raw": 104.8,
+          "beyond_peak": true,
+          "below_normal": false,
+          "period": "2026Q3",
+          "age_days": 41,
+          "basis": "carried",
+          "previous": {
+            "period": "2026Q2",
+            "score": 69
+          }
+        }
+      ]
+    }
+  ],
+  "scored": 5,
+  "nasdaq_age_days": 1,
+  "note": "합산 지수가 아니다. 대표값(v5)의 내역이 아니며 척도가 다르다. 확률이 아니다."
+}

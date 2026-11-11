@@ -135,8 +135,9 @@ sources:
     endpoint: https://site.warrington.ufl.edu/ritter/files/IPOALL.xlsx
     provider: Jay R. Ritter, University of Florida
     approved: 2026-10-06 user decision (numeric input; monthly counts only)
+    approved_first_day_return: 2026-11-11 user decision (overheat v6 IPO family only; read from the same raw artifact, not stored in the counts table)
     sheet: IPOALL
-    columns: {month: 0, two_digit_year: 1, gross: 3, net: 4}
+    columns: {month: 0, two_digit_year: 1, average_first_day_return_pct: 2, gross: 3, net: 4}
     parsing: two_digit_year_60_99_is_1900s_else_2000s; text_cells_like_see_1975_or_na_are_missing_not_zero
     native_frequency: monthly
     revision_cadence: author_revises_roughly_annually

@@ -177,14 +177,17 @@ sources:
     usage_roles: [narrative_context, hypothesis_generation]
   # 2026-10-06 user decision: IPOALL.xlsx monthly gross/net IPO counts ONLY. Every other Ritter
   # table (tech IPOs, underpricing, sales, age) stays under ritter_ipo_research = insight-only.
+  # 2026-11-11 user decision (dotcom_overheat_index_v6): the SAME IPOALL.xlsx sheet's monthly
+  # average first-day return column is also a numeric input, for the overheat v6 IPO family only.
+  # No deal lists, no other Ritter table.
   - source_id: ritter_ipoall_monthly
-    display_name: Ritter IPOALL monthly IPO counts (gross/net)
+    display_name: Ritter IPOALL monthly IPO counts (gross/net) and average first-day return
     authority_class: academic_curated_dataset
     owner: Jay R. Ritter, University of Florida
     allowed_domains: [site.warrington.ufl.edu]
     numeric_input_allowed: true
     insight_only: false
-    usage_roles: [raw_observation, monthly_ipo_count]
+    usage_roles: [raw_observation, monthly_ipo_count, monthly_ipo_first_day_return]
   # 2026-10-06 user decision: Nasdaq IPO calendar API month counts as a PROVISIONAL display
   # extension after Ritter's last confirmed month. Never an index or numeric chart input.
   # Access note: the endpoint requires a browser-like User-Agent. The repository owner
