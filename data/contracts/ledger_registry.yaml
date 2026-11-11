@@ -121,6 +121,64 @@ ledgers:
     timestamp_field: as_of
     allow_empty_accumulating: true
     expected_state: planned
+  # daily6m v2 섀도(2026-11-11 U4) — 비공개 연구 원장. v1 과 같은 원점 라이브 전진 쌍대 대조 전용, 결합·표시·승격 없음.
+  - id: timeseries_daily6m_v2_forecasts
+    path: data/timeseries_daily6m_v2/ledgers/forecasts.jsonl
+    kind: jsonl
+    cadence: weekly
+    criticality: medium
+    schema_ref: jsonl
+    timestamp_field: issued_at
+    allow_empty_accumulating: true
+    expected_state: planned
+  - id: timeseries_daily6m_v2_resolutions
+    path: data/timeseries_daily6m_v2/ledgers/resolutions.jsonl
+    kind: jsonl
+    cadence: weekly
+    criticality: medium
+    schema_ref: jsonl
+    timestamp_field: resolved_as_of
+    allow_empty_accumulating: true
+    expected_state: planned
+  - id: timeseries_daily6m_v2_verdicts
+    path: data/timeseries_daily6m_v2/ledgers/verdicts.jsonl
+    kind: jsonl
+    cadence: event
+    criticality: high
+    schema_ref: jsonl
+    timestamp_field: recorded_as_of
+    allow_empty_accumulating: true
+    expected_state: planned
+  - id: timeseries_daily6m_v2_runs
+    path: data/timeseries_daily6m_v2/runs/*.json
+    kind: immutable_files
+    cadence: weekly
+    criticality: medium
+    schema_ref: json_object
+    timestamp_field: issued_at
+    allow_empty_accumulating: true
+    expected_state: planned
+  - id: timeseries_daily6m_v2_approvals
+    path: data/timeseries_daily6m_v2/ledgers/approvals.jsonl
+    kind: jsonl
+    cadence: event
+    criticality: high
+    schema_ref: jsonl
+    timestamp_field: approved_at
+  - id: timeseries_daily6m_v2_prereg
+    path: data/timeseries_daily6m_v2/prereg/*.json
+    kind: immutable_files
+    cadence: event
+    criticality: high
+    schema_ref: json_object
+  - id: timeseries_daily6m_v2_scorecard
+    path: data/timeseries_daily6m_v2/derived/scorecard.json
+    kind: singleton
+    cadence: weekly
+    criticality: low
+    schema_ref: json_object
+    allow_empty_accumulating: true
+    expected_state: planned
   - id: cross_asset_path_tracking_v2
     path: data/cross_asset/path_tracking_v2.csv
     kind: append_csv
@@ -391,6 +449,57 @@ ledgers:
     cadence: event
     criticality: medium
     schema_ref: jsonl
+  # V15 정합성 섀도(2026-11-11 U3) — V8 와 같은 원점·입력 스냅숏의 단일 변경 팔 라이브 전진 원장.
+  # 판정 전까지 화면 없음(scoring_excluded_from_official). 발행 시각으로 성장을 잰다(원점 기준이면 구조적 지연으로 상시 stalled).
+  - id: timeseries_v15_shadow_forecasts
+    path: data/timeseries_v15/ledgers/shadow_forecasts.jsonl
+    kind: jsonl
+    cadence: weekly
+    criticality: medium
+    schema_ref: jsonl
+    allow_empty_accumulating: true
+    expected_state: planned
+    timestamp_field: issued_at
+  - id: timeseries_v15_issuance_forecasts
+    path: data/timeseries_v15/ledgers/issuance_forecasts.jsonl
+    kind: jsonl
+    cadence: weekly
+    criticality: medium
+    schema_ref: jsonl
+    allow_empty_accumulating: true
+    expected_state: planned
+    timestamp_field: issued_at
+  - id: timeseries_v15_shadow_resolutions
+    path: data/timeseries_v15/ledgers/shadow_resolutions.jsonl
+    kind: jsonl
+    cadence: weekly
+    criticality: medium
+    schema_ref: jsonl
+    allow_empty_accumulating: true
+    expected_state: planned
+    timestamp_field: resolved_at
+  - id: timeseries_v15_attempts
+    path: data/timeseries_v15/ledgers/attempts.jsonl
+    kind: jsonl
+    cadence: event
+    criticality: low
+    schema_ref: jsonl
+    allow_empty_accumulating: true
+    expected_state: planned
+    timestamp_field: recorded_at
+  - id: timeseries_v15_approvals
+    path: data/timeseries_v15/ledgers/approvals.jsonl
+    kind: jsonl
+    cadence: event
+    criticality: high
+    schema_ref: jsonl
+    timestamp_field: approved_at
+  - id: timeseries_v15_prereg
+    path: data/timeseries_v15/prereg/*.json
+    kind: immutable_files
+    cadence: event
+    criticality: medium
+    schema_ref: json_object
   # V13-VOL 변동성 이벤트 확률 트랙 원장 — 트랙 개시(2026-09-07) 뒤 미등록 상태였다(V13-D2′ 2026-09-08).
   # 실험·승인은 사건 단위, 홀드아웃은 사용자 승인 뒤 1회(planned), 라이브 포인터 원장은 거래일 단위(Phase E 뒤 생성).
   - id: timeseries_v13_vol_experiments
@@ -493,6 +602,15 @@ ledgers:
     allow_empty_accumulating: true
     expected_state: planned
     timestamp_field: resolved_session
+  - id: timeseries_v13_live_verdict_applications
+    path: data/timeseries_v13/ledgers/live_verdict_applications.jsonl
+    kind: jsonl
+    cadence: event
+    criticality: high
+    schema_ref: jsonl
+    expected_state: planned
+    # 첫 체크포인트(성숙 60 — rv_h5 ≈ 2026-12-10) 전에는 파일이 없다. 사람이 verb 를 돌려야 생긴다(V13-D15).
+    timestamp_field: computed_at
   - id: timeseries_v13_vol_ladder_results
     path: data/timeseries_v13/vol/ladder_*.json
     kind: immutable_files
@@ -612,6 +730,56 @@ ledgers:
     schema_ref: json_object
   - id: timeseries_v14_ladder_results
     path: data/timeseries_v14/vol/*.json
+    kind: immutable_files
+    cadence: event
+    criticality: medium
+    schema_ref: json_object
+  # V15-VOL 섀도(V13 후속 변동성 사건, 위임 U5 2026-11-11) — 표시·배선 없음. 원장은 워크플로 첫 실행이 만든다.
+  - id: timeseries_v15_vol_approvals
+    path: data/timeseries_v15_vol/ledgers/approvals.jsonl
+    kind: jsonl
+    cadence: event
+    criticality: high
+    schema_ref: jsonl
+    timestamp_field: approved_at
+  - id: timeseries_v15_vol_arming
+    path: data/timeseries_v15_vol/ledgers/arming.jsonl
+    kind: jsonl
+    cadence: event
+    criticality: high
+    schema_ref: jsonl
+    allow_empty_accumulating: true
+    expected_state: planned
+    timestamp_field: armed_observed_at
+  - id: timeseries_v15_vol_shadow
+    path: data/timeseries_v15_vol/ledgers/vol15_shadow.jsonl
+    kind: jsonl
+    cadence: trading_daily
+    settle_hours: 24
+    criticality: medium
+    schema_ref: jsonl
+    allow_empty_accumulating: true
+    expected_state: planned
+    # V13 행(T+1 아카이브)의 순수 함수라 as_of 는 구조적으로 한 세션 뒤 — 행 생성 시각으로 성장을 잰다(V13 vol_live 선례)
+    timestamp_field: derived_at
+  - id: timeseries_v15_vol_shadow_resolutions
+    path: data/timeseries_v15_vol/ledgers/vol15_shadow_resolutions.jsonl
+    kind: jsonl
+    cadence: trading_daily
+    settle_hours: 24
+    criticality: medium
+    schema_ref: jsonl
+    allow_empty_accumulating: true
+    expected_state: planned
+    timestamp_field: resolved_session
+  - id: timeseries_v15_vol_constants
+    path: data/timeseries_v15_vol/constants/*.json
+    kind: immutable_files
+    cadence: event
+    criticality: high
+    schema_ref: json_object
+  - id: timeseries_v15_vol_prereg
+    path: data/timeseries_v15_vol/prereg/*.json
     kind: immutable_files
     cadence: event
     criticality: medium

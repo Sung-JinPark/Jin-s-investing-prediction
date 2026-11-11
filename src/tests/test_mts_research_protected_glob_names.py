@@ -48,6 +48,24 @@ AUDIT_FILES = (
     "data/mts_research/contracts/coherence_monitor_thresholds_v1.json",
     "data/mts_research/contracts/daily6m_display_constants_v1.json",
     "data/mts_research/contracts/v8_display_constants_v1.json",
+    # U2a (2026-11-11): ingest-triage 관문·정책·보호 워크플로 편집 영수증
+    "src/ai_fc/mts_research/triage_gate.py",
+    "src/tests/test_mts_research_triage_gate.py",
+    "src/tests/test_mts_research_triage_wiring.py",
+    "data/mts_research/contracts/ingest_triage_policy_v1.json",
+    "data/mts_research/contracts/protected_workflow_edit_receipts_v1.json",
+    # U6·U7 (2026-11-11): V8 공식 라벨 basis 핀(U7)·V13 라이브 판정 보고·적용 경로(V13-D14/D15)·점프 라벨(V13-D16)
+    "src/ai_fc/mts_research/label_basis.py",
+    "data/mts_research/contracts/v8_official_label_basis_v1.json",
+    "src/tests/test_mts_research_v8_official_basis.py",
+    "src/ai_fc/timeseries_v13/verdict_report.py",
+    "src/ai_fc/timeseries_v13/verdict_ledger.py",
+    "src/ai_fc/timeseries_v13/verdict_apply.py",
+    "src/ai_fc/timeseries_v13/verdict_replay.py",
+    "data/timeseries_v13/ledgers/live_verdict_applications.jsonl",
+    "src/tests/test_timeseries_v13_verdict_report.py",
+    "src/tests/test_timeseries_v13_verdict_apply.py",
+    "src/tests/test_timeseries_v13_jump_caveat.py",
 )
 
 AUDIT_GLOBS = (

@@ -714,6 +714,189 @@ def cmd_timeseries_v8_verify() -> None:
         raise typer.Exit(code=1)
 
 
+# ── U3: V15 정합성 섀도 verb 11개 (참고 의견, 매매 신호 아님 — verdict 는 사람 실행) ─────────────────
+@app.command("timeseries-v15-plan")
+def cmd_timeseries_v15_plan(
+    event: str = typer.Option("workflow_dispatch", "--event"),
+    schedule: str = typer.Option("", "--schedule"),
+    mode: str = typer.Option("auto", "--mode"),
+    v8_run_head_sha: str = typer.Option("", "--v8-run-head-sha"),
+    github_output: str | None = typer.Option(None, "--github-output"),
+) -> None:
+    """V15 섀도 워크플로 계획(대기 팔·V8 입력 스냅숏·A5 발행·MDE·A0 identity) — 쓰기 없음."""
+    from .timeseries_v15.plan import github_output_lines, plan_run
+
+    result = _timeseries_exit(plan_run, config.ROOT, event=event, schedule=schedule, mode=mode,
+                              v8_run_head_sha=v8_run_head_sha or None)
+    if github_output:
+        with open(github_output, "a", encoding="utf-8") as handle:
+            for line in github_output_lines(result):
+                handle.write(line + "\n")
+    typer.echo(json.dumps(result, ensure_ascii=False, indent=2))
+
+
+@app.command("timeseries-v15-forecast")
+def cmd_timeseries_v15_forecast(
+    arm: str = typer.Option(..., "--arm", help="A0..A5"),
+    stage_out: str = typer.Option(..., "--stage-out", help="staging JSON 경로(원장 쓰기 없음)"),
+    v8_forecast_id: str | None = typer.Option(None, "--v8-forecast-id"),
+    data_root: str | None = typer.Option(None, "--data-root", help="V8 cutoff 시점 main 스냅숏 worktree"),
+    snapshot_sha: str | None = typer.Option(None, "--snapshot-sha"),
+    v8_run_head_sha: str = typer.Option("", "--v8-run-head-sha"),
+    issue_now: bool = typer.Option(False, "--issue-now", help="A5 — 발행 시각을 knowledge_cutoff 로"),
+) -> None:
+    """V15 팔 1개를 V8 원점·입력 스냅숏에서 계산해 staging 에만 쓴다(track_open 필요)."""
+    from pathlib import Path as _Path
+
+    from .timeseries_v15.pipeline import stage_arm_forecast
+
+    result = _timeseries_exit(
+        stage_arm_forecast, config.ROOT, arm=arm, stage_out=_Path(stage_out), v8_forecast_id=v8_forecast_id,
+        data_root=_Path(data_root) if data_root else None, snapshot_sha=snapshot_sha, issue_now=issue_now,
+        v8_run_head_sha=v8_run_head_sha or None,
+    )
+    typer.echo(json.dumps(result, ensure_ascii=False, indent=2))
+
+
+@app.command("timeseries-v15-collect")
+def cmd_timeseries_v15_collect(
+    staging: str = typer.Option(..., "--staging"),
+    expected_arms: str = typer.Option("[]", "--expected-arms", help='JSON 배열 — 예: ["A0","A1"]'),
+    v8_forecast_id: str = typer.Option("", "--v8-forecast-id"),
+    a5: bool = typer.Option(False, "--a5", help="A5 발행 마감(다음 세션 open − 300s) 검사 뒤 append"),
+) -> None:
+    """A0 를 V8 행과 대조(≤1e-12)하고 A0..A4 순으로 해시체인 원장에 append — identity FAIL 원점도 커밋."""
+    from pathlib import Path as _Path
+
+    from .timeseries_v15.pipeline import collect_a5, collect_staged
+
+    if a5:
+        result = _timeseries_exit(collect_a5, config.ROOT, staging=_Path(staging))
+    else:
+        arms = json.loads(expected_arms)
+        if not isinstance(arms, list) or not v8_forecast_id:
+            typer.echo("--expected-arms(JSON 배열)·--v8-forecast-id 가 필요하다", err=True)
+            raise typer.Exit(code=1)
+        result = _timeseries_exit(collect_staged, config.ROOT, staging=_Path(staging), expected_arms=arms,
+                                  v8_forecast_id=v8_forecast_id)
+    typer.echo(json.dumps(result, ensure_ascii=False, indent=2))
+
+
+@app.command("timeseries-v15-resolve")
+def cmd_timeseries_v15_resolve() -> None:
+    """V15 예측 원장 두 개의 성숙 지평을 xnas_v1 라벨로 채점(append-only, 개정은 supersedes 행)."""
+    from .timeseries_v15.pipeline import resolve_v15
+
+    result = _timeseries_exit(resolve_v15, config.ROOT)
+    typer.echo(json.dumps(result, ensure_ascii=False, indent=2))
+
+
+@app.command("timeseries-v15-status")
+def cmd_timeseries_v15_status() -> None:
+    """건수·도달 여부·T* 만 담은 상태 파일을 다시 쓴다(d̄·CI 없음)."""
+    from .timeseries_v15.pipeline import write_status
+
+    result = _timeseries_exit(write_status, config.ROOT)
+    typer.echo(json.dumps(result["counts"], ensure_ascii=False, indent=2))
+
+
+@app.command("timeseries-v15-verify")
+def cmd_timeseries_v15_verify() -> None:
+    """V15 무결성만 검증(체인·kernel·fork patch·rule hash·판정 코드·prereg 핀) — identity 는 health 가 본다."""
+    from .timeseries_v15.pipeline import verify_v15
+
+    result = _timeseries_exit(verify_v15, config.ROOT)
+    typer.echo(json.dumps(result, ensure_ascii=False, indent=2))
+    if not result["ok"]:
+        raise typer.Exit(code=1)
+
+
+@app.command("timeseries-v15-health")
+def cmd_timeseries_v15_health(
+    fail_on_identity_streak: bool = typer.Option(False, "--fail-on-identity-streak"),
+    ack_identity_streak: bool = typer.Option(False, "--ack-identity-streak",
+                                             help="사람 확인 — attempts 에 identity_streak_ack 1행(로컬·PR 로 머지)"),
+    reason: str = typer.Option("", "--reason"),
+) -> None:
+    """커밋 뒤 identity 연속 실패(최근 3개 V8 원점) 검사 — 쓰기 없음(ack 제외)."""
+    from .timeseries_v15.pipeline import ack_identity_streak as _ack
+    from .timeseries_v15.pipeline import health_v15
+
+    if ack_identity_streak:
+        typer.echo(json.dumps(_timeseries_exit(_ack, config.ROOT, reason=reason), ensure_ascii=False, indent=2))
+        return
+    result = _timeseries_exit(health_v15, config.ROOT)
+    typer.echo(json.dumps(result, ensure_ascii=False, indent=2))
+    if fail_on_identity_streak and result["alert"]:
+        typer.echo("V15 A0 identity 가 최근 3개 V8 원점 연속 실패 — 사람 확인 필요(행은 이미 커밋됨)", err=True)
+        raise typer.Exit(code=1)
+
+
+@app.command("timeseries-v15-mde-replay")
+def cmd_timeseries_v15_mde_replay(
+    arm: str = typer.Option(..., "--arm", help="A0..A5"),
+    data_snapshot_sha: str = typer.Option(..., "--data-snapshot-sha"),
+    stage_out: str = typer.Option(..., "--stage-out"),
+) -> None:
+    """설계창(2007~2014, 2014-12-31 절단) 결정론 재생 — 수치모델 예외, MDE 참조 전용, staging 에만 쓴다."""
+    from pathlib import Path as _Path
+
+    from .timeseries_v15.mde import design_replay
+    from .timeseries_v15.pipeline import _write_json
+
+    payload = _timeseries_exit(design_replay, config.ROOT, arm=arm, data_snapshot_sha=data_snapshot_sha)
+    _write_json(_Path(stage_out), payload)
+    typer.echo(json.dumps({"arm": arm, "origin_count": payload["origin_count"], "stage_out": stage_out},
+                          ensure_ascii=False, indent=2))
+
+
+@app.command("timeseries-v15-mde-summary")
+def cmd_timeseries_v15_mde_summary(staging: str = typer.Option(..., "--staging")) -> None:
+    """MDE 7파일(replay 6 + mde_v1) 원자 쓰기 — 전부 또는 없음, 하나라도 있으면 거부(write-once)."""
+    from pathlib import Path as _Path
+
+    from .timeseries_v15.mde import write_mde_prereg
+
+    result = _timeseries_exit(write_mde_prereg, config.ROOT, staging=_Path(staging))
+    typer.echo(json.dumps(result, ensure_ascii=False, indent=2))
+
+
+@app.command("timeseries-v15-a0-identity")
+def cmd_timeseries_v15_a0_identity(
+    v8_forecast_id: str | None = typer.Option(None, "--v8-forecast-id"),
+    data_root: str | None = typer.Option(None, "--data-root"),
+    snapshot_sha: str | None = typer.Option(None, "--snapshot-sha"),
+    stage_out: str | None = typer.Option(None, "--stage-out"),
+    record: str | None = typer.Option(None, "--record", help="staged identity JSON → 새 a<N> 시도 파일(write-once)"),
+) -> None:
+    """A0 라이브 identity 시도(라벨 미열람) — 계산은 staging 에, --record 는 새 시도 파일만 쓴다."""
+    from pathlib import Path as _Path
+
+    from .timeseries_v15.pipeline import a0_identity_attempt, record_identity_attempt
+
+    if record:
+        result = _timeseries_exit(record_identity_attempt, config.ROOT, staged=_Path(record))
+    else:
+        if not (v8_forecast_id and data_root and snapshot_sha and stage_out):
+            typer.echo("--v8-forecast-id·--data-root·--snapshot-sha·--stage-out 가 필요하다", err=True)
+            raise typer.Exit(code=1)
+        result = _timeseries_exit(a0_identity_attempt, config.ROOT, v8_forecast_id=v8_forecast_id,
+                                  data_root=_Path(data_root), snapshot_sha=snapshot_sha, stage_out=_Path(stage_out))
+    typer.echo(json.dumps(result, ensure_ascii=False, indent=2))
+
+
+@app.command("timeseries-v15-verdict")
+def cmd_timeseries_v15_verdict(
+    family: str = typer.Option(..., "--family", help="superiority | noninferiority"),
+    append: bool = typer.Option(False, "--append", help="T*_F(또는 마감 컷) 뒤 가족당 1회만 — 사람 실행"),
+) -> None:
+    """V15 가족 판정 — 기본 출력만(T* 전에는 insufficient·건수). 승격·화면·게이트와 연결되지 않는다."""
+    from .timeseries_v15.pipeline import verdict_v15
+
+    result = _timeseries_exit(verdict_v15, config.ROOT, family=family, append=append)
+    typer.echo(json.dumps(result, ensure_ascii=False, indent=2))
+
+
 @app.command("timeseries-daily6m-forecast")
 def cmd_timeseries_daily6m_forecast(
     as_of: str | None = typer.Option(None, "--as-of", help="시간대가 있는 발행 시각"),
@@ -770,6 +953,57 @@ def cmd_timeseries_daily6m_verify() -> None:
         raise typer.Exit(code=1)
 
 
+# ── U4: daily6m v2 섀도 verb 5개 (비공개 연구 원장, v1 불변, 참고 의견) ──────────────────────────────
+@app.command("daily6m-v2-forecast")
+def cmd_daily6m_v2_forecast(as_of: str | None = typer.Option(None, "--as-of")) -> None:
+    """daily6m v2 섀도: 최신 v1 원점과 같은 입력으로 세 팔을 발행한다 (비공개·v1 불변)."""
+    from .timeseries_daily6m_v2.pipeline import forecast_daily6m_v2
+
+    result = _timeseries_exit(forecast_daily6m_v2, config.ROOT, as_of=as_of)
+    typer.echo(json.dumps({k: result.get(k) for k in ("status", "run_id", "paired_v1_forecast_id", "pair_status",
+                                                      "origin_session", "skipped", "reasons")}, ensure_ascii=False, indent=2))
+
+
+@app.command("daily6m-v2-resolve")
+def cmd_daily6m_v2_resolve(as_of: str | None = typer.Option(None, "--as-of")) -> None:
+    """v1 해소 원장의 고정 종가로 v2 세 팔을 쌍대 채점한다 (append-only)."""
+    from .timeseries_daily6m_v2.pipeline import resolve_daily6m_v2
+
+    typer.echo(json.dumps(_timeseries_exit(resolve_daily6m_v2, config.ROOT, as_of=as_of), ensure_ascii=False, indent=2))
+
+
+@app.command("daily6m-v2-scorecard")
+def cmd_daily6m_v2_scorecard() -> None:
+    """비중첩 솎음 표본 판정(문턱 첫 도달 시 1회 영수증)과 서술 지표를 원장에서 결정론 재생성한다 (표시 없음)."""
+    from .timeseries_daily6m_v2.scorecard import write_scorecard
+
+    result = _timeseries_exit(write_scorecard, config.ROOT)
+    typer.echo(json.dumps({k: result.get(k) for k in ("n_runs", "n_pairs_missing", "thinned_counts", "verdicts_appended")},
+                          ensure_ascii=False, indent=2))
+
+
+@app.command("daily6m-v2-verify")
+def cmd_daily6m_v2_verify() -> None:
+    """v2 해시체인·선택 상태 체인·쌍대 해소 재계산·판정 원장 재계산·v1 읽기 전용성을 검증한다."""
+    from .timeseries_daily6m_v2.pipeline import verify_daily6m_v2
+
+    result = _timeseries_exit(verify_daily6m_v2, config.ROOT)
+    typer.echo(json.dumps(result, ensure_ascii=False, indent=2))
+    if not result.get("ok"):
+        raise typer.Exit(code=1)
+
+
+@app.command("daily6m-v2-design-check")
+def cmd_daily6m_v2_design_check() -> None:
+    """설계창(2007-2014) 상수를 아카이브에서 재계산해 사전등록 파일과 대조한다 (로컬 약 14분, 실측 829초)."""
+    from .timeseries_daily6m_v2.design import check_design_constants
+
+    result = _timeseries_exit(check_design_constants, config.ROOT)
+    typer.echo(json.dumps(result, ensure_ascii=False, indent=2))
+    if not result.get("ok"):
+        raise typer.Exit(code=1)
+
+
 @app.command("timeseries-v13-vol-latest")
 def cmd_timeseries_v13_vol_latest() -> None:
     """V13-VOL 동결 계수로 최신 변동성 이벤트 기준율 포인터를 fail-closed 발행한다 (재적합 없음)."""
@@ -792,16 +1026,46 @@ def cmd_timeseries_v13_vol_resolve() -> None:
 def cmd_timeseries_v13_vol_live_verdict(
     draws: int = typer.Option(120, "--draws", help="y-block 귀무 추출 수 (holdout 과 동일 기본 120)"),
     as_json: bool = typer.Option(False, "--json", help="표 대신 JSON 전체를 출력"),
+    as_of: str = typer.Option("", "--as-of", help="resolved_session 이 이 날짜 이하인 행만(재현용)"),
 ) -> None:
     """V13-VOL 라이브 전진 판정 **산술만** 인쇄한다 (읽기 전용 — 원장·포인터·계약 무수정, 강등 적용 없음).
 
     셀당 성숙 원점 60 미만이면 '표본 부족'만, 60 이상이면 계약 live_forward_gate 의 쌍대 손실차 CI90·
     y-block 귀무·degeneracy_guard·T7 집계를 그대로 계산한다. 결과 전에 만든 판정 코드다.
+    V13-D14 보고 확장(로그점수·Murphy·두 반창 상수·RV 기계확정·체크포인트)은 인쇄 전용이다 —
+    `--draws` 는 전체 표본 status 에만 걸리고 checkpoint 필드는 120 고정이다.
     """
     from .timeseries_v13.live_verdict import live_verdict, main_json, render_table
 
-    result = _timeseries_exit(live_verdict, config.ROOT, draws=draws)
+    result = _timeseries_exit(live_verdict, config.ROOT, draws=draws, as_of=as_of or None)
     typer.echo(main_json(result) if as_json else render_table(result))
+
+
+@app.command("timeseries-v13-vol-apply-verdict")
+def cmd_timeseries_v13_vol_apply_verdict(
+    approval_receipt: str = typer.Option("", "--approval-receipt",
+                                         help="approvals.jsonl 의 V13-D15 영수증 id (없으면 원장을 읽기 전에 거부)"),
+    dry_run: bool = typer.Option(False, "--dry-run", help="계산만 하고 적용 원장에 쓰지 않는다"),
+    verify_only: bool = typer.Option(False, "--verify-only",
+                                     help="적용 원장 엄격 검증만(쓰기 0, 영수증 불필요) — 오류 있으면 종료코드 1"),
+) -> None:
+    """★ 원장 쓰기: 라이브 판정 체크포인트(성숙 60, 이후 +20)의 계약 산술을 계산해 적용 원장에 append 한다.
+
+    사람이 대화형 세션에서 실행한다(워크플로·예약 작업·cron 에이전트 금지 — CI 환경변수면 거부). 표본은 해상 원장에
+    처음 기록된 순서로 앞 k 개 — 늦게 돌려도 결과가 같다. 성숙이 체크포인트에 못 미치면 아무것도 쓰지 않는다(조기 적용 없음).
+    강등은 영구이며 해제 경로가 없다. 참고 의견, 매매 신호 아님.
+    """
+    from .timeseries_v13.verdict_apply import apply_live_verdicts, verify_live_verdict_applications
+
+    if verify_only:
+        result = _timeseries_exit(verify_live_verdict_applications, config.ROOT)
+        typer.echo(json.dumps(result, ensure_ascii=False, indent=2))
+        if not result["ok"]:
+            raise typer.Exit(code=1)
+        return
+    result = _timeseries_exit(apply_live_verdicts, config.ROOT,
+                              approval_receipt_id=approval_receipt, dry_run=dry_run)
+    typer.echo(json.dumps(result, ensure_ascii=False, indent=2))
 
 
 @app.command("timeseries-v13-vol-holdout")
@@ -834,9 +1098,69 @@ def cmd_timeseries_v13_vol_verify() -> None:
     result["resolutions"] = resolutions
     result["ok"] = bool(result["ok"] and resolutions["ok"])
     result["errors"] = list(result["errors"]) + list(resolutions["errors"])
+    # V13-D15 적용 원장 — 이 verb 는 보호 라이브 워크플로의 commit 앞 단계다. 적용 원장 문제로 축적을 멈추지 않는다:
+    # 결과는 싣고, 오류는 경고로만. 엄격 실패는 `timeseries-v13-vol-apply-verdict --verify-only` 와 verify.yml pytest.
+    warnings = list(result.get("warnings") or [])
+    try:
+        from .timeseries_v13.verdict_apply import verify_live_verdict_applications
+        applications = verify_live_verdict_applications(config.ROOT)
+        result["verdict_applications"] = applications
+        warnings += [f"verdict_applications: {e}" for e in applications["errors"]]
+        warnings += [f"verdict_applications: {w}" for w in applications["warnings"]]
+    except Exception as exc:  # noqa: BLE001 — 축적 경로 보호
+        result["verdict_applications"] = {"ok": None, "error": f"{type(exc).__name__}: {exc}"}
+        warnings.append(f"verdict_applications: check failed — {type(exc).__name__}: {exc}")
+    result["warnings"] = warnings
     typer.echo(json.dumps(result, ensure_ascii=False, indent=2))
     if not result["ok"]:
         raise typer.Exit(code=1)
+
+
+# ── U5: V15-VOL 섀도 verb 4개 (참고 의견, 매매 신호 아님 — verdict 는 수동·인쇄 전용) ──────────────
+@app.command("timeseries-v15-vol-shadow")
+def cmd_timeseries_v15_vol_shadow() -> None:
+    """V15-VOL 섀도: V13 라이브 원장 행에서 3팔(R1·R2·R3)을 동결 상수로 유도해 append-only 원장에 기록한다 (표시 없음)."""
+    from .timeseries_v15_vol.shadow import publish_shadow_v15_vol
+
+    result = _timeseries_exit(publish_shadow_v15_vol, config.ROOT)
+    typer.echo(json.dumps(result, ensure_ascii=False, indent=2))
+
+
+@app.command("timeseries-v15-vol-resolve")
+def cmd_timeseries_v15_vol_resolve() -> None:
+    """V15-VOL 섀도 행을 V13 해상 라벨(XNAS 세션 가드)로 채점해 append-only 해상 원장에 남긴다 (판정 없음)."""
+    from .timeseries_v15_vol.resolve import resolve_shadow_v15_vol
+
+    result = _timeseries_exit(resolve_shadow_v15_vol, config.ROOT)
+    typer.echo(json.dumps(result, ensure_ascii=False, indent=2))
+
+
+@app.command("timeseries-v15-vol-verify")
+def cmd_timeseries_v15_vol_verify() -> None:
+    """V15-VOL 계약·상수 핀·판정 코드 핀·원장 해시·V13 행 재계산·완전성·라벨 동일성·무장행을 검증한다."""
+    from .timeseries_v15_vol.resolve import verify_shadow_resolutions_v15_vol
+    from .timeseries_v15_vol.shadow import verify_shadow_v15_vol
+
+    result = _timeseries_exit(verify_shadow_v15_vol, config.ROOT)
+    resolutions = _timeseries_exit(verify_shadow_resolutions_v15_vol, config.ROOT)
+    result["resolutions"] = resolutions
+    result["ok"] = bool(result["ok"] and resolutions["ok"])
+    result["errors"] = list(result["errors"]) + list(resolutions["errors"])
+    typer.echo(json.dumps(result, ensure_ascii=False, indent=2))
+    if not result["ok"]:
+        raise typer.Exit(code=1)
+
+
+@app.command("timeseries-v15-vol-verdict")
+def cmd_timeseries_v15_vol_verdict(
+    draws: int = typer.Option(120, "--draws", help="블록 부호반전 귀무 추출 수 (계약 기본 120)"),
+    as_json: bool = typer.Option(False, "--json", help="표 대신 JSON 전체를 출력"),
+) -> None:
+    """V15-VOL 섀도 판정 **산술만** 인쇄한다 (읽기 전용 — 쓰기 0, 승격·표시 적용 없음, 참고 의견)."""
+    from .timeseries_v15_vol.verdict import main_json, render_table, shadow_verdict
+
+    result = _timeseries_exit(shadow_verdict, config.ROOT, draws=draws)
+    typer.echo(main_json(result) if as_json else render_table(result))
 
 
 @app.command("timeseries-v2-preflight")
@@ -2092,6 +2416,22 @@ def cmd_due(
         typer.echo(f"[빈티지 경고 ] base_rates/{name:24s} 최신 수집일 {last} "
                    f"({config.BASE_RATE_VINTAGE_WARN_DAYS}일+ 경과 — 갱신 검토)")
 
+    # V13 라이브 판정 체크포인트 도래 (V13-D15 — 경고만, 적용은 사람이 대화형 세션에서 verb 실행)
+    v13_lines: list[str] = []
+    try:
+        from .timeseries_v13.verdict_ledger import pending_from_root
+        for item in pending_from_root(root):
+            if item.get("error"):
+                v13_lines.append(f"[V13 판정 도래] 적용 원장 판독 실패: {item['error']}")
+            else:
+                v13_lines.append(f"[V13 판정 도래] {item['cell']:10s} 성숙 {item['matured']}/{item['checkpoint']} — 적용 기록 없음 "
+                                 f"→ python -m ai_fc timeseries-v13-vol-apply-verdict --approval-receipt {item['receipt']} "
+                                 "(대화형 세션만 · 예약 작업 금지)")
+    except Exception as exc:  # noqa: BLE001 — due 본 기능을 막지 않는다
+        v13_lines.append(f"[V13 판정 도래] 확인 실패: {type(exc).__name__}: {exc}")
+    for line in v13_lines:
+        typer.echo(line, err=as_json)   # --json 이면 stderr — stdout JSON 을 오염시키지 않는다
+
     if explain:
         from .registry import active_interval_days
         typer.echo("\n── 질문별 다음 due 근거 ──")
@@ -2106,7 +2446,7 @@ def cmd_due(
 
     if notify:
         from .notify import send_digest
-        send_digest(due)
+        send_digest(due, extra_lines=v13_lines)
 
 
 @app.command("migrate-schedule")

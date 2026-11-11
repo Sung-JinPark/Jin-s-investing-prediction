@@ -87,12 +87,16 @@ def test_bot_data_commits_trigger_pages_and_verification() -> None:
     # timeseries-v8-daily (2026-10-07): 일일 표시 예측 커밋도 GITHUB_TOKEN 푸시라 같은 이유로 등록.
     # market-mood-refresh·source-monitoring (2026-09-18): 공포·탐욕 커밋이 목록에 없어서
     # 다른 워크플로가 우연히 재배포할 때까지 화면이 원천보다 하루 늦었다(원천 29, 화면 26).
+    # mts-coherence-monitor (U1, 2026-11-11): 감시 배지 derived 커밋도 GITHUB_TOKEN 푸시라 같은 이유로 등록.
+    # v15-coherence-shadow (U3)·v15-vol-shadow (U5, 2026-11-11): 섀도 원장 커밋도 GITHUB_TOKEN 푸시 — 신뢰 패널 원장 감사·verify 재검증용(표시 없음).
+    # daily6m-v2-shadow (U4) 는 verify·ops 에만 등록하고 pages 에는 넣지 않는다(비공개·고빈도).
     expected = (
         'workflows: ["investing-refresh", "scenario-refresh", "ai-regime-refresh", '
         '"statistics-refresh", "timeseries-refresh", "timeseries-v5-refresh", '
         '"timeseries-v2-refresh", "timeseries-v8-shadow", "timeseries-v8-daily", '
-        '"timeseries-v13-vol-live", '
-        '"market-mood-refresh", "source-monitoring", "timeseries-daily6m"]'
+        '"timeseries-v13-vol-live", "v15-vol-shadow", '
+        '"market-mood-refresh", "source-monitoring", "timeseries-daily6m", '
+        '"mts-coherence-monitor", "v15-coherence-shadow"]'
     )
     import yaml
 

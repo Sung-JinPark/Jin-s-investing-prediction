@@ -60,6 +60,12 @@ V2_KEYS = {
     "scenario_track": dict,
 }
 
+# MTS 표시 진단(U1, 계약 mts_display_diagnostics_v1) — 선택 키. 라벨·표본 수만, 확률 공간 아님.
+MTS_DIAG_BADGE_IDS = {"C1", "C6", "C8", "C12", "L1"}
+MTS_DIAG_ORIGIN_BADGES = {"C1", "C6", "C8"}
+MTS_DIAG_BASES = {"ledger_grid", "xnas_diagnostic_v1.matched_ledger_rows", "xnas_diagnostic_v1.all_closed_targets"}
+MTS_DIAG_STATES = {"breach", "normal", "insufficient", "no_pinned_threshold", "near_tail"}
+
 
 def schema() -> dict[str, Any]:
     types = {dict: "object", list: "array"}
@@ -278,6 +284,13 @@ def schema() -> dict[str, Any]:
         },
     }
     properties["event_forecasts"] = {"type": "object"}
+    properties["mts_display_diagnostics"] = {
+        "type": "object",
+        "required": ["schema_version", "contract_id", "status", "display_only", "badges"],
+        "properties": {"schema_version": {"const": 1}, "contract_id": {"const": "mts_display_diagnostics_v1"},
+                       "display_only": {"const": True}, "numbers_changed": {"const": False},
+                       "auto_reforecast": {"const": False}, "badges": {"type": "array", "maxItems": 8}},
+    }
     properties["event_consensus"] = {"type": "object"}
     properties["trendlines"] = {
         "type": "object", "required": ["schema_version", "contract_id", "status", "assets"],
@@ -409,6 +422,7 @@ def validate(model: dict[str, Any]) -> list[str]:
                 errors.append("timeseries V8 hidden surface must not carry history or freshness numbers")
         if not visible and (timeseries.get("horizons") or timeseries.get("path")):
             errors.append("timeseries validation-pending surface must hide numbers")
+    errors.extend(_validate_mts_display_diagnostics(model))
     v13 = model.get("timeseries_v13_vol")
     if isinstance(v13, dict) and v13:
         # V13-VOL 변동성 base rate — 전용 슬롯. 숫자는 네 게이트 전부 + tier ≥ T2 에서만, T4 값은 존재하지 않는다.
@@ -458,6 +472,20 @@ def validate(model: dict[str, Any]) -> list[str]:
         if tier == "t3_live_card" and publication.get("holdout_status") != "pass" \
                 and publication.get("holdout_caveat_bold") is not True:
             errors.append("timeseries_v13_vol live card without holdout pass must bold the caveat")
+        # V13-D15 적용 원장 — 라이브 강등 셀은 숫자를 싣지 않고, T7 종결이면 카드가 보이지 않는다.
+        demoted = set(v13.get("live_demoted_cells") or [])
+        if visible and demoted & set(cells):
+            errors.append("timeseries_v13_vol live-demoted cell must not carry numbers")
+        # 심층 방어 — 셀 배지의 적용 원장 요약(다른 파생 경로)에서 강등 셀을 다시 뽑아 대조한다.
+        badge_demoted = {str(name) for name, badge in (v13.get("cell_badges") or {}).items()
+                         if isinstance(badge, dict) and isinstance(badge.get("live_verdict"), dict)
+                         and badge["live_verdict"].get("outcome") in ("demotion_applied", "recorded_after_demotion")}
+        if visible and badge_demoted & set(cells):
+            errors.append("timeseries_v13_vol badge-demoted cell must not carry numbers")
+        if visible and badge_demoted - demoted:
+            errors.append("timeseries_v13_vol live_demoted_cells disagrees with cell_badges live_verdict")
+        if visible and any("t7_terminated" in str(r) for r in (gate.get("reasons") or [])):
+            errors.append("timeseries_v13_vol T7-terminated card must be hidden")
     multi_year_stress = model.get("multi_year_stress")
     if isinstance(multi_year_stress, dict):
         try:
@@ -585,6 +613,68 @@ def validate(model: dict[str, Any]) -> list[str]:
             errors.append("o_entry_cohort public summary required")
         if "entries" in cohort:
             errors.append("o_entry_cohort raw entries must not enter data.json")
+    return errors
+
+
+def _validate_mts_display_diagnostics(model: dict[str, Any]) -> list[str]:
+    """U1 감시 배지 선택 키 — 표시 전용·숫자 무결합·원점 일치·공식 basis 단일을 강제한다."""
+    errors: list[str] = []
+    diag = model.get("mts_display_diagnostics")
+    if diag is None:
+        return errors
+    if not isinstance(diag, dict):
+        return ["mts_display_diagnostics must be an object"]
+    if diag.get("contract_id") != "mts_display_diagnostics_v1":
+        errors.append("mts_display_diagnostics contract id mismatch")
+    if diag.get("display_only") is not True or diag.get("numbers_changed") is not False \
+            or diag.get("auto_reforecast") is not False:
+        errors.append("mts_display_diagnostics must stay display-only")
+    if diag.get("notice") != "참고 의견, 매매 신호 아님":
+        errors.append("mts_display_diagnostics must keep reference-opinion notice")
+    if diag.get("basis_mixing") != "prohibited":
+        errors.append("mts_display_diagnostics must prohibit basis mixing")
+    if {"horizons", "path", "probability_up", "quantiles"} & set(diag):
+        errors.append("mts_display_diagnostics must not carry forecast numbers")
+    badges = diag.get("badges")
+    live = diag.get("live")
+    if not isinstance(badges, list):
+        errors.append("mts_display_diagnostics badges must be a list")
+        badges = []
+    if diag.get("status") != "ok" and (badges or live):
+        errors.append("mts_display_diagnostics carries badges without ok status")
+    ts_model = model.get("timeseries") if isinstance(model.get("timeseries"), dict) else {}
+    if ts_model.get("numbers_visible") is not True and (badges or live):
+        errors.append("mts_display_diagnostics badges require a visible V8 card")
+    for badge in badges:
+        bid = badge.get("id") if isinstance(badge, dict) else None
+        if bid not in MTS_DIAG_BADGE_IDS:
+            errors.append(f"mts_display_diagnostics badge {bid} not registered")
+            continue
+        if not isinstance(badge.get("single_episode"), bool) or not badge.get("label"):
+            errors.append(f"mts_display_diagnostics badge {bid} lacks label/single_episode")
+        if bid == "L1":
+            ints = [badge.get(k) for k in ("n", "window_k", "n_shock_days")]
+            if badge.get("h") not in (5, 21) \
+                    or not all(isinstance(v, int) and not isinstance(v, bool) and v >= 0 for v in ints) \
+                    or badge.get("single_episode") is not (badge.get("n_shock_days") == 1):
+                errors.append("mts_display_diagnostics L1 badge malformed")
+        else:
+            counts = [badge.get(k) for k in ("n_flagged", "n_evaluated", "n_episodes")]
+            well_formed = all(isinstance(c, int) and not isinstance(c, bool) and c >= 0 for c in counts)
+            if not well_formed or counts[0] > counts[1] or badge.get("single_episode") is not (counts[2] <= 1):
+                errors.append(f"mts_display_diagnostics badge {bid} counts malformed")
+            if bid in MTS_DIAG_ORIGIN_BADGES and badge.get("card_origin_match") is not True:
+                errors.append(f"mts_display_diagnostics badge {bid} must share the card origin")
+    if live is not None:
+        bases = (live.get("bases") if isinstance(live, dict) else None) or {}
+        if not set(bases) <= MTS_DIAG_BASES:
+            errors.append("mts_display_diagnostics unknown label basis")
+        for name, block in bases.items():
+            if (isinstance(block, dict) and block.get("official") is True) != (name == "ledger_grid"):
+                errors.append("mts_display_diagnostics only ledger_grid is official")
+            for item in (block.get("horizons") if isinstance(block, dict) else None) or []:
+                if item.get("state") not in MTS_DIAG_STATES or "label" in item or "single_episode" in item:
+                    errors.append(f"mts_display_diagnostics {name} horizon carries an unregistered state/label")
     return errors
 
 
