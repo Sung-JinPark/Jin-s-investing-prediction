@@ -34,7 +34,7 @@
 | C2 | as-displayed composite on 2000-03-10 is reported and drawn on the gauge | 96.1 | 통과 |
 | C3 | as-displayed composite 1996-12-31 < 1998-12-31 < 1999-12-31 < 2000-03-10 | [44.5, 44.7, 83.6, 96.1] | 통과 |
 | C4 | composite changed on at least 45 of the last 60 sessions at 0.1 resolution | 57 | 통과 |
-| C5 | v5 versus v6 on one ledger snapshot with contributions listed for the latest date | {'v5': None, 'v6': 29.8} | 통과 |
+| C5 | v5 versus v6 on one ledger snapshot with contributions listed for the latest date | {'v5': 54, 'v6': 29.8} | 통과 |
 
 ## 게이트 (틀릴 수 있는 검증 — 임계값은 v6.0 등록값 그대로)
 
@@ -56,7 +56,7 @@
 ## 기준일의 값
 
 - 지수 29.8 · 가정 범위 20.8 (drop_real) ~ 70.9 (drop_speed) · 본 사양과 다른 변형 6개 / 14개
-- v5(현재 대표값) None
+- v5(현재 대표값) 54
 
 | 부문 | 지표 | 점수 | 가중 | 기여 | 기간 | 근거 |
 |---|---|---|---|---|---|---|

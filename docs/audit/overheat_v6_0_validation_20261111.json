@@ -343,7 +343,7 @@
    },
    "C5": {
     "value": {
-     "v5": null,
+     "v5": 54,
      "v6": 29.8
     },
     "passed": true
@@ -646,9 +646,13 @@
  },
  "v5": {
   "status": "ok",
-  "index": null
+  "index": 54
  },
- "frozen_matches_recomputation": null,
+ "frozen_matches_recomputation": {
+  "members": true,
+  "weights": true,
+  "anchors": true
+ },
  "protected_unchanged": true,
  "protected_sha256": {
   "data/statistics/official_store/ledgers/normalized_observations.jsonl": "d619f6d2065be08add66510eb0201d3c8be7830ad18ec84b01503483c102683e",
@@ -656,5 +660,5 @@
   "data/statistics/ipo/ritter_ipoall_monthly.json": "a9cf4fbf4e30ec1d8a2359c3a0aa112a334899a574c78efef2093847e297dbde",
   "data/contracts/dotcom_overheat_index_v5.yaml": "2f0e2ebc5ca7879672bd58bf2de45813052009d4697ba1bbe1dd3517bd236022"
  },
- "generated_at": "2026-11-11T04:40:30+00:00"
+ "generated_at": "2026-11-11T04:43:07+00:00"
 }

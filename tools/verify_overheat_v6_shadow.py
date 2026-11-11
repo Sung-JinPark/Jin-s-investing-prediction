@@ -88,7 +88,7 @@ def run(root: Path, contract_relative: Path, as_of: date) -> dict[str, Any]:
                          "contribution": round(today["contributions"][key], 2),
                          "period": today["rows"][key]["period"], "basis": today["rows"][key]["basis"]})
     gates["construction_checks"]["C5"] = {
-        "value": {"v5": v5.get("index"), "v6": None if today["composite"] is None else round(today["composite"], 1)},
+        "value": {"v5": v5.get("overheat_pct"), "v6": None if today["composite"] is None else round(today["composite"], 1)},
         "passed": today["composite"] is not None and v5.get("status") == "ok",
     }
     key_values = {d: (None if (v := v6._value_on(history, date.fromisoformat(d))) is None else round(v, 1))
@@ -115,7 +115,7 @@ def run(root: Path, contract_relative: Path, as_of: date) -> dict[str, Any]:
         "admission": computed, "gates": gates, "verdict": verdict,
         "latest_rows": rows, "families_today": {k: round(v, 1) for k, v in today["families"].items()},
         "effective_weights": {k: round(v, 2) for k, v in (today.get("effective_weights") or {}).items()},
-        "key_values": key_values, "v5": {"status": v5.get("status"), "index": v5.get("index")},
+        "key_values": key_values, "v5": {"status": v5.get("status"), "index": v5.get("overheat_pct")},
         "frozen_matches_recomputation": same_as_registered,
         "protected_unchanged": before == after, "protected_sha256": after,
     }
