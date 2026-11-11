@@ -1944,6 +1944,37 @@ body[data-view="future"] .page-heading .page-lede{margin:6px 0 0;font-size:12px}
 .oh-fill{display:block;height:100%;border-radius:5px;background:var(--oh)}
 .oh-track .oh-peak{top:-3px;bottom:-3px}
 .oh-note{margin:14px 0 0;color:#8a877e;font-size:11.5px}
+/* 닷컴 정점 대비 부문별 프로필 (dotcom_overheat_profile_v1) — 합산 없음, 색 신호등 없음 */
+.oh-profile{margin-top:22px;padding-top:16px;border-top:1px solid var(--line)}
+.oh-profile h3{margin:0 0 8px;color:#65635d;font-size:12px;font-weight:700}
+.oh-profile h3 small{margin-left:8px;color:#8a877e;font-weight:500}
+.ohp-family{display:grid;grid-template-columns:104px minmax(0,1fr);gap:10px;align-items:start;padding:7px 0;border-bottom:1px solid #f0efea}
+.ohp-family.ohp-headrow{padding:0;border-bottom:0}
+.ohp-family h4{margin:0;padding-top:4px;font-size:13px;font-weight:700;word-break:keep-all}
+.ohp-family ul{list-style:none;margin:0;padding:0;min-width:0}
+.ohp-row{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1.5fr) 44px minmax(0,.95fr);gap:10px;align-items:center;min-width:0;padding:3px 0}
+.ohp-row em{min-width:0;font-style:normal;font-size:13px;line-height:1.35;word-break:keep-all}
+.ohp-track{position:relative;display:block;min-width:0;height:10px;border-radius:5px;background:#efeee8}
+.ohp-fill{position:absolute;top:0;bottom:0;border-radius:5px;background:#3a3934}
+.ohp-fill.is-neg{background:#9aa9b5}
+.ohp-zero,.ohp-peak{position:absolute;top:-3px;bottom:-3px;width:0}
+.ohp-zero{border-left:1px solid #8a877e}
+.ohp-peak{border-left:2px dashed #8c0020}
+.ohp-row strong{font:800 14px/1.1 var(--mono);text-align:right}
+.ohp-meta{min-width:0;color:#706d65;font-size:11px;line-height:1.4;overflow-wrap:anywhere}
+.ohp-none{margin:0;padding-top:4px;color:#8a877e;font-size:12px}
+.ohp-ticks{position:relative;display:block;min-width:0;height:13px}
+.ohp-ticks span{position:absolute;transform:translateX(-50%);color:#8a877e;font:600 10.5px/1 var(--mono)}
+.ohp-ticks span.is-peak{color:#8c0020}
+@media(max-width:760px){
+.ohp-family{grid-template-columns:1fr;gap:2px}
+.ohp-family.ohp-headrow h4{display:none}
+.ohp-row{grid-template-columns:minmax(0,1fr) 44px}
+.ohp-row .ohp-track,.ohp-row .ohp-ticks{grid-column:1/-1;grid-row:2}
+.ohp-row .ohp-meta{grid-column:1/-1;grid-row:3}
+.ohp-headrow .ohp-row em,.ohp-headrow .ohp-row strong,.ohp-headrow .ohp-row .ohp-meta{display:none}
+.ohp-headrow .ohp-row .ohp-ticks{grid-row:1}
+}
 @media(max-width:799px){
 .statistics-overheat{margin-inline:16px;padding:18px 16px 14px}
 .oh-hero{grid-template-columns:1fr;gap:14px}

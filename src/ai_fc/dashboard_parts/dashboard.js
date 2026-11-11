@@ -1415,6 +1415,25 @@ function overheatIndicatorFreshness(row){
   const provisional=info.provisional_through?`잠정 참고 ${String(info.provisional_through).slice(0,7)} 최근 12개월${Number.isFinite(info.provisional_value)?` ${info.provisional_value.toLocaleString()}건`:''} · 확정치와 정의가 달라 지수에 미반영`:'';
   return {period:`${row.id==='ipo_count_operating_12m'?'확정 통계 기간':'통계 기간'} ${period}${source}`,check:`원천 확인 ${formatKstTimestamp(info.last_successful_check)} · ${labels[status]||labels.unverified}`,status,provisional,note:info.note||''};
 }
+/* 닷컴 정점 대비 부문별 프로필 (dotcom_overheat_profile_v1) — 지표별 닮음을 합치지 않고 나란히 보인다.
+   2000년 3월 = 100, 평상 = 0. 지수가 아니므로 합·평균·종합 등급·색 신호등을 만들지 않는다. 대표값은 위의 v5 그대로다.
+   막대는 −50~150 구간에 그리고(벗어나면 끝에서 잘린다) 숫자는 원값을 적는다. */
+function overheatProfileBlock(profile){
+  if(!profile||profile.status!=='ok'||!Array.isArray(profile.families))return '';
+  const LO=-50,HI=150,P=v=>(Math.max(LO,Math.min(HI,Number(v)))-LO)/(HI-LO)*100;
+  const signed=v=>`${Number(v)>0?'+':''}${Math.round(Number(v))}`;
+  const marks=`<b class="ohp-zero" style="left:${P(0).toFixed(1)}%"></b><b class="ohp-peak" style="left:${P(100).toFixed(1)}%"></b>`;
+  const row=r=>{
+    if(r.status!=='ok'||!Number.isFinite(Number(r.score_raw)))return `<li class="ohp-row"><em>${esc(r.label||r.id)}</em><span class="ohp-track">${marks}</span><strong>—</strong><span class="ohp-meta">확인 대기</span></li>`;
+    const a=P(0),b=P(r.score_raw);
+    const meta=r.change_4w!=null?`4주 ${signed(r.change_4w)}${r.high_12m?` · 1년 최고 ${esc(r.high_12m.value)}`:''}`:`${esc(r.period||'')} 자료`;
+    return `<li class="ohp-row"><em>${esc(r.label||r.id)}</em><span class="ohp-track"><i class="ohp-fill${r.score_raw<0?' is-neg':''}" style="left:${Math.min(a,b).toFixed(1)}%;width:${Math.abs(b-a).toFixed(1)}%"></i>${marks}</span><strong>${esc(r.score)}</strong><span class="ohp-meta">${meta}</span></li>`;
+  };
+  const groups=profile.families.map(f=>`<div class="ohp-family"><h4>${esc(f.label||f.id)}</h4>${(f.indicators||[]).length?`<ul>${f.indicators.map(row).join('')}</ul>`:'<p class="ohp-none">통과 지표 없음</p>'}</div>`).join('');
+  return `<div class="oh-profile" data-oh-profile="${esc(profile.as_of||'')}"><h3>닷컴 정점 대비 부문별<small>2000년 3월 = 100 · 평상 = 0</small></h3>`
+    +`<div class="ohp-family ohp-headrow" aria-hidden="true"><h4></h4><div class="ohp-row"><em></em><span class="ohp-ticks"><span style="left:${P(0).toFixed(1)}%">0</span><span class="is-peak" style="left:${P(100).toFixed(1)}%">100</span></span><strong></strong><span class="ohp-meta"></span></div></div>`
+    +groups+`<p class="oh-note">합산 지수 아님 · 확률 아님 · 참고 의견${profile.as_of?` · ${esc(profile.as_of)} 기준`:''}</p></div>`;
+}
 function statisticsOverheatPanel(idx){
   const sig=dotcomOverheatSignal(idx);
   if(!sig)return null;
@@ -1429,6 +1448,7 @@ function statisticsOverheatPanel(idx){
     +`<div class="oh-hero"><div class="oh-score ${overheatTone(sig.pct)}"><span>현재</span><strong>${sig.pct}<small>%</small></strong><p>부문별 ${sig.lo}~${sig.hi}% · 정점 초과 ${sig.beyond}개 / ${sig.included}개</p></div>`
     +`<div class="oh-gauge"><div class="oh-gauge-bar"><i class="oh-span" style="left:${X(sig.lo).toFixed(1)}%;width:${(X(sig.hi)-X(sig.lo)).toFixed(1)}%"></i><b class="oh-peak" style="left:${X(100).toFixed(1)}%"></b><b class="oh-pin" style="left:${X(sig.pct).toFixed(1)}%"></b></div>`
     +`<div class="oh-gauge-scale"><span style="left:0">0%</span><span style="left:${X(50).toFixed(1)}%">50%</span><span class="is-peak" style="left:${X(100).toFixed(1)}%">닷컴 정점 100%</span></div></div></div>`
+    +overheatProfileBlock(DATA.dotcom_overheat_profile)
     +`<div class="oh-grid"><div><h3>부문별</h3><ul class="oh-list">${catRows}</ul></div><div><h3>지표별 ${rows.length}개</h3><ul class="oh-list is-indicators">${indRows}</ul></div></div>`
     +`<p class="oh-note">확률 아님 · 100% = 닷컴 사이클 정점(1995~1999 범위 위치) · 부문 중앙값의 중앙값 · 참고 의견${idx.as_of?` · ${esc(idx.as_of)} 기준`:''}</p><p class="oh-note">통계 기간은 값이 측정된 기간이고 원천 확인은 공개 자료를 확인한 시각입니다. 분기 자료는 다음 발표 전까지 유지됩니다.</p></section>`);
   node.querySelectorAll('[data-oh-jump]').forEach(button=>button.onclick=()=>{
