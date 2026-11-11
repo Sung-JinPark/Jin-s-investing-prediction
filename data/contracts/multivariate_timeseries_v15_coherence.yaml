@@ -77,6 +77,7 @@ provenance:
   revisions:
   - '2026-11-11 r1 (등록 전 리뷰 반영, 결과 없음): 지평별 최소 원점(h63 39), 독립 에피소드 과반 규칙, CRN 강제, family affected_horizons, percentile CI·p 규칙·동점·p 하한, distinct_resample_floor, MDE 단위(Σd/ΣCRPS_A0) 고정'
   - '2026-11-11 r2 (결과 전, 위임 영수증 V15-D0..D4): A2 단일 변형(고정 ½·½), A6·A7 미등록(rejected_arms), A5 비열등 가족 분리(δ_NI +0.01), 우월성 가족 m=12, A0 identity 원점 단위 제외+최근 3원점 연속 실패 시 health 경보, 판정 마감 2028-06-30·따라잡기 2원점, 입력 스냅숏·CRN 시드 규칙, MDE 방법 구체화(2014-12-31 절단·404원점·α/12·대표성 플래그), 포크 최소화(fork_patch_v1); 리뷰 반영 — affected_horizons_rule 폐지·rule_hash_r2 잠금·가족별 기계 컷 T*·identity 시도 파일·health 분리·kernel 에 calendar/bundle 편입·verdict_code_hash·MDE 요약에서 효과 추정치 제거; 구현 리뷰 반영(커밋 전) — T* 를 처음 동시 충족으로 구현 정렬·r1 문구(ci_method·distinct_resample_rule) 복원·MDE 스냅숏 = 체크아웃 HEAD·구현 스모크 공시(smoke_run_r2)'
+  - '2026-11-12 r3 (허용 목록만, 영수증 V15-D0 효력): mde.status computed·values_by_horizon·per_arm 을 data/timeseries_v15/prereg/mde_v1.json(MDE 재생 봇 커밋 07c11f7a203856c0195f26317e15323e2aa445f3, data_snapshot_sha 7cbc63df) 에서 기계 전사(재계산·선택 0), summary_sha256 06df90745a88c3b211a17dccae2f8111dee19e9e859e688e5960764bf50353bb; A0 라이브 identity 시도 전부 = a0_live_identity_2026-11-06_a1.json PASS(max_abs_diff 2.19e-16 ≤ 1e-12, 커밋 e46ab0c0f2d1741108d4fcb1780a2346d4be909e) — FAIL 시도 0; live.first_origin_not_before 2026-11-13(first_origin_not_before_rule 의 보수적 사전값 — 원점 2026-11-13 V8 행은 실측상(예약 생성 11행 전부 원점 뒤 화·수 — 토요일 예약·수동 dispatch 예외는 [미검증]) 화 03:10Z 예약 이후에만 생기므로 r3 머지가 2026-11-17T03:10Z 전이면 규칙값과 같다, 근거·머지 뒤 검증은 DECISIONS 2026-11-12); development_protocol.track_open true; gates.armed true; rule_hash_r2 불변(C9)'
 
 # 표적 — V8 과 같다. 판정 basis 만 XNAS 로 고정한다(모든 팔·A0 공통).
 target:
@@ -191,7 +192,7 @@ combination:
   rule: 팔끼리, 또는 팔과 V8 을 산술 결합(평균·가중)하지 않는다. 승격 후보도 단일 팔이다.
 
 live:
-  first_origin_not_before: null      # r3 기입 — 규칙: revision_control.first_origin_not_before_rule (테스트 P17)
+  first_origin_not_before: '2026-11-13'      # r3 기입 — 규칙: revision_control.first_origin_not_before_rule (테스트 P17)
   pairing:
     origin: A0~A4 = V8 섀도 행 origin 그대로(번들 dates ≤ origin 절단, dates[-1]==origin 단언). A5 = 자체 원점, 같은 ISO 주 V8 원점과 같을 때만 쌍(아니면 origin_mismatch 제외)
     knowledge_cutoff: A0~A4 = V8 행 knowledge_cutoff. A5 = 발행 실행 시각
@@ -291,7 +292,7 @@ verdict_rule:
   no_early_stopping: 지평별 최소 원점 도달 전 중간 판정·조기 채택 금지(중간 표시는 insufficient 로만). 먼저 도달한 지평만 떼어 판정하지 않는다
 
 mde:
-  status: not_computed
+  status: computed
   replay_knowledge_cutoff: '2026-11-11T09:03:44Z'
   replay_knowledge_cutoff_note: 고정 리터럴(위임 지시 수신 상한) — 자기 커밋 시각을 참조하지 않는다
   replay_data_snapshot: MDE 디스패치 잡 6개가 모두 github.sha 를 체크아웃하고 그 HEAD(git rev-parse HEAD)를 각 replay 파일 data_snapshot_sha 로 기록 — 6팔 동일 단언(재현 = 그 SHA worktree)
@@ -306,9 +307,29 @@ mde:
   trial_lengths_note: n_exp = 39 + floor((63−h)/5) — 우월성 T* 시점 예상 쌍 수, 참고
   unit: 상대 CRPS 차 Δ_rel = Σ_o d_o / Σ_o CRPS_A0(o) = ΣCRPS_arm/ΣCRPS_A0 − 1 (음수가 팔 우세). 절대 단위 d̄ 는 Δ_rel × mean CRPS_A0 로 함께 적는다
   method: 설계창(2007-01-01~2014-12-31, 번들 2014-12-31 절단) 결정론 재생의 A0 대비 쌍대 차를 중심화(e=d−mean d)한 잡음 구조 위에서 이동블록 시행 R=2000, 각 시행의 임계 효과 δ_t*(판정과 같은 내부 색인·CI·p·에피소드 — 모두 δ 에 단조)의 90% 분위가 MDE_abs. MDE_rel = MDE_abs / mean CRPS_A0. A5 는 Δ_rel=0 에서 NI pass 확률(power_at_true_zero)만
-  values_by_horizon: {'5': null, '21': null, '63': null}
+  values_by_horizon: {'5': 0.07238613257334321, '21': 0.025463441944893802, '63': 0.04835015486056925}
   values_by_horizon_note: r3 — A1~A3 최댓값(n_min, 보수 헤드라인), A4 제외
-  per_arm: null
+  per_arm:
+    A1:
+      '5': {flags: [], mde_abs_at_nmin: 0.0001651918515792664, mde_rel_at_nexp: 0.007757694112262392, mde_rel_at_nmin: 0.01092428058322053, mean_crps_a0: 0.015121531374157277, mismatched_weeks: 0, n_design_pairs: 404, status: computed, unpaired_weeks: 0}
+      '21': {flags: [], mde_abs_at_nmin: 0.0002657854490280215, mde_rel_at_nexp: 0.006592429569356185, mde_rel_at_nmin: 0.008622811548530705, mean_crps_a0: 0.03082352519617692, mismatched_weeks: 0, n_design_pairs: 404, status: computed, unpaired_weeks: 0}
+      '63': {flags: [], mde_abs_at_nmin: 0.00035542998916871573, mde_rel_at_nexp: 0.006619107111284546, mde_rel_at_nmin: 0.006474231645936614, mean_crps_a0: 0.05489917701535939, mismatched_weeks: 0, n_design_pairs: 404, status: computed, unpaired_weeks: 0}
+    A2:
+      '5': {flags: [], mde_abs_at_nmin: 0.00040821502628492125, mde_rel_at_nexp: 0.020283452056149166, mde_rel_at_nmin: 0.026995614146763033, mean_crps_a0: 0.015121531374157277, mismatched_weeks: 0, n_design_pairs: 404, status: computed, unpaired_weeks: 0}
+      '21': {flags: [], mde_abs_at_nmin: 0.0003654476047324115, mde_rel_at_nexp: 0.008797041282562193, mde_rel_at_nmin: 0.011856126202519445, mean_crps_a0: 0.03082352519617692, mismatched_weeks: 0, n_design_pairs: 404, status: computed, unpaired_weeks: 0}
+      '63': {flags: [], mde_abs_at_nmin: 0.00047079382530749347, mde_rel_at_nexp: 0.008892048060365991, mde_rel_at_nmin: 0.00857560806741743, mean_crps_a0: 0.05489917701535939, mismatched_weeks: 0, n_design_pairs: 404, status: computed, unpaired_weeks: 0}
+    A3:
+      '5': {flags: [], mde_abs_at_nmin: 0.001097778375764118, mde_rel_at_nexp: 0.06251701563576381, mde_rel_at_nmin: 0.07238613257334321, mean_crps_a0: 0.015165589550620416, mismatched_weeks: 3, n_design_pairs: 401, status: computed, unpaired_weeks: 1}
+      '21': {flags: [], mde_abs_at_nmin: 0.0007879060231706052, mde_rel_at_nexp: 0.0189625879407643, mde_rel_at_nmin: 0.025463441944893802, mean_crps_a0: 0.03094263630485369, mismatched_weeks: 3, n_design_pairs: 401, status: computed, unpaired_weeks: 1}
+      '63': {flags: [], mde_abs_at_nmin: 0.002660895886716174, mde_rel_at_nexp: 0.047471264750397445, mde_rel_at_nmin: 0.04835015486056925, mean_crps_a0: 0.05503386482193464, mismatched_weeks: 3, n_design_pairs: 401, status: computed, unpaired_weeks: 1}
+    A4:
+      '5': {flags: [design_non_representative], input_rows_differing_from_a0: 0, mde_abs_at_nmin: null, mde_rel_at_nexp: null, mde_rel_at_nmin: null, mean_crps_a0: 0.015121531374157277, mismatched_weeks: 0, n_design_pairs: 404, proxy_reference: 0.07238613257334321, status: not_computable, unpaired_weeks: 0}
+      '21': {flags: [design_non_representative], input_rows_differing_from_a0: 0, mde_abs_at_nmin: null, mde_rel_at_nexp: null, mde_rel_at_nmin: null, mean_crps_a0: 0.03082352519617692, mismatched_weeks: 0, n_design_pairs: 404, proxy_reference: 0.025463441944893802, status: not_computable, unpaired_weeks: 0}
+      '63': {flags: [design_non_representative], input_rows_differing_from_a0: 0, mde_abs_at_nmin: null, mde_rel_at_nexp: null, mde_rel_at_nmin: null, mean_crps_a0: 0.05489917701535939, mismatched_weeks: 0, n_design_pairs: 404, proxy_reference: 0.04835015486056925, status: not_computable, unpaired_weeks: 0}
+    A5:
+      '5': {flags: [], mean_crps_a0: 0.015121531374157277, mismatched_weeks: 0, n_design_pairs: 404, power_at_true_zero: {n_exp: 0.187, n_min: 0.125}, status: computed, unpaired_weeks: 0}
+      '21': {flags: [], mean_crps_a0: 0.03082352519617692, mismatched_weeks: 0, n_design_pairs: 404, power_at_true_zero: {n_exp: 1.0, n_min: 1.0}, status: computed, unpaired_weeks: 0}
+      '63': {flags: [], mean_crps_a0: 0.05489917701535939, mismatched_weeks: 0, n_design_pairs: 404, power_at_true_zero: {n_exp: 1.0, n_min: 1.0}, status: computed, unpaired_weeks: 0}
   per_arm_note: 'r3 — {A1..A4: {5,21,63: {mde_rel_at_nmin, mde_rel_at_nexp, mde_abs_at_nmin, n_design_pairs, status, flags, proxy_reference?}}, A5: {power_at_true_zero: {n_min, n_exp}}}'
   summary_excludes: [design_delta_rel, power_at_design_estimate]
   representativeness_rule: 단일 변경 축이 입력 프레임인 팔(A3·A4)의 설계창 입력 행 차이 < 5 → design_non_representative — mde_rel null·status not_computable, proxy_reference(같은 지평 A1~A3 최댓값)는 참고 키에만
@@ -316,7 +337,7 @@ mde:
   artifacts:
     replays: data/timeseries_v15/prereg/mde_replay_{A0..A5}.json
     summary: data/timeseries_v15/prereg/mde_v1.json
-    summary_sha256: null
+    summary_sha256: '06df90745a88c3b211a17dccae2f8111dee19e9e859e688e5960764bf50353bb'
     write_rule: 7파일 원자(전부 또는 없음) — 하나라도 있으면 거부
   numeric_model_exception:
     basis: CLAUDE.md 5대 원칙 5 명문화된 예외(dualdb 스펙 v1.0 §8, DECISIONS 8-6)
@@ -362,7 +383,7 @@ revision_control:
   kernel_defect_after_r2: kernel 수정은 frozen_kernel_code_hash 를 바꾸고 rule_hash·MDE(write-once)를 무효화한다 — 이 계약은 status void 로 폐기하고 새 contract_id 로 재사전등록(라이브 행 0 이라 결과 전)
 
 development_protocol:
-  track_open: false
+  track_open: true
   track_open_note: r3 에서 true (영수증 V15-D0, 조건 — MDE 기입 + 가장 최근 a0_live_identity 시도 PASS)
   fork_created: true
   ledgers_created: true
@@ -372,7 +393,7 @@ development_protocol:
   approvals_ledger: data/timeseries_v15/ledgers/approvals.jsonl
 
 gates:
-  armed: false
+  armed: true
   armed_note: r3 에서 true — 조건 mde 기입·가장 최근 a0_live_identity 시도 PASS·family size 확정(완료)·영수증
   armed_requires:
   - mde.status computed

@@ -6,6 +6,8 @@
 - a5_due: 월 03:40Z·06:40Z 예약 또는 mode=a5_issue, track_open, 기대 원점 ISO 주에 A5 행 없음, now < 마감.
   예약 재시도(06:40Z)는 같은 ISO 주에 a5_origin_unavailable(원천 지연으로 원점이 기대 원점보다 이름)이 이미
   기록됐으면 건너뛴다 — 실측상 같은 날 재계산도 같은 원점이라 ~95분을 다시 쓰고 같은 결과다(수동 a5_issue 는 허용).
+  기대 원점이 live.first_origin_not_before 보다 이르면 발행하지 않는다(a5_before_first_origin) — 그런 행은 판정에서
+  before_first_origin 으로 빠지면서 그 ISO 주 A5 슬롯만 차지해 정규 발행을 막는다(r3 리뷰 비차단 2).
 - mde_due: mode=mde_replay, 계약 mde.status not_computed, mde_v1.json 없음.
 - identity_due: mode ∈ {mde_replay, a0_identity}, track_open false, 가장 최근 identity 시도가 PASS 아님.
 track_open 이 false 인 동안 라이브 계산은 0 이다. 참고 의견, 매매 신호 아님.
@@ -108,7 +110,10 @@ def plan_run(
             unavailable = any(row.get("kind") == "a5_origin_unavailable" and row.get("origin")
                               and iso_week(str(row["origin"])) == week
                               for row in _read_chain(root, ATTEMPTS_LEDGER))
-            if week in issued:
+            first_origin = _first_origin(contract)
+            if first_origin and expected.isoformat() < first_origin:
+                result["reasons"].append("a5_before_first_origin")
+            elif week in issued:
                 result["reasons"].append("a5_already_issued_this_iso_week")
             elif unavailable and event == "schedule":
                 result["reasons"].append("a5_origin_unavailable_this_iso_week")

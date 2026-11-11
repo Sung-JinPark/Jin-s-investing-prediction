@@ -3125,3 +3125,89 @@ r3 블록 3개(tolerance_equivalence·revisions·revision_receipts)를 빼고 pr
 **실데이터 분류(테스트로 고정).** `daily6m-v2-9cc54ec98c2d1051208c45de` → excluded. 통과: path_hash_only·v1_code_hash_equal·runtime_equal·selection_reused·projection_exogenous_from_v1·coefficients·bands.
 실패: fit_structure_equal·anchor_equal·factor_rows·market_rows(r2 가 기록하지 않은 증거) + v1_reference_grid_recorded. 원점 2026-11-10 은 솎음 표본에서 결손처럼 센다(n_excluded). 한계: KNOWN_LIMITS 72.
 `data/method_changes.jsonl` 은 append 하지 않았다 — 그 원장은 사이트 결정 일지(공개 표시·모델 사용 변경)용이고 U4 등록 때도 쓰지 않았다(v2 는 비공개 섀도, 표시·확률 무변경).
+
+## 2026-11-12 — V15 정합성 섀도 r3: MDE 기입·A0 라이브 identity PASS·개시(track_open·gates.armed) (U3, 영수증 V15-D0)
+
+**근거 영수증.** `data/timeseries_v15/ledgers/approvals.jsonl` V15-D0(`v15-approval:V15-D0:2026-11-11:r1`, 위임 지시 원문
+"네가 나머지 작업 다 완료시켜.  네가 최적의 선택을 내려서 u1~u7까지 다 진행시켜", 수신 상한 2026-11-11T09:03:44Z) — 효력 조건
+"MDE 기입 + 가장 최근 A0 라이브 identity 시도 PASS 뒤 r3" 가 아래로 충족됐다. gates.armed 의 별도 사용자 승인도 이 영수증으로 충족한다(r2 항목).
+새 영수증 행은 append 하지 않았다(r3 는 V15-D0 의 효력 발생이지 새 결정이 아니다).
+
+**바꾼 것 — 계약 `revision_control.r3_allowlist` 키만.** `mde.status` not_computed → computed, `mde.values_by_horizon`, `mde.per_arm`,
+`mde.artifacts.summary_sha256`, `live.first_origin_not_before`, `development_protocol.track_open` true, `gates.armed` true,
+`provenance.revisions` 끝 1항(r3). 허용 목록 밖 잎 변경 0(HEAD 대비 파싱 잎 비교로 확인), 기존 revisions 2항 바이트 그대로,
+`rule_hash(contract) == provenance.rule_hash_r2` = `164206683b586bdaee6bb2c676e6177e7b561d35b4b288d4993cf32e96dc47d3` 불변(테스트 C9·C10 초록).
+frozen_hash(행 `contract_hash`)는 설계대로 바뀐다(4a0ac5b0… → 6ea9c14b…) — 라이브 행은 이 값 하나로만 쓰인다(verify 가 고정).
+prereg 파일(mde_v1·mde_replay_A0~A5·a0_live_identity·fork_patch) 바이트 0 변경, 봉인 V2/V8 코드 0바이트, 원장 append 0.
+
+**MDE 전사(기계적, 재계산·선택 0).** 원천 `data/timeseries_v15/prereg/mde_v1.json`(MDE 재생 봇 커밋 07c11f7a203856c0195f26317e15323e2aa445f3,
+2026-11-11T17:27:40Z, dispatch run 43062329113; 6팔 공통 data_snapshot_sha 7cbc63df6fbfcbe276bad5d791a6e2f065ee3fb6, kernel_code_hash
+4e93e3f2…=계약 frozen_kernel_code_hash, mde_code_hash b8b7aeb7…, canonical_hash 59c29ee9…). `per_arm`·`values_by_horizon` 은 이 파일의 값을 그대로
+옮겼다(로드한 계약 dict == 요약 dict 단언). `summary_sha256` = 파일 바이트 sha256 `06df90745a88c3b211a17dccae2f8111dee19e9e859e688e5960764bf50353bb`
+(git 블롭과 작업트리 동일, 로더 핀 검사 통과). 상대 CRPS 단위 MDE(n_min 기준, 괄호는 n_exp — 참고 의견, 효과 추정치 아님):
+
+| h | A1 fresh_vol | A2 λ 혼합 | A3 XNAS 라벨 | A4 VIX 정렬 | 헤드라인(A1~A3 최댓값) | A5 NI power_at_true_zero (n_min / n_exp) |
+|---|---|---|---|---|---|---|
+| 5 | 1.09% (0.78%) | 2.70% (2.03%) | 7.24% (6.25%) | 산출 불가(proxy 7.24%) | 7.24% | 0.125 / 0.187 |
+| 21 | 0.86% (0.66%) | 1.19% (0.88%) | 2.55% (1.90%) | 산출 불가(proxy 2.55%) | 2.55% | 1.000 / 1.000 |
+| 63 | 0.65% (0.66%) | 0.86% (0.89%) | 4.84% (4.75%) | 산출 불가(proxy 4.84%) | 4.84% | 1.000 / 1.000 |
+
+h63 은 n_exp = 39 = n_min 이라 괄호 값과 본값의 차이(A1 0.65% vs 0.66% 등)는 같은 표본 크기 두 번의 시행 잡음이다(전사 차이 아님).
+설계 쌍 수 A0 기준 404(A3 401 — mismatched 3·unpaired 1주), A4 는 `design_non_representative`(A0 대비 입력 행 차이 0, 계약 대표성 규칙).
+요약에 `design_delta_rel`·`power_at_design_estimate` 없음(계약 summary_excludes). 해석 한계는 KNOWN_LIMITS 58·73.
+
+**A0 라이브 identity 시도 — 전부(r3 조건: 가장 최근 PASS + FAIL 전부 공시).**
+- `data/timeseries_v15/prereg/a0_live_identity_2026-11-06_a1.json` — **PASS**, max_abs_diff 2.185751579730777e-16 ≤ tolerance 1e-12,
+  mismatched_fields 없음, V8 행 tsv8-shadow-4b072b50fb416b25128483fd(원점 2026-11-06, cutoff 2026-11-10T11:04:48Z), snapshot_sha 527016b1
+  (`rev_list_first_parent_before_cutoff`), 런타임 python 3.12.16·numpy 2.5.4·scipy 1.18.1·pandas 2.3.3·statsmodels 0.14.6·exchange_calendars 4.13.2,
+  computed_at 2026-11-11T18:24:46Z, 커밋 e46ab0c0f2d1741108d4fcb1780a2346d4be909e(같은 dispatch run).
+- **FAIL 시도 0건.** 시도 파일은 위 1개뿐이고(`git log --all` 확인) v15-coherence-shadow 실행 이력도 위 dispatch 1회(success)뿐이다.
+  r2 항목의 "A0 라이브 identity 종단 확인은 [미검증]" 은 이 시도로 해소된다(append-only 라 r2 항목은 고치지 않는다).
+
+**`live.first_origin_not_before = 2026-11-13` 근거(규칙 `revision_control.first_origin_not_before_rule`, 테스트 P17).** 규칙값은
+"knowledge_cutoff > r3 머지 커밋 시각(UTC)인 첫 V8 섀도 행의 origin" 이라 머지 전에 알 수 없다 — 명세 §4 결과 전 절차 3 대로 r3 PR 안에
+"머지 예정 시각 뒤 첫 V8 원점" 을 보수적으로 확정 기입한다. 근거:
+① 현재 마지막 V8 섀도 행은 원점 2026-11-06(cutoff 2026-11-10T11:04:48Z) — r3 머지보다 앞이라 규칙상 제외된다(라이브 판정은 그 다음 원점부터).
+② 다음 원점은 2026-11-13(금, XNAS 정규 세션). V8 섀도 행은 V8 예약 `10 3 * * 2-6` 이 원점 다음 주 화요일 이후에만 만든다 — 실측 12행 중 첫 행(수동)을
+빼면 cutoff 가 모두 원점 4~5일 뒤 화·수 04:13~11:04Z 다(토요일 예약이 그 주 원점 행을 만든 적 0회 — 원인은 월요일 갱신 입력 대기로 추정 [미검증]).
+그래서 원점 2026-11-13 행의 cutoff 는 빨라도 2026-11-17T03:10Z 다.
+③ r3 머지 예상은 2026-11-12~13(PR CI 최대 약 6시간) — 3.5일 이상 여유. 머지가 2026-11-17T03:10Z 전이면 규칙값이 정확히 2026-11-13 이다
+(`first_origin_not_before(rows, r3_committed_at=…)` 모의: 머지 11-12T12Z·11-16T23Z → 2026-11-13, 11-17T09Z → 2026-11-20).
+④ 더 늦은 2026-11-20 을 고르면 머지가 이른 경우 규칙값과 어긋나 1주(1원점)를 근거 없이 버린다 — 규칙 정확 일치와 보수성을 함께 만족하는 값은 2026-11-13 하나다.
+**머지 관문(필수):** 이 PR 은 **2026-11-17T03:10Z(KST 12:10) 전에** 머지한다. 그때까지 머지하지 못하면 머지하지 말고 r3 값을 규칙 헬퍼로
+다시 계산해(그 시점 다음 원점) 갱신한 뒤 머지한다 — 라이브 행이 생긴 뒤에는 첫 원점을 바꿀 수 없다(verify 가 contract_hash 로 고정).
+**머지 직전 확인(1줄):** `data/timeseries_v8/ledgers` 섀도 원장 마지막 행의 origin 이 아직 2026-11-06 이고 `gh run list -w timeseries-v8-shadow`
+에 원점 11-13 행을 쓴 run 이 없을 것 — 하나라도 어긋나면 머지하지 않고 위 재계산 절차로 간다(이 관문은 기계 강제가 아니다, 아래 plan 설명).
+**머지 뒤 검증:** 원점 2026-11-13 V8 행이 append 되면 `first_origin_not_before(read_v8_rows(root), r3_committed_at=<머지 커밋 committer date UTC>)`
+== '2026-11-13' 을 확인하고 결과를 별도 항목에 적는다. plan 은 계약 값(origin ≥ 2026-11-13)으로만 거르고 cutoff > T_r3 를 따로 재검사하지 않는다(KNOWN_LIMITS 56 —
+명세 §4-3 의 'plan 이 추가로 강제' 문구와 다른 기존 불일치이며 위 머지 관문이 사람 절차인 이유다).
+반대(보수) 방향: 머지 뒤 첫 V8 행의 원점이 입력 지연으로 11-13 이 아니면(예: 목 11-12) 계약값이 규칙값보다 엄격해져 그 주 1원점을 잃는다 —
+규칙 위반은 아니고 표본 1주 손실이다(KNOWN_LIMITS 73).
+
+**plan dry-run(쓰기 0).** 실저장소(r3 계약): workflow_run·schedule·workflow_dispatch(auto) 모두 track_open true·pending false(원점 11-06 은
+first_origin 미만이라 계산 0), mode a0_identity·mde_replay 는 identity_due·mde_due false. 2026-11-16T03:40Z 월 예약은 a5_due true(기대 원점 2026-11-13).
+tmp 사본(실 r3 계약·실 prereg·실 V8 원장 + 합성 미래 행): 11-13 행(cutoff 11-17T08:30Z) 추가 시 세 이벤트 모두 pending A0~A4·v8_origin 2026-11-13·
+스냅숏 `--before=2026-11-17T08:30:00+00:00`, 11-20 행까지 추가 시 최신 원점 11-20 을 먼저 고른다(한 run 1행, 따라잡기 창 2).
+
+**A5 첫 원점 가드(plan, r3 리뷰 비차단 2).** 수정 전 plan 의 A5 경로는 first_origin_not_before 를 보지 않아, 머지 뒤 금 11-13 종가 전에
+`mode=a5_issue` 를 수동 디스패치하면 기대 원점 2026-11-11(W46)로 발행돼 W46 슬롯을 차지하고(월 예약은 a5_already_issued 로 건너뜀) 판정에서는
+before_first_origin 으로 빠져 W46 A5 를 통째로 잃었다. `plan.py` 에 기대 원점 < first_origin_not_before 이면 `a5_before_first_origin` 으로
+발행하지 않는 가드를 넣었다(plan.py 는 kernel·verdict 해시 밖 — 계약 핀·rule_hash 무관). 회귀 테스트 P26(11-12 수동 → 거부, 11-16 03:40Z 예약 → 기대 원점 11-13 발행).
+MDE 전사 고정 테스트 C14(mde.status computed 이면 계약 per_arm·values_by_horizon == mde_v1.json, 상태 조건부라 N18 준수)도 추가했다.
+
+**테스트 도우미 정렬.** `src/tests/v15_coherence_fixtures.py` 의 `make_root` 가 실계약을 tmp 로 복사한 뒤 `reset_r3_allowlist` 로 r3 허용 목록 값만
+r2 상태(null·not_computed·false)로 되돌린다 — tmp 사본에는 실 prereg(mde_v1·identity 시도)를 복사하지 않으므로, 이것 없이는 r3 뒤 로더의
+track_open 전제 검사에 걸린다. 상태 의존 단언을 실계약에 고정하지 않는다는 명세 원칙(리뷰 N18)의 구현이며 rule_hash 는 그대로다(C10). 기존 테스트 함수·단언 변경 0.
+
+**verify 거짓 경보 수정(r3 개시 차단 요인).** `timeseries-v15-verify` 의 '효과 추정치 키' 검사가 `json.dumps(mde_v1)` 문자열 포함으로 구현돼,
+요약이 계약대로 `excludes: [design_delta_rel, power_at_design_estimate]` 를 **값으로** 공시하는 것만으로 ok=false 가 났다(MDE 커밋 07c11f7a 이후 상시,
+r2 상태에서도 같음 — verify 는 track_open true 잡에서만 돌아 드러나지 않았다). r3 뒤에는 collect·a5-commit·resolve 잡이 모두 verify 에서 멈춰
+라이브 행이 커밋되지 않는다. `pipeline._prereg_errors` 를 **dict 키** 재귀 검사(`_mapping_keys`)로 바꿨다 — 두 이름이 어느 깊이의 키로든 있으면 여전히
+거부(이전보다 범위가 넓다). pipeline.py 는 kernel·판정 코드 해시 밖(행의 pipeline_code_hash 로만 기록, 라이브 행 0)이라 계약 핀·rule_hash 무관.
+회귀 테스트 P25(`test_p25_verify_checks_effect_keys_not_the_excludes_disclosure`) 추가. 실저장소 verify: 수정 전 ok=false(이 오류 1건) → 수정 뒤 ok=true.
+
+**효력.** 이 PR 머지 뒤 첫 V8 원점(2026-11-13) 주부터 A0~A4 주간 행·A5 월요일 발행·해소가 쌓인다. 판정은 가족별 기계 컷 T*(우월성 예상 2027-11~12,
+NI 2028-02, 마감 2028-06-30) 1회 — 사람 실행. 승격 자동 없음(126세션 + 소유자 승인). 모든 출력은 참고 의견이며 매매 신호가 아니다.
+커밋: 사전등록 r2 0f03d5eb → MDE 재생 07c11f7a → A0 identity a1 PASS e46ab0c0 → r3 = 이 항목을 담은 PR 의 머지 커밋. KNOWN_LIMITS 73.
+(KNOWN_LIMITS 72 는 미머지 PR #405 몫으로 비워 둔다 — 2026-11-12 기준 #405 OPEN. 두 PR 모두 파일 끝 append 라 나중 머지 쪽이 텍스트 충돌을 풀고,
+#405 가 무산되면 72 는 빈 번호로 남는다.)
