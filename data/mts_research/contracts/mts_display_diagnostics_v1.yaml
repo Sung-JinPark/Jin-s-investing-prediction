@@ -1,0 +1,175 @@
+# MTS 표시 진단 계약 v1 — 감시 결과(연구 계층 derived)를 V8 카드 라벨로 싣는 유일한 경로 (U1).
+# 결과(첫 배지 렌더·첫 예약 실행) 전에 커밋한다. 수정은 v2 신규 등록으로만 하고 v1 은 보존한다.
+schema_version: 1
+contract_id: mts_display_diagnostics_v1
+status: registered
+registered_on: '2026-11-11'
+registered_at: '2026-11-11T12:28:32Z'
+registered_before:
+  - 'mts-coherence-monitor 첫 예약 실행'
+  - '배지가 실린 첫 Pages 배포'
+character:
+  kind: display_only_diagnostic_lane
+  display_only: true
+  numbers_changed: false          # V8·V13·daily6m 확률·분위수·성적 숫자 무변경
+  auto_reforecast: false
+  auto_retrain: false
+  gate_effect: none               # V8 operational_gate·V13 live_forward_gate·T7·승격·숨김과 연결 없음
+  scoring_effect: none            # 공식 해소 basis(grid) 무변경 (U7)
+  notice: '참고 의견, 매매 신호 아님'
+relationship:
+  research_contract: data/mts_research/contracts/mts_research_v1.draft.yaml
+  research_contract_unchanged: true
+  meaning: '연구 계약의 audit_only·production_publish_enabled=false 를 바꾸지 않는다. 아래 allowed_reads 의 필드만 표시 라벨로 투영하는 별도 차선이다.'
+# 공식·진단 basis 선언은 U7 파일이 정본이다 — 이 계약은 재선언하지 않고 로더(label_basis.load_pinned_label_basis)로 판정한다.
+label_basis_source: data/mts_research/contracts/v8_official_label_basis_v1.json
+cross_reference: 'V13 카드 caveat 는 V13 계약 live_display_caveats(V13-D16) 경로 — 이 계약의 관문 예외로 명시(V13 카드에는 이 계약의 배지를 싣지 않는다)'
+approval:
+  decision_memo_item: U1
+  approval_form: delegated_bundle_instruction
+  literal_template_match: false
+  approval_text: '네가 나머지 작업 다 완료시켜.  네가 최적의 선택을 내려서 u1~u7까지 다 진행시켜'
+  template_text: 'U1 V8 카드 감시 배지(C1·C6·C8·C12·L1, 라벨만)·XNAS basis 접기·일일 감시 배치 사전등록'
+  approver_role: repository_owner_and_operator
+  instructed_at_upper_bound: '2026-11-11T09:03:44Z'
+  timestamp_note: '도구 기록 상한 — 합성 시각 아님. 지시 원문은 approval_text, template_text 는 이 결정의 요약(V13·V14 위임 영수증 선례)'
+  precedent: 'V14 위임형 영수증(KNOWN_LIMITS 39) — 의역·요약이 아닌 원문 보존, 효력 판단은 사용자 몫'
+  revocation: '철회 시 이 파일은 보존하고 로더 PINNED_CONTRACT_HASH 를 제거(→ contract_hash_mismatch, 배지 0) + DECISIONS 기록'
+thresholds:
+  file: data/mts_research/contracts/coherence_monitor_thresholds_v1.json
+  canonical_hash: bcc24081030d654a845a50dd4a434aebb11b6c0fae7213bcbae4457577702d76
+  on_mismatch: no_badges
+allowed_reads:
+  - path: data/mts_research/derived/coherence_monitor_latest.json
+    fields: [schema_version, monitor_version, n_dates, retrospective_rows, first_as_of, last_as_of, ledger_last_content_hash,
+             latest.as_of, latest.status, latest.flags, latest.threshold_hash, latest.threshold_status,
+             latest.c12_stalled_series, latest.c6_triggered,
+             'indicator_summary.{C1,C6,C8,C12}.{n_dates_evaluated,n_flagged,n_episodes}']
+  - path: data/mts_research/ledgers/coherence_daily.jsonl
+    fields: ['마지막 행 content_hash — derived 동기 확인 전용']
+  - path: data/mts_research/derived/v8_live_monitor.json
+    fields: [schema_version, status, threshold_status, threshold_hash, as_of_session, last_resolved_origin,
+             'bases.<basis>.{representative,post_dated}.h*.{h,n,window_k,state,breaches,shock_days}',
+             'bases.<basis>.{representative,post_dated}.h*.L1.{skill,ci90_block,threshold_window_matches_n,sealed.percentile}']
+    not_read: ['h*.label·h*.single_episode·최상위 single_episode — 의미가 "충격일 수 == 1" 이라 화면 라벨로 쓰지 않는다']
+  - path: data/mts_research/contracts/coherence_monitor_thresholds_v1.json
+    fields: ['canonical_hash 검증 전용']
+  - path: data/mts_research/contracts/v8_official_label_basis_v1.json
+    fields: ['official_basis.label_basis — 공식 basis 판정 전용(U7 핀 로더 경유)']
+read_model:
+  key: mts_display_diagnostics
+  artifact: dashboard_base            # data.json 과 embed 양쪽 인라인
+  loader: src/ai_fc/mts_display_diagnostics.py
+  budget_bytes: 8000
+  warn_ratio: 0.9
+  route: '#timeseries (V8 카드: hero 칩 + 검증 탭 실전 승패표 접기)'
+  lineage_surface: 'data/contracts/website_data_lineage_v1.yaml surfaces.mts_display_diagnostics'
+visibility:
+  requires_v8_numbers_visible: true   # V8 보류 화면에는 아무것도 싣지 않는다
+  card_model_id: shadow.mf_dfm_varx_calibrated_v8
+badges:
+  C1:  {label: '오늘 종가 충격 미반영', source: coherence, scope: origin, rule: 'latest.flags 에 C1 이고 감시 as_of == 카드 as_of'}
+  C6:
+    label: 'λ 전환·근소차'
+    source: coherence
+    scope: origin
+    rule: 'latest.flags 에 C6 이고 감시 as_of == 카드 as_of'
+    component_labels: {switch: 'λ 전환', near_tie: '근소차', disagree: 'λ 불일치'}
+    detail: 'latest.c6_triggered 를 component_labels 로 표기 — 근소차·불일치는 daily6m 쪽 사실임을 읽는 이가 구분하게'
+  C8:  {label: '기준일 상이', source: coherence, scope: origin, rule: 'latest.flags 에 C8 이고 감시 as_of == 카드 as_of'}
+  C12:
+    label: '시장 입력 수집 정지'
+    source: coherence
+    scope: archive_state
+    rule: 'latest.flags 에 C12 이고 latest.c12_stalled_series ∩ v8_required_series ≠ ∅, 감시 as_of 가 카드보다 0~1 세션 뒤'
+    v8_required_series: [NASDAQCOM, VIX, DGS2, DGS10, DTWEXBGS]
+    note: 'FED_EBP 등 선택 계열 정지는 배지가 아니라 접기 정보 줄. V8 DFM 매크로 입력(growth/inflation factor 캐시)은 이 감시 범위 밖 — 배지 없음이 V8 입력 전부 신선을 뜻하지 않는다'
+  L1:
+    label: '라이브 skill 하위 5%'
+    source: v8_live_monitor
+    rule: 'bases.ledger_grid.representative.h{5,21}.state == breach 이고 breaches 에 L1_skill_below_q05'
+    horizons: [5, 21]
+    h63_note: '임계 파일 L1_skill_q05 에 "63" 키가 없어 h63 은 no_pinned_threshold — 배지 불가'
+    basis: ledger_grid                # 공식 basis(U7 로더) — XNAS basis 이탈은 배지 아님
+    per_horizon: true
+    window_note: 'n < k 이면 n 창 값을 k 창 임계와 비교한 것 — 칩에 n/k 표기'
+    episode_field: 'n_shock_days = 창 안 |z|>4 충격일 수. single_episode ≡ (n_shock_days == 1). "복수 에피소드" 표기 금지'
+mandatory_badge_fields:
+  coherence: [id, label, as_of, card_origin_match, n_flagged, n_evaluated, n_episodes, single_episode, detail]
+  L1: [id, label, as_of, h, n, window_k, threshold_window_matches_n, n_shock_days, single_episode]
+excluded:
+  C11: '휴장 라벨이 이미 V8 공시(P5 holiday_exposure)로 표시 — 중복 배지 금지'
+  C10: '연구 원장 기록 전용(임계 파일 C10_scope)'
+  C2_C3a_C3b_C4_C5_C7_C9: '배지 후보 아님'
+  L2_L3_L4: '정보용(검정력 낮음) — 접기 표의 상태 라벨로만'
+  h1: 'post_dated(pseudo-OOS) — 배지 없음, 접기에 사후 기록 표기'
+freshness:
+  calendar: 'XNAS (ai_fc.mts_research.sessions.session_table)'
+  coherence_origin_badge_max_lag_sessions: 0   # C1·C6·C8 은 그 원점 V8 행에 대한 사실 — 카드 원점과 같을 때만
+  coherence_c12_max_lag_sessions: 1            # 아카이브 상태 — 1세션 뒤까지, 칩에 (MM-DD 기준)
+  live_max_as_of_lag_sessions: 5               # 롤링 지표 — 해소 원점 기준이라 하루 이틀 차이는 의미 불변
+  live_max_ahead_sessions: 1
+  ahead_of_card: 'coherence 는 배지 없음, live 는 1세션까지 허용'
+fail_closed:
+  - '계약 해시 ≠ 로더 핀 → status contract_hash_mismatch, 배지 0'
+  - '임계 파일 결측/해시 불일치 → status threshold_file_missing|threshold_hash_mismatch, 배지 0'
+  - 'V8 카드 숫자 비공개 → status v8_hidden, 배지 0'
+  - 'coherence derived 결측·스키마 불일치 → coherence 배지 0'
+  - 'derived.latest.threshold_hash ≠ 핀 → derived_hash_mismatch'
+  - 'derived.ledger_last_content_hash ≠ 원장 마지막 행 content_hash → derived_stale'
+  - '감시 as_of 가 카드보다 앞서거나 2세션 이상 뒤 → as_of_mismatch, coherence 배지 0'
+  - '감시 as_of 가 카드보다 1세션 뒤 → C1·C6·C8 배지 0(origin_badges suppressed_card_origin_differs), C12 만'
+  - 'live derived status≠ok·해시 불일치·lag 창 밖·미등록 상태값 → L1 배지·접기 표 0'
+  - 'U7 basis 선언 파일 결측·해시 불일치 → L1 배지·접기 표 0(label_basis_hash_mismatch)'
+  - '달력 의존성(exchange_calendars) 결측·달력 창 밖 → unavailable:ImportError|MtsSessionError, 해당 배지 0, 빌드는 계속'
+  - '"배지 없음"은 정상 판정이 아니라 확인 불가일 수 있다'
+fold:
+  basis_labels:
+    ledger_grid: '원장 grid(공식)'
+    xnas_diagnostic_v1.matched_ledger_rows: 'XNAS 진단 — 원장 동일 행'
+    xnas_diagnostic_v1.all_closed_targets: 'XNAS 진단 — 확정 목표 전체(잠정 포함)'
+  official_from: 'label_basis_source 의 official_basis.label_basis (U7 핀 로더)'
+  state_labels:
+    breach: '경계 이탈'
+    normal: '정상 범위(검정력 낮음)'
+    insufficient: '표본 부족'
+    no_pinned_threshold: '사전고정 임계 없음'
+    near_tail: '꼬리 근접(정보 — 사전 기록 아님)'
+  fields_per_horizon: [h, n, window_k, skill, ci90, sealed_percentile, state, state_label, n_shock_days, post_dated]
+  skill_column: '최근 k원점 창 skill — 실전 승패표(전체 해소 표본)와 다른 값'
+  basis_mixing: prohibited            # 평균·차감·합산·한 표 셀 결합 금지 — basis 별 행 나열만
+batch:
+  workflow: .github/workflows/mts-coherence-monitor.yml
+  schedule_utc: ['15 12 * * 2-6', '45 18 * * 2-6']
+  steps: ['coherence-monitor --append --catch-up', 'v8-xnas-labels --append', 'v8-live-monitor --append --if-stale',
+          'fed-ebp-sidecar --append (U2 교차 명세 — ingest_triage_policy_v1 compensator)']
+  step_failure: '뒤 스텝·체인 검증·커밋은 !cancelled() 로 계속, 체인 검증 성공 시에만 커밋, 잡은 실패로 끝남'
+  catch_up:
+    start: '원장 최대 as_of 다음 XNAS 세션 (원장이 비면 아카이브 마지막 세션 하루)'
+    through: '아카이브 마지막 세션(NASDAQCOM·VIX 종가 모두 있는 날)'
+    readiness: '(V8 일일 표시 유효행 confirmed ∧ V13 행) 또는 계산 시각 > 다음 세션 종가+15분'
+    archive_hole: '종가 결측은 s 뒤 5번째 세션 종가+15분까지 대기(정지), 그 뒤 건너뜀(identity 미점유) — 수동 --as-of D --append 로만 채움'
+    hole_grace_sessions: 5
+    max_sessions: 30
+  commit_allowlist:
+    - data/mts_research/ledgers/coherence_daily.jsonl
+    - data/mts_research/derived/coherence_monitor_latest.json
+    - data/mts_research/ledgers/v8_xnas_label_diagnostics.jsonl
+    - data/mts_research/derived/v8_xnas_label_summary.json
+    - data/mts_research/ledgers/v8_live_monitor.jsonl
+    - data/mts_research/derived/v8_live_monitor.json
+    - data/mts_research/ledgers/fed_ebp_v1.jsonl
+  network_fetch_enabled: false
+  secrets: none
+lineage:
+  surface: mts_display_diagnostics    # website_data_lineage_v1.yaml 에 등록
+  publication_class: governance_metadata
+  probability_space: none             # 확률 공간이 아니다 — 라벨·표본 수
+  official_forecast_write: false
+contamination_disclosure: >-
+  배지 종류·라벨·C12 필터·C6 구성요소 표기·lag 상한(원점 배지 0·C12 1·live 5/앞섬 1)·결손 유예 5세션은
+  감사 재생(2026-10-02~11-09, 27일; C6 17/21일 플래그 중 λ 전환 6일·C12 25/27일 전부 FED_EBP)과
+  실측 발행 시각(V8 confirmed s+1 10~11 UTC, NASDAQCOM s+1 05~11 UTC, 10-30 3일 지연)을 본 뒤 정했다.
+  배지는 검정이 아니라 사전고정 임계로 센 라벨이며, 재생 경보 수를 검증된 성능으로 제시하지 않는다.
+  C1·C6 임계는 in-sample(임계 파일 in_sample_keys). 한계 공시는 KNOWN_LIMITS 48.
+change_policy: 'v1 수정 금지 — 바꾸려면 mts_display_diagnostics_v2.yaml 신규 등록 + 로더 핀 교체 + DECISIONS'
