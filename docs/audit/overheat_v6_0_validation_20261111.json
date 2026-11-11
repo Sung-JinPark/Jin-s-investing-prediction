@@ -1,0 +1,660 @@
+{
+ "contract": "data/contracts/dotcom_overheat_index_v6.yaml",
+ "contract_id": "dotcom_overheat_index_v6",
+ "contract_version": "2026-11-11.v6",
+ "rules_fixed_at": "2026-11-11T03:58:55Z",
+ "gate_as_of": "2026-11-09",
+ "ledger_through": "2026-11-09",
+ "input_sha256": "8516c2415b86be0909f16da243fcb1438b0a382bb1a231a34052815b39bb378e",
+ "admission": {
+  "anchors": {
+   "speed_r24": {
+    "zero": 0.0,
+    "peak": 1.04544143,
+    "mad": 0.15903053
+   },
+   "speed_d200": {
+    "zero": 0.0,
+    "peak": 0.54878987,
+    "mad": 0.052314
+   },
+   "val_nasdaq_m2": {
+    "zero": 0.34276456,
+    "peak": 1.08197853,
+    "mad": 0.05686808
+   },
+   "val_equity_profit": {
+    "zero": 22.89022089,
+    "peak": 48.23028748,
+    "mad": 3.51344839,
+    "beta": 0.6045
+   },
+   "ipo_count_12m": {
+    "zero": 134.5,
+    "peak": 541.0,
+    "mad": 53.0
+   },
+   "ipo_first_day_12m": {
+    "zero": 14.94668094,
+    "peak": 76.52939002,
+    "mad": 3.41383423
+   },
+   "part_margin_gdp": {
+    "zero": 0.01433228,
+    "peak": 0.02644984,
+    "mad": 0.00199502
+   },
+   "part_household_equity": {
+    "zero": 2.04814304,
+    "peak": 2.99990758,
+    "mad": 0.27400421,
+    "beta": 0.6341
+   },
+   "real_it_equipment_gdp": {
+    "zero": 0.02068148,
+    "peak": 0.02793951,
+    "mad": 0.00097382
+   }
+  },
+  "estimated": [],
+  "tests": {
+   "speed_r24": {
+    "A3": {
+     "D": 4.43,
+     "passed": true
+    },
+    "A4": {
+     "bear_lows": [
+      -111.7,
+      -62.4,
+      -21.8
+     ],
+     "max_2001_2022": 62.1,
+     "unscored": {
+      "bear_lows": 0,
+      "month_ends": 0
+     },
+     "passed": true
+    },
+    "A5": {
+     "passed": true,
+     "note": "daily — not applicable"
+    },
+    "admitted": true
+   },
+   "speed_d200": {
+    "A3": {
+     "D": 7.08,
+     "passed": true
+    },
+    "A4": {
+     "bear_lows": [
+      -55.3,
+      -61.2,
+      -24.7
+     ],
+     "max_2001_2022": 48.3,
+     "unscored": {
+      "bear_lows": 0,
+      "month_ends": 0
+     },
+     "passed": true
+    },
+    "A5": {
+     "passed": true,
+     "note": "daily — not applicable"
+    },
+    "admitted": true
+   },
+   "val_nasdaq_m2": {
+    "A3": {
+     "D": 8.77,
+     "passed": true
+    },
+    "A4": {
+     "bear_lows": [
+      -19.6,
+      -25.7,
+      18.2
+     ],
+     "max_2001_2022": 53.7,
+     "unscored": {
+      "bear_lows": 0,
+      "month_ends": 0
+     },
+     "passed": true
+    },
+    "A5": {
+     "passed": true,
+     "note": "daily — not applicable"
+    },
+    "admitted": true
+   },
+   "val_equity_profit": {
+    "A6": {
+     "passed": true,
+     "n": 26,
+     "mae_estimate": 0.0664,
+     "mae_carry": 0.0956
+    },
+    "A3": {
+     "D": 4.86,
+     "passed": true
+    },
+    "A4": {
+     "bear_lows": [
+      3.4,
+      -34.4,
+      -8.9
+     ],
+     "max_2001_2022": 97.4,
+     "unscored": {
+      "bear_lows": 0,
+      "month_ends": 0
+     },
+     "passed": false
+    },
+    "A5": {
+     "p95_step": 30.3,
+     "n": 85,
+     "passed": false
+    },
+    "admitted": false
+   },
+   "ipo_count_12m": {
+    "A3": {
+     "D": 5.17,
+     "passed": true
+    },
+    "A4": {
+     "bear_lows": [
+      -13.4,
+      -27.9,
+      -16.6
+     ],
+     "max_2001_2022": 46.6,
+     "unscored": {
+      "bear_lows": 0,
+      "month_ends": 0
+     },
+     "passed": true
+    },
+    "A5": {
+     "p95_step": 5.4,
+     "n": 257,
+     "passed": true
+    },
+    "admitted": true
+   },
+   "ipo_first_day_12m": {
+    "A3": {
+     "D": 12.17,
+     "passed": true
+    },
+    "A4": {
+     "bear_lows": [
+      -6.5,
+      null,
+      69.1
+     ],
+     "max_2001_2022": 69.1,
+     "unscored": {
+      "bear_lows": 1,
+      "month_ends": 23
+     },
+     "passed": false
+    },
+    "A5": {
+     "p95_step": 5.1,
+     "n": 232,
+     "passed": true
+    },
+    "admitted": false
+   },
+   "part_margin_gdp": {
+    "A3": {
+     "D": 4.1,
+     "passed": true
+    },
+    "A4": {
+     "bear_lows": [
+      -1.4,
+      78.1,
+      25.4
+     ],
+     "max_2001_2022": 78.1,
+     "unscored": {
+      "bear_lows": 0,
+      "month_ends": 0
+     },
+     "passed": false
+    },
+    "A5": {
+     "p95_step": 34.3,
+     "n": 85,
+     "passed": false
+    },
+    "admitted": false
+   },
+   "part_household_equity": {
+    "A6": {
+     "passed": true,
+     "n": 26,
+     "mae_estimate": 0.0299,
+     "mae_carry": 0.0735
+    },
+    "A3": {
+     "D": 2.34,
+     "passed": true
+    },
+    "A4": {
+     "bear_lows": [
+      -63.6,
+      -99.6,
+      -7.9
+     ],
+     "max_2001_2022": 78.5,
+     "unscored": {
+      "bear_lows": 0,
+      "month_ends": 0
+     },
+     "passed": true
+    },
+    "A5": {
+     "p95_step": 36.5,
+     "n": 85,
+     "passed": false
+    },
+    "admitted": false
+   },
+   "real_it_equipment_gdp": {
+    "A3": {
+     "D": 5.03,
+     "passed": true
+    },
+    "A4": {
+     "bear_lows": [
+      15.9,
+      -16.8,
+      -29.4
+     ],
+     "max_2001_2022": 65.7,
+     "unscored": {
+      "bear_lows": 0,
+      "month_ends": 0
+     },
+     "passed": true
+    },
+    "A5": {
+     "p95_step": 12.3,
+     "n": 85,
+     "passed": true
+    },
+    "admitted": true
+   }
+  },
+  "members": {
+   "speed": [
+    "speed_r24",
+    "speed_d200"
+   ],
+   "valuation": [
+    "val_nasdaq_m2"
+   ],
+   "ipo": [
+    "ipo_count_12m"
+   ],
+   "participation": [],
+   "real": [
+    "real_it_equipment_gdp"
+   ]
+  },
+  "weights": {
+   "speed": 70.0,
+   "valuation": 10.0,
+   "ipo": 10.0,
+   "real": 10.0
+  }
+ },
+ "gates": {
+  "as_of": "2026-11-09",
+  "construction_checks": {
+   "C1": {
+    "value": 80.6,
+    "passed": true
+   },
+   "C2": {
+    "value": 96.1,
+    "passed": true,
+    "note": "reported; gauge drawing is checked on the dashboard"
+   },
+   "C3": {
+    "value": [
+     44.5,
+     44.7,
+     83.6,
+     96.1
+    ],
+    "passed": true
+   },
+   "C4": {
+    "value": 57,
+    "passed": true
+   },
+   "C5": {
+    "value": {
+     "v5": null,
+     "v6": 29.8
+    },
+    "passed": true
+   }
+  },
+  "falsifiable": {
+   "V1": {
+    "value": [
+     "2020-12-31",
+     37.9
+    ],
+    "passed": true
+   },
+   "V2": {
+    "value": [
+     -36.7,
+     -42.0,
+     -19.0
+    ],
+    "passed": true
+   },
+   "V3": {
+    "value": 19.5,
+    "passed": true
+   },
+   "V4": {
+    "value": [
+     "2021-02-08",
+     41.2
+    ],
+    "passed": true,
+    "by_variant": {
+     "base": [
+      "2021-02-08",
+      41.2,
+      96.1
+     ],
+     "drop_speed": [
+      "2021-09-16",
+      28.8,
+      89.3
+     ],
+     "drop_valuation": [
+      "2021-02-08",
+      41.3,
+      96.1
+     ],
+     "drop_ipo": [
+      "2021-02-08",
+      46.1,
+      97.7
+     ],
+     "drop_participation": [
+      "2021-02-08",
+      41.2,
+      96.1
+     ],
+     "drop_real": [
+      "2021-02-08",
+      48.6,
+      98.4
+     ],
+     "equal_family": [
+      "2021-02-08",
+      41.2,
+      96.1
+     ],
+     "weights_data_rule_a": [
+      "2021-02-08",
+      41.2,
+      96.1
+     ],
+     "weights_data_rule_b": [
+      "2021-02-08",
+      41.2,
+      96.1
+     ],
+     "zero_1995_mean": [
+      "2021-02-08",
+      33.3,
+      91.1
+     ],
+     "peak_window_max": [
+      "2021-02-08",
+      48.8,
+      109.6
+     ],
+     "peak_live_0310": [
+      "2021-02-08",
+      41.2,
+      96.1
+     ],
+     "no_estimate": [
+      "2021-02-08",
+      41.2,
+      96.1
+     ],
+     "margin_over_equity": [
+      "2021-02-08",
+      41.2,
+      96.1
+     ],
+     "no_clamp": [
+      "2021-02-08",
+      41.2,
+      96.1
+     ]
+    }
+   },
+   "V5": {
+    "value": [
+     8.5,
+     11.9
+    ],
+    "passed": true
+   },
+   "V6": {
+    "value": [
+     "2011-02-28",
+     29.3
+    ],
+    "passed": true
+   },
+   "V7": {
+    "value": {},
+    "passed": true,
+    "not_applicable": true
+   },
+   "V8": {
+    "value": [
+     4.1,
+     "2026-07-30"
+    ],
+    "n_release_days": 98,
+    "passed": true
+   },
+   "V9": {
+    "value": 20.0,
+    "passed": false,
+    "price_term": [
+     "speed_d200",
+     "speed_r24",
+     "val_nasdaq_m2"
+    ]
+   },
+   "V10": {
+    "value": [
+     11.0,
+     11.4
+    ],
+    "passed": false
+   },
+   "V11": {
+    "value": 0,
+    "passed": true,
+    "not_applicable": true
+   },
+   "V12": {
+    "value": [
+     50.1,
+     78.0
+    ],
+    "passed": false,
+    "retro_min_variant": "drop_real",
+    "retro_by_variant": {
+     "base": 80.6,
+     "drop_speed": 93.2,
+     "drop_valuation": 79.5,
+     "drop_ipo": 78.0,
+     "drop_participation": 80.6,
+     "drop_real": 78.0,
+     "equal_family": 80.6,
+     "weights_data_rule_a": 80.6,
+     "weights_data_rule_b": 80.6,
+     "zero_1995_mean": 80.7,
+     "peak_window_max": 89.5,
+     "peak_live_0310": 80.6,
+     "no_estimate": 80.6,
+     "margin_over_equity": 80.6,
+     "no_clamp": 80.6
+    }
+   }
+  },
+  "all_falsifiable_passed": false,
+  "failed": [
+   "V9",
+   "V10",
+   "V12"
+  ],
+  "construction_c1_c4_passed": true,
+  "hold_days_in_replay": 0,
+  "band_today": {
+   "lo": 20.777267680350665,
+   "hi": 70.85366710450734,
+   "lo_variant": "drop_real",
+   "hi_variant": "drop_speed",
+   "variants": {
+    "base": 29.8,
+    "drop_speed": 70.9,
+    "drop_valuation": 21.3,
+    "drop_ipo": 32.4,
+    "drop_participation": 29.8,
+    "drop_real": 20.8,
+    "equal_family": 29.8,
+    "weights_data_rule_a": 29.8,
+    "weights_data_rule_b": 29.8,
+    "zero_1995_mean": 26.5,
+    "peak_window_max": 35.5,
+    "peak_live_0310": 29.8,
+    "no_estimate": 29.8,
+    "margin_over_equity": 29.8,
+    "no_clamp": 29.8
+   },
+   "held_variants": [],
+   "distinct_from_base": 6
+  },
+  "reported_not_gated": {
+   "daily_r2_last_252": 0.946,
+   "daily_r2_all": 0.908,
+   "monthly_r2": 0.875,
+   "price_term_weight": 80.0,
+   "max_indicator_weight": 35.0
+  }
+ },
+ "verdict": "failed",
+ "latest_rows": [
+  {
+   "family": "speed",
+   "id": "speed_r24",
+   "score": 28.7,
+   "weight": 35.0,
+   "contribution": 10.06,
+   "period": "2026-11-09",
+   "basis": "live"
+  },
+  {
+   "family": "speed",
+   "id": "speed_d200",
+   "score": 1.1,
+   "weight": 35.0,
+   "contribution": 0.37,
+   "period": "2026-11-09",
+   "basis": "live"
+  },
+  {
+   "family": "valuation",
+   "id": "val_nasdaq_m2",
+   "score": 99.5,
+   "weight": 10.0,
+   "contribution": 9.95,
+   "period": "2026-09",
+   "basis": "live"
+  },
+  {
+   "family": "ipo",
+   "id": "ipo_count_12m",
+   "score": -10.9,
+   "weight": 10.0,
+   "contribution": -1.09,
+   "period": "2025-12",
+   "basis": "carried"
+  },
+  {
+   "family": "real",
+   "id": "real_it_equipment_gdp",
+   "score": 104.8,
+   "weight": 10.0,
+   "contribution": 10.48,
+   "period": "2026Q3",
+   "basis": "carried"
+  }
+ ],
+ "families_today": {
+  "speed": 14.9,
+  "valuation": 99.5,
+  "ipo": -10.9,
+  "real": 104.8
+ },
+ "effective_weights": {
+  "speed": 70.0,
+  "valuation": 10.0,
+  "ipo": 10.0,
+  "real": 10.0
+ },
+ "key_values": {
+  "1996-12-31": 44.5,
+  "1998-12-31": 44.7,
+  "1999-12-31": 83.6,
+  "2000-03-10": 96.1,
+  "2000-03-31": 76.8,
+  "2002-10-09": -36.7,
+  "2007-10-31": 19.5,
+  "2009-03-09": -42.0,
+  "2011-02-28": 29.3,
+  "2021-02-08": 41.2,
+  "2021-11-19": 35.1,
+  "2022-12-28": -19.0,
+  "2025-12-31": 31.6,
+  "2026-11-09": 29.8
+ },
+ "v5": {
+  "status": "ok",
+  "index": null
+ },
+ "frozen_matches_recomputation": null,
+ "protected_unchanged": true,
+ "protected_sha256": {
+  "data/statistics/official_store/ledgers/normalized_observations.jsonl": "d619f6d2065be08add66510eb0201d3c8be7830ad18ec84b01503483c102683e",
+  "data/statistics/dotcom_statistics_latest.json": "5f4d81f0192368dfd5c014fc2f965e73a5aedbb2daff1eb6ed3e4340f107097d",
+  "data/statistics/ipo/ritter_ipoall_monthly.json": "a9cf4fbf4e30ec1d8a2359c3a0aa112a334899a574c78efef2093847e297dbde",
+  "data/contracts/dotcom_overheat_index_v5.yaml": "2f0e2ebc5ca7879672bd58bf2de45813052009d4697ba1bbe1dd3517bd236022"
+ },
+ "generated_at": "2026-11-11T04:40:30+00:00"
+}
