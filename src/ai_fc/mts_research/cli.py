@@ -182,6 +182,29 @@ def cmd_evaluate(args: argparse.Namespace) -> int:
     return 0 if report.ok else 4
 
 
+# 2026-11-11 라이브 정합성 감사 도구 — verb → (모듈, 진입 함수). 각 진입 함수는
+# run_cli(root, args) -> (exit_code, payload) 이고 기본은 dry-run(JSON 출력만)이다.
+# --append 를 줄 때만 data/mts_research/ 원장에 쓴다. 네트워크 접근 없음.
+RESEARCH_TOOLS: dict[str, tuple[str, str]] = {
+    "v8-xnas-labels": ("ai_fc.mts_research.v8_xnas_labels", "run_cli"),
+    "coherence-monitor": ("ai_fc.mts_research.audits.coherence", "run_monitor_cli"),
+    "v8-live-monitor": ("ai_fc.mts_research.v8_live_monitor", "run_cli"),
+    "v13-diagnostics": ("ai_fc.mts_research.audits.v13_live_diagnostics", "run_cli"),
+    "ingest-triage": ("ai_fc.mts_research.ingest_triage", "run_cli"),
+    "fed-ebp-sidecar": ("ai_fc.mts_research.fed_ebp_sidecar", "run_cli"),
+}
+
+
+def cmd_research_tool(args: argparse.Namespace) -> int:
+    import importlib
+
+    module_name, function_name = RESEARCH_TOOLS[args.verb]
+    run_cli = getattr(importlib.import_module(module_name), function_name)
+    code, payload = run_cli(_root(args.root), args)
+    _emit(payload)
+    return int(code)
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="python -m ai_fc.mts_research.cli")
     parser.add_argument("--root", default=None, help="저장소 루트 (기본: 패키지 기준 자동)")
@@ -202,6 +225,15 @@ def main(argv: list[str] | None = None) -> int:
     evaluate = subparsers.add_parser("evaluate")
     evaluate.add_argument("--experiment-id", required=True)
     evaluate.set_defaults(func=cmd_evaluate)
+    for verb in RESEARCH_TOOLS:
+        tool = subparsers.add_parser(verb)
+        tool.add_argument("--as-of", default=None, help="기준 세션 YYYY-MM-DD (기본: 아카이브 마지막 세션)")
+        tool.add_argument("--append", action="store_true", help="연구 원장에 append (기본: dry-run)")
+        tool.add_argument("--report", default=None, help="ingest-triage 입력 JSON 경로")
+        tool.add_argument("--kind", default=None,
+                          choices=["v2_verify", "v2_refresh", "daily6m_sources", "v2_monitor"])
+        tool.add_argument("--now", default=None, help="ISO8601 UTC 기준 시각 (재현용)")
+        tool.set_defaults(func=cmd_research_tool)
 
     args = parser.parse_args(argv)
     return args.func(args)

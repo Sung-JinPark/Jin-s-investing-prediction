@@ -1,0 +1,50 @@
+{
+  "fixture_schema": "mts_ingest_triage_fixture_v1",
+  "kind": "v2_verify",
+  "now": "2026-11-06T18:38:44+00:00",
+  "now_basis": "같은 실행 timeseries-v2-prepare 의 knowledge_cutoff (prepare 가 DFM 컷오프를 만든 기준 시각)",
+  "provenance": {
+    "captured_at": "2026-11-11",
+    "excerpt_rule": "단계 stdout JSON 블록을 러너 접두(job·step·타임스탬프)만 떼고 원문 그대로 옮김. 환경변수·비밀값 줄은 포함하지 않음.",
+    "job": "refresh",
+    "log_timestamp": "2026-11-06T18:45:33.8903424Z",
+    "repository": "Sung-JinPark/Jin-s-investing-prediction",
+    "run_conclusion": "failure",
+    "run_created_at": "2026-11-06T18:33:00Z",
+    "run_event": "workflow_dispatch",
+    "run_id": 42271710113,
+    "run_updated_at": "2026-11-06T18:45:36Z",
+    "source": "gh run view --log",
+    "step": "python -m ai_fc timeseries-v2-verify",
+    "workflow": "timeseries-v2-refresh"
+  },
+  "report": {
+    "dfm_cache_entries": 2515,
+    "dfm_expected_evaluation_cutoffs": 1465,
+    "dfm_missing_evaluation_cutoffs": 1,
+    "dfm_runtime_provenance": {
+      "entries": 2515,
+      "mismatched_runtime": [],
+      "missing_runtime": [],
+      "ok": true,
+      "required": {
+        "pandas": ">=2.2,<3",
+        "statsmodels": "0.14.6"
+      }
+    },
+    "errors": [
+      "DFM evaluation cache incomplete: 1 cutoff(s)"
+    ],
+    "market_lineage": {
+      "errors": [],
+      "facts": 47955,
+      "ok": true,
+      "receipt_linkage": 1.0,
+      "receipts": 1001
+    },
+    "numbers_visible": false,
+    "ok": false,
+    "publication_gate_pass": false,
+    "sealed_disclosed": true
+  }
+}

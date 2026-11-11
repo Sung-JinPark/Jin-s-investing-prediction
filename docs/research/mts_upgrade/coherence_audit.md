@@ -18,3 +18,10 @@
 ## Gate E2 입력
 
 coherence_pass = **True** (정합성 개선 축 — 예측력 주장 아님, §3.3)
+
+## 정정 노트 (2026-11-11 append — 위 본문은 수정하지 않음)
+
+- 위 "grid-종속 라벨 발견 … (2026-10-12 실측 2행)" 은 작성 시점 기준이다. 2026-11-11 재측정에서 영향 해소 행은 **6행**
+  (09-11·09-18·09-25·10-02 h21, 10-09 h1·h5)이고, 미해소 19쌍 중 18쌍이 10-12 또는 11-11 에 노출돼 있다.
+  근거: `src/ai_fc/mts_research/v8_xnas_labels.py`(진단 원장 `data/mts_research/ledgers/v8_xnas_label_diagnostics.jsonl`).
+- 일일 정합성 감시기 C1~C12 와 임계 사전고정: `coherence_monitor_prereg_20261111.md`.

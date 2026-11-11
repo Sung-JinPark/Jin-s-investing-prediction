@@ -1,0 +1,104 @@
+{
+  "fixture_schema": "mts_ingest_triage_fixture_v1",
+  "kind": "v2_refresh",
+  "provenance": {
+    "captured_at": "2026-11-11",
+    "excerpt_rule": "단계 stdout JSON 블록을 러너 접두(job·step·타임스탬프)만 떼고 원문 그대로 옮김. 환경변수·비밀값 줄은 포함하지 않음.",
+    "job": "refresh",
+    "log_timestamp": "2026-11-11T03:14:41.4074001Z",
+    "repository": "Sung-JinPark/Jin-s-investing-prediction",
+    "run_conclusion": "success",
+    "run_created_at": "2026-11-11T03:09:08Z",
+    "run_event": "workflow_dispatch",
+    "run_id": 42950811442,
+    "run_updated_at": "2026-11-11T03:21:44Z",
+    "source": "gh run view --log",
+    "step": "python -m ai_fc timeseries-v2-refresh",
+    "workflow": "timeseries-v2-refresh"
+  },
+  "report": {
+    "fred_official_api": {
+      "failures": [],
+      "ok": true,
+      "retrieved_at": "2026-11-11T03:14:37+00:00",
+      "series": {
+        "DTWEXB": {
+          "appended": 0,
+          "received": 6328,
+          "unchanged": 6328
+        },
+        "DTWEXBGS": {
+          "appended": 0,
+          "received": 5227,
+          "unchanged": 5227
+        },
+        "NASDAQCOM": {
+          "appended": 0,
+          "received": 8018,
+          "unchanged": 8018
+        }
+      }
+    },
+    "lineage": {
+      "errors": [],
+      "facts": 47971,
+      "ok": true,
+      "receipt_linkage": 1.0,
+      "receipts": 1123
+    },
+    "market": {
+      "failures": [
+        {
+          "reason": "NASDAQCOM returned HTTP 451",
+          "series": "NASDAQCOM"
+        },
+        {
+          "reason": "DTWEXB returned HTTP 451",
+          "series": "DTWEXB"
+        },
+        {
+          "reason": "DTWEXBGS returned HTTP 451",
+          "series": "DTWEXBGS"
+        },
+        {
+          "reason": "time data '1973-01-01' does not match format '%m/%d/%Y'",
+          "series": "FED_EBP"
+        }
+      ],
+      "ok": false,
+      "retrieved_at": "2026-11-11T03:14:34+00:00",
+      "series": {
+        "DGS10": {
+          "appended": 0,
+          "received": 465,
+          "unchanged": 465
+        },
+        "DGS2": {
+          "appended": 0,
+          "received": 465,
+          "unchanged": 465
+        },
+        "VIX": {
+          "appended": 0,
+          "received": 9313,
+          "unchanged": 9313
+        }
+      }
+    },
+    "parquet": {
+      "canonical_ledger": "data/timeseries_v2/ledgers/market_observations.jsonl",
+      "path": "data/timeseries_v2/parquet/market_observations.parquet",
+      "rows": 47971,
+      "schema_version": 2,
+      "sha256": "467931dc474ce134d53e71211a4261e1dc2a6b62be7149de36a23840a79299ba"
+    },
+    "protected": {
+      "added": [],
+      "after_manifest_sha256": "917887b622174887d5e2299f94e3f6ba7f96d72895fbb01b4d828b11a60e5f36",
+      "before_manifest_sha256": "917887b622174887d5e2299f94e3f6ba7f96d72895fbb01b4d828b11a60e5f36",
+      "changed": [],
+      "ok": true,
+      "removed": []
+    }
+  }
+}

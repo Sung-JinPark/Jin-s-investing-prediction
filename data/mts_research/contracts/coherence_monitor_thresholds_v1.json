@@ -1,0 +1,60 @@
+{
+  "schema_version": 1,
+  "threshold_set_id": "coherence_monitor_thresholds_v1",
+  "registered_on": "2026-11-11",
+  "registered_before": [
+    "V8 첫 h63 XNAS 성숙(2026-11-12 종가)",
+    "2026-11-11 국채 휴장일에 노출된 V8 섀도 행의 원장 해소",
+    "2026-11-27 VIX 비세션 행 노출 원점"
+  ],
+  "effect_scope": "공시 라벨 부여 전용. operational_gate·live_forward_gate·T7·승격·숨김·재예측에 연결하지 않는다. 변경은 v2 파일 신규 등록으로만 하고 v1 은 보존한다.",
+  "notice": "참고 의견, 매매 신호 아님",
+  "v8_live": {
+    "representative_horizons": [5, 21, 63],
+    "post_dated_horizons": [1],
+    "minimum_origins": 8,
+    "L1_skill_q05": {"1": -0.051, "5": -0.060, "21": -0.066, "mean_1_5_21": -0.035},
+    "L1_skill_q95": {"1": 0.077},
+    "L1_source": "봉인 2019+ 385원점 연속 12원점 창 분위수 (sealed_evaluations.jsonl scores, grid 라벨)",
+    "L2_location_z_q05": {"1": -0.58, "5": -0.66, "21": -1.50},
+    "L2_z_definition": "z_i = (y_i - q50_i) / ((q90_i - q10_i) / 2.5631), 창 평균",
+    "L3_pit_mean_band": [0.35, 0.65],
+    "L3_note": "정보용 — 근거 약함",
+    "mde_skill_n12": -0.08,
+    "label_bases": ["ledger_grid", "xnas_diagnostic_v1"],
+    "label_basis_mixing": "prohibited"
+  },
+  "coherence": {
+    "C1_vol_staleness_max": 1.10,
+    "C1_note": "in-sample (역사 p95: lambda 0.94 1.094, 0.97 1.048)",
+    "C2_sigma21_over_vix_band": [0.635, 1.497],
+    "C2_note": "실현 fwdRV21/VIX p10~p90 (2015-01~2026-10). 구성상 약 20%가 밴드 밖",
+    "C3a_rank_corr_min": 0.3,
+    "C3a_min_sessions": 20,
+    "C3a_effective_n_divisor": 3,
+    "C3b_delta_logit_v25_min": 1.0,
+    "C3b_consecutive_sessions_only": true,
+    "C4_rv_bound_margin_min": -0.05,
+    "C5_h1_h5_pup_step_tolerance": 2,
+    "C5_grid_levels": 200,
+    "C5_epsilon": 1e-9,
+    "C6_near_tie_margin": 0.01,
+    "C7_input_abs_tolerance": 0.005,
+    "C8_asof_skew_max_sessions": 1,
+    "C10_h63_pup_divergence": 0.10,
+    "C10_scope": "연구 원장 기록 전용 — 화면 배지 없음",
+    "C12_cadence_max": {
+      "daily_sessions": 4,
+      "weekly_h10_days": 9,
+      "monthly_days": 75
+    },
+    "in_sample_keys": ["C1_vol_staleness_max", "C3a_rank_corr_min", "C3b_delta_logit_v25_min", "C4_rv_bound_margin_min", "C6_near_tie_margin", "C10_h63_pup_divergence"]
+  },
+  "daily6m_display": {
+    "skill_judgeable_min_dates": 50,
+    "shock_abs_z": 2.5,
+    "kappa_warning": 1.10,
+    "null_band_seed": 20261111,
+    "null_band_draws": 20000
+  }
+}

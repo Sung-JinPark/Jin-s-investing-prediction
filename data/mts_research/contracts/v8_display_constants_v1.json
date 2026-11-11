@@ -1,0 +1,97 @@
+{
+  "b4_uplift_pp": {
+    "caveat": "라이브 성적 효과는 확립되지 않음(n_eff≈3, 하락 에피소드 1개).",
+    "horizons": {
+      "21": {
+        "mean": 2.7,
+        "range": [
+          2.6,
+          3.0
+        ]
+      },
+      "63": {
+        "mean": 4.3,
+        "range": [
+          3.9,
+          4.7
+        ]
+      }
+    },
+    "n_origins": 12,
+    "single_episode": true,
+    "source": "2026-11-11 감사 V8-LOC-01 (12 주간 원점 평균, 동결 B4 s=0.5 적용 전후 p_up 차)",
+    "status": "audit_measured_in_sample"
+  },
+  "base_rate_up": {
+    "calendar": "XNAS exchange_calendars (ai_fc.mts_research.sessions)",
+    "caveat": "고정 창 상수(데이터가 늘어도 불변). 2007+ 강세 구간을 포함한 경험 빈도이며 조건부 예측이 아니다.",
+    "horizons": {
+      "1": {
+        "k": 2654,
+        "n": 4779,
+        "value": 0.555346
+      },
+      "21": {
+        "k": 3147,
+        "n": 4759,
+        "value": 0.661273
+      },
+      "5": {
+        "k": 2832,
+        "n": 4775,
+        "value": 0.593089
+      },
+      "63": {
+        "k": 3408,
+        "n": 4717,
+        "value": 0.722493
+      }
+    },
+    "n_sessions": 4780,
+    "recompute": "ai_fc.timeseries_v8_display.base_rate_counts",
+    "rule": "origin and target XNAS sessions both inside window; up = close[target] > close[origin]",
+    "series": "NASDAQCOM",
+    "single_episode": false,
+    "source_sha256": "457f4c5b61f6ff4fa7119bfd4f8ed75ae6732025cff5a591b0ab7aecf3d96e61",
+    "window": [
+      "2007-01-01",
+      "2025-12-31"
+    ]
+  },
+  "constants_id": "v8_display_constants_v1",
+  "content_hash": "73c1e87011e90e6cee9e729a77e3d9bf95e6d06d7be1e5cbc70a2abcc4fac146",
+  "created_for": "docs/research/mts_upgrade/live_integrity_audit_20261111.md P5 (D2·D3·D7·D15)",
+  "display_only": true,
+  "notice": "참고 의견, 매매 신호 아님",
+  "purpose": "V8 표시 공시 라벨 상수(숫자 불변). 게이트·승격·score100·발행 확률에 쓰지 않는다.",
+  "resolver_schedule": {
+    "cron_utc": "10 3 * * 2-6",
+    "h10_release": "data/contracts/forecast_source_freshness_v1.yaml weekly_dollar",
+    "source": ".github/workflows/timeseries-v8-shadow.yml"
+  },
+  "schema_version": 1,
+  "scoring_excluded": true,
+  "sealed_location_signal": {
+    "horizons": {
+      "1": {
+        "p_value": 0.43,
+        "spearman": 0.04
+      },
+      "5": {
+        "p_value": 0.51,
+        "spearman": 0.033
+      }
+    },
+    "n": 385,
+    "single_episode": false,
+    "source": "2026-11-11 감사 V8-LOC-05 (봉인 2019+ 엔진 중앙값 vs 실현 Spearman)",
+    "status": "audit_measured"
+  },
+  "state_insensitivity": {
+    "n_origins": 12,
+    "sigma_now_corr": -0.99,
+    "single_episode": true,
+    "source": "2026-11-11 감사 V8 위치 구조(12원점 h21/h63 p_up 대 sigma_now)",
+    "status": "audit_measured"
+  }
+}

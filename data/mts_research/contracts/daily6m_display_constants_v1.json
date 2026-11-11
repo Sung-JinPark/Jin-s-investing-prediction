@@ -1,0 +1,49 @@
+{
+  "schema_version": 1,
+  "constants_id": "daily6m_display_constants_v1",
+  "registered_on": "2026-11-11",
+  "notice": "참고 의견, 매매 신호 아님",
+  "effect_scope": "daily6m 전진 성적 읽기 투영의 라벨 전용. daily6m v1 계약·원장 가중·게이트·발행 숫자를 바꾸지 않는다. 변경은 v2 파일 신규 등록으로만 한다.",
+  "up_day_constant_baseline": {
+    "c": 0.5531281032770605,
+    "k_up": 1114,
+    "n_sessions": 2014,
+    "window_start": "2007-01-01",
+    "window_end": "2014-12-31",
+    "first_session": "2007-01-03",
+    "previous_session": "2006-12-29",
+    "last_session": "2014-12-31",
+    "series_id": "NASDAQCOM",
+    "definition": "close_t > close_{t-1} (archive session sequence)",
+    "source_path": "data/timeseries_v2/parquet/market_observations.parquet",
+    "source_series_hash": "38dacbf1c40afb264c40872a6bbad84cda6887e7d9f9a1e329a8808c815500cf",
+    "hash_definition": "daily6m canonical_hash([[day, value], ...]) previous_session..last_session",
+    "caveat": "설계창(2007~2014) 고정 상수 — 라이브 결과와 무관하게 정했지만 창 선택 자체가 하이퍼파라미터다. base rate 참조이지 skill 증거가 아니다."
+  },
+  "null_band": {
+    "method": "shared_standardized_t4_increments_per_origin_sigma",
+    "df": 4,
+    "seed": 20261111,
+    "draws": 20000,
+    "chunk": 500,
+    "sigma_definition": "(q90-q10) of lead-1 daily_return_quantiles / (2*1.2815515655446004)",
+    "center": "row p50 (log level ratio to anchor)",
+    "quantiles": [
+      0.05,
+      0.95
+    ],
+    "sensitivity": "freshest_origin_sigma",
+    "reference_p_raw_range": [
+      0.08,
+      0.16
+    ],
+    "label": "model-true 근사"
+  },
+  "shock_mark_abs_daily_z": 2.5,
+  "kappa_warning_threshold": 1.1,
+  "selection_near_tie_pct": 0.5,
+  "selection_near_tie_basis": "D6C-7 감사: 후보별 MC SD 0.41~0.55% (프록시 잔차, 시드만 변경)",
+  "skill_judgeable_min_dates": 50,
+  "recent_z_window_dates": 10,
+  "single_episode_max_dates": 63
+}
