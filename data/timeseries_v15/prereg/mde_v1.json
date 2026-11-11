@@ -1,0 +1,244 @@
+{
+  "canonical_hash": "59c29ee993fb28a6ca0b1c06fdfd582ce46e214ef22fc15b2a2444a81f8e73fc",
+  "data_snapshot_sha": "7cbc63df6fbfcbe276bad5d791a6e2f065ee3fb6",
+  "excludes": [
+    "design_delta_rel",
+    "power_at_design_estimate"
+  ],
+  "kernel_code_hash": "4e93e3f24af87285e3e768814345cdcb88cf7a1fdef0318c387c61462185b162",
+  "kind": "v15_mde_summary",
+  "mde_code_hash": "b8b7aeb7647b69dea7b2eb55329db8fcaa2e40b352d5f736a85e3ce001940ae8",
+  "method": {
+    "alpha_assumed": "0.05/12",
+    "inner_rng": "verdict.bootstrap_indices (default_rng([20261111, h]), B=5000)",
+    "n_exp": {
+      "5": 50,
+      "21": 47,
+      "63": 39
+    },
+    "n_min": {
+      "5": 26,
+      "21": 26,
+      "63": 39
+    },
+    "ni_alpha_assumed": "0.05/3",
+    "outer_rng": "default_rng([20261111, h, ARM_INDEX[X], 7]) — n_min 시행 뒤 n_exp 시행",
+    "power": 0.9,
+    "representativeness_rule": "단일 변경 축이 입력 프레임(A3·A4)인 팔의 설계창 입력 행 차이 < 5 → not_computable",
+    "trials": 2000
+  },
+  "notice": "참고 의견, 매매 신호 아님",
+  "numeric_model_exception": [
+    "MDE·base rate 참조 — 채택 근거·캘리브레이션 표본 아님",
+    "블록 길이·창 선택·n_min 이 사후 지식을 간접 내포할 수 있다",
+    "설계창은 GFC 포함 — 절대 MDE 과대, 상대 MDE 근사",
+    "A4 는 산출 불가(설계 비대표), proxy 는 참고",
+    "LLM 무관"
+  ],
+  "per_arm": {
+    "A1": {
+      "21": {
+        "flags": [],
+        "mde_abs_at_nmin": 0.0002657854490280215,
+        "mde_rel_at_nexp": 0.006592429569356185,
+        "mde_rel_at_nmin": 0.008622811548530705,
+        "mean_crps_a0": 0.03082352519617692,
+        "mismatched_weeks": 0,
+        "n_design_pairs": 404,
+        "status": "computed",
+        "unpaired_weeks": 0
+      },
+      "5": {
+        "flags": [],
+        "mde_abs_at_nmin": 0.0001651918515792664,
+        "mde_rel_at_nexp": 0.007757694112262392,
+        "mde_rel_at_nmin": 0.01092428058322053,
+        "mean_crps_a0": 0.015121531374157277,
+        "mismatched_weeks": 0,
+        "n_design_pairs": 404,
+        "status": "computed",
+        "unpaired_weeks": 0
+      },
+      "63": {
+        "flags": [],
+        "mde_abs_at_nmin": 0.00035542998916871573,
+        "mde_rel_at_nexp": 0.006619107111284546,
+        "mde_rel_at_nmin": 0.006474231645936614,
+        "mean_crps_a0": 0.05489917701535939,
+        "mismatched_weeks": 0,
+        "n_design_pairs": 404,
+        "status": "computed",
+        "unpaired_weeks": 0
+      }
+    },
+    "A2": {
+      "21": {
+        "flags": [],
+        "mde_abs_at_nmin": 0.0003654476047324115,
+        "mde_rel_at_nexp": 0.008797041282562193,
+        "mde_rel_at_nmin": 0.011856126202519445,
+        "mean_crps_a0": 0.03082352519617692,
+        "mismatched_weeks": 0,
+        "n_design_pairs": 404,
+        "status": "computed",
+        "unpaired_weeks": 0
+      },
+      "5": {
+        "flags": [],
+        "mde_abs_at_nmin": 0.00040821502628492125,
+        "mde_rel_at_nexp": 0.020283452056149166,
+        "mde_rel_at_nmin": 0.026995614146763033,
+        "mean_crps_a0": 0.015121531374157277,
+        "mismatched_weeks": 0,
+        "n_design_pairs": 404,
+        "status": "computed",
+        "unpaired_weeks": 0
+      },
+      "63": {
+        "flags": [],
+        "mde_abs_at_nmin": 0.00047079382530749347,
+        "mde_rel_at_nexp": 0.008892048060365991,
+        "mde_rel_at_nmin": 0.00857560806741743,
+        "mean_crps_a0": 0.05489917701535939,
+        "mismatched_weeks": 0,
+        "n_design_pairs": 404,
+        "status": "computed",
+        "unpaired_weeks": 0
+      }
+    },
+    "A3": {
+      "21": {
+        "flags": [],
+        "mde_abs_at_nmin": 0.0007879060231706052,
+        "mde_rel_at_nexp": 0.0189625879407643,
+        "mde_rel_at_nmin": 0.025463441944893802,
+        "mean_crps_a0": 0.03094263630485369,
+        "mismatched_weeks": 3,
+        "n_design_pairs": 401,
+        "status": "computed",
+        "unpaired_weeks": 1
+      },
+      "5": {
+        "flags": [],
+        "mde_abs_at_nmin": 0.001097778375764118,
+        "mde_rel_at_nexp": 0.06251701563576381,
+        "mde_rel_at_nmin": 0.07238613257334321,
+        "mean_crps_a0": 0.015165589550620416,
+        "mismatched_weeks": 3,
+        "n_design_pairs": 401,
+        "status": "computed",
+        "unpaired_weeks": 1
+      },
+      "63": {
+        "flags": [],
+        "mde_abs_at_nmin": 0.002660895886716174,
+        "mde_rel_at_nexp": 0.047471264750397445,
+        "mde_rel_at_nmin": 0.04835015486056925,
+        "mean_crps_a0": 0.05503386482193464,
+        "mismatched_weeks": 3,
+        "n_design_pairs": 401,
+        "status": "computed",
+        "unpaired_weeks": 1
+      }
+    },
+    "A4": {
+      "21": {
+        "flags": [
+          "design_non_representative"
+        ],
+        "input_rows_differing_from_a0": 0,
+        "mde_abs_at_nmin": null,
+        "mde_rel_at_nexp": null,
+        "mde_rel_at_nmin": null,
+        "mean_crps_a0": 0.03082352519617692,
+        "mismatched_weeks": 0,
+        "n_design_pairs": 404,
+        "proxy_reference": 0.025463441944893802,
+        "status": "not_computable",
+        "unpaired_weeks": 0
+      },
+      "5": {
+        "flags": [
+          "design_non_representative"
+        ],
+        "input_rows_differing_from_a0": 0,
+        "mde_abs_at_nmin": null,
+        "mde_rel_at_nexp": null,
+        "mde_rel_at_nmin": null,
+        "mean_crps_a0": 0.015121531374157277,
+        "mismatched_weeks": 0,
+        "n_design_pairs": 404,
+        "proxy_reference": 0.07238613257334321,
+        "status": "not_computable",
+        "unpaired_weeks": 0
+      },
+      "63": {
+        "flags": [
+          "design_non_representative"
+        ],
+        "input_rows_differing_from_a0": 0,
+        "mde_abs_at_nmin": null,
+        "mde_rel_at_nexp": null,
+        "mde_rel_at_nmin": null,
+        "mean_crps_a0": 0.05489917701535939,
+        "mismatched_weeks": 0,
+        "n_design_pairs": 404,
+        "proxy_reference": 0.04835015486056925,
+        "status": "not_computable",
+        "unpaired_weeks": 0
+      }
+    },
+    "A5": {
+      "21": {
+        "flags": [],
+        "mean_crps_a0": 0.03082352519617692,
+        "mismatched_weeks": 0,
+        "n_design_pairs": 404,
+        "power_at_true_zero": {
+          "n_exp": 1.0,
+          "n_min": 1.0
+        },
+        "status": "computed",
+        "unpaired_weeks": 0
+      },
+      "5": {
+        "flags": [],
+        "mean_crps_a0": 0.015121531374157277,
+        "mismatched_weeks": 0,
+        "n_design_pairs": 404,
+        "power_at_true_zero": {
+          "n_exp": 0.187,
+          "n_min": 0.125
+        },
+        "status": "computed",
+        "unpaired_weeks": 0
+      },
+      "63": {
+        "flags": [],
+        "mean_crps_a0": 0.05489917701535939,
+        "mismatched_weeks": 0,
+        "n_design_pairs": 404,
+        "power_at_true_zero": {
+          "n_exp": 1.0,
+          "n_min": 1.0
+        },
+        "status": "computed",
+        "unpaired_weeks": 0
+      }
+    }
+  },
+  "replay_sha256": {
+    "A0": "5c4c79bcf840120d3e03d86d2cb3b35439228da186c5f92a8b18d54c026f9fae",
+    "A1": "266ac56c619c5670b8d47aa05ec7f5bc5966158706bc06345404104083217ecf",
+    "A2": "5b722cf6d0543c236551ee97921922a179425d0d166dbe8497cc5b75e3031650",
+    "A3": "f92cbdfa0fef10aed083afcfbf4c252d2a4ff09734e4a6305916704b3904c506",
+    "A4": "5deda831ff0266ff6e86c72df4d8a7c210437641fd1d1b6ff91d19eecdcdcacf",
+    "A5": "73aea16818b0b28247e1cfcf3cab947b4b017b71dbcfdf510fc9cf99212b735d"
+  },
+  "schema_version": 1,
+  "values_by_horizon": {
+    "21": 0.025463441944893802,
+    "5": 0.07238613257334321,
+    "63": 0.04835015486056925
+  }
+}
