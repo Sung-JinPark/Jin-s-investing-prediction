@@ -16,9 +16,10 @@ from __future__ import annotations
 
 import json
 import math
-from datetime import date
+import statistics
+from datetime import date, datetime, time, timedelta, timezone
 from pathlib import Path
-from typing import Any
+from typing import Any, Iterable, Literal, Mapping
 
 from .timeseries_v8.contracts import MODEL_ID, MODEL_VERSION, canonical_hash
 
@@ -40,6 +41,26 @@ PROBABILITY_SPACE = "research_timeseries_v8_conditional"
 TARGET_SERIES = "NASDAQCOM"
 HORIZONS = ("1", "5", "21", "63")
 QUANTILES = ("p10", "p25", "p50", "p75", "p90")
+
+# ── 표시 공시 상수 (2026-11-11 정합성 감사 P5 — 숫자 불변, 라벨·접기만) ─────────────
+# 상수 파일은 data/timeseries_v8/ 밖에 둔다 — V8 해시 범위를 모호하게 만들지 않기 위해서다.
+DISPLAY_CONSTANTS_RELATIVE = Path("data/mts_research/contracts/v8_display_constants_v1.json")
+SHADOW_FORECAST_LEDGER_RELATIVE = Path("data/timeseries_v8/ledgers/shadow_forecasts.jsonl")
+DISCLOSURE_NOTICE = "참고 의견, 매매 신호 아님"
+# V8 grid = 5계열 관측일 교집합(dropna). 표시층은 이 교집합과 XNAS 달력의 차로 휴장 라벨을 센다.
+GRID_SERIES = ("NASDAQCOM", "VIX", "DGS2", "DGS10", "DTWEXBGS")
+CARRY_SERIES = "DTWEXBGS"
+# '사전(prospective)' 지위는 발행 시점에 목표 세션이 대부분 남아 있는 지평에만 붙인다.
+PROSPECTIVE_HORIZONS = ("21", "63")
+BASE_RATE_HORIZONS = ("21", "63")
+ENGINE_HORIZONS = ("1", "5")
+# 주간 해소 실행 시각 — .github/workflows/timeseries-v8-shadow.yml 의 cron(UTC) 원문. 테스트가 대조한다.
+RESOLVER_CRON_UTC = "10 3 * * 2-6"
+HOLD_KIND_LABELS = {
+    "calendar_hold": "달력 hold(동결 48h 규칙·주말/휴일)",
+    "source_delay": "원천 지연",
+}
+FRESHNESS_REASON_PREFIX = "필수 시장 입력 신선도 초과:"
 
 
 class TimeSeriesV8DisplayError(ValueError):
@@ -762,6 +783,500 @@ def _shadow_progress_block(
         return None
 
 
+# ── 표시 공시 (P5 — D2·D3·D7·D15) ───────────────────────────────────────────────
+# 이미 공개된 포인터·V8 원장·시장 아카이브와 XNAS 달력만 읽는다. 연구 원장
+# (mts_research 계층의 원장)은 읽지 않는다 — production_publish 경계. 어떤 확률·분위수도
+# 다시 계산하거나 바꾸지 않고, 그 숫자가 무엇을 센 값인지 라벨만 덧붙인다.
+
+class XnasCalendar:
+    """XNAS 세션과 UTC 종가 시각의 읽기 전용 표 (ai_fc.mts_research.sessions.session_table).
+
+    아카이브 관측일을 달력으로 쓰지 않는다. 창 밖 질의는 추정하지 않고 실패한다.
+    """
+
+    def __init__(self, start: date, end: date) -> None:
+        from .mts_research.sessions import session_table
+
+        table = session_table(start, end)
+        self.start, self.end = start, end
+        self.sessions = [date.fromisoformat(row.session) for row in table]
+        self._close = {date.fromisoformat(row.session): row.close_utc for row in table}
+        self._index = {day: index for index, day in enumerate(self.sessions)}
+
+    def is_session(self, day: date) -> bool:
+        return day in self._index
+
+    def close_utc(self, day: date) -> datetime:
+        if day not in self._close:
+            raise TimeSeriesV8DisplayError(f"XNAS 세션이 아니다: {day.isoformat()}")
+        return self._close[day]
+
+    def offset(self, origin: date, k: int) -> date:
+        """원점 다음 k번째 XNAS 세션 (k>=1)."""
+        if origin not in self._index:
+            raise TimeSeriesV8DisplayError(f"원점이 XNAS 세션이 아니다: {origin.isoformat()}")
+        index = self._index[origin] + int(k)
+        if k < 1 or index >= len(self.sessions):
+            raise TimeSeriesV8DisplayError(f"XNAS 달력 창 밖: {origin.isoformat()}+{k}")
+        return self.sessions[index]
+
+    def between(self, after: date, through: date) -> list[date]:
+        """(after, through] 구간의 XNAS 세션."""
+        return [day for day in self.sessions if after < day <= through]
+
+
+def _utc(value: str) -> datetime:
+    stamp = datetime.fromisoformat(str(value))
+    if stamp.tzinfo is None:
+        raise TimeSeriesV8DisplayError(f"시각에 timezone 이 없다: {value}")
+    return stamp.astimezone(timezone.utc)
+
+
+def base_rate_counts(
+    archive: Mapping[str, float], horizon: int,
+    start: date = date(2007, 1, 1), end: date = date(2025, 12, 31),
+    *, cal: XnasCalendar | None = None,
+) -> tuple[int, int]:
+    """[start, end] 안의 XNAS 원점·목표 쌍 중 목표 종가가 원점 종가보다 높았던 (k, n).
+
+    원점과 목표가 모두 창 안이어야 한다(창 끝을 넘는 목표를 쓰지 않는다 — 고정 창이라 데이터가
+    늘어도 상수가 움직이지 않는다). XNAS 세션 종가가 아카이브에 없으면 실패한다.
+    """
+    if int(horizon) < 1:
+        raise TimeSeriesV8DisplayError("horizon 은 1 이상")
+    calendar = cal or XnasCalendar(start, end)
+    sessions = [day for day in calendar.sessions if start <= day <= end]
+    up = total = 0
+    for index in range(len(sessions) - int(horizon)):
+        origin, target = sessions[index], sessions[index + int(horizon)]
+        try:
+            before, after = float(archive[origin.isoformat()]), float(archive[target.isoformat()])
+        except KeyError as exc:
+            raise TimeSeriesV8DisplayError(f"아카이브에 XNAS 세션 종가가 없다: {exc}") from exc
+        total += 1
+        up += after > before
+    if not total:
+        raise TimeSeriesV8DisplayError("기저율 창에 원점이 없다")
+    return up, total
+
+
+def base_rate_up(
+    archive: Mapping[str, float], horizon: int,
+    start: date = date(2007, 1, 1), end: date = date(2025, 12, 31),
+) -> float:
+    """같은 창(2007+) NASDAQ h세션 상승 빈도 — 표시 라벨용 기저율(학습·보정 아님)."""
+    up, total = base_rate_counts(archive, horizon, start, end)
+    return up / total
+
+
+def emit_timing(row: dict[str, Any], cal: XnasCalendar) -> dict[str, Any]:
+    """주간 섀도 행의 발행 시점 공시 — 원점 종가 뒤 발행 지연과 지평별 이미 실현된 세션 수.
+
+    발행 시각 = 원장 행의 knowledge_cutoff(실행 시각). 세션은 종가+15분(공식 종가 확정 버퍼)이
+    발행 시각 이전이면 '실현'으로 센다. 입력 누수 판정이 아니라 사전(prospective) 지위의 공시다.
+    """
+    from .mts_research.sessions import SESSION_SETTLE_SECONDS
+
+    origin = date.fromisoformat(str(row["origin"])[:10])
+    emitted = _utc(row["knowledge_cutoff"])
+    settle = timedelta(seconds=SESSION_SETTLE_SECONDS)
+    realized: dict[str, int] = {}
+    for key in HORIZONS:
+        steps = int(key)
+        targets = [cal.offset(origin, step) for step in range(1, steps + 1)]
+        realized[key] = sum(1 for day in targets if cal.close_utc(day) + settle <= emitted)
+    return {
+        "origin": origin.isoformat(),
+        "emitted_at": emitted.isoformat(),
+        "emit_lag_days": round((emitted - cal.close_utc(origin)).total_seconds() / 86400.0, 4),
+        "emitted_after_h1_close": realized["1"] == 1,
+        "realized_sessions": realized,
+        "realized_fraction": {key: round(realized[key] / int(key), 6) for key in HORIZONS},
+    }
+
+
+def _cron_slot(expression: str) -> tuple[int, int, frozenset[int]]:
+    """'M H * * a-b' 형태의 UTC cron 만 해석한다(요일 0=일). 다른 형태는 실패한다."""
+    parts = expression.split()
+    if len(parts) != 5 or parts[2:4] != ["*", "*"]:
+        raise TimeSeriesV8DisplayError(f"지원하지 않는 cron: {expression}")
+    first, _, last = parts[4].partition("-")
+    days = range(int(first), int(last or first) + 1)
+    return int(parts[0]), int(parts[1]), frozenset(day % 7 for day in days)
+
+
+def ledger_resolution_eta(grid_target: date, cal: XnasCalendar) -> datetime:
+    """원장 해소가 가능한 가장 이른 주간 실행 시각(하한).
+
+    resolver 는 5계열 bundle 로 해소하므로 grid 목표 세션이 든 주의 H.10(다음 월요일 또는 다음
+    연준 영업일 16:15 ET + 배포 유예)이 나온 뒤 첫 cron 실행에서야 행이 생긴다.
+    """
+    from .forecast_source_freshness import NEW_YORK, board_business_day, policy
+
+    if not cal.is_session(grid_target):
+        raise TimeSeriesV8DisplayError(f"grid 목표가 XNAS 세션이 아니다: {grid_target.isoformat()}")
+    section = policy()["weekly_dollar"]
+    release = grid_target - timedelta(days=grid_target.weekday()) + timedelta(days=7)
+    while not board_business_day(release):
+        release += timedelta(days=1)
+    release_at = (
+        datetime.combine(release, time.fromisoformat(section["release_time"]), NEW_YORK)
+        + timedelta(hours=float(section["distribution_grace_hours"]))
+    ).astimezone(timezone.utc)
+    minute, hour, weekdays = _cron_slot(RESOLVER_CRON_UTC)
+    for offset in range(15):
+        slot = datetime.combine(
+            release_at.date() + timedelta(days=offset), time(hour, minute), timezone.utc)
+        if slot >= release_at and slot.isoweekday() % 7 in weekdays:
+            return slot
+    raise TimeSeriesV8DisplayError("cron 실행 시각을 2주 안에서 찾지 못했다")
+
+
+def _grid_gap(day: date, grid: set[date], known_through: date) -> bool:
+    """grid 에서 빠지는 XNAS 세션인가 — 관측 구간은 실제 교집합, 그 뒤는 연준 휴일로 투영."""
+    from .forecast_source_freshness import board_business_day
+
+    if day <= known_through:
+        return day not in grid
+    return not board_business_day(day)
+
+
+def _grid_set(grid_dates: Iterable[Any]) -> set[date]:
+    grid = {date.fromisoformat(str(value)[:10]) for value in grid_dates}
+    if not grid:
+        raise TimeSeriesV8DisplayError("V8 grid 관측일이 비어 있다")
+    return grid
+
+
+def holiday_label_exposure(
+    origin: date, h: int, grid_dates: Iterable[Any], cal: XnasCalendar,
+    *, known_through: date | None = None,
+) -> list[date]:
+    """원점 뒤 h개 XNAS 세션 창 안에서 grid 라벨이 빠뜨리는(국채 휴장) 세션 목록."""
+    grid = _grid_set(grid_dates)
+    known = known_through or max(grid)
+    target = cal.offset(origin, h)
+    return [day for day in cal.between(origin, target) if _grid_gap(day, grid, known)]
+
+
+def grid_target_session(
+    origin: date, h: int, grid_dates: Iterable[Any], cal: XnasCalendar,
+    *, known_through: date | None = None,
+) -> date:
+    """원장 라벨이 쓰는 h번째 grid 세션 (관측 교집합 + 연준 휴일 투영)."""
+    grid = _grid_set(grid_dates)
+    known = known_through or max(grid)
+    count, step = 0, 0
+    while count < int(h):
+        step += 1
+        day = cal.offset(origin, step)
+        if not _grid_gap(day, grid, known):
+            count += 1
+    return day
+
+
+def hold_reason(gate_detail: dict[str, Any], now: datetime) -> Literal["calendar_hold", "source_delay"]:
+    """신선도 보류의 성격 — 각 입력의 실제 관측일을 기대 공표 일정(정책 v1)과 대조한다.
+
+    공표 일정상 이미 나왔어야 할 관측이 없으면 원천 지연, 공표 일정상으론 최신인데 동결 48h
+    규칙(주말·휴일)에 걸렸으면 달력 hold 다. 판정할 수 없는 행은 원천 지연으로 둔다(달력으로
+    덮지 않는다).
+    """
+    from .forecast_source_freshness import source_freshness
+
+    stale = [row for row in gate_detail.get("freshness") or [] if str(row.get("status")) != "fresh"]
+    if not stale:
+        raise TimeSeriesV8DisplayError("신선도 보류가 아니다")
+    for row in stale:
+        series = str(row.get("series_id") or str(row.get("group") or "").split("_or_")[0])
+        observed = row.get("observation_time")
+        if not observed:
+            return "source_delay"
+        try:
+            report = source_freshness(series, str(observed)[:10], now)
+        except (ValueError, KeyError):
+            return "source_delay"
+        if report["status"] != "fresh":
+            return "source_delay"
+    return "calendar_hold"
+
+
+def _hold_block(pointer: dict[str, Any] | None) -> dict[str, Any] | None:
+    """포인터가 신선도 사유로 보류됐을 때만 그 성격 라벨을 싣는다."""
+    if pointer is None or (pointer.get("publication") or {}).get("customer_numbers_visible") is True:
+        return None
+    reasons = [str(reason) for reason in ((pointer.get("gate") or {}).get("reasons") or [])]
+    if not any(reason.startswith(FRESHNESS_REASON_PREFIX) for reason in reasons):
+        return None
+    detail = pointer.get("operational") or {}
+    stale = [str(row.get("group")) for row in detail.get("freshness") or []
+             if str(row.get("status")) != "fresh"]
+    block: dict[str, Any] = {"as_of": pointer.get("as_of"), "groups": stale,
+                             "evaluated_at": pointer.get("knowledge_cutoff")}
+    try:
+        kind = hold_reason(detail, _utc(str(pointer.get("knowledge_cutoff"))))
+    except (TimeSeriesV8DisplayError, ValueError, TypeError, OSError) as exc:
+        return {**block, "kind": None, "label": None, "status": "unavailable", "error": str(exc)[:200]}
+    return {**block, "kind": kind, "label": HOLD_KIND_LABELS[kind], "status": "ok"}
+
+
+def daily_input_status(info: dict[str, Any] | None) -> dict[str, Any]:
+    """일일 행 상태 라벨 — 'confirmed'에 달러 캐리(0변화 이월) 세션 수를 붙인다(carried_forward 길이)."""
+    info = info or {}
+    origin = str(info.get("origin") or "")
+    carried = [
+        row for row in info.get("carried_forward") or []
+        if str(row.get("series_id")) == CARRY_SERIES
+        and (not origin or str(row.get("observation_time")) <= origin)
+    ]
+    state = str(info.get("input_state") or "")
+    sessions = len({str(row.get("observation_time")) for row in carried})
+    return {
+        "state": state,
+        "carry_series": CARRY_SERIES if sessions else None,
+        "carry_sessions": sessions,
+        "carried_from": max((str(row.get("carried_from")) for row in carried), default=None),
+        "label": f"{state}·달러 캐리 {sessions}세션" if sessions else state,
+        "final": False,
+    }
+
+
+def _read_jsonl(path: Path) -> list[dict[str, Any]]:
+    if not path.is_file():
+        return []
+    return [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines() if line.strip()]
+
+
+def _display_constants(root: Path) -> tuple[dict[str, Any] | None, str]:
+    """표시 상수 파일 — content_hash 가 맞을 때만 쓴다(불일치면 해당 라벨을 싣지 않는다)."""
+    path = root / DISPLAY_CONSTANTS_RELATIVE
+    if not path.is_file():
+        return None, "constants_missing"
+    try:
+        value = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return None, "constants_unreadable"
+    body = dict(value)
+    expected = body.pop("content_hash", None)
+    if expected != canonical_hash(body) or body.get("constants_id") != "v8_display_constants_v1":
+        return None, "constants_hash_mismatch"
+    return value, "ok"
+
+
+def _nasdaq_archive(root: Path, knowledge_cutoff: str) -> tuple[dict[str, float], list[str]]:
+    """NASDAQ 종가와 V8 grid(5계열 관측일 교집합) — 같은 읽기 전용 아카이브에서."""
+    from .timeseries_v2.market_archive import read_market_observations
+
+    series: dict[str, set[str]] = {name: set() for name in GRID_SERIES}
+    closes: dict[str, float] = {}
+    for row in read_market_observations(root, knowledge_cutoff=knowledge_cutoff):
+        if row.series_id in series:
+            series[row.series_id].add(str(row.observation_time)[:10])
+        if row.series_id == TARGET_SERIES:
+            closes[str(row.observation_time)[:10]] = float(row.value)
+    grid = sorted(set.intersection(*series.values()))
+    return closes, grid
+
+
+def _contract_operational_gate(root: Path) -> dict[str, Any]:
+    """동결 계약 operational_gate 블록(읽기 전용) — 감시 공백 라벨의 분모만 읽는다."""
+    import yaml
+
+    from .timeseries_v8.contracts import CONTRACT_RELATIVE
+
+    path = root / CONTRACT_RELATIVE
+    try:
+        payload = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+    except (OSError, yaml.YAMLError):
+        return {}
+    gate = payload.get("operational_gate") if isinstance(payload, dict) else None
+    return dict(gate) if isinstance(gate, dict) else {}
+
+
+def _p_up_disclosure(
+    constants: dict[str, Any] | None, constants_status: str, resolutions: list[dict[str, Any]],
+) -> dict[str, Any]:
+    """① 상승확률 라벨 — h21/h63 은 기저율 구조, h1/h5 는 엔진 조건부(봉인 구간 예측력 미검출)."""
+    base = (constants or {}).get("base_rate_up") or {}
+    uplift = (constants or {}).get("b4_uplift_pp") or {}
+    signal = (constants or {}).get("sealed_location_signal") or {}
+    rows: dict[str, Any] = {}
+    for key in HORIZONS:
+        resolved = [row for row in resolutions if str(row.get("horizon")) == key
+                    and row.get("actual_log_return") is not None]
+        recent = {
+            "k": sum(1 for row in resolved if float(row["actual_log_return"]) > 0),
+            "n": len(resolved), "n_origins": len({str(row.get("origin")) for row in resolved}),
+            "basis": "ledger_grid_label", "single_episode": True,
+        }
+        if key in BASE_RATE_HORIZONS:
+            rate = (base.get("horizons") or {}).get(key) or {}
+            rows[key] = {
+                "kind": "base_rate_structural", "label": "기저율 기반 상승확률",
+                "base_rate": rate.get("value"), "base_rate_n": rate.get("n"),
+                "base_rate_window": base.get("window"),
+                "b4_uplift_pp": (uplift.get("horizons") or {}).get(key),
+                "b4_uplift_n_origins": uplift.get("n_origins"),
+                "state_responsive": False, "recent_up": recent,
+            }
+        else:
+            row = (signal.get("horizons") or {}).get(key) or {}
+            rows[key] = {
+                "kind": "engine_conditional", "label": "엔진 조건부(봉인 구간 예측력 미검출)",
+                "sealed_spearman": row.get("spearman"), "sealed_p_value": row.get("p_value"),
+                "sealed_n": signal.get("n"), "recent_up": recent,
+            }
+    return {"constants_status": constants_status,
+            "sigma_now_corr": ((constants or {}).get("state_insensitivity") or {}).get("sigma_now_corr"),
+            "horizons": rows}
+
+
+def _emission_block(forecasts: list[dict[str, Any]], cal: XnasCalendar) -> dict[str, Any]:
+    """② 원점별 발행 지연·이미 실현된 세션 수 — '사전' 지위는 h21/h63 에만."""
+    rows = [emit_timing(row, cal) for row in sorted(forecasts, key=lambda row: str(row.get("origin")))]
+    lags = [row["emit_lag_days"] for row in rows]
+    return {
+        "n_origins": len(rows),
+        "emit_lag_median_days": round(statistics.median(lags), 4) if lags else None,
+        "emitted_after_h1_close": sum(1 for row in rows if row["emitted_after_h1_close"]),
+        "h5_realized_sessions": [row["realized_sessions"]["5"] for row in rows],
+        "realized_fraction_mean": {
+            key: round(sum(row["realized_fraction"][key] for row in rows) / len(rows), 6) if rows else None
+            for key in HORIZONS
+        },
+        "prospective_horizons": list(PROSPECTIVE_HORIZONS),
+        "single_episode": False,
+        "rows": rows,
+    }
+
+
+def _holiday_block(
+    forecasts: list[dict[str, Any]], resolutions: list[dict[str, Any]],
+    grid: list[str], cal: XnasCalendar,
+) -> dict[str, Any]:
+    """④ 국채 휴장일 수익 제외 라벨 — 해소 행은 '확정', 미해소 쌍은 '예정'."""
+    resolved = {(str(row.get("origin")), str(row.get("horizon"))) for row in resolutions}
+    known = max(_grid_set(grid))
+    items: list[dict[str, Any]] = []
+    pairs = resolved_pairs = 0
+    for forecast in sorted(forecasts, key=lambda row: str(row.get("origin"))):
+        origin = date.fromisoformat(str(forecast["origin"])[:10])
+        for key in HORIZONS:
+            pairs += 1
+            resolved_pairs += (origin.isoformat(), key) in resolved
+            days = holiday_label_exposure(origin, int(key), grid, cal, known_through=known)
+            if days:
+                items.append({
+                    "origin": origin.isoformat(), "horizon": key,
+                    "dates": [day.isoformat() for day in days],
+                    "status": "confirmed" if (origin.isoformat(), key) in resolved else "expected",
+                })
+    dates = sorted({value for item in items for value in item["dates"]})
+    return {
+        "label": "국채 휴장일 수익 제외 라벨",
+        "dates": dates,
+        "confirmed_rows": sum(1 for item in items if item["status"] == "confirmed"),
+        "expected_rows": sum(1 for item in items if item["status"] == "expected"),
+        "resolved_pairs": resolved_pairs,
+        "unresolved_pairs": pairs - resolved_pairs,
+        "n_pairs": pairs,
+        "grid_known_through": known.isoformat(),
+        "single_episode": len(dates) <= 1,
+        "items": items,
+    }
+
+
+def _maturity_block(
+    forecasts: list[dict[str, Any]], resolutions: list[dict[str, Any]],
+    grid: list[str], cal: XnasCalendar,
+) -> dict[str, Any] | None:
+    """③ 첫 h63 성숙 이중 표기 — XNAS 63세션 날짜와 원장 해소 예상(grid 세션·H.10 뒤 cron)."""
+    origins = sorted(str(row.get("origin"))[:10] for row in forecasts if row.get("origin"))
+    if not origins:
+        return None
+    first = date.fromisoformat(origins[0])
+    horizon = int(SHADOW_MATURITY_SESSIONS)
+    grid_target = grid_target_session(first, horizon, grid, cal)
+    resolved = any(str(row.get("origin")) == origins[0] and str(row.get("horizon")) == str(horizon)
+                   for row in resolutions)
+    return {
+        "first_origin": origins[0],
+        "horizon": horizon,
+        "xnas_maturity_session": cal.offset(first, horizon).isoformat(),
+        "ledger_grid_session": grid_target.isoformat(),
+        "ledger_eta_utc": ledger_resolution_eta(grid_target, cal).isoformat(),
+        "ledger_eta_is_lower_bound": True,
+        "ledger_resolved": resolved,
+    }
+
+
+def _monitoring_gap(latest: dict[str, Any], root: Path) -> dict[str, Any] | None:
+    """⑦ 감시 공백 — h63 성숙 원점이 계약 recent_origins 에 닿기 전엔 자동 성적 경보가 없다."""
+    required = _contract_operational_gate(root).get("recent_origins")
+    if required is None:
+        return None
+    monitoring = (latest.get("operational") or {}).get("monitoring") or {}
+    matured = int(monitoring.get("matured_shadow_origins") or 0)
+    return {
+        "matured_h63_origins": matured, "required_origins": int(required),
+        "auto_alert_active": matured >= int(required),
+        "label": f"h63 성숙 원점 {matured}/{int(required)} — 그 전까지 자동 성적 경보 없음",
+    }
+
+
+def _disclosure_part(build) -> Any:
+    """공시 블록 하나를 만든다 — 실패하면 그 블록만 '확인 불가'로 남기고 표면은 그대로 뜬다."""
+    try:
+        return build()
+    except (TimeSeriesV8DisplayError, OSError, ValueError, KeyError, TypeError, ImportError,
+            RuntimeError) as exc:
+        return {"status": "unavailable", "error": str(exc)[:200]}
+
+
+def _v8_disclosure(
+    root: Path, latest: dict[str, Any], weekly: dict[str, Any] | None, *, use_daily: bool,
+) -> dict[str, Any]:
+    """표시 공시 묶음(display_only) — 숫자를 바꾸지 않고 라벨·접기 근거만 싣는다."""
+    resolutions = _forward_resolutions(root)
+    forecasts = _read_jsonl(root / SHADOW_FORECAST_LEDGER_RELATIVE)
+    constants, constants_status = _display_constants(root)
+    disclosure: dict[str, Any] = {
+        "display_only": True, "notice": DISCLOSURE_NOTICE,
+        "n_origins": len({str(row.get("origin")) for row in forecasts}),
+        "single_episode": True,
+        "p_up": _p_up_disclosure(constants, constants_status, resolutions),
+        "monitoring_gap": _disclosure_part(lambda: _monitoring_gap(latest, root)),
+        # ⑥ 일일 표면이 떠 있어도 주간 원점이 보류면 그 성격을 함께 말한다.
+        "weekly_hold": _hold_block(weekly) if use_daily else None,
+    }
+    if use_daily:
+        disclosure["input_state"] = daily_input_status(
+            {**(latest.get("daily") or {}), "origin": latest.get("as_of")})
+    if forecasts:
+        origins = sorted(date.fromisoformat(str(row["origin"])[:10]) for row in forecasts)
+        cal_box: dict[str, Any] = {}
+
+        def calendar() -> XnasCalendar:
+            if "cal" not in cal_box:
+                cal_box["cal"] = XnasCalendar(origins[0] - timedelta(days=7),
+                                              origins[-1] + timedelta(days=150))
+            return cal_box["cal"]
+
+        archive_box: dict[str, Any] = {}
+
+        def grid() -> list[str]:
+            if "grid" not in archive_box:
+                archive_box["grid"] = _nasdaq_archive(root, str(latest["knowledge_cutoff"]))[1]
+            return archive_box["grid"]
+
+        disclosure["emission"] = _disclosure_part(lambda: _emission_block(forecasts, calendar()))
+        disclosure["holiday_exposure"] = _disclosure_part(
+            lambda: _holiday_block(forecasts, resolutions, grid(), calendar()))
+        disclosure["maturity"] = _disclosure_part(
+            lambda: _maturity_block(forecasts, resolutions, grid(), calendar()))
+    return disclosure
+
+
 def _daily_anchor_and_history(
     root: Path, origin: str, knowledge_cutoff: str, anchor_value: float, *, sessions: int = 63,
 ) -> dict[str, list[Any]]:
@@ -831,6 +1346,12 @@ def _hold_projection(
         "cadence": "daily" if use_daily else "weekly",
         "weekly_as_of": None if weekly is None else weekly.get("as_of"),
         "footnote": latest.get("footnote"),
+        # ⑥ 보류 성격 라벨(표시 전용) — 숫자 없이 사유의 종류만 말한다.
+        "v8_disclosure": {
+            "display_only": True, "notice": DISCLOSURE_NOTICE, "single_episode": False,
+            "hold": _hold_block(latest),
+            "weekly_hold": _hold_block(weekly) if use_daily else None,
+        },
     }
 
 
@@ -909,4 +1430,6 @@ def load_projection(root: Path, *, now=None) -> dict[str, Any] | None:
         projection["input_state"] = str(info.get("input_state") or "")
         projection["provisional_series"] = [str(item) for item in info.get("provisional_series") or []]
         projection["anchor"]["provisional"] = bool((info.get("anchor") or {}).get("provisional"))
+    # 표시 공시(P5): 기존 키는 한 바이트도 바꾸지 않고 새 키 하나에만 싣는다.
+    projection["v8_disclosure"] = _v8_disclosure(root, latest, weekly, use_daily=use_daily)
     return projection
