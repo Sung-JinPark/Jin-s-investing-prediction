@@ -97,6 +97,13 @@ def projection(root: Path, *, minimum: Optional[int] = None) -> dict[str, Any]:
         minimum = int(gate.get("minimum_matured_origins_per_cell") or 60)
     restriction = claim_thresholds(contract)
     min_events, min_episodes = restriction["min_events"], restriction["min_episodes"]
+    # V13-D15 적용 원장 — 셀 요약·판정 대기 체크포인트만 읽는다(이 표면은 여전히 판정하지 않는다).
+    from . import verdict_ledger as VL
+
+    applications = VL.read_applications(root)
+    application_block = ((contract or {}).get("live_verdict_application") or {})
+    step = int(((application_block.get("checkpoints") or {}).get("step")) or VL.DEFAULT_STEP)
+    pass_cells = [str(c) for c in (((contract or {}).get("publication") or {}).get("holdout_pass_cells") or [])]
 
     by_cell: dict[str, list[dict[str, Any]]] = {}
     for row in resolutions:
@@ -137,6 +144,11 @@ def projection(root: Path, *, minimum: Optional[int] = None) -> dict[str, Any]:
             entry["episodes"] = claim["episodes"]
         entry["claim_blocked"] = claim["claim_blocked"]
         entry["claim_block_reasons"] = claim["claim_block_reasons"]
+        entry["live_verdict"] = VL.cell_application_summary(applications, name)
+        entry["verdict_pending_checkpoint"] = None
+        if applications["status"] == "ok" and name in pass_cells:
+            pending = VL.pending_checkpoints({name: n}, applications, [name], first=minimum, step=step)
+            entry["verdict_pending_checkpoint"] = pending[0]["checkpoint"] if pending else None
         cells.append(entry)
 
     total = sum(c["matured"] for c in cells)
@@ -148,7 +160,11 @@ def projection(root: Path, *, minimum: Optional[int] = None) -> dict[str, Any]:
         # 판정하지 않는다는 사실을 페이로드에 박아 둔다 — 화면이 이 값을 읽고
         # '통과/실패' 같은 문구를 만들지 못하게.
         "verdict": None,
-        "verdict_blocked_reason": f"셀당 성숙 원점 {minimum} 미만 — 계약이 판정을 막는다",
+        "verdict_blocked_reason": (
+            "스코어보드는 판정하지 않는다 — 판정·적용은 체크포인트 적용 원장(live_verdict_applications, V13-D15)만"
+            if any(c["matured"] >= minimum for c in cells)
+            else f"셀당 성숙 원점 {minimum} 미만 — 계약이 판정을 막는다"),
+        "applications_status": applications["status"],
         "minimum": minimum,
         "origins_recorded": distinct_origin_count(origins),
         "matured_total": total,

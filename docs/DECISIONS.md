@@ -2682,3 +2682,349 @@ v6.1 계약의 on_failure('v5 가 유일한 공개값')는 지수 값에 대한 
 **배포 전 리뷰(4관점 + 2차 확인)에서 고친 것.** '실패한 것은 합산'이라는 처음 설명(위에 정정), '평상 = 0' 문구,
 54% 바로 아래 배치와 '부문별' 제목 중복, 빈 부문 문구('통과 지표 없음' → '미측정'), 표시용 단계가 원장 커밋을 막을 수
 있던 점, 옛 기준값 산출물이 실릴 수 있던 점, 브라우저 쪽 기준일 확인 부재, 감시의 배포 대기 중 거짓 경고.
+
+## 2026-11-11 — MTS 감시 배지·일일 배치 (U1, 위임 결정)
+
+**지시(위임형, 원문).** "네가 나머지 작업 다 완료시켜.  네가 최적의 선택을 내려서 u1~u7까지 다 진행시켜" — 지시 시각 상한 2026-11-11T09:03:44Z,
+approval_form delegated_bundle_instruction, literal_template_match false(V14 선례, KNOWN_LIMITS 39). 계약 approval 블록은 V13·V14 선례 형식이다 —
+approval_text = 원문(공백 2칸), template_text = 결정 요약. 효력 판단은 사용자 몫이며 철회 시 로더 계약 핀 제거로 배지는 즉시 0.
+
+**결정.**
+1. 표시 진단 계약 `data/mts_research/contracts/mts_display_diagnostics_v1.yaml` 을 첫 배지·첫 예약 실행 전에 단독 커밋했다(로더 핀
+   `PINNED_CONTRACT_HASH = 25b7c43a7606a56071166afca5b26db1c47d470a0a18d06649d1ac9a41ba0591`). display_only·숫자 무변경·재예측 자동 실행 없음·
+   임계 해시 bcc24081… 참조·결측/불일치면 배지 0. 연구 계약 `mts_research_v1.draft.yaml` 의 audit_only·production_publish_enabled=false 는 그대로다 — 별도 차선이다.
+   공식·진단 basis 는 계약이 재선언하지 않는다 — `label_basis_source` 로 U7 선언 파일을 가리키고 로더는 U7 핀 로더
+   `label_basis.load_pinned_label_basis` 로만 공식 basis 를 판정한다(해시가 다르면 L1 배지·basis 접기 0). V13 카드 caveat 는 이 계약이 아니라
+   V13 계약 `live_display_caveats`(V13-D16) 경로이며, 계약 `cross_reference` 에 관문 예외로 적었다.
+2. 배지는 V8 카드에만. 원점별 사실인 C1 오늘 종가 충격 미반영·C6 λ 전환·근소차(발동 구성요소 표기)·C8 기준일 상이는 **감시 원점 = 카드 원점일 때만**,
+   C12 시장 입력 수집 정지는 **V8 필수 5계열 정지만**(FED_EBP 같은 선택 계열은 접기 정보 줄) 1세션 지연까지, L1 라이브 skill 하위 5%는 원장 grid basis·h5·h21
+   (h63 은 임계 키 없음)에서 n/k 와 충격일 수를 함께. 배지마다 k/N일·에피소드 수 의무. C11 은 P5 휴장 라벨과 중복이라 제외.
+   XNAS 진단 수치는 접기 표에 basis 라벨로 나열만(공식 basis grid 유지, U7). 연구 `_label()` 의 '복수 에피소드'(충격일 0 에도 찍힘)는 화면에 쓰지 않는다.
+3. 일일 배치 `.github/workflows/mts-coherence-monitor.yml`(예약 Tue–Sat 12:15·18:45 UTC, 수동 dispatch). **메모 대비 변경**: v2-refresh 완료 연쇄 대신 예약만 —
+   준비 게이트가 정확성을 보장하므로 남는 기준은 비용(발행 완료 연쇄는 하루 ~28회 pages·verify). 준비 게이트: (V8 일일 표시 행 confirmed ∧ V13 행) 또는 명목 마감
+   (다음 세션 종가+15분) 경과. provisional V8 행으로 계산한 감시 행이 identity 를 점유하지 않게 한다. `coherence-monitor --catch-up` 은 원장 마지막 as_of 다음 세션부터
+   아카이브 마지막 세션까지 순서대로 append 하고(한도 30세션), 종가 결측은 5세션 유예 뒤에만 결손으로 건너뛴다(identity 미점유, 수동으로만 채움).
+   `v8-live-monitor --if-stale` 는 입력·코드·봉인 원장 지문이 같으면 건너뛴다(세션당 1회는 재계산).
+   **사이드카 단계 포함(U2 §7.7 교차 명세)**: live 단계 뒤·체인 검증 앞에 `fed-ebp-sidecar --append`(`!cancelled()`)를 두고, 체인 검증 튜플·커밋 허용 목록
+   (7경로)·unexpected 정규식에 `fed_ebp_v1` 을 넣었다. 예약 집합 {15 12 * * 2-6, 45 18 * * 2-6} 은 ingest_triage 정책의 96h 지연 창 근거와 묶여 있다 —
+   바꾸려면 정책 v2.
+4. 새 라이터 3곳 등록(pages·verify workflow_run, ops-failure-alert). website lineage 에 표면 `mts_display_diagnostics`(governance_metadata, probability_space none)를 등록했다
+   (V13 표면·overheat 선례 — V7 GLOB 대상 파일 편집 공시). 원장 레지스트리는 편집하지 않았다(expected_state 는 빈 파일 판정 전용, 메타 낡음은 KNOWN_LIMITS 48).
+   derived `coherence_monitor_latest.json` 은 latest 에 4필드(threshold_hash·threshold_status·c12_stalled_series·c6_triggered)를 더해 `write_derived` 로 재생성했다(원장 무수정).
+
+**오염 공시.** 배지 종류·라벨·C12 필터·C6 구성요소 표기·lag 상한·결손 유예는 감사 재생 27일(C6 17/21일 중 λ 전환 6일, C12 25/27일 전부 FED_EBP)과
+실측 발행 시각을 본 뒤 정했다. 배지는 검정이 아니라 라벨이다. 참고 의견, 매매 신호 아님.
+
+## 2026-11-11 — MTS U2a: ingest-triage 정책·daily6m 원천 분류·V8 캐리·NYSE 달력 (위임 결정)
+
+**지시(위임형).** "네가 나머지 작업 다 완료시켜.  네가 최적의 선택을 내려서 u1~u7까지 다 진행시켜"
+(approval_form delegated_bundle_instruction · literal_template_match false · 지시 시각 상한 2026-11-11T09:03:44Z).
+정책·영수증 JSON 의 approval 블록은 V14·V13 선례 형식이다 — approval_text = 원문(공백 2칸), template_text = 결정별 요약,
+instructed_at_upper_bound = 2026-11-11T09:03:44Z.
+
+**known_stall 정책(운영 등록 — registration_kind post_hoc_operational, `data/mts_research/contracts/ingest_triage_policy_v1.json`,
+canonical_hash 0f13a917fec036500dc7332223f04b870424b82919dd17c0aceddd1855f0f2f1 를 `ingest_triage.PINNED_POLICY_HASH` 로 고정).**
+임계는 실측과 U1 예약표를 본 뒤 정했다. 예측·채점·게이트 표본과 무관하므로 '결과 전 사전등록'이라 부르지 않는다.
+- FED_EBP: 봉인 파서 ISO 날짜 실패 서명 완전일치 + 최신 사이드카 빈티지 오류문 일치 + 이 run 이 받은 영수증.
+  판정 시각은 보고의 market.retrieved_at(벽시계 금지 — 값이 없으면 exit 2). 개시 24h 안은 escalate, 이후 사이드카 원장이
+  96h 안이면 warning(known_stall, exit 0), 아니면 escalate. 원장이 재생의 접두부가 아니면(무결성 위반) 지연과 구분해 unexpected.
+  96h 근거: U1 예약(화–토 12:15·18:45 UTC) 최대 무실행 65.5h + 예약 지연 2~5h + 슬롯 누락 6.5h ≈ 77h 올림.
+  2026-11-11 초안의 "첫 24시간 1회 error" 는 "그 창 안의 v2-refresh run 수만큼(보통 1~3회)" 으로 바로잡는다
+  (v2-refresh 는 예약 외에 daily6m-sources-refresh·timeseries-inputs-refresh 가 dispatch 한다). 초안 항목 자체는 수정하지 않는다.
+  실측 오라클: fixture 2개(run 42950811442·42926210670) → known_stall, 개시 2026-10-07T07:46:53Z, 835.5h·832.1h, 밀린 행 0.
+- Nasdaq 403(메모 대비 이탈 · 설계 P7 '24h+ escalate' 의 사후 완화): 24h 미만 pending, 24~26h escalate,
+  26h~14일은 ALFRED NASDAQCOM 보완이 2세션 안이면 warning, 그 밖 escalate. 근거: 5분 cron 경보 피로(ops 단일 이슈 하루 최대
+  288 댓글)와 timeseries-daily6m 재사용 잡 적색이 pages·verify 를 14일간 건너뛰게 하는 연쇄. 대안(escalate 유지 + ops 율 제한)은
+  23개 워크플로가 공유하는 경보 의미를 바꾸고 연쇄를 못 막아 기각. 연속 길이는 영수증 원장 + 다음 세션 종가 앵커로 잰다
+  (`daily6m_receipts_session_anchored_v1`; 실측 2.568h·5.916h → transport_pending, ALFRED lag 1 → 신선).
+- 효력은 단계 종료코드와 주석뿐 — 예측·게이트·승격·숨김·재예측과 무관. 참고 의견, 매매 신호 아님.
+
+**배선(U2a 분).** `daily6m-sources-refresh.yml` 의 continue-on-error 를 없애고, capture 종료코드를 기록해 두 분류 단계를
+관문 `python -m ai_fc.mts_research.triage_gate --kind daily6m_sources --history receipts_ledger` 로 바꿨다. 403·장중만 완전일치
+규칙으로 낮추고 모르는 실패는 fail/unexpected 로 남긴다 — 조용한 성공 없음. `timeseries-daily6m.yml`(보호)은 재사용 호출이라 무수정.
+관문은 RESEARCH_TOOLS verb 가 아니라 별도 모듈 진입점이다(`--` 뒤 명령 전달이 필요한 워크플로 하네스) — 판정 정본은 `ingest-triage`
+verb 하나. `mts_research/cli.py` 는 verb 전용 인자 3개(`ingest-triage --history`, U1 의 `coherence-monitor --catch-up`·
+`v8-live-monitor --if-stale` 정의)를 한 번에 넣었다 — 무관한 verb 에서는 argparse 가 거부한다.
+
+**V8 일일 캐리(carry_policy federal_holiday_neutral_exclusion_v1).** 국채(DGS2·DGS10)가 없고, 빼도 V8 사용 계열 overlay 행이
+남는 연방휴일만 캐리 목록에서 뺀다 — 그 세션은 어차피 봉인 build_core_market_frame 의 dropna 로 빠지고 data_grades 도 그대로라
+CandidateFeatureBundle 전 필드·입력 지문이 비트 동일(실원장 원점 ≤ 2026-11-10 휴일 캐리 10행 재생: 프레임 10/10·data_grades 10/10
+동일 — 테스트로 고정). 국채가 열린 연방휴일(2017-11-10·2021-12-31·2023-11-10, 다음 2027-12-31)과 유일한 overlay 행은 유지한다.
+조립 뒤 중립성 단언: 제외일에 국채가 생기면 fail-closed. 행에 `carry_policy` 공시, input_state_hash 정의 무변경(휴일 없는 창은
+해시·행 필드 종전과 동일). 원장 소음: 캐리 목록이 바뀐 원점에는 숫자가 같은 supersede 행이 1개 붙을 수 있다(현재 창의 11-11 은
+2026-11-16 H.10 뒤 빠진다 — 2026-11-17 이후 배포면 다음 노출 2027-10-11 까지 소음 0). 경계: 이 커밋 머지 뒤 knowledge_cutoff 를
+가진 V8 일일 행부터 coherence 원장의 `carried_forward_len`·`carried_forward_series` 는 새 정의(휴일·국채 휴장 제외)다 — 행의
+`carry_policy` 키가 표식이다(KNOWN_LIMITS 54).
+
+**NYSE 휴장 계약 정정(revision 2, 제자리).** 2025-01-09 일회성 휴장 추가, 신정 토요일 규칙(`saturday_observance: none`, NYSE Rule 7.2)으로
+2027-12-31 을 거래일로(부수: 2004·2010·2021-12-31 도 XNAS 와 일치). 해시·동결 대상이 아니다. registered_at·version 유지, revised_at·
+revisions 추가. `scenario._holiday_for_rule` fixed 분기 1함수 확장(키 없는 규칙 동작 무변경) — V7 glob `src/ai_fc/scenario*.py` 대상이라
+편집 영수증 `protected_workflow_edit_receipts_v1.json` 에 pin:false(기록 전용)로 적었다. 검증: XNAS 2025-01-01~2028-12-28 불일치 0,
+2004~2024 잔여는 공시한 일회성 휴장 5일뿐(KNOWN_LIMITS 52), 저장 산출물 trading_days 74개 재생 동일(지평 2026-08-04~2027-11-11),
+소비처 16파일 정정 전(HEAD export)·정정 후(같은 테스트 + 최종 YAML·scenario.py·market_session.py 바이트) 330 passed · 이름 집합 동일.
+**마감 2026-12-29**(asof 2026-12-30 시나리오 지평에 2027-12-31 이 처음 들어간다 — 그 뒤 제자리 정정은 재생 불일치).
+
+**보호 매니페스트(메모 대비 이탈).** 재생성 가능한 매니페스트가 없다 — 탐색: V7 기준선(동결·이미 어긋남 changed 162 / added 11,566 /
+removed 204, 파일 sha 06f8396d 무변경), PROTECTED_GLOBS, V2 ralph.editable_scopes, scenario_v5 protected_hashes(데이터 경로만),
+model_code_hash 집합, 설계서 §5-16. 대신 편집 영수증 `protected_workflow_edit_receipts_v1.json` 을 둔다(U2b 가 v2-refresh 항목을 pin:true 로
+append 한다 — PR-2).
+
+**이관·기각.** `daily6m_sources.py` 파싱 순서 교정은 model_code_hash 를 바꾸고(c3fe06c1…→7ed41f32…, 실측) 호환 v1 의 b7a5038f… 6행
+읽기도 깨뜨린다. U2 는 U4 로 넘기려 했으나 **U4 도 받지 않아(U4 D13) 별도 'daily6m v1 호환 r2' 결정을 기다린다** — 이번 묶음에서는
+하지 않는다. 장중 응답은 분류기 intraday_pending 이 흡수한다. **daily6m v1 해시를 의도적으로 바꾸는 PR 은 같은 커밋에서 v2 핀을
+갱신한다**(U4 요청). checkpoint 잠금 직렬화·daily6m dispatch 추가는 기각(남는 rebase 충돌 공백은 KNOWN_LIMITS 53). Nasdaq 403 대안
+원천은 계약에 없다 — 위장 금지, 새 원천은 U4 sources 계약 후보.
+
+**봉인 확인.** V8 model_code_hash 869418cc…, V2 bb225cbf…, daily6m v1 c3fe06c1… 변경 전후 동일. `timeseries_v8/`·`timeseries_v2/`·
+`timeseries/`·`timeseries_daily6m/`·`daily6m_sources.py`·`daily6m_calendar_compatibility.py`·보호 glob 워크플로 diff 0.
+
+## 2026-11-11 — V15 정합성 섀도 트랙 사전등록 r2 (U3, 위임 지시)
+
+**지시 원문**(영수증 5행 공통 approval_text): "네가 나머지 작업 다 완료시켜.  네가 최적의 선택을 내려서 u1~u7까지 다 진행시켜"
+(수신 상한 2026-11-11T09:03:44Z = 18:03:44 KST, 도구 기록). 리터럴 템플릿이 아니라 위임형 원문이며 각 행에
+`literal_template_match: false`, `approval_form: delegated_bundle_instruction`, `template_text`(결정별 리터럴 템플릿 요약),
+`approved_at: "2026-11-11T18:03:44+09:00"` 을 넣었다(V14·V13 2026-10-22 선례, 계획 §6 C1). 철회 시 철회 행 append.
+영수증: `data/timeseries_v15/ledgers/approvals.jsonl` V15-D0(개시 — 효력은 r3) · D1(A2 고정 ½·½) · D2(A6·A7·A2b 미등록) ·
+D3(A5 비열등 가족 분리, 기각 시 대안 m=15) · D4(r2 운영 개정).
+
+**개명.** `data/contracts/multivariate_timeseries_v15_coherence.draft.yaml` → `multivariate_timeseries_v15_coherence.yaml`(status prereg).
+이전 항목(2026-11-11 MTS 라이브 실측 감사)과 감사 보고서가 가리키는 `.draft.yaml` 은 이 파일이다 — 기존 항목은 append-only 라 고치지 않는다.
+계약 파일명은 V7 `GLOB_SPECS` 의 `data/contracts/multivariate_timeseries_v[1-6]*` 에 걸린다(fnmatch — V10·V13·V14·PR #399 draft 와 같은 선례,
+V7 baseline 은 CI 에서 실저장소를 검사하지 않는다). `ledger_registry.yaml` 도 같은 GLOB 대상이지만 PR #399 선례대로 편집했다.
+
+**결정.** 동결 V8 를 대체하지 않는 후속 섀도 `multivariate_timeseries_v15_coherence`(draft → prereg r2). 봉인 코드 0바이트 변경 —
+바뀌는 3파일(V8 model·backtest, V2 features)만 `src/ai_fc/timeseries_v15/` 로 복사·패치(`prereg/fork_patch_v1.json`, 테스트 F1 이
+unified diff 를 바이트 재현), 나머지 봉인 커널은 import. XNAS 달력·번들 조립은 V15 kernel 안(`calendar.py`·`bundle.py`)으로 옮겨
+연구 계층 리팩터가 kernel 해시를 흔들지 않게 했다(F7 정합).
+등록 팔: A0 V8 비트 동일 대조(≤1e-12) · A1 fresh_vol(D4) · A2 고정 ½·½ λ 혼합(D5, 학습 0) · A3 XNAS 라벨·금리/달러 as-of 캐리(D1·D3) ·
+A4 VIX 세션 정렬(D6) · A5 다음 개장 전 발행·원점 주 달러 0 캐리(D2·D3). **A6(B4 변형)·A7(위치 중립)·A2b 미등록** — 라이브 12원점 관측 뒤
+형성된 동기라 지금 등록은 스누핑.
+판정: 우월성 가족 {A1..A4}×{5,21,63} Holm **m=12 고정**(초안 `affected_horizons_rule` 의 설계창 기반 가지치기는 폐지 — 설계창 구조적 동일은
+라이브 구조와 무관). **A5 는 비열등 가족(δ_NI +1% 상대 CRPS, m=3)** — 정보가 적은 팔을 우월성으로 판정하면 구조적 fail 이 되어 가족 검정력만
+깎는다. 두 가족 각 α=0.05 → 트랙 FWER 최대 약 0.10(공시). 최소 원점 h5·h21 26 · h63 39, 블록 부트스트랩 B=5000 seed 20261111
+(블록은 뽑힌 순서로 연결), 에피소드 과반·최유리 블록 제거(CI·Holm 통과 후 에피소드 미달은 insufficient).
+**판정 컷은 가족별 기계 컷 T\***(모든 (팔,지평)이 data 조건을 처음 동시에 충족한 시각 — 구성원별 최초 도달의 max 가 아님) — 그 이내 쌍만 쓰므로 실행 시각이 결과를 바꾸지
+않는다(판정 행의 원장 머리 해시도 컷 이내 마지막 행). 마감 컷 2028-06-30T23:59:59Z. 판정 코드 해시 `verdict_code_hash` 를 계약에 고정.
+A0 identity 실패는 원점 단위 제외(행은 커밋) — 최근 3개 V8 원점이 모두 실패하면 커밋 뒤 health 단계가 run 을 실패시켜 경보(사람 ack 로 해제).
+비교 가능성: A0~A4 는 V8 원점·V8 knowledge_cutoff·그 시각 main 스냅숏(`git rev-list -1 --first-parent --before`)·V8 시드(CRN), 라벨은 전 팔 xnas_v1.
+**MDE 는 track_open 전에** 설계창(2014-12-31 절단, A0 404원점 2007-01-05~2014-09-26 — 구현 단계 번들 실측 재확인, A3 는 자기 축 405원점)
+결정론 재생으로 산출 — 수치모델 예외, 채택 근거 아님, 요약에 효과 추정치 없음, A4 는 산출 불가(설계 비대표). **규칙 잠금**: r2 커밋의
+`rule_hash_r2` 를 계약 provenance·영수증 5행·이 항목에 적고, r3 는 허용 목록(mde 값·status·per_arm·summary_sha256,
+live.first_origin_not_before, track_open, gates.armed, revisions 1항)만 바꿀 수 있다(테스트 C9·C10 고정).
+초안 대비 이탈: 포크 생성을 track_open 전으로 당김(MDE 재생에 필요), gates.armed 의 별도 사용자 승인을 위임 영수증 V15-D0 로 충족,
+A5 F04 마감을 mts_research artifacts 경로 대신 V15 자체 마감 검사로.
+메모 대비 변경(계획 §6 C11 — 각각 철회 가능, v16·supersedes): A5 비열등 가족 분리(m=12+3), A0 identity 실패 시 원점 단위 제외, 가족별 기계 컷 T*,
+최소 포크, rule_hash_r2. 메모의 "MDE 를 등록 전에 기입" 은 "개시(track_open) 전 기입" 으로 충족한다(계획 §6 C17 — r2 가 규칙을 먼저 잠근다).
+자동화: `v15-coherence-shadow.yml`(V8 섀도 완료 workflow_run + 월 A5 + 화~토 폴백), 판정 verb 는 워크플로에서 부르지 않는다. 승격 자동 없음
+(126세션 + 소유자 승인). 비용 LLM 0, Actions 약 9.3 러너시간/주(공개 저장소 무료) — track_open 전에는 plan 만 돈다.
+**오염 공시**: 축 선택이 라이브 결함 관측(V8 12원점·11-05 충격)에 조건부. 2026-11-10 이전 원점 소급 채점 없음.
+**구현 스모크 1회(공시)**: r2 구현 검증 중 설계창 재생 경로를 실 설계 번들(2014-12-31 절단)로 1회 돌렸다 — 팔 A0·A3·A5,
+팔마다 원점 2~3개(outer_start 2014-09-15), path_count 64, B4 비활성. 팔마다 마지막 원점(2014-09-26 또는 2014-10-01) h63 의
+crps_verdict 1개, 모두 3개 값이 터미널에 출력됐다(파일 쓰기 0). 팔 간 비교·요약 0, MDE 아님(20,000경로·404원점·B4 활성 아님),
+라이브·2015+ 구간 바이트 0. 설계창은 반복 열람 구간이라 판정 오염은 아니지만 "구현 단계에 어떤 팔 점수도 계산하지 않았다"는
+앞선 문구는 사실이 아니어서 고친다. 계약 `provenance.numbers_newly_computed_at_r2: 3`·`smoke_run_r2` 에 같은 사실을 적었다.
+스모크 뒤 rule_hash_r2 재계산 전 바뀐 규칙 블록은 구현 리뷰 정렬뿐이다 — T* 를 "처음 동시 충족"으로 구현(verdict.py), r1 문구
+(`ci_method`·`distinct_resample_rule`) 원문 복원, MDE 스냅숏 기록 문구(체크아웃 HEAD). 판정 수치(최소 원점·블록·B·시드·α·δ_NI·가족)는 그대로다.
+그 밖의 구현 단계 실데이터 확인은 프레임 동일성·입력 오라클(10-12 나스닥 수익·2026-01-20 VIX 차분·10-12 DGS2 결측·A5 꼬리 날짜)뿐이다.
+**정합 메모**: 계약 `affected_horizons_rule_note`·`mde.expected_flags` 의 "A4 설계 1행(2004-06-11)"은 VIX 비XNAS **행 수**다.
+대표성 규칙이 재는 A0 대비 **입력 행 차이**는 실측 0행이다(그날 VIX 15.04 가 전일과 같음) — 결론(A4 설계 비대표)은 같다(KNOWN_LIMITS 58).
+**A0 라이브 identity 종단 확인은 [미검증]** — 구현·리뷰 모두 번들 동일성과 합성 대조만 확인했다. 실제 대조는 머지 뒤 a0_identity 디스패치(r3 관문)다.
+KNOWN_LIMITS 55~62.
+rule_hash_r2 `164206683b586bdaee6bb2c676e6177e7b561d35b4b288d4993cf32e96dc47d3` ·
+frozen_kernel_code_hash `4e93e3f24af87285e3e768814345cdcb88cf7a1fdef0318c387c61462185b162` ·
+frozen_verdict_code_hash `6a9526073ad0347d166ea4f9f9202dbc14196d7883dda126b42bdc53000d0eb8`.
+커밋: 사전등록 r2 0f03d5eb248788d63551d8105b2154d2505c293a → MDE·identity·r3 는 머지 뒤 별도 항목.
+
+## 2026-11-11 — daily6m v2 섀도 계약 사전등록 (U4, 사용자 위임 지시)
+
+**지시.** "네가 나머지 작업 다 완료시켜.  네가 최적의 선택을 내려서 u1~u7까지 다 진행시켜" — 위임 결정 메모 U4(채택, 표시는 v1 유지). 영수증 `data/timeseries_daily6m_v2/ledgers/approvals.jsonl` 1행(approval_text = 원문, template_text = 결정 요약, `delegated_bundle_instruction`, literal_template_match false, approved_at 2026-11-11T18:03:44+09:00 = 수신 상한 09:03:44Z).
+
+**무엇을.** v1(`timeseries_daily6m_v1`)은 한 바이트도 바꾸지 않고, 같은 원점·같은 입력·같은 시드에서 분산 처리만 바꾼 v2 세 팔을 비공개 섀도로 발행한다.
+main = 원점 당일 잔차를 넣은 fresh 분산 + 선택 전용 CRN 부트스트랩·고정 검증 격자·1 MC SD 히스테리시스 선택.
+term_structure = main + 설계창 φ 로 감쇠하는 평균회귀 분산 기간구조(장기 수준 = 느린 EWMA 0.996) — V8 B1 과 같은 식의 재시험. zero_drift = main 에서 나스닥 조건부 평균 0.
+입력 동일성은 매 run 의 v1 축약 재시뮬 path_hash 일치(투영 외생값은 v1 run 기록값) + v1 code hash 일치로 증명한다. 계약 `data/contracts/timeseries_daily6m_v2.yaml`(frozen hash ddf1d6f33289e9c3898d083759326dd625876c44b4d3560f42873b4627d19958), 해설 `docs/research/mts_upgrade/daily6m_v2_prereg_20261111.md`.
+
+**설계 상수(설계창 2007-01-01~2014-12-31, 수치모델 예외).** `design_constants_v1.json` canonical hash 265c48d3656142bfecbe59c76083a974821795409cab19c2e3000211153ee592 를 계약에 핀했다.
+φ(5자리) nasdaq 0.98708 · vix 0.88011 · dgs2 0.99947 · curve 0.99350 · dollar 0.99535. 장기수준 규칙 slow_ewma_0.996(배율 전 PIT 손실 0.0245 < sample_mean_square 0.0599, 평탄 참조 0.0098).
+생성기 `ai_fc.timeseries_daily6m_v2.design` 이 r1 스크래치 대리 재생을 원점 278개의 선택·마진까지 비트 동일하게 재현했고, `daily6m-v2-design-check` 와 같은 함수(`check_design_constants`)로 다시 계산해 상수 파일과 정확히 일치했다(로컬 numpy 2.4.3 · scipy 1.17.1, 생성 640.9초 · 검사 829.1초 — 아래 PR 메모 참조). 2015 이후 행은 읽고 건너뛰었다(사용 0행).
+
+**판정(첫 v2 해소 전 고정).** v1 해소 원장의 같은 고정 종가로 쌍대 채점. 1차 지표 39분위 격자 CRPS(동일 입력 run 에서 v1 경로를 비트 재구성해 v1 격자도 저장).
+라벨은 비중첩 솎음 표본(리드 k 는 원점 위상 mod k = 0 만)에서만: 가족 5 = {main, zero_drift}×h1 ∪ {main, term_structure, zero_drift}×h5, iid 부트스트랩 B 9999,
+Holm 단측 0.05. h1 p 값은 h1 n=50 첫 도달 때, 가족 판정은 h5 n=50 첫 도달 때 **한 번만** 계산해 `verdicts.jsonl` 에 남긴다. 목표일 균등 전 리드 평균은 서술.
+자동 승격 없음 — 가족 판정 + h21 비중첩 n≥30 열등 미입증(CI90 하한 ≤ 0 — 마진 있는 비열등 검정이 아니다) + 소유자 결정 + 새 계약. 예상: h1 ≈ 50세션, h5 ≈ 1년, h21 ≈ 2.5년.
+2차 coverage80 은 |cov−0.8| 차(팔 − v1, 양수 = 팔이 명목 80% 에서 더 멂)를 같은 솎음 표본·같은 부트스트랩 인덱스로 계산한다 — 원점별 |hit−0.8| 차의 평균은 커버리지 차(−0.6·Δcov)가 되어 넓은 밴드를 좋게 읽으므로 쓰지 않는다(첫 run 전 리뷰 수정).
+**코드 정체성.** run 의 `model_code_hash` 와 run 적재 게이트는 숫자를 바꿀 수 있는 파일(v2 kernel·model, 봉인 timeseries/model·backtest, timeseries_v2/model)만 묶는다. contracts·pipeline·scorecard 는 run 의 `orchestration_code_hashes`·판정 행의 `scorecard_code_hash` 에 비게이트 진단으로 기록하고, verify 가 해소 재계산·판정 재계산으로 숫자를 다시 증명한 뒤 코드 변경을 `diagnostics` 로 공시한다 — 주석 한 줄 수정으로 트랙이 멈추지 않게(v1 이 사후 호환 모듈을 따로 만들어야 했던 선례).
+
+**메모 대비 변경과 근거.** (1) 분산 기간구조를 main 에서 빼 쌍둥이 팔로 — 설계창 대리 재생(278 원점)에서 h63·h126 80% 구간을 0.89~0.94 로 과대 커버(평탄 0.81·0.80).
+(2) 리드 배율(메모 c) 기각 — 원시 격자값은 리드 사이를 오가고 반창에서 뒤집혔다(h126 실효 독립 창 11).
+(3) 장기 수준은 설계창 상수가 아니라 원점 표본의 느린 EWMA. (4) **판정 규칙 변경(메모 "목표일 ≥ 50")**: 귀무 시뮬에서 목표일 균등·블록 21·50일 규칙의 단측 거짓 기각률이
+0.29~0.46(명목 0.05) — 겹친 창 의존을 블록이 못 잡는다. 비중첩 솎음 + iid 부트스트랩은 가우스·GARCH-t 모두 0.04~0.07. (5) 적중률은 2차(CI 만).
+(6) 선택은 CRN(R=8)·1 MC SD 히스테리시스에 더해 검증원점을 21 배수 고정 격자에 둔다 — 대리 재생에서 (block,λ) 전환이 158→22→14 로 준다(v1 라이브 15회 중 10회 전환).
+(7) v2 수치 비공개, pages 등록 없음(원장 메타는 신뢰 패널). verify·ops-failure-alert 에만 등록한다(3곳 관례의 예외 — 하루 최대 약 32회 실행, 표시 없음). 트리거는 workflow_run(timeseries-daily6m) + 3시간 예약 `52 */3 * * *`(workflow_run 3단 제한 대응).
+(8) U2 가 이관한 `daily6m_sources.py` 파싱 순서 교정·새 원천은 받지 않는다(같은 번들 원칙·v1 바이트 무변경) — 별도 'daily6m v1 호환 r2' 결정 대기. daily6m v1 해시를 의도적으로 바꾸는 PR 은 같은 커밋에서 v2 핀(`test_daily6m_v2_contract_wiring.py::test_v1_is_byte_identical_pin`)을 갱신한다 — 계약의 `parent.model_code_hash_at_registration` 은 등록 시점 값이라 바꾸지 않는다.
+
+**오염 공시.** 설계는 v1 라이브 결함(D4 EWMA 지연, D5 선택 근소차, 커버리지 원시 0.538)을 본 뒤 했다. 상수에 라이브 행은 0개 쓰였다.
+설계창은 V8(같은 B1 메커니즘 포함 — dev run tsv8-exp-92d143bb7d6754e673c7·tsv8-exp-b3d95536b64d0aa07e20)·V13~V15 가 반복 열람했고, 장기수준 S 후보·팔 분리·배율 기각은 설계창 결과를 본 뒤 정했다. 하이퍼파라미터가 사후 지식을 간접 내포할 수 있다. 한계: KNOWN_LIMITS 63·64.
+
+**V7 GLOB 공시.** `data/contracts/ledger_registry.yaml`(V7 GLOB_SPECS 대상)에 v2 원장 7항목을 append 했다(PR #399 6c10af0e 선례). 보호 매니페스트는 재생성하지 않았다.
+
+## 2026-11-11 — V15-VOL: V13 후속 변동성 사건 섀도 트랙 사전등록·무장 (위임 U5)
+
+**지시.** "네가 나머지 작업 다 완료시켜.  네가 최적의 선택을 내려서 u1~u7까지 다 진행시켜" — 위임형 영수증
+`v15vol-approval:V15VOL-D1:2026-11-11:r1`(개시)·`v15vol-approval:V15VOL-D2:2026-11-11:r1`(무장),
+`data/timeseries_v15_vol/ledgers/approvals.jsonl`. approval_text = 원문, template_text = 결정 요약("V15VOL-D1 개시 승인"·"V15VOL-D2 무장 승인"),
+approval_form delegated_bundle_instruction, literal_template_match false, approved_at `2026-11-11T18:03:44+09:00`(= 09:03:44Z, 도구 기록 상한 — 합성 금지).
+
+**결정.** 계약 `data/contracts/multivariate_timeseries_v15_vol.yaml`. V13 발행 p 위 단일 변경 3팔 —
+R1 Platt형 σ(a0+b0·logit p_PB)(설계창 반창 교차전이 OOF·embargo h·방향 층화, a0=방향 절편 단순 평균, 9셀) · R2 평온 1일 점프 해저드(Jeffreys, h5 vix 2셀) ·
+R3 운영 국면(VIX<20 / RV21≤θ) 기저율 ½·½ 혼합(9셀). 기준선 기후·조건부 기저율·PB, Brier 주·로그점수·신뢰도 병기.
+판정은 effective_from(머지 뒤 main 예약 CI 첫 실행이 무장 원장 `arming.jsonl` 에 기록한 UTC 날짜의 다음 XNAS 세션) 이후 원점만,
+셀별 첫 적격 접두(n≥60·블록≥5·사건/비사건 ≥20·국면 ≥5/5, 확정 지연 20세션, 원점 + 20세션 뒤 늦게 파생된 행 제외) 1회, 가족 20쌍 Holm(α 0.05, 비기각은 가족 완결 전 잠정),
+음성 대조 블록 부호반전, ℓ_h=max(13,h). 상수·판정 코드 sha 핀. 표시·배선·자동 승격 없음(t0). 새 워크플로 `v15-vol-shadow`(보호 V13 워크플로 무수정).
+verdict verb `timeseries-v15-vol-verdict` 는 사람이 돌리는 인쇄 전용이며 워크플로에 없다. 모든 출력은 참고 의견이며 매매 신호가 아니다.
+
+**동결.** `tools/v15_vol_freeze_constants.py --write` 1회(2026-11-11T10:55:38Z, 재실행 거부) →
+상수 `data/timeseries_v15_vol/constants/v15_vol_constants.json` sha256 `f29cff0b41a30935e7d621662c3cd23d2181306db9d09e9ae6bc61c967840593`
+(content_hash `fd952a1d2d1673fc1281d4c1cc5ffb323afd02aaf08a4497d98248d2277bab61`), MDE 참조 `design_reference_mde.json` sha256
+`79a97be4ef84139a435726760a16f67f4b92b9f1c264c323e58318b174898067`(채택 근거 아님). 상수는 명세 r2 표와 소수 6자리까지 같고, 테스트 오라클이
+설계창에서 다시 계산해 |Δ|≤1e-9 로 대조한다. 판정 코드 핀(LF 정규화 sha256): contracts `2bef6013…a7a7` · arms `6fd69033…e06c` ·
+shadow `e457c7d3…c9fd` · resolve `2fa4f1a2…8ae4` · verdict `32a58ebe…13f9`.
+
+**커밋.** 사전등록(커밋 A) `51c8e049e4767550319ea1eb3b8f6c4e303e461d` → 무장(커밋 B, prereg_commit = 커밋 A) `02ead77fe90459b953eb00d5bab184a0054e2678`. effective_from 은 계약에 두지 않는다 —
+머지 뒤 첫 main 예약 실행이 무장행을 쓴 날 이 항목 아래에 1줄 추가(원장이 정본, 후속 PR).
+
+**메모 대비 변경.** R2 를 R1 이 아닌 PB 위에 둠(팔당 단일 변경) · R2 를 h5 vix 2셀로 한정(1일 해저드 복리 근사의 구조 한계) ·
+판정 적격에 V13-D13(20/5)·60원점 승계 + 블록 수 ≥5(강화) · 첫 적격 접두 1회 + 고정 m Holm(반복 관찰 차단) ·
+음성 대조를 y-block 순열 대신 블록 부호반전(교환) 귀무로(쌍대 비교에서 y-block 은 샤프니스 차를 잰다) ·
+effective_from 을 CI 무장행으로 기계 결정(사람이 고르는 날짜 0). 메모의 R2 효과 공시 수치 "0.016→0.020" 은 이 정의로 다시 재면
+11-04 vix25_h5 0.0158→0.0224 이고, 효과는 상태의존이다(11-09 VIX 19.92: 0.0992→0.1410, VIX=20 에서 0 으로 불연속).
+각 변경은 사용자가 원하면 새 계약·approvals r2(supersedes)로 철회할 수 있다.
+
+**V15VOL-D1(a) ML 게이트 해석(위임 결정 — 사용자 확인 권장).** CLAUDE.md "보정(isotonic/Platt) 해소 100+ 후"와 설계서 §5-5 는 라이브 해소 표본으로
+보정기를 학습하는 것을 막는다고 읽는다. R1 은 해소 0건 — PB 와 같은 창·같은 종류의 설계창 수치모델 층(V13 cross_fit_isotonic_h63 선례)이며
+원칙 5 예외의 **확장 해석**이다. §5-5 와의 조화: §5-5 가 막는 것은 해소 기반 보정기 학습이며 설계창 수치모델 층은 V13 cross_fit_isotonic_h63 와 같은 범주다.
+재추정 경로 없음(라이브 모듈 shadow·resolve·verdict·arms 의 design_fit import 금지 AST 테스트, design_fit 은 2014-12-31 초과 행 거부).
+R3 가중 고정. R1 의 b0>1 은 대부분 PB l2 축소 해제다(설계창 무정규/정규 기울기비 1.03~1.61 공시).
+
+**V15VOL-D1(b) V14 겹침(위임 결정 — 사용자 후속 결정 후보 V14-D10).** cond·R3 국면 정의를 V14 조건부 기저율 조건(VIX_t<20 / RV21_t≤θ, 2007-2014)과 같게 골랐다.
+V15 라이브 cond·R3 결과는 V14 라이브 전진의 **사전 관측**이다 — V14-D10 결정 시 이 오염을 승계 공시해야 한다. V14 계약·코드 무수정, V14-D10 비선점.
+
+**오염 공시.** 홀드아웃 Cox 기울기(0.67~0.73)·라이브 189행·11-05 점프·V14 평온 기저율을 본 뒤 설계했다. 설계창은 여러 번 열람했다(명세·리뷰·r2 스크래치 —
+R1 추정량과 음성 대조의 r2 변경은 설계창 열람 결과로 정함). 홀드아웃 바이트 0, 소급 0.
+tmp 사본 테스트는 effective_from 이전 라이브 원점(2026-10-01~11-10)의 R1~R3 Brier 를 실제로 계산한다(등식 단언만 — 값 미열람·미출력, 판정 다리 제외).
+'판정 0' 은 참이고 '채점 경로 실행 0' 은 아니다.
+설계창 R1 기울기(vix25_h5 1.32·h21 1.06)는 홀드아웃 진단과 **반대 방향**이다 — 결과 전 공시.
+
+**예상.** 설계창 기준 적격까지 중앙 311~650원점(h63 셀 1049~1220) — 첫 판정 중앙 추정 2028 이후, h21·h63 은 2029+, h63 은 사실상 장기 미판정.
+부호반전 음성 대조는 설계창에서 통과율 중앙 ≈0.10 이라 void 가 드물지 않을 것(블록 안에서 거의 일정한 강한 우세는 void 가 된다 — 테스트로 고정).
+통과율은 d 의 부호와 무관하고 |d| 의 블록 지속에만 의존한다 — 가장 일관된 우세일수록·ℓ 이 긴 h21·h63 셀일수록 void 가 구조적으로 나와,
+이 트랙은 h21·h63 에서 pass 를 거의 낼 수 없다(규칙은 유지, 결과 전 공시).
+
+**검증 경로(리뷰 반영, 커밋 A 전).** verify 는 철회(계약 미무장 ∧ 무장행 존재)·종결 확인 hold 에서 완전성을 이미 쓴 마지막 V15 원점까지만 본다
+(거짓 경보 차단, 그 안 구멍·재계산은 계속 검사). 해상 verify 는 XNAS 가드(xnas_match·hold_reason)를 V13 해상행에서 다시 계산한다.
+섀도 verify 는 derived_at·contract_sha256 를 뺀 전 필드를 원천 V13 행에서 다시 만든 값과 대조한다. 무장행은 prereg_commit = 계약값,
+armed_observed_at ≥ 계약 armed_at 이어야 하고, 어긋나면 publish 가 hold(arming_row_invalid, 소급 append 0)한다.
+
+**커밋 A 범위(계획 §6 C14 공시).** 커밋 A 의 역할(무장 전 사전등록 시각 증거)은 계약·상수·MDE 참조·판정 코드 핀·영수증·워크플로·테스트로 충족한다.
+cli verb 4개·레지스트리 6블록·pages/verify/ops 등록·이 문서는 공유 파일 통합 커밋에 들어간다.
+
+## 2026-11-11 — U6·U7: V13 판정 보고 확장·적용 경로·점프 라벨 / V8 공식 basis grid 유지 (위임 지시)
+
+**지시.** "네가 나머지 작업 다 완료시켜.  네가 최적의 선택을 내려서 u1~u7까지 다 진행시켜" — 감사 보고서 §5 U1~U7 의 결정 위임
+(`delegated_bundle_instruction`, 영수증 `v13-approval:V13-D14/D15/D16:2026-11-11:r1`, 시각 상한 2026-11-11T09:03:44Z — 원장 표기 `2026-11-11T18:03:44+09:00`).
+영수증 형식은 V13·V14 선례(approval_text = 지시 원문, template_text = 결정 요약, literal_template_match false)다.
+
+**결정.**
+1. **V13-D14 보고 확장(인쇄 전용).** `timeseries-v13-vol-live-verdict` 가 셀별 로그점수·Murphy 신뢰도·사전 상수 기준선(등록 기후,
+   설계창 두 반창 2007~2010·2011~2014 무조건 빈도를 **대칭으로** — 값은 2026-09-08 해시 고정)·RV 기계확정 비율을 함께 인쇄한다.
+   status·T7 산술은 그대로다(`_evaluate_cell` 무수정). 반창 하나만 고르면 라이브 국면을 본 뒤의 선택이 되므로 둘 다 낸다.
+   상수 대비 우열 문장은 쓰지 않는다. 감사가 쓴 VIX [16,21) 평온 밴드 상수는 결과 뒤 고른 좌표라 넣지 않았다.
+   실데이터 재현(`--as-of 2026-11-09`): 기계확정 rv_h5 7/12 · rv_h21 0/11 (연구 진단 오라클과 일치). 패널은 최신 개정 아카이브(PIT 아님, `panel_vintage` 공시).
+2. **V13-D15 판정 적용 사전 승인.** demotion_rule 이 체크포인트(성숙 60, 이후 +20)에서 산술 발동하면 그 셀 숫자를 내리고 배선 자격을 지운다.
+   통과 3셀 중 2셀 이상이 강등되면(체크포인트 무관 누적) T7 로 카드를 내린다. verb `timeseries-v13-vol-apply-verdict` 는 사람이 대화형 세션에서
+   돌린다(계약 "자동화 밖" 승계 — 워크플로·예약 작업·cron 에이전트 금지, CI 환경변수면 쓰기 거부). 표본은 해상 원장에 처음 기록된 순서로 앞 k 개를 잘라
+   늦게 돌려도 결과가 같다. 성숙 60 전에는 행을 만들 경로가 없다(조기 적용 금지). 강등은 영구다. 적용 원장 검증은 V13 라이브 축적을 멈추지 않도록
+   그 워크플로에서는 경고만 내고, 엄격 검사는 verify.yml 테스트와 `--verify-only` 가 맡는다.
+   예상 시점: 60번째 원점 2026-12-03, rv_h5 성숙 60 ≈ 2026-12-10, vix25_h21·rv_h21 ≈ 2027-01-05 [미검증 — 원점 유실 0 가정]. `ai_fc due`·`due --notify` 가 도래를 알린다.
+   다중 체크포인트 거짓 강등률(설계창 결정론 재생, 셀당 비중첩 120원점 에피소드 16개, in-sample 이라 하한 성격): vix25_h21 0.25(k60 만 0.125) ·
+   rv_h5 0.00 · rv_h21 0.50(k60 만 0.50). 공시용 base rate 참조이며 등록을 막지 않는다(KNOWN_LIMITS 69).
+
+   > **메모 결정 확대 공시.** 위임 메모는 "vix25_h21 60원점 강등" 만 사전 승인했다. 이 결정은 **통과 3셀 전부 × 모든 체크포인트 + T7 ①~③** 으로
+   > 넓혔고, 계약 re_verdict_cadence 의 "매번 사용자 승인" 을 상시 영수증 하나로 충족한다고 해석했다. 이유: 한 셀만 미리 승인하면
+   > rv_h21(하한 +0.002 칼날)·rv_h5·T7 적용이 결과를 본 뒤 사람 재량으로 남아 선택 적용 분기가 된다. 방향은 제한뿐이다.
+   > **확대의 결과적 의미 [추산].** 공시된 재생 강등률(vix25_h21 0.25 · rv_h5 0.00 · rv_h21 0.50, in-sample 하한)을 셀 독립으로 조합하면
+   > T7 카드 종결 확률은 무조건 약 0.13 이상, vix25_h21 이 강등된 조건에서는 약 0.5 이상이다 — 카드 종결이 저검정력 규칙에 묶여 있다는 뜻이다(새 수치 아님, 공시값의 조합).
+   > **철회 방법:** `data/timeseries_v13/ledgers/approvals.jsonl` 에 `v13-approval:V13-D15:2026-11-11:r1` 을 supersedes 하는 r2 행 한 줄 — 그 뒤 verb 는 거부한다(이미 쓴 행은 append-only 로 남는다).
+3. **V13-D16 점프 라벨.** 카드에 "▲ 점프 위험 미표현 · 설계창 최대 점프 초과(2026-11-05)" 를 단다(표시 전용, 라벨 1줄 + tooltip). 2026-11-05 VIX 1일 로그 상승
+   0.529 는 설계창 최대 0.496(2007-02-27)을 넘었고 동결 모형에는 점프 성분이 없다 — 평온 수준(2026-11-04 VIX 16.61)에서 다음 날 급등을
+   내다보지 못한다(그 원점 p_vix25_h5 = 0.0158). 단일 에피소드. 사실은 V13 계약 `live_display_caveats` 전사값만 읽는다(연구 파생 파일 런타임 읽기 없음).
+   U1 표시 진단 계약은 이 경로를 관문 예외로 교차 참조한다.
+4. **U7 V8 공식 basis = 원장 grid 유지.** XNAS 는 진단 원장(`scoring_excluded`)과 V15 A3 팔에서만 다룬다. 소급 재채점·supersedes 정정·basis 혼합 없음.
+   선언 파일 `data/mts_research/contracts/v8_official_label_basis_v1.json`(로더 `mts_research.label_basis.load_pinned_label_basis`, canonical_hash 핀
+   `2835c1028cfc53d4…`). U1 표시 진단은 이 로더만 읽는다(재선언 금지, 해시 불일치면 XNAS 병기 없음). V8 계약은 0바이트 변경.
+
+**하지 않은 것.** live_forward_gate·T7·live_forward_verdict_report·live_claim_restriction 바이트 수정, 판정·적용의 워크플로 자동화,
+지금(성숙 23/60) 강등 적용, 계약 holdout_fail_cells 에 라이브 결과 기입, V8 계약·xnas 사전고정 문서 수정, `data/mts_research/ledgers/approvals.jsonl` 신설(U7 영수증은 선언 JSON 내장 approval 블록).
+
+## 2026-11-11 — MTS U1~U7 묶음 통합 공시: 메모 대비 변경·확대 해석·미이행 (위임 지시, 문서 통합)
+
+**지시.** "네가 나머지 작업 다 완료시켜.  네가 최적의 선택을 내려서 u1~u7까지 다 진행시켜" (지시 시각 상한 2026-11-11T09:03:44Z = 18:03:44 KST).
+바로 위 여섯 항목(U1 · U2a · U3 · U4 · U5 · U6·U7)은 이 위임 지시 하나로 결정했다. 이 절은 그중 위임 결정 메모와 달라진 것, 사용자 확인이 필요한 해석,
+이행하지 않은 항목을 한곳에 모은다. 근거와 수치는 각 항목에 있다. 모든 출력은 참고 의견이며 매매 신호가 아니다. U2b(PR-2)는 별도 항목으로 뒤에 붙는다.
+
+**영수증 형식 — 메모 문구 정정(계획 C1).** 메모는 "지시 원문을 template_text 로 그대로 쓴다" 고 적었다. 이는 KNOWN_LIMITS 39 의 정의(template_text = 받았어야 할
+리터럴 템플릿)와 V13·V14 원장 의미와 반대라서 V14·V13 선례 하나로 통일했다 — approval_text = 원문(공백 2칸), template_text = 결정별 요약,
+approval_form delegated_bundle_instruction, literal_template_match false, jsonl 원장 approved_at `"2026-11-11T18:03:44+09:00"`(테스트는 문자열이 아니라 순간으로 비교).
+대상: approvals U3 5행 · U4 1행 · U5 2행 · V13 3행, U1 표시 진단 계약·U2 ingest_triage 정책·편집 영수증의 approval 블록(`instructed_at_upper_bound: '2026-11-11T09:03:44Z'`).
+
+**메모 대비 변경(권고 수용 — 각각 철회 가능: 새 계약 v2 또는 approvals supersedes 행).**
+- U1: 감시 배치 트리거를 v2-refresh 완료 workflow_run 대신 예약 2회(화–토 12:15·18:45 UTC)로 바꿨다 — 준비 게이트가 정확성을 맡으므로 남는 기준은 비용. 철회: 표시 진단 계약 v2.
+- U2: Nasdaq 403 26h~14일 warning(설계 P7 '24h+ escalate' 의 사후 완화, post_hoc_operational) · 보호 매니페스트 재생성 대신 편집 영수증 · market 분류를 v2-refresh 밖으로 분리(PR-2). 철회: ingest_triage 정책 v2.
+- U3: A5 를 비열등 가족으로 분리(m=12+3) · A0 identity 실패 시 원점 단위 제외 · 가족별 기계 컷 T\* · 최소 포크 · rule_hash_r2 잠금. 메모의 "MDE 를 등록 전에 기입" 은
+  "개시(track_open) 전 기입" 으로 충족한다(r2 가 규칙을 MDE 열람보다 먼저 잠근다 — 더 엄격한 순서). 철회: v16 계약 · approvals supersedes.
+- U4: 분산 기간구조를 main 에서 빼 쌍둥이 팔로 강등 · 리드 배율(메모 c) 기각 · 판정을 "목표일 ≥ 50" 대신 비중첩 솎음 표본·첫 도달 단일 관찰로. 철회: daily6m v2 후속 계약.
+- U5: R2 를 R1 이 아닌 PB 위에 두고 h5 vix 2셀로 한정 · 첫 적격 접두 1회 + 고정 m Holm · 음성 대조를 블록 부호반전 귀무로 · effective_from 을 CI 무장행으로 기계 결정. 철회: 새 계약 · approvals r2(supersedes).
+- U6: 사전 승인 범위 확대 — 아래 박스.
+
+> **U6 사전 승인 범위 확대 공시(사용자 확인 권장 1).** 위임 메모는 "vix25_h21 60원점 강등" 만 사전 승인했다. V13-D15 는 이를 **통과 3셀 전부 × 모든 체크포인트(60·80·…) + T7 ①~③**
+> 으로 넓혔다. 한 셀만 미리 승인하면 나머지 셀·T7 적용이 결과를 본 뒤 사람 재량으로 남는 선택 적용 분기가 되기 때문이다. 방향은 제한(강등·종결)뿐이다.
+> 공시된 설계창 재생 강등률(vix25_h21 0.25 · rv_h5 0.00 · rv_h21 0.50, in-sample 하한)을 셀 독립으로 조합하면 T7 카드 종결 확률은 무조건 약 0.13 이상,
+> vix25_h21 강등 조건에서 약 0.5 이상이다 [추산 — 공시값의 조합이며 새 수치 주장이 아니다].
+> **철회 방법:** `data/timeseries_v13/ledgers/approvals.jsonl` 에 `v13-approval:V13-D15:2026-11-11:r1` 을 supersedes 하는 r2 행 한 줄을 append 한다 — 그 뒤
+> `timeseries-v13-vol-apply-verdict` 는 거부한다(이미 쓴 적용 행은 append-only 로 남는다). 첫 체크포인트(rv_h5 성숙 60)는 약 2026-12-10 이다 [미검증 — 원점 유실 0 가정].
+
+**U5 ML 게이트 확장 해석(계획 C12 — 사용자 확인 권장 2).** V15-VOL R1(Platt형 σ(a0+b0·logit p_PB))은 설계창(2007~2014) 수치모델 층이며 라이브 해소를 0건 쓴다.
+CLAUDE.md 하드 게이트 "캘리브레이션 보정(isotonic/Platt)은 해소 100+ 후" 를 "라이브 해소 표본으로 보정기를 학습하는 것을 막는 조항" 으로 읽은 **확장 해석**이다
+(V13 cross_fit_isotonic_h63 선례, 원칙 5 수치모델 예외의 확장). 문면 그대로의 허용이 아니다. 안전장치: 라이브 모듈(shadow·resolve·verdict·arms)의 design_fit import 금지 AST 테스트,
+design_fit 의 2014-12-31 초과 행 거부, 상수 sha 핀, 재추정 경로 없음. 이 해석을 받아들이지 않으면 새 계약 · approvals r2(supersedes)로 R1 을 내린다.
+
+**V14 사전 관측(계획 C13 — 사용자 후속 결정 후보 2).** V15-VOL 의 cond 기준선·R3 는 V14 조건부 기저율과 같은 조건(VIX_t<20 / RV21_t≤θ)·같은 설계창을 쓴다.
+V15 가 매일 기록·채점하는 이 양은 V14 라이브 전진(V14-D10 미정)의 사전 관측이다 — V14-D10 결정 때 이 오염을 승계 공시해야 한다(KNOWN_LIMITS 67). V14 계약·코드는 무수정이고 V14-D10 을 선점하지 않는다.
+
+**미이행 — `daily6m_sources.py` 파싱 순서 교정(계획 C6 — 사용자 후속 결정 후보 1).** 이번 묶음에서 하지 않았다. 봉인 `daily6m_sources.py:255`(strptime 이 marketStatus 판정보다 먼저)를
+고치면 daily6m v1 model_code_hash 가 c3fe06c1…→7ed41f32… 로 바뀐다 — 메모 U2 조건부 항목의 조건(해시 불변)이 충족되지 않는다. U2 는 U4 로 넘기려 했고 U4(D13)도 받지 않아
+소유자가 없다. 별도 'daily6m v1 호환 r2' 결정을 기다린다(KNOWN_LIMITS 51·64). 그동안 장중 응답은 U2a 분류기 `intraday_pending` 이 흡수한다.
+
+**그 밖의 통합 공시(계획 §6).**
+- C7: daily6m-v2-shadow(U4)는 pages 에 등록하지 않는다(3곳 관례의 예외 — 하루 최대 약 32회 실행·표시 없음). verify·ops-failure-alert 에만 등록했다.
+- C8 · V7 GLOB: V7 `GLOB_SPECS` 대상인 `ledger_registry.yaml`·`website_data_lineage_v1.yaml`·V13 계약(추가 줄만)·`scenario.py`(`_holiday_for_rule` 1함수)를 편집했고,
+  같은 glob(`multivariate_timeseries_v[1-6]*`)에 걸리는 새 계약 2개(`multivariate_timeseries_v15_coherence.yaml`·`multivariate_timeseries_v15_vol.yaml`)를 추가했다 —
+  PR #399(6c10af0e) 선례와 같다. 보호 매니페스트는 재생성하지 않았다.
+- C14: U5 커밋 A 의 역할(무장 전 사전등록 시각 증거)은 계약·상수·MDE 참조·코드 핀·영수증·워크플로·테스트로 충족한다. CLI·레지스트리·문서는 공유 파일 통합 커밋에 들어간다.
+- C15: U1 "계약 먼저" 는 계약 단독 커밋 → 코드 커밋으로 충족한다. 이 문서 항목은 통합 커밋에 들어간다.
+- C18: daily6m v2 run 파일 크기(로컬 실측 약 310 KB/일)는 저장소 크기 추세 후속 점검 대상이다.
+- C19: U6 강등은 표시 hold 만 하고 V13 원장 9셀 기록은 바꾸지 않는다 — V15-VOL 이 `cells_missing` 이 될 경로는 없다.
+- 새 원장 파일은 첫 파일이 생기기 전까지 원장 레지스트리 감사에서 `planned` 로 남아 정지 감지에서 빠진다(워크플로가 첫 행을 쓰면 해소).
+
+**리뷰가 남긴 공시 보강(U2a).**
+- U2a 머지 뒤 knowledge_cutoff 를 가진 V8 일일 행부터 V8 카드 라벨 "confirmed·달러 캐리 N세션" 의 N 도 새 캐리 정의다 — 국채 휴장 연방휴일이 낀 창에서 1 줄어든다
+  (동결 `timeseries_v8_display.py` 는 무수정, 입력 행의 `carried_forward` 가 바뀌는 효과).
+- `data/mts_research/derived/v8_xnas_label_summary.json` 의 `integrity.calendar_vs_nyse_yaml.mismatches` 는 정정 전 값 `["2025-01-09","2027-12-31"]` 으로 남는다 —
+  재생성 워크플로가 없고 derived 는 손으로 쓰지 않는다. 다음 사람 실행 재생성 때 바뀐다.
+- 봉인 V2·V1 파이프라인의 표시용 future_dates(63)는 해시 밖 `scenario.future_trading_days` 를 거친다 — 2027-09 무렵부터 2027-12-31 이 목록에 들어가 산출 날짜 라벨이 달라진다
+  (바이트 봉인은 유지, 명세대로 재검증하지 않음).
+- ingest_triage 정책 `registered_at`(2026-11-11T10:49:22Z)과 nyse_holidays `revised_at` 은 작성 시각이다. 머지가 늦어져도 바꾸지 않는다(정책은 해시 고정).
+
+**후속 일정.** U2a 달력 정정은 2026-12-29 전 머지 · U6 첫 체크포인트(rv_h5) 약 2026-12-10, vix25_h21·rv_h21 약 2027-01-05 — 사람이 대화형 세션에서 실행 ·
+U3 r3 PR(머지 뒤 mde_replay·A0 identity 디스패치, PASS 면 허용 목록만) · U5 effective_from 1줄(머지 뒤 첫 main 예약 무장행) · U4 첫 v2 run 의 `pair_status` 확인 ·
+U1 첫 dispatch 의 소급 append 확인.

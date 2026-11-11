@@ -2,6 +2,7 @@ version: 1
 calendar: NYSE
 timezone: America/New_York
 registered_at: 2026-08-03
+revised_at: 2026-11-11
 scope: future-label-generation-only
 rules:
   - id: new_year
@@ -9,6 +10,7 @@ rules:
     month: 1
     day: 1
     observed: nearest_weekday
+    saturday_observance: none  # NYSE Rule 7.2 — Dec 31 ends the yearly accounting period, stays open
   - id: martin_luther_king_jr
     type: nth_weekday
     month: 1
@@ -53,7 +55,18 @@ rules:
     month: 12
     day: 25
     observed: nearest_weekday
-one_off_closures: []
+one_off_closures:
+  - "2025-01-09"  # National Day of Mourning (President Carter) — XNAS closed
+revisions:
+  - revision: 2
+    date: 2026-11-11
+    changes:
+      - "one_off_closures += 2025-01-09"
+      - "new_year saturday_observance: none — 2027-12-31 (and 2004/2010/2021-12-31) are trading days"
+    evidence: "exchange_calendars XNAS 4.13.2 대조: 2025-01-01~2028-12-28 불일치 2건 → 0건"
+    unchanged: "registered_at·version — retained scenario artifacts (horizons 2026-08-04..2027-11-11) replay unchanged"
+    decision: "docs/DECISIONS.md 2026-11-11 — MTS U2a"
 notes:
   - Early closes remain trading days.
   - Emergency closures are not inferred; the next completed-market refresh corrects labels.
+  - "Historical one-off closures before 2025 (2004-06-11, 2007-01-02, 2012-10-29/30, 2018-12-05) are not listed — future-label scope (KNOWN_LIMITS 52)."

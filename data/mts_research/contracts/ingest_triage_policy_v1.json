@@ -1,0 +1,80 @@
+{
+  "schema_version": "mts_ingest_triage_policy_v1",
+  "policy_id": "ingest_triage_policy_v1",
+  "registered_at": "2026-11-11T10:49:22Z",
+  "registration_kind": "post_hoc_operational",
+  "registration_note": "운영 분류 임계(2세션·2h·14일·96h)는 2026-09-01~11-11 실측과 U1 예약표를 본 뒤 정했다. 예측·채점·게이트 표본과 무관하므로 '결과 전 사전등록'이 아니라 '운영 등록'으로 적는다",
+  "unit": "U2",
+  "effect": {
+    "display_only": true,
+    "gate_effect": "none",
+    "auto_reforecast": false,
+    "records_values": false,
+    "pending_is_not_a_record_path": true,
+    "scope": "GitHub Actions 단계 종료코드와 주석 수준의 분류만. 예측·게이트·승격·숨김과 연결하지 않는다",
+    "notice": "참고 의견, 매매 신호 아님"
+  },
+  "approval": {
+    "approval_form": "delegated_bundle_instruction",
+    "literal_template_match": false,
+    "approval_text": "네가 나머지 작업 다 완료시켜.  네가 최적의 선택을 내려서 u1~u7까지 다 진행시켜",
+    "template_text": "U2a ingest-triage 운영 분류 정책 v1 등록(FED_EBP known_stall 96h 보완 창 · Nasdaq 403 26h~14일 warning) 승인",
+    "instructed_at_upper_bound": "2026-11-11T09:03:44Z"
+  },
+  "memo_deviations": [
+    "nasdaq_forbidden_alfred_supplemented: 메모는 403·장중 '분류'까지만 정했다. 26h~14일 warning 은 설계 P7(24h+ 연속 escalate)의 사후 완화다 — 근거: 5분 cron 경보 피로(ops 단일 이슈 하루 최대 288 댓글)와 timeseries-daily6m 재사용 잡 적색이 pages·verify 를 14일간 건너뛰게 하는 연쇄. 대안 'escalate 유지 + ops 율 제한'은 23개 워크플로 공유 경보 의미를 바꾸고 연쇄를 못 막아 기각"
+  ],
+  "statuses": {
+    "known_stall": {"exit_code": 0, "annotation_level": "warning"}
+  },
+  "now_resolution": {
+    "v2_refresh": "--now > fixture.now > report.market.retrieved_at (now_source report_market_retrieved_at; ALFRED 단계 보고면 report.retrieved_at). 값이 없으면 exit 2 — 벽시계 금지",
+    "daily6m_sources": "--now > fixture.now > report.completed_at"
+  },
+  "known_stalls": {
+    "fed_ebp_sealed_parser_iso_dates": {
+      "kind": "v2_refresh",
+      "series": "FED_EBP",
+      "reason_regex": "^time data '([0-9]{4}-[0-9]{2}-[0-9]{2})' does not match format '%m/%d/%Y'$",
+      "signature_check": "latest sidecar vintage sealed_v2_parser.error == report reason AND date_format == iso AND last_retrieved_at == now",
+      "onset": "available_at of the first vintage in the trailing contiguous run whose sealed_v2_parser.ok is false (fed_ebp_sidecar replay, retrieved_until = now = report market.retrieved_at)",
+      "escalate_window_hours": 24,
+      "compensator": "fed_ebp_sidecar_v1 ledger data/mts_research/ledgers/fed_ebp_v1.jsonl, appended by the U1 workflow mts-coherence-monitor (fed-ebp-sidecar --append)",
+      "compensator_fresh": "replay ok AND every pending row (_plan_append(ledger, replay, cutoff=now)) has available_at > now - compensator_max_lag_hours",
+      "compensator_max_lag_hours": 96,
+      "compensator_max_lag_basis": "U1 schedule Tue-Sat 12:15/18:45 UTC: max idle gap Sat 18:45 -> Tue 12:15 = 65.5h; + GitHub schedule delay observed 2-5h; + one missed slot 6.5h = ~77h; rounded up to 96h",
+      "integrity_violation": "_plan_append raises (ledger not a replay prefix / backdated receipt) -> unexpected, reason_code sidecar_ledger_integrity (never downgraded)",
+      "replay_error": "-> unexpected, reason_code sidecar_replay_error",
+      "after_window": "known_stall if compensator fresh else escalate (reason_code sidecar_lagging)",
+      "reescalate_after_days": null,
+      "basis": "DECISIONS 2026-11-11 FED_EBP known_stall 초안 · KNOWN_LIMITS 46 · KNOWN_LIMITS 49"
+    },
+    "nasdaq_forbidden_alfred_supplemented": {
+      "kind": "daily6m_sources",
+      "sources": ["nasdaq_history", "nasdaq_info"],
+      "reason_exact": "HTTPError: HTTP Error 403: Forbidden",
+      "streak_measure": "hours_upper = completed_at - last clean (history provider below)",
+      "pending_below_hours": 24,
+      "escalate_window_hours": [24, 26],
+      "known_stall_until_hours": 336,
+      "compensator": "ALFRED NASDAQCOM native via daily6m_sources._native_at (import only)",
+      "compensator_fresh": "count of XNAS sessions in (native_last, last_completed_session] <= max_native_lag_sessions",
+      "max_native_lag_sessions": 2,
+      "after_until": "escalate (source policy decision required; disguise forbidden §5-19)",
+      "basis": "KNOWN_LIMITS 50"
+    }
+  },
+  "history_providers": {
+    "daily6m_receipts_session_anchored_v1": {
+      "receipts": "data/timeseries_daily6m/source_receipts.jsonl (kind in nasdaq_*, http_status 200, retrieved_at < completed_at) → clean for that kind only",
+      "session_anchor": "s_last = max observation_time of nasdaq_comp_official observations with available_at < completed_at; anchor = XNAS close of the next session + 900s; if anchor >= completed_at use completed_at - 1s (caught_up)",
+      "rationale": "receipts append only on value change; anchoring on the next close avoids false weekend escalation"
+    }
+  },
+  "caveats": [
+    "max_native_lag_sessions=2 와 escalate_window 2h·known_stall 14d 는 2026-09-01~11-11 실측(시간당 1,712점: lag0 1,067·lag1 627·lag2 18·lag≥3 0)을 본 뒤 정한 운영 분류 임계다 — 예측 성능·게이트와 무관",
+    "FED_EBP 첫 24h 창의 error 횟수는 그 창 안에 끝난 timeseries-v2-refresh(비PR) run 수와 같다. v2-refresh 는 예약(20 8 * * 2-6) 외에 daily6m-sources-refresh(원천 변경 시)와 timeseries-inputs-refresh 가 dispatch 하므로 보통 1~3회이고 고정 1회가 아니다",
+    "daily6m 2h escalate 창의 error 횟수는 5분 cron 과 GitHub 예약 지연에 따라 0~24회다 [미검증]",
+    "known_stall 은 실패를 숨기는 것이 아니라 warning 주석·단계 요약·분류 JSON 으로 매 실행 공시한다"
+  ]
+}

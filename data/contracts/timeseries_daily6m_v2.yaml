@@ -1,0 +1,165 @@
+schema_version: 1
+contract_id: timeseries_daily6m_v2
+model_id: research.nasdaq_daily6m_varx_v2
+model_version: 1
+status: shadow_research_unpublished
+registered_on: "2026-11-11"
+parent:
+  contract_id: timeseries_daily6m_v1
+  contract_hash: 53f023f79829778c37bfc460698ff5e2224894b9ec7ecfd03f2d18fddeeb83dc
+  model_code_hash_at_registration: c3fe06c1fbe3b0862e299f8eeb0a2018f8f35940f2fe12be06366905b2fda539
+  relation: same_origin_live_forward_shadow
+  parent_bytes_changed: false
+  parent_display_unchanged: true
+target:
+  series_id: NASDAQCOM
+  exchange: XNAS
+  calendar_months: 6
+  calendar_end_rule: preserve_month_end_else_same_day_clamped
+  sessions: all_exchange_sessions_after_origin_through_calendar_end
+  transform: daily_log_return
+probability_contract:
+  stored_unit: fraction
+  bounds: [0.0, 1.0]
+  space: research_timeseries_daily6m_v2_shadow
+  daily_event: index_at_target_session_gt_index_at_previous_session
+  origin_relative_event: index_at_target_session_gt_origin_close
+  tie_rule: unchanged_is_not_up
+  combine_with_v1: false
+  combine_with_official_forecasts: false
+  combine_with_scenarios: false
+model:
+  family: correlated_ridge_varx_joint_paths_variance_v2
+  inherits_from_v1: [endogenous, exogenous, minimum_training_sessions, lag_candidates, ridge_alpha_candidates,
+                     inner_purge_sessions, inner_embargo_sessions, rolling_sessions, ensemble_weights,
+                     exogenous_projection, block_length_candidates, ewma_lambda_candidates, quantiles]
+  path_count: 20000
+  seed_rule: v1_seed_crn
+  inherited_from_v8: none
+  fresh_variance:
+    formula: "sigma2_{T+1|T} = lambda*sigma2_{T|T-1} + (1-lambda)*e_T^2 (per fit, per column)"
+    historical_standardisation: lagged_ewma_same_as_v1
+    v8_raw_identity: not_applicable
+  projection_exogenous: v1_run_model_config_issuance_exogenous   # v2 번들값은 기록만 (D14)
+  fit_call_path: ai_fc.timeseries_daily6m.model.select_ridge_varx_v2
+  distribution_selection:
+    candidates: {block: [5, 10, 21], ewma_lambda: [0.94, 0.97]}
+    validation: {origins: 52, paths: 1000, horizon: 21, minimum_rows: 500, fallback: [10, 0.97], origin_rule: anchored_position_grid_mod_21}
+    scale_used_in_selection: fresh_without_term_structure
+    bootstrap: crn_predrawn_starts_and_uniforms_restart_if_u_lt_1_over_block   # 선택 전용, 블록 간 CRN
+    common_random_numbers: {seed: 20261111, rng_key: [seed, replicate, validation_origin_index], replicates: 8, shared_across: all_six_candidates}
+    hysteresis: {incumbent: previous_v2_run_selection_in_ledger_order, first_run_incumbent: [10, 0.97],
+                 switch_if: mean_paired_margin_gt_1.0_mc_sd, mc_sd: sd_over_replicates_div_sqrt_R}
+  simulation_bootstrap: sealed_v2_stationary_bootstrap_batch_same_consumption_order
+  variance_term_structure:            # term_structure 팔 전용
+    formula: "sigma2_{T+k} = L + phi^(k-1)*(sigma2_{T+1} - L)"
+    persistence_source: design_constants.persistence_by_column
+    long_run_rule: slow_ewma_0.996
+    deterministic_across_paths: true
+    mechanism_precedent:
+      contract: multivariate_timeseries_v8
+      grid: B1_volatility_term_structure
+      dev_runs: [tsv8-exp-92d143bb7d6754e673c7, tsv8-exp-b3d95536b64d0aa07e20]
+      design_window_overlap: full_2007-01-01_2014-12-31
+      v8_family_outcome: stop_loss_E0_E5
+      v8_gfc_p10_p90_coverage: [0.615, 0.551]
+      direction_vs_this_design: opposite_unverified
+  lead_width_multiplier: rejected_design_window_evidence_insufficient   # 메모 (c) 기각, v3 계약에서만 재검토
+  arms:
+    main: fresh + crn_hysteresis_selection
+    term_structure: main + variance_term_structure (same selection, same random numbers)
+    zero_drift: main with conditional mean of nasdaq_return set to 0 (same random numbers)
+  learned_calibration_from_live: prohibited_until_unique_resolutions_100
+design_constants:
+  path: data/timeseries_daily6m_v2/prereg/design_constants_v1.json
+  canonical_hash: 265c48d3656142bfecbe59c76083a974821795409cab19c2e3000211153ee592
+  generator: ai_fc.timeseries_daily6m_v2.design
+  design_window: ["2007-01-01", "2014-12-31"]
+  source: ai_fc.timeseries_v2.market_archive.read_market_observations
+  post_window_filter: observation_time_le_2014-12-31_rows_skipped_after_full_read
+  post_window_rows_used: 0
+  point_in_time: false_latest_revision_reader
+  numerical_model_exception: "CLAUDE.md 원칙5 예외(dualdb 스펙 §8, DECISIONS 8-6) — base rate 참조, LLM 무관"
+  caveats:
+    - 하이퍼파라미터(설계창 경계·장기수준 후보·φ 추정 방식)가 사후 지식을 간접 내포할 수 있다
+    - 기간구조 팔 분리와 리드 배율 기각은 설계창 결과를 본 뒤 정했다
+    - 장기수준 S 후보(slow_ewma_0.996)는 B 앵커 과대 커버 결과를 본 뒤 추가됐다(anchor_variants.py 18:31 > replay 18:16·18:30)
+    - 설계창은 V8(B1 동일 메커니즘 포함)·V13·V14·V15 가 반복 열람했다
+    - 대리모형(나스닥 단변량)의 PIT 를 VARX 결합 경로에 전이 — [미검증]
+    - 설계창 곡선 = DGS10−DGS2(아카이브) ≠ 라이브 native T10Y2Y, 아카이브 VIX ≠ 라이브 VIXCLS, 최신 revision 리더(PIT 아님)
+    - 나스닥 φ 반창 불안정(0.991 / 0.957)
+    - 설계창 대리 재생의 선택은 봉인 부트스트랩(블록 간 CRN 미성립)으로 돌았다 — 라이브 선택 규칙과 다르다
+pairing:
+  paired_with: latest_active_v1_run_per_completed_origin
+  one_v2_run_per_v1_run: true
+  issuance_before_first_target_close: true
+  historical_backfill: false
+  reduction_identity: {method: resimulate_v1_configuration_with_v1_seed_recorded_block_lambda_and_v1_issuance_exogenous,
+                       pass_rule: path_hash_equal_and_v1_model_code_hash_at_issue_equals_v1_run, on_fail: issue_with_pair_status_inputs_differ}
+  missing_pair_disclosure: counted_in_scorecard
+evaluation:
+  resolution_source: v1_resolutions_ledger_active_rows
+  primary_sample: pair_status_identical_inputs
+  metrics:
+    primary: crps_quantile_grid_39_trapezoid_log_return     # tau = i/40, i=1..39; 꼬리 [0,0.025]·[0.975,1] 적분 밖
+    secondary: [coverage80_abs_error, qs5_band_crosscheck, brier_daily_up]   # CI 공시만, 라벨 없음
+    descriptive: [target_date_equal_all_leads, lead_bucket_tables, h63_h126_thinned, main_vs_term_structure, main_vs_zero_drift,
+                  inputs_differ_sensitivity, missing_pairs, max_single_date_share, post_verdict_v1_revisions]
+  inference_sample:
+    design: non_overlapping_thinned_fixed_lead
+    phase_origin: first_v2_forecast_origin_session
+    eligible_origin: xnas_session_index_mod_lead_eq_0
+    representative_run: earliest_issued_v2_run_per_origin
+    missing_or_inputs_differ: counted_not_replaced
+    sample: first_n_scored_eligible_origins_in_origin_order
+    n: {h1: 50, h5: 50}
+  differences: paired_same_run_arm_minus_v1
+  bootstrap: {kind: iid, replicates: 9999, rng_key: [20261111, lead, arm_index], ci: percentile_90}
+  p_value: one_sided_share_of_bootstrap_means_ge_0_plus_one_over_B_plus_one
+  family: [main_h1, zero_drift_h1, main_h5, term_structure_h5, zero_drift_h5]   # term_structure_h1 은 main 과 비트 동일 → 항등 검사
+  multiplicity: holm_alpha_0.05_one_sided_m5
+  verdict_timing:
+    h1_p_values: frozen_once_when_h1_sample_first_reaches_50
+    family_verdict: once_when_h5_sample_first_reaches_50_using_frozen_h1_p_values
+    interim_verdicts: none_all_pre_threshold_numbers_descriptive
+    pre_threshold_p_values_published: false
+    ledger: data/timeseries_daily6m_v2/ledgers/verdicts.jsonl
+    one_row_per_kind: true
+    later_v1_revisions_change_verdict: false
+  labels: {superior: holm_reject_and_negative_mean, inferior: ci90_lower_gt_0_disclosed, indistinguishable: otherwise}
+  descriptive_bootstrap: {kind: stationary_circular, unit: target_date_sequence, mean_block: 21, replicates: 2000, seed: 20261111,
+                          note: dependence_underestimated_not_a_label_basis}
+  size_evidence: "귀무 시뮬: r1 규칙(목표일 균등·블록 21·50일) 거짓 기각 0.29~0.46 / 비중첩 iid h1·h5 n50 0.04~0.06(가우스·GARCH-t)"
+  expected_timing_no_missing: {h1_sessions: 50, h5_sessions: 250, h21_sessions: 630}
+  rows_are_not_independent: true
+  thresholds_frozen_before_first_v2_resolution: true
+publication:
+  site_display: none
+  dashboard_payload: none
+  ledger_status_metadata: public_trust_panel     # ledger_audit.json → 신뢰 패널(id·상태·행 수·최신일), 수치 없음
+  official_ledger_write: false
+  automatic_promotion: false
+  predictive_validation: not_established
+  promotion:
+    requires: [family_verdict_superior_for_the_arm, h21_thinned_n30_ci90_lower_le_0, owner_decision, new_preregistered_contract]
+    expected_earliest_sessions_after_first_run: 630
+prohibitions:
+  - v1 계약·코드·원장·워크플로 바이트 변경
+  - v1·v2 확률/밴드 산술 결합(평균·차감 배지 포함)
+  - 라이브 결과를 본 뒤 상수·문턱·지표·표본 규칙 변경(변경은 새 계약으로만)
+  - 판정 원장 행 수정·재기록, 문턱 전 라벨 부여, 판정 시점 선택
+  - 2015 이후 데이터로 φ·장기수준 규칙 적합
+  - V8 B4·FHS 이식
+  - 놓친 원점 소급 발행
+  - 해소 행을 독립 표본으로 보고
+  - cli·워크플로에 V14 트랙 식별 문자열(timeseries 와 _v14 결합)
+contamination_disclosure:
+  designed_after_live_observation: true
+  observed_before_design: ["D4 EWMA 1세션 지연(11-05 폭 ×1/1.465)", "D5 λ·block 근소차 전환(16 run 중 10회)", "커버리지 원시 0.538·목표일 균등 0.648(n_dates=18)"]
+  design_window_mechanism_precedent: "term_structure = V8 B1 동일 식, V8 이 같은 설계창에서 이미 열람·평가(stop-loss)"
+  post_result_design_choices: ["장기수준 S 후보 추가(B 결과 뒤)", "기간구조 팔 분리", "리드 배율 기각"]
+  live_rows_used_for_constants: 0
+approvals:
+  ledger: data/timeseries_daily6m_v2/ledgers/approvals.jsonl
+  receipt_id: "daily6m-v2-approval:U4:2026-11-11:r1"
+  receipt_form: delegated_bundle_instruction_literal_template_match_false

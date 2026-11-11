@@ -1767,6 +1767,9 @@ details.ts-daily-record-guide>small{display:block;margin-top:10px;color:#706f68;
 .v13-live-forward h3{margin:0;font:750 12px/1.2 var(--mono)}
 .v13-lf-chip{padding:2px 7px;color:#6f6c65;background:#f3f1eb;border:1px solid var(--line);font:700 9px/1.3 var(--mono)}
 .v13-lf-claim{display:inline-block;margin-left:5px;padding:1px 5px;color:#8a877e;border:1px solid var(--line);font:600 9px/1.3 var(--mono);vertical-align:middle;white-space:nowrap}
+.v13-lf-demoted{color:#9a3b2f;border-color:#d9b2aa}
+.v13-jump-chip{margin:4px 0 8px;font:600 11px/1.4 var(--mono);color:#7a5a1e;min-width:0}
+.v13-jump-chip i{font-style:normal;cursor:help}
 .v13-lf-lead{margin:6px 0 8px;color:#4a4842;font-size:12px;line-height:1.55}
 .v13-lf-table-wrap{min-width:0;max-width:100%;overflow-x:auto;overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch}
 .v13-lf-table{width:100%;min-width:480px;border-collapse:collapse;font:500 11px/1.3 var(--mono)}
@@ -2129,6 +2132,11 @@ body[data-view="future"] .page-heading .page-lede{margin:6px 0 0;font-size:12px}
 .timeseries-horizons small.ts-pup-basis{margin-top:5px;color:#4f4d47;font-size:10.5px;line-height:1.45;word-break:keep-all}
 .timeseries-horizons small.ts-chip,.ts-chip{display:inline-block;margin-top:4px;padding:1px 6px;color:#6d3f16;background:#fbf0de;border:1px solid #ecd3a8;font:600 10px/1.5 var(--mono)}
 .timeseries-hero .ts-state-chip{margin-left:6px;padding:2px 7px;color:#11110f;background:#dcd8cf;font-family:var(--mono);font-size:11px;font-weight:700;cursor:help}
+.timeseries-hero .ts-monitor-badges{display:inline-flex;flex-wrap:wrap;gap:4px;margin-left:6px;vertical-align:middle;min-width:0;max-width:100%}
+.timeseries-hero .ts-monitor-chip{padding:2px 7px;color:#6d3f16;background:#fbf0de;border:1px solid #ecd3a8;font:600 11px/1.5 var(--mono);cursor:help;overflow-wrap:anywhere}
+.ts-mts-basis-wrap{overflow-x:auto;min-width:0;max-width:100%}
+.ts-mts-basis{width:100%;border-collapse:collapse;font:500 11px/1.5 var(--mono)}
+.ts-mts-basis th,.ts-mts-basis td{padding:3px 6px;border-bottom:1px solid #e4dfd5;text-align:left;white-space:nowrap}
 .ts-fold{min-width:0}
 .ts-live-tiles i.is-holiday{color:#6d3f16}
 .ts-emit-list{list-style:none;margin:6px 0 0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:4px 12px}

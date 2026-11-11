@@ -12,6 +12,10 @@
    사건 < 20 또는 국면 < 5 인 셀은 pass·BSS·배선 승격을 **주장할 수 없다**. 라벨은
    집계 시점의 누적값으로 매번 다시 계산되므로 표본이 자라면 저절로 떨어진다.)
 4. **대응하는 등록 질문이 존재** — `CELL_QUESTION_MAP`
+5. **라이브 강등 셀이 아님** — V13-D15 적용 원장(`live_verdict_applications.jsonl`)의 `demotion_applied` 셀은
+   자격을 잃는다(영구). 원장을 읽지 못하면 어느 셀이 강등됐는지 모르므로 **계약 자격 셀 전부를 차단**한다.
+   사유는 (3) 의 `blocked_by_claim_restriction`·`claim_block_reasons` 에 섞지 않고
+   `blocked_by_live_demotion`·`live_demotion_reasons` 로 따로 낸다(서로 다른 축). 원장 부재는 정상(빈 원장)이다.
 
 2026-09-11 현재 (1)∧(2) 를 통과하는 셀은 `rv_h5`·`rv_h21` 두 개이고, 둘 다 실현변동성
 `P(RV21 > 0.1694)` 을 묻는데 레지스트리에 대응 질문이 **없다**. 등록된 `vix-25-90d` 는
@@ -162,9 +166,12 @@ def eligibility(root: Path) -> dict[str, Any]:
       이미 떨어진 셀은 여기 싣지 않는다 — 그 셀이 없는 이유는 라벨이 아니다.
     - `claim_block_reasons`: 위 셀 → 사유 목록(스코어보드 사유 그대로, 또는 이 모듈의 `scoreboard_*` 사유)
     - `scoreboard_error`: 스코어보드를 읽지 못했을 때의 사유. 이때 자격 셀은 **없다**.
+    - `blocked_by_live_demotion`·`live_demotion_reasons`: (5) V13-D15 라이브 강등 셀 또는 적용 원장 판독 실패로 차단된
+      계약 자격 셀과 사유. (3) 과 다른 축이라 한 셀이 두 목록에 다 나올 수 있다.
     """
     contract_cells = contract_eligible_cells(root)
     blocked, seen, error = _claim_blocked_cells(root)
+    live_reasons = _live_demotion_reasons(root, contract_cells)
     reasons: dict[str, list[str]] = {}
     for cell in contract_cells:
         if error is not None:
@@ -175,18 +182,40 @@ def eligibility(root: Path) -> dict[str, Any]:
             reasons[cell] = [CLAIM_REASON_SCOREBOARD_MISSING_CELL]
     return {
         "contract_eligible_cells": list(contract_cells),
-        "eligible_cells": [cell for cell in contract_cells if cell not in reasons],
+        "eligible_cells": [cell for cell in contract_cells if cell not in reasons and cell not in live_reasons],
         "blocked_by_claim_restriction": sorted(reasons),
         "claim_block_reasons": reasons,
         "scoreboard_error": error,
+        "blocked_by_live_demotion": sorted(live_reasons),
+        "live_demotion_reasons": live_reasons,
     }
 
 
-def eligible_cells(root: Path) -> tuple[str, ...]:
-    """(1) 홀드아웃 통과 ∧ (2) 설계창 국면 가드 통과 ∧ (3) 라이브 판정불가(제한) 라벨 없음 인 셀.
+def _live_demotion_reasons(root: Path, contract_cells: tuple[str, ...]) -> dict[str, list[str]]:
+    """(5) V13-D15 적용 원장 — 강등 셀 → ["live_demoted"], 판독 실패 → 전 셀 차단. 리더는 던지지 않는다."""
+    try:
+        from .timeseries_v13 import verdict_ledger
 
-    (1)∧(2) 는 계약에서, (3) 은 `live_scoreboard.projection` 에서 읽는다. 스코어보드를 못 읽으면
-    빈 튜플이다(페일클로즈) — 사유는 `eligibility(root)["scoreboard_error"]` 에 있다.
+        apps = verdict_ledger.read_applications(root)
+    except Exception as exc:  # noqa: BLE001 — import 실패도 페일클로즈
+        apps = {"status": "unreadable", "demoted": [], "error": f"{type(exc).__name__}: {exc}"}
+    out: dict[str, list[str]] = {}
+    for cell in contract_cells:
+        if apps.get("status") != "ok":
+            out[cell] = [f"verdict_applications_unreadable: {apps.get('error')}"]
+        elif cell in (apps.get("demoted") or []):
+            out[cell] = ["live_demoted"]
+    return out
+
+
+def eligible_cells(root: Path) -> tuple[str, ...]:
+    """(1) 홀드아웃 통과 ∧ (2) 설계창 국면 가드 통과 ∧ (3) 라이브 판정불가(제한) 라벨 없음
+    ∧ (5) V13-D15 라이브 강등 아님 인 셀.
+
+    (1)∧(2) 는 계약에서, (3) 은 `live_scoreboard.projection` 에서, (5) 는 적용 원장
+    (`verdict_ledger.read_applications`)에서 읽는다. 스코어보드를 못 읽으면 빈 튜플이다(페일클로즈) — 사유는
+    `eligibility(root)["scoreboard_error"]` 에 있다. 적용 원장을 못 읽어도 전 셀 차단이다 —
+    사유는 `eligibility(root)["live_demotion_reasons"]`.
     """
     return tuple(eligibility(root)["eligible_cells"])
 
@@ -214,7 +243,9 @@ def _targets_from(root: Path, mapping: dict[str, str], info: dict[str, Any]) -> 
     for cell, question_id in sorted(mapping.items()):
         if cell not in eligible:
             claim = info["claim_block_reasons"].get(cell)
-            detail = f" — 판정불가(제한): {', '.join(claim)}" if claim else ""
+            live = (info.get("live_demotion_reasons") or {}).get(cell)
+            detail = (f" — 판정불가(제한): {', '.join(claim)}" if claim
+                      else f" — 라이브 강등(V13-D15): {', '.join(live)}" if live else "")
             raise VolWiringError(
                 f"셀 {cell} 은 배선 자격이 없다{detail} — 자격 셀: {', '.join(sorted(eligible)) or '(없음)'}")
         if question_id not in known_questions:
@@ -254,10 +285,15 @@ def wiring_status(root: Path) -> dict[str, Any]:
                   f"전 셀 차단, 배선 0건(페일클로즈): {info['scoreboard_error']}")
     elif not info["contract_eligible_cells"]:
         reason = "자격 셀 자체가 없다 — 배선 0건(페일클로즈)"
+    elif any(r.startswith("verdict_applications_unreadable")
+             for rs in (info.get("live_demotion_reasons") or {}).values() for r in rs):
+        reason = ("V13-D15 적용 원장을 읽지 못해 라이브 강등 여부를 알 수 없다 — 전 셀 차단, 배선 0건(페일클로즈)")
     elif not eligible:
-        reason = ("계약 자격 셀은 있으나 라이브 판정불가(제한) 라벨로 전부 차단 — 배선 0건(페일클로즈): "
-                  + "; ".join(f"{cell} {', '.join(info['claim_block_reasons'][cell])}"
-                              for cell in info["blocked_by_claim_restriction"]))
+        parts = [f"{cell} {', '.join(info['claim_block_reasons'][cell])}"
+                 for cell in info["blocked_by_claim_restriction"]]
+        parts += [f"{cell} 라이브 강등(V13-D15)" for cell in info.get("blocked_by_live_demotion") or []]
+        reason = ("계약 자격 셀은 있으나 라이브 판정불가(제한) 라벨·라이브 강등으로 전부 차단 — 배선 0건(페일클로즈): "
+                  + "; ".join(parts))
     elif not CELL_QUESTION_MAP:
         reason = "자격 셀은 있으나 대응 등록 질문이 없다 — 배선 0건(페일클로즈)"
     else:
@@ -268,6 +304,8 @@ def wiring_status(root: Path) -> dict[str, Any]:
         "blocked_by_claim_restriction": info["blocked_by_claim_restriction"],
         "claim_block_reasons": info["claim_block_reasons"],
         "scoreboard_error": info["scoreboard_error"],
+        "blocked_by_live_demotion": info["blocked_by_live_demotion"],
+        "live_demotion_reasons": info["live_demotion_reasons"],
         "mapped_cells": sorted(CELL_QUESTION_MAP),
         "targets": len(targets),
         "fail_closed": not targets,

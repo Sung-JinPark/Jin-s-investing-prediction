@@ -1,0 +1,273 @@
+schema_version: 1
+contract_id: timeseries_v15_vol
+model_id: event_probability.volatility_v15_vol_shadow
+model_version: 15
+status: live_shadow_prereg          # 결과 전 사전등록 + 라이브 전진 섀도. 표시·배선 없음
+track: volatility_event_probability_followup
+drafted: '2026-11-11'
+drafted_on_branch: claude/mts-u1-u7-20261111
+supersedes: none — V13 을 대체하지 않는다. V13 라이브 카드·원장·게이트·T7·demotion_rule 무접촉.
+
+character: |
+  V13 변동성 사건 확률(champion persistence_pb)의 대안 추정 3팔을 같은 원점·같은 라벨에서 섀도로만 채점한다.
+  가치는 EXIT 트리거(하드룰 VIX 25+) 조기경보 base rate 의 보정 개선 가능성 측정이지 가격 방향 예측이 아니다.
+  결정론 수치모델의 설계창 적합(CLAUDE.md 원칙 5 명문화 예외) — 산출은 base rate 참조이지 캘리브레이션 표본이 아니며,
+  하이퍼파라미터가 정점 지식을 간접 내포할 수 있다. LLM 개입 평가에는 이 예외를 쓰지 않는다.
+  모든 출력은 참고 의견이며 매매 신호가 아니다.
+authority_order:
+  - CLAUDE.md (하드 게이트·ML 게이트·원칙 5 예외 범위)
+  - data/contracts/multivariate_timeseries_v13_vol.yaml (부모 — 어떤 좌표도 완화하지 않는다)
+  - V14 조건부 계약 (data/contracts 의 V14 conditional YAML — 오염 공시 M1·홀드아웃 불허 C3 승계. 경로 문자열은 계획 §3.0-8 로 적지 않는다)
+  - 이 계약. 충돌 시 위가 이긴다.
+
+parent_v13:
+  contract: data/contracts/multivariate_timeseries_v13_vol.yaml
+  coefficients_sha256: 1a85785056738775f732531dc442616908e20ca0f356187eb5fd1adb614b3ac1
+  coefficients_content_hash: 1fdeb1364ea7eba01a1f420eebba0ad53c8339ae8be4c877c9affe0bd91e23f4
+  finalist_id: V13VOL_champion_aec80c65038b
+  refreeze_rule: V13 핀이 바뀌면 이 트랙은 hold(새 계약 없이는 재개 없음)
+  dependency: V13 라이브 원장 행·해상 원장 행이 유일한 입력. V13 이 T7 로 동결되면 축적이 멈춘다(재개는 사용자 결정)
+  termination_acknowledged: null   # V13 종결을 사용자가 DECISIONS 에 기록한 뒤에만 결정 ID 기입 — 그때만 armed∧hold 가 verify 초록
+
+v14_overlap:                       # V14 계약 무수정, V14-D10 비선점
+  identical_conditioning: |
+    R3·cond 의 국면 정의(vix 셀 VIX_t<20 엄격, rv 셀 RV21_t<=θ 0.1694)와 설계창(2007-2014)은 V14 조건부 기저율의
+    조건(V14 계약 98·427행)·창(V14 M3)과 같다. 차이: V15 는 반창 분리 없이 pooled 빈도 하나를 쓴다.
+  decision: V15VOL-D1(b) — 'U5 cond 기준선 = V14 조건부 기저율 정의'는 이 명세가 고른 것(메모 U5 는 '국면 기저율'만 정함)이며 위임 영수증 범위 안의 명시적 결정이다.
+  not_v14: 이 트랙은 V14 의 estimator·champion·verb·원장을 만들지 않고 V14 모듈을 import 하지 않으며 V14-D10 을 선점하지 않는다.
+  pre_observation_of_v14_live: |
+    V15 라이브 cond·R3 결과는 V14 라이브 전진의 사전 관측이다. V14-D10(라이브 포인터 champion·verb) 결정 시
+    이 오염을 승계 공시해야 한다 — V14 쪽 설계는 'V15 cond 라이브 성적 관측 후'가 된다.
+  thin_estimate: vix25_h5 calm 기저율 0.009964 는 calm 1104 원점 중 사건 11개 — V14 가 하드룰 셀 cvix25_h5 를 설계창 검정 불가(반창 사건 6·5)로 판정한 바로 그 얇은 추정치다. R3 vix25_h5 는 이를 ½ 가중으로 쓴다.
+
+targets:                           # V13 targets 와 동일(K·θ·h) — 추가·변경 0 (post_hoc_target_addition 승계)
+  cells: [vix25_h5, vix25_h21, vix25_h63, vix30_h5, vix30_h21, vix30_h63, rv_h5, rv_h21, rv_h63]
+  label_source: data/timeseries_v13/ledgers/vol_live_resolutions.jsonl (resolution_id = {v13_run_id}-{cell})
+  session_guard:
+    rule: XNAS(exchange_calendars) 원점 다음 h번째 세션 == V13 resolved_session 이어야 채점. 아니면 scored=false 보류행(라벨 무관·달력만)
+    origin_not_session: scored=false (origin_not_xnas_session)
+    wrapper: src/ai_fc/timeseries_v15_vol/resolve.py _xnas_session_offset (exchange_calendars 직접 호출, 코드 핀 대상)
+
+arms:
+  R1_platt:
+    formula: p1 = sigmoid(a0_c + b0_c · logit(p_PB))       # p clip [1e-6, 1-1e-6]
+    fit: |
+      설계창 2007-2014 반창 교차전이 OOF(early→late, late→early; V13 rung-3 _dir_preds 와 같은 적합기, 분할 직전 h 원점 embargo/purge).
+      방향 층화 Platt: logit p' = a_e2l·1[e2l] + a_l2e·1[l2e] + b·logit p (기울기 공통, 무정규 Newton). a0 = (a_e2l + a_l2e)/2 (단순 평균, 결과 전 고정), b0 = b.
+      방향별 단독 (a,b) 는 공시용(수렴 플래그). 층화 적합 비수렴이면 동결 거부.
+    cells: all_9
+    constants: frozen_constants.R1
+    disclosure: |
+      방향 절편 부호 반대 8/9셀(GFC↔평온 기저율 전이) — a0 는 국면 중립 평균이라 라이브 국면에 따라 절편 편향이 남을 수 있다.
+      b0>1(7/9셀)은 동결 PB l2(1e-3, 평균손실) 축소 해제 성분을 포함한다 — 설계창 표본 내 Platt 기울기 = 무정규/정규 기울기비
+      (vix25_h5 1.2966 · vix25_h21 1.0765 · vix30_h5 1.2903 · rv_h5 1.6149 · rv_h21 1.1326 · rv_h63 1.1714 · vix25_h63 1.0616 · vix30_h21 1.0535 · vix30_h63 1.0345).
+      vix25_h5/h21 b0(1.32/1.06)는 홀드아웃 진단 Cox 기울기(0.73/0.67)와 반대 방향 — R1 은 축소된 PB 를 더 샤프하게 미는 팔이다. 홀드아웃 기울기 사용 금지.
+      vix30_h63 의 l2e 방향 단독 Platt 는 분리로 수렴하지 않는다(공시) — 상수는 층화 적합에서만 나온다(층화는 9/9 수렴).
+      r1 의 pooled 단일 적합은 Simpson 인공물(rv_h63 b 0.331 < 방향별 0.92·2.42)로 폐기했다.
+  R2_calm_jump:
+    formula: 'p2 = 1 − (1 − p_PB)(1 − λ5),  λ5 = 1 − (1 − λ1)^5 if VIX_t < 20 else 0,  λ1 = (#{j ∈ jump_tail : j ≥ ln(K/VIX_t)} + 0.5)/(n_calm + 1)'
+    jump_sample: 설계창 VIX_t < 20 세션의 1일 로그변화(n_calm=1108), 꼬리 = ln(25/20) 이상 11개 (최대 0.496008, 2007-02-27)
+    cells: [vix25_h5, vix30_h5]
+    cells_rule: 1일 해저드의 h 복리는 h=5 에서만 수준 고정 근사 — h21/h63 은 구조적 과대, rv 표적은 수준 터치가 아니다(결과 전 구조 사유)
+    base: p_PB (R1 출력 아님 — 팔당 단일 변경)
+    disclosure: |
+      효과는 상태의존이다 — 평균은 작고(11-04 VIX 16.61: vix25_h5 0.0158 → 0.0224), VIX 19~20 구간에서 +4%p 대
+      (11-09 VIX 19.92: 0.0992 → 0.1410), VIX=20 에서 0 으로 떨어지는 불연속(평온 정의의 경계).
+      vix30_h5 는 설계창 MDE ≈1e-5 로 PB 와 거의 같은 예보 — 가족 한 슬롯을 사실상 소모(등록 유지).
+      PB 가 이미 학습한 설계창 점프를 다시 더하는 이중계상 성분이 있다(설계창 d −0.00023 이 그 흔적).
+  R3_regime_mix:
+    formula: p3 = 0.5 · p_PB + 0.5 · c_c(state_t)
+    state: {vix: 'VIX_t < 20 → calm', rv: 'RV21_t <= 0.1694 → calm'}     # V14 M5 운영 문턱 · V13 θ — 통계로 고르지 않음
+    rates: 설계창 라벨 유한 행의 상태별 빈도(pooled 2007-2014)
+    weights_fixed: [0.5, 0.5]       # 학습 아님(ML 게이트 200+ 비저촉)
+    cells: all_9
+
+baselines:                          # 셋 다 필수 보고
+  climatology: V13 동결 아티팩트 clim_base_rate (V13 resolve.climatology_map 정본 규칙)
+  conditional_base_rate: R3 의 c_c(state_t) 그대로
+  persistence_pb: V13 발행 p (원장 행 cells[c].p)
+scoring: {primary: brier, co_reported: [log_score, murphy_reliability, calibration_in_the_large, bss_vs_each_baseline]}
+
+frozen_constants:
+  path: data/timeseries_v15_vol/constants/v15_vol_constants.json
+  sha256: f29cff0b41a30935e7d621662c3cd23d2181306db9d09e9ae6bc61c967840593
+  content_hash: fd952a1d2d1673fc1281d4c1cc5ffb323afd02aaf08a4497d98248d2277bab61
+  produced_by: tools/v15_vol_freeze_constants.py
+  produced_at: '2026-11-11T10:55:38+00:00'   # 동결 도구 1회 실행(--write) 의 knowledge_cutoff — 아티팩트 provenance 와 같다
+  design_window: ['2007-01-01', '2014-12-31']
+  split: '2011-01-01'
+  refit_prohibited: true
+  post_2014_data_prohibited: true    # 설계서 §5-13 — 홀드아웃·봉인·라이브로 적합 금지
+  mde_reference: data/timeseries_v15_vol/prereg/design_reference_mde.json   # 채택 근거 아님
+  mde_reference_sha256: 79a97be4ef84139a435726760a16f67f4b92b9f1c264c323e58318b174898067
+  r1_embargo: h             # 분할 직전 h 원점 purge
+  r1_intercept_rule: simple_mean_of_direction_intercepts
+
+verdict_code_sha256:        # LF 정규화 바이트 sha256. 커밋 A 마지막 단계에서 기입, 이후 변경은 새 결정+재무장 없이는 hold
+  src/ai_fc/timeseries_v15_vol/contracts.py: 2bef60130755540dbe080406ee2f31e042b7d8872edb29603f403ad46de6a7a7
+  src/ai_fc/timeseries_v15_vol/arms.py: 6fd69033bb79f726133ffd7ea4818df7551e6a31dd3cd3bcc66b6ab0ce65e06c
+  src/ai_fc/timeseries_v15_vol/shadow.py: e457c7d3d7b351b58f306cc3ccbd3ffc3bfa5aacbfe84cca579c8552ff07c9fd
+  src/ai_fc/timeseries_v15_vol/resolve.py: 2fa4f1a2f82e41e747194221bc75ae420061be0e34a26bfd0888fcd6be0d8ae4
+  src/ai_fc/timeseries_v15_vol/verdict.py: 32a58ebea20dd9f46dc5889070a2c2b4bfede9a409dcab9859a6548990fe13f9
+
+live_shadow:
+  effective_from: null      # 계약에는 날짜를 두지 않는다. 원천은 arming 원장 1행
+  effective_from_rule: |
+    계약이 armed 인 상태로 main 예약 CI(step env V15_VOL_ARMING_CONTEXT=main_scheduled_ci)에서 timeseries-v15-vol-shadow 가 처음 실행될 때
+    arming.jsonl 에 1행을 쓰고, effective_from = 그 실행의 UTC 날짜보다 엄격히 뒤의 첫 XNAS 세션. 사람이 고르는 날짜 0 — 머지 전 원점은 구조적으로 제외.
+  arming_ledger: data/timeseries_v15_vol/ledgers/arming.jsonl
+  armed_at: '2026-11-11T13:32:15+00:00'   # 커밋 B 의 ISO 시각(정보 — effective_from 산출에 쓰지 않음)
+  row_contract_sha256: informational   # verify 비대조, 계약 개정이 과거 행을 무효화하지 않음
+  execution_path: named_verbs_scheduled   # timeseries-v15-vol-shadow / -resolve / -verify (워크플로 v15-vol-shadow). verdict 는 수동·인쇄 전용
+  derivation: pure_function_of_v13_row   # 아카이브 읽기 0 — PIT 는 V13 행에서 상속(late_capture 포함)
+  late_derivation: 허용 — 함수·상수가 effective_from 전에 고정됐으므로 늦게 계산해도 아는 것이 같다. derived_at 기록
+  holdout_status: not_applicable_live_forward
+  ledgers:
+    shadow: data/timeseries_v15_vol/ledgers/vol15_shadow.jsonl
+    resolutions: data/timeseries_v15_vol/ledgers/vol15_shadow_resolutions.jsonl
+  forecasts_calibration_untouched: true
+
+verdict_rule:                        # 결과 전 고정 — 완화 금지
+  eligibility_per_cell:
+    min_scored_origins: 60                  # V13 live_forward_gate 승계
+    min_blocks: 5                           # floor(n/ℓ_h) ≥ 5 (부호반전 공간 ≥ 2^5). 다중집합 하한 삭제
+    min_events_each_class: 20               # V13-D13 승계
+    min_episodes_each_class: 5              # V13-D13 승계 (scoring.episode_runs)
+  origin_states: {scored: '채점', held: 'scored=false 보류행 — 처리 완료로 셈, 영구 제외, 차단 아님', pending: '해상행 없음 — 접두 안에 있으면 미적격'}
+  v13_resolution_absent_rule: V13 해상행이 target + 10 XNAS 세션 뒤에도 없으면 hold_reason v13_resolution_absent 보류행(라벨 무관·달력만, 이후 불변)
+  prefix: |
+    셀마다 원점 순서 최단 적격 접두 1회 — 그 접두로만 확증 검정(이후 표본은 기술통계). 접두 안 pending 원점이 있으면 미적격(held 는 차단 아님).
+    접두 마지막 원점은 V13 원장 최신 as_of 보다 20 XNAS 세션 이상 앞이어야 한다(late_capture 백필의 소급 변경 차단).
+    늦게 파생된 V15 행(derived_at UTC 날짜 ≥ 원점 + 20 XNAS 세션)은 접두에서 제외한다(차단 아님·기술통계 포함) — V13 이 오래된
+    원점을 나중에 백필해 V15 가 그 행을 늦게 만들면, 이미 확정된 접두가 소급으로 바뀌는 잔여 경로를 닫는다(리뷰 N3, 결과 전).
+  block_length: max(13, h)
+  bootstrap: {kind: stationary_geometric_circular, replicates: 5000, seed: 20261111, rng: 'default_rng([20261111, cell_index])', crn: 셀 안 모든 팔·두 점수 공유}
+  ci: percentile 5/95 (numpy.quantile linear)
+  p_value: '(1 + #{d̄*_b ≤ 0})/(B + 1), d = BS_PB − BS_arm (양수=팔 우세), 동점은 귀무 쪽'
+  negative_control: |
+    블록 부호반전(교환) 귀무 — K=floor(n/ℓ_h) 연속 블록(나머지는 마지막 블록에 병합)마다 d 부호를 ½ 확률로 반전, 120회
+    (rng default_rng([20261111, cell_index, arm_index, 1]), 항등 추출 제외 안 함) · 내부 정지 부트스트랩 B=300 CI90 하한 > 0 비율 ≤ 0.10 아니면 void.
+    내부 부트스트랩 rng default_rng([20261111, cell_index, arm_index, 2, r]).
+    y-block 순열 귀무는 쌍대 비교에 쓰지 않는다(비상수 두 예보에서 샤프니스 차를 잰다 — r2 리뷰 B1).
+    설계창 실측(150원점 창): 비퇴화 창 통과율 0~0.18, 중앙 ≈0.10 — void 가 드물지 않을 것을 결과 전 공시.
+  single_episode_guard: 같은 K 블록 중 팔에 가장 유리한 블록 1개를 뺀 d̄ > 0. K<2 이면 불통과
+  log_score_non_inferiority: (LS_arm − LS_PB) CI90 상한 >= 0
+  family: {pairs: 20, composition: 'R1×9 + R2×2 + R3×9', correction: holm, alpha: 0.05, unknown_p: 1.0, fixed_m: true, tie_order: family_pairs}
+  pass: Holm 기각 ∧ d_B CI90 하한 > 0 ∧ 부호반전 귀무 ≤ 0.10 ∧ 단일 에피소드 가드 ∧ 로그 비열화
+  outcome_labels: [pass_shadow_superiority, not_rejected_provisional, fail, void_negative_control, insufficient]
+  provisional_rule: 가족에 미적격 쌍이 남아 있는 동안 비기각은 not_rejected_provisional. fail 은 20쌍 전부 적격(또는 void)·판정 뒤에만. 시간 상한 없음
+  verb: timeseries-v15-vol-verdict — 읽기 전용(쓰기 0). 판정 적용 없음. 코드 핀 불일치면 산술 인쇄 거부
+
+promotion:
+  automatic: false
+  wiring: forbidden                 # base_rates·EXIT 질문·V13 카드 배선 없음
+  display_tier: t0_internal
+  display_tiers_allowed: [t0_internal]
+  on_pass: DECISIONS 기록 + 사용자 결정(새 계약으로 V13 대체·병기 여부). 이 계약은 승격 경로를 갖지 않는다
+
+contamination:                       # V14 M1 공시 승계 + 이번 설계 고유분
+  designed_after_observation: true
+  observed_before_design:
+    - V13 홀드아웃(2015-2018) 1회 소모 결과 전부 — 셀별 통과/실패, Cox 기울기 b≈0.67~0.73, 최저 구간 약 2.5배 과소(R1 동기)
+    - V13 라이브 해소 189행(≤2026-11-10), 2026-11-05 단일 에피소드 VIX 16.61→28.18(R2 동기)
+    - V14 조건부 기저율(평온 early 0.0202 / late 0.0062, h5)·운영 문턱 20(R3 동기)
+    - 설계창 반복 열람 — 명세 스크래치(calib·mde)·리뷰 스크래치(strat·nullrate·ridge)·r2 스크래치(strat_embargo·signflip·mde_rev). r2 의 R1 추정량·음성 대조 변경은 설계창 열람 결과(Simpson 인공물·샤프니스 의존)를 보고 정했다 — 라이브 결과는 보지 않았다
+  m1_target_non_overlap: none — 표적이 V13 과 완전히 같다(새 표적 0). 판정 다리는 라이브 전진(effective_from 이후)만
+  v14_live_pre_observation: v14_overlap.pre_observation_of_v14_live 참조 — V14-D10 이 승계 공시해야 한다
+  holdout_2015_2018: contaminated_by_construction — 바이트 0 사용·재사용 불허(V14-D2 C3 승계)
+  sealed_2019_plus: 미사용
+  live_before_effective_from: 판정·원장 모두 제외(소급 금지)
+  tmp_tests_execute_scoring_path: tmp 사본 테스트가 effective_from 이전 라이브 원점(2026-10-01~11-10)의 R1~R3 Brier 를 실제로 계산한다(등식 단언만 — 값 미열람·미출력, 판정 다리 제외). '판정 0' 은 참이고 '채점 경로 실행 0' 은 아니다(리뷰 N9 공시)
+  mitigations: [상수는 설계창만, 판정 규칙·가족·시드 결과 전 고정, 판정 코드 sha 핀, 팔당 단일 변경, 첫 적격 접두 1회, effective_from 은 CI 무장행(사람 날짜 0), 소급 금지, 홀드아웃 바이트 0]
+
+ml_gate_alignment: |
+  1. CLAUDE.md ML 게이트 문면("캘리브레이션 보정(isotonic/Platt)은 해소 100+ 후, 앙상블 가중 학습은 해소 200+ 후")이 세는 것은
+     라이브 해소(resolution) 표본이다 — 해소된 예측으로 보정기를 학습하는 것을 막는다.
+  2. R1 의 (a0,b0) 는 라이브 해소를 한 건도 쓰지 않는다. 입력은 설계창 2007-2014 의 결정론 수치모델(PB) 교차전이 OOF 와
+     설계창 라벨뿐이다. PB 의 β 자체가 같은 창에서 같은 종류(로지스틱)로 적합된 계수이며, R1 은 그 위에 같은 창에서 적합한
+     로지스틱 층이다 — 수치모델 명세의 일부이지 해소 기반 보정이 아니다(CLAUDE.md 원칙 5 명문화된 예외, dualdb §8·DECISIONS 8-6).
+  3. 선례: V13 reliability.cross_fit_isotonic_h63 — 설계창 OOF 위 PAV(isotonic) 파생층을 같은 논리로 등록·집행했다.
+  4. 라이브 해소로 (a0,b0)·λ·c 를 재추정하는 경로가 코드에 없다(재적합 함수는 design_fit.py 에만 있고 2014-12-31 초과 행을 거부).
+  5. R3 의 ½·½ 는 고정 상수 — 가중 '학습' 결합(200+ 게이트)이 아니다. 같은 사건의 두 추정치(PB·상태 기저율)를 섞는 모형 구성이며
+     서로 다른 probability_space 의 결합이 아니다(§5-7 비저촉).
+  6. 출력은 base rate 참조 섀도이지 캘리브레이션 표본·매매 신호가 아니다. 하이퍼파라미터(문턱 20·θ·Jeffreys ½·h5 범위·½ 가중·
+     embargo h·절편 단순 평균)가 이후 시점 지식을 간접 내포할 수 있다. LLM 개입 평가에는 적용하지 않는다.
+  7. 이것은 원칙 5 예외의 확장 해석이다 — 위임 결정 V15VOL-D1(a). §5-5 와의 조화: §5-5 가 막는 것은 해소 기반 보정기 학습이며,
+     설계창 수치모델 층(PB 와 같은 창·같은 종류의 고정 계수)은 V13 cross_fit_isotonic_h63 와 같은 범주다. 코드 고정:
+     (i) design_fit 이 2014-12-31 초과 행을 거부, (ii) shadow·resolve·verdict·arms 가 design_fit 을 import 하지 않음(AST 테스트),
+     (iii) prohibitions.learned_recalibration_from_live_resolutions: true.
+  8. R1 의 b0>1 은 상당 부분 동결 PB 의 l2(1e-3, 평균손실) 정규화 해제다 — 설계창 표본 내 Platt 기울기 = 무정규/정규 재적합
+     기울기비(아티팩트 R1.cells[c].ridge_slope_ratio). 홀드아웃은 축소된 PB 조차 과신이었다고 말하므로(Cox 0.67~0.73) R1 은
+     그 반대 방향으로 더 미는 팔이다 — 원인과 함께 결과 전 공시.
+
+development_protocol:
+  track_open: true
+  ledgers_created: false            # 워크플로 첫 실행이 만든다(레지스트리는 planned)
+  evaluations_on_live_before_effective_from: 0
+  design_window_access: repeated_reference_only   # '1회' 아님. 상수는 동결 도구 1회 실행(재실행 거부)으로만 생성
+  design_window_access_log:
+    - u17/u5/calib.py, u17/u5/mde.py (명세 r1)
+    - u17/review_u5/strat.py, nullrate.py, ridge.py (적대적 리뷰)
+    - u17/u5r/strat_embargo.py, signflip.py, mde_rev.py (명세 r2)
+    - tools/v15_vol_freeze_constants.py --write (커밋 A, 1회 — 2026-11-11T10:55:38Z)
+    - src/tests/test_timeseries_v15_vol_arms.py 설계창 오라클(상수 재현 대조 — 새 추정 0)
+  approvals_ledger: data/timeseries_v15_vol/ledgers/approvals.jsonl
+  prereg_commit: '51c8e049e4767550319ea1eb3b8f6c4e303e461d'        # 커밋 A 해시 (커밋 B 에서 기입)
+
+gates:
+  armed: true                       # 커밋 B (영수증 V15VOL-D2)
+  armed_requires: [frozen_constants.sha256·content_hash 기입, verdict_code_sha256 5개 기입, prereg_commit 기입, armed_at 기입(정보), 영수증 V15VOL-D2]
+  armed_effect: 머지 뒤 main 예약 CI 첫 실행이 arming.jsonl 을 쓰는 순간 축적 시작. 그 전은 arming_pending_ci(정상)
+  armed_hold_policy: armed ∧ 무장행 존재 ∧ hold 사유 → verify 실패(ops-failure-alert 이슈). 예외 parent_v13.termination_acknowledged
+  stopped_completeness: 철회(무장행 존재 ∧ 계약 미무장 — notes disarmed_after_arming) 또는 종결 확인 hold 이면 완전성은 effective_from ~ 이미 쓴 마지막 V15 as_of 까지만 본다(그 안 구멍·재계산은 계속 검사, 그 뒤 V13 행은 면제)
+  arming_row_checks: 무장행 prereg_commit = development_protocol.prereg_commit, armed_observed_at ≥ live_shadow.armed_at — 어긋나면 verify 실패 + publish hold arming_row_invalid(소급 append 0)
+
+automation:
+  workflow: .github/workflows/v15-vol-shadow.yml
+  verbs: [timeseries-v15-vol-shadow, timeseries-v15-vol-resolve, timeseries-v15-vol-verify]
+  manual_only_verbs: [timeseries-v15-vol-verdict]
+  v14_live_or_automation: forbidden  # 이 트랙의 어떤 코드·워크플로에도 V14 모듈 문자열을 넣지 않는다
+  arming_env: {name: V15_VOL_ARMING_CONTEXT, value: main_scheduled_ci, set_in: '.github/workflows/v15-vol-shadow.yml shadow·verify step env only'}
+
+prohibitions:
+  mutate_v13_code_contract_ledgers: true
+  mutate_sealed_v2_v8_daily6m: true
+  refit_constants: true
+  fit_on_post_2014_data: true
+  holdout_reuse: true
+  retro_scoring_before_effective_from: true
+  learned_recalibration_from_live_resolutions: true
+  learned_weight_combination: true
+  arithmetic_combination_across_probability_spaces: true
+  wiring_or_display_without_new_contract: true
+  automatic_promotion: true
+  gate_threshold_relaxation: true
+  post_hoc_arm_or_cell_addition: true
+  p_permutation_null: true
+  monitor_alert_triggering: true    # 감시기 경보가 이 트랙의 실행·판정을 트리거하지 않는다
+
+known_limits:
+  - 첫 판정은 중앙 추정 2028 이후, h21·h63 은 2029+ (설계창 도달 원점 수 중앙 311~650, 평온 국면이면 더 늦음) — 시간 상한 없음
+  - h63 셀은 블록 5개에 n≥315·에피소드 5 에 ≥319 원점 — 사실상 장기 미판정. 그동안 비기각 라벨은 잠정(not_rejected_provisional)이고 fail 은 쓰이지 않는다
+  - R1 방향 절편 부호 반대 8/9셀(a0 = 국면 중립 평균) · b0>1 은 PB l2 축소 해제 성분 포함 · vix25 셀 b0 가 홀드아웃 진단과 반대 방향
+  - 부호반전 음성 대조는 설계창 n≈150 에서 통과율 중앙 ≈0.10 — void_negative_control 이 드물지 않을 것
+  - 부호반전 통과율은 d 의 부호와 무관하고 |d| 의 블록 지속 패턴에만 의존한다 — 블록 안에서 거의 일정한 강한 우세는 통과율 0.16~0.22 로 void(구현 실측·테스트 고정). 변동성 라벨은 run 이 길고 h21·h63 은 ℓ 이 길어, 가장 일관된 우세일수록·장지평 셀일수록 void 가 구조적으로 나온다 — 이 트랙은 h21·h63 에서 pass 를 거의 낼 수 없다(규칙 유지, 사용자 보고 항목)
+  - rv 셀 NaN 채움(0.169421 > θ) 원점은 stress 국면으로 분류된다(동결 PB 입력과 일관)
+  - R3·cond 는 V14 조건부 기저율 정의와 같다 — V14 라이브 전진의 사전 관측(v14_overlap). vix25_h5 calm 추정치는 사건 11개로 얇다
+  - XNAS 세션 산술은 V15 내부 래퍼(exchange_calendars 직접 호출) — 라이브러리 버전 차는 보류(표본 손실) 쪽으로만 실패
+  - R2 h5 2셀만 — 장지평 점프 효과는 이 트랙에서 측정하지 않는다
+  - R3 국면 문턱(20·θ)은 운영값이나 θ 의 기원은 설계창 중앙값(in-sample)
+  - V13 라벨 정본에 의존 — V13 해상 원장이 멈추면 해소도 멈춘다
+  - 가족 m=20 고정 Holm 은 미적격 쌍을 p=1 로 두는 보수 설계 — 검정력이 낮다
+  - 무장행 쓰기 조건은 환경변수다 — 로컬 오설정 사고는 github_run_id·github_sha 필수·커밋 허용 목록으로 막지만 악의적 위조까지 막지는 못한다
+  - 판정·채점 코드 5파일은 sha 핀 — 버그 수정도 계약 개정·DECISIONS·재무장 결정을 요구한다(의도된 마찰)
+  - 판정 산술은 핀 밖 V13 심볼에 기댄다 — CELL_ORDER(셀 인덱스 → RNG 시드)·cell_specs(h → ℓ_h·offset)·canonical_hash 는 contracts.py 의 import 시점 리터럴 대조(PINNED_CELL_SPECS·PINNED_CANONICAL_PROBE)로 고정, scoring.murphy_reliability·episode_runs 는 보고 전용이라 핀 밖이다
+  - 늦게 파생된 V15 행(원점 + 20 XNAS 세션 이후)은 판정 접두에서 영구 제외 — V15 워크플로가 20세션 넘게 멈추면 그 구간은 표본 손실(verify 완전성 경보가 먼저 울린다)
+  - 무장행 github_sha 는 dispatch 실행이면 dispatch ref 의 SHA 다(체크아웃한 main 이 아닐 수 있다) — 정보 필드, 판정 영향 0
+  - KNOWN_LIMITS 65(판정 시점)·66(R1 방향 역전·축소 해제)·67(V14 사전 관측)
+
+approvals:
+  receipt_form: delegated_bundle_instruction   # literal_template_match false — V14 선례(KNOWN_LIMITS 39)
+  approval_text_rule: approval_text = 사용자 지시 원문(공백 2칸 그대로), template_text = 결정별 요약(받았어야 할 리터럴 템플릿)
+  instructed_at_upper_bound: '2026-11-11T09:03:44Z'   # 도구 기록 상한 — 합성 금지. 원장 approved_at 은 같은 순간의 KST 표기
+  receipts: [v15vol-approval:V15VOL-D1:2026-11-11:r1, v15vol-approval:V15VOL-D2:2026-11-11:r1]

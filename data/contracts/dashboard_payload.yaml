@@ -20,6 +20,8 @@ budgets:
   band_calibration_json_max_bytes: 900000
   # V13-VOL 변동성 base rate 인라인 키(timeseries_v13_vol) 전용 예산 — 표시 설계서 §3 (2026-09-08).
   timeseries_v13_vol_max_bytes: 24000
+  # MTS 표시 진단(U1) 인라인 키 mts_display_diagnostics — 계약 mts_display_diagnostics_v1 read_model.budget_bytes 와 같은 값.
+  mts_display_diagnostics_max_bytes: 8000
   timeseries_daily_json_max_bytes: 131072
   trendlines_summary_max_bytes: 16384
   trendlines_asset_json_max_bytes: 262144

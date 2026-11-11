@@ -1,0 +1,90 @@
+{
+  "schema_version": 1,
+  "constants_id": "daily6m_v2_design_constants_v1",
+  "design_window": [
+    "2007-01-01",
+    "2014-12-31"
+  ],
+  "panel": {
+    "returns": 2013,
+    "first_return": "2007-01-04",
+    "last_return": "2014-12-31",
+    "series": {
+      "nasdaq_return": "NASDAQCOM",
+      "vix_change": "VIX",
+      "dgs2_change_bps": "DGS2",
+      "curve_change_bps": "DGS10-DGS2",
+      "dollar_change": "DTWEXB"
+    }
+  },
+  "persistence_by_column": {
+    "nasdaq_return": 0.98708,
+    "vix_change": 0.88011,
+    "dgs2_change_bps": 0.99947,
+    "curve_change_bps": 0.9935,
+    "dollar_change": 0.99535
+  },
+  "persistence_estimator": {
+    "model": "garch11_variance_targeting_gaussian_qmle",
+    "optimizer": "nelder_mead",
+    "starts": [
+      [
+        0.05,
+        0.93
+      ],
+      [
+        0.08,
+        0.9
+      ],
+      [
+        0.12,
+        0.85
+      ]
+    ],
+    "xatol": 1e-07,
+    "fatol": 1e-09,
+    "maxiter": 4000,
+    "round": 5
+  },
+  "long_run_rule": {
+    "registered": "slow_ewma_0.996",
+    "candidates": [
+      "sample_mean_square",
+      "slow_ewma_0.996"
+    ],
+    "criterion": "min pre-multiplier PIT loss over anchor leads",
+    "pit_loss": {
+      "sample_mean_square": 0.0599,
+      "slow_ewma_0.996": 0.0245,
+      "flat_reference": 0.0098
+    }
+  },
+  "lead_width_multiplier": "rejected (design_report_v1.json 에 원시 격자·반창 공시)",
+  "proxy": {
+    "model": "nasdaq_univariate_bootstrap_fresh_ewma",
+    "first_origin_index": 499,
+    "origin_step_sessions": 5,
+    "paths": 10000,
+    "sim_seed_key": [
+      20261111,
+      7,
+      "origin_index"
+    ],
+    "drift": "expanding_mean",
+    "origins": 278,
+    "selection_bootstrap": "sealed_v2_stationary_bootstrap_batch (r1 스크래치 그대로 — 라이브 선택 규칙과 다름, caveat)"
+  },
+  "selection": {
+    "seed": 20261111,
+    "replicates": 8,
+    "paths": 1000,
+    "validation_horizon": 21,
+    "origin_rule": "anchored_position_grid_mod_21",
+    "bootstrap": "crn_predrawn_starts_and_uniforms",
+    "hysteresis_mc_sd": 1.0,
+    "default_incumbent": [
+      10,
+      0.97
+    ]
+  }
+}

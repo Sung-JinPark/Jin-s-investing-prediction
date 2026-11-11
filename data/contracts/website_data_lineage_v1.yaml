@@ -307,6 +307,39 @@ surfaces:
       knowledge_cutoff: knowledge_cutoff
     publication_failure: hold_without_numbers
 
+  mts_display_diagnostics:
+    routes: ["#timeseries"]
+    publication_class: governance_metadata
+    display_role: monitor_labels_on_v8_card
+    probability_space: none
+    official_forecast_write: false
+    numeric_input_policy: >-
+      Labels and counts (k/N flagged days, episodes, n/k windows, shock days) on the
+      card, plus per-basis rolling-window CRPS skill with its 90% block interval and
+      sealed percentile in the fold only (basis rows listed separately, never combined),
+      read from the MTS research monitor derived files allowed by contract
+      mts_display_diagnostics_v1 under the pinned threshold hash; never combined with
+      V8, V13 or daily6m probabilities or quantiles; no gate, hide, promotion or
+      reforecast effect
+    source_artifacts:
+      - data/mts_research/contracts/mts_display_diagnostics_v1.yaml
+      - data/mts_research/contracts/coherence_monitor_thresholds_v1.json
+      - data/mts_research/contracts/v8_official_label_basis_v1.json
+      - data/mts_research/derived/coherence_monitor_latest.json
+      - data/mts_research/derived/v8_live_monitor.json
+    payload_locations:
+      - {artifact: dashboard_base, key: mts_display_diagnostics, materialization: base}
+    artifact_gate: >-
+      Badges appear only while the V8 card shows numbers, the contract and threshold
+      hashes match the loader pins and the coherence derived matches its ledger tail;
+      per-origin badges (C1, C6, C8) require the monitor origin to equal the card
+      origin, C12 tolerates one XNAS session of lag, live labels five sessions of lag
+      or one ahead; the official label basis comes only from the pinned U7 declaration;
+      otherwise no badge, which means unconfirmed rather than normal
+    time_fields:
+      observation_through: as_of
+    publication_failure: no_badges
+
   champion:
     routes: ["#today", "#future/champion", "#future/lookup", "#future/original"]
     publication_class: research_reference_proxy

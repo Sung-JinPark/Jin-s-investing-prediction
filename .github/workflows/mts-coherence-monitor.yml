@@ -1,0 +1,126 @@
+name: mts-coherence-monitor
+
+# MTS 감시 일일 배치 (U1 — 계약 data/mts_research/contracts/mts_display_diagnostics_v1.yaml).
+# 연구 원장 4종(감시 3 + FED_EBP 사이드카)에만 append 하고 derived 를 재생성한다. 네트워크 0·시크릿 0·확률 숫자 무변경.
+# 감시 결과로 재예측·재학습·게이트 숨김을 트리거하지 않는다. 판단은 사람. 참고 의견, 매매 신호 아님.
+# 트리거는 예약만: 준비 게이트(plan_catch_up — V8 confirmed·V13 행 또는 명목 마감 경과)가 정확성을 보장하므로
+# 발행 완료 연쇄(하루 ~28회 → pages·verify 연쇄)를 쓰지 않는다.
+# 예약 집합은 ingest_triage_policy_v1 의 FED_EBP 사이드카 지연 창(96h) 근거와 묶여 있다 — 바꾸려면 정책 v2.
+
+on:
+  schedule:
+    # Tue-Sat 12:15 UTC — V8 일일 confirmed(실측 s+1 10~11 UTC)·V13 시간별 창(0-10 UTC) 뒤.
+    - cron: "15 12 * * 2-6"
+    # Tue-Sat 18:45 UTC — 명목 마감(EDT 20:15·EST 21:15 UTC) 전 재확인. 마감 뒤 처리는 다음 날 12:15 소급.
+    - cron: "45 18 * * 2-6"
+  workflow_dispatch:
+    inputs:
+      force_live_monitor:
+        description: "v8-live-monitor 를 입력 지문과 무관하게 재계산"
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: mts-coherence-monitor
+  cancel-in-progress: false
+
+jobs:
+  monitor:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      PYTHONUTF8: "1"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install the numerical runtime and the XNAS calendar
+        run: pip install -e ".[pit,timeseries]" "exchange-calendars>=4.6,<5"
+      - name: Coherence monitor — append every ready session after the ledger tail
+        shell: bash
+        run: |
+          set -euo pipefail
+          out="$RUNNER_TEMP/coherence.json"
+          python -m ai_fc.mts_research.cli coherence-monitor --append --catch-up > "$out" || { code=$?; cat "$out"; exit $code; }
+          python - "$out" <<'PY'
+          import json, sys
+          out = json.load(open(sys.argv[1], encoding="utf-8"))
+          print(json.dumps({k: out.get(k) for k in ("status", "through", "last_recorded_before", "appended",
+                                                    "appended_rows", "waiting", "archive_holes")}, ensure_ascii=False))
+          for hole in out.get("archive_holes") or []:
+              print(f"::warning::coherence archive hole {hole['as_of']} — fill only with --as-of {hole['as_of']} --append")
+          PY
+      - name: XNAS label diagnostics — append new rows
+        if: ${{ !cancelled() }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          out="$RUNNER_TEMP/xnas.json"
+          python -m ai_fc.mts_research.cli v8-xnas-labels --append > "$out" || { code=$?; head -c 4000 "$out"; exit $code; }
+          python -c "import json,sys; d=json.load(open(sys.argv[1],encoding='utf-8')); print({k: d.get(k) for k in ('mode','appended','integrity_status','as_of_session')})" "$out"
+      - name: V8 live monitor — recompute only when its inputs moved
+        if: ${{ !cancelled() }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          out="$RUNNER_TEMP/live.json"
+          flag="--if-stale"
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ inputs.force_live_monitor }}" = "true" ]; then flag=""; fi
+          python -m ai_fc.mts_research.cli v8-live-monitor --append $flag > "$out" || { code=$?; head -c 4000 "$out"; exit $code; }
+          python - "$out" <<'PY'
+          import json, sys
+          d = json.load(open(sys.argv[1], encoding="utf-8"))
+          r = d.get("report") or {}
+          print({"mode": d.get("mode"), "status": r.get("status", d.get("status")),
+                 "as_of_session": r.get("as_of_session", d.get("as_of_session")),
+                 "input_fingerprint": r.get("input_fingerprint", d.get("input_fingerprint")), "ledger": d.get("ledger")})
+          PY
+      - name: FED_EBP sidecar — append new vintages from committed receipts
+        # 봉인 V2 파서가 못 읽는 FED_EBP 빈티지를 연구 원장에만 보존한다(KNOWN_LIMITS 46).
+        # mts-ingest-triage 의 FED_EBP known_stall 은 이 원장이 96h 안으로 따라올 때만 warning 이다.
+        if: ${{ !cancelled() }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          out="$RUNNER_TEMP/fed_ebp.json"
+          python -m ai_fc.mts_research.cli fed-ebp-sidecar --append > "$out" || { code=$?; head -c 4000 "$out"; exit $code; }
+          python -c "import json,sys; d=json.load(open(sys.argv[1],encoding='utf-8')); print({k: d.get(k) for k in ('status','n_vintages','rows_to_append','rows_appended','ledger_is_replay_prefix')})" "$out"
+      - name: Verify research ledger chains
+        id: chains
+        if: ${{ !cancelled() }}
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          from ai_fc.mts_research.artifacts import read_chain
+          for name in ("coherence_daily.jsonl", "v8_xnas_label_diagnostics.jsonl", "v8_live_monitor.jsonl", "fed_ebp_v1.jsonl"):
+              print(name, len(read_chain(Path.cwd(), Path("data/mts_research/ledgers") / name)))
+          PY
+      - name: Commit only the registered research outputs
+        # 앞 스텝이 실패해도 이미 append 된 행은 커밋한다(러너와 함께 사라지면 다음 실행이 retrospective 로 다시 쓴다).
+        # 체인 검증이 실패하면 커밋하지 않는다. 잡 결론은 앞 스텝 실패를 그대로 유지한다 → ops-failure-alert.
+        if: ${{ !cancelled() && steps.chains.outcome == 'success' }}
+        shell: bash
+        run: |
+          allow="data/mts_research/ledgers/coherence_daily.jsonl data/mts_research/derived/coherence_monitor_latest.json data/mts_research/ledgers/v8_xnas_label_diagnostics.jsonl data/mts_research/derived/v8_xnas_label_summary.json data/mts_research/ledgers/v8_live_monitor.jsonl data/mts_research/derived/v8_live_monitor.json data/mts_research/ledgers/fed_ebp_v1.jsonl"
+          # 없는 경로를 git add 하면 fatal 로 죽는다(2026-09-09 실측) — 있는 것만.
+          for f in $allow; do
+            if [ -f "$f" ]; then git add -- "$f"; fi
+          done
+          unexpected="$(git diff --cached --name-only | grep -Ev '^data/mts_research/(ledgers/(coherence_daily|v8_xnas_label_diagnostics|v8_live_monitor|fed_ebp_v1)\.jsonl|derived/(coherence_monitor_latest|v8_xnas_label_summary|v8_live_monitor)\.json)$' || true)"
+          test -z "$unexpected" || { echo "unexpected research paths: $unexpected"; exit 1; }
+          if ! git diff --cached --quiet; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git commit -m "data: MTS coherence monitor daily append"
+            git pull --rebase origin main
+            git push
+          fi

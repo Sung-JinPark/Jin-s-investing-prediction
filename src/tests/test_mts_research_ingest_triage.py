@@ -45,7 +45,7 @@ def _utc(text: str) -> datetime:
 
 
 def _args(**overrides) -> argparse.Namespace:
-    body = {"as_of": None, "append": False, "report": None, "kind": None, "now": None}
+    body = {"as_of": None, "append": False, "report": None, "kind": None, "now": None, "history": None}
     body.update(overrides)
     return argparse.Namespace(**body)
 
@@ -416,17 +416,24 @@ def test_monitor_other_failures_fail():
 
 
 def test_cli_payload_fields_and_exit_codes():
+    """U2a: CLI 는 해시 고정 정책으로 FED_EBP 를 known_stall 로 판정한다(순수 함수는 종전대로 unexpected).
+
+    workflow_wired 는 kind 별 — U2a 는 daily6m_sources 만 배선했다(v2_* 는 U2b 에서 True 로 갱신)."""
     code, payload = run_cli(ROOT, _args(kind="v2_refresh", report=str(FIXTURES / "v2_refresh_market_42950811442.json")))
-    assert code == 3 and payload["status"] == "unexpected"
+    assert code == 0 and payload["status"] == "known_stall"
+    assert payload["now_source"] == "report_market_retrieved_at"
     for key, value in (("display_only", True), ("scoring_excluded", True), ("notice", "참고 의견, 매매 신호 아님"),
                        ("network_fetch_enabled", False), ("workflow_wired", False), ("records_values", False),
                        ("single_episode", True), ("ledger", None)):
         assert payload[key] == value
     assert payload["n"] == 4 and payload["n_dates"] >= 1
+    assert payload["evidence"]["policy_hash"] == triage.PINNED_POLICY_HASH
+    assert payload["evidence"]["now_source"] == "report_market_retrieved_at"
     code, payload = run_cli(ROOT, _args(kind="daily6m_sources", report=str(FIXTURES / "daily6m_sources_42950808534.json")))
     assert code == 0 and payload["status"] == "transport_pending"
     assert payload["now_source"] == "report_completed_at"
     assert payload["n_dates"] == 2
+    assert payload["workflow_wired"] is True and payload["evidence"]["history_provider"] == "fixture"
 
 
 def test_cli_raw_report_and_append_writes_nothing(tmp_path):
@@ -454,3 +461,296 @@ def test_cli_verify_uses_fixture_now(monkeypatch, fact_index):
     assert payload["now"] == "2026-11-10T23:52:49+00:00" and payload["now_source"] == "fixture_now"
     code, payload = run_cli(ROOT, _args(kind="v2_verify", report=report, now="2026-11-11T06:00:00Z"))
     assert code == 1 and payload["status"] == "fail"
+
+
+# --- U2a: 해시 고정 정책 · FED_EBP known_stall · 영수증 history · Nasdaq 창 ---------------------
+
+FED_EBP_ONSET = "2026-10-07T07:46:53+00:00"
+EBP_V3_AVAILABLE = "2026-11-05T16:36:13+00:00"
+
+
+def _policy() -> dict:
+    return triage.load_policy(ROOT)
+
+
+def _fed_ebp_entry(name: str = "v2_refresh_market_42950811442") -> dict:
+    report = _fixture(name)["report"]
+    return next(entry for entry in report["market"]["failures"] if entry["series"] == "FED_EBP")
+
+
+@pytest.mark.parametrize("name, age", [("v2_refresh_market_42950811442", 835.461),
+                                       ("v2_refresh_market_42926210670", 832.094)])
+def test_fed_ebp_known_stall_after_24h_with_fresh_sidecar(name, age):
+    code, payload = run_cli(ROOT, _args(kind="v2_refresh", report=str(FIXTURES / f"{name}.json")))
+    assert (code, payload["status"]) == (0, "known_stall")
+    assert payload["now_source"] == "report_market_retrieved_at"
+    assert payload["now"] == _fixture(name)["report"]["market"]["retrieved_at"]
+    item = next(item for item in payload["items"] if item.get("series") == "FED_EBP")
+    assert item["status"] == "known_stall" and item["reason_code"] == "known_stall_compensated"
+    assert item["onset"] == FED_EBP_ONSET and item["age_hours"] == pytest.approx(age, abs=0.01)
+    assert item["now_source"] == "report_market_retrieved_at"
+    assert item["compensator"]["fresh"] is True and item["compensator"]["ledger_integrity"] == "ok"
+    assert payload["github_annotations"][0].startswith("::warning title=ingest-triage v2_refresh::")
+
+
+def test_v2_refresh_now_ignores_wall_clock(monkeypatch):
+    """B1: v2_refresh 판정 시각은 보고의 market.retrieved_at — 벽시계를 2027 로 밀어도 결과가 같다."""
+    baseline = {}
+    for name in ("v2_refresh_market_42950811442", "v2_refresh_market_42926210670"):
+        _, payload = run_cli(ROOT, _args(kind="v2_refresh", report=str(FIXTURES / f"{name}.json")))
+        item = next(item for item in payload["items"] if item.get("series") == "FED_EBP")
+        baseline[name] = (payload["status"], item["age_hours"], item["onset"])
+
+    class _Future(datetime):
+        @classmethod
+        def now(cls, tz=None):
+            return datetime(2027, 1, 1, tzinfo=timezone.utc)
+
+    monkeypatch.setattr(triage, "datetime", _Future)
+    for name, expected in baseline.items():
+        _, payload = run_cli(ROOT, _args(kind="v2_refresh", report=str(FIXTURES / f"{name}.json")))
+        item = next(item for item in payload["items"] if item.get("series") == "FED_EBP")
+        assert (payload["status"], item["age_hours"], item["onset"]) == expected
+
+
+def test_v2_refresh_without_market_retrieved_at_is_exit_2(tmp_path):
+    report = copy.deepcopy(_fixture("v2_refresh_market_42950811442")["report"])
+    report["market"].pop("retrieved_at")
+    raw = tmp_path / "report.json"
+    raw.write_text(json.dumps(report), encoding="utf-8")
+    code, payload = run_cli(ROOT, _args(kind="v2_refresh", report=str(raw)))
+    assert (code, payload["status"]) == (2, "error")
+    assert "market.retrieved_at" in payload["error"]
+    # 시간대 없는 시각도 거부한다(벽시계로 떨어지지 않음).
+    report["market"]["retrieved_at"] = "2026-11-11T03:14:34"
+    raw.write_text(json.dumps(report), encoding="utf-8")
+    assert run_cli(ROOT, _args(kind="v2_refresh", report=str(raw)))[0] == 2
+
+
+def test_fed_ebp_first_24h_escalates():
+    rule = _policy()["known_stalls"]["fed_ebp_sealed_parser_iso_dates"]
+    onset = _utc(FED_EBP_ONSET)
+    fresh = {"fresh": True}
+    assert triage.decide_fed_ebp(onset, onset + timedelta(hours=23), fresh, rule) == ("escalate", "first_window")
+    assert triage.decide_fed_ebp(onset, onset + timedelta(hours=25), fresh, rule) == (
+        "known_stall", "known_stall_compensated")
+    assert triage.decide_fed_ebp(onset, onset + timedelta(hours=25), {"fresh": False}, rule) == (
+        "escalate", "sidecar_lagging")
+
+
+def _sidecar_copy(tmp_path: Path, *, keep_vintages: set[int] | None = None, tamper: bool = False) -> Path:
+    """FED_EBP 영수증·원본 gzip·사이드카 원장 사본(tmp_path) — 실저장소에는 쓰지 않는다."""
+    from ai_fc.mts_research.fed_ebp_sidecar import LEDGER_RELATIVE, RECEIPTS_RELATIVE, UPSTREAM_SOURCE_ID
+    from ai_fc.timeseries_v8.contracts import canonical_hash
+
+    root = tmp_path / "repo"
+    receipts = [line for line in (ROOT / RECEIPTS_RELATIVE).read_text(encoding="utf-8").splitlines()
+                if line.strip() and json.loads(line).get("source_id") == UPSTREAM_SOURCE_ID]
+    target = root / RECEIPTS_RELATIVE
+    target.parent.mkdir(parents=True)
+    target.write_text("\n".join(receipts) + "\n", encoding="utf-8")
+    for raw_path in {json.loads(line)["raw_path"] for line in receipts}:
+        (root / raw_path).parent.mkdir(parents=True, exist_ok=True)
+        (root / raw_path).write_bytes((ROOT / raw_path).read_bytes())
+    rows = [json.loads(line) for line in (ROOT / LEDGER_RELATIVE).read_text(encoding="utf-8").splitlines()
+            if line.strip()]
+    if keep_vintages is not None:
+        rows = [row for row in rows if row["vintage_seq"] in keep_vintages]
+    if tamper:
+        rows[5]["ebp"] = float(rows[5]["ebp"]) + 0.5
+    previous = None
+    lines = []
+    for row in rows:  # 체인을 다시 이어 read_chain 은 통과시키고 _plan_append 의 접두부 대조만 깨지게 한다
+        body = {key: value for key, value in row.items() if key not in ("previous_hash", "content_hash")}
+        body["previous_hash"] = previous
+        body["content_hash"] = canonical_hash(body)
+        previous = body["content_hash"]
+        lines.append(json.dumps(body, ensure_ascii=False))
+    ledger = root / LEDGER_RELATIVE
+    ledger.parent.mkdir(parents=True)
+    ledger.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    return root
+
+
+def test_fed_ebp_lagging_sidecar_escalates(tmp_path):
+    """사이드카 원장에서 빈티지 3 을 잘라내면 밀린 행 = 빈티지 3(available 11-05T16:36Z).
+
+    now 는 실제 영수증 시각이어야 한다(서명 '이 실행의 영수증'): +105.3h(> 96h) → sidecar_lagging,
+    +81.5h(≤ 96h) → known_stall."""
+    root = _sidecar_copy(tmp_path, keep_vintages={1, 2})
+    policy = _policy()
+    entry = _fed_ebp_entry()
+    stale = triage.fed_ebp_known_stall(root, entry, _utc("2026-11-10T01:54:05+00:00"), policy)
+    assert (stale["status"], stale["reason_code"]) == ("escalate", "sidecar_lagging")
+    assert stale["compensator"]["fresh"] is False and stale["compensator"]["pending_rows"] > 0
+    assert stale["compensator"]["oldest_pending_available_at"] == EBP_V3_AVAILABLE
+    fresh = triage.fed_ebp_known_stall(root, entry, _utc("2026-11-09T02:09:02+00:00"), policy)
+    assert (fresh["status"], fresh["reason_code"]) == ("known_stall", "known_stall_compensated")
+    assert fresh["compensator"]["fresh"] is True
+
+
+def test_fed_ebp_ledger_integrity_violation_is_unexpected(tmp_path):
+    """N12: 원장이 재생 접두부가 아니면(값 변조) 지연(escalate)이 아니라 무결성 위반(unexpected)."""
+    root = _sidecar_copy(tmp_path, tamper=True)
+    item = triage.fed_ebp_known_stall(root, _fed_ebp_entry(), _utc("2026-11-11T03:14:34+00:00"), _policy())
+    assert (item["status"], item["reason_code"]) == ("unexpected", "sidecar_ledger_integrity")
+
+
+def test_fed_ebp_signature_mismatch_is_unexpected():
+    policy = _policy()
+    now = _utc("2026-11-11T03:14:34+00:00")
+    template = "time data '{day}' does not match format '{fmt}'"
+    variant = {"series": "FED_EBP", "reason": template.format(day="1973-01-01", fmt="%Y/%m/%d")}
+    assert triage.fed_ebp_known_stall(ROOT, variant, now, policy) is None  # 정규식 밖 → 기존 unexpected
+    other = {"series": "FED_EBP", "reason": template.format(day="01.01.1973", fmt="%m/%d/%Y")}
+    assert triage.fed_ebp_known_stall(ROOT, other, now, policy) is None
+    # 정규식은 맞지만 날짜가 최신 빈티지 오류문과 다르면 서명 불일치.
+    shifted = {"series": "FED_EBP", "reason": template.format(day="1974-01-01", fmt="%m/%d/%Y")}
+    item = triage.fed_ebp_known_stall(ROOT, shifted, now, policy)
+    assert (item["status"], item["reason_code"]) == ("unexpected", "signature_mismatch")
+    # 이 실행이 받은 영수증이 아니면(now 가 영수증 시각과 다름) 서명 불일치.
+    late = triage.fed_ebp_known_stall(ROOT, _fed_ebp_entry(), now + timedelta(minutes=1), policy)
+    assert late["reason_code"] == "signature_mismatch" and late["signature"]["received_this_run"] is False
+    # 정책 경로로 분류해도 FED_EBP 외 형식 밖 항목은 그대로 unexpected.
+    report = copy.deepcopy(_fixture("v2_refresh_market_42950811442")["report"])
+    report["market"]["failures"].append({"series": "VIX", "reason": "VIX returned HTTP 500"})
+    result = classify_market_failures(report, root=ROOT, policy=policy)
+    assert (result["status"], result["exit_code"]) == ("unexpected", 3)
+
+
+def test_policy_hash_is_pinned():
+    from ai_fc.timeseries_v8.contracts import canonical_hash
+
+    policy = _policy()
+    assert canonical_hash(policy) == triage.PINNED_POLICY_HASH
+    assert policy["registration_kind"] == "post_hoc_operational"
+    assert len(policy["memo_deviations"]) == 1
+    stall = policy["known_stalls"]["fed_ebp_sealed_parser_iso_dates"]
+    assert stall["compensator_max_lag_hours"] == 96 and stall["escalate_window_hours"] == 24
+    nasdaq = policy["known_stalls"]["nasdaq_forbidden_alfred_supplemented"]
+    assert nasdaq["escalate_window_hours"] == [24, 26] and nasdaq["known_stall_until_hours"] == 336
+    assert nasdaq["max_native_lag_sessions"] == 2
+    approval = policy["approval"]
+    assert approval["approval_text"] == "네가 나머지 작업 다 완료시켜.  네가 최적의 선택을 내려서 u1~u7까지 다 진행시켜"
+    assert approval["approval_form"] == "delegated_bundle_instruction" and approval["literal_template_match"] is False
+    assert approval["template_text"] != approval["approval_text"]
+    assert _utc(approval["instructed_at_upper_bound"]) == _utc("2026-11-11T09:03:44Z")
+    assert policy["effect"]["gate_effect"] == "none" and policy["effect"]["notice"] == "참고 의견, 매매 신호 아님"
+
+
+def test_policy_tamper_is_exit_2(tmp_path):
+    root = tmp_path / "repo"
+    target = root / triage.POLICY_RELATIVE
+    target.parent.mkdir(parents=True)
+    raw = (ROOT / triage.POLICY_RELATIVE).read_bytes()
+    target.write_bytes(raw.replace(b'"compensator_max_lag_hours": 96', b'"compensator_max_lag_hours": 97'))
+    assert target.read_bytes() != raw
+    code, payload = run_cli(root, _args(kind="v2_refresh", report=str(FIXTURES / "v2_refresh_market_42950811442.json")))
+    assert (code, payload["status"]) == (2, "error") and "해시 불일치" in payload["error"]
+    target.unlink()
+    code, payload = run_cli(root, _args(kind="daily6m_sources", report=str(FIXTURES / "daily6m_sources_42950808534.json")))
+    assert code == 2 and "정책 파일이 없다" in payload["error"]
+
+
+def _raw_report(tmp_path: Path, name: str) -> Path:
+    raw = tmp_path / f"{name}.json"
+    raw.write_text(json.dumps(_fixture(name)["report"]), encoding="utf-8")
+    return raw
+
+
+@pytest.mark.parametrize("name, hours", [("daily6m_sources_42926207427", 2.568),
+                                         ("daily6m_sources_42950808534", 5.916)])
+def test_receipt_history_session_anchor_oracle(tmp_path, name, hours):
+    report = _fixture(name)["report"]
+    history = triage.receipt_history(ROOT, _utc(report["completed_at"]))
+    anchor = [entry for entry in history if entry["basis"] == "session_anchor"]
+    assert len(anchor) == 1 and anchor[0]["s_last"] == "2026-11-09" and anchor[0]["next_session"] == "2026-11-10"
+    assert anchor[0]["completed_at"] == "2026-11-10T21:15:00+00:00" and anchor[0]["caught_up"] is False
+    assert all(_utc(entry["completed_at"]) < _utc(report["completed_at"]) for entry in history)
+    code, payload = run_cli(ROOT, _args(kind="daily6m_sources", report=str(_raw_report(tmp_path, name)),
+                                        history="receipts_ledger"))
+    assert (code, payload["status"]) == (0, "transport_pending")
+    for streak in payload["evidence"]["streaks"].values():
+        assert streak["hours_upper"] == hours and streak["last_clean"] == "2026-11-10T21:15:00+00:00"
+
+
+def test_receipt_history_weekend_is_caught_up(tmp_path):
+    """금요일(2026-11-06) 종가를 수집했고 completed_at 이 일요일이면 잃은 세션이 없다 → caught_up → pending."""
+    root = tmp_path / "repo"
+    store = root / "data/timeseries_daily6m"
+    store.mkdir(parents=True)
+    (store / "source_receipts.jsonl").write_text(json.dumps({
+        "kind": "nasdaq_info", "http_status": 200, "retrieved_at": "2026-11-06T21:20:00+00:00",
+        "source_id": "nasdaq_comp_official"}) + "\n", encoding="utf-8")
+    (store / "source_observations.jsonl").write_text(json.dumps({
+        "source_id": "nasdaq_comp_official", "observation_time": "2026-11-06",
+        "available_at": "2026-11-06T21:20:00+00:00"}) + "\n", encoding="utf-8")
+    completed = _utc("2026-11-08T15:00:00Z")
+    history = triage.receipt_history(root, completed)
+    anchor = [entry for entry in history if entry["basis"] == "session_anchor"][0]
+    assert anchor["caught_up"] is True and anchor["next_session"] == "2026-11-09"
+    assert _utc(anchor["completed_at"]) == completed - timedelta(seconds=1)
+    report = copy.deepcopy(_fixture("daily6m_sources_42950808534")["report"])
+    report["completed_at"] = completed.isoformat()
+    result = classify_daily6m_sources(report, history)
+    assert result["status"] == "transport_pending"
+    assert result["evidence"]["streaks"]["nasdaq_history"]["hours_upper"] < 0.01
+
+
+def test_nasdaq_windows():
+    policy = _policy()
+    fresh = {"fresh": True, "lag_sessions": 1, "max_native_lag_sessions": 2}
+    stale = {"fresh": False, "lag_sessions": 3, "max_native_lag_sessions": 2}
+
+    def streak(hours):
+        return {"hours_lower": 0.0, "hours_upper": hours, "length_known": True, "n_other_failures": 0}
+
+    def status(hours, compensator):
+        return triage._streak_item("nasdaq_history", streak(hours), policy=policy, compensator=compensator)["status"]
+
+    assert status(23.9, fresh) == "transport_pending"
+    assert status(24.5, fresh) == "escalate"
+    assert status(30.0, fresh) == "known_stall"
+    assert status(30.0, stale) == "escalate"
+    assert status(30.0, None) == "escalate"
+    assert status(337.0, fresh) == "escalate"
+    unknown = {"hours_lower": 3.0, "hours_upper": None, "length_known": False, "n_other_failures": 0}
+    assert triage._streak_item("nasdaq_history", unknown, policy=policy, compensator=fresh)["status"] == "escalate"
+    # 정책 없이 부르면 종전 동작(24h 이상 escalate).
+    assert triage._streak_item("nasdaq_history", streak(30.0))["status"] == "escalate"
+    assert triage.STATUS_EXIT["known_stall"] == 0 and triage.ANNOTATION_LEVEL["known_stall"] == "warning"
+
+
+def test_alfred_compensator_oracle():
+    result = triage.alfred_nasdaq_compensator(ROOT, _utc("2026-11-11T03:09:58.374834Z"), _policy())
+    assert result == {"native_last": "2026-11-09", "last_completed": "2026-11-10", "lag_sessions": 1,
+                      "fresh": True, "max_native_lag_sessions": 2}
+
+
+def test_cli_history_receipts_ledger(tmp_path):
+    """N3: --history receipts_ledger 는 raw 보고(history 없음)에 영수증 history 를 붙이고 n_dates 도 그 목록으로 센다."""
+    name = "daily6m_sources_42950808534"
+    report = _fixture(name)["report"]
+    code, payload = run_cli(ROOT, _args(kind="daily6m_sources", report=str(_raw_report(tmp_path, name)),
+                                        history="receipts_ledger"))
+    assert code == 0 and payload["evidence"]["history_provider"] == "daily6m_receipts_session_anchored_v1"
+    history = triage.receipt_history(ROOT, _utc(report["completed_at"]))
+    expected = {_utc(report["completed_at"]).date()} | {_utc(entry["completed_at"]).date() for entry in history}
+    assert payload["n_dates"] == len(expected) >= 2
+    assert triage._n_dates(_utc("2026-11-11T00:00:00Z"), [{"completed_at": "2026-11-09T00:00:00Z"}]) == 2
+    assert triage._n_dates(_utc("2026-11-11T00:00:00Z"), []) == 1
+    # history 인자는 daily6m_sources 에만.
+    code, payload = run_cli(ROOT, _args(kind="v2_refresh", history="receipts_ledger",
+                                        report=str(FIXTURES / "v2_refresh_market_42950811442.json")))
+    assert code == 2
+
+
+def test_research_cli_verb_specific_arguments():
+    """§4.7: --history 는 ingest-triage, --catch-up 은 coherence-monitor, --if-stale 은 v8-live-monitor 전용."""
+    from ai_fc.mts_research import cli as research_cli
+
+    for argv in (["fed-ebp-sidecar", "--history", "receipts_ledger"], ["ingest-triage", "--catch-up"],
+                 ["coherence-monitor", "--if-stale"], ["v8-live-monitor", "--history", "receipts_ledger"]):
+        with pytest.raises(SystemExit) as exc:
+            research_cli.main(argv)
+        assert exc.value.code == 2, argv

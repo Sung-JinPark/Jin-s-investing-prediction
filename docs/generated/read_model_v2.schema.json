@@ -658,6 +658,37 @@
     "event_forecasts": {
       "type": "object"
     },
+    "mts_display_diagnostics": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "contract_id",
+        "status",
+        "display_only",
+        "badges"
+      ],
+      "properties": {
+        "schema_version": {
+          "const": 1
+        },
+        "contract_id": {
+          "const": "mts_display_diagnostics_v1"
+        },
+        "display_only": {
+          "const": true
+        },
+        "numbers_changed": {
+          "const": false
+        },
+        "auto_reforecast": {
+          "const": false
+        },
+        "badges": {
+          "type": "array",
+          "maxItems": 8
+        }
+      }
+    },
     "event_consensus": {
       "type": "object"
     }

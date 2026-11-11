@@ -1,0 +1,433 @@
+name: v15-coherence-shadow
+
+# V15 정합성 섀도(data/contracts/multivariate_timeseries_v15_coherence.yaml) — 라이브 전진 전용.
+# A0~A4: 동결 V8 주간 섀도 행이 생긴 뒤 같은 원점·같은 입력 스냅숏으로 팔마다 1회 계산(matrix) →
+#        수집 잡이 A0 identity(≤1e-12)를 확인하고 해시체인 원장에 append(FAIL 원점도 excluded 로 커밋).
+# A5:    월 03:40Z 에 원점(금)을 다음 XNAS 세션 개장 전에 발행(F04 마감) — 원점 주 달러 as-of 캐리.
+# 해소:  xnas_v1 라벨로 성숙 지평을 채점(append-only). 판정·승격·화면 연결은 여기서 하지 않는다.
+# health: 커밋 뒤 identity 연속 실패(최근 3개 V8 원점)를 검사해 ops 경보 — 행은 이미 커밋돼 있다.
+# track_open false(r3 전) 동안 plan 은 mde_replay·a0_identity 디스패치만 계산을 허용한다.
+# LLM 0 · 시크릿 0 · 참고 의견, 매매 신호 아님.
+
+on:
+  workflow_run:
+    workflows: ["timeseries-v8-shadow"]
+    types: [completed]
+  schedule:
+    - cron: "40 3 * * 1"     # A5 발행 + 해소
+    - cron: "40 6 * * 1"     # A5 재시도(같은 ISO 주 행이 있으면 건너뜀)
+    - cron: "15 14 * * 2-6"  # A0~A4 따라잡기(workflow_run 유실 대비, 창 ≤ 2원점) + 해소
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "auto(최신 V8 원점만) | resolve_only | a5_issue | mde_replay | a0_identity"
+        type: choice
+        options: [auto, resolve_only, a5_issue, mde_replay, a0_identity]
+        default: auto
+
+permissions:
+  contents: write
+
+concurrency:
+  # 계산(최대 ~95분) 중 들어온 트리거는 대기 1건으로 합쳐진다 — 같은 원점을 두 번 계산하지 않는다.
+  group: v15-coherence-shadow
+  cancel-in-progress: false
+
+env:
+  PYTHONUTF8: "1"
+
+jobs:
+  plan:
+    if: ${{ github.event_name != 'workflow_run' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    outputs:
+      track_open: ${{ steps.plan.outputs.track_open }}
+      pending: ${{ steps.plan.outputs.pending }}
+      arms: ${{ steps.plan.outputs.arms }}
+      v8_forecast_id: ${{ steps.plan.outputs.v8_forecast_id }}
+      snapshot_sha: ${{ steps.plan.outputs.snapshot_sha }}
+      a5_due: ${{ steps.plan.outputs.a5_due }}
+      mde_due: ${{ steps.plan.outputs.mde_due }}
+      identity_due: ${{ steps.plan.outputs.identity_due }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install the numerical runtime and the XNAS calendar
+        run: pip install -e ".[pit,timeseries]" "exchange-calendars>=4.6,<5"
+      - id: plan
+        name: Plan pending arms, the V8 input snapshot, A5 issuance, MDE and A0 identity
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          EVENT_SCHEDULE: ${{ github.event.schedule }}
+          RUN_MODE: ${{ inputs.mode || 'auto' }}
+          V8_RUN_HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+        run: >-
+          python -m ai_fc timeseries-v15-plan --event "$EVENT_NAME" --schedule "$EVENT_SCHEDULE"
+          --mode "$RUN_MODE" --v8-run-head-sha "$V8_RUN_HEAD_SHA" --github-output "$GITHUB_OUTPUT"
+
+  forecast:
+    needs: plan
+    if: ${{ needs.plan.outputs.pending == 'true' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
+    strategy:
+      fail-fast: false
+      matrix:
+        arm: ${{ fromJSON(needs.plan.outputs.arms) }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install the numerical runtime and the XNAS calendar
+        run: pip install -e ".[pit,timeseries]" "exchange-calendars>=4.6,<5"
+      - name: Materialize the V8 input snapshot as a read-only data root
+        run: git worktree add --detach "$RUNNER_TEMP/v8snap" "${{ needs.plan.outputs.snapshot_sha }}"
+      - name: Compute one arm at the V8 origin
+        env:
+          V8_RUN_HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+        run: >-
+          python -m ai_fc timeseries-v15-forecast --arm "${{ matrix.arm }}"
+          --v8-forecast-id "${{ needs.plan.outputs.v8_forecast_id }}"
+          --data-root "$RUNNER_TEMP/v8snap"
+          --snapshot-sha "${{ needs.plan.outputs.snapshot_sha }}"
+          --v8-run-head-sha "$V8_RUN_HEAD_SHA"
+          --stage-out "staging/${{ matrix.arm }}.json"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: v15-stage-${{ matrix.arm }}
+          path: staging/${{ matrix.arm }}.json
+          if-no-files-found: error
+          retention-days: 14
+
+  collect:
+    needs: [plan, forecast]
+    if: ${{ always() && needs.plan.outputs.pending == 'true' && (needs.forecast.result == 'success' || needs.forecast.result == 'failure') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install the numerical runtime and the XNAS calendar
+        run: pip install -e ".[pit,timeseries]" "exchange-calendars>=4.6,<5"
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: v15-stage-*
+          path: staging
+          merge-multiple: true
+      - name: Check A0 identity against the V8 row and append arms in order
+        run: >-
+          python -m ai_fc timeseries-v15-collect --staging staging
+          --expected-arms '${{ needs.plan.outputs.arms }}'
+          --v8-forecast-id "${{ needs.plan.outputs.v8_forecast_id }}"
+      - name: Verify chains, kernel hash, rule hash, and fork patch (integrity only)
+        run: python -m ai_fc timeseries-v15-verify
+      - name: Commit only V15 shadow outputs
+        shell: bash
+        run: |
+          python -m ai_fc inventory
+          for path in data/timeseries_v15 docs/generated/inventory.generated.md; do
+            if [ -e "$path" ]; then git add "$path"; fi
+          done
+          unexpected="$(git diff --cached --name-only | grep -Ev '^(data/timeseries_v15/.*|docs/generated/inventory.generated.md)$' || true)"
+          test -z "$unexpected" || { echo "unexpected V15 paths: $unexpected"; exit 1; }
+          if ! git diff --cached --quiet; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git commit -m "data: append V15 coherence shadow rows"
+            git pull --rebase origin main
+            git push
+          fi
+
+  a5-compute:
+    needs: plan
+    if: ${{ needs.plan.outputs.a5_due == 'true' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install the numerical runtime and the XNAS calendar
+        run: pip install -e ".[pit,timeseries]" "exchange-calendars>=4.6,<5"
+      - name: Compute A5 at the last completed session before the next open
+        run: python -m ai_fc timeseries-v15-forecast --arm A5 --issue-now --stage-out staging/A5.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: v15-a5-${{ github.run_id }}
+          path: staging/A5.json
+          if-no-files-found: error
+          retention-days: 14
+
+  a5-commit:
+    # collect 와 같은 run 에서 attempts.jsonl·inventory 끝 append 가 경합하지 않도록 직렬화(리뷰 N3).
+    needs: [plan, a5-compute, collect]
+    if: ${{ always() && needs.a5-compute.result == 'success' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install the numerical runtime and the XNAS calendar
+        run: pip install -e ".[pit,timeseries]" "exchange-calendars>=4.6,<5"
+      - uses: actions/download-artifact@v4
+        with:
+          name: v15-a5-${{ github.run_id }}
+          path: staging
+      - name: Append A5 only before the issuance deadline (F04)
+        run: python -m ai_fc timeseries-v15-collect --staging staging --a5
+      - name: Verify chains, kernel hash, rule hash, and fork patch (integrity only)
+        run: python -m ai_fc timeseries-v15-verify
+      - name: Commit only V15 issuance outputs
+        shell: bash
+        run: |
+          python -m ai_fc inventory
+          for path in data/timeseries_v15 docs/generated/inventory.generated.md; do
+            if [ -e "$path" ]; then git add "$path"; fi
+          done
+          unexpected="$(git diff --cached --name-only | grep -Ev '^(data/timeseries_v15/.*|docs/generated/inventory.generated.md)$' || true)"
+          test -z "$unexpected" || { echo "unexpected V15 paths: $unexpected"; exit 1; }
+          if ! git diff --cached --quiet; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git commit -m "data: issue V15 A5 forecast before the next open"
+            git pull --rebase origin main
+            git push
+          fi
+
+  resolve:
+    needs: [plan, collect, a5-commit]
+    if: ${{ always() && needs.plan.result == 'success' && needs.plan.outputs.track_open == 'true' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install the numerical runtime and the XNAS calendar
+        run: pip install -e ".[pit,timeseries]" "exchange-calendars>=4.6,<5" pytest
+      - name: Resolve matured horizons on the xnas_v1 basis
+        run: python -m ai_fc timeseries-v15-resolve
+      - name: Refresh counts-only status
+        run: python -m ai_fc timeseries-v15-status
+      - name: Verify ledgers and the preregistration (integrity only)
+        run: |
+          python -m ai_fc timeseries-v15-verify
+          cd src && python -m pytest -q tests/test_v15_coherence_contract.py
+      - name: Commit only V15 resolution outputs
+        shell: bash
+        run: |
+          python -m ai_fc inventory
+          for path in data/timeseries_v15 docs/generated/inventory.generated.md; do
+            if [ -e "$path" ]; then git add "$path"; fi
+          done
+          unexpected="$(git diff --cached --name-only | grep -Ev '^(data/timeseries_v15/.*|docs/generated/inventory.generated.md)$' || true)"
+          test -z "$unexpected" || { echo "unexpected V15 paths: $unexpected"; exit 1; }
+          if ! git diff --cached --quiet; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git commit -m "data: resolve V15 coherence shadow horizons"
+            git pull --rebase origin main
+            git push
+          fi
+
+  health:
+    # 커밋이 끝난 main 을 읽어 identity 연속 실패를 경보한다. 쓰기 없음 — 실패해도 행은 이미 커밋돼 있다(리뷰 B3).
+    needs: [plan, collect, a5-commit, resolve]
+    if: ${{ always() && needs.plan.result == 'success' && needs.plan.outputs.track_open == 'true' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 1
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install the numerical runtime and the XNAS calendar
+        run: pip install -e ".[pit,timeseries]" "exchange-calendars>=4.6,<5"
+      - name: Fail the run when the latest three V8 origins all failed A0 identity (unacknowledged)
+        run: python -m ai_fc timeseries-v15-health --fail-on-identity-streak
+
+  mde:
+    needs: plan
+    if: ${{ needs.plan.outputs.mde_due == 'true' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    strategy:
+      fail-fast: false
+      matrix:
+        arm: [A0, A1, A2, A3, A4, A5]
+    steps:
+      # 6팔 모두 디스패치 시점 커밋(github.sha)을 체크아웃하고 실제 HEAD 를 기록한다 — ref: main 이면 디스패치와
+      # 체크아웃 사이 봇 커밋으로 기록 SHA 와 사용 데이터가 갈리고 팔끼리 다른 커밋에서 돌 수 있다(write-once 재현 키).
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+      - name: Refuse a design replay dispatched from a branch other than main
+        run: test "${{ github.ref }}" = "refs/heads/main"
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install the numerical runtime and the XNAS calendar
+        run: pip install -e ".[pit,timeseries]" "exchange-calendars>=4.6,<5"
+      - name: Design-window replay (2007-2014, truncated at 2014-12-31)
+        shell: bash
+        run: >-
+          python -m ai_fc timeseries-v15-mde-replay --arm "${{ matrix.arm }}"
+          --data-snapshot-sha "$(git rev-parse HEAD)" --stage-out "staging/mde_${{ matrix.arm }}.json"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: v15-mde-${{ matrix.arm }}
+          path: staging/mde_${{ matrix.arm }}.json
+          if-no-files-found: error
+          retention-days: 30
+
+  mde-commit:
+    needs: [plan, mde]
+    if: ${{ needs.mde.result == 'success' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install the numerical runtime and the XNAS calendar
+        run: pip install -e ".[pit,timeseries]" "exchange-calendars>=4.6,<5"
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: v15-mde-*
+          path: staging
+          merge-multiple: true
+      - name: Write the write-once MDE preregistration files (all seven or none)
+        run: python -m ai_fc timeseries-v15-mde-summary --staging staging
+      - name: Commit only V15 preregistration outputs
+        shell: bash
+        run: |
+          python -m ai_fc inventory
+          for path in data/timeseries_v15/prereg docs/generated/inventory.generated.md; do
+            if [ -e "$path" ]; then git add "$path"; fi
+          done
+          unexpected="$(git diff --cached --name-only | grep -Ev '^(data/timeseries_v15/prereg/.*|docs/generated/inventory.generated.md)$' || true)"
+          test -z "$unexpected" || { echo "unexpected V15 paths: $unexpected"; exit 1; }
+          if ! git diff --cached --quiet; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git commit -m "data: record V15 design-window MDE replay (prereg, write-once)"
+            git pull --rebase origin main
+            git push
+          fi
+
+  a0-identity:
+    needs: plan
+    if: ${{ needs.plan.outputs.identity_due == 'true' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install the numerical runtime and the XNAS calendar
+        run: pip install -e ".[pit,timeseries]" "exchange-calendars>=4.6,<5"
+      - name: Materialize the V8 input snapshot as a read-only data root
+        run: git worktree add --detach "$RUNNER_TEMP/v8snap" "${{ needs.plan.outputs.snapshot_sha }}"
+      - name: Replay V15 A0 at the latest V8 shadow row and compare (outcome-blind)
+        run: >-
+          python -m ai_fc timeseries-v15-a0-identity
+          --v8-forecast-id "${{ needs.plan.outputs.v8_forecast_id }}"
+          --data-root "$RUNNER_TEMP/v8snap"
+          --snapshot-sha "${{ needs.plan.outputs.snapshot_sha }}"
+          --stage-out staging/a0_identity.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: v15-a0-identity-${{ github.run_id }}
+          path: staging/a0_identity.json
+          if-no-files-found: error
+          retention-days: 30
+
+  a0-identity-commit:
+    # MDE 커밋과 독립(한쪽 실패가 다른 쪽을 막지 않음)이지만 같은 run 의 push 경합을 피하려고 직렬화한다.
+    needs: [plan, a0-identity, mde-commit]
+    if: ${{ always() && needs.a0-identity.result == 'success' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install the numerical runtime and the XNAS calendar
+        run: pip install -e ".[pit,timeseries]" "exchange-calendars>=4.6,<5"
+      - uses: actions/download-artifact@v4
+        with:
+          name: v15-a0-identity-${{ github.run_id }}
+          path: staging
+      - name: Write a new identity attempt file (a<N>, write-once, PASS or FAIL)
+        run: python -m ai_fc timeseries-v15-a0-identity --record staging/a0_identity.json
+      - name: Commit only V15 preregistration outputs
+        shell: bash
+        run: |
+          python -m ai_fc inventory
+          for path in data/timeseries_v15/prereg docs/generated/inventory.generated.md; do
+            if [ -e "$path" ]; then git add "$path"; fi
+          done
+          unexpected="$(git diff --cached --name-only | grep -Ev '^(data/timeseries_v15/prereg/.*|docs/generated/inventory.generated.md)$' || true)"
+          test -z "$unexpected" || { echo "unexpected V15 paths: $unexpected"; exit 1; }
+          if ! git diff --cached --quiet; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git commit -m "data: record a V15 A0 live identity attempt (prereg, write-once)"
+            git pull --rebase origin main
+            git push
+          fi

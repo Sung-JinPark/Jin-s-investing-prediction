@@ -63,6 +63,10 @@ PROBABILITY_SPACE = "research_timeseries_v8_conditional"
 QUANTILE_LEVELS = {"p10": 0.10, "p25": 0.25, "p50": 0.50, "p75": 0.75, "p90": 0.90}
 FILL_SERIES = ("NASDAQCOM", "VIX", "DGS2", "DGS10")
 CARRY_SERIES = "DTWEXBGS"
+CARRY_POLICY_ID = "federal_holiday_neutral_exclusion_v1"
+# 봉인 timeseries_v2/features.py 의 used_market_series(C4 아님)와 같은 집합 — 봉인 모듈 상수를 import 하지
+# 않고 복제한다(테스트가 봉인 소스 AST 리터럴과 동일을 단언).
+V8_USED_MARKET_SERIES = frozenset({"NASDAQCOM", "VIX", "DGS2", "DGS10", "DTWEXB", "DTWEXBGS"})
 FRED_GRAPH_URL = "https://fred.stlouisfed.org/graph/fredgraph.csv?id={series}&cosd={start}"
 TREASURY_XML_URL = (
     "https://home.treasury.gov/resource-center/data-chart-center/interest-rates/pages/xml"
@@ -251,6 +255,13 @@ def _sessions_between(after: str, through: date, *, root: Path) -> list[str]:
     return out
 
 
+def _federal_holiday(day: str) -> bool:
+    """미국 연방휴일인가 — daily6m_sources.treasury_closed_session 과 같은 정의(그 모듈은 import 하지 않고 복제)."""
+    from pandas.tseries.holiday import USFederalHolidayCalendar
+
+    return bool(len(USFederalHolidayCalendar().holidays(start=day, end=day)))
+
+
 def _archive_last(rows: list[Any]) -> dict[str, Any]:
     latest: dict[str, Any] = {}
     for row in rows:
@@ -301,20 +312,40 @@ def collect_inputs(
     ))
     fills.extend(nasdaq_fills(root, pending["NASDAQCOM"], fetcher=fetcher, retrieved_at=retrieved))
     carried: list[dict[str, Any]] = []
+    excluded: list[str] = []
+    retained: list[dict[str, str]] = []
     if CARRY_SERIES in last:
         source_row = last[CARRY_SERIES]
         from .forecast_source_freshness import source_freshness
         if source_freshness(CARRY_SERIES, source_row.observation_time, now)["status"] == "fresh":
-            carried.extend(
-                {
+            # 연방휴일 가드(U2a, carry_policy federal_holiday_neutral_exclusion_v1): 국채(DGS2·DGS10)가
+            # 없는 연방휴일 세션은 봉인 build_core_market_frame 의 dropna 로 어차피 버려진다. 그 세션의
+            # 캐리를 빼도 프레임은 비트 동일이다 — 단 빼도 V8 사용 계열 overlay 행이 남을 때만(data_grades
+            # 동일). 국채가 열린 연방휴일·유일한 overlay 행은 유지한다.
+            treasury_days = {(row.series_id, row.observation_time) for row in archive
+                             if row.series_id in ("DGS2", "DGS10")}
+            treasury_days |= {(row["series_id"], row["observation_time"]) for row in fills
+                              if row["series_id"] in ("DGS2", "DGS10")}
+            candidates: list[tuple[str, bool, bool]] = []
+            for day in _sessions_between(source_row.observation_time, expected, root=root):
+                holiday = _federal_holiday(day)
+                treasury_open = ("DGS2", day) in treasury_days and ("DGS10", day) in treasury_days
+                candidates.append((day, holiday, holiday and not treasury_open))
+            others_remain = (any(not closed for _, _, closed in candidates)
+                             or any(row["series_id"] in V8_USED_MARKET_SERIES for row in fills))
+            for day, holiday, closed in candidates:
+                if holiday:
+                    if closed and others_remain:
+                        excluded.append(day)  # 어차피 dropna 로 빠지는 행 — provenance 에서만 뺀다
+                        continue
+                    retained.append({"day": day, "reason": "sole_overlay_row" if closed else "treasury_open"})
+                carried.append({
                     "series_id": CARRY_SERIES, "observation_time": day,
                     "value": float(source_row.value), "carried_from": source_row.observation_time,
                     "source": "market_archive_as_of", "carried_forward": True,
                     "provisional": False,
-                }
-                for day in _sessions_between(source_row.observation_time, expected, root=root)
-            )
-    return {
+                })
+    out = {
         "expected_session": expected.isoformat(),
         "knowledge_cutoff": cutoff,
         "archive_last": {series: row.observation_time for series, row in sorted(last.items())},
@@ -322,6 +353,28 @@ def collect_inputs(
         "carried": carried,
         "failures": failures,
     }
+    if excluded or retained:
+        out["carry_policy"] = {"policy": CARRY_POLICY_ID, "excluded": excluded, "retained": retained}
+    return out
+
+
+def _assert_carry_exclusion_neutral(root: Path, inputs: dict[str, Any]) -> None:
+    """조립 뒤 중립성 단언 — 제외일에 DGS2·DGS10 이 둘 다 생겼으면 fail-closed.
+
+    collect_inputs(컷오프 now)와 봉인 _sealed_bundle(벽시계 컷오프) 사이에 국채가 그 날을 확정하면
+    제외는 더 이상 출력 중립이 아니다. 다음 실행의 가드가 그 날을 retained 로 돌린다.
+    """
+    excluded = set((inputs.get("carry_policy") or {}).get("excluded") or ())
+    if not excluded:
+        return
+    from .timeseries_v2.market_archive import read_market_observations
+
+    present: dict[str, set[str]] = {}
+    for row in read_market_observations(root):
+        if row.series_id in ("DGS2", "DGS10") and row.observation_time in excluded:
+            present.setdefault(row.observation_time, set()).add(row.series_id)
+    if any(series == {"DGS2", "DGS10"} for series in present.values()):
+        raise TimeSeriesV8DailyError("federal-holiday carry exclusion is no longer output-neutral")
 
 
 def _overlay_rows(inputs: dict[str, Any]) -> list[Any]:
@@ -529,6 +582,7 @@ def daily_forecast_timeseries_v8(
                             quote_fetcher=quote_fetcher)
     with market_overlay(_overlay_rows(inputs)):
         bundle = _sealed_bundle(root, contract)
+    _assert_carry_exclusion_neutral(root, inputs)
     origin = bundle.dates[-1]
     anchor = _anchor_level(root, origin, inputs)
     model_input_sha256 = model_input_fingerprint(bundle, anchor)
@@ -599,6 +653,9 @@ def daily_forecast_timeseries_v8(
         "matured_origins_at_emit": len({row.date for row in scores}),
         "probability_unit": "fraction",
     }
+    if inputs.get("carry_policy"):
+        # provenance 공시만 — input_state_hash 정의는 그대로다(휴일 없는 창의 해시·verify 호환 유지).
+        payload["carry_policy"] = inputs["carry_policy"]
     row = _chain_append(root, DAILY_LEDGER_RELATIVE, payload, key="display_id")
     return {**summary, "display_id": row["display_id"], "supersedes": row["supersedes"],
             "appended": True}
