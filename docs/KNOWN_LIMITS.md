@@ -300,6 +300,17 @@ provisional_fills.DTWEXBGS`, 채점 제외). **남는 한계(유효)**: 원인 �
 67. **[신설 2026-11-11 — V15-VOL 의 V14 사전 관측]** V15-VOL 의 cond 기준선·R3 는 V14 조건부 기저율과 같은 조건(VIX_t<20 / RV21_t≤θ)·
     같은 설계창을 쓴다. V15 가 매일 기록·채점하는 이 양은 V14 라이브 전진(V14-D10 미정)의 사전 관측이다 — V14-D10 결정 시 승계 공시 필수.
     vix25_h5 calm 추정치는 사건 11개(V14 가 설계창 검정 불가로 판정한 셀)로 얇다.
+71. **[신설 2026-11-11 — U2b, market 분류가 v2-refresh 밖]** market.failures 분류는 v2-refresh run 밖의 비라이터 `mts-ingest-triage` 에서 돈다.
+    상류 run 이 market 보고를 보존하기 전에 실패하면 분류는 생략되고(notice) 상류 실패만 경보다. 보고 artifact 보존은 14일 — 그 뒤
+    `workflow_dispatch run_id` 수동 재분류는 불가하다. PR run 은 분류하지 않으므로 머지 전 main run 으로는 배선을 확인할 수 없다(머지 뒤 첫 main
+    v2-refresh 완료가 부르는 run 의 로그가 첫 확인). artifact API·다운로드 장애도 같은 ops 이슈로 올라간다(주석 문구로 구분). 분류는 상류 SHA 가 아니라
+    그 시점 main 을 체크아웃해 영수증을 재생한다 — 판정은 retrieved_at 컷오프로 PIT 이지만, 상류 checkpoint 푸시가 실패해 영수증이 main 에 없으면
+    FED_EBP 서명 조건(이 실행의 영수증)이 깨져 unexpected 로 올라간다(의도한 엄격 방향). ALFRED(timeseries-refresh) 단계 실패 분류는 배선하지 않았다.
+    상류 결론이 failure 가 아닌데(timed_out·startup_failure·action_required) 보고가 없으면 분류 run 이 error 로 실패한다 — ops-failure-alert 는
+    conclusion == failure 만 감시하므로 상류 timed_out 을 대신 알리는 의도한 중복이다. v2-refresh 안의 market 보고 업로드는 checkpoint 앞에 `if` 없이
+    놓여(뒤 단계 실패에도 보고 보존) artifact 서비스 장애 하루는 checkpoint·모델 커밋을 건너뛰고 success 전용 하류 리스너도 그날 쉰다(맨 끝 always()
+    관문 업로드 실패도 커밋 뒤 결론을 적색으로 만든다). 2026-12-05 부터 첫 토요일 run 이 success 로 끝나 그날도 하류 리스너가 발화한다.
+    `gh api --jq` 의 expired artifact 필터는 테스트 스텁이 우회한다 [미검증 — 머지 뒤 첫 main run 로그로 확인].
 72. **[신설 2026-11-12 — daily6m v2 계약 r3 허용오차 쌍]** 1차 표본은 비트 동일(`identical_inputs`)에 더해 **허용오차 동일 입력**(`tolerance_equivalent`: inputs_differ(path_hash) 중 v1 code·런타임·
     block/λ·투영 외생값 같음, 계수·로그 band·scaler 최대 절대차 ≤ 1e-12, 적합 구조·앵커·요인 내용·세션별 관측 선택 같음, 재구성 v1 격자 저장)을 받는다. 이 run 의 v1 격자는 **v2 가 재구성한 것**이라
     v1 실제 경로와 ulp 수준(≤1e-12, 저장 반올림 5e-11 이하)만큼 다를 수 있다. 판정 가족·Holm·n 은 그대로다. 결과 전 개정이다(쌍 해소 0·판정 0, 2026-11-11T17:09Z origin/main 1e198f9b · 재확인 18:06Z 95875863) — 기존 run 분류는 하나도 바뀌지 않는다. 규칙 코드(pairing.py)는 게이트 해시에 묶여 편집하면 새 계약이 필요하다.

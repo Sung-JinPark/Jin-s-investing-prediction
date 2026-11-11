@@ -1,7 +1,8 @@
 """수집 신호 분류기 ``ingest_triage`` (P7, D12·D13·D14 분류 측면).
 
 배선(U2a, 2026-11-11): ``daily6m-sources-refresh`` 의 두 분류 단계가 관문 ``triage_gate`` 로
-이 분류기를 부른다(``WIRED_KINDS``). v2-refresh 배선은 U2b(별도 PR)다. 운영 분류 임계는 해시로
+이 분류기를 부른다(``WIRED_KINDS``). U2b: ``timeseries-v2-refresh`` 가 verify·monitor 를 관문으로 감싸고, market
+보고는 artifact 로 보존해 비라이터 ``mts-ingest-triage`` 가 run 밖에서 분류한다. 운영 분류 임계는 해시로
 고정한 정책 파일 ``data/mts_research/contracts/ingest_triage_policy_v1.json`` 에서만 읽는다
 (``registration_kind: post_hoc_operational`` — 예측·채점·게이트와 무관).
 
@@ -62,8 +63,9 @@ ANNOTATION_LEVEL = {
     "intraday_pending": "notice", "transport_pending": "warning", "known_stall": "warning",
     "escalate": "error", "fail": "error", "unexpected": "error",
 }
-# 워크플로가 실제로 이 분류기를 부르는 kind. U2a 는 daily6m_sources 만 배선한다(v2_* 는 U2b).
-WIRED_KINDS = frozenset({"daily6m_sources"})
+# 워크플로가 실제로 이 분류기를 부르는 kind. U2a: daily6m_sources(daily6m-sources-refresh).
+# U2b: v2_verify·v2_monitor(timeseries-v2-refresh 관문), v2_refresh(비라이터 mts-ingest-triage — run 밖 분류).
+WIRED_KINDS = frozenset({"daily6m_sources", "v2_refresh", "v2_verify", "v2_monitor"})
 
 # --- 운영 정책 (해시 고정) ----------------------------------------------------------
 POLICY_RELATIVE = Path("data/mts_research/contracts/ingest_triage_policy_v1.json")
