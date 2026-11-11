@@ -1,0 +1,85 @@
+name: daily6m-v2-shadow
+
+# daily6m v2 섀도(U4): v1 발행·해소가 main 에 커밋된 뒤 같은 원점의 v2 세 팔을 발행하고,
+# v1 해소 행을 재사용해 쌍대 채점한다. 사이트 배포 없음(v2 비공개). v1 파일은 읽기만.
+# v1 은 매시 37분 재시도가 있어 workflow_run 이 자주 온다 — stdlib 사전 검사로 즉시 끝낸다.
+# 주 경로(timeseries-v2-refresh → timeseries-daily6m → 이 워크플로)는 workflow_run 3단이라 이 run 의 완료는
+# verify·ops-failure-alert 를 띄우지 못한다(GitHub 연쇄 3단 제한). 3시간 예약 run(1단)이 같은 할 일을 다시 잡아
+# 결정론 실패를 경보로 드러낸다. 예약은 월요일을 포함한다(금요일 원점의 쌍 창은 월요일 마감까지).
+on:
+  workflow_dispatch:
+  workflow_run:
+    workflows: ["timeseries-daily6m"]
+    types: [completed]
+  schedule:
+    - cron: "52 */3 * * *"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: ${{ github.event_name == 'workflow_run' && (github.event.workflow_run.conclusion != 'success' || github.event.workflow_run.head_branch != 'main') && format('daily6m-v2-skipped-{0}', github.run_id) || 'investing-data-writer-daily6m-v2' }}
+  cancel-in-progress: false
+
+jobs:
+  shadow:
+    if: ${{ github.event_name != 'workflow_run' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      PYTHONUTF8: "1"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Decide whether a paired forecast or new paired outcomes exist (stdlib only)
+        id: pending
+        run: python tools/check_daily6m_v2_pending.py --report .tmp/daily6m-v2-pending.json --github-output "$GITHUB_OUTPUT"
+      - name: Use the already declared numerical dependencies
+        if: ${{ steps.pending.outputs.work == 'true' }}
+        run: pip install -e ".[pit,timeseries]" "exchange-calendars>=4.6,<5" pytest
+      - name: Issue the paired v2 shadow for the latest v1 origin
+        if: ${{ steps.pending.outputs.forecast == 'true' }}
+        run: python -m ai_fc daily6m-v2-forecast
+      - name: Score paired outcomes from the v1 resolution ledger
+        if: ${{ steps.pending.outputs.work == 'true' }}
+        run: python -m ai_fc daily6m-v2-resolve
+      - name: Rebuild the derived shadow scorecard and append first-threshold verdict receipts
+        if: ${{ steps.pending.outputs.work == 'true' }}
+        run: python -m ai_fc daily6m-v2-scorecard
+      - name: Verify the v2 chain, v1 byte identity and targeted contracts
+        if: ${{ steps.pending.outputs.work == 'true' }}
+        run: |
+          python -m ai_fc daily6m-v2-verify
+          pytest src/tests/test_daily6m_v2_kernel.py src/tests/test_daily6m_v2_pipeline.py src/tests/test_daily6m_v2_scorecard.py src/tests/test_daily6m_v2_contract_wiring.py -q
+      - name: Commit only the v2 shadow store
+        if: ${{ steps.pending.outputs.work == 'true' }}
+        id: commit
+        shell: bash
+        run: python tools/publish_daily6m_v2_shadow.py --report .tmp/daily6m-v2-publication.json --github-output "$GITHUB_OUTPUT"
+      - name: Preserve pending and publication reports
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: daily6m-v2-reports-${{ github.run_id }}
+          path: |
+            .tmp/daily6m-v2-pending.json
+            .tmp/daily6m-v2-publication.json
+            .tmp/attempt-*/pending.json
+          include-hidden-files: true
+          if-no-files-found: ignore
+      - name: Preserve full simulated v2 paths
+        if: ${{ always() && steps.pending.outputs.forecast == 'true' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: daily6m-v2-paths-${{ github.run_id }}
+          path: |
+            outputs/timeseries_daily6m_v2/paths/
+            ${{ runner.temp }}/daily6m-v2-publish-*/outputs/timeseries_daily6m_v2/paths/
+          include-hidden-files: true
+          if-no-files-found: ignore
