@@ -1,5 +1,8 @@
 version: 1
 calendar_contract: data/contracts/nyse_holidays.yaml
+# settle_hours: 마감(16:15 ET) 다음 날 아침에 쓰는 trading_daily 원장은 그 시간 안에는 새 세션을 요구하지 않는다.
+# 18 = 정상 기록 지연 최대 14.8시간(2026-09-30~11-06 git 실측) + 서머타임 1시간 + 여유. 그보다 늦은 기록은 실제 실패였다(예: 11-02 → 25.3시간).
+# 상한 24 — 한 세션을 통째로 놓친 라이터는 다음 날 그대로 stalled 다.
 ledgers:
   - id: forecast_records
     path: forecasts/**/*.md
@@ -73,12 +76,14 @@ ledgers:
     path: data/cross_asset/archive/*.json
     kind: archive_dir
     cadence: trading_daily
+    settle_hours: 18
     criticality: high
     schema_ref: cross_asset_archive
   - id: cross_asset_latest
     path: data/cross_asset/cross_asset_latest.json
     kind: singleton
     cadence: trading_daily
+    settle_hours: 18
     criticality: high
     schema_ref: cross_asset_latest
   - id: cross_asset_path_tracking
@@ -120,6 +125,7 @@ ledgers:
     path: data/cross_asset/path_tracking_v2.csv
     kind: append_csv
     cadence: trading_daily
+    settle_hours: 18
     criticality: high
     schema_ref: csv
     timestamp_field: asof
@@ -193,12 +199,14 @@ ledgers:
     path: data/source_monitoring/defillama_stablecoins/*.json
     kind: archive_dir
     cadence: trading_daily
+    settle_hours: 18
     criticality: low
     schema_ref: json_object
   - id: source_monitoring_status
     path: data/source_monitoring/defillama_stablecoins_status.json
     kind: mutable_snapshot
     cadence: trading_daily
+    settle_hours: 18
     criticality: low
     schema_ref: json_object
   - id: ipo_reference_batch_receipts
@@ -269,6 +277,7 @@ ledgers:
     path: data/timeseries/ledgers/forecasts.jsonl
     kind: jsonl
     cadence: trading_daily
+    settle_hours: 18
     criticality: high
     schema_ref: jsonl
     timestamp_field: as_of
@@ -409,6 +418,7 @@ ledgers:
     path: data/timeseries_v13/ledgers/vol_live.jsonl
     kind: jsonl
     cadence: trading_daily
+    settle_hours: 18
     criticality: high
     schema_ref: jsonl
     allow_empty_accumulating: true
@@ -477,6 +487,7 @@ ledgers:
     path: data/timeseries_v13/ledgers/vol_live_resolutions.jsonl
     kind: jsonl
     cadence: trading_daily
+    settle_hours: 18
     criticality: high
     schema_ref: jsonl
     allow_empty_accumulating: true

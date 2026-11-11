@@ -454,12 +454,21 @@ function closeQuickPeek(){
   if(peekAnchor?.getAttribute('aria-describedby')==='quick-peek')peekAnchor.removeAttribute('aria-describedby');
   peekAnchor=null;quickPeek.hidden=true;quickPeek.setAttribute('aria-hidden','true');
 }
+const FRESHNESS_LABELS=Object.freeze({CURRENT:'최신 자료',AGING:'갱신 확인 필요',STALE:'오래된 자료'});
 const DRIVER_LABELS=Object.freeze({
   'ai-capex-cycle':'AI 투자 사이클',
   'memory-cycle':'메모리 업황',
   'vol-regime':'변동성 국면',
   'fed-path':'연준 정책 경로',
-  'midterm-2026':'2026 중간선거'
+  'midterm-2026':'2026 중간선거',
+  'ai-financing':'AI 자금 조달',
+  'ai-software-monetization':'AI 소프트웨어 수익화',
+  'inflation-path':'물가 경로',
+  'labor-market':'고용 시장',
+  'credit-cycle':'신용 사이클',
+  'ipo-window':'상장 여건',
+  'boj-normalization':'일본은행 정책',
+  'ecb-normalization':'유럽중앙은행 정책'
 });
 const DOMAIN_LABELS=Object.freeze({
   'market-regime':'시장 국면',
@@ -523,7 +532,7 @@ function scenarioDeltaBody(base,current){
   const anchor=current.anchor-base.anchor,anchorPct=base.anchor?anchor/base.anchor*100:null;
   const median=(current.bands?.eoy_median??0)-(base.bands?.eoy_median??0);
   const s1=current.paths.S1.prob-base.paths.S1.prob,s3=current.paths.S3.prob-base.paths.S3.prob;
-  return `<div class="scenario-change-copy"><span>WHAT CHANGED · ${esc(base.asof)} → ${esc(current.asof)}</span><h2>${esc(scenarioDeltaNarrative(base,current))}</h2><p>저장된 시나리오 수치의 차이만 요약하며 뉴스나 이벤트를 원인으로 추론하지 않습니다.</p></div>
+  return `<div class="scenario-change-copy"><span>달라진 점 · ${esc(base.asof)} → ${esc(current.asof)}</span><h2>${esc(scenarioDeltaNarrative(base,current))}</h2><p>저장된 시나리오 수치의 차이만 요약하며 뉴스나 이벤트를 원인으로 추론하지 않습니다.</p></div>
     <div class="scenario-change-metrics">
       <div><span>NASDAQ 앵커</span><strong class="${anchor>=0?'up':'down'}">${signedDelta(anchor,0)}</strong><small>${signedDelta(anchorPct,1,'%')}</small></div>
       <div><span>연말 중앙값</span><strong class="${median>=0?'up':'down'}">${signedDelta(median,0)}</strong><small>${num(current.bands?.eoy_median)}</small></div>
@@ -556,7 +565,7 @@ function toggleQuestionPin(qid){
   UI_STATE.pins=on?UI_STATE.pins.filter(x=>x.hash!==hash):[d,...UI_STATE.pins.filter(x=>x.hash!==hash&&descriptorExists(x))].slice(0,8);
   saveUIState();syncQuestionActions();renderCompareTray();
   const old=document.getElementById('my-radar');if(old)old.replaceWith(myRadarPanel());
-  showToast(on?'개인 레이더에서 제거했습니다.':'개인 레이더에 추가했습니다.');
+  showToast(on?'관심 질문에서 제거했습니다.':'관심 질문에 추가했습니다.');
   if(!commandLayer.hidden)renderCommandResults(commandInput.value);
 }
 function myRadarQuestions(){
@@ -564,7 +573,7 @@ function myRadarQuestions(){
 }
 function myRadarPanel(){
   const qs=myRadarQuestions();
-  return el(`<section class="my-radar" id="my-radar" aria-labelledby="my-radar-title"><div class="panel-head"><div><h2 id="my-radar-title">MY RADAR</h2><p>이 기기에 고정한 질문을 빠르게 다시 봅니다.</p></div><a class="text-button" href="#records">질문 찾기</a></div>
+  return el(`<section class="my-radar" id="my-radar" aria-labelledby="my-radar-title"><div class="panel-head"><div><h2 id="my-radar-title">관심 질문</h2><p>이 기기에 고정한 질문을 빠르게 다시 봅니다.</p></div><a class="text-button" href="#records">질문 찾기</a></div>
     ${qs.length?`<div class="radar-pins">${qs.slice(0,6).map(q=>`<button type="button" class="radar-pin" data-open-q="${esc(q.id)}"><span>${p1(q.latest_prob)} · ${esc(humanDomain(q.domain))}</span><b>${esc(q.title)}</b><small>${q.deadline?esc(q.deadline):'수시 판정'} · ${roundLabel(q.n_rounds)}</small></button>`).join('')}</div>`:
     '<div class="radar-empty">예측 상세 또는 목록의 ☆ 버튼으로 질문을 고정하면 여기에 표시됩니다.</div>'}</section>`);
 }
@@ -586,7 +595,7 @@ function selectDecisionItems({since=VISIT_SEEN_AT,includePinned=true,dueWithinDa
     if(newSince){reasons.push(delta===0?'새 회차 · 확률 재확인':'새 예측 회차');signals.push('new');}
     if(delta!=null&&Math.abs(delta)>=minAbsoluteDelta){reasons.push(`직전 대비 ${delta>0?'+':''}${delta}%p`);signals.push('changed');}
     if(q.status==='active'&&days!=null&&days>=0&&days<=dueWithinDays){reasons.push(days===0?'오늘 판정':`D-${days} 판정 임박`);signals.push('due');}
-    if(includePinned&&pinned){reasons.push('MY RADAR');signals.push('pinned');}
+    if(includePinned&&pinned){reasons.push('관심 질문');signals.push('pinned');}
     const score=(newSince?220:0)+(days!=null&&days>=0&&days<=dueWithinDays?140-days:0)+(delta==null?0:Math.abs(delta)*4)+(pinned?28:0);
     return {q,reasons:[...new Set(reasons)],signals:[...new Set(signals)],score,delta,days,newSince};
   }).filter(x=>x.reasons.length).sort((a,b)=>b.score-a.score||String(a.q.deadline||'').localeCompare(String(b.q.deadline||''))).slice(0,limit);
@@ -598,7 +607,7 @@ function reviewQueueData(){
 function reviewQueuePanel(){
   const items=reviewQueueData();
   return `<section class="utility-section"><div class="review-queue" role="region" aria-labelledby="review-queue-title">
-    <div class="review-queue-head"><div><span>DECISION SUPPORT</span><h3 id="review-queue-title">REVIEW QUEUE</h3><small>변화 · 판정 임박 · MY RADAR만 모았습니다.</small></div><b>${items.length}</b></div>
+    <div class="review-queue-head"><div><span>확인할 질문</span><h3 id="review-queue-title">검토할 질문</h3><small>변화 · 판정 임박 · 관심 질문</small></div><b>${items.length}</b></div>
     ${items.length?`<div class="review-items">${items.map(({q,reasons})=>`<div class="review-item">
       <button type="button" class="review-open" data-open-q="${esc(q.id)}"><span>${esc(q.title)}<small>${esc(reasons.join(' · '))}</small></span><strong class="${hasNumeric(q.latest_prob)?'':'pending-value'}">${p1(q.latest_prob)}</strong></button>
       <button type="button" class="review-dismiss" data-review-dismiss="${esc(q.id)}" aria-label="${esc(q.title)} 이번 세션에서 숨기기">×</button>
@@ -685,7 +694,7 @@ function deadlineWindow(q){
 }
 function quickPeekCopy(anchor,q){
   const delta=latestDelta(q.id),prob=quickPeekProbability(q.latest_prob),deadline=deadlineWindow(q);
-  const context=anchor.classList.contains('forecast-card')?'WHY IT MATTERS':anchor.closest('.deadline-list')?'DECISION WINDOW':'FORECAST CONTEXT';
+  const context=anchor.classList.contains('forecast-card')?'살펴볼 이유':anchor.closest('.deadline-list')?'판정 일정':'예측 맥락';
   const drivers=(q.drivers||[]).slice(0,2).map(x=>DRIVER_LABELS[x]||String(x).replaceAll('-',' '));
   return {
     context,prob,deadline,drivers,
@@ -701,10 +710,10 @@ function showQuickPeek(anchor){
   quickPeek.innerHTML=`<div class="peek-top"><span>${esc(view.meta)}</span><b>${esc(view.context)}</b></div>
     <div class="peek-summary"><span>한 줄 해석 · ${esc(view.prob.band)}</span><strong>${esc(view.prob.copy)}</strong><p>${esc(view.trend)}</p></div>
     <div class="peek-glance">
-      <div><span>판정 시계</span><strong>${esc(view.deadline.short)}</strong></div>
+      <div><span>판정 일정</span><strong>${esc(view.deadline.short)}</strong></div>
       <div><span>다음 확인</span><strong>${esc(view.deadline.next)}</strong></div>
     </div>
-    ${view.drivers.length?`<div class="peek-drivers"><span class="peek-driver-label">관찰 변수</span><div class="peek-driver-list">${view.drivers.map(x=>`<span>${esc(x)}</span>`).join('')}</div></div>`:''}`;
+    ${view.drivers.length?`<div class="peek-drivers"><span class="peek-driver-label">요인</span><div class="peek-driver-list">${view.drivers.map(x=>`<span>${esc(x)}</span>`).join('')}</div></div>`:''}`;
   peekAnchor=anchor;anchor.setAttribute('aria-describedby','quick-peek');quickPeek.hidden=false;quickPeek.setAttribute('aria-hidden','false');
   requestAnimationFrame(()=>{const r=anchor.getBoundingClientRect(),w=quickPeek.offsetWidth,h=quickPeek.offsetHeight;
     let left=r.right+14,top=r.top+(r.height-h)/2;if(left+w>window.innerWidth-14)left=r.left-w-14;
@@ -732,16 +741,16 @@ function briefingScenes(){
   const next=upcoming(1)[0]||featured,d=featured?latestDelta(featured.id):null;
   const featuredReady=hasNumeric(featured?.latest_prob),nextReady=hasNumeric(next?.latest_prob);
   return [
-    {eyebrow:'01 · MARKET STANCE',lead:thesis.lead,accent:thesis.accent,metric:vintage.status==='stale'?'STALE':upProb,unit:vintage.status==='stale'?'':'%',pending:vintage.status==='stale',description:vintage.status==='stale'?`보관된 ${vintage.asof} 경로는 시장 맵에서 확인할 수 있지만 현재 판단에는 사용하지 않습니다.`:`상승 경로 ${upProb}%와 조정·횡보 ${rangeProb}%를 분리해 읽습니다. 두 체계는 질문별 확률과 합산하지 않습니다.`,visual:vintage.status==='stale'?0:upProb},
-    {eyebrow:'02 · FEATURED FORECAST',lead:'대표 예측의 현재 확률',accent:featured?.title||'진행 중인 질문',metric:featuredReady?featured.latest_prob:'산출 전',unit:featuredReady?'%':'',pending:!featuredReady,description:featuredReady?`${roundLabel(featured.n_rounds)} · ${d==null?'첫 예측':`직전 회차 대비 ${d>=0?'+':''}${d}%p`} · ${featured.domain}`:'아직 등록된 예측 회차가 없습니다.',visual:featuredReady?featured.latest_prob:0,qid:featured?.id},
-    {eyebrow:'03 · NEXT DECISION',lead:'다음 판정일을 먼저 확인하세요.',accent:next?.deadline||'예정된 판정 없음',metric:nextReady?next.latest_prob:'산출 전',unit:nextReady?'%':'',pending:!nextReady,description:next?`${next.title}${nextReady?'':' · 아직 등록된 예측 회차 없음'}`:'현재 등록된 판정 일정이 없습니다.',visual:nextReady?next.latest_prob:0,qid:next?.id}
+    {eyebrow:'01 · 시장 판단',lead:thesis.lead,accent:thesis.accent,metric:vintage.status==='stale'?'과거 자료':upProb,unit:vintage.status==='stale'?'':'%',pending:vintage.status==='stale',description:vintage.status==='stale'?`보관된 ${vintage.asof} 경로는 시장 맵에서 확인할 수 있지만 현재 판단에는 사용하지 않습니다.`:`상승 경로 ${upProb}%와 조정·횡보 ${rangeProb}%를 분리해 읽습니다. 두 체계는 질문별 확률과 합산하지 않습니다.`,visual:vintage.status==='stale'?0:upProb},
+    {eyebrow:'02 · 대표 예측',lead:'대표 예측의 현재 확률',accent:featured?.title||'진행 중인 질문',metric:featuredReady?featured.latest_prob:'산출 전',unit:featuredReady?'%':'',pending:!featuredReady,description:featuredReady?`${roundLabel(featured.n_rounds)} · ${d==null?'첫 예측':`직전 회차 대비 ${d>=0?'+':''}${d}%p`} · ${humanDomain(featured.domain)}`:'아직 등록된 예측 회차가 없습니다.',visual:featuredReady?featured.latest_prob:0,qid:featured?.id},
+    {eyebrow:'03 · 다음 판정',lead:'다음 판정일을 먼저 확인하세요.',accent:next?.deadline||'예정된 판정 없음',metric:nextReady?next.latest_prob:'산출 전',unit:nextReady?'%':'',pending:!nextReady,description:next?`${next.title}${nextReady?'':' · 아직 등록된 예측 회차 없음'}`:'현재 등록된 판정 일정이 없습니다.',visual:nextReady?next.latest_prob:0,qid:next?.id}
   ];
 }
 function renderBriefingStep(){
   const scenes=briefingScenes(),scene=scenes[briefingIndex],total=scenes.length;
   briefingStepLabel.textContent=String(briefingIndex+1).padStart(2,'0')+' / '+String(total).padStart(2,'0');
   [...briefingProgress.children].forEach((x,i)=>{x.classList.toggle('is-complete',i<briefingIndex);x.classList.toggle('is-active',i===briefingIndex);});
-  briefingPrev.disabled=briefingIndex===0;briefingNext.textContent=briefingIndex===total-1?'DONE':'NEXT →';
+  briefingPrev.disabled=briefingIndex===0;briefingNext.textContent=briefingIndex===total-1?'마침':'다음 →';
   briefingContent.innerHTML=`<div class="briefing-scene"><div class="briefing-copy">
     <p class="eyebrow">${esc(scene.eyebrow)}</p><h2>${esc(scene.lead)}<em>${esc(scene.accent)}</em></h2>
     <p>${esc(scene.description)}</p>${scene.qid?`<button type="button" class="briefing-detail" data-brief-q="${esc(scene.qid)}">예측 상세 열기 ↗</button>`:''}
@@ -894,7 +903,7 @@ function freshnessInfo(){
 function updateFreshnessBadges(){
   const f=freshnessInfo();
   document.querySelectorAll('.rail-status,.drawer-meta').forEach(x=>{x.classList.remove('status-current','status-aging','status-stale');x.classList.add(f.cls);});
-  document.querySelectorAll('.freshness-label').forEach(x=>x.textContent=f.label);
+  document.querySelectorAll('.freshness-label').forEach(x=>x.textContent=FRESHNESS_LABELS[f.label]||f.label);
 }
 function renderUtilityPanel(){
   const f=freshnessInfo(),questions=DATA?.questions||[],history=DATA?.forecast_history||{};
@@ -903,7 +912,7 @@ function renderUtilityPanel(){
   const rounds=Object.values(history).reduce((n,x)=>n+(Array.isArray(x)?x.length:0),0);
   const generated=formatKstTimestamp(DATA?.meta?.generated),note=currentNote(),pinnedQs=myRadarQuestions();
   utilityContent.innerHTML=`${reviewQueuePanel()}<section class="utility-section"><div class="utility-label"><b>데이터 상태</b><small>이 사이트가 언제 데이터로 만들어졌는지</small></div>
-    <div class="freshness-card ${f.cls}"><div><b>${f.label}</b><small>자기완결 스냅샷</small></div><strong>${esc(generated)}</strong></div>
+    <div class="freshness-card ${f.cls}"><div><b>${FRESHNESS_LABELS[f.label]||f.label}</b><small>자기완결 스냅샷</small></div><strong>${esc(generated)}</strong></div>
     <div class="utility-stats"><div><span>질문</span><strong>${questions.length}</strong></div><div><span>진행 중</span><strong>${active}</strong></div><div><span>판정 완료</span><strong>${resolved}</strong></div><div><span>폐기</span><strong>${voided}</strong></div><div><span>기록된 예측 회차</span><strong>${rounds}</strong></div></div></section>
     <section class="utility-section"><div class="utility-label"><b>보기 방식</b><small>글자 간격과 화면 움직임을 취향대로</small></div><div class="segmented-control">
       <button type="button" data-util="density" data-value="comfortable" class="${UI_STATE.density==='comfortable'?'active':''}">여유 있게<small>Comfortable</small></button>
@@ -1103,13 +1112,18 @@ function renderCommandResults(query=''){
   const needle=query.trim().toLowerCase();
   const catalog=commandCatalog();
   let items;
-  if(needle)items=catalog.filter(x=>x.title.toLowerCase().includes(needle)||(x.hint||'').toLowerCase().includes(needle)||(x.search||'').includes(needle)).slice(0,12);
+  if(needle){
+    /* 같은 화면을 가리키는 고정 항목과 질문 항목을 한 번만 보인다 */
+    const seen=new Set();
+    items=catalog.filter(x=>x.title.toLowerCase().includes(needle)||(x.hint||'').toLowerCase().includes(needle)||(x.search||'').includes(needle))
+      .filter(x=>{const key=x.hash||x.id;if(seen.has(key))return false;seen.add(key);return true;}).slice(0,12);
+  }
   else{
     /* 빈 상태는 '어디로 갈까'가 먼저다: 화면 → 고정 → 최근 → 작업 → 예측 질문 */
     const order=['화면','고정','최근','작업','예측 질문'],limits={화면:5,고정:4,최근:4,작업:6,'예측 질문':3};
     items=order.flatMap(group=>catalog.filter(x=>x.group===group).slice(0,limits[group]));
   }
-  if(!items.length){activeCommandItems=[];commandResults.innerHTML='<div class="command-empty">일치하는 화면이나 예측 질문이 없습니다.<small>화면 이름(오늘·통계·기록…), 기능(공유·메모…), 질문 키워드로 검색해 보세요.</small></div>';return;}
+  if(!items.length){activeCommandItems=[];commandResults.innerHTML='<div class="command-empty" role="status">검색 결과가 없습니다.</div>';return;}
   activeCommandItems=items;
   const emptyState=!needle;
   let html='',group='',screenTiles=[];
@@ -1143,17 +1157,20 @@ function bindCommandTriggers(){
 }
 bindCommandTriggers();
 commandScrim.addEventListener('click',()=>setCommand(false));
+document.getElementById('command-close')?.addEventListener('click',()=>setCommand(false));
 commandInput.addEventListener('input',e=>renderCommandResults(e.target.value));
 commandResults.addEventListener('click',e=>{const b=e.target.closest('button[data-command-index]');if(!b)return;const item=activeCommandItems[Number(b.dataset.commandIndex)];if(!item)return;
   setCommand(false,false);if(item.run)item.run();else if(item.hash)location.hash=item.hash;
 });
 document.addEventListener('keydown',e=>{
+  /* 한글 조합 중 Enter 는 글자 확정이다 — 결과 선택으로 읽지 않는다 */
+  if(e.isComposing)return;
   const target=e.target,editing=target?.matches?.('input,select,textarea,[contenteditable="true"]');
   if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==='k'){e.preventDefault();setCommand(commandLayer.hidden);return;}
   if(e.key==='/'&&!editing&&commandLayer.hidden){e.preventDefault();setCommand(true);return;}
   if(e.key==='Escape'&&!commandLayer.hidden){e.preventDefault();setCommand(false);return;}
   if(e.key==='Tab'&&!commandLayer.hidden){trapFocus(e,commandLayer.querySelector('.command-palette'));return;}
-  if(!commandLayer.hidden&&e.key==='Enter'){const active=commandResults.querySelector('.command-result.is-active')||commandResults.querySelector('.command-result');if(active){e.preventDefault();active.click();}return;}
+  if(!commandLayer.hidden&&e.key==='Enter'&&(target===commandInput||target?.closest?.('.command-result'))){const active=target?.closest?.('.command-result')||commandResults.querySelector('.command-result.is-active')||commandResults.querySelector('.command-result');if(active){e.preventDefault();active.click();}return;}
   if(commandLayer.hidden||!['ArrowDown','ArrowUp'].includes(e.key))return;
   e.preventDefault();const buttons=[...commandResults.querySelectorAll('.command-result')];if(!buttons.length)return;
   let i=buttons.indexOf(document.activeElement);i=e.key==='ArrowDown'?Math.min(buttons.length-1,i+1):Math.max(0,i<0?0:i-1);
@@ -2939,7 +2956,7 @@ function parseCanonicalRoute(rawHash){
     if(parts[1]==='performance')return {section:'records',view:'track',arg:{trackMode:'performance'}};
     if(parts[1]==='data')return {section:'records',view:'track',arg:{trackMode:new URLSearchParams(location.search).get('mode')==='operator'?'operator':'data'}};
     if(parts[1]==='question'&&parts[2])return {section:'records',view:'q',arg:parts.slice(2).join('/')};
-    if(parts[1]==='compare'&&parts[2])return {section:'records',view:'compare',arg:parts.slice(2).join('/')};
+    if(parts[1]==='compare')return {section:'records',view:'compare',arg:parts.slice(2).join('/')};
     if(parts[1]==='journal'){
       if(parts[2]==='question'&&parts[3])return {section:'records',view:'asof',arg:{question:parts.slice(3).join('/')}};
       if(/^\d{4}-\d{2}-\d{2}$/.test(parts[2]||''))return {section:'records',view:'asof',arg:{mode:'replay',date:parts[2]}};
@@ -2978,7 +2995,7 @@ function earningsQuestionNotice(q){
 }
 function questionStatusLabel(q){
   if(q.status==='void')return {cls:'status-void',text:'폐기',title:'폐기된 질문 — 기한까지 예측 미실행, 채점 대상 아님'};
-  if(q.status==='resolved')return q.resolved?{cls:'status-resolved',text:'완료',title:'원장에 채점 기록이 있는 질문'}:{cls:'status-resolved is-unscored',text:'완료 · 무예측',title:'기한 내 예측 미실행 — 원장 미기록, 캘리브레이션 표본 아님'};
+  if(q.status==='resolved')return q.resolved?{cls:'status-resolved',text:'완료',title:'원장에 채점 기록이 있는 질문'}:{cls:'status-resolved is-unscored',text:'완료 · 예측 없음',title:'기한 내 예측 미실행 — 원장 미기록, 캘리브레이션 표본 아님'};
   if(earningsQuestionPending(q))return {cls:'status-active',text:'판정 대기',title:'동일 통화·주식 단위의 발표값과 사전 컨센서스 확인 대기'};
   return {cls:'status-active',text:'진행 중',title:'예측 진행 중'};
 }
@@ -5090,7 +5107,7 @@ function drawFlow(host,sc,focus='ALL',lookupDate=null,displayYear=2026,showSampl
 
 // ── 예측 목록 ──
 const QUESTION_PRESETS=[
-  ['all','전체'],['review','중요'],['moving','변경됨'],['due','곧 판정'],['pinned','저장됨']
+  ['all','전체'],['review','우선 검토'],['moving','확률 변경'],['due','30일 내 판정'],['pinned','관심 질문']
 ];
 function researchPriority(q){
   const delta=latestDelta(q.id),days=q.deadline?dayDiff(generatedDay(),q.deadline):null;
@@ -5133,19 +5150,19 @@ function renderQuestions(){
   const researchControls=el(`<div class="research-controls">
     <div class="research-presets" role="group" aria-label="예측 질문 빠른 필터">${QUESTION_PRESETS.map(([id,label])=>`<button type="button" data-question-preset="${id}" aria-pressed="${id===activePreset}">${label}</button>`).join('')}</div>
     <div class="research-display" role="group" aria-label="예측 목록 보기 방식">
-      <button type="button" data-question-layout="table" aria-pressed="${activeLayout==='table'}" aria-label="표 보기">▤ <span>TABLE</span></button>
-      <button type="button" data-question-layout="cards" aria-pressed="${activeLayout==='cards'}" aria-label="카드 보기">▦ <span>CARDS</span></button>
+      <button type="button" data-question-layout="table" aria-pressed="${activeLayout==='table'}" aria-label="표 보기">▤ <span>표</span></button>
+      <button type="button" data-question-layout="cards" aria-pressed="${activeLayout==='cards'}" aria-label="카드 보기">▦ <span>카드</span></button>
     </div>
     <label class="research-sort">정렬<select id="fso" aria-label="예측 질문 정렬">
       <option value="priority">검토 우선순위</option><option value="deadline">판정일</option><option value="probability">확률 높은 순</option>
-      <option value="movement">변동 큰 순</option><option value="updated">최신 회차</option>
+      <option value="movement">변동 큰 순</option><option value="updated">최신 예측</option>
     </select></label>
   </div>`);
   root.appendChild(researchControls);
   const bar=el(`<div class="filter-bar">
     <label class="search-field"><span>⌕</span><input type="text" id="fq" placeholder="질문 검색…" aria-label="질문 검색" aria-controls="question-mobile-list qtbl"></label>
     <label>분야<select id="fd" aria-label="분야"><option value="">전체</option>${domains.map(d=>`<option value="${esc(d)}">${esc(humanDomain(d))}</option>`).join('')}</select></label>
-    <label>테마<select id="fdr" aria-label="테마"><option value="">전체</option>${themes.map(d=>`<option value="${esc(d)}">${esc(humanDriver(d))}</option>`).join('')}</select></label>
+    <label>요인<select id="fdr" aria-label="요인"><option value="">전체</option>${themes.map(d=>`<option value="${esc(d)}">${esc(humanDriver(d))}</option>`).join('')}</select></label>
     <label>상태<select id="fs" aria-label="상태"><option value="">진행+완료</option><option value="active">진행 중</option><option value="resolved">완료</option><option value="void">폐기</option></select></label>
     <button type="button" class="calendar-action" id="freset">필터 초기화</button>
   </div>`);
@@ -5172,14 +5189,14 @@ function renderQuestions(){
     const rising=rows.filter(x=>(latestDelta(x.id)||0)>0).length,falling=rows.filter(x=>(latestDelta(x.id)||0)<0).length;
     const due30=rows.filter(x=>{const n=x.deadline?dayDiff(generatedDay(),x.deadline):null;return n!=null&&n>=0&&n<=30;}).length;
     insights.innerHTML=`<div><span>표시 질문</span><strong>${rows.length}</strong></div><div><span>확률 중앙값</span><strong>${med==null?'—':Math.round(med)+'%'}</strong></div><div><span>상승 / 하락</span><strong>${rising} / ${falling}</strong></div><div><span>30일 내 판정</span><strong>${due30}</strong></div>`;
-    $('#qtbl').innerHTML=`<caption class="sr-only">필터를 적용한 예측 질문 목록 ${rows.length}건</caption><thead><tr><th scope="col">예측 질문</th><th scope="col">분야</th><th scope="col">테마</th><th scope="col" class="r">현재 확률</th><th scope="col" class="r">회차</th><th scope="col" class="r">상태</th><th scope="col" class="r">작업</th></tr></thead>
+    $('#qtbl').innerHTML=`<caption class="sr-only">필터를 적용한 예측 질문 목록 ${rows.length}건</caption><thead><tr><th scope="col">예측 질문</th><th scope="col">분야</th><th scope="col">요인</th><th scope="col" class="r">현재 확률</th><th scope="col" class="r">회차</th><th scope="col" class="r">상태</th><th scope="col" class="r">작업</th></tr></thead>
     <tbody>${rows.map(x=>`<tr tabindex="0" data-q="${esc(x.id)}">
       <td><b>${esc(x.title)}</b><small>${esc(x.id)}</small></td><td>${esc(humanDomain(x.domain))}</td>
       <td>${(x.drivers||[]).slice(0,2).map(dv=>`<button type="button" class="tag tag-button" data-filter-driver="${esc(dv)}">${esc(humanDriver(dv))}</button>`).join(' ')||'—'}</td>
       <td class="r"><span class="table-prob">${p1(x.latest_prob)}</span>${Array.isArray(x.latest_ci80)&&x.latest_ci80[0]!=null?`<small class="table-ci">80% 구간 ${Math.round(Number(x.latest_ci80[0]))}–${Math.round(Number(x.latest_ci80[1]))}%</small>`:''}</td>
       <td class="r num">${Number(x.n_rounds)>0?x.n_rounds:'산출 전'}</td>
       <td class="r">${questionStatusBadge(x)}</td>
-      <td><div class="question-actions"><button type="button" class="question-action" data-pin-q="${esc(x.id)}" aria-label="개인 레이더에 고정">☆</button><button type="button" class="question-action compare" data-compare-q="${esc(x.id)}" aria-label="비교 선택" aria-pressed="false">⇄</button></div></td></tr>`).join('')}</tbody>`;
+      <td><div class="question-actions"><button type="button" class="question-action" data-pin-q="${esc(x.id)}" aria-label="관심 질문에 고정">☆</button><button type="button" class="question-action compare" data-compare-q="${esc(x.id)}" aria-label="비교 선택" aria-pressed="false">⇄</button></div></td></tr>`).join('')}</tbody>`;
     cards.innerHTML=rows.map(x=>{const delta=latestDelta(x.id),clock=deadlineWindow(x);
       return `<article class="mobile-question-card" data-q="${esc(x.id)}">
         <div class="mobile-question-head"><span>${esc(humanDomain(x.domain))} · ${roundLabel(x.n_rounds)}</span>${questionStatusBadge(x)}</div>
@@ -5187,10 +5204,10 @@ function renderQuestions(){
         <div class="mobile-question-facts">
           <div><span>현재 확률</span><strong>${p1(x.latest_prob)}</strong>${Array.isArray(x.latest_ci80)&&x.latest_ci80[0]!=null?`<small class="table-ci">80% 구간 ${Math.round(Number(x.latest_ci80[0]))}–${Math.round(Number(x.latest_ci80[1]))}%</small>`:''}</div>
           <div><span>직전 대비</span><strong class="${delta>0?'edge-pos':delta<0?'edge-neg':''}">${delta==null?'첫 기준선':`${delta>0?'+':''}${delta}%p`}</strong></div>
-          <div><span>판정 시계</span><strong>${esc(clock.short)}</strong></div>
+          <div><span>판정 일정</span><strong>${esc(clock.short)}</strong></div>
         </div>
-        <div class="mobile-question-tags">${(x.drivers||[]).slice(0,3).map(dv=>`<button type="button" class="tag tag-button" data-filter-driver="${esc(dv)}">${esc(humanDriver(dv))}</button>`).join(' ')||'<span class="tag">관찰 변수 없음</span>'}</div>
-        <div class="mobile-question-actions"><button type="button" data-pin-q="${esc(x.id)}" aria-label="개인 레이더에 고정">☆</button><button type="button" data-compare-q="${esc(x.id)}" aria-label="비교 선택" aria-pressed="false">⇄</button><a href="#q/${esc(x.id)}">상세 근거 보기</a></div>
+        <div class="mobile-question-tags">${(x.drivers||[]).slice(0,3).map(dv=>`<button type="button" class="tag tag-button" data-filter-driver="${esc(dv)}">${esc(humanDriver(dv))}</button>`).join(' ')||'<span class="tag">요인 없음</span>'}</div>
+        <div class="mobile-question-actions"><button type="button" data-pin-q="${esc(x.id)}" aria-label="관심 질문에 고정">☆</button><button type="button" data-compare-q="${esc(x.id)}" aria-label="비교 선택" aria-pressed="false">⇄</button><a href="#q/${esc(x.id)}">상세 근거 보기</a></div>
       </article>`;}).join('')||'<p class="empty">조건에 맞는 예측 질문이 없습니다.</p>';
     $('#qtbl').querySelectorAll('tr[data-q]').forEach(tr=>{const go=()=>location.hash='#q/'+tr.dataset.q;
       tr.onclick=e=>{if(!e.target.closest('button'))go();};tr.onkeydown=e=>{if(e.key==='Enter'&&e.target===tr)go();};});
@@ -5217,7 +5234,7 @@ function renderQuestions(){
 // ── 예측 비교 작업공간 ──
 const COMPARE_COLORS=['#ff4f17','#247d78','#c9002d'];
 function renderCompare(arg=''){
-  const ids=cleanCompareIds(String(arg||'').split(',').filter(Boolean));
+  const ids=arg?cleanCompareIds(String(arg).split(',').filter(Boolean)):cleanCompareIds();
   if(ids.length<2){
     const empty=el('<div><div class="page-heading"><div><h1>비교할 질문을 두 개 이상 선택하세요</h1></div></div><p class="empty"><a class="back-button" href="#questions">예측 목록으로 이동</a></p></div>');mount(empty);return;
   }
@@ -5225,14 +5242,14 @@ function renderCompare(arg=''){
   const root=el('<div></div>');
   appendContextTabs(root,'research','compare');
   root.appendChild(el(`<div class="page-heading"><div><h1>질문 비교</h1></div>
-    <div class="heading-stat" style="min-height:170px;justify-content:flex-end;display:flex;flex-direction:column"><span class="micro">SELECTED</span><strong style="font-family:var(--mono);font-size:46px;margin:10px 0">${qs.length}</strong><button type="button" class="calendar-action" data-calendar-selected>선택 일정 저장</button></div></div>`));
+    <div class="heading-stat" style="min-height:170px;justify-content:flex-end;display:flex;flex-direction:column"><span class="micro">선택한 질문</span><strong style="font-family:var(--mono);font-size:46px;margin:10px 0">${qs.length}</strong><button type="button" class="calendar-action" data-calendar-selected>선택 일정 저장</button></div></div>`));
   const grid=el(`<div class="compare-grid" style="--compare-count:${qs.length}">${qs.map((q,i)=>{const d=latestDelta(q.id),clock=deadlineWindow(q);
     const available=hasNumeric(q.latest_prob);
     return `<article class="compare-card" style="border-top:7px solid ${COMPARE_COLORS[i]}"><header><div><span class="radar-eyebrow">${esc(humanDomain(q.domain))} · ${roundLabel(q.n_rounds)}</span><h2>${esc(q.title)}</h2></div><button type="button" data-remove-compare-page="${esc(q.id)}" aria-label="비교에서 제거">×</button></header>
       <div class="compare-prob${available?'':' is-pending'}">${available?`<strong>${q.latest_prob}</strong><span>%</span>`:'<strong>산출 전</strong>'}</div>
       <div class="compare-facts"><div><span>직전 대비</span><strong class="${d>0?'edge-pos':d<0?'edge-neg':''}">${!available?'비교 이력 없음':d==null?'첫 기준선':`${d>0?'+':''}${d}%p`}</strong></div>
-        <div><span>판정 시계</span><strong>${esc(clock.short)}</strong></div><div><span>관찰 변수</span><strong>${esc((q.drivers||[]).slice(0,2).map(humanDriver).join(' · ')||'—')}</strong></div></div>
-      <footer><a href="#q/${esc(q.id)}">상세 근거 보기</a><button type="button" data-pin-q="${esc(q.id)}"><span data-pin-icon>☆</span> 레이더</button></footer></article>`;}).join('')}</div>`);
+        <div><span>판정 일정</span><strong>${esc(clock.short)}</strong></div><div><span>요인</span><strong>${esc((q.drivers||[]).slice(0,2).map(humanDriver).join(' · ')||'—')}</strong></div></div>
+      <footer><a href="#q/${esc(q.id)}">상세 근거 보기</a><button type="button" data-pin-q="${esc(q.id)}"><span data-pin-icon>☆</span> 관심 질문</button></footer></article>`;}).join('')}</div>`);
   root.appendChild(grid);
   const chart=el(`<div class="chart-panel analysis-panel"><div class="panel-head"><h2>예측 확률 회차 비교</h2><div class="band-inline">${qs.map((q,i)=>`<span><b style="background:${COMPARE_COLORS[i]}"></b>${esc(q.title.length>24?q.title.slice(0,24)+'…':q.title)}</span>`).join('')}</div></div><div class="chart-wrap"><div id="compare-history" class="compare-history-shell"></div></div><p class="chart-note">질문 간 확률은 더하거나 비교하지 않습니다.</p></div>`);
   root.appendChild(chart);mount(root);drawCompareHistory($('#compare-history',chart),qs);
@@ -5266,7 +5283,7 @@ function drawCompareHistory(host,questions){
     cursorIndex=Math.max(0,Math.min(dates.length-1,index));const date=dates[cursorIndex],x=X(date);
     cursor.setAttribute('x1',x);cursor.setAttribute('x2',x);
     const values=series.map((s,i)=>{const value=valueAt(s,date);if(value){markers[i].setAttribute('cx',x);markers[i].setAttribute('cy',Y(value.probability));markers[i].style.display='';}else markers[i].style.display='none';return value;});
-    readout.innerHTML=`<div class="compare-date"><span>AS OF</span><strong>${esc(date)}</strong></div>${series.map((s,i)=>{const value=values[i],record=(value?.forecast_ts||'').slice(0,10);
+    readout.innerHTML=`<div class="compare-date"><span>기준 날짜</span><strong>${esc(date)}</strong></div>${series.map((s,i)=>{const value=values[i],record=(value?.forecast_ts||'').slice(0,10);
       return `<div><span>${esc(s.q.title.length>28?s.q.title.slice(0,28)+'…':s.q.title)}</span><strong style="color:${COMPARE_COLORS[i]}">${value?p1(value.probability):'기록 없음'}</strong><small>${value?`최근 회차 ${esc(record)}`:'선택 날짜 이전 기록 없음'}</small></div>`;}).join('')}`;
     svg.setAttribute('aria-label',`예측 확률 비교, 기준 날짜 ${date}. 좌우 화살표로 이동`);
   };
@@ -5713,7 +5730,7 @@ function reasoningText(round){
 function evidenceDeltaMarkup(current,previous){
   const method=current.method||current.model||'기록 없음';
   if(!previous)return `<section class="round-delta baseline" aria-label="첫 예측 회차">
-    <div class="round-delta-head"><span>WHAT CHANGED</span><strong>첫 기준선</strong></div>
+    <div class="round-delta-head"><span>달라진 점</span><strong>첫 예측</strong></div>
     <div class="round-delta-grid">
       <div><span>예측 확률</span><strong>${p1(current.probability)}</strong><small>최초 기록</small></div>
       <div><span>80% 구간</span><strong>${confidenceBand(current)}</strong><small>현재 범위</small></div>
@@ -5727,7 +5744,7 @@ function evidenceDeltaMarkup(current,previous){
   const previousMethod=previous.method||previous.model||'기록 없음',methodChanged=previousMethod!==method;
   const sourceNote=methodChanged?`이전 기록 ${previousSources} · 집계 기준 상이`:`${previousSources} → ${currentSources}${sourceDelta?` · ${sourceDelta>0?'+':''}${sourceDelta}`:' · 유지'}`;
   return `<section class="round-delta${magnitude>=5?' is-material':''}" aria-label="이전 회차 대비 변화">
-    <div class="round-delta-head"><span>WHAT CHANGED · R${previous.round} → R${current.round}</span><strong>${level}</strong><p>예측 확률 ${direction}</p></div>
+    <div class="round-delta-head"><span>달라진 점 · R${previous.round} → R${current.round}</span><strong>${level}</strong><p>예측 확률 ${direction}</p></div>
     <div class="round-delta-grid">
       <div><span>확률 변화</span><strong class="${delta>0?'edge-pos':delta<0?'edge-neg':''}">${signedPoint(delta)}</strong><small>${p1(previous.probability)} → ${p1(current.probability)}</small></div>
       <div><span>80% 구간</span><strong>${confidenceBand(current)}</strong><small>이전 ${confidenceBand(previous)}</small></div>
@@ -5737,7 +5754,7 @@ function evidenceDeltaMarkup(current,previous){
 }
 function physicalEventContextMarkup(q){
   const context=q?.proximity_context||{};if(q?.probability_space!=='physical_event'||context.status!=='ok')return '';
-  return `<section class="question-proximity" aria-label="사전등록 사건 임계 근접도"><div><span>THRESHOLD CONTEXT · 결합 금지</span><strong>임계까지 ${num(context.threshold_distance_pct)}%</strong></div><div><span>남은 판정 구간</span><strong>${num(context.remaining_trading_sessions)}거래일</strong></div><div><span>${esc(context.label||'무드리프트 기계적 기준')}</span><strong>≈${num(context.driftless_mechanical_touch_pct)}%</strong></div><p>참고 보조값 — 예측 확률과 합산하지 않습니다.</p></section>`;
+  return `<section class="question-proximity" aria-label="사전등록 사건 임계 근접도"><div><span>판정 기준까지 거리 · 결합 금지</span><strong>임계까지 ${num(context.threshold_distance_pct)}%</strong></div><div><span>남은 판정 구간</span><strong>${num(context.remaining_trading_sessions)}거래일</strong></div><div><span>${esc(context.label||'무드리프트 기계적 기준')}</span><strong>≈${num(context.driftless_mechanical_touch_pct)}%</strong></div><p>참고 보조값 — 예측 확률과 합산하지 않습니다.</p></section>`;
 }
 function renderDetail(qid){
   const q=DATA.questions.find(x=>x.id===qid);const hist=DATA.forecast_history[qid]||[];const res=DATA.resolutions[qid]||[];
@@ -5751,7 +5768,7 @@ function renderDetail(qid){
     <div><h1>${esc(q.title)}</h1>
       <div class="meta">${esc(humanDomain(q.domain))} · ${questionStatusLabel(q).text} · 기한 ${esc(q.deadline||'수시')}</div>
       <div class="tag-list" style="justify-content:flex-start">${(q.drivers||[]).map(d=>`<span class="tag">${esc(humanDriver(d))}</span>`).join(' ')}</div>
-      <div class="detail-actions"><button type="button" data-pin-q="${esc(q.id)}" aria-pressed="false"><span data-pin-icon>☆</span> MY RADAR</button><button type="button" data-compare-q="${esc(q.id)}" aria-pressed="false">⇄ 비교 선택</button>${q.deadline?`<button type="button" data-calendar-q="${esc(q.id)}">CAL 판정일 저장</button>`:''}</div>
+      <div class="detail-actions"><button type="button" data-pin-q="${esc(q.id)}" aria-pressed="false"><span data-pin-icon>☆</span> 관심 질문</button><button type="button" data-compare-q="${esc(q.id)}" aria-pressed="false">⇄ 비교 선택</button>${q.deadline?`<button type="button" data-calendar-q="${esc(q.id)}">판정일 저장</button>`:''}</div>
     </div>
     <div class="prob-orb${available?'':' is-pending'}" style="--prob:${available?Number(latest):0}"><strong>${available?latest:'산출 전'}</strong>${available?'<span>%</span>':''}<small>${earningsQuestionPending(q)?'발표 전 예측 기록':'최신 예측 확률'}${ciText}</small></div>
   </div>`));
@@ -5790,8 +5807,8 @@ function renderDetail(qid){
        없는 화면을 만들지 않는다. */
     const eligibility=new Map();(Array.isArray(DATA.clusters)?DATA.clusters:Object.values(DATA.clusters||{})).forEach(ev=>(ev?.rounds||[]).forEach(rd=>eligibility.set(rd.forecast_id,rd.eligible_primary)));
     root.appendChild(el(`<div class="resolution-card">
-    ${res.map(r=>{const excluded=eligibility.get(r.forecast_id)===0;return `<div><span>결과</span><strong class="${r.outcome===1?'':'no'}">${r.outcome===1?'적중':'미발생'}</strong></div>
-    <div><span>Brier</span><strong>${Number(r.brier).toFixed(3)}</strong>${excluded?'<em class="excluded-badge" title="research_status=failed — 리서치 전멸 상태에서 생산된 회차. 원장에는 전량 채점하되 대표 Brier·게이트 표본에서 제외">대표 산정 제외</em>':''}</div>
+    ${res.map(r=>{const excluded=eligibility.get(r.forecast_id)===0;return `<div><span>실제 결과</span><strong class="${r.outcome===1?'':'no'}">${r.outcome===1?'발생':'미발생'}</strong></div>
+    <div><span>예측 오차</span><strong>${Number(r.brier).toFixed(3)}</strong>${excluded?'<em class="excluded-badge" title="research_status=failed — 리서치 전멸 상태에서 생산된 회차. 원장에는 전량 채점하되 대표 Brier·게이트 표본에서 제외">대표 산정 제외</em>':''}</div>
     <p>예측 확률 ${r.probability}% · 확정일 ${esc(r.resolved_date)}${excluded?' · 대표 Brier·게이트 표본 제외':''}</p>
     ${r.notes?`<details class="resolution-note"><summary>판정 근거·출처 (원장 원문)</summary><p>${esc(r.notes)}</p></details>`:''}`;}).join('')}</div>`));}
   mount(root);
@@ -5812,8 +5829,8 @@ function renderDetail(qid){
     if(toggle)toggle.onclick=()=>{
       const open=toggle.getAttribute('aria-expanded')!=='true';toggle.setAttribute('aria-expanded',String(open));
       toggle.textContent=open?'현재 회차만 보기':'⇄ 이전 회차와 근거 나란히 보기';reason.hidden=open;compare.hidden=!open;
-      if(open)compare.innerHTML=`<section><header><span>PREVIOUS · R${previous.round}</span><strong>${p1(previous.probability)}</strong></header><pre>${esc(reasoningText(previous))}</pre></section>
-        <section><header><span>CURRENT · R${h.round}</span><strong>${p1(h.probability)}</strong></header><pre>${esc(reasoningText(h))}</pre></section>`;
+      if(open)compare.innerHTML=`<section><header><span>이전 · R${previous.round}</span><strong>${p1(previous.probability)}</strong></header><pre>${esc(reasoningText(previous))}</pre></section>
+        <section><header><span>현재 · R${h.round}</span><strong>${p1(h.probability)}</strong></header><pre>${esc(reasoningText(h))}</pre></section>`;
     };
     layout.querySelectorAll('#rnds button').forEach(b=>b.classList.toggle('active',+b.dataset.r===h.round));
   };
@@ -5876,7 +5893,7 @@ function renderDecisionJournal(initial){
   const root=el('<div class="decision-journal-page"></div>');
   appendContextTabs(root,'research','journal');
   root.appendChild(el(`<div class="page-heading"><div><h1>변경 내역</h1></div></div>`));
-  if(methodEvents.length)root.appendChild(el(`<section class="method-change-feed" aria-label="방법론 변경 기록"><p class="eyebrow">METHOD CHANGE</p>${methodEvents.map(item=>{const base=DATA.meta?.public_repository_url||'';const href=item.report&&base?`${base}/blob/main/${item.report}`:'';return `<article><time>${esc(item.date)}</time><div><strong>${esc(item.title)}</strong><p>${esc(item.reason)}</p><small>snapshot ${esc(item.snapshot_id)}</small>${href?`<a href="${esc(href)}" target="_blank" rel="noopener">구현 보고서 ↗</a>`:''}</div></article>`;}).join('')}</section>`));
+  if(methodEvents.length)root.appendChild(el(`<section class="method-change-feed" aria-label="방법론 변경 기록"><p class="eyebrow">예측 방식 변경</p>${methodEvents.map(item=>{const base=DATA.meta?.public_repository_url||'';const href=item.report&&base?`${base}/blob/main/${item.report}`:'';return `<article><time>${esc(item.date)}</time><div><strong>${esc(item.title)}</strong><p>${esc(item.reason)}</p><small>snapshot ${esc(item.snapshot_id)}</small>${href?`<a href="${esc(href)}" target="_blank" rel="noopener">구현 보고서 ↗</a>`:''}</div></article>`;}).join('')}</section>`));
   const mode=el(`<div class="journal-mode" role="group" aria-label="기록 보기 방식"><button type="button" data-journal-mode="feed" aria-pressed="true">변경 내역</button><button type="button" data-journal-mode="replay" aria-pressed="false">날짜별 비교</button><a class="journal-lookup-link" href="#future/lookup">기간 조회 ↗</a></div>`);
   root.appendChild(mode);
   const feed=el(`<section class="journal-feed-panel" data-journal-panel="feed"><div class="journal-feed-intro"><strong>${selectedQuestion?esc(qMap[selectedQuestion]?.title||selectedQuestion):'전체 질문'} · 변경 ${events.length}건</strong></div><div class="decision-feed" role="feed" aria-label="예측 변경 기록">${events.length?Object.entries(grouped).sort((a,b)=>b[0].localeCompare(a[0])).map(([week,items])=>`<section class="journal-week"><h2>${esc(week)} 주간</h2>${items.map(event=>{const positive=event.delta>0,source=event.current.source_uri?`https://github.com/sung-jinpark/Jin-s-investing-prediction/blob/main/${event.current.source_uri}`:'';return `<article class="journal-event" tabindex="0" aria-label="${esc(event.q?.title||event.qid)} ${positive?'상향':'하향'} ${Math.abs(event.delta)} 퍼센트포인트"><time>${esc(event.date)}</time><div><a class="journal-question" href="#q/${esc(event.qid)}">${esc(event.q?.title||event.qid)}</a><p><span class="journal-prob">${event.previous.probability}%</span><i>→</i><span class="journal-prob">${event.current.probability}%</span><b class="${positive?'edge-pos':'edge-neg'}">${positive?'+':''}${event.delta}%p</b></p>${event.current.change_note?`<blockquote${event.current.change_note_fallback?' class="is-excerpt"':''}>${event.current.change_note_fallback?'<small>기록된 근거 요약</small>':'<small>변경 이유</small>'}${esc(event.current.change_note)}</blockquote>`:''}${source?`<a class="journal-source" href="${esc(source)}" target="_blank" rel="noopener">근거 보기 ↗</a>`:''}</div></article>`;}).join('')}</section>`).join(''):'<div class="journal-empty"><strong>바뀐 예측이 없습니다.</strong><p>값이 달라지면 이곳에 자동으로 기록됩니다.</p></div>'}</div></section>`);

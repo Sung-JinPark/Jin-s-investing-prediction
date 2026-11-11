@@ -246,6 +246,79 @@ ledgers:
     assert not has_violations(report), "정체는 불변성 위반이 아니다"
 
 
+def _late_writer_root(tmp_path: Path, settle: str) -> Path:
+    root = _root(tmp_path, f"""version: 1
+ledgers:
+  - id: cross_asset_latest
+    path: data/cross_asset/cross_asset_latest.json
+    kind: singleton
+    cadence: trading_daily
+    criticality: high
+    schema_ref: json_object
+{settle}""")
+    target = root / "data/cross_asset/cross_asset_latest.json"
+    target.parent.mkdir(parents=True)
+    target.write_text('{"asof": "2026-11-04"}', encoding="utf-8")
+    return root
+
+
+def _status(root: Path, now: str) -> dict:
+    return audit_ledgers(root, write=False, now=datetime.fromisoformat(now))["ledgers"][0]
+
+
+def test_session_is_not_expected_before_the_close(tmp_path: Path) -> None:
+    """The audit time decides which session counts as closed: 16:15 ET (21:15 UTC in November)."""
+    root = _late_writer_root(tmp_path, "")
+    assert _status(root, "2026-11-05T21:00:00+00:00")["status"] == "accumulating"
+    after = _status(root, "2026-11-05T22:40:00+00:00")
+    assert (after["status"], after["expected_date"], after["settle_hours"]) == ("stalled", "2026-11-05", None)
+
+
+def test_settle_hours_waits_for_a_next_morning_writer_then_still_catches_a_dead_one(tmp_path: Path) -> None:
+    """2026-11-05 22:40 UTC 실측: scenario-refresh 는 11-05 세션을 다음 날 07:28 UTC 에 썼는데,
+    감사는 마감 1시간 뒤부터 정체로 찍었다. 지연 허용 안에서는 기다리고, 넘기면 다시 잡는다."""
+    root = _late_writer_root(tmp_path, "    settle_hours: 16\n")
+    morning = _status(root, "2026-11-05T22:40:00+00:00")
+    assert (morning["status"], morning["expected_date"], morning["settle_hours"]) == ("accumulating", "2026-11-04", 16)
+    assert _status(root, "2026-11-06T13:00:00+00:00")["status"] == "accumulating"
+    late = _status(root, "2026-11-06T13:30:00+00:00")
+    assert (late["status"], late["expected_date"]) == ("stalled", "2026-11-05"), "16시간이 지나도 안 쓰면 멈춘 것"
+
+
+def test_settle_hours_is_bounded_and_only_for_trading_daily(tmp_path: Path) -> None:
+    import pytest
+
+    from ai_fc.ledger_audit import LedgerAuditError
+
+    for index, settle in enumerate(("25", "0", "-3", "true", "'16'")):
+        root = _late_writer_root(tmp_path / str(index), f"    settle_hours: {settle}\n")
+        with pytest.raises(LedgerAuditError, match="settle_hours"):
+            audit_ledgers(root, write=False)
+    weekly = _root(tmp_path / "weekly", """version: 1
+ledgers:
+  - id: weekly
+    path: data/weekly.json
+    kind: singleton
+    cadence: weekly
+    criticality: low
+    schema_ref: json_object
+    settle_hours: 6
+""")
+    with pytest.raises(LedgerAuditError, match="trading_daily"):
+        audit_ledgers(weekly, write=False)
+
+
+def test_registry_settles_next_morning_writers_but_not_the_auditing_job() -> None:
+    """scenario-refresh 가 감사를 쓰면서 scenario_* 도 같은 실행에서 쓴다 — 그쪽은 지연 허용이 필요 없다."""
+    import yaml
+
+    rows = {row["id"]: row for row in yaml.safe_load((Path(__file__).parents[2] / "data/contracts/ledger_registry.yaml").read_text(encoding="utf-8"))["ledgers"]}
+    for ledger in ("cross_asset_latest", "cross_asset_path_tracking_v2", "timeseries_v13_vol_live_resolutions"):
+        assert rows[ledger]["settle_hours"] == 18
+    for ledger in ("scenario_latest", "scenario_archive", "scenario_band_calibration"):
+        assert "settle_hours" not in rows[ledger]
+
+
 def test_registry_reads_v8_origin_dates_and_ipo_receipts_are_event_driven() -> None:
     import yaml
 
