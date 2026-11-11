@@ -656,3 +656,35 @@ ledgers:
     schema_ref: jsonl
     allow_empty_accumulating: true
     expected_state: planned
+  - id: mts_research_v8_xnas_label_diagnostics
+    path: data/mts_research/ledgers/v8_xnas_label_diagnostics.jsonl
+    kind: jsonl
+    cadence: event
+    criticality: low
+    schema_ref: jsonl
+    allow_empty_accumulating: true
+    expected_state: planned
+  - id: mts_research_coherence_daily
+    path: data/mts_research/ledgers/coherence_daily.jsonl
+    kind: jsonl
+    cadence: event
+    criticality: low
+    schema_ref: jsonl
+    allow_empty_accumulating: true
+    expected_state: planned
+  - id: mts_research_v8_live_monitor
+    path: data/mts_research/ledgers/v8_live_monitor.jsonl
+    kind: jsonl
+    cadence: event
+    criticality: low
+    schema_ref: jsonl
+    allow_empty_accumulating: true
+    expected_state: planned
+  - id: mts_research_fed_ebp_v1
+    path: data/mts_research/ledgers/fed_ebp_v1.jsonl
+    kind: jsonl
+    cadence: event
+    criticality: low
+    schema_ref: jsonl
+    allow_empty_accumulating: true
+    expected_state: planned

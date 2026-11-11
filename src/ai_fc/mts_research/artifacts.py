@@ -45,6 +45,11 @@ _IDENTITY_FIELDS: dict[str, str] = {
     "exposures.jsonl": "exposure_id",
     "events.jsonl": "event_id",
     "approvals.jsonl": "receipt_id",
+    # 2026-11-11 라이브 정합성 감사 — 전부 scoring_excluded / display_only 진단 원장
+    "v8_xnas_label_diagnostics.jsonl": "diagnostic_id",
+    "coherence_daily.jsonl": "coherence_id",
+    "v8_live_monitor.jsonl": "monitor_id",
+    "fed_ebp_v1.jsonl": "observation_id",
 }
 
 
