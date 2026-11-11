@@ -1,0 +1,272 @@
+{
+  "as_of": null,
+  "descriptive": {
+    "inputs_differ_sensitivity": {
+      "main": {
+        "n_rows": 0,
+        "qs5_mean_delta": null
+      },
+      "term_structure": {
+        "n_rows": 0,
+        "qs5_mean_delta": null
+      },
+      "zero_drift": {
+        "n_rows": 0,
+        "qs5_mean_delta": null
+      }
+    },
+    "lead_buckets": {
+      "1-21": {
+        "main": {
+          "mean_delta": null,
+          "n_rows": 0
+        },
+        "term_structure": {
+          "mean_delta": null,
+          "n_rows": 0
+        },
+        "zero_drift": {
+          "mean_delta": null,
+          "n_rows": 0
+        }
+      },
+      "22-63": {
+        "main": {
+          "mean_delta": null,
+          "n_rows": 0
+        },
+        "term_structure": {
+          "mean_delta": null,
+          "n_rows": 0
+        },
+        "zero_drift": {
+          "mean_delta": null,
+          "n_rows": 0
+        }
+      },
+      "64-126": {
+        "main": {
+          "mean_delta": null,
+          "n_rows": 0
+        },
+        "term_structure": {
+          "mean_delta": null,
+          "n_rows": 0
+        },
+        "zero_drift": {
+          "mean_delta": null,
+          "n_rows": 0
+        }
+      }
+    },
+    "note": "dependence underestimated (overlapping windows) — not a label basis; r1 rule false-rejection 0.29-0.46",
+    "post_verdict_v1_revisions": 0,
+    "representative_runs": 1,
+    "target_date_equal": {
+      "main": {
+        "block_bootstrap_ci90": null,
+        "max_single_date_share": null,
+        "mean_delta": null,
+        "n_dates": 0
+      },
+      "term_structure": {
+        "block_bootstrap_ci90": null,
+        "max_single_date_share": null,
+        "mean_delta": null,
+        "n_dates": 0
+      },
+      "zero_drift": {
+        "block_bootstrap_ci90": null,
+        "max_single_date_share": null,
+        "mean_delta": null,
+        "n_dates": 0
+      }
+    },
+    "twin_contrasts": {
+      "term_structure_minus_main": {
+        "mean": null,
+        "n_rows": 0
+      },
+      "zero_drift_minus_main": {
+        "mean": null,
+        "n_rows": 0
+      }
+    }
+  },
+  "footnote": "연구 섀도 · 비공개 · 라벨은 verdicts 에서만 · 참고 의견, 매매 신호 아님",
+  "n_pairs_missing": 0,
+  "n_runs": 1,
+  "phase_origin": "2026-11-10",
+  "predictive_validation": "not_established",
+  "rows_are_not_independent": true,
+  "schema_version": 1,
+  "thinned": {
+    "h1": {
+      "blocking_origin": null,
+      "blocking_sessions_behind": null,
+      "by_arm": {
+        "main": {
+          "ci90": null,
+          "mean": null,
+          "n": 0,
+          "p_better": null,
+          "secondary": null
+        },
+        "term_structure": {
+          "ci90": null,
+          "mean": null,
+          "n": 0,
+          "p_better": null,
+          "secondary": null
+        },
+        "zero_drift": {
+          "ci90": null,
+          "mean": null,
+          "n": 0,
+          "p_better": null,
+          "secondary": null
+        }
+      },
+      "n_excluded": 1,
+      "n_missing": 0,
+      "n_no_target": 0,
+      "n_pending_blocking": 0,
+      "n_scored": 0,
+      "n_target": 50
+    },
+    "h126": {
+      "blocking_origin": null,
+      "blocking_sessions_behind": null,
+      "by_arm": {
+        "main": {
+          "ci90": null,
+          "mean": null,
+          "n": 0,
+          "p_better": null,
+          "secondary": null
+        },
+        "term_structure": {
+          "ci90": null,
+          "mean": null,
+          "n": 0,
+          "p_better": null,
+          "secondary": null
+        },
+        "zero_drift": {
+          "ci90": null,
+          "mean": null,
+          "n": 0,
+          "p_better": null,
+          "secondary": null
+        }
+      },
+      "n_excluded": 1,
+      "n_missing": 0,
+      "n_no_target": 0,
+      "n_pending_blocking": 0,
+      "n_scored": 0,
+      "n_target": null
+    },
+    "h21": {
+      "blocking_origin": null,
+      "blocking_sessions_behind": null,
+      "by_arm": {
+        "main": {
+          "ci90": null,
+          "mean": null,
+          "n": 0,
+          "p_better": null,
+          "secondary": null
+        },
+        "term_structure": {
+          "ci90": null,
+          "mean": null,
+          "n": 0,
+          "p_better": null,
+          "secondary": null
+        },
+        "zero_drift": {
+          "ci90": null,
+          "mean": null,
+          "n": 0,
+          "p_better": null,
+          "secondary": null
+        }
+      },
+      "n_excluded": 1,
+      "n_missing": 0,
+      "n_no_target": 0,
+      "n_pending_blocking": 0,
+      "n_scored": 0,
+      "n_target": 30
+    },
+    "h5": {
+      "blocking_origin": null,
+      "blocking_sessions_behind": null,
+      "by_arm": {
+        "main": {
+          "ci90": null,
+          "mean": null,
+          "n": 0,
+          "p_better": null,
+          "secondary": null
+        },
+        "term_structure": {
+          "ci90": null,
+          "mean": null,
+          "n": 0,
+          "p_better": null,
+          "secondary": null
+        },
+        "zero_drift": {
+          "ci90": null,
+          "mean": null,
+          "n": 0,
+          "p_better": null,
+          "secondary": null
+        }
+      },
+      "n_excluded": 1,
+      "n_missing": 0,
+      "n_no_target": 0,
+      "n_pending_blocking": 0,
+      "n_scored": 0,
+      "n_target": 50
+    },
+    "h63": {
+      "blocking_origin": null,
+      "blocking_sessions_behind": null,
+      "by_arm": {
+        "main": {
+          "ci90": null,
+          "mean": null,
+          "n": 0,
+          "p_better": null,
+          "secondary": null
+        },
+        "term_structure": {
+          "ci90": null,
+          "mean": null,
+          "n": 0,
+          "p_better": null,
+          "secondary": null
+        },
+        "zero_drift": {
+          "ci90": null,
+          "mean": null,
+          "n": 0,
+          "p_better": null,
+          "secondary": null
+        }
+      },
+      "n_excluded": 1,
+      "n_missing": 0,
+      "n_no_target": 0,
+      "n_pending_blocking": 0,
+      "n_scored": 0,
+      "n_target": null
+    }
+  },
+  "verdicts": [],
+  "warnings": []
+}
