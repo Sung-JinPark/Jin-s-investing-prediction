@@ -3066,5 +3066,5 @@ r3 블록 3개(tolerance_equivalence·revisions·revision_receipts)를 빼고 pr
 (d) 계보 해시 동일을 기준으로: captured→native 원천 교체·체크아웃 mtime 이 값 변화 없이 해시를 바꾼다(위 실측) — 관측 선택·요인 내용만 기준, 나머지는 진단.
 
 **실데이터 분류(테스트로 고정).** `daily6m-v2-9cc54ec98c2d1051208c45de` → excluded. 통과: path_hash_only·v1_code_hash_equal·runtime_equal·selection_reused·projection_exogenous_from_v1·coefficients·bands.
-실패: fit_structure_equal·anchor_equal·factor_rows·market_rows(r2 가 기록하지 않은 증거) + v1_reference_grid_recorded. 원점 2026-11-10 은 솎음 표본에서 결손처럼 센다(n_excluded). 한계: KNOWN_LIMITS 68.
+실패: fit_structure_equal·anchor_equal·factor_rows·market_rows(r2 가 기록하지 않은 증거) + v1_reference_grid_recorded. 원점 2026-11-10 은 솎음 표본에서 결손처럼 센다(n_excluded). 한계: KNOWN_LIMITS 72.
 `data/method_changes.jsonl` 은 append 하지 않았다 — 그 원장은 사이트 결정 일지(공개 표시·모델 사용 변경)용이고 U4 등록 때도 쓰지 않았다(v2 는 비공개 섀도, 표시·확률 무변경).
