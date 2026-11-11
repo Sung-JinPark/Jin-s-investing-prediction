@@ -1,0 +1,70 @@
+name: v15-vol-shadow
+
+# V15-VOL 섀도(V13 후속 변동성 사건, 계약 data/contracts/multivariate_timeseries_v15_vol.yaml).
+# V13 라이브 원장 행의 순수 함수로 3팔(R1·R2·R3)을 append-only 섀도 원장에 기록하고, V13 해상 라벨(XNAS 세션 가드)로 채점한다.
+# 표시·배선·승격 0, 아카이브 쓰기 0, 시크릿 0. 판정은 사람이 수동으로 인쇄만 한다 — 여기서 돌리지 않는다.
+# 참고 의견 — 매매 신호 아님.
+
+on:
+  schedule:
+    # V2 refresh(08:20 UTC) → V13 라이브 체인 뒤. 멱등 — 늦게 돌아도 같은 행을 쓴다(순수 함수).
+    - cron: "25 11 * * 2-6"
+    - cron: "25 15 * * 2-6"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: investing-data-writer-v15vol
+  cancel-in-progress: false
+
+jobs:
+  shadow:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      PYTHONUTF8: "1"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install the pinned runtime (XNAS calendar for the session guard)
+        run: pip install -e ".[pit,timeseries]" "exchange-calendars>=4.6,<5" pytest
+      - name: Derive shadow arms from V13 ledger rows (frozen constants only)
+        env:
+          # 무장행(effective_from)은 main 예약 CI 에서만 쓴다 — 계약 live_shadow.effective_from_rule. 다른 step·로컬에는 없다.
+          V15_VOL_ARMING_CONTEXT: main_scheduled_ci
+        run: python -m ai_fc timeseries-v15-vol-shadow
+      - name: Score matured shadow rows from V13 resolutions (no verdict)
+        run: python -m ai_fc timeseries-v15-vol-resolve
+      - name: Verify pins, hashes, recompute and completeness
+        env:
+          # verify 가 'main CI 인데 무장행 없음'(arming_not_written)을 실패로 잡게 한다. V15 테스트는 이 변수를 delenv 하고 시작한다.
+          V15_VOL_ARMING_CONTEXT: main_scheduled_ci
+        run: |
+          python -m ai_fc timeseries-v15-vol-verify
+          pytest src/tests/test_timeseries_v15_vol_contract.py src/tests/test_timeseries_v15_vol_arms.py src/tests/test_timeseries_v15_vol_shadow.py src/tests/test_timeseries_v15_vol_resolve.py -q
+      - name: Commit only the registered V15-VOL shadow ledgers
+        shell: bash
+        run: |
+          python -m ai_fc inventory
+          # 허용 목록 + 존재하는 파일만 add (없는 경로 git add 는 fatal — 2026-09-09 실측)
+          allow="data/timeseries_v15_vol/ledgers/arming.jsonl data/timeseries_v15_vol/ledgers/vol15_shadow.jsonl data/timeseries_v15_vol/ledgers/vol15_shadow_resolutions.jsonl docs/generated/inventory.generated.md"
+          for f in $allow; do
+            if [ -f "$f" ]; then git add "$f"; fi
+          done
+          unexpected="$(git diff --cached --name-only | grep -Ev '^(data/timeseries_v15_vol/ledgers/(arming|vol15_shadow|vol15_shadow_resolutions)\.jsonl|docs/generated/inventory\.generated\.md)$' || true)"
+          test -z "$unexpected" || { echo "unexpected shadow paths: $unexpected"; exit 1; }
+          if ! git diff --cached --quiet; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git commit -m "data: append V15-VOL shadow rows"
+            git pull --rebase origin main
+            git push
+          fi
