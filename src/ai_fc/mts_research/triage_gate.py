@@ -7,6 +7,7 @@
 - ``--report``: 이미 있는 보고 JSON 을 분류한다.
 - ``--wrap-stdout``(v2_verify 만): 명령을 감싸 stdout 을 파일에 받고, 명령이 1 로 끝나면 그 파일을
   보고로 분류한다. ``--wrap-stderr-last-line``(v2_monitor 만): stderr 마지막 비어 있지 않은 줄을 분류한다.
+  감싼 명령이 stderr 를 한 줄도 내지 않고 1 로 끝나면 분류 없이 fail(1)이다(U2b 리뷰 N3 — 은닉 방지).
 - 감싼 명령이 0 이면 분류 없이 0, 0·1 이 아니면 분류 없이 그 코드를 그대로 낸다(더 엄격). 신호 종료
   (Popen returncode < 0)는 셸 관례대로 ``128 + n`` 이다.
 - 종료코드: 0 = ok·notice·pending·by_design·known_stall, 1 = fail·escalate, 2 = 입력 오류, 3 = unexpected.
@@ -174,6 +175,14 @@ def main(argv: Sequence[str] | None = None) -> int:
             return exit_code
         if mode == "wrap_stdout":
             report = str(stdout_path)
+        elif last_line is None:
+            # 무출력 exit 1 은 설계상 종료 문구를 확인할 수 없다 — 분류기의 log_line=None(보조 증거 없음) 경로로
+            # 넘기면 봉인 gate_pass=false 만으로 by_design 이 되어 숨는다. wrap 모드에서는 fail(1)로 닫는다(U2b 리뷰 N3).
+            print("::error title=ingest-triage v2_monitor::wrapped command exited 1 without any stderr line")
+            _write_json_atomic(out, {"gate": "command_failed_without_stderr", "wrapped_exit_code": code,
+                                     "exit_code": 1, "status": "fail", "kind": args.kind, "schema": GATE_SCHEMA,
+                                     "mode": mode, "wrapped_command": command, "notice": NOTICE})
+            return 1
         else:
             input_path = out.with_name(out.name + ".input.json")
             _write_json_atomic(input_path, {"log_line": last_line})

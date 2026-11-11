@@ -122,6 +122,18 @@ def test_monitor_by_design_last_line_is_zero_and_other_line_is_one(tmp_path):
     assert other == 1
 
 
+def test_monitor_silent_exit_one_fails_instead_of_by_design(tmp_path, capsys):
+    """U2b 리뷰 N3: stderr 무출력 exit 1 은 설계상 종료 문구를 확인할 수 없으므로 by_design 으로 숨기지 않는다."""
+    out = tmp_path / "monitor.json"
+    code = _run(["--kind", "v2_monitor", "--wrap-stderr-last-line", "--out", str(out), "--",
+                 *_script("import sys; sys.exit(1)")])
+    assert code == 1
+    payload = json.loads(out.read_text(encoding="utf-8"))
+    assert payload["gate"] == "command_failed_without_stderr" and payload["status"] == "fail"
+    assert not (tmp_path / "monitor.json.input.json").exists()
+    assert "::error title=ingest-triage v2_monitor::" in capsys.readouterr().out
+
+
 def test_report_mode_v2_refresh_known_stall_annotation_and_summary(tmp_path, monkeypatch, capsys):
     summary = tmp_path / "summary.md"
     monkeypatch.setenv("GITHUB_STEP_SUMMARY", str(summary))

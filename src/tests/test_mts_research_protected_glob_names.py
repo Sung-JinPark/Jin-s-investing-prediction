@@ -66,6 +66,8 @@ AUDIT_FILES = (
     "src/tests/test_timeseries_v13_verdict_report.py",
     "src/tests/test_timeseries_v13_verdict_apply.py",
     "src/tests/test_timeseries_v13_jump_caveat.py",
+    # U2b (2026-11-11): v2-refresh market 보고 분류 — 보호 워크플로 밖의 비라이터
+    ".github/workflows/mts-ingest-triage.yml",
 )
 
 AUDIT_GLOBS = (

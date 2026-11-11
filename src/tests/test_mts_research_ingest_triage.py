@@ -418,12 +418,12 @@ def test_monitor_other_failures_fail():
 def test_cli_payload_fields_and_exit_codes():
     """U2a: CLI 는 해시 고정 정책으로 FED_EBP 를 known_stall 로 판정한다(순수 함수는 종전대로 unexpected).
 
-    workflow_wired 는 kind 별 — U2a 는 daily6m_sources 만 배선했다(v2_* 는 U2b 에서 True 로 갱신)."""
+    workflow_wired 는 kind 별 — U2a 는 daily6m_sources, U2b 가 v2_*(verify·monitor 관문, refresh 는 mts-ingest-triage)를 배선했다."""
     code, payload = run_cli(ROOT, _args(kind="v2_refresh", report=str(FIXTURES / "v2_refresh_market_42950811442.json")))
     assert code == 0 and payload["status"] == "known_stall"
     assert payload["now_source"] == "report_market_retrieved_at"
     for key, value in (("display_only", True), ("scoring_excluded", True), ("notice", "참고 의견, 매매 신호 아님"),
-                       ("network_fetch_enabled", False), ("workflow_wired", False), ("records_values", False),
+                       ("network_fetch_enabled", False), ("workflow_wired", True), ("records_values", False),
                        ("single_episode", True), ("ledger", None)):
         assert payload[key] == value
     assert payload["n"] == 4 and payload["n_dates"] >= 1

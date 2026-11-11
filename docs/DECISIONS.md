@@ -3028,3 +3028,60 @@ V15 가 매일 기록·채점하는 이 양은 V14 라이브 전진(V14-D10 미�
 **후속 일정.** U2a 달력 정정은 2026-12-29 전 머지 · U6 첫 체크포인트(rv_h5) 약 2026-12-10, vix25_h21·rv_h21 약 2027-01-05 — 사람이 대화형 세션에서 실행 ·
 U3 r3 PR(머지 뒤 mde_replay·A0 identity 디스패치, PASS 면 허용 목록만) · U5 effective_from 1줄(머지 뒤 첫 main 예약 무장행) · U4 첫 v2 run 의 `pair_status` 확인 ·
 U1 첫 dispatch 의 소급 append 확인.
+
+## 2026-11-11 — MTS U2b: timeseries-v2-refresh 배선·market 분류 분리 (위임 결정, PR-2)
+
+**지시(위임형).** U2a 항목과 같다 — "네가 나머지 작업 다 완료시켜.  네가 최적의 선택을 내려서 u1~u7까지 다 진행시켜"
+(approval_form delegated_bundle_instruction · literal_template_match false · 지시 시각 상한 2026-11-11T09:03:44Z). 편집 영수증의 approval 블록은
+V14·V13 선례 형식이다 — approval_text = 원문(공백 2칸), template_text = 이 편집의 요약.
+
+**보호 파일 편집 절차.** `.github/workflows/timeseries-v2-refresh.yml` 은 V7 기준선 glob(predecessor_workflow)·PROTECTED_GLOBS·설계서 §5-16 대상이다.
+V7 기준선은 재생성하지 않는다(동결 증거, 파일 sha 06f8396d 무변경 — 이미 어긋남 162/11,566/204). 대신 편집 영수증
+`data/mts_research/contracts/protected_workflow_edit_receipts_v1.json` 에 `u2b-20261111-timeseries-v2-refresh`(pin:true)를 append 했다 —
+전 sha256 f5473a4fb02a6b4f46f96e948348346181104ce291b47e32a96892ffade8edaa(git blob 9f5320b3…, 기준 커밋 db8b75cc = origin/main),
+후 sha256 a2d8d2e21da586ad98aa081de7203acbdd1b0894f9eb2a4d9f982b6486b07413(LF). 핀 테스트
+(`test_mts_research_triage_wiring.py::test_protected_edit_receipt_pins_current_bytes`)가 현재 바이트를 고정한다 — 이후 편집은 새 영수증 항목
+append(before = 직전 after)로만 초록이 된다. U2a 의 scenario.py 항목(pin:false)은 바이트 그대로다.
+
+**배선(바뀐 단계만, 나머지 바이트 동일).**
+- market 단계: `id: market_refresh`, `shell: bash`(pipefail), stdout 을 `.tmp/v2-refresh-report.json` 으로 tee. **바로 다음 단계**에서
+  `v2-refresh-market-report` artifact 로 보존(include-hidden-files: true, if-no-files-found: error, 14일) — 뒤 단계가 실패해도 보고는 남는다.
+- prepare: 호출 인자는 그대로, 출력 JSON 의 `knowledge_cutoff` 를 `V2_PREPARE_CUTOFF` 로 GITHUB_ENV 에 내보낸다(prepare 동작 바이트 동일).
+- verify 는 `triage_gate --kind v2_verify --now "$V2_PREPARE_CUTOFF" --wrap-stdout` 으로 감싼다 — 날짜 경계 거짓 실패(DFM 컷오프)만 notice·0,
+  그 밖 실패는 1/3, 감싼 명령의 0·1 밖 종료코드는 분류 없이 그대로.
+- 첫 토요일 monitor 는 `triage_gate --kind v2_monitor --wrap-stderr-last-line` 으로 감싸 봉인 gate_pass=false 의 설계상 종료를
+  `by_design_notice` 로 둔다 — **2026-12-05 부터 첫 토요일 하류 단계(월간 workbook — 2026-08-21 이후 미실행, refit·forecast/resolve·verify·commit)가 다시 돈다.**
+- 맨 끝 `v2-ingest-triage-gates` 업로드(if: always(), include-hidden-files: true, if-no-files-found: ignore — 첫 토요일이 아니면 monitor 관문은 없다).
+- 이 run 안에 `--kind v2_refresh` 는 없고 `continue-on-error` 도 없다. 트리거·cron(20 8 * * 2-6)·checkpoint→relay→prepare 순서·PR 읽기 전용 문자열 2회·
+  런타임 핀(3.12.16·numpy 2.5.4·scipy 1.18.1·pandas 2.3.3)·커밋 허용 목록은 그대로다.
+
+**market 분류 분리.** market.failures 는 v2-refresh 안에서 분류하지 않는다. 새 비라이터 워크플로 `.github/workflows/mts-ingest-triage.yml`
+(workflow_run: timeseries-v2-refresh completed, 결론 무관 — 단 PR·main 밖·cancelled·skipped 제외, 수동 dispatch `run_id`)이 상류 artifact 를 받아
+`triage_gate --kind v2_refresh` 로 분류한다. `contents: read`·`actions: read`, git 쓰기 없음, v2-refresh 와 같은 런타임 핀(봉인 파서 오류문 완전일치).
+판정 시각은 보고의 market.retrieved_at 이라 늦게 돌아도 판정은 같다(PIT). 상류가 보고 보존 전에 실패했으면 notice 만 남기고(상류 실패가 곧 경보),
+success 인데 보고가 없으면 error 다. 그래서 v2-refresh 결론과 그것을 success 로 듣는 하류(pages·verify·timeseries-daily6m·v13·v8-daily, U3·U5 신규)는
+market 분류에 묶이지 않는다. mts-ingest-triage 는 ops-failure-alert 감시 목록에 올렸다(`git push` 가 없어 3곳 등록 의무는 없다 — pages·verify 미등록).
+`ingest_triage.WIRED_KINDS` 를 {daily6m_sources, v2_refresh, v2_verify, v2_monitor} 로 넓혔다(CLI 의 `workflow_wired` 표시만 바뀐다).
+FED_EBP 보완 원장 append 는 U1 감시 워크플로(`mts-coherence-monitor.yml` 의 fed-ebp-sidecar 단계)가 맡고, U2b 테스트
+`test_u1_monitor_appends_fed_ebp_sidecar` 가 그 단계·체인 검증·커밋 허용 경로와 U1 예약 집합(정책 96h 근거)을 단언한다 — 머지 순서 U2a → U1 → U2b 의 기계 강제.
+
+**효력.** 단계 종료코드와 주석뿐 — 예측·게이트·승격·숨김·재예측과 무관(참고 의견, 매매 신호 아님). LLM·API 비용 0.
+
+**첫 토요일 경로 dry-run(머지 전 필수, 실행함).** 2026-11-12 KST 00:01~00:03, 저장소 밖 스크래치 사본(HEAD dfd7ca9e 의 `git archive` + U2b 작업트리,
+실데이터)에서 `python -m ai_fc timeseries-v2-fit` → exit 0(42.6s, run_id tsv2-fit-6c77e4c93f5ac2ba8394a0b7, candidate C1, as_of 2026-11-06,
+backtest_gate_pass false), 이어 `python -m ai_fc timeseries-v2-workbook` → exit 0(59.4s, 8 sheets Sources·Observations·Vintages·Features·
+Forecasts·Backtest·ModelCard·RunManifest, sources 22, observation rows 73,535, sha256 d10feed91ce08450…, 3,648,443 B). 산출 파일은
+`data/timeseries_v2/models/{fit_latest.json, tsv2-fit-6c77e4c93f5ac2ba8394a0b7.json, .npz}` 와 `data/timeseries_v2/workbooks/multivariate_timeseries_v2_latest.xlsx`
+4개뿐이고 모두 커밋 단계 허용 목록(`data/timeseries_v2/.*`) 안이다. 한계: 로컬 런타임은 Python 3.12.10·numpy 2.4.3·scipy 1.17.1 로 CI 핀
+(3.12.16·2.5.4·1.18.1)과 다르다 — 경로·입력 형식 확인이지 바이트 재현은 아니다. 감싼 monitor 의 실제 20,000 경로 실행은 하지 않았다
+(봉인 gate_pass=false 의 설계상 종료 문구는 U2a 관문 테스트가 고정).
+
+**적대적 리뷰 처분(review_u2b).** B1(dry-run 미실행) → 위와 같이 실행. N1(market 보고 업로드가 checkpoint 앞의 새 하드 의존) → 위치는 명세대로
+유지하고(뒤 단계 실패에도 보고 보존) 영수증 `changed_effects`·KNOWN_LIMITS 71 에 실패 경로를 공시. N2(재시도 409) → 세 업로드 모두 `overwrite: true`.
+N3(무출력 exit 1 이 by_design 으로 숨음) → `triage_gate` wrap-stderr 모드에서 stderr 0줄 exit 1 은 분류 없이 fail(1). N4(첫 토요일 하류 리스너 발화)
+→ 영수증 `changed_effects` 공시. N5(timed_out 등 + 보고 없음 → error) → 의도(ops 는 failure 만 감시하므로 유익한 중복)로 KNOWN_LIMITS 71 에 기재.
+N6 → market 단계 pipefail·verify 관문 1/3 이 pytest 전에 멈춤·상류 failure+artifact 다운로드 케이스를 실제 bash 테스트로 추가(gh `--jq` expired 필터는
+스텁이 우회 — 미검증으로 남김). N7 → 관문 업로드에 verify 원보고·monitor 입력을 함께 보존. N8 → fetch 단계가 `run_id` 를 양의 정수로 검사(아니면 exit 2,
+gh 호출 전).
+
+**머지 전 남은 확인.** 이 PR 이 부르는 timeseries-v2-refresh PR run 로그(pipefail·GITHUB_ENV·artifact 업로드). 한계는 KNOWN_LIMITS 71.
