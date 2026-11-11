@@ -199,7 +199,10 @@ def check_ipo_sources(status: dict[str, Any] | None, *, now: datetime) -> list[d
         findings.append(_finding("ipo_sources", "fail", "IPO 수집", f"마지막 확인 {status.get('checked_at')}"))
     for name in ("ritter", "nasdaq"):
         state = (status.get(name) or {}).get("status")
-        findings.append(_finding("ipo_sources", "ok" if state == "current" else "fail", name, f"상태 {state}"))
+        errors = (status.get(name) or {}).get("errors") or []
+        detail = f"상태 {state}" + (" — " + ", ".join(f"{row.get('month')} {row.get('error')}" for row in errors)
+                                     if errors else "")
+        findings.append(_finding("ipo_sources", "ok" if state == "current" else "fail", name, detail))
     months = sorted(((status.get("nasdaq") or {}).get("months") or {}).keys())
     expected = _previous_month(now.date())
     if now.day > 5 and (not months or months[-1] < expected):
