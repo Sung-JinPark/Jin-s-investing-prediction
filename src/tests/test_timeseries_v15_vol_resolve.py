@@ -194,8 +194,8 @@ def test_unarmed_resolve_writes_nothing(tmp_path: Path) -> None:
 
 
 def test_real_v13_resolutions_pass_xnas_guard_snapshot() -> None:
-    """고정 스냅샷: resolved_session ≤ 2026-11-10 인 V13 해상행 189개 전부가 V15 래퍼 가드를 통과한다(읽기 전용)."""
-    rows = [r for r in read_jsonl(ROOT / V13_RES) if r["resolved_session"] <= "2026-11-10"]
+    """고정 스냅샷: resolved_session ≤ 2026-11-09 인 V13 해상행 189개(작성 시점 원장 전체 — 이후 행이 늘어도 고정) 전부가 V15 래퍼 가드를 통과한다(읽기 전용)."""
+    rows = [r for r in read_jsonl(ROOT / V13_RES) if r["resolved_session"] <= "2026-11-09"]
     assert len(rows) == 189
     for row in rows:
         target = R._xnas_session_offset(date.fromisoformat(row["origin"]), int(row["horizon_sessions"]))
