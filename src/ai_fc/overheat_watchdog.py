@@ -33,6 +33,7 @@ CONTRACT_RELATIVE = Path("data/contracts/dotcom_overheat_index_v5.yaml")
 SNAPSHOT_RELATIVE = Path("data/statistics/dotcom_statistics_latest.json")
 IPO_STATUS_RELATIVE = Path("data/statistics/ipo/monthly_counts_status.json")
 WATCH_RELATIVE = Path("data/statistics/ipo/theme_listing_watch.json")
+PROFILE_RELATIVE = Path("data/statistics/overheat/profile_latest.json")
 LIVE_DATA_URL = "https://sung-jinpark.github.io/Jin-s-investing-prediction/data.json"
 FRED_SERIES_URL = "https://api.stlouisfed.org/fred/series?series_id={sid}&file_type=json&api_key={key}"
 USER_AGENT = "JinsInvestingOverheatWatchdog/1.0 (+public research dashboard)"
@@ -48,6 +49,8 @@ ACTIVE_VENUES = ("cn_a", "hk_main", "kr", "jp", "tw_twse", "tw_tpex")
 SILENT_VENUE_DAYS = 45
 #: 홍콩 New Listing Report 는 2주 남짓 간격으로 갱신된다 — 이보다 오래 멈추면 경고.
 HK_REPORT_MAX_LAG_DAYS = 35
+#: 부문별 프로필의 기준일(마지막 NASDAQ 거래일)이 이보다 오래되면 갱신이 멈춘 것이다 — 연휴 포함 여유.
+PROFILE_MAX_AGE_DAYS = 6
 #: Z.1 직접 수집 계열의 FRED 미러(같은 Financial Accounts 코드).
 FRED_MIRRORS = {"FL663067003": "BOGZ1FL663067003Q", "FL103163005": "BOGZ1FL103163005Q",
                 "FA103163005": "BOGZ1FA103163005Q"}
@@ -252,6 +255,46 @@ def check_theme_watch(watch: dict[str, Any] | None, *, now: datetime) -> list[di
 # ── 종합 ─────────────────────────────────────────────────────────────────
 
 
+def check_profile(profile: dict[str, Any] | None, live: dict[str, Any] | None, *, now: datetime) -> list[dict[str, str]]:
+    """부문별 프로필(dotcom_overheat_profile_v1) — 산출물이 살아 있고 합산 없이 사이트에 실렸는가."""
+    if profile is None:
+        return [_finding("profile", "fail", "프로필", "산출물 없음 — overheat-profile 단계가 돌지 않았다")]
+    findings = []
+    if profile.get("composite") is not None:
+        findings.append(_finding("profile", "fail", "프로필", "합산 값이 들어 있다 — 계약 위반(no_composite)"))
+    if profile.get("status") != "ok":
+        findings.append(_finding("profile", "warn", "프로필",
+                                 f"상태 {profile.get('status')} — {profile.get('reason')}"))
+        return findings
+    rows = [row for family in profile.get("families") or [] for row in family.get("indicators") or []]
+    held = [str(row.get("label")) for row in rows if row.get("status") != "ok"]
+    try:
+        age = (now.date() - date.fromisoformat(str(profile.get("as_of")))).days
+    except ValueError:
+        age = None
+    if age is None or age > PROFILE_MAX_AGE_DAYS:
+        findings.append(_finding("profile", "fail", "프로필", f"기준일 {profile.get('as_of')} — {age}일 전"))
+    elif held:
+        findings.append(_finding("profile", "warn", "프로필", f"점수 없는 지표: {', '.join(held)}"))
+    else:
+        findings.append(_finding("profile", "ok", "프로필", f"기준일 {profile.get('as_of')} · 지표 {len(rows)}개"))
+    if isinstance(live, dict):
+        shown = live.get("dotcom_overheat_profile") or {}
+        if shown.get("status") != "ok":
+            findings.append(_finding("profile", "warn", "사이트 프로필",
+                                     f"사이트 상태 {shown.get('status')} — {shown.get('reason')}"))
+        elif shown.get("composite") is not None:
+            findings.append(_finding("profile", "fail", "사이트 프로필", "사이트 데이터에 합산 값이 있다"))
+        else:
+            ours, theirs = _ts(profile.get("generated_at")), _ts(shown.get("generated_at"))
+            if ours and theirs and (ours - theirs) > timedelta(hours=LIVE_MAX_LAG_HOURS):
+                findings.append(_finding("profile", "warn", "사이트 프로필",
+                                         f"사이트 {shown.get('generated_at')} < 저장소 {profile.get('generated_at')}"))
+            else:
+                findings.append(_finding("profile", "ok", "사이트 프로필", f"기준일 {shown.get('as_of')}"))
+    return findings
+
+
 def run_watchdog(root: Path, *, now: datetime | None = None, fred_key: str | None = None,
                  last_success: str | None = None, live: dict[str, Any] | None | str = "fetch",
                  get: Callable[[str], bytes] = _get) -> dict[str, Any]:
@@ -279,6 +322,7 @@ def run_watchdog(root: Path, *, now: datetime | None = None, fred_key: str | Non
     findings += check_live_site(snapshot, live if isinstance(live, dict) else None, contract=contract)
     findings += check_ipo_sources(read(IPO_STATUS_RELATIVE), now=moment)
     findings += check_theme_watch(read(WATCH_RELATIVE), now=moment)
+    findings += check_profile(read(PROFILE_RELATIVE), live if isinstance(live, dict) else None, now=moment)
     counts = {state: sum(1 for row in findings if row["status"] == state) for state in ("fail", "warn", "ok")}
     return {
         "schema_version": 1,
@@ -288,7 +332,8 @@ def run_watchdog(root: Path, *, now: datetime | None = None, fred_key: str | Non
         "counts": counts,
         "thresholds": {"source_grace_hours": SOURCE_GRACE_HOURS, "refresh_max_hours": REFRESH_MAX_HOURS,
                        "live_max_lag_hours": LIVE_MAX_LAG_HOURS, "silent_venue_days": SILENT_VENUE_DAYS,
-                       "hk_report_max_lag_days": HK_REPORT_MAX_LAG_DAYS},
+                       "hk_report_max_lag_days": HK_REPORT_MAX_LAG_DAYS,
+                       "profile_max_age_days": PROFILE_MAX_AGE_DAYS},
         "findings": findings,
     }
 

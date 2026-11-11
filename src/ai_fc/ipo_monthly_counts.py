@@ -174,6 +174,48 @@ def parse_ritter_ipoall(raw: bytes) -> list[dict[str, Any]]:
     return parse_ritter_ipoall_rows(rows)
 
 
+def parse_ritter_first_day_returns_rows(rows: list[list[Any]]) -> dict[str, float | None]:
+    """IPOALL 시트 행 → {'YYYY-MM': 첫날 평균 수익률(%) 또는 None}.
+
+    열 2 = 그 달 IPO 의 평균 첫날 수익률(%). '.'·'na'·빈칸은 '없음'이지 0 이 아니다.
+    2026-11-11 사용자 결정으로 수치 입력 범위에 추가됐다(과열도 v6 IPO 부문). 월별 건수 표
+    (ritter_ipoall_monthly.json)는 건드리지 않고 같은 raw 파일에서 읽는다.
+    """
+    out: dict[str, float | None] = {}
+    for row in rows:
+        if len(row) < 4 or not _is_number(row[0]) or not _is_number(row[1]):
+            continue
+        month_number, year_number = float(row[0]), float(row[1])
+        if not month_number.is_integer() or not year_number.is_integer():
+            raise IPOMonthlyCountsError(f"IPOALL month/year not integral: {row[:2]!r}")
+        month = int(month_number)
+        if not 1 <= month <= 12:
+            raise IPOMonthlyCountsError(f"IPOALL month out of range: {month}")
+        key = f"{ritter_year(int(year_number)):04d}-{month:02d}"
+        if key in out:
+            raise IPOMonthlyCountsError(f"IPOALL duplicate month: {key}")
+        value = row[2]
+        if value is None or isinstance(value, str):
+            out[key] = None
+            continue
+        if not _is_number(value) or not -100.0 < float(value) < 1000.0:
+            raise IPOMonthlyCountsError(f"IPOALL {key} first-day return is not a percentage: {value!r}")
+        out[key] = float(value)
+    if not out:
+        raise IPOMonthlyCountsError("IPOALL has no monthly rows")
+    return out
+
+
+def parse_ritter_first_day_returns(raw: bytes) -> dict[str, float | None]:
+    from .statistics_lab import StatisticsLabError, _xlsx_sheet_rows
+
+    try:
+        rows = _xlsx_sheet_rows(raw, "IPOALL")
+    except StatisticsLabError as exc:
+        raise IPOMonthlyCountsError(f"IPOALL workbook unreadable: {exc}") from exc
+    return parse_ritter_first_day_returns_rows(rows)
+
+
 def last_confirmed_month(months: list[dict[str, Any]]) -> str | None:
     """net 값이 있는 마지막 달. 이후 빈 행이 있어도 그 달까지가 확정이다."""
     confirmed = [row["month"] for row in months if row.get("net") is not None]

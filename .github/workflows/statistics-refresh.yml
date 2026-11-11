@@ -46,6 +46,10 @@ jobs:
         run: python -m ai_fc theme-listing-watch
       - name: Fetch authoritative sources and append the official observation ledger
         run: python -m ai_fc statistics-refresh
+      - name: Build the dot-com overheat profile from the appended ledger (per-indicator, no composite)
+        # dotcom_overheat_profile_v1. Display-only and fail-soft: any failure writes a closed payload and exits 0,
+        # so it never blocks the official ledger commit below. overheat-watchdog reports a closed profile.
+        run: python -m ai_fc overheat-profile
       - name: Export the cumulative Excel audit view
         run: python -m ai_fc official-data-workbook
       - name: Validate statistics database and dashboard contract
@@ -58,6 +62,7 @@ jobs:
           src/tests/test_statistics_native.py
           src/tests/test_wti_history.py
           src/tests/test_dotcom_overheat.py
+          src/tests/test_dotcom_overheat_profile.py
           src/tests/test_statistics_freshness.py
           src/tests/test_statistics_refresh_workflow.py
           src/tests/test_theme_listing_watch.py
@@ -86,11 +91,12 @@ jobs:
             data/statistics/ipo/theme_listing_additions.csv \
             data/statistics/ipo/theme_listing_reviews.csv \
             data/statistics/ipo/theme_listing_pipeline.csv \
+            data/statistics/overheat/profile_latest.json \
             data/statistics/official_store/raw \
             data/statistics/official_store/ledgers \
             data/statistics/workbooks/official_data_latest.xlsx \
             docs/generated/inventory.generated.md
-          unexpected="$(git diff --cached --name-only | grep -Ev '^(data/statistics/(dotcom_statistics_latest.json|archive/.*|ipo/(reference_batch_(status.json|receipts/.*)|ritter_ipoall_monthly.json|nasdaq_calendar_monthly.json|monthly_counts_status.json|theme_listing_(watch.json|additions.csv|reviews.csv|pipeline.csv))|official_store/(raw|ledgers)/.*|workbooks/official_data_latest.xlsx)|docs/generated/inventory.generated.md)$' || true)"
+          unexpected="$(git diff --cached --name-only | grep -Ev '^(data/statistics/(dotcom_statistics_latest.json|archive/.*|ipo/(reference_batch_(status.json|receipts/.*)|ritter_ipoall_monthly.json|nasdaq_calendar_monthly.json|monthly_counts_status.json|theme_listing_(watch.json|additions.csv|reviews.csv|pipeline.csv))|overheat/profile_latest.json|official_store/(raw|ledgers)/.*|workbooks/official_data_latest.xlsx)|docs/generated/inventory.generated.md)$' || true)"
           if [ -n "$unexpected" ]; then
             echo "Unexpected or protected path staged by statistics refresh:"
             echo "$unexpected"

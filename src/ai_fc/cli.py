@@ -2137,6 +2137,18 @@ def cmd_overheat_watchdog(
     typer.echo(text)
 
 
+@app.command("overheat-profile")
+def cmd_overheat_profile() -> None:
+    """닷컴 정점 대비 부문별 프로필(합산 없음)을 원장에서 계산해 산출물로 쓴다."""
+    from .dotcom_overheat_profile import PROFILE_RELATIVE, materialize
+
+    payload = materialize(config.ROOT)
+    scores = " · ".join(f"{row['label']} {row['score']}" for family in payload.get("families") or []
+                        for row in family["indicators"] if row.get("status") == "ok")
+    typer.echo(f"과열도 프로필: {PROFILE_RELATIVE.as_posix()} · 상태 {payload['status']} · "
+               f"기준일 {payload.get('as_of')} · {scores or payload.get('reason')} · 합산 없음")
+
+
 @app.command("ipo-reference-batch")
 def cmd_ipo_reference_batch() -> None:
     """IPO 학술 원천 변경을 확인하고 현재 구간 검토 배치를 기록한다."""

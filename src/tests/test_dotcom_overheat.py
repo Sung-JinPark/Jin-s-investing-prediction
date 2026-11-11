@@ -182,6 +182,11 @@ def test_daily_refresh_reaches_pages_and_failure_monitor() -> None:
                  "data/statistics/ipo/theme_listing_reviews.csv",
                  "data/statistics/ipo/theme_listing_pipeline.csv"):
         assert path in commands
+    # 부문별 프로필(합산 없음)은 원장이 덧붙은 뒤에 계산되고 산출물이 커밋 대상이어야 한다.
+    assert commands.index("python -m ai_fc statistics-refresh") < commands.index("python -m ai_fc overheat-profile")
+    assert commands.count("data/statistics/overheat/profile_latest.json") == 1
+    assert "overheat/profile_latest.json|" in commands
+    assert "src/tests/test_dotcom_overheat_profile.py" in commands
     for name in ("pages", "ops-failure-alert"):
         doc = workflow(name)
         events = doc.get("on", doc.get(True))

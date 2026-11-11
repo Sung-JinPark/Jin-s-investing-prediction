@@ -1416,6 +1416,32 @@ function overheatIndicatorFreshness(row){
   const provisional=info.provisional_through?`잠정 참고 ${String(info.provisional_through).slice(0,7)} 최근 12개월${Number.isFinite(info.provisional_value)?` ${info.provisional_value.toLocaleString()}건`:''} · 확정치와 정의가 달라 지수에 미반영`:'';
   return {period:`${row.id==='ipo_count_operating_12m'?'확정 통계 기간':'통계 기간'} ${period}${source}`,check:`원천 확인 ${formatKstTimestamp(info.last_successful_check)} · ${labels[status]||labels.unverified}`,status,provisional,note:info.note||''};
 }
+/* 닷컴 정점 대비 지표별 프로필 (dotcom_overheat_profile_v1) — 지표별 닮음을 합치지 않고 나란히 보인다.
+   2000년 3월 = 100. 지수가 아니므로 합·평균·종합 등급·색 신호등을 만들지 않는다. 위의 v5 대표값과 척도가 다르고
+   그 내역도 아니다 — 그래서 카드 맨 아래에 따로 둔다. 0 의 뜻은 지표마다 다르다(수준형 = 1995~2019 중앙값,
+   상승 속도 = 상승률 0 — 장기 중앙값 위치를 점선으로 표시). 막대는 −50~150 구간에 그리고 숫자는 원값을 적는다. */
+function overheatProfileBlock(profile){
+  if(!profile||profile.status!=='ok'||!Array.isArray(profile.families))return '';
+  const born=Date.parse(`${profile.as_of}T00:00:00Z`),limit=Number(profile.max_age_days);
+  if(!Number.isFinite(born)||!Number.isFinite(limit)||(Date.now()-born)/86400000>limit+1)return '';
+  const LO=-50,HI=150,P=v=>(Math.max(LO,Math.min(HI,Number(v)))-LO)/(HI-LO)*100;
+  const signed=v=>{const n=Math.round(Number(v));return `${n>0?'+':''}${n}`;};
+  const marks=`<b class="ohp-zero" style="left:${P(0).toFixed(1)}%"></b><b class="ohp-peak" style="left:${P(100).toFixed(1)}%"></b>`;
+  const row=r=>{
+    if(r.status!=='ok'||r.score_raw==null||!Number.isFinite(Number(r.score_raw)))return `<li class="ohp-row"><em>${esc(r.label||r.id)}</em><span class="ohp-track">${marks}</span><strong>—</strong><span class="ohp-meta">확인 대기</span></li>`;
+    const a=P(0),b=P(r.score_raw),hasMedian=r.median_1995_2019!=null&&Number.isFinite(Number(r.median_1995_2019));
+    const bits=[];
+    if(r.change_4w!=null)bits.push(`4주 ${signed(r.change_4w)}`);else bits.push(`${esc(r.period||'')} 자료`);
+    if(r.high_12m&&r.high_12m.value!=null)bits.push(`1년 최고 ${esc(r.high_12m.value)}`);
+    if(r.previous&&r.previous.score!=null)bits.push(`직전 ${esc(r.previous.score)}`);
+    if(hasMedian)bits.push(`장기 중앙 ${esc(r.median_1995_2019)}`);
+    return `<li class="ohp-row"><em>${esc(r.label||r.id)}</em><span class="ohp-track"><i class="ohp-fill${r.score_raw<0?' is-neg':''}" style="left:${Math.min(a,b).toFixed(1)}%;width:${Math.abs(b-a).toFixed(1)}%"></i>${marks}${hasMedian?`<b class="ohp-median" style="left:${P(r.median_1995_2019).toFixed(1)}%"></b>`:''}</span><strong>${esc(r.score)}</strong><span class="ohp-meta">${bits.join(' · ')}</span></li>`;
+  };
+  const groups=profile.families.map(f=>`<div class="ohp-family"><h4>${esc(f.label||f.id)}</h4>${(f.indicators||[]).length?`<ul>${f.indicators.map(row).join('')}</ul>`:'<p class="ohp-none">미측정</p>'}</div>`).join('');
+  return `<div class="oh-profile" data-oh-profile="${esc(profile.as_of||'')}"><h3>지표별 닮음 <small>2000년 3월 = 100 · 위 대표값과 다른 척도</small></h3>`
+    +`<div class="ohp-family ohp-headrow" aria-hidden="true"><h4></h4><div class="ohp-row"><em></em><span class="ohp-ticks"><span style="left:${P(0).toFixed(1)}%">0</span><span class="is-peak" style="left:${P(100).toFixed(1)}%">100</span></span><strong></strong><span class="ohp-meta"></span></div></div>`
+    +groups+`<p class="oh-note">합산 지수 아님 · 대표값 내역 아님 · 0 = 1995~2019 중앙값(상승 속도는 상승률 0) · 확률 아님 · 참고 의견 · ${esc(profile.as_of)} 기준</p></div>`;
+}
 function statisticsOverheatPanel(idx){
   const sig=dotcomOverheatSignal(idx);
   if(!sig)return null;
@@ -1431,7 +1457,7 @@ function statisticsOverheatPanel(idx){
     +`<div class="oh-gauge"><div class="oh-gauge-bar"><i class="oh-span" style="left:${X(sig.lo).toFixed(1)}%;width:${(X(sig.hi)-X(sig.lo)).toFixed(1)}%"></i><b class="oh-peak" style="left:${X(100).toFixed(1)}%"></b><b class="oh-pin" style="left:${X(sig.pct).toFixed(1)}%"></b></div>`
     +`<div class="oh-gauge-scale"><span style="left:0">0%</span><span style="left:${X(50).toFixed(1)}%">50%</span><span class="is-peak" style="left:${X(100).toFixed(1)}%">닷컴 정점 100%</span></div></div></div>`
     +`<div class="oh-grid"><div><h3>부문별</h3><ul class="oh-list">${catRows}</ul></div><div><h3>지표별 ${rows.length}개</h3><ul class="oh-list is-indicators">${indRows}</ul></div></div>`
-    +`<p class="oh-note">확률 아님 · 100% = 닷컴 사이클 정점(1995~1999 범위 위치) · 부문 중앙값의 중앙값 · 참고 의견${idx.as_of?` · ${esc(idx.as_of)} 기준`:''}</p><p class="oh-note">통계 기간은 값이 측정된 기간이고 원천 확인은 공개 자료를 확인한 시각입니다. 분기 자료는 다음 발표 전까지 유지됩니다.</p></section>`);
+    +`<p class="oh-note">확률 아님 · 100% = 닷컴 사이클 정점(1995~1999 범위 위치) · 부문 중앙값의 중앙값 · 참고 의견${idx.as_of?` · ${esc(idx.as_of)} 기준`:''}</p><p class="oh-note">통계 기간은 값이 측정된 기간이고 원천 확인은 공개 자료를 확인한 시각입니다. 분기 자료는 다음 발표 전까지 유지됩니다.</p>`+overheatProfileBlock(DATA.dotcom_overheat_profile)+`</section>`);
   node.querySelectorAll('[data-oh-jump]').forEach(button=>button.onclick=()=>{
     const card=document.querySelector(`[data-stat-id="${CSS.escape(button.dataset.ohJump)}"]`);
     if(!card)return;
