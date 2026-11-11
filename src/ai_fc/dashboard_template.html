@@ -13,12 +13,12 @@
 </head>
 <body>
 <a class="skip-link" href="#app">본문으로 건너뛰기</a>
-<a class="admin-entry" href="#admin-stats" aria-label="관리자 방문 통계">ADMIN</a>
+<a class="admin-entry" href="#admin-stats" aria-label="관리자 방문 통계">관리자</a>
 <div class="product-shell">
   <aside class="product-rail" aria-label="제품 내비게이션">
     <a class="rail-brand" href="#today" aria-label="Jin's Investing 오늘 화면으로 이동">
       <span class="brand-mark" aria-hidden="true"></span>
-      <span class="rail-brand-copy"><strong>JIN'S INVESTING</strong><small>PREDICTION SYSTEM</small></span>
+      <span class="rail-brand-copy"><strong>JIN'S INVESTING</strong><small>투자 예측</small></span>
     </a>
     <nav class="view-nav" id="nav" aria-label="대시보드 화면">
       <a href="#today" data-v="today"><span class="rail-num">01</span><span class="rail-label">오늘</span></a>
@@ -36,24 +36,25 @@
       <button type="button" class="utility-action utility-open" data-action="utility" aria-label="보기 및 데이터 설정"><span>≡</span><small>보기</small></button>
     </div>
     <button type="button" class="rail-status utility-open" data-action="utility" aria-label="데이터 상태 열기">
-      <div class="rail-live"><span><i class="live-dot"></i><span class="freshness-label">DATA STATUS</span></span><b id="phase">—</b></div>
+      <div class="rail-live"><span><i class="live-dot"></i><span class="freshness-label">자료 상태</span></span><b id="phase">—</b></div>
       <p class="rail-index" id="rail-index">NASDAQ —</p>
       <p class="rail-asof" id="asof">갱신 시각 확인 중</p>
     </button>
   </aside>
 
   <header class="mobile-header">
-    <a class="mobile-brand" href="#today"><span class="brand-mark" aria-hidden="true"></span>JIN'S / PREDICTION</a>
+    <a class="mobile-brand" href="#today"><span class="brand-mark" aria-hidden="true"></span>JIN'S / 투자 예측</a>
     <div class="mobile-actions">
-      <a class="admin-entry" href="#admin-stats" aria-label="관리자 방문 통계">ADMIN</a>
-      <button type="button" class="menu-button" id="menu-open" aria-expanded="false" aria-controls="mobile-drawer">MENU</button>
+      <a class="admin-entry" href="#admin-stats" aria-label="관리자 방문 통계">관리자</a>
+      <button type="button" class="mobile-tool command-open" aria-label="빠른 이동 열기">검색</button>
+      <button type="button" class="menu-button" id="menu-open" aria-expanded="false" aria-controls="mobile-drawer">메뉴</button>
     </div>
   </header>
   <div class="drawer-backdrop" id="drawer-backdrop" aria-hidden="true"></div>
   <aside class="mobile-drawer" id="mobile-drawer" aria-label="모바일 내비게이션" aria-hidden="true">
     <div class="drawer-head">
-      <span class="mobile-brand"><span class="brand-mark" aria-hidden="true"></span>JIN'S / PREDICTION</span>
-      <button type="button" class="drawer-close" id="menu-close" aria-label="메뉴 닫기">CLOSE</button>
+      <span class="mobile-brand"><span class="brand-mark" aria-hidden="true"></span>JIN'S / 투자 예측</span>
+      <button type="button" class="drawer-close" id="menu-close" aria-label="메뉴 닫기">닫기</button>
     </div>
     <nav class="view-nav" id="mobile-nav" aria-label="모바일 대시보드 화면">
       <a href="#today" data-v="today"><span class="rail-num">01</span><span class="rail-label">오늘</span></a>
@@ -67,7 +68,7 @@
       <button type="button" class="utility-action" data-action="share" aria-label="현재 화면 공유"><span>↗</span><small>공유</small></button>
       <button type="button" class="utility-action utility-open" data-action="utility" aria-label="보기 및 데이터 설정"><span>≡</span><small>보기</small></button>
     </div>
-    <button type="button" class="drawer-meta utility-open" data-action="utility" aria-label="데이터 상태 열기"><span class="live-dot"></span> <span class="freshness-label">DATA STATUS</span><br><span id="drawer-asof">갱신 시각 확인 중</span></button>
+    <button type="button" class="drawer-meta utility-open" data-action="utility" aria-label="데이터 상태 열기"><span class="live-dot"></span> <span class="freshness-label">자료 상태</span><br><span id="drawer-asof">갱신 시각 확인 중</span></button>
   </aside>
 
   <div class="content-shell">
@@ -76,7 +77,7 @@
     <footer class="site-footer">
       <div class="footer-brand"><span class="brand-mark"></span>JIN'S INVESTING</div>
       <p>정보 제공 목적 · 투자 자문이나 매매 권유가 아닙니다 · 과거 기록은 미래 성과를 보장하지 않습니다</p>
-      <p>확률 예측은 캘리브레이션으로 지속 검증됩니다</p>
+      <p>예측 확률과 실제 결과를 지속적으로 비교합니다</p>
     </footer>
   </div>
 </div>
@@ -91,14 +92,13 @@
 <div class="command-layer" id="command-layer" aria-hidden="true" hidden>
   <button type="button" class="command-scrim" id="command-scrim" aria-label="빠른 이동 닫기"></button>
   <section class="command-palette" role="dialog" aria-modal="true" aria-labelledby="command-title">
+    <div class="command-topline"><h2 id="command-title">빠른 이동</h2><button type="button" class="command-close" id="command-close" aria-label="빠른 이동 닫기">닫기</button></div>
     <div class="command-head">
       <span aria-hidden="true">⌕</span>
-      <input type="text" id="command-input" placeholder="어디로 갈까요? 화면·기능·예측 질문 검색" autocomplete="off">
-      <kbd>ESC</kbd>
+      <input type="text" id="command-input" aria-label="화면·질문·기능 검색" placeholder="화면·질문·기능 검색" autocomplete="off">
     </div>
-    <h2 id="command-title" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)">빠른 이동</h2>
     <div class="command-results" id="command-results"></div>
-    <div class="command-foot"><span><kbd>↑↓</kbd> 이동 · <kbd>Enter</kbd> 열기 · <kbd>ESC</kbd> 닫기</span><span>화면·기능·예측 질문을 한 곳에서</span></div>
+    <div class="command-foot"><span><kbd>↑↓</kbd> 이동 · <kbd>Enter</kbd> 열기 · <kbd>Esc</kbd> 닫기</span></div>
   </section>
 </div>
 <div class="utility-layer" id="utility-layer" aria-hidden="true" hidden>
@@ -111,7 +111,7 @@
 <div class="shortcut-layer" id="shortcut-layer" aria-hidden="true" hidden>
   <button type="button" class="utility-scrim" id="shortcut-scrim" aria-label="단축키 도움말 닫기"></button>
   <section class="shortcut-sheet" id="shortcut-sheet" role="dialog" aria-modal="true" aria-labelledby="shortcut-title">
-    <div class="shortcut-head"><h2 id="shortcut-title">키보드 단축키</h2><button type="button" class="shortcut-close" id="shortcut-close" aria-label="단축키 도움말 닫기">CLOSE</button></div>
+    <div class="shortcut-head"><h2 id="shortcut-title">키보드 단축키</h2><button type="button" class="shortcut-close" id="shortcut-close" aria-label="단축키 도움말 닫기">닫기</button></div>
     <div class="shortcut-grid">
       <div><span>빠른 이동</span><kbd>⌘ / Ctrl K</kbd></div><div><span>검색</span><kbd>/</kbd></div>
       <div><span>단축키 도움말</span><kbd>?</kbd></div><div><span>현재 화면 고정</span><kbd>Shift P</kbd></div>
@@ -124,7 +124,7 @@
 <div class="share-layer" id="share-layer" aria-hidden="true" hidden>
   <button type="button" class="share-scrim" id="share-scrim" aria-label="공유 창 닫기"></button>
   <section class="share-popover" id="share-popover" role="dialog" aria-modal="true" aria-labelledby="share-title">
-    <header><div><span>SHARE SNAPSHOT</span><h2 id="share-title">현재 화면 공유</h2></div><button type="button" id="share-close" aria-label="공유 창 닫기">CLOSE</button></header>
+    <header><div><span>공유</span><h2 id="share-title">현재 화면 공유</h2></div><button type="button" id="share-close" aria-label="공유 창 닫기">닫기</button></header>
     <div class="share-summary" id="share-summary"></div>
     <div class="share-grid" id="share-grid">
       <button type="button" data-share-target="copy">링크 복사</button>
@@ -144,7 +144,7 @@
 <nav class="view-map" id="view-map" aria-label="현재 화면 목차" hidden><div id="view-map-items"></div></nav>
 <aside class="quick-peek" id="quick-peek" role="tooltip" aria-hidden="true" hidden></aside>
 <aside class="compare-tray" id="compare-tray" aria-label="예측 비교 선택" hidden>
-  <button type="button" class="compare-toggle" id="compare-toggle" aria-expanded="true" aria-controls="compare-items"><span>COMPARE</span><b id="compare-count">0</b><i>⌄</i></button>
+  <button type="button" class="compare-toggle" id="compare-toggle" aria-expanded="true" aria-controls="compare-items"><span>비교</span><b id="compare-count">0</b><i>⌄</i></button>
   <div class="compare-items" id="compare-items"></div>
   <div class="compare-tray-actions"><button type="button" id="compare-clear">초기화</button><button type="button" class="compare-open" id="compare-open">비교 보기</button></div>
 </aside>
@@ -152,21 +152,21 @@
   <button type="button" class="briefing-scrim" id="briefing-scrim" aria-label="브리핑 닫기"></button>
   <section class="briefing-sheet" id="briefing-sheet" role="dialog" aria-modal="true" aria-labelledby="briefing-title">
     <header class="briefing-head">
-      <div><strong id="briefing-title">MARKET BRIEFING</strong><span class="briefing-step-label" id="briefing-step-label">01 / 03</span></div>
-      <button type="button" class="briefing-close" id="briefing-close" aria-label="브리핑 닫기">CLOSE</button>
+      <div><strong id="briefing-title">시장 브리핑</strong><span class="briefing-step-label" id="briefing-step-label">01 / 03</span></div>
+      <button type="button" class="briefing-close" id="briefing-close" aria-label="브리핑 닫기">닫기</button>
     </header>
     <div class="briefing-progress" id="briefing-progress" aria-hidden="true"><i></i><i></i><i></i></div>
     <div class="briefing-content" id="briefing-content" aria-live="polite"></div>
     <footer class="briefing-foot">
       <small>← → 이동 · ESC 닫기 · 기존 예측 데이터를 요약한 보기입니다</small>
       <div class="briefing-controls">
-        <button type="button" id="briefing-prev">← PREVIOUS</button>
-        <button type="button" id="briefing-next">NEXT →</button>
+        <button type="button" id="briefing-prev">← 이전</button>
+        <button type="button" id="briefing-next">다음 →</button>
       </div>
     </footer>
   </section>
 </div>
-<button type="button" class="focus-exit" id="focus-exit" aria-label="집중 모드 종료" hidden>EXIT FOCUS · ESC</button>
+<button type="button" class="focus-exit" id="focus-exit" aria-label="집중 모드 종료" hidden>집중 모드 종료 · Esc</button>
 <div class="toast-region" id="toast-region" aria-live="polite" aria-atomic="true"></div>
 
 <script>

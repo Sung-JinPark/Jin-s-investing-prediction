@@ -692,10 +692,10 @@ def test_workspace_utility_contract() -> None:
     assert "@media print" in html
     assert "COMMAND_ROUTES" in html and "commandCatalog" in html
     assert "data-command-index" in html
-    assert "WHY IT MATTERS" in html and "DECISION WINDOW" in html
-    assert "한 줄 해석" in html and "관찰 변수" in html
+    assert "살펴볼 이유" in html and "'판정 일정'" in html and "WHY IT MATTERS" not in html
+    assert "한 줄 해석" in html and 'peek-driver-label">요인</span>' in html
     assert "probability==null||probability===''" in html
-    assert "WHAT CHANGED" in html and "MY RADAR" in html
+    assert "달라진 점" in html and "관심 질문" in html and "MY RADAR" not in html
     # 'SCENARIO VINTAGE' 라벨은 렌더되지 않던 vintageReceipt 안에만 있었다.
     # 신선도 판정 로직 자체(scenarioVintage)는 그대로 살아 있어야 한다.
     assert "function scenarioVintage()" in html and "SCENARIO VINTAGE" not in html
@@ -717,11 +717,11 @@ def test_workspace_utility_contract() -> None:
     assert 'class="table-shell question-table-shell"' in html
     assert 'class="mobile-question-card"' in html
     assert "className='compare-readout'" in html
-    assert "REVIEW QUEUE" in html and "data-review-dismiss" in html
+    assert "검토할 질문" in html and "data-review-dismiss" in html
     assert "compareCollapsed" in html and "compareAutoExpanded" in html
     assert "questionView" in html and "검토 우선순위" in html
     assert "version:4" in html and "layout:'table'" in html
-    assert "WHAT CHANGED · R${previous.round} → R${current.round}" in html
+    assert "달라진 점 · R${previous.round} → R${current.round}" in html
     assert "이전 회차와 근거 나란히 보기" in html
     assert "저장된 근거 원문이 없습니다" in html
     assert "집계 기준 상이" in html and "const maxIndex=focus==='ALL'?CAP" in html
@@ -2105,3 +2105,27 @@ def test_embed_budget_constant_matches_payload_contract_adr_004() -> None:
     assert dashboard.DASHBOARD_RAW_BUDGET_BYTES == 2048 * 1024
     assert budgets["embed_html_max_bytes"] == dashboard.DASHBOARD_RAW_BUDGET_BYTES
     assert budgets["embed_html_max_kib"] * 1024 == budgets["embed_html_max_bytes"]
+
+
+def test_every_registered_driver_has_a_display_label() -> None:
+    """레지스트리의 공유 드라이버 태그가 라벨 없이 원시 ID('labor market')로 보이지 않게 한다."""
+    import yaml
+
+    root = Path(__file__).resolve().parents[2]
+    script = dashboard.DASHBOARD_SCRIPT.read_text(encoding="utf-8")
+    block = script[script.index("const DRIVER_LABELS"):]
+    labels = set(re.findall(r"'([a-z0-9-]+)':", block[:block.index("});")]))
+    registry = yaml.safe_load((root / "questions/registry.yaml").read_text(encoding="utf-8"))
+    questions = registry["questions"] if isinstance(registry, dict) else registry
+    drivers = {driver for question in questions for driver in (question.get("drivers") or [])}
+    assert drivers - labels == set()
+
+
+def test_outcome_label_names_the_event_not_a_hit_and_korean_input_is_safe() -> None:
+    """결과 1 은 사건 발생이지 예측 적중이 아니다. 한글 조합 중 Enter 는 검색 결과를 열지 않는다."""
+    script = dashboard.DASHBOARD_SCRIPT.read_text(encoding="utf-8")
+    template = dashboard.TEMPLATE.read_text(encoding="utf-8")
+    assert "r.outcome===1?'발생':'미발생'" in script and "'적중'" not in script
+    assert "if(e.isComposing)return;" in script
+    assert 'id="command-close"' in template and "getElementById('command-close')" in script
+
