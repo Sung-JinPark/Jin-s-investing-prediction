@@ -265,3 +265,26 @@ def test_blocking_origin_is_reported_and_warned():
     edge = S.thinned_sample(S.build_index(forecasts, recent), 1, 50)
     assert edge["blocking_origin"] == days[39] and edge["blocking_sessions_behind"] == 0
     assert not any(item.startswith("h1 ") for item in S.stalled_scans(S.build_index(forecasts, recent)))
+
+
+def test_r3_tolerance_equivalent_rows_enter_the_thinned_sample_and_r2_rows_keep_their_meaning():
+    days = sessions(12)
+    forecasts = forecast_rows(days, differ={days[2], days[3]})
+    forecasts[2]["pair_eligibility"] = "tolerance_equivalent"   # r3 run: inputs_differ(path_hash) within 1e-12
+    forecasts[3]["pair_eligibility"] = "excluded"               # r3 run outside the tolerance
+    resolutions = resolution_rows(forecasts, (1,))
+    for row in resolutions:
+        if row["v2_run_id"] == forecasts[2]["forecast_id"]:
+            row.update(pair_eligibility="tolerance_equivalent", v1_crps39=0.01)
+    index = S.build_index(forecasts, resolutions)
+    sample = S.thinned_sample(index, 1, None)
+    assert days[2] in sample["origins"] and days[3] not in sample["origins"]
+    assert (sample["n_excluded"], sample["n_tolerance_equivalent"], sample["n_scored"]) == (1, 1, 11)
+    card = S.build_scorecard(forecasts, resolutions, [])
+    assert card["pair_eligibility"] == {"rule": "r3", "runs": {"identical_inputs": 10, "tolerance_equivalent": 1, "excluded": 1}}
+    assert card["thinned"]["h1"]["n_tolerance_equivalent"] == 1
+    assert card["descriptive"]["inputs_differ_sensitivity"]["main"]["n_rows"] == 1   # only the excluded run
+    # r2 rows (no pair_eligibility field): inputs_differ stays excluded, exactly as before r3
+    legacy = forecast_rows(days, differ={days[2]})
+    legacy_sample = S.thinned_sample(S.build_index(legacy, resolution_rows(legacy, (1,))), 1, None)
+    assert legacy_sample["n_excluded"] == 1 and legacy_sample["n_tolerance_equivalent"] == 0

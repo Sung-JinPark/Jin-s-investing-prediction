@@ -96,6 +96,14 @@
   "footnote": "연구 섀도 · 비공개 · 라벨은 verdicts 에서만 · 참고 의견, 매매 신호 아님",
   "n_pairs_missing": 0,
   "n_runs": 1,
+  "pair_eligibility": {
+    "rule": "r3",
+    "runs": {
+      "excluded": 1,
+      "identical_inputs": 0,
+      "tolerance_equivalent": 0
+    }
+  },
   "phase_origin": "2026-11-10",
   "predictive_validation": "not_established",
   "rows_are_not_independent": true,
@@ -132,7 +140,8 @@
       "n_no_target": 0,
       "n_pending_blocking": 0,
       "n_scored": 0,
-      "n_target": 50
+      "n_target": 50,
+      "n_tolerance_equivalent": 0
     },
     "h126": {
       "blocking_origin": null,
@@ -165,7 +174,8 @@
       "n_no_target": 0,
       "n_pending_blocking": 0,
       "n_scored": 0,
-      "n_target": null
+      "n_target": null,
+      "n_tolerance_equivalent": 0
     },
     "h21": {
       "blocking_origin": null,
@@ -198,7 +208,8 @@
       "n_no_target": 0,
       "n_pending_blocking": 0,
       "n_scored": 0,
-      "n_target": 30
+      "n_target": 30,
+      "n_tolerance_equivalent": 0
     },
     "h5": {
       "blocking_origin": null,
@@ -231,7 +242,8 @@
       "n_no_target": 0,
       "n_pending_blocking": 0,
       "n_scored": 0,
-      "n_target": 50
+      "n_target": 50,
+      "n_tolerance_equivalent": 0
     },
     "h63": {
       "blocking_origin": null,
@@ -264,7 +276,8 @@
       "n_no_target": 0,
       "n_pending_blocking": 0,
       "n_scored": 0,
-      "n_target": null
+      "n_target": null,
+      "n_tolerance_equivalent": 0
     }
   },
   "verdicts": [],

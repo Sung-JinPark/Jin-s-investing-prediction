@@ -23,7 +23,8 @@ from ai_fc.timeseries_v2.contracts import runtime_manifest
 
 from . import kernel as K
 from .contracts import (
-    ARMS, CONTRACT_ID, Daily6mV2ContractError, FOOTNOTE, MODEL_ID, MODEL_VERSION, PROBABILITY_SPACE, canonical_hash,
+    ARMS, CONTRACT_ID, Daily6mV2ContractError, FOOTNOTE, MODEL_ID, MODEL_VERSION, PAIR_TOLERANCE, PROBABILITY_SPACE,
+    canonical_hash, classify_pair, equivalence_criteria, fit_structure_comparison, lineage_comparison,
 )
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
@@ -53,6 +54,30 @@ def _coefficient_gap(fit: Any, recorded: Any) -> float | None:
     return gap if np.isfinite(gap) else None
 
 
+def _cpu_model() -> str | None:
+    try:
+        with open("/proc/cpuinfo", encoding="utf-8") as handle:
+            for line in handle:
+                if line.lower().startswith("model name"):
+                    return line.split(":", 1)[1].strip() or None
+    except OSError:
+        return None
+    return None
+
+
+def _blas_runtime() -> list[dict[str, Any]] | None:
+    """Runtime-detected BLAS kernels (threadpoolctl): the build string above is the wheel build, not this CPU."""
+    try:
+        from threadpoolctl import threadpool_info
+    except ImportError:
+        return None
+    try:
+        return [{key: item.get(key) for key in ("internal_api", "prefix", "version", "architecture", "num_threads", "threading_layer")}
+                for item in threadpool_info() if item.get("user_api") == "blas"]
+    except Exception:  # noqa: BLE001 - diagnostics must never fail an issuance
+        return None
+
+
 def _platform_manifest() -> dict[str, Any]:
     """Machine and BLAS build identity (diagnostic only: ulp-level reduction differences across runners)."""
     import platform
@@ -62,6 +87,9 @@ def _platform_manifest() -> dict[str, Any]:
         manifest["blas"] = {key: blas.get(key) for key in ("name", "version", "openblas configuration")}
     except Exception:  # noqa: BLE001 - diagnostics must never fail an issuance
         manifest["blas"] = None
+    # r3 diagnostics (2026-11-12): which CPU and which runtime BLAS kernel produced this run
+    manifest["cpu_model"] = _cpu_model()
+    manifest["blas_runtime"] = _blas_runtime()
     return manifest
 
 
@@ -149,8 +177,31 @@ def generate_v2_forecast(bundle: Any, *, anchor: float, as_of: str, future_dates
                                      for name, key, fit in (("expanding", "expanding_fit", expanding), ("rolling", "rolling_fit", rolling))},
         "platform": _platform_manifest(),
     }
-    if pair_status == "identical_inputs":
-        if not shape_equal or np.max(np.abs(unrounded[list(K.BAND_ROWS)] - expected)) > 1e-12:
+    # r3 input evidence (2026-11-12): recorded so the tolerance rule is decided from this run's own fields
+    v1_anchor = (v1_run.get("anchor") or {}).get("value")
+    input_evidence = {
+        "anchor_equal": v1_anchor is not None and float(v1_anchor) == float(anchor),
+        "fit_structure": {name: fit_structure_comparison(fit.manifest(), v1_config.get(key))
+                          for name, key, fit in (("expanding", "expanding_fit", expanding), ("rolling", "rolling_fit", rolling))},
+        "lineage": lineage_comparison(_get(bundle, "lineage", None), v1_run.get("source_lineage")),
+    }
+    reduction_identity = {"v1_path_hash": v1_run.get("path_hash"), "resimulated_path_hash": resimulated_hash,
+                          "equal": path_equal, "v1_code_hash_equal": code_equal, "seed": seed,
+                          "block_length": v1_block, "ewma_lambda": v1_lambda,
+                          # diagnostics only (not part of the pass rule): which input differed
+                          "fit_residual_hash_equal": {
+                              name: (None if not isinstance(v1_config.get(key), dict) else
+                                     fit.manifest()["residual_hash"] == v1_config[key].get("residual_hash"))
+                              for name, key, fit in (("expanding", "expanding_fit", expanding), ("rolling", "rolling_fit", rolling))},
+                          "v1_runtime": v1_config.get("runtime"), "runtime": runtime,
+                          "magnitude": magnitude, "input_evidence": input_evidence}
+    projection_record = {"source": "v1_run_model_config", "values": exog_last.tolist()}
+    tolerance_pass = pair_status != "identical_inputs" and all(equivalence_criteria({
+        "pair_status": pair_status, "inputs_differ_reason": reason, "reduction_identity": reduction_identity,
+        "projection_exogenous": projection_record,
+        "v1_reference": {"block_length": v1_block, "ewma_lambda": v1_lambda, "issuance_exogenous": exog_last.tolist()}}).values())
+    if pair_status == "identical_inputs" or tolerance_pass:
+        if not shape_equal or np.max(np.abs(unrounded[list(K.BAND_ROWS)] - expected)) > PAIR_TOLERANCE:
             raise Daily6mV2ContractError("reconstructed v1 grid does not reproduce the v1 band_index — contract violation")
         v1_grid = np.round(unrounded, 10).tolist()
     del reduced, reduced_paths, unrounded
@@ -189,17 +240,8 @@ def generate_v2_forecast(bundle: Any, *, anchor: float, as_of: str, future_dates
                    "v1_model_code_hash": v1_run.get("model_code_hash"), "v1_model_code_hash_at_issue": v1_code_hash_at_issue,
                    "v1_contract_hash": v1_run.get("contract_hash")},
         "pair_status": pair_status, "inputs_differ_reason": reason,
-        "reduction_identity": {"v1_path_hash": v1_run.get("path_hash"), "resimulated_path_hash": resimulated_hash,
-                               "equal": path_equal, "v1_code_hash_equal": code_equal, "seed": seed,
-                               "block_length": v1_block, "ewma_lambda": v1_lambda,
-                               # diagnostics only (not part of the pass rule): which input differed
-                               "fit_residual_hash_equal": {
-                                   name: (None if not isinstance(v1_config.get(key), dict) else
-                                          fit.manifest()["residual_hash"] == v1_config[key].get("residual_hash"))
-                                   for name, key, fit in (("expanding", "expanding_fit", expanding), ("rolling", "rolling_fit", rolling))},
-                               "v1_runtime": v1_config.get("runtime"), "runtime": runtime,
-                               "magnitude": magnitude},
-        "projection_exogenous": {"source": "v1_run_model_config", "values": exog_last.tolist()},
+        "reduction_identity": reduction_identity,
+        "projection_exogenous": projection_record,
         "v2_bundle_issuance_exogenous": bundle_exog,
         "selection": selection,
         "variance": {"fresh_over_lagged_sd": {"expanding": None if diagnostics[0] is None else diagnostics[0]["fresh_over_lagged_sd"],
@@ -216,5 +258,6 @@ def generate_v2_forecast(bundle: Any, *, anchor: float, as_of: str, future_dates
         "evidence": {"predictive_validation": "not_established", "research_only": True},
         "footnote": FOOTNOTE,
     }
+    payload["pair_eligibility"] = classify_pair(payload)   # r3: primary-sample admission, replayed by verify
     payload["content_hash"] = canonical_hash(payload)
     return payload, paths

@@ -1,12 +1,12 @@
 {
-  "bundle_id": "ts-inputs-334b6ce6e93dad804da3cabd",
-  "capture_completed_at": "2026-11-11T10:59:47.979935+00:00",
+  "bundle_id": "ts-inputs-1aabcb6cc31faff186d51e83",
+  "capture_completed_at": "2026-11-11T18:42:58.208975+00:00",
   "changed": true,
-  "checked_at": "2026-11-11T11:01:17.621918+00:00",
-  "content_hash": "9e7e5b8331b9b17806ccfa42fe9c80373acab187cf3e425c6df21c7285ed1fe4",
+  "checked_at": "2026-11-11T18:44:25.675511+00:00",
+  "content_hash": "330a5b9477ffbca49e10f5a8c8a8fcae87564a2fc8c978854ff89ac2a340ddb3",
   "contract_id": "timeseries_inputs_refresh_v1",
   "eligibility_changed": true,
-  "eligibility_hash": "ae5f12105f997f0255d2f16bd1c41641c80a364ae9f3e92edcea02e16c4bca3c",
+  "eligibility_hash": "5f051ed732777abaa2b15e364ceb89d94bfa5fe7d1d357405445444ebb64160b",
   "eligibility_status": "ready",
   "eligible_native_latest": {
     "DGS2": {
@@ -42,25 +42,25 @@
       "vintage_start": "2026-11-11T04:59:59+00:00"
     },
     "VIXCLS": {
-      "available_at": "2026-11-10T04:59:59+00:00",
-      "observation_time": "2026-11-09",
+      "available_at": "2026-11-11T04:59:59+00:00",
+      "observation_time": "2026-11-10",
       "series_id": "VIXCLS",
-      "source_hash": "f46154a08240f0507c75245d7d04aa3989eace5ef4aeb8875ca11bd2e456cd36",
-      "value": 19.92,
-      "vintage_start": "2026-11-10T04:59:59+00:00"
+      "source_hash": "90285a16511dcdb8a5e5793cef01ac940ebe1952b2c11d36bdb9075f80d8fdeb",
+      "value": 19.46,
+      "vintage_start": "2026-11-11T04:59:59+00:00"
     }
   },
   "expected_session": "2026-11-10",
   "native_watermarks": {
-    "DGS2": "2026-11-11T10:59:45.480235+00:00",
-    "DTWEXBGS": "2026-11-11T10:59:46.618699+00:00",
-    "NASDAQCOM": "2026-11-11T10:59:42.588517+00:00",
-    "T10Y2Y": "2026-11-11T10:59:46.081245+00:00",
-    "VIXCLS": "2026-11-11T10:59:44.218511+00:00"
+    "DGS2": "2026-11-11T18:42:54.438949+00:00",
+    "DTWEXBGS": "2026-11-11T18:42:56.701677+00:00",
+    "NASDAQCOM": "2026-11-11T18:42:52.440083+00:00",
+    "T10Y2Y": "2026-11-11T18:42:56.173778+00:00",
+    "VIXCLS": "2026-11-11T18:42:53.723697+00:00"
   },
   "publication_allowed": true,
   "schema_version": 1,
-  "semantic_changed": true,
+  "semantic_changed": false,
   "source_failures": [],
   "source_status": [
     {

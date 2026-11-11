@@ -36,6 +36,7 @@ NEW_PATHS = (
     "src/tests/test_daily6m_v2_scorecard.py",
     "src/tests/test_daily6m_v2_contract_wiring.py",
     "src/tests/test_daily6m_v2_publication.py",
+    "src/tests/test_daily6m_v2_pairing.py",
     "docs/research/mts_upgrade/daily6m_v2_prereg_20261111.md",
 )
 
@@ -85,9 +86,11 @@ def test_contract_loader_compares_whole_evaluation_blocks(tmp_path):
 
 
 def test_gating_code_hash_scope():
-    # B2: the run gate covers only files that can change a forecast number; orchestration is a diagnostic
+    # B2: the run gate covers files that can change a forecast number; orchestration is a diagnostic.
+    # r3: pairing.py (grid storage + primary-sample admission) is gated too — a lenient edit needs a new contract.
     assert set(C.CODE_PATHS) == set(C.NUMERICAL_CODE_PATHS) == {
         "src/ai_fc/timeseries_daily6m_v2/kernel.py", "src/ai_fc/timeseries_daily6m_v2/model.py",
+        "src/ai_fc/timeseries_daily6m_v2/pairing.py",
         "src/ai_fc/timeseries/model.py", "src/ai_fc/timeseries/backtest.py", "src/ai_fc/timeseries_v2/model.py"}
     assert set(C.ORCHESTRATION_CODE_PATHS) == {
         "src/ai_fc/timeseries_daily6m_v2/contracts.py", "src/ai_fc/timeseries_daily6m_v2/pipeline.py",
@@ -165,12 +168,18 @@ def test_contract_rules_and_v8_precedent_runs_exist():
 
 def test_approval_receipt_form():
     rows = [json.loads(line) for line in (ROOT / C.APPROVAL_LEDGER).read_text(encoding="utf-8").splitlines() if line.strip()]
-    assert len(rows) == 1
-    row = rows[0]
-    assert row["literal_template_match"] is False and row["approval_form"] == "delegated_bundle_instruction"
-    assert row["approval_text"] == "네가 나머지 작업 다 완료시켜.  네가 최적의 선택을 내려서 u1~u7까지 다 진행시켜"
-    instant = datetime.fromisoformat(row["approved_at"]).astimezone(timezone.utc)
-    assert instant == datetime(2026, 11, 11, 9, 3, 44, tzinfo=timezone.utc)
+    # r1 = registration, then the r3 contract-revision receipt (2026-11-12); append-only, never a revocation row
+    assert [row["receipt_id"] for row in rows[:2]] == ["daily6m-v2-approval:U4:2026-11-11:r1",
+                                                       "daily6m-v2-approval:U4:2026-11-12:contract-r3"]
+    for row in rows[:2]:
+        assert row["literal_template_match"] is False and row["approval_form"] == "delegated_bundle_instruction"
+        assert row["approval_text"] == "네가 나머지 작업 다 완료시켜.  네가 최적의 선택을 내려서 u1~u7까지 다 진행시켜"
+        instant = datetime.fromisoformat(row["approved_at"]).astimezone(timezone.utc)
+        assert instant == datetime(2026, 11, 11, 9, 3, 44, tzinfo=timezone.utc)
+    contract = C.load_contract(ROOT)
+    r3 = next(item for item in contract["revisions"] if item["revision"] == "r3")
+    assert r3["approval_receipt"] == rows[1]["receipt_id"] and contract["approvals"]["revision_receipts"] == [rows[1]["receipt_id"]]
+    assert rows[1]["template_text"] != rows[0]["template_text"] and "r3" in rows[1]["template_text"]
 
 
 def test_pending_tool_decisions(tmp_path):

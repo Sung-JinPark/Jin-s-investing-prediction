@@ -26,8 +26,9 @@ from ai_fc.timeseries_daily6m import pipeline as P
 from . import kernel as K
 from .contracts import (
     ARMS, CONSTANTS_RELATIVE, Daily6mV2ContractError, FOOTNOTE, FORECAST_LEDGER, MODEL_ID, MODEL_VERSION,
-    OUTPUTS_RELATIVE, PROBABILITY_SPACE, RESOLUTION_LEDGER, RUNS_RELATIVE, STORE_RELATIVE, VERDICT_LEDGER,
-    canonical_hash, frozen_hash, load_constants, load_contract, model_code_hash, orchestration_code_hashes,
+    OUTPUTS_RELATIVE, PAIR_RULE_REVISION, PRIMARY_ELIGIBILITY, PRIOR_IDENTITIES, PROBABILITY_SPACE, RESOLUTION_LEDGER,
+    RUNS_RELATIVE, STORE_RELATIVE, VERDICT_LEDGER, canonical_hash, classify_pair, frozen_hash, load_constants, load_contract,
+    model_code_hash, orchestration_code_hashes,
 )
 
 LEDGER_IDENTITY = {FORECAST_LEDGER: "forecast_id", RESOLUTION_LEDGER: "resolution_id", VERDICT_LEDGER: "verdict_id"}
@@ -235,12 +236,19 @@ def validate_run(run: dict[str, Any]) -> None:
     v1_records = reference.get("records") or []
     if [record["date"] for record in v1_records] != dates:
         raise Daily6mV2PipelineError("v1 reference records must cover every date")
-    if run["pair_status"] == "identical_inputs":
+    eligibility = run.get("pair_eligibility")
+    if eligibility is None:   # r2 run (prior identity): a v1 grid exactly when identical_inputs
+        stores_grid = run["pair_status"] == "identical_inputs"
+    else:                     # r3 run: the recorded block must replay from the run's own recorded fields
+        if eligibility.get("rule") != PAIR_RULE_REVISION or eligibility != classify_pair(run):
+            raise Daily6mV2PipelineError("v2 pair eligibility does not replay from the run's recorded fields")
+        stores_grid = eligibility["status"] in PRIMARY_ELIGIBILITY
+    if stores_grid:
         if reference.get("quantile_grid") is None:
-            raise Daily6mV2PipelineError("identical_inputs run must store the reconstructed v1 grid")
+            raise Daily6mV2PipelineError("primary-eligible run must store the reconstructed v1 grid")
         check_grid(reference["quantile_grid"], v1_records, "v1 reference")
     elif reference.get("quantile_grid") is not None:
-        raise Daily6mV2PipelineError("inputs_differ run must not store a v1 grid")
+        raise Daily6mV2PipelineError("inputs_differ run must not store a v1 grid unless tolerance_equivalent")
     expected = run.get("content_hash")
     if expected != canonical_hash({key: value for key, value in run.items() if key != "content_hash"}):
         raise Daily6mV2PipelineError("v2 run content hash mismatch")
@@ -256,15 +264,29 @@ def load_run(root: Path, row: dict[str, Any], *, contract_hash: str | None = Non
         raise Daily6mV2PipelineError("v2 ledger/run identity mismatch")
     contract_hash = frozen_hash(load_contract(root)) if contract_hash is None else contract_hash
     code_hash = model_code_hash(root) if code_hash is None else code_hash
-    if run.get("contract_hash") != contract_hash or run.get("model_code_hash") != code_hash:
-        # gate = contract + numerical code only (contracts.NUMERICAL_CODE_PATHS); orchestration edits are diagnostics
+    # gate = contract + numerical code only (contracts.NUMERICAL_CODE_PATHS); orchestration edits are diagnostics.
+    # r3: runs issued under the pinned r2 identity stay loadable and are told apart by the absent pair_eligibility.
+    if run_identity(run, contract_hash=contract_hash, code_hash=code_hash) is None:
         raise Daily6mV2PipelineError("v2 contract or numerical code identity changed")
+    if row.get("pair_eligibility") != (run.get("pair_eligibility") or {}).get("status"):
+        raise Daily6mV2PipelineError("v2 ledger row disagrees with its run (pair_eligibility)")
     if (run.get("paired_v1_forecast_id") != row.get("paired_v1_forecast_id")
             or run["parent"]["v1_run_content_hash"] != row.get("paired_v1_run_content_hash")
             or run.get("pair_status") != row.get("pair_status") or run["selection"]["chosen"] != row.get("selection_chosen")
             or run.get("horizon_sessions") != row.get("horizon_sessions") or run.get("origin_session") != row.get("origin_session")):
         raise Daily6mV2PipelineError("v2 ledger row disagrees with its run")
     return run
+
+
+def run_identity(run: dict[str, Any], *, contract_hash: str, code_hash: str) -> str | None:
+    """'current' (r3, must record pair_eligibility), a prior revision id (must not), or None (refused)."""
+    identity = (run.get("contract_hash"), run.get("model_code_hash"))
+    if identity == (contract_hash, code_hash):
+        return "current" if run.get("pair_eligibility") is not None else None
+    for prior in PRIOR_IDENTITIES:
+        if identity == (prior["contract_hash"], prior["model_code_hash"]):
+            return prior["revision"] if run.get("pair_eligibility") is None else None
+    return None
 
 
 # ---------------------------------------------------------------- issuance
@@ -345,9 +367,11 @@ def forecast_daily6m_v2(root: Path, *, as_of: str | datetime | None = None, path
         "paired_v1_forecast_id": v1_row["forecast_id"], "paired_v1_run_content_hash": v1_run["content_hash"],
         "pair_status": payload["pair_status"], "run_path": run_path.as_posix(), "run_content_hash": run["content_hash"],
         "selection_chosen": payload["selection"]["chosen"], "horizon_sessions": payload["horizon_sessions"],
+        "pair_eligibility": payload["pair_eligibility"]["status"],
         "supersedes": None, "probability_unit": "fraction"})
     return {"status": "issued", "run_id": run_id, "paired_v1_forecast_id": v1_row["forecast_id"],
-            "pair_status": payload["pair_status"], "origin_session": payload["origin_session"], "skipped": None, "reasons": []}
+            "pair_status": payload["pair_status"], "pair_eligibility": payload["pair_eligibility"]["status"],
+            "origin_session": payload["origin_session"], "skipped": None, "reasons": []}
 
 
 # ---------------------------------------------------------------- scoring
@@ -398,6 +422,8 @@ def score_row(run: dict[str, Any], arm: str, v1_row: dict[str, Any], *, supersed
         "revision_reason": None if supersedes is None else "v1 resolution corrected (native close revision); prior v2 row preserved",
         "probability_unit": "fraction",
     }
+    if run.get("pair_eligibility") is not None:   # r3 runs only - rows of r2 runs keep their recorded shape
+        payload["pair_eligibility"] = run["pair_eligibility"]["status"]
     payload["resolution_id"] = resolution_id(run["run_id"], arm, day, v1_resolution_id=v1_row["resolution_id"], supersedes=supersedes)
     return payload
 
@@ -468,8 +494,26 @@ def verify_daily6m_v2(root: Path) -> dict[str, Any]:
         orchestration_changed = 0
         previous = None
         v1_forecasts = {row["forecast_id"]: row for row in P.read_chain(root, v1C.FORECAST_LEDGER)}
+        contract_hash, code_hash = frozen_hash(contract), model_code_hash(root)
+        seen_current = False
+        eligibility_counts = {"identical_inputs": 0, "tolerance_equivalent": 0, "excluded": 0}
+        prior_runs = []
         for row in forecasts:
             run = runs[row["forecast_id"]]
+            identity = run_identity(run, contract_hash=contract_hash, code_hash=code_hash)
+            if identity == "current":
+                seen_current = True
+                eligibility_counts[run["pair_eligibility"]["status"]] += 1
+            else:
+                if seen_current:
+                    raise Daily6mV2PipelineError("prior-identity v2 run issued after an r3 run")
+                # recorded fields only: an r2 inputs_differ run never stored a v1 grid, so r3 cannot admit it
+                view = classify_pair(run)
+                legacy = "identical_inputs" if run["pair_status"] == "identical_inputs" else "excluded"
+                if view["status"] != legacy:
+                    raise Daily6mV2PipelineError("prior-identity run would change class under r3: " + run["run_id"])
+                eligibility_counts[legacy] += 1
+                prior_runs.append({"run_id": run["run_id"], "identity": identity, "status": legacy, "failed": view["failed"]})
             if run["selection"]["previous"] != previous:
                 raise Daily6mV2PipelineError("selection state chain broken (previous != prior run chosen)")
             previous = run["selection"]["chosen"]
@@ -531,7 +575,9 @@ def verify_daily6m_v2(root: Path) -> dict[str, Any]:
                 "verdicts": len(verdicts), "v1_read_only": True, "predictive_validation": "not_established",
                 # non-gating (review B2): numbers were re-derived above; these only disclose code drift since recording
                 "diagnostics": {"runs_with_changed_orchestration_code": orchestration_changed,
-                                "verdicts_recorded_by_other_scorecard_code": scorecard_changed}}
+                                "verdicts_recorded_by_other_scorecard_code": scorecard_changed,
+                                # r3: primary-sample admission per run; prior-identity runs are classified, never rewritten
+                                "pair_eligibility_counts": eligibility_counts, "prior_identity_runs": prior_runs}}
     except (OSError, EOFError, ValueError, KeyError, TypeError, IndexError, Daily6mV2PipelineError,
             Daily6mV2ContractError, P.Daily6mPipelineError, v1C.Daily6mContractError) as exc:
         return {"ok": False, "errors": [str(exc)]}
