@@ -520,3 +520,222 @@ def test_live_projection_carries_shadow_progress_and_score_bounds() -> None:
     bounds = sealed["score100_bounds"]
     assert bounds["floor_total"] <= sealed["score100"]["total"] <= bounds["ceiling_total"]
     assert bounds["ceiling_total"] - bounds["floor_total"] == 15
+
+
+# ── 표시 공시 P5 (2026-11-11 정합성 감사 — 숫자 불변, 라벨·접기만) ──────────────────
+# 오라클은 실제 저장소 데이터로 확인하되, 데이터가 늘어도 깨지지 않게 고정 원점 집합(≤ 2026-11-06)과
+# 고정 아카이브 지식 시점(2026-11-11T00:00Z)으로 범위를 묶는다.
+from datetime import date as _date, datetime as _datetime, timezone as _timezone  # noqa: E402
+
+from ai_fc import config as _config  # noqa: E402
+
+_ROOT = Path(_config.ROOT)
+_ARCHIVE_CUTOFF = "2026-11-11T00:00:00+00:00"
+_LAST_ORIGIN = "2026-11-06"
+_LAST_RESOLVED_SESSION = "2026-11-09"
+
+
+def _jsonl(relative: Path) -> list[dict]:
+    path = _ROOT / relative
+    return [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines() if line.strip()]
+
+
+def _fixed_forecasts() -> list[dict]:
+    return [row for row in _jsonl(display.SHADOW_FORECAST_LEDGER_RELATIVE) if row["origin"] <= _LAST_ORIGIN]
+
+
+def _fixed_resolutions() -> list[dict]:
+    return [row for row in _jsonl(display.FORWARD_LEDGER_RELATIVE)
+            if row["origin"] <= _LAST_ORIGIN and row["resolved_session"] <= _LAST_RESOLVED_SESSION]
+
+
+def _calendar() -> "display.XnasCalendar":
+    return display.XnasCalendar(_date(2026, 8, 1), _date(2027, 4, 30))
+
+
+def test_emit_timing_discloses_h1_already_realized_at_every_weekly_emission() -> None:
+    """② 12/12 원점이 h1 목표 세션 종가 뒤에 발행됐다 — 'prospective'는 h21/h63 에만."""
+    forecasts = _fixed_forecasts()
+    assert len(forecasts) == 12
+    block = display._emission_block(forecasts, _calendar())
+    assert block["emitted_after_h1_close"] == 12 and block["n_origins"] == 12
+    assert block["h5_realized_sessions"] == [5, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1]
+    first = block["rows"][0]
+    assert first["origin"] == "2026-08-14" and round(first["emit_lag_days"], 1) == 16.1
+    # 지연 기준 = 원점 XNAS 종가(16:00 ET, DST 반영). 감사 스크립트는 21:00Z 고정이라 3.54일이었다.
+    assert block["emit_lag_median_days"] == pytest.approx(3.58, abs=0.005)
+    assert block["prospective_horizons"] == ["21", "63"] and block["single_episode"] is False
+    assert block["realized_fraction_mean"]["1"] == 1.0
+    assert block["realized_fraction_mean"]["63"] < 0.05
+
+
+def test_first_h63_maturity_is_shown_on_both_the_xnas_and_ledger_clocks() -> None:
+    """③ 08-14 h63: XNAS 11-12 / 원장 grid 11-16 · H.10 뒤 첫 실행 ≥ 2026-11-24 03:10Z."""
+    grid = display._nasdaq_archive(_ROOT, _ARCHIVE_CUTOFF)[1]
+    block = display._maturity_block(_fixed_forecasts(), _fixed_resolutions(), grid, _calendar())
+    assert block["xnas_maturity_session"] == "2026-11-12"
+    assert block["ledger_grid_session"] == "2026-11-16"
+    assert block["ledger_eta_utc"] == "2026-11-24T03:10:00+00:00" and block["ledger_eta_is_lower_bound"] is True
+    assert block["ledger_resolved"] is False  # 고정 해소 집합(≤ 11-09)에는 h63 행이 없다 → '해소 대기'
+    cal = _calendar()
+    assert display.ledger_resolution_eta(_date(2026, 11, 16), cal) == _datetime(
+        2026, 11, 24, 3, 10, tzinfo=_timezone.utc)
+    with pytest.raises(TimeSeriesV8DisplayError):
+        display.ledger_resolution_eta(_date(2026, 11, 14), cal)  # 토요일은 세션이 아니다
+
+
+def test_holiday_badge_counts_confirmed_and_expected_rows_from_the_calendar_gap() -> None:
+    """④ 휴장 배지: 해소 6행 확정, 미해소 18/19 예정, 10-23 h1 에는 없음 — bundle 날짜 대 XNAS 달력."""
+    grid = display._nasdaq_archive(_ROOT, _ARCHIVE_CUTOFF)[1]
+    block = display._holiday_block(_fixed_forecasts(), _fixed_resolutions(), grid, _calendar())
+    assert block["dates"] == ["2026-10-12", "2026-11-11"]
+    assert block["confirmed_rows"] == 6
+    assert (block["expected_rows"], block["unresolved_pairs"]) == (18, 19)
+    assert block["grid_known_through"] == "2026-11-06"
+    keys = {(item["origin"], item["horizon"]) for item in block["items"]}
+    assert ("2026-10-23", "1") not in keys and ("2026-11-06", "1") not in keys
+    assert {"origin": "2026-10-09", "horizon": "1", "dates": ["2026-10-12"], "status": "confirmed"} in block["items"]
+    cal = _calendar()
+    assert display.holiday_label_exposure(_date(2026, 10, 23), 1, grid, cal) == []
+    assert display.holiday_label_exposure(_date(2026, 10, 30), 21, grid, cal) == [_date(2026, 11, 11)]
+
+
+def test_daily_carry_label_counts_dollar_carry_sessions() -> None:
+    """⑤ 10-16·10-23·11-06 유효 행은 '달러 캐리 5세션'. confirmed 는 최종이 아닐 수 있다."""
+    from ai_fc.timeseries_v8_daily import DAILY_LEDGER_RELATIVE, effective_rows
+
+    rows = effective_rows(_jsonl(DAILY_LEDGER_RELATIVE))
+    by_origin = {row["origin"]: row for row in rows if row["origin"] <= _LAST_ORIGIN}
+    for origin in ("2026-10-16", "2026-10-23", "2026-11-06"):
+        status = display.daily_input_status(by_origin[origin])
+        assert status["carry_sessions"] == 5 and status["carry_series"] == "DTWEXBGS"
+        assert status["label"] == f"{by_origin[origin]['input_state']}·달러 캐리 5세션"
+        assert status["final"] is False
+    assert display.daily_input_status(by_origin["2026-11-06"])["label"] == "confirmed·달러 캐리 5세션"
+    clean = display.daily_input_status({"input_state": "confirmed", "carried_forward": []})
+    assert clean["label"] == "confirmed" and clean["carry_sessions"] == 0
+
+
+@pytest.mark.parametrize(("cutoff", "freshness", "expected"), [
+    # 11-09 월 02:11Z: 금요일 관측이 48h 를 넘었을 뿐 공표 일정상 최신 → 달력 hold
+    ("2026-11-09T02:11:19+00:00", [("NASDAQCOM", "2026-11-06"), ("VIX", "2026-11-06"), ("DGS2", "2026-11-06"),
+                                   ("DGS10", "2026-11-06"), ("DTWEXBGS_or_DTWEXB", "2026-10-30")], "calendar_hold"),
+    # 10-13 콜럼버스: 국채·H.10 휴일 → 달력 hold
+    ("2026-10-13T10:30:05+00:00", [("DGS2", "2026-10-09"), ("DGS10", "2026-10-09"),
+                                   ("DTWEXBGS_or_DTWEXB", "2026-10-02")], "calendar_hold"),
+    # 09-25 VIX 09-23 미수집 → 원천 지연, 11-01 NASDAQ 10-30 미수집 → 원천 지연
+    ("2026-09-25T08:47:04+00:00", [("VIX", "2026-09-22")], "source_delay"),
+    ("2026-11-01T02:24:37+00:00", [("NASDAQCOM", "2026-10-29")], "source_delay"),
+])
+def test_weekly_hold_reason_separates_calendar_holds_from_source_delays(cutoff, freshness, expected) -> None:
+    """⑥ 실제 주간 hold 4회(포인터 이력)의 관측일로 분류 — 입력별 관측일 대 기대 공표 일정."""
+    detail = {"freshness": [{"group": group, "observation_time": observed, "status": "stale"}
+                            for group, observed in freshness]}
+    assert display.hold_reason(detail, _datetime.fromisoformat(cutoff)) == expected
+    with pytest.raises(TimeSeriesV8DisplayError):
+        display.hold_reason({"freshness": [{"group": "VIX", "status": "fresh"}]}, _datetime.fromisoformat(cutoff))
+
+
+def test_hold_surface_carries_only_the_hold_kind_label(tmp_path: Path) -> None:
+    body = {key: value for key, value in _hold_latest().items() if key != "content_hash"}
+    body["knowledge_cutoff"] = "2026-09-25T08:47:04+00:00"
+    body["gate"] = {**body["gate"], "reasons": ["필수 시장 입력 신선도 초과: VIX"]}
+    body["operational"] = {"freshness": [
+        {"group": "VIX", "observation_time": "2026-09-22", "age_hours": 56.8, "status": "stale"}]}
+    path = tmp_path / display.LATEST_RELATIVE
+    path.parent.mkdir(parents=True)
+    path.write_text(json.dumps(_finish(body), ensure_ascii=False), encoding="utf-8")
+    projection = load_projection(tmp_path)
+    hold = projection["v8_disclosure"]["hold"]
+    assert hold["kind"] == "source_delay" and hold["label"] == "원천 지연" and hold["groups"] == ["VIX"]
+    assert projection["v8_disclosure"]["display_only"] is True
+    assert projection["v8_disclosure"]["notice"] == "참고 의견, 매매 신호 아님"
+    assert projection["horizons"] == {} and projection["path"] == {}
+
+
+def test_base_rate_constants_recompute_from_the_archive_and_keep_their_hash() -> None:
+    """① 같은 창(2007~2025) 기저율 상수 — 재계산이 파일 값과 같고 표시 % 는 66/72."""
+    constants, status = display._display_constants(_ROOT)
+    assert status == "ok"
+    assert constants["display_only"] is True and constants["notice"] == "참고 의견, 매매 신호 아님"
+    base = constants["base_rate_up"]
+    start, end = (_date.fromisoformat(value) for value in base["window"])
+    closes = display._nasdaq_archive(_ROOT, _ARCHIVE_CUTOFF)[0]
+    cal = display.XnasCalendar(start, end)
+    for key in ("21", "63"):
+        k, n = display.base_rate_counts(closes, int(key), start, end, cal=cal)
+        assert (k, n) == (base["horizons"][key]["k"], base["horizons"][key]["n"])
+        assert base["horizons"][key]["value"] == round(k / n, 6)
+    assert round(base["horizons"]["21"]["value"] * 100) == 66 and round(base["horizons"]["63"]["value"] * 100) == 72
+    assert abs(base["horizons"]["21"]["value"] - 0.656) < 0.01 and abs(base["horizons"]["63"]["value"] - 0.721) < 0.005
+    assert constants["resolver_schedule"]["cron_utc"] == display.RESOLVER_CRON_UTC
+
+
+def test_constants_hash_mismatch_drops_only_the_base_rate_labels(tmp_path: Path) -> None:
+    target = tmp_path / display.DISPLAY_CONSTANTS_RELATIVE
+    target.parent.mkdir(parents=True)
+    value = json.loads((_ROOT / display.DISPLAY_CONSTANTS_RELATIVE).read_text(encoding="utf-8"))
+    value["base_rate_up"]["horizons"]["21"]["value"] = 0.9
+    target.write_text(json.dumps(value, ensure_ascii=False), encoding="utf-8")
+    constants, status = display._display_constants(tmp_path)
+    assert constants is None and status == "constants_hash_mismatch"
+    block = display._p_up_disclosure(constants, status, [])
+    assert block["constants_status"] == "constants_hash_mismatch"
+    assert block["horizons"]["21"]["base_rate"] is None and block["horizons"]["21"]["label"] == "기저율 기반 상승확률"
+    assert block["horizons"]["1"]["kind"] == "engine_conditional"
+
+
+def test_resolver_cron_constant_matches_the_shadow_workflow() -> None:
+    workflow = (_ROOT / ".github/workflows/timeseries-v8-shadow.yml").read_text(encoding="utf-8")
+    assert f'cron: "{display.RESOLVER_CRON_UTC}"' in workflow
+
+
+def test_disclosure_is_additive_and_leaves_numbers_score100_and_hashes_bit_identical(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """회귀: 표시 p_up·분위·score100 은 공시 전과 비트 동일, V8 model_code_hash 불변, validate_latest 통과."""
+    from ai_fc.timeseries_v8.contracts import model_code_hash
+    from ai_fc.timeseries_v8_display import score100
+
+    now = _datetime(2026, 11, 11, 6, 0, tzinfo=_timezone.utc)
+    projection = load_projection(_ROOT, now=now)
+    if projection is None or projection.get("numbers_visible") is not True:
+        pytest.skip("V8 projection not visible in this checkout")
+    disclosure = projection.pop("v8_disclosure")
+    monkeypatch.setattr(display, "_v8_disclosure", lambda *args, **kwargs: {})
+    baseline = load_projection(_ROOT, now=now)
+    baseline.pop("v8_disclosure")
+    assert json.dumps(projection, sort_keys=True) == json.dumps(baseline, sort_keys=True)
+    pointer = json.loads((_ROOT / (display.DAILY_LATEST_RELATIVE if projection["cadence"] == "daily"
+                                   else display.LATEST_RELATIVE)).read_text(encoding="utf-8"))
+    validate_latest(pointer)
+    for key, row in projection["horizons"].items():
+        assert row["probability_up"] == float(pointer["horizons"][key]["probability_up"])
+        assert row["log_return"] == {name: float(pointer["horizons"][key][name]) for name in display.QUANTILES}
+    sealed = projection["sealed_metrics"]
+    stripped = {key: value for key, value in sealed.items()
+                if key in {"sealed_window", "full_backtest", "regimes", "loss_diff_ci90", "forward"}}
+    assert score100(stripped) == sealed["score100"]
+    weekly = _jsonl(display.SHADOW_FORECAST_LEDGER_RELATIVE)
+    assert model_code_hash(_ROOT) == weekly[-1]["model_code_hash"]
+    assert disclosure["display_only"] is True and disclosure["notice"] == "참고 의견, 매매 신호 아님"
+    assert disclosure["p_up"]["horizons"]["21"]["kind"] == "base_rate_structural"
+    assert disclosure["p_up"]["horizons"]["1"]["kind"] == "engine_conditional"
+    assert disclosure["monitoring_gap"]["required_origins"] == 26
+    assert disclosure["monitoring_gap"]["auto_alert_active"] is (
+        disclosure["monitoring_gap"]["matured_h63_origins"] >= 26)
+
+
+def test_display_layer_reads_no_research_ledger_and_new_cards_skip_ts_chart_hooks() -> None:
+    """표시층은 연구 원장을 읽지 않는다(production_publish 경계). 새 공시 마크업에 data-ts-chart 금지."""
+    import inspect
+    import re
+
+    source = inspect.getsource(display)
+    assert "mts_research/ledgers" not in source and "mts_research.artifacts" not in source
+    script = (_ROOT / "src/ai_fc/dashboard_parts/dashboard.js").read_text(encoding="utf-8")
+    for name in ("tsPupBasisLabel", "tsPupFold", "tsInputStateChip", "tsInputStateFold",
+                 "tsHolidayFlag", "tsV8ForwardDisclosure"):
+        match = re.search(r"function " + name + r"\(.*?\n}\n", script, re.S)
+        assert match, name
+        assert "data-ts-chart" not in match.group(0), name

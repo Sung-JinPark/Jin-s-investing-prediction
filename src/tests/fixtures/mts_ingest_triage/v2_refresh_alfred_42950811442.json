@@ -1,0 +1,82 @@
+{
+  "fixture_schema": "mts_ingest_triage_fixture_v1",
+  "kind": "v2_refresh",
+  "provenance": {
+    "captured_at": "2026-11-11",
+    "excerpt_rule": "timeseries-refresh 단계 JSON 에서 series 상세(영수증 id 목록)·recovered_from_raw 를 생략하고 retrieved_at·realtime_window·facts·failures 만 원문 그대로 옮김.",
+    "job": "refresh",
+    "log_timestamp": "2026-11-11T03:14:33.3538764Z",
+    "repository": "Sung-JinPark/Jin-s-investing-prediction",
+    "run_conclusion": "success",
+    "run_created_at": "2026-11-11T03:09:08Z",
+    "run_event": "workflow_dispatch",
+    "run_id": 42950811442,
+    "run_updated_at": "2026-11-11T03:21:44Z",
+    "source": "gh run view --log",
+    "step": "python -m ai_fc timeseries-refresh",
+    "workflow": "timeseries-v2-refresh"
+  },
+  "report": {
+    "facts": {
+      "appended": 0,
+      "corrected": 0,
+      "existing": 1545328,
+      "total": 1545328
+    },
+    "failures": [
+      {
+        "reason": "ALFRED GDPC1 vintage_dates returned HTTP 500: Internal Server Error",
+        "retryable": true,
+        "series_id": "GDPC1",
+        "status": 500
+      },
+      {
+        "reason": "ALFRED HOUST vintage_dates returned HTTP 500: Internal Server Error",
+        "retryable": true,
+        "series_id": "HOUST",
+        "status": 500
+      },
+      {
+        "reason": "ALFRED INDPRO vintage_dates returned HTTP 500: Internal Server Error",
+        "retryable": true,
+        "series_id": "INDPRO",
+        "status": 500
+      },
+      {
+        "reason": "ALFRED M2SL vintage_dates returned HTTP 500: Internal Server Error",
+        "retryable": true,
+        "series_id": "M2SL",
+        "status": 500
+      },
+      {
+        "reason": "ALFRED PCEPI vintage_dates returned HTTP 500: Internal Server Error",
+        "retryable": true,
+        "series_id": "PCEPI",
+        "status": 500
+      },
+      {
+        "reason": "ALFRED PCEPILFE vintage_dates returned HTTP 500: Internal Server Error",
+        "retryable": true,
+        "series_id": "PCEPILFE",
+        "status": 500
+      },
+      {
+        "reason": "ALFRED RSAFS vintage_dates returned HTTP 500: Internal Server Error",
+        "retryable": true,
+        "series_id": "RSAFS",
+        "status": 500
+      },
+      {
+        "reason": "ALFRED WRMFNS vintage_dates returned HTTP 500: Internal Server Error",
+        "retryable": true,
+        "series_id": "WRMFNS",
+        "status": 500
+      }
+    ],
+    "realtime_window": {
+      "end": "9999-12-31",
+      "start": "2026-11-04"
+    },
+    "retrieved_at": "2026-11-11T03:12:35+00:00"
+  }
+}

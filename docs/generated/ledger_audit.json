@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-11-11T04:01:20+00:00",
+  "generated_at": "2026-11-11T07:57:49+00:00",
   "market_cutoff": "2026-11-10",
   "summary": {
     "accumulating": 69,
@@ -415,9 +415,9 @@
       "cadence": "trading_daily",
       "criticality": "high",
       "status": "stalled",
-      "file_count": 66,
+      "file_count": 67,
       "row_count": null,
-      "latest_date": "2026-11-09",
+      "latest_date": "2026-11-10",
       "expected_date": "2026-11-09",
       "settle_hours": 18,
       "missing_trading_days": [
@@ -513,6 +513,10 @@
         {
           "date": "2026-11-09",
           "count": 60
+        },
+        {
+          "date": "2026-11-10",
+          "count": 61
         }
       ]
     },
@@ -525,7 +529,7 @@
       "status": "accumulating",
       "file_count": 1,
       "row_count": null,
-      "latest_date": "2026-11-09",
+      "latest_date": "2026-11-10",
       "expected_date": "2026-11-09",
       "settle_hours": 18,
       "missing_trading_days": [],
@@ -535,7 +539,7 @@
       "reversed_timestamps": 0,
       "growth_last_30d": [
         {
-          "date": "2026-11-09",
+          "date": "2026-11-10",
           "count": 1
         }
       ]
@@ -819,8 +823,8 @@
       "criticality": "high",
       "status": "accumulating",
       "file_count": 1,
-      "row_count": 177,
-      "latest_date": "2026-11-09",
+      "row_count": 180,
+      "latest_date": "2026-11-10",
       "expected_date": "2026-11-09",
       "settle_hours": 18,
       "missing_trading_days": [],
@@ -904,6 +908,10 @@
         {
           "date": "2026-11-09",
           "count": 59
+        },
+        {
+          "date": "2026-11-10",
+          "count": 60
         }
       ]
     },
@@ -1113,9 +1121,9 @@
       "cadence": "monthly",
       "criticality": "medium",
       "status": "accumulating",
-      "file_count": 61,
+      "file_count": 62,
       "row_count": null,
-      "latest_date": "2026-11-09",
+      "latest_date": "2026-11-10",
       "expected_date": null,
       "settle_hours": null,
       "missing_trading_days": [],
@@ -1199,6 +1207,10 @@
         {
           "date": "2026-11-09",
           "count": 60
+        },
+        {
+          "date": "2026-11-10",
+          "count": 61
         }
       ]
     },
@@ -1209,9 +1221,9 @@
       "cadence": "monthly",
       "criticality": "medium",
       "status": "accumulating",
-      "file_count": 61,
+      "file_count": 62,
       "row_count": null,
-      "latest_date": "2026-11-09",
+      "latest_date": "2026-11-10",
       "expected_date": null,
       "settle_hours": null,
       "missing_trading_days": [],
@@ -1295,6 +1307,10 @@
         {
           "date": "2026-11-09",
           "count": 60
+        },
+        {
+          "date": "2026-11-10",
+          "count": 61
         }
       ]
     },

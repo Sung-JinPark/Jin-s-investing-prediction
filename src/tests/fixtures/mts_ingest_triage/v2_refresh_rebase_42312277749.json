@@ -1,0 +1,29 @@
+{
+  "fixture_schema": "mts_ingest_triage_fixture_v1",
+  "kind": "v2_refresh",
+  "log_lines": [
+    "CONFLICT (content): Merge conflict in data/timeseries/facts/observations.parquet",
+    "CONFLICT (content): Merge conflict in data/timeseries/ledgers/observation_chunks.jsonl",
+    "CONFLICT (content): Merge conflict in data/timeseries/ledgers/raw_receipts.jsonl",
+    "CONFLICT (content): Merge conflict in data/timeseries_v2/ledgers/market_observations.jsonl",
+    "CONFLICT (content): Merge conflict in data/timeseries_v2/ledgers/market_raw_receipts.jsonl",
+    "CONFLICT (content): Merge conflict in data/timeseries_v2/parquet/market_observations.manifest.json",
+    "CONFLICT (content): Merge conflict in data/timeseries_v2/parquet/market_observations.parquet",
+    "error: could not apply a50a793f... data: append V2 PIT and market archive observations",
+    "##[error]Process completed with exit code 1."
+  ],
+  "provenance": {
+    "captured_at": "2026-11-11",
+    "excerpt_rule": "CONFLICT·could not apply·##[error] 줄만 원문 그대로 옮김. 구조화 JSON 보고는 없다.",
+    "repository": "Sung-JinPark/Jin-s-investing-prediction",
+    "run_conclusion": "failure",
+    "run_created_at": "2026-11-06T23:29:52Z",
+    "run_event": "workflow_dispatch",
+    "run_id": 42312277749,
+    "run_updated_at": "2026-11-06T23:36:53Z",
+    "source": "gh run view --log",
+    "step": "git pull --rebase (V2 산출물 체크포인트)",
+    "workflow": "timeseries-v2-refresh"
+  },
+  "report": null
+}

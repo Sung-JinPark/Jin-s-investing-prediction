@@ -687,3 +687,291 @@ process.stdout.write(JSON.stringify({withRows,empty,absent}));
     from ai_fc import dashboard
     wiring = Path(dashboard.__file__).read_text(encoding="utf-8")
     assert '"timeseries_daily_record": timeseries_daily_record' in wiring
+
+
+# ── P4 표시 정직성 (2026-11-11) ─────────────────────────────────────────────────
+# 실제 원장 오라클은 '고정 원점 집합 + 목표일 <= 2026-11-09' 로 묶는다 — 해소가 늘어도 깨지지 않는다.
+# 실제 저장소는 읽기만 하고, 실행 전후 원장·발행본·상수 파일 해시가 같음을 확인한다.
+REPO = Path(__file__).resolve().parents[2]
+P4_LAST_DATE = "2026-11-09"
+P4_LAST_ORIGIN = "2026-11-06"
+
+
+def _file_digests(root: Path) -> dict[str, str]:
+    from ai_fc.timeseries_daily6m import contracts as C
+    from ai_fc.timeseries_daily6m.display import DISPLAY_CONSTANTS_RELATIVE
+
+    paths = [root / C.RESOLUTION_LEDGER, root / C.FORECAST_LEDGER, root / DISPLAY_CONSTANTS_RELATIVE,
+             *sorted((root / C.STORE_RELATIVE / "runs").glob("*.json"))]
+    return {path.relative_to(root).as_posix(): hashlib.sha256(path.read_bytes()).hexdigest() for path in paths}
+
+
+def _p4_inputs() -> tuple[list[dict], dict, list[dict], dict]:
+    """(고정 해소 행, run 요약, 발행 원장 행, 상수) — 실제 저장소 읽기 전용."""
+    from ai_fc.timeseries_daily6m import contracts as C
+    from ai_fc.timeseries_daily6m.display import load_display_constants, read_ledgered_run, run_summary
+    from ai_fc.timeseries_daily6m.pipeline import read_chain
+
+    forecasts = read_chain(REPO, C.FORECAST_LEDGER)
+    fixed = [row for row in forecasts if row["origin_session"] <= P4_LAST_ORIGIN]
+    ids = {row["forecast_id"] for row in fixed}
+    rows = [row for row in read_chain(REPO, C.RESOLUTION_LEDGER)
+            if row["forecast_id"] in ids and row["date"] <= P4_LAST_DATE]
+    runs = {row["forecast_id"]: run_summary(read_ledgered_run(REPO, row)) for row in fixed}
+    constants, status = load_display_constants(REPO)
+    assert status == "ok"
+    return rows, runs, forecasts, constants
+
+
+@pytest.fixture(scope="module")
+def p4_record() -> dict:
+    from ai_fc.timeseries_daily6m.display import forward_record
+
+    before = _file_digests(REPO)
+    rows, runs, forecasts, constants = _p4_inputs()
+    record = forward_record(rows, runs=runs, forecasts=forecasts, constants=constants)
+    assert _file_digests(REPO) == before
+    return record
+
+
+def test_display_is_outside_the_daily6m_model_code_hash_and_constants_are_pinned(tmp_path: Path) -> None:
+    import inspect
+
+    from ai_fc.timeseries_daily6m import contracts as C
+    from ai_fc.timeseries_daily6m.display import DISPLAY_CONSTANTS_RELATIVE, load_display_constants
+
+    assert "display.py" not in inspect.getsource(C.model_code_hash)
+    constants, status = load_display_constants(REPO)
+    assert status == "ok" and constants["notice"] == "참고 의견, 매매 신호 아님"
+    tampered = json.loads((REPO / DISPLAY_CONSTANTS_RELATIVE).read_text(encoding="utf-8"))
+    tampered["shock_mark_abs_daily_z"] = 3.0
+    target = tmp_path / DISPLAY_CONSTANTS_RELATIVE
+    target.parent.mkdir(parents=True)
+    target.write_text(json.dumps(tampered), encoding="utf-8")
+    assert load_display_constants(tmp_path) == (None, "constants_hash_mismatch")
+    assert load_display_constants(tmp_path / "absent") == (None, "constants_file_missing")
+
+
+def test_constant_baseline_reproduces_from_the_design_window_archive() -> None:
+    """c = 2007~2014 NASDAQCOM 상승일 빈도 — 저장소 아카이브에서 재계산(네트워크 없음)."""
+    import pyarrow.parquet as pq
+
+    from ai_fc.timeseries_daily6m.contracts import canonical_hash
+    from ai_fc.timeseries_daily6m.display import load_display_constants
+
+    baseline = load_display_constants(REPO)[0]["up_day_constant_baseline"]
+    frame = pq.read_table(REPO / baseline["source_path"], filters=[("series_id", "=", "NASDAQCOM")]).to_pandas()
+    frame["day"] = frame["observation_time"].astype(str).str[:10]
+    frame = frame[(frame["day"] >= baseline["previous_session"]) & (frame["day"] <= baseline["window_end"])].sort_values("day")
+    pairs = [[day, float(value)] for day, value in zip(frame["day"], frame["value"])]
+    up = sum(1 for before, after in zip(pairs, pairs[1:]) if after[1] > before[1])
+    assert canonical_hash(pairs) == baseline["source_series_hash"]
+    assert (up, len(pairs) - 1) == (baseline["k_up"], baseline["n_sessions"]) == (1114, 2014)
+    assert baseline["c"] == up / (len(pairs) - 1) and pairs[1][0] == "2007-01-03"
+
+
+def test_live_ledger_oracles_use_target_date_equal_weights(p4_record: dict) -> None:
+    record = p4_record
+    assert record["honesty_status"] == "ok" and record["scoring_excluded"] is True
+    assert record["coverage_raw"] == {"k": 71, "n": 132}
+    assert round(record["coverage_date_equal"], 3) == 0.648
+    assert record["coverage_freshest_origin"] == {"k": 10, "n": 18}
+    assert record["coverage_weekly_final"] == {"k": 20, "n": 37}
+    assert record["effective_n_dates"] == 18 == record["n_dates"]
+    assert (record["n_issuances"], record["n_active_weekly_lineages"]) == (15, 4)
+    assert record["skill_judgeable"] is False and record["single_episode"] is True
+    assert record["label"] == "원점 기준 누적 수준 p10~p90 (날짜별 pointwise)"
+    assert record["increment_coverage"]["freshest_origin"] == {"k": 11, "n": 18}
+    assert record["brier_in_sample_climatology"]["label"] == "in-sample"
+    assert record["brier_const_prefixed"]["c"] == 0.5531
+    # 원시 132행 Brier 와 목표일 균등 Brier 는 다른 숫자다(원장 가중 무변경 · 읽기 투영만).
+    assert record["mean_brier"] == 0.2452 and record["brier_date_equal"] == 0.2417
+
+
+def test_zeroing_the_1105_shock_reproduces_the_audit_sensitivity() -> None:
+    """감사 도구(D6C-2)와 대조: 11-05 로그수익을 0 으로 바꾸면 원시 커버리지 0.538 → 0.735."""
+    import math
+
+    from ai_fc.timeseries_daily6m import display
+
+    rows, runs, forecasts, _ = _p4_inputs()
+    joined = display._resolved_rows(rows, runs, forecasts)
+    shock_row = next(row for row in rows if row["date"] == "2026-11-05")
+    shock = math.log(shock_row["actual_index"] / shock_row["actual_previous_index"])
+    actual = {row["date"]: row["actual_index"] for row in rows}
+    anchors = {row["forecast_id"]: _anchor_index(row) for row in forecasts if row["forecast_id"] in runs}
+    inside = []
+    for row in joined:
+        level = math.log(actual[row["date"]] / anchors[row["forecast_id"]])
+        if row["origin"] < "2026-11-05" <= row["date"]:
+            level -= shock
+        inside.append(row["level"][0] <= level <= row["level"][2])
+    assert round(sum(inside) / len(inside), 3) == 0.735
+    assert sum(row["inside"] for row in joined) == 71
+
+
+def _anchor_index(forecast_row: dict) -> float:
+    """run_summary 는 원점 대비 로그비만 갖는다 — 원점 종가는 발행본에서 다시 읽는다."""
+    from ai_fc.timeseries_daily6m.display import read_ledgered_run
+
+    return float(read_ledgered_run(REPO, forecast_row)["anchor_index"])
+
+
+def test_null_band_is_bit_identical_and_brackets_the_audit_p_range(p4_record: dict) -> None:
+    from ai_fc.timeseries_daily6m.display import forward_record
+
+    rows, runs, forecasts, constants = _p4_inputs()
+    again = forward_record(rows, runs=runs, forecasts=forecasts, constants=constants)
+    assert again["null_band"] == p4_record["null_band"]
+    assert again["null_band_sensitivity_freshest"] == p4_record["null_band_sensitivity_freshest"]
+    for band in (p4_record["null_band"], p4_record["null_band_sensitivity_freshest"]):
+        assert band["approximate"] is True and band["label"] == "model-true 근사"
+        assert (band["seed"], band["draws"], band["df"]) == (20261111, 20000, 4)
+        assert 0.08 <= band["p_raw_le_observed"] <= 0.16
+        assert band["p05"] < p4_record["coverage_date_equal"] < band["p95"]
+    assert p4_record["null_band"]["method"] != p4_record["null_band_sensitivity_freshest"]["method"]
+
+
+def test_rows_after_the_1105_shock_from_earlier_origins_are_marked_not_dropped(p4_record: dict) -> None:
+    from ai_fc.timeseries_daily6m import display
+
+    rows, runs, forecasts, constants = _p4_inputs()
+    joined = display._resolved_rows(rows, runs, forecasts)
+    marked = display.shock_marked_keys(joined, display.shock_onsets(joined, constants["shock_mark_abs_daily_z"]))
+    target = {(row["forecast_id"], row["date"]) for row in joined if row["origin"] < "2026-11-05" <= row["date"]}
+    assert len(target) == 39 and len({fid for fid, _ in target}) == 13
+    assert target <= marked
+    shock = p4_record["post_shock_rows"]
+    assert "2026-11-05" in shock["shock_dates"] and shock["marked"] == len(marked)
+    assert shock["coverage_excl"]["n"] + shock["marked"] == shock["n"] == 132
+
+
+def _synthetic_kappa_run(log_return: float, sigma: float, lam: float) -> dict:
+    import math
+
+    half = 1.2815515655446004 * sigma
+    return {
+        "anchor_date": "2026-11-05", "anchor_index": 100.0 * math.exp(log_return),
+        "history": {"dates": ["2026-11-04", "2026-11-05"], "index": [100.0, 100.0 * math.exp(log_return)]},
+        "model_config": {"ewma_lambda": lam},
+        "records": [{"daily_return_quantiles": {"p10": -half, "p25": -half / 2, "p50": 0.0, "p75": half / 2, "p90": half}}],
+    }
+
+
+def test_origin_vol_lag_kappa_warns_only_for_the_shock_origin() -> None:
+    from ai_fc.timeseries_daily6m import contracts as C
+    from ai_fc.timeseries_daily6m.display import origin_vol_lag, read_ledgered_run
+    from ai_fc.timeseries_daily6m.pipeline import read_chain
+
+    shock = origin_vol_lag(_synthetic_kappa_run(-0.0568, 0.0133, 0.94), 1.10)
+    assert shock["triggered"] is True and 1.40 < shock["kappa"] < 1.50
+    assert shock["label"] == "폭이 원점일 충격 미반영(1세션 지연)"
+    calm = origin_vol_lag(_synthetic_kappa_run(0.0, 0.0133, 0.94), 1.10)
+    assert calm["triggered"] is False and calm["label"] is None
+    real = {row["origin_session"]: row for row in read_chain(REPO, C.FORECAST_LEDGER)}
+    kappa_1022 = origin_vol_lag(read_ledgered_run(REPO, real["2026-10-22"]), 1.10)
+    kappa_1105 = origin_vol_lag(read_ledgered_run(REPO, real["2026-11-05"]), 1.10)
+    assert kappa_1022["triggered"] is False and round(kappa_1022["kappa"], 2) == 1.08
+    assert kappa_1105["triggered"] is True and round(kappa_1105["kappa"], 2) == 1.43
+    with pytest.raises(ValueError):
+        origin_vol_lag({**_synthetic_kappa_run(-0.01, 0.01, 0.94), "anchor_date": "2026-11-06"}, 1.10)
+
+
+def test_run_disclosure_flags_the_1106_near_tie_and_renders_labels(tmp_path: Path) -> None:
+    from ai_fc.timeseries_daily6m import contracts as C
+    from ai_fc.timeseries_daily6m.display import read_ledgered_run, run_disclosure
+    from ai_fc.timeseries_daily6m.pipeline import read_chain
+
+    before = _file_digests(REPO)
+    real = {row["origin_session"]: row for row in read_chain(REPO, C.FORECAST_LEDGER)}
+    near = run_disclosure(REPO, read_ledgered_run(REPO, real["2026-11-06"]))
+    shock = run_disclosure(REPO, read_ledgered_run(REPO, real["2026-11-05"]))
+    first = run_disclosure(REPO, read_ledgered_run(REPO, real["2026-10-14"]))
+    wide = run_disclosure(REPO, read_ledgered_run(REPO, real["2026-10-27"]))
+    assert _file_digests(REPO) == before
+    assert near["run_disclosure_status"] == "ok" and near["selection_margin_pct"] == 0.166
+    assert near["selection_near_tie"] is True and near["lambda_switch_vs_prev"]["switched"] is False
+    assert shock["origin_vol_lag_warning"]["triggered"] is True
+    assert first["lambda_switch_vs_prev"]["status"] == "first_issuance"
+    assert wide["selection_near_tie"] is False and wide["lambda_switch_vs_prev"]["switched"] is True
+    out = _run(tmp_path, "const near=" + json.dumps(near) + ";const shock=" + json.dumps(shock) + r""";
+process.stdout.write(JSON.stringify({near:tsDailyRunFlagsMarkup(near),shock:tsDailyRunFlagsMarkup(shock),none:tsDailyRunFlagsMarkup({})}));""")
+    assert "설정 선택 근소차 0.17%" in out["near"] and "λ 전환" not in out["near"]
+    assert "κ 1.43" in out["shock"] and out["none"] == ""
+    source = _source()
+    daily = source[source.index("function renderTimeseriesDaily("):source.index("function bindTimeseriesTabs")]
+    assert "chart+tsDailyRunFlagsMarkup(ts)" in daily
+
+
+def test_run_disclosure_fails_soft_with_a_reason_when_constants_are_missing(tmp_path: Path) -> None:
+    from ai_fc.timeseries_daily6m.display import run_disclosure
+
+    payload = run_disclosure(tmp_path, {"run_id": "x"})
+    assert payload["run_disclosure_status"] == "constants_file_missing"
+    assert payload["selection_margin_pct"] is None and payload["selection_near_tie"] is None
+
+
+def test_ledgered_run_reader_rejects_identity_mismatch(tmp_path: Path) -> None:
+    from ai_fc.timeseries_daily6m import contracts as C
+    from ai_fc.timeseries_daily6m.display import Daily6mDisplayError, read_ledgered_run
+
+    body = {"run_id": "daily6m-x", "value": 1}
+    run = {**body, "content_hash": C.canonical_hash(body)}
+    path = tmp_path / C.STORE_RELATIVE / "runs/daily6m-x.json"
+    path.parent.mkdir(parents=True)
+    path.write_text(json.dumps(run), encoding="utf-8")
+    row = {"forecast_id": "daily6m-x", "run_path": (C.STORE_RELATIVE / "runs/daily6m-x.json").as_posix(),
+           "run_content_hash": run["content_hash"]}
+    assert read_ledgered_run(tmp_path, row) == run
+    for broken in ({**row, "run_content_hash": "0" * 64}, {**row, "forecast_id": "daily6m-y"},
+                   {**row, "run_path": "../outside.json"}):
+        with pytest.raises(Daily6mDisplayError):
+            read_ledgered_run(tmp_path, broken)
+    path.write_text(json.dumps({**run, "value": 2}), encoding="utf-8")
+    with pytest.raises(Daily6mDisplayError):
+        read_ledgered_run(tmp_path, row)
+
+
+def test_honesty_fields_are_all_null_without_runs_and_ui_does_not_promote_raw_counts(tmp_path: Path) -> None:
+    from ai_fc.timeseries_daily6m.display import HONESTY_FIELDS, forward_record
+
+    rows = [{"resolution_id": "a:1", "forecast_id": "a", "date": "2026-10-15", "brier": 0.2, "inside_p10_p90": True}]
+    bare = forward_record(rows)
+    assert bare["honesty_status"] == "runs_unavailable" and all(bare[key] is None for key in HONESTY_FIELDS)
+    assert bare["notice"] == "참고 의견, 매매 신호 아님" and bare["n"] == 1 and bare["n_dates"] == 1
+    broken = forward_record(rows, runs={}, forecasts=[], constants={"x": 1})
+    assert broken["honesty_status"].startswith("honesty_error") and broken["coverage_date_equal"] is None
+    out = _run(tmp_path, "const rec=" + json.dumps(bare) + r""";
+const html=tsDailyRecordMarkup(rec),strong=[...html.matchAll(/<strong>([^<]*)<\/strong>/g)].map(m=>m[1]);
+process.stdout.write(JSON.stringify({html,strong}));""")
+    assert out["strong"][0] == "—" and "원시 1/1" in out["html"]
+
+
+def test_record_markup_leads_with_date_equal_coverage_and_null_band(tmp_path: Path, p4_record: dict) -> None:
+    out = _run(tmp_path, "const rec=" + json.dumps(p4_record) + r""";
+const html=tsDailyRecordMarkup(rec),strong=[...html.matchAll(/<strong>([^<]*)<\/strong>/g)].map(m=>m[1]);
+process.stdout.write(JSON.stringify({html,strong}));""")
+    html, strong = out["html"], out["strong"]
+    band = p4_record["null_band"]
+    assert strong[0] == "64.8%" and strong[0] != "71/132"
+    assert f"귀무 {round(band['p05'] * 100)}%~{round(band['p95'] * 100)}%" in html and "원시 71/132" in html
+    assert strong[1] == "0.242" and "사전 상수 0.553 → 0.247" in html and "무정보 0.25" in html
+    assert "skill 판단 불가" in html
+    assert '<details class="ts-daily-record-guide">' in html and "in-sample" in html
+    assert "10/18" in html and "20/37" in html and "103/132" in html and "단일 에피소드" in html
+    assert "<svg" not in html and "참고 의견, 매매 신호 아님" in html
+    # 접기 밖 KPI 문구는 라벨만 — 자기설명 문장(…다.)은 접기 안에만 둔다.
+    outside = html[:html.index("<details")]
+    assert "다." not in outside and "비독립" not in outside
+
+
+def test_live_loader_matches_the_pure_projection_and_stays_within_budget(p4_record: dict) -> None:
+    from ai_fc.timeseries_daily6m import contracts as C
+    from ai_fc.timeseries_daily6m.display import load_forward_record
+
+    before = _file_digests(REPO)
+    code_hash = C.model_code_hash(REPO)
+    live = load_forward_record(REPO)
+    assert _file_digests(REPO) == before and C.model_code_hash(REPO) == code_hash
+    assert live["honesty_status"] == "ok" and live["n"] >= p4_record["n"]
+    assert len(json.dumps(live, ensure_ascii=False, separators=(",", ":")).encode("utf-8")) < 8 * 1024

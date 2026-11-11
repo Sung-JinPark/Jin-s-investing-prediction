@@ -1,0 +1,170 @@
+{
+  "fixture_schema": "mts_ingest_triage_fixture_v1",
+  "history": [
+    {
+      "completed_at": "2026-11-10T10:33:11+00:00",
+      "evidence": "run_conclusion_success",
+      "note": "성공 실행은 partial 이 아니었다(워크플로가 partial 이면 exit 1). completed_at 은 실행 updatedAt(상한).",
+      "run_id": 42799594500,
+      "source_failures": [],
+      "source_pending": [],
+      "status": "applied",
+      "transport_failures": [],
+      "workflow": "daily6m-sources-refresh"
+    },
+    {
+      "completed_at": "2026-11-10T11:29:21+00:00",
+      "evidence": "run_conclusion_success",
+      "note": "성공 실행은 partial 이 아니었다(워크플로가 partial 이면 exit 1). completed_at 은 실행 updatedAt(상한).",
+      "run_id": 42806194978,
+      "source_failures": [],
+      "source_pending": [],
+      "status": "applied",
+      "transport_failures": [],
+      "workflow": "timeseries-daily6m"
+    },
+    {
+      "completed_at": "2026-11-10T17:04:35.248537+00:00",
+      "evidence": "capture_report",
+      "run_id": 42860949123,
+      "source_failures": [
+        {
+          "kind": "nasdaq_info",
+          "reason": "missing_response"
+        }
+      ],
+      "source_pending": [],
+      "status": "partial",
+      "transport_failures": [
+        {
+          "kind": "nasdaq_history",
+          "reason": "HTTPError: HTTP Error 403: Forbidden"
+        },
+        {
+          "kind": "nasdaq_info",
+          "reason": "HTTPError: HTTP Error 403: Forbidden"
+        }
+      ],
+      "workflow": "timeseries-daily6m"
+    },
+    {
+      "completed_at": "2026-11-10T18:13:58.543713+00:00",
+      "evidence": "capture_report",
+      "run_id": 42872401005,
+      "source_failures": [
+        {
+          "kind": "nasdaq_info",
+          "reason": "missing_response"
+        }
+      ],
+      "source_pending": [],
+      "status": "partial",
+      "transport_failures": [
+        {
+          "kind": "nasdaq_history",
+          "reason": "HTTPError: HTTP Error 403: Forbidden"
+        },
+        {
+          "kind": "nasdaq_info",
+          "reason": "HTTPError: HTTP Error 403: Forbidden"
+        }
+      ],
+      "workflow": "daily6m-sources-refresh"
+    },
+    {
+      "completed_at": "2026-11-10T23:49:06.481215+00:00",
+      "evidence": "capture_report",
+      "run_id": 42926207427,
+      "source_failures": [
+        {
+          "kind": "nasdaq_info",
+          "reason": "missing_response"
+        }
+      ],
+      "source_pending": [
+        {
+          "kind": "cboe",
+          "reason": "official CBOE latest completed close is not published"
+        }
+      ],
+      "status": "partial",
+      "transport_failures": [
+        {
+          "kind": "nasdaq_history",
+          "reason": "HTTPError: HTTP Error 403: Forbidden"
+        },
+        {
+          "kind": "nasdaq_info",
+          "reason": "HTTPError: HTTP Error 403: Forbidden"
+        }
+      ],
+      "workflow": "timeseries-daily6m"
+    },
+    {
+      "completed_at": "2026-11-11T02:54:18.398280+00:00",
+      "evidence": "capture_report",
+      "run_id": 42949064920,
+      "source_failures": [
+        {
+          "kind": "nasdaq_info",
+          "reason": "missing_response"
+        }
+      ],
+      "source_pending": [],
+      "status": "partial",
+      "transport_failures": [
+        {
+          "kind": "nasdaq_history",
+          "reason": "HTTPError: HTTP Error 403: Forbidden"
+        },
+        {
+          "kind": "nasdaq_info",
+          "reason": "HTTPError: HTTP Error 403: Forbidden"
+        }
+      ],
+      "workflow": "daily6m-sources-refresh"
+    }
+  ],
+  "kind": "daily6m_sources",
+  "provenance": {
+    "captured_at": "2026-11-11",
+    "excerpt_rule": "sources/capture 단계 JSON 원문. history 는 같은 Nasdaq 원천을 쓰는 두 워크플로(timeseries-daily6m·daily6m-sources-refresh)의 capture 보고 발췌 + 직전 성공 실행 2건(run list 의 conclusion·updatedAt).",
+    "job": "sources / capture",
+    "log_timestamp": "2026-11-11T03:09:59.4514363Z",
+    "repository": "Sung-JinPark/Jin-s-investing-prediction",
+    "run_conclusion": "failure",
+    "run_created_at": "2026-11-11T03:09:06Z",
+    "run_event": "workflow_dispatch",
+    "run_id": 42950808534,
+    "run_updated_at": "2026-11-11T03:18:05Z",
+    "source": "gh run view --log",
+    "step": "python -m ai_fc timeseries-daily6m-sources-capture --out .tmp/daily6m-sources-capture --report .tmp/daily6m-sources-capture-report.json",
+    "workflow": "timeseries-daily6m"
+  },
+  "report": {
+    "appended": 0,
+    "bundle_id": "daily6m-source-bundle-008ce1ab92c15ab9fe1c24b2bb4dad81",
+    "changed": false,
+    "completed_at": "2026-11-11T03:09:58.374834+00:00",
+    "observations": 3,
+    "receipts": 2,
+    "source_failures": [
+      {
+        "kind": "nasdaq_info",
+        "reason": "missing_response"
+      }
+    ],
+    "source_pending": [],
+    "status": "partial",
+    "transport_failures": [
+      {
+        "kind": "nasdaq_history",
+        "reason": "HTTPError: HTTP Error 403: Forbidden"
+      },
+      {
+        "kind": "nasdaq_info",
+        "reason": "HTTPError: HTTP Error 403: Forbidden"
+      }
+    ]
+  }
+}

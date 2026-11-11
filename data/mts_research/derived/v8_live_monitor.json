@@ -1,0 +1,2314 @@
+{
+  "alarm": {
+    "basis": "ledger_grid",
+    "breaches": [],
+    "effect_scope": "공시 라벨 전용 — 자동 재예측·재학습·게이트 숨김 없음",
+    "label": "정상 범위(검정력 낮음)",
+    "states": {
+      "h21": "insufficient",
+      "h5": "normal"
+    }
+  },
+  "as_of_session": "2026-11-09",
+  "bases": {
+    "ledger_grid": {
+      "cohort": "resolved_ledger_rows",
+      "composite_mean_1_5_21": {
+        "below_q05_information_only": false,
+        "n_by_h": {
+          "h1": 11,
+          "h21": 7,
+          "h5": 11
+        },
+        "note": "post_dated h1 을 포함하므로 정보용 — 경보에 쓰지 않는다. 같은 basis 안의 단순 평균",
+        "representative": false,
+        "sealed_n_windows": 375,
+        "sealed_percentile": 0.25333333333333335,
+        "skill_mean": -0.010631511341019731,
+        "threshold_q05": -0.035,
+        "window_k_by_h": {
+          "h1": 12,
+          "h21": 8,
+          "h5": 11
+        }
+      },
+      "label": "원장 grid 라벨(1차·공식 basis)",
+      "post_dated": {
+        "h1": {
+          "L1": {
+            "block_length": 1,
+            "ci90_block": [
+              -0.1318546678507362,
+              0.0400006342679773
+            ],
+            "ci90_iid": [
+              -0.1318546678507362,
+              0.0400006342679773
+            ],
+            "n": 11,
+            "n_origins": 11,
+            "origins": [
+              "2026-08-14",
+              "2026-08-28",
+              "2026-09-04",
+              "2026-09-11",
+              "2026-09-18",
+              "2026-09-25",
+              "2026-10-02",
+              "2026-10-09",
+              "2026-10-16",
+              "2026-10-23",
+              "2026-10-30"
+            ],
+            "sealed": {
+              "metric": "skill",
+              "n_sealed_origins": 385,
+              "n_windows": 375,
+              "percentile": 0.064,
+              "proxy": false,
+              "q05_ci90_block": [
+                -0.08542276595773993,
+                -0.04853862967615747
+              ],
+              "q05_q50_q95": [
+                -0.058784584156567336,
+                0.006103202919936379,
+                0.08444110406485188
+              ],
+              "source": "data/timeseries_v8/ledgers/sealed_evaluations.jsonl scores, 2019-01-01+ 연속 창",
+              "window": 11
+            },
+            "skill": -0.05426220200451293,
+            "threshold_q05": -0.051,
+            "threshold_window_k": 12,
+            "threshold_window_matches_n": false,
+            "window_k": 12
+          },
+          "L2": {
+            "block_length": 1,
+            "ci90_block": [
+              -0.433092549997612,
+              0.5807872608454369
+            ],
+            "ci90_iid": [
+              -0.433092549997612,
+              0.5807872608454369
+            ],
+            "sealed": {
+              "metric": "z",
+              "n_sealed_origins": 385,
+              "n_windows": 375,
+              "percentile": 0.56,
+              "proxy": false,
+              "q05_ci90_block": [
+                -0.8110365989604984,
+                -0.3911236720398827
+              ],
+              "q05_q50_q95": [
+                -0.6223999353011609,
+                -0.028700507398873386,
+                0.4359158980811741
+              ],
+              "source": "data/timeseries_v8/ledgers/sealed_evaluations.jsonl scores, 2019-01-01+ 연속 창",
+              "window": 11
+            },
+            "threshold_zq05": -0.58,
+            "z_mean": 0.05673464377689801
+          },
+          "L3": {
+            "band": [
+              0.35,
+              0.65
+            ],
+            "block_length": 1,
+            "ci90_block": [
+              0.33954545454545454,
+              0.6509318181818183
+            ],
+            "ci90_iid": [
+              0.33954545454545454,
+              0.6509318181818183
+            ],
+            "outside_band": false,
+            "pit_mean": 0.4927272727272728,
+            "pit_var": 0.09540165289256199,
+            "status": "information_only",
+            "uniform_var": 0.08333333333333333
+          },
+          "L4": {
+            "block_length": 1,
+            "ci90_block": [
+              -0.08363636363636363,
+              0.45502272727272736
+            ],
+            "ci90_iid": [
+              -0.08363636363636363,
+              0.45502272727272736
+            ],
+            "freq_up": 0.36363636363636365,
+            "gap": 0.18772727272727285,
+            "p_up_mean": 0.5513636363636365,
+            "poisson_binomial": {
+              "expected_up": 6.065,
+              "independence_assumed": true,
+              "k_up": 4,
+              "method": "exact_dp_convolution",
+              "note": "겹치는 창(h21·h63)은 독립 가정이 낙관적 — 꼬리확률 과소 가능",
+              "p_ge_observed": 0.9413907022057613,
+              "p_le_observed": 0.1697926181163896,
+              "two_sided_min_tail": 0.1697926181163896
+            },
+            "sealed": {
+              "metric": "pup_gap",
+              "n_sealed_origins": 385,
+              "n_windows": 375,
+              "percentile": 0.9626666666666667,
+              "proxy": true,
+              "q05_ci90_block": [
+                -0.37404124769687286,
+                -0.26145607802933873
+              ],
+              "q05_q50_q95": [
+                -0.3667770522661584,
+                -0.018888072239896955,
+                0.17615259724892227
+              ],
+              "source": "data/timeseries_v8/ledgers/sealed_evaluations.jsonl scores, 2019-01-01+ 연속 창",
+              "window": 11
+            }
+          },
+          "breaches": [],
+          "decomposition": {
+            "delta_loc": 0.0659776757722773,
+            "delta_shape": -0.011715473767764273,
+            "identity": "loss_vs_hs = delta_loc + delta_shape = −skill",
+            "location_neutral": "grid − q50 + q50_HS",
+            "loss_vs_hs": 0.05426220200451293,
+            "skill_location_neutral_twin": 0.011715473767764273
+          },
+          "h": 1,
+          "information_flags": [
+            "near_tail"
+          ],
+          "label": "꼬리 근접(정보 — 사전 기록 아님)",
+          "minimum_origins": 8,
+          "n": 11,
+          "n_dates": 11,
+          "n_origins": 11,
+          "origins": [
+            "2026-08-14",
+            "2026-08-28",
+            "2026-09-04",
+            "2026-09-11",
+            "2026-09-18",
+            "2026-09-25",
+            "2026-10-02",
+            "2026-10-09",
+            "2026-10-16",
+            "2026-10-23",
+            "2026-10-30"
+          ],
+          "post_dated_rows": 11,
+          "sensitivity": {
+            "ex_origin_2026_10_09": {
+              "n": 10,
+              "skill": -0.06873193702073399
+            },
+            "ex_shock_window": {
+              "excluded": [],
+              "n": 11,
+              "rule": "창 안 일간 |z|>4 (원점 λ 의 XNAS 사전 EWMA)",
+              "skill": -0.05426220200451293
+            }
+          },
+          "shock_days": [],
+          "single_episode": false,
+          "single_episode_scope": "창 안 |z|>4 충격일 수 — 1 이면 꼬리가 한 에피소드에 종속",
+          "state": "near_tail",
+          "sufficiency": "ok",
+          "window_k": 12
+        }
+      },
+      "representative": {
+        "h21": {
+          "L1": {
+            "block_length": 3,
+            "ci90_block": [
+              -0.04503021647029071,
+              0.11810528545154253
+            ],
+            "ci90_iid": [
+              -0.04015945062980751,
+              0.10943344512995479
+            ],
+            "n": 7,
+            "n_origins": 7,
+            "origins": [
+              "2026-08-14",
+              "2026-08-28",
+              "2026-09-04",
+              "2026-09-11",
+              "2026-09-18",
+              "2026-09-25",
+              "2026-10-02"
+            ],
+            "sealed": {
+              "metric": "skill",
+              "n_sealed_origins": 385,
+              "n_windows": 379,
+              "percentile": 0.42744063324538256,
+              "proxy": false,
+              "q05_ci90_block": [
+                -0.08282395296074596,
+                -0.05542762950021285
+              ],
+              "q05_q50_q95": [
+                -0.06655820129942877,
+                0.028866531309234333,
+                0.20398018162154277
+              ],
+              "source": "data/timeseries_v8/ledgers/sealed_evaluations.jsonl scores, 2019-01-01+ 연속 창",
+              "window": 7
+            },
+            "skill": 0.015543815774365588,
+            "threshold_q05": -0.066,
+            "threshold_window_k": 8,
+            "threshold_window_matches_n": false,
+            "window_k": 8
+          },
+          "L2": {
+            "block_length": 3,
+            "ci90_block": [
+              -1.1188127711990148,
+              0.11314613611303044
+            ],
+            "ci90_iid": [
+              -1.0239927912057032,
+              0.023037935281963587
+            ],
+            "sealed": {
+              "metric": "z",
+              "n_sealed_origins": 385,
+              "n_windows": 379,
+              "percentile": 0.29023746701846964,
+              "proxy": false,
+              "q05_ci90_block": [
+                -2.1581010132672027,
+                -1.1122887827453134
+              ],
+              "q05_q50_q95": [
+                -1.601894071727813,
+                0.001388465190184686,
+                0.8218695170011006
+              ],
+              "source": "data/timeseries_v8/ledgers/sealed_evaluations.jsonl scores, 2019-01-01+ 연속 창",
+              "window": 7
+            },
+            "threshold_zq05": -1.5,
+            "z_mean": -0.4802828181700445
+          },
+          "L3": {
+            "band": [
+              0.35,
+              0.65
+            ],
+            "block_length": 3,
+            "ci90_block": [
+              0.21214285714285713,
+              0.5757142857142856
+            ],
+            "ci90_iid": [
+              0.2534999999999999,
+              0.5485714285714286
+            ],
+            "outside_band": false,
+            "pit_mean": 0.395,
+            "pit_var": 0.05582142857142858,
+            "status": "information_only",
+            "uniform_var": 0.08333333333333333
+          },
+          "L4": {
+            "block_length": 3,
+            "ci90_block": [
+              -0.20285714285714282,
+              0.5092857142857142
+            ],
+            "ci90_iid": [
+              -0.2021428571428571,
+              0.3700000000000001
+            ],
+            "freq_up": 0.5714285714285714,
+            "gap": 0.08357142857142874,
+            "p_up_mean": 0.6550000000000001,
+            "poisson_binomial": {
+              "expected_up": 4.585,
+              "independence_assumed": true,
+              "k_up": 4,
+              "method": "exact_dp_convolution",
+              "note": "겹치는 창(h21·h63)은 독립 가정이 낙관적 — 꼬리확률 과소 가능",
+              "p_ge_observed": 0.808326295216225,
+              "p_le_observed": 0.45622630856123125,
+              "two_sided_min_tail": 0.45622630856123125
+            },
+            "sealed": {
+              "metric": "pup_gap",
+              "n_sealed_origins": 385,
+              "n_windows": 379,
+              "percentile": 0.5989445910290238,
+              "proxy": true,
+              "q05_ci90_block": [
+                -0.3845697224648013,
+                -0.34953346976199257
+              ],
+              "q05_q50_q95": [
+                -0.3705987166463301,
+                -0.05190663645480919,
+                0.5131660190846445
+              ],
+              "source": "data/timeseries_v8/ledgers/sealed_evaluations.jsonl scores, 2019-01-01+ 연속 창",
+              "window": 7
+            }
+          },
+          "breaches": [],
+          "decomposition": {
+            "delta_loc": 0.01518045751771066,
+            "delta_shape": -0.030724273292076498,
+            "identity": "loss_vs_hs = delta_loc + delta_shape = −skill",
+            "location_neutral": "grid − q50 + q50_HS",
+            "loss_vs_hs": -0.01554381577436581,
+            "skill_location_neutral_twin": 0.030724273292076498
+          },
+          "h": 21,
+          "information_flags": [],
+          "label": "표본 부족(insufficient)",
+          "minimum_origins": 8,
+          "n": 7,
+          "n_dates": 7,
+          "n_origins": 7,
+          "origins": [
+            "2026-08-14",
+            "2026-08-28",
+            "2026-09-04",
+            "2026-09-11",
+            "2026-09-18",
+            "2026-09-25",
+            "2026-10-02"
+          ],
+          "post_dated_rows": 0,
+          "sensitivity": {
+            "ex_origin_2026_10_09": {
+              "n": 7,
+              "skill": 0.01554381577436581
+            },
+            "ex_shock_window": {
+              "excluded": [],
+              "n": 7,
+              "rule": "창 안 일간 |z|>4 (원점 λ 의 XNAS 사전 EWMA)",
+              "skill": 0.01554381577436581
+            }
+          },
+          "shock_days": [],
+          "single_episode": false,
+          "single_episode_scope": "창 안 |z|>4 충격일 수 — 1 이면 꼬리가 한 에피소드에 종속",
+          "state": "insufficient",
+          "sufficiency": "insufficient",
+          "window_k": 8
+        },
+        "h5": {
+          "L1": {
+            "block_length": 1,
+            "ci90_block": [
+              -0.03183008547937972,
+              0.06181073462647539
+            ],
+            "ci90_iid": [
+              -0.03183008547937972,
+              0.06181073462647539
+            ],
+            "n": 11,
+            "n_origins": 11,
+            "origins": [
+              "2026-08-14",
+              "2026-08-28",
+              "2026-09-04",
+              "2026-09-11",
+              "2026-09-18",
+              "2026-09-25",
+              "2026-10-02",
+              "2026-10-09",
+              "2026-10-16",
+              "2026-10-23",
+              "2026-10-30"
+            ],
+            "sealed": {
+              "metric": "skill",
+              "n_sealed_origins": 385,
+              "n_windows": 375,
+              "percentile": 0.512,
+              "proxy": false,
+              "q05_ci90_block": [
+                -0.11592556279244082,
+                -0.044977065696527235
+              ],
+              "q05_q50_q95": [
+                -0.060096882027419876,
+                0.004075971432267567,
+                0.10708674112534507
+              ],
+              "source": "data/timeseries_v8/ledgers/sealed_evaluations.jsonl scores, 2019-01-01+ 연속 창",
+              "window": 11
+            },
+            "skill": 0.0068238522070879215,
+            "threshold_q05": -0.06,
+            "threshold_window_k": 11,
+            "threshold_window_matches_n": true,
+            "window_k": 11
+          },
+          "L2": {
+            "block_length": 1,
+            "ci90_block": [
+              -0.8843187859664495,
+              -0.15701861706684936
+            ],
+            "ci90_iid": [
+              -0.8843187859664495,
+              -0.15701861706684936
+            ],
+            "sealed": {
+              "metric": "z",
+              "n_sealed_origins": 385,
+              "n_windows": 375,
+              "percentile": 0.07733333333333334,
+              "proxy": false,
+              "q05_ci90_block": [
+                -1.0011182637101959,
+                -0.39736183469861774
+              ],
+              "q05_q50_q95": [
+                -0.6604473215509853,
+                -0.014221471568000355,
+                0.3543978507270383
+              ],
+              "source": "data/timeseries_v8/ledgers/sealed_evaluations.jsonl scores, 2019-01-01+ 연속 창",
+              "window": 11
+            },
+            "threshold_zq05": -0.66,
+            "z_mean": -0.5130518075409196
+          },
+          "L3": {
+            "band": [
+              0.35,
+              0.65
+            ],
+            "block_length": 1,
+            "ci90_block": [
+              0.2527272727272727,
+              0.473659090909091
+            ],
+            "ci90_iid": [
+              0.2527272727272727,
+              0.473659090909091
+            ],
+            "outside_band": false,
+            "pit_mean": 0.36227272727272725,
+            "pit_var": 0.05085165289256199,
+            "status": "information_only",
+            "uniform_var": 0.08333333333333333
+          },
+          "L4": {
+            "block_length": 1,
+            "ci90_block": [
+              -0.14590909090909096,
+              0.40227272727272717
+            ],
+            "ci90_iid": [
+              -0.14590909090909096,
+              0.40227272727272717
+            ],
+            "freq_up": 0.45454545454545453,
+            "gap": 0.12818181818181823,
+            "p_up_mean": 0.5827272727272728,
+            "poisson_binomial": {
+              "expected_up": 6.41,
+              "independence_assumed": true,
+              "k_up": 5,
+              "method": "exact_dp_convolution",
+              "note": "겹치는 창(h21·h63)은 독립 가정이 낙관적 — 꼬리확률 과소 가능",
+              "p_ge_observed": 0.8780438063545455,
+              "p_le_observed": 0.2858512296194306,
+              "two_sided_min_tail": 0.2858512296194306
+            },
+            "sealed": {
+              "metric": "pup_gap",
+              "n_sealed_origins": 385,
+              "n_windows": 375,
+              "percentile": 0.8186666666666667,
+              "proxy": true,
+              "q05_ci90_block": [
+                -0.2914605833881672,
+                -0.19004432141225683
+              ],
+              "q05_q50_q95": [
+                -0.24349207687661908,
+                0.014247337175218942,
+                0.24343367943557376
+              ],
+              "source": "data/timeseries_v8/ledgers/sealed_evaluations.jsonl scores, 2019-01-01+ 연속 창",
+              "window": 11
+            }
+          },
+          "breaches": [],
+          "decomposition": {
+            "delta_loc": 0.027944511280780734,
+            "delta_shape": -0.034768363487868714,
+            "identity": "loss_vs_hs = delta_loc + delta_shape = −skill",
+            "location_neutral": "grid − q50 + q50_HS",
+            "loss_vs_hs": -0.0068238522070879215,
+            "skill_location_neutral_twin": 0.034768363487868714
+          },
+          "h": 5,
+          "information_flags": [],
+          "label": "정상 범위(검정력 낮음)",
+          "minimum_origins": 8,
+          "n": 11,
+          "n_dates": 11,
+          "n_origins": 11,
+          "origins": [
+            "2026-08-14",
+            "2026-08-28",
+            "2026-09-04",
+            "2026-09-11",
+            "2026-09-18",
+            "2026-09-25",
+            "2026-10-02",
+            "2026-10-09",
+            "2026-10-16",
+            "2026-10-23",
+            "2026-10-30"
+          ],
+          "post_dated_rows": 1,
+          "sensitivity": {
+            "ex_origin_2026_10_09": {
+              "n": 10,
+              "skill": 0.029361639120985994
+            },
+            "ex_shock_window": {
+              "excluded": [
+                "2026-10-30"
+              ],
+              "n": 10,
+              "rule": "창 안 일간 |z|>4 (원점 λ 의 XNAS 사전 EWMA)",
+              "skill": 0.022248080810684856
+            }
+          },
+          "shock_days": [
+            "2026-11-05"
+          ],
+          "single_episode": true,
+          "single_episode_scope": "창 안 |z|>4 충격일 수 — 1 이면 꼬리가 한 에피소드에 종속",
+          "state": "normal",
+          "sufficiency": "ok",
+          "window_k": 11
+        }
+      }
+    },
+    "xnas_diagnostic_v1.all_closed_targets": {
+      "cohort": "reconciled+provisional",
+      "composite_mean_1_5_21": {
+        "below_q05_information_only": false,
+        "n_by_h": {
+          "h1": 12,
+          "h21": 8,
+          "h5": 11
+        },
+        "note": "post_dated h1 을 포함하므로 정보용 — 경보에 쓰지 않는다. 같은 basis 안의 단순 평균",
+        "representative": false,
+        "sealed_n_windows": 374,
+        "sealed_percentile": 0.10427807486631016,
+        "skill_mean": -0.02565301689047968,
+        "threshold_q05": -0.035,
+        "window_k_by_h": {
+          "h1": 12,
+          "h21": 8,
+          "h5": 11
+        }
+      },
+      "label": "XNAS 진단 — 목표 종가 확정 쌍 전부",
+      "post_dated": {
+        "h1": {
+          "L1": {
+            "block_length": 1,
+            "ci90_block": [
+              -0.11244714162656909,
+              0.0302933954538935
+            ],
+            "ci90_iid": [
+              -0.11244714162656909,
+              0.0302933954538935
+            ],
+            "n": 12,
+            "n_origins": 12,
+            "origins": [
+              "2026-08-14",
+              "2026-08-28",
+              "2026-09-04",
+              "2026-09-11",
+              "2026-09-18",
+              "2026-09-25",
+              "2026-10-02",
+              "2026-10-09",
+              "2026-10-16",
+              "2026-10-23",
+              "2026-10-30",
+              "2026-11-06"
+            ],
+            "sealed": {
+              "metric": "skill",
+              "n_sealed_origins": 385,
+              "n_windows": 374,
+              "percentile": 0.10695187165775401,
+              "proxy": false,
+              "q05_ci90_block": [
+                -0.0791853739548082,
+                -0.04406536683857155
+              ],
+              "q05_q50_q95": [
+                -0.0514064993905288,
+                0.004948113605894089,
+                0.0773657287418792
+              ],
+              "source": "data/timeseries_v8/ledgers/sealed_evaluations.jsonl scores, 2019-01-01+ 연속 창",
+              "window": 12
+            },
+            "skill": -0.03946508629832368,
+            "threshold_q05": -0.051,
+            "threshold_window_k": 12,
+            "threshold_window_matches_n": true,
+            "window_k": 12
+          },
+          "L2": {
+            "block_length": 1,
+            "ci90_block": [
+              -0.3252252015383054,
+              0.7033975828416387
+            ],
+            "ci90_iid": [
+              -0.3252252015383054,
+              0.7033975828416387
+            ],
+            "sealed": {
+              "metric": "z",
+              "n_sealed_origins": 385,
+              "n_windows": 374,
+              "percentile": 0.6978609625668449,
+              "proxy": false,
+              "q05_ci90_block": [
+                -0.785933274969936,
+                -0.3747073784176171
+              ],
+              "q05_q50_q95": [
+                -0.5795239974014711,
+                -0.025987681211876702,
+                0.4209824016861176
+              ],
+              "source": "data/timeseries_v8/ledgers/sealed_evaluations.jsonl scores, 2019-01-01+ 연속 창",
+              "window": 12
+            },
+            "threshold_zq05": -0.58,
+            "z_mean": 0.17350727692313392
+          },
+          "L3": {
+            "band": [
+              0.35,
+              0.65
+            ],
+            "block_length": 1,
+            "ci90_block": [
+              0.36789583333333337,
+              0.6841875000000001
+            ],
+            "ci90_iid": [
+              0.36789583333333337,
+              0.6841875000000001
+            ],
+            "outside_band": false,
+            "pit_mean": 0.5220833333333333,
+            "pit_var": 0.10922274305555556,
+            "status": "information_only",
+            "uniform_var": 0.08333333333333333
+          },
+          "L4": {
+            "block_length": 1,
+            "ci90_block": [
+              -0.12708333333333333,
+              0.38625000000000004
+            ],
+            "ci90_iid": [
+              -0.12708333333333333,
+              0.38625000000000004
+            ],
+            "freq_up": 0.4166666666666667,
+            "gap": 0.13291666666666674,
+            "p_up_mean": 0.5495833333333334,
+            "poisson_binomial": {
+              "expected_up": 6.595000000000001,
+              "independence_assumed": true,
+              "k_up": 5,
+              "method": "exact_dp_convolution",
+              "note": "겹치는 창(h21·h63)은 독립 가정이 낙관적 — 꼬리확률 과소 가능",
+              "p_ge_observed": 0.8891345416543504,
+              "p_le_observed": 0.2603860462243124,
+              "two_sided_min_tail": 0.2603860462243124
+            },
+            "sealed": {
+              "metric": "pup_gap",
+              "n_sealed_origins": 385,
+              "n_windows": 374,
+              "percentile": 0.9171122994652406,
+              "proxy": true,
+              "q05_ci90_block": [
+                -0.37712038988037294,
+                -0.23974056050447512
+              ],
+              "q05_q50_q95": [
+                -0.36852165657862423,
+                -0.03563185077540077,
+                0.17479964663090572
+              ],
+              "source": "data/timeseries_v8/ledgers/sealed_evaluations.jsonl scores, 2019-01-01+ 연속 창",
+              "window": 12
+            }
+          },
+          "breaches": [],
+          "decomposition": {
+            "delta_loc": 0.05250909814701782,
+            "delta_shape": -0.013044011848694193,
+            "identity": "loss_vs_hs = delta_loc + delta_shape = −skill",
+            "location_neutral": "grid − q50 + q50_HS",
+            "loss_vs_hs": 0.03946508629832368,
+            "skill_location_neutral_twin": 0.013044011848694193
+          },
+          "h": 1,
+          "information_flags": [],
+          "label": "정상 범위(검정력 낮음)",
+          "minimum_origins": 8,
+          "n": 12,
+          "n_dates": 12,
+          "n_origins": 12,
+          "origins": [
+            "2026-08-14",
+            "2026-08-28",
+            "2026-09-04",
+            "2026-09-11",
+            "2026-09-18",
+            "2026-09-25",
+            "2026-10-02",
+            "2026-10-09",
+            "2026-10-16",
+            "2026-10-23",
+            "2026-10-30",
+            "2026-11-06"
+          ],
+          "post_dated_rows": 12,
+          "sensitivity": {
+            "ex_origin_2026_10_09": {
+              "n": 11,
+              "skill": -0.04729112211432884
+            },
+            "ex_shock_window": {
+              "excluded": [],
+              "n": 12,
+              "rule": "창 안 일간 |z|>4 (원점 λ 의 XNAS 사전 EWMA)",
+              "skill": -0.03946508629832368
+            }
+          },
+          "shock_days": [],
+          "single_episode": false,
+          "single_episode_scope": "창 안 |z|>4 충격일 수 — 1 이면 꼬리가 한 에피소드에 종속",
+          "state": "normal",
+          "sufficiency": "ok",
+          "window_k": 12
+        }
+      },
+      "representative": {
+        "h21": {
+          "L1": {
+            "block_length": 4,
+            "ci90_block": [
+              -0.0804252393981233,
+              0.0947872003481467
+            ],
+            "ci90_iid": [
+              -0.07335639950229672,
+              0.0494149048517281
+            ],
+            "n": 8,
+            "n_origins": 8,
+            "origins": [
+              "2026-08-14",
+              "2026-08-28",
+              "2026-09-04",
+              "2026-09-11",
+              "2026-09-18",
+              "2026-09-25",
+              "2026-10-02",
+              "2026-10-09"
+            ],
+            "sealed": {
+              "metric": "skill",
+              "n_sealed_origins": 385,
+              "n_windows": 378,
+              "percentile": 0.20105820105820105,
+              "proxy": false,
+              "q05_ci90_block": [
+                -0.0783420692343082,
+                -0.05033268821164245
+              ],
+              "q05_q50_q95": [
+                -0.06611303319087147,
+                0.027667351380313954,
+                0.19296911225948138
+              ],
+              "source": "data/timeseries_v8/ledgers/sealed_evaluations.jsonl scores, 2019-01-01+ 연속 창",
+              "window": 8
+            },
+            "skill": -0.03020829641280498,
+            "threshold_q05": -0.066,
+            "threshold_window_k": 8,
+            "threshold_window_matches_n": true,
+            "window_k": 8
+          },
+          "L2": {
+            "block_length": 4,
+            "ci90_block": [
+              -1.6197383381881245,
+              -0.03802464575589598
+            ],
+            "ci90_iid": [
+              -1.4835846665615864,
+              -0.23518675463750366
+            ],
+            "sealed": {
+              "metric": "z",
+              "n_sealed_origins": 385,
+              "n_windows": 378,
+              "percentile": 0.15608465608465608,
+              "proxy": false,
+              "q05_ci90_block": [
+                -2.217860224316194,
+                -0.9882927400697211
+              ],
+              "q05_q50_q95": [
+                -1.4960814994604819,
+                -0.0470516895798954,
+                0.7417863763083976
+              ],
+              "source": "data/timeseries_v8/ledgers/sealed_evaluations.jsonl scores, 2019-01-01+ 연속 창",
+              "window": 8
+            },
+            "threshold_zq05": -1.5,
+            "z_mean": -0.8288814919720102
+          },
+          "L3": {
+            "band": [
+              0.35,
+              0.65
+            ],
+            "block_length": 4,
+            "ci90_block": [
+              0.14,
+              0.52
+            ],
+            "ci90_iid": [
+              0.184375,
+              0.47937500000000005
+            ],
+            "outside_band": true,
+            "pit_mean": 0.33,
+            "pit_var": 0.063925,
+            "status": "information_only",
+            "uniform_var": 0.08333333333333333
+          },
+          "L4": {
+            "block_length": 4,
+            "ci90_block": [
+              -0.09374999999999997,
+              0.655
+            ],
+            "ci90_iid": [
+              0.030000000000000027,
+              0.531875
+            ],
+            "freq_up": 0.375,
+            "gap": 0.280625,
+            "p_up_mean": 0.655625,
+            "poisson_binomial": {
+              "expected_up": 5.245,
+              "independence_assumed": true,
+              "k_up": 3,
+              "method": "exact_dp_convolution",
+              "note": "겹치는 창(h21·h63)은 독립 가정이 낙관적 — 꼬리확률 과소 가능",
+              "p_ge_observed": 0.9767203927084389,
+              "p_le_observed": 0.0997123377403211,
+              "two_sided_min_tail": 0.0997123377403211
+            },
+            "sealed": {
+              "metric": "pup_gap",
+              "n_sealed_origins": 385,
+              "n_windows": 378,
+              "percentile": 0.8227513227513228,
+              "proxy": true,
+              "q05_ci90_block": [
+                -0.3825100490902581,
+                -0.3480879806153121
+              ],
+              "q05_q50_q95": [
+                -0.3695599067795033,
+                0.010961110910454,
+                0.512646582347877
+              ],
+              "source": "data/timeseries_v8/ledgers/sealed_evaluations.jsonl scores, 2019-01-01+ 연속 창",
+              "window": 8
+            }
+          },
+          "breaches": [],
+          "decomposition": {
+            "delta_loc": 0.017359823334374982,
+            "delta_shape": 0.012848473078429956,
+            "identity": "loss_vs_hs = delta_loc + delta_shape = −skill",
+            "location_neutral": "grid − q50 + q50_HS",
+            "loss_vs_hs": 0.03020829641280498,
+            "skill_location_neutral_twin": -0.012848473078429956
+          },
+          "h": 21,
+          "information_flags": [],
+          "label": "정상 범위(검정력 낮음)",
+          "minimum_origins": 8,
+          "n": 8,
+          "n_dates": 8,
+          "n_origins": 8,
+          "origins": [
+            "2026-08-14",
+            "2026-08-28",
+            "2026-09-04",
+            "2026-09-11",
+            "2026-09-18",
+            "2026-09-25",
+            "2026-10-02",
+            "2026-10-09"
+          ],
+          "post_dated_rows": 0,
+          "sensitivity": {
+            "ex_origin_2026_10_09": {
+              "n": 7,
+              "skill": -0.0017799361659491808
+            },
+            "ex_shock_window": {
+              "excluded": [
+                "2026-10-09"
+              ],
+              "n": 7,
+              "rule": "창 안 일간 |z|>4 (원점 λ 의 XNAS 사전 EWMA)",
+              "skill": -0.0017799361659491808
+            }
+          },
+          "shock_days": [
+            "2026-11-05"
+          ],
+          "single_episode": true,
+          "single_episode_scope": "창 안 |z|>4 충격일 수 — 1 이면 꼬리가 한 에피소드에 종속",
+          "state": "normal",
+          "sufficiency": "ok",
+          "window_k": 8
+        },
+        "h5": {
+          "L1": {
+            "block_length": 1,
+            "ci90_block": [
+              -0.05169159894128472,
+              0.06093616167049386
+            ],
+            "ci90_iid": [
+              -0.05169159894128472,
+              0.06093616167049386
+            ],
+            "n": 11,
+            "n_origins": 11,
+            "origins": [
+              "2026-08-14",
+              "2026-08-28",
+              "2026-09-04",
+              "2026-09-11",
+              "2026-09-18",
+              "2026-09-25",
+              "2026-10-02",
+              "2026-10-09",
+              "2026-10-16",
+              "2026-10-23",
+              "2026-10-30"
+            ],
+            "sealed": {
+              "metric": "skill",
+              "n_sealed_origins": 385,
+              "n_windows": 375,
+              "percentile": 0.37066666666666664,
+              "proxy": false,
+              "q05_ci90_block": [
+                -0.11592556279244082,
+                -0.044977065696527235
+              ],
+              "q05_q50_q95": [
+                -0.060096882027419876,
+                0.004075971432267567,
+                0.10708674112534507
+              ],
+              "source": "data/timeseries_v8/ledgers/sealed_evaluations.jsonl scores, 2019-01-01+ 연속 창",
+              "window": 11
+            },
+            "skill": -0.00728566796031016,
+            "threshold_q05": -0.06,
+            "threshold_window_k": 11,
+            "threshold_window_matches_n": true,
+            "window_k": 11
+          },
+          "L2": {
+            "block_length": 1,
+            "ci90_block": [
+              -1.031595165031683,
+              -0.17256425231249775
+            ],
+            "ci90_iid": [
+              -1.031595165031683,
+              -0.17256425231249775
+            ],
+            "sealed": {
+              "metric": "z",
+              "n_sealed_origins": 385,
+              "n_windows": 375,
+              "percentile": 0.06933333333333333,
+              "proxy": false,
+              "q05_ci90_block": [
+                -1.0011182637101959,
+                -0.39736183469861774
+              ],
+              "q05_q50_q95": [
+                -0.6604473215509853,
+                -0.014221471568000355,
+                0.3543978507270383
+              ],
+              "source": "data/timeseries_v8/ledgers/sealed_evaluations.jsonl scores, 2019-01-01+ 연속 창",
+              "window": 11
+            },
+            "threshold_zq05": -0.66,
+            "z_mean": -0.5822994416542382
+          },
+          "L3": {
+            "band": [
+              0.35,
+              0.65
+            ],
+            "block_length": 1,
+            "ci90_block": [
+              0.246340909090909,
+              0.47138636363636377
+            ],
+            "ci90_iid": [
+              0.246340909090909,
+              0.47138636363636377
+            ],
+            "outside_band": false,
+            "pit_mean": 0.35818181818181816,
+            "pit_var": 0.053451239669421474,
+            "status": "information_only",
+            "uniform_var": 0.08333333333333333
+          },
+          "L4": {
+            "block_length": 1,
+            "ci90_block": [
+              -0.14590909090909096,
+              0.40227272727272717
+            ],
+            "ci90_iid": [
+              -0.14590909090909096,
+              0.40227272727272717
+            ],
+            "freq_up": 0.45454545454545453,
+            "gap": 0.12818181818181823,
+            "p_up_mean": 0.5827272727272728,
+            "poisson_binomial": {
+              "expected_up": 6.41,
+              "independence_assumed": true,
+              "k_up": 5,
+              "method": "exact_dp_convolution",
+              "note": "겹치는 창(h21·h63)은 독립 가정이 낙관적 — 꼬리확률 과소 가능",
+              "p_ge_observed": 0.8780438063545455,
+              "p_le_observed": 0.2858512296194306,
+              "two_sided_min_tail": 0.2858512296194306
+            },
+            "sealed": {
+              "metric": "pup_gap",
+              "n_sealed_origins": 385,
+              "n_windows": 375,
+              "percentile": 0.8186666666666667,
+              "proxy": true,
+              "q05_ci90_block": [
+                -0.2914605833881672,
+                -0.19004432141225683
+              ],
+              "q05_q50_q95": [
+                -0.24349207687661908,
+                0.014247337175218942,
+                0.24343367943557376
+              ],
+              "source": "data/timeseries_v8/ledgers/sealed_evaluations.jsonl scores, 2019-01-01+ 연속 창",
+              "window": 11
+            }
+          },
+          "breaches": [],
+          "decomposition": {
+            "delta_loc": 0.026008231391428695,
+            "delta_shape": -0.018722563431118333,
+            "identity": "loss_vs_hs = delta_loc + delta_shape = −skill",
+            "location_neutral": "grid − q50 + q50_HS",
+            "loss_vs_hs": 0.0072856679603103824,
+            "skill_location_neutral_twin": 0.018722563431118333
+          },
+          "h": 5,
+          "information_flags": [],
+          "label": "정상 범위(검정력 낮음)",
+          "minimum_origins": 8,
+          "n": 11,
+          "n_dates": 11,
+          "n_origins": 11,
+          "origins": [
+            "2026-08-14",
+            "2026-08-28",
+            "2026-09-04",
+            "2026-09-11",
+            "2026-09-18",
+            "2026-09-25",
+            "2026-10-02",
+            "2026-10-09",
+            "2026-10-16",
+            "2026-10-23",
+            "2026-10-30"
+          ],
+          "post_dated_rows": 1,
+          "sensitivity": {
+            "ex_origin_2026_10_09": {
+              "n": 10,
+              "skill": 0.029361639120985217
+            },
+            "ex_shock_window": {
+              "excluded": [
+                "2026-10-30"
+              ],
+              "n": 10,
+              "rule": "창 안 일간 |z|>4 (원점 λ 의 XNAS 사전 EWMA)",
+              "skill": 0.003545063169466678
+            }
+          },
+          "shock_days": [
+            "2026-11-05"
+          ],
+          "single_episode": true,
+          "single_episode_scope": "창 안 |z|>4 충격일 수 — 1 이면 꼬리가 한 에피소드에 종속",
+          "state": "normal",
+          "sufficiency": "ok",
+          "window_k": 11
+        }
+      }
+    },
+    "xnas_diagnostic_v1.matched_ledger_rows": {
+      "cohort": "resolved_ledger_rows",
+      "composite_mean_1_5_21": {
+        "below_q05_information_only": false,
+        "n_by_h": {
+          "h1": 11,
+          "h21": 7,
+          "h5": 11
+        },
+        "note": "post_dated h1 을 포함하므로 정보용 — 경보에 쓰지 않는다. 같은 basis 안의 단순 평균",
+        "representative": false,
+        "sealed_n_windows": 375,
+        "sealed_percentile": 0.16533333333333333,
+        "skill_mean": -0.02209978339746573,
+        "threshold_q05": -0.035,
+        "window_k_by_h": {
+          "h1": 12,
+          "h21": 8,
+          "h5": 11
+        }
+      },
+      "label": "XNAS 진단 — 원장 해소 쌍",
+      "post_dated": {
+        "h1": {
+          "L1": {
+            "block_length": 1,
+            "ci90_block": [
+              -0.13282959747506792,
+              0.03202799215856156
+            ],
+            "ci90_iid": [
+              -0.13282959747506792,
+              0.03202799215856156
+            ],
+            "n": 11,
+            "n_origins": 11,
+            "origins": [
+              "2026-08-14",
+              "2026-08-28",
+              "2026-09-04",
+              "2026-09-11",
+              "2026-09-18",
+              "2026-09-25",
+              "2026-10-02",
+              "2026-10-09",
+              "2026-10-16",
+              "2026-10-23",
+              "2026-10-30"
+            ],
+            "sealed": {
+              "metric": "skill",
+              "n_sealed_origins": 385,
+              "n_windows": 375,
+              "percentile": 0.058666666666666666,
+              "proxy": false,
+              "q05_ci90_block": [
+                -0.08542276595773993,
+                -0.04853862967615747
+              ],
+              "q05_q50_q95": [
+                -0.058784584156567336,
+                0.006103202919936379,
+                0.08444110406485188
+              ],
+              "source": "data/timeseries_v8/ledgers/sealed_evaluations.jsonl scores, 2019-01-01+ 연속 창",
+              "window": 11
+            },
+            "skill": -0.057233746066137625,
+            "threshold_q05": -0.051,
+            "threshold_window_k": 12,
+            "threshold_window_matches_n": false,
+            "window_k": 12
+          },
+          "L2": {
+            "block_length": 1,
+            "ci90_block": [
+              -0.46519604860307046,
+              0.5559409255301209
+            ],
+            "ci90_iid": [
+              -0.46519604860307046,
+              0.5559409255301209
+            ],
+            "sealed": {
+              "metric": "z",
+              "n_sealed_origins": 385,
+              "n_windows": 375,
+              "percentile": 0.5253333333333333,
+              "proxy": false,
+              "q05_ci90_block": [
+                -0.8110365989604984,
+                -0.3911236720398827
+              ],
+              "q05_q50_q95": [
+                -0.6223999353011609,
+                -0.028700507398873386,
+                0.4359158980811741
+              ],
+              "source": "data/timeseries_v8/ledgers/sealed_evaluations.jsonl scores, 2019-01-01+ 연속 창",
+              "window": 11
+            },
+            "threshold_zq05": -0.58,
+            "z_mean": 0.027895420069923658
+          },
+          "L3": {
+            "band": [
+              0.35,
+              0.65
+            ],
+            "block_length": 1,
+            "ci90_block": [
+              0.32636363636363636,
+              0.645
+            ],
+            "ci90_iid": [
+              0.32636363636363636,
+              0.645
+            ],
+            "outside_band": false,
+            "pit_mean": 0.48136363636363644,
+            "pit_var": 0.09925495867768594,
+            "status": "information_only",
+            "uniform_var": 0.08333333333333333
+          },
+          "L4": {
+            "block_length": 1,
+            "ci90_block": [
+              -0.08363636363636363,
+              0.45502272727272736
+            ],
+            "ci90_iid": [
+              -0.08363636363636363,
+              0.45502272727272736
+            ],
+            "freq_up": 0.36363636363636365,
+            "gap": 0.18772727272727285,
+            "p_up_mean": 0.5513636363636365,
+            "poisson_binomial": {
+              "expected_up": 6.065,
+              "independence_assumed": true,
+              "k_up": 4,
+              "method": "exact_dp_convolution",
+              "note": "겹치는 창(h21·h63)은 독립 가정이 낙관적 — 꼬리확률 과소 가능",
+              "p_ge_observed": 0.9413907022057613,
+              "p_le_observed": 0.1697926181163896,
+              "two_sided_min_tail": 0.1697926181163896
+            },
+            "sealed": {
+              "metric": "pup_gap",
+              "n_sealed_origins": 385,
+              "n_windows": 375,
+              "percentile": 0.9626666666666667,
+              "proxy": true,
+              "q05_ci90_block": [
+                -0.37404124769687286,
+                -0.26145607802933873
+              ],
+              "q05_q50_q95": [
+                -0.3667770522661584,
+                -0.018888072239896955,
+                0.17615259724892227
+              ],
+              "source": "data/timeseries_v8/ledgers/sealed_evaluations.jsonl scores, 2019-01-01+ 연속 창",
+              "window": 11
+            }
+          },
+          "breaches": [],
+          "decomposition": {
+            "delta_loc": 0.06483003302346504,
+            "delta_shape": -0.007596286957327281,
+            "identity": "loss_vs_hs = delta_loc + delta_shape = −skill",
+            "location_neutral": "grid − q50 + q50_HS",
+            "loss_vs_hs": 0.057233746066137625,
+            "skill_location_neutral_twin": 0.007596286957327281
+          },
+          "h": 1,
+          "information_flags": [
+            "near_tail"
+          ],
+          "label": "꼬리 근접(정보 — 사전 기록 아님)",
+          "minimum_origins": 8,
+          "n": 11,
+          "n_dates": 11,
+          "n_origins": 11,
+          "origins": [
+            "2026-08-14",
+            "2026-08-28",
+            "2026-09-04",
+            "2026-09-11",
+            "2026-09-18",
+            "2026-09-25",
+            "2026-10-02",
+            "2026-10-09",
+            "2026-10-16",
+            "2026-10-23",
+            "2026-10-30"
+          ],
+          "post_dated_rows": 11,
+          "sensitivity": {
+            "ex_origin_2026_10_09": {
+              "n": 10,
+              "skill": -0.06873193702073621
+            },
+            "ex_shock_window": {
+              "excluded": [],
+              "n": 11,
+              "rule": "창 안 일간 |z|>4 (원점 λ 의 XNAS 사전 EWMA)",
+              "skill": -0.057233746066137625
+            }
+          },
+          "shock_days": [],
+          "single_episode": false,
+          "single_episode_scope": "창 안 |z|>4 충격일 수 — 1 이면 꼬리가 한 에피소드에 종속",
+          "state": "near_tail",
+          "sufficiency": "ok",
+          "window_k": 12
+        }
+      },
+      "representative": {
+        "h21": {
+          "L1": {
+            "block_length": 3,
+            "ci90_block": [
+              -0.06051726704795746,
+              0.10479467949332733
+            ],
+            "ci90_iid": [
+              -0.05364401438705668,
+              0.09407517642535909
+            ],
+            "n": 7,
+            "n_origins": 7,
+            "origins": [
+              "2026-08-14",
+              "2026-08-28",
+              "2026-09-04",
+              "2026-09-11",
+              "2026-09-18",
+              "2026-09-25",
+              "2026-10-02"
+            ],
+            "sealed": {
+              "metric": "skill",
+              "n_sealed_origins": 385,
+              "n_windows": 379,
+              "percentile": 0.33509234828496043,
+              "proxy": false,
+              "q05_ci90_block": [
+                -0.08282395296074596,
+                -0.05542762950021285
+              ],
+              "q05_q50_q95": [
+                -0.06655820129942877,
+                0.028866531309234333,
+                0.20398018162154277
+              ],
+              "source": "data/timeseries_v8/ledgers/sealed_evaluations.jsonl scores, 2019-01-01+ 연속 창",
+              "window": 7
+            },
+            "skill": -0.0017799361659491808,
+            "threshold_q05": -0.066,
+            "threshold_window_k": 8,
+            "threshold_window_matches_n": false,
+            "window_k": 8
+          },
+          "L2": {
+            "block_length": 3,
+            "ci90_block": [
+              -1.2992679537817309,
+              0.0895336614728829
+            ],
+            "ci90_iid": [
+              -1.2050160021613885,
+              -0.037000995312372734
+            ],
+            "sealed": {
+              "metric": "z",
+              "n_sealed_origins": 385,
+              "n_windows": 379,
+              "percentile": 0.23482849604221637,
+              "proxy": false,
+              "q05_ci90_block": [
+                -2.1581010132672027,
+                -1.1122887827453134
+              ],
+              "q05_q50_q95": [
+                -1.601894071727813,
+                0.001388465190184686,
+                0.8218695170011006
+              ],
+              "source": "data/timeseries_v8/ledgers/sealed_evaluations.jsonl scores, 2019-01-01+ 연속 창",
+              "window": 7
+            },
+            "threshold_zq05": -1.5,
+            "z_mean": -0.6012106731675128
+          },
+          "L3": {
+            "band": [
+              0.35,
+              0.65
+            ],
+            "block_length": 3,
+            "ci90_block": [
+              0.18214285714285713,
+              0.5607142857142858
+            ],
+            "ci90_iid": [
+              0.22428571428571428,
+              0.5314285714285715
+            ],
+            "outside_band": false,
+            "pit_mean": 0.3721428571428572,
+            "pit_var": 0.05884897959183675,
+            "status": "information_only",
+            "uniform_var": 0.08333333333333333
+          },
+          "L4": {
+            "block_length": 3,
+            "ci90_block": [
+              -0.19999999999999998,
+              0.5142857142857143
+            ],
+            "ci90_iid": [
+              -0.05999999999999998,
+              0.5128571428571428
+            ],
+            "freq_up": 0.42857142857142855,
+            "gap": 0.2264285714285716,
+            "p_up_mean": 0.6550000000000001,
+            "poisson_binomial": {
+              "expected_up": 4.585,
+              "independence_assumed": true,
+              "k_up": 3,
+              "method": "exact_dp_convolution",
+              "note": "겹치는 창(h21·h63)은 독립 가정이 낙관적 — 꼬리확률 과소 가능",
+              "p_ge_observed": 0.9476616998275188,
+              "p_le_observed": 0.191673704783775,
+              "two_sided_min_tail": 0.191673704783775
+            },
+            "sealed": {
+              "metric": "pup_gap",
+              "n_sealed_origins": 385,
+              "n_windows": 379,
+              "percentile": 0.7598944591029023,
+              "proxy": true,
+              "q05_ci90_block": [
+                -0.3845697224648013,
+                -0.34953346976199257
+              ],
+              "q05_q50_q95": [
+                -0.3705987166463301,
+                -0.05190663645480919,
+                0.5131660190846445
+              ],
+              "source": "data/timeseries_v8/ledgers/sealed_evaluations.jsonl scores, 2019-01-01+ 연속 창",
+              "window": 7
+            }
+          },
+          "breaches": [],
+          "decomposition": {
+            "delta_loc": 0.016233431941380886,
+            "delta_shape": -0.014453495775431646,
+            "identity": "loss_vs_hs = delta_loc + delta_shape = −skill",
+            "location_neutral": "grid − q50 + q50_HS",
+            "loss_vs_hs": 0.0017799361659491808,
+            "skill_location_neutral_twin": 0.014453495775431646
+          },
+          "h": 21,
+          "information_flags": [],
+          "label": "표본 부족(insufficient)",
+          "minimum_origins": 8,
+          "n": 7,
+          "n_dates": 7,
+          "n_origins": 7,
+          "origins": [
+            "2026-08-14",
+            "2026-08-28",
+            "2026-09-04",
+            "2026-09-11",
+            "2026-09-18",
+            "2026-09-25",
+            "2026-10-02"
+          ],
+          "post_dated_rows": 0,
+          "sensitivity": {
+            "ex_origin_2026_10_09": {
+              "n": 7,
+              "skill": -0.0017799361659491808
+            },
+            "ex_shock_window": {
+              "excluded": [],
+              "n": 7,
+              "rule": "창 안 일간 |z|>4 (원점 λ 의 XNAS 사전 EWMA)",
+              "skill": -0.0017799361659491808
+            }
+          },
+          "shock_days": [],
+          "single_episode": false,
+          "single_episode_scope": "창 안 |z|>4 충격일 수 — 1 이면 꼬리가 한 에피소드에 종속",
+          "state": "insufficient",
+          "sufficiency": "insufficient",
+          "window_k": 8
+        },
+        "h5": {
+          "L1": {
+            "block_length": 1,
+            "ci90_block": [
+              -0.05169159894128472,
+              0.06093616167049386
+            ],
+            "ci90_iid": [
+              -0.05169159894128472,
+              0.06093616167049386
+            ],
+            "n": 11,
+            "n_origins": 11,
+            "origins": [
+              "2026-08-14",
+              "2026-08-28",
+              "2026-09-04",
+              "2026-09-11",
+              "2026-09-18",
+              "2026-09-25",
+              "2026-10-02",
+              "2026-10-09",
+              "2026-10-16",
+              "2026-10-23",
+              "2026-10-30"
+            ],
+            "sealed": {
+              "metric": "skill",
+              "n_sealed_origins": 385,
+              "n_windows": 375,
+              "percentile": 0.37066666666666664,
+              "proxy": false,
+              "q05_ci90_block": [
+                -0.11592556279244082,
+                -0.044977065696527235
+              ],
+              "q05_q50_q95": [
+                -0.060096882027419876,
+                0.004075971432267567,
+                0.10708674112534507
+              ],
+              "source": "data/timeseries_v8/ledgers/sealed_evaluations.jsonl scores, 2019-01-01+ 연속 창",
+              "window": 11
+            },
+            "skill": -0.00728566796031016,
+            "threshold_q05": -0.06,
+            "threshold_window_k": 11,
+            "threshold_window_matches_n": true,
+            "window_k": 11
+          },
+          "L2": {
+            "block_length": 1,
+            "ci90_block": [
+              -1.031595165031683,
+              -0.17256425231249775
+            ],
+            "ci90_iid": [
+              -1.031595165031683,
+              -0.17256425231249775
+            ],
+            "sealed": {
+              "metric": "z",
+              "n_sealed_origins": 385,
+              "n_windows": 375,
+              "percentile": 0.06933333333333333,
+              "proxy": false,
+              "q05_ci90_block": [
+                -1.0011182637101959,
+                -0.39736183469861774
+              ],
+              "q05_q50_q95": [
+                -0.6604473215509853,
+                -0.014221471568000355,
+                0.3543978507270383
+              ],
+              "source": "data/timeseries_v8/ledgers/sealed_evaluations.jsonl scores, 2019-01-01+ 연속 창",
+              "window": 11
+            },
+            "threshold_zq05": -0.66,
+            "z_mean": -0.5822994416542382
+          },
+          "L3": {
+            "band": [
+              0.35,
+              0.65
+            ],
+            "block_length": 1,
+            "ci90_block": [
+              0.246340909090909,
+              0.47138636363636377
+            ],
+            "ci90_iid": [
+              0.246340909090909,
+              0.47138636363636377
+            ],
+            "outside_band": false,
+            "pit_mean": 0.35818181818181816,
+            "pit_var": 0.053451239669421474,
+            "status": "information_only",
+            "uniform_var": 0.08333333333333333
+          },
+          "L4": {
+            "block_length": 1,
+            "ci90_block": [
+              -0.14590909090909096,
+              0.40227272727272717
+            ],
+            "ci90_iid": [
+              -0.14590909090909096,
+              0.40227272727272717
+            ],
+            "freq_up": 0.45454545454545453,
+            "gap": 0.12818181818181823,
+            "p_up_mean": 0.5827272727272728,
+            "poisson_binomial": {
+              "expected_up": 6.41,
+              "independence_assumed": true,
+              "k_up": 5,
+              "method": "exact_dp_convolution",
+              "note": "겹치는 창(h21·h63)은 독립 가정이 낙관적 — 꼬리확률 과소 가능",
+              "p_ge_observed": 0.8780438063545455,
+              "p_le_observed": 0.2858512296194306,
+              "two_sided_min_tail": 0.2858512296194306
+            },
+            "sealed": {
+              "metric": "pup_gap",
+              "n_sealed_origins": 385,
+              "n_windows": 375,
+              "percentile": 0.8186666666666667,
+              "proxy": true,
+              "q05_ci90_block": [
+                -0.2914605833881672,
+                -0.19004432141225683
+              ],
+              "q05_q50_q95": [
+                -0.24349207687661908,
+                0.014247337175218942,
+                0.24343367943557376
+              ],
+              "source": "data/timeseries_v8/ledgers/sealed_evaluations.jsonl scores, 2019-01-01+ 연속 창",
+              "window": 11
+            }
+          },
+          "breaches": [],
+          "decomposition": {
+            "delta_loc": 0.026008231391428695,
+            "delta_shape": -0.018722563431118333,
+            "identity": "loss_vs_hs = delta_loc + delta_shape = −skill",
+            "location_neutral": "grid − q50 + q50_HS",
+            "loss_vs_hs": 0.0072856679603103824,
+            "skill_location_neutral_twin": 0.018722563431118333
+          },
+          "h": 5,
+          "information_flags": [],
+          "label": "정상 범위(검정력 낮음)",
+          "minimum_origins": 8,
+          "n": 11,
+          "n_dates": 11,
+          "n_origins": 11,
+          "origins": [
+            "2026-08-14",
+            "2026-08-28",
+            "2026-09-04",
+            "2026-09-11",
+            "2026-09-18",
+            "2026-09-25",
+            "2026-10-02",
+            "2026-10-09",
+            "2026-10-16",
+            "2026-10-23",
+            "2026-10-30"
+          ],
+          "post_dated_rows": 1,
+          "sensitivity": {
+            "ex_origin_2026_10_09": {
+              "n": 10,
+              "skill": 0.029361639120985217
+            },
+            "ex_shock_window": {
+              "excluded": [
+                "2026-10-30"
+              ],
+              "n": 10,
+              "rule": "창 안 일간 |z|>4 (원점 λ 의 XNAS 사전 EWMA)",
+              "skill": 0.003545063169466678
+            }
+          },
+          "shock_days": [
+            "2026-11-05"
+          ],
+          "single_episode": true,
+          "single_episode_scope": "창 안 |z|>4 충격일 수 — 1 이면 꼬리가 한 에피소드에 종속",
+          "state": "normal",
+          "sufficiency": "ok",
+          "window_k": 11
+        }
+      }
+    }
+  },
+  "disclosures": {
+    "b4_sign": "ΔB4 부호는 결과 방향(하락이면 악화)에 기계적으로 종속 — 단기 부호로 B4 를 판정하지 않는다",
+    "b4_twin_history": "쌍둥이 λ 는 봉인 평가 원장 ewma_lambda 필드(2007~)·PIT 이력은 2007~ 재계산(2015~2018 수익 포함) — 라이브 모델이 스스로 계산하는 B4 맵과 같은 입력이며 새 홀드아웃 개봉 아님",
+    "in_sample": "2007~2018 은 개발창(in-sample) — 봉인 백분위는 2019+ 창만",
+    "label_basis_mixing": "prohibited",
+    "mde": {
+      "note": "검정력 낮음 — '이탈 없음'은 '변화 없음'의 증거가 아니다",
+      "skill_n12": -0.08
+    },
+    "model_code_hash": {
+      "identity_replay": {
+        "v8_tier1_identity": true,
+        "v8_tier2_mismatches": [
+          "h1.quantile_grid (max|Δ|=2.42861286636753e-17)",
+          "h5.quantile_grid (max|Δ|=1.97758476261356e-16)"
+        ],
+        "v8_tier2_status": "MISMATCH"
+      },
+      "live": [
+        "869418cc"
+      ],
+      "same_model_basis": "identity replay PASS (baseline_identity.json)",
+      "sealed": "8361899f"
+    },
+    "operational_gate": "operational_gate 와 무관 — 공시 라벨 전용, 게이트·승격·숨김·재예측 미연결",
+    "post_dated": "h1 은 발행 시점에 목표가 이미 실현 — pseudo-OOS(사전 기록 아님)",
+    "probability_space": "v8_log_return_h",
+    "sample_bound": {
+      "forecasts": "origin ≤ as_of AND knowledge_cutoff ≤ now",
+      "note": "해소 원장에 기록 시각이 없어 as_of 만으로는 표본이 고정되지 않는다 — 늦게 해소된 쌍이 들어올 수 있음",
+      "resolution_allowlist_n": null,
+      "resolutions": "resolved_session ≤ as_of",
+      "xnas_rows_excluded_after_now": 0
+    }
+  },
+  "display_only": true,
+  "label_bases": [
+    "ledger_grid",
+    "xnas_diagnostic_v1"
+  ],
+  "label_basis_mixing": "prohibited",
+  "last_resolved_origin": "2026-10-30",
+  "monitor_id": "v8lm-2026-10-30-v1",
+  "n": 29,
+  "n_dates": 26,
+  "n_note": "n·n_origins·n_dates 는 1차 basis(원장 grid) 해소 행 기준",
+  "n_origins": 11,
+  "network_fetch_enabled": false,
+  "notice": "참고 의견, 매매 신호 아님",
+  "post_dated_horizons": [
+    1
+  ],
+  "post_dated_label": "pseudo-OOS(사전 기록 아님)",
+  "probability_space": "v8_log_return_h",
+  "representative_horizons": [
+    5,
+    21,
+    63
+  ],
+  "schema_version": 1,
+  "scoring_excluded": true,
+  "shock_days": [
+    "2026-11-05"
+  ],
+  "single_episode": true,
+  "status": "ok",
+  "threshold_hash": "bcc24081030d654a845a50dd4a434aebb11b6c0fae7213bcbae4457577702d76",
+  "threshold_set_id": "coherence_monitor_thresholds_v1",
+  "threshold_status": "ok",
+  "twins": {
+    "b4_pre_h21_h63": {
+      "b4_pre": {
+        "h21": {
+          "n_origins": 12,
+          "p_up_ledger_mean": 0.6541666666666667,
+          "p_up_pre_mean": 0.6245833333333334,
+          "per_origin": [
+            {
+              "grid_max_abs": 0.0,
+              "hs_mae": 0.0,
+              "median_ledger": 0.02053620852213953,
+              "median_pre": 0.01728141505696486,
+              "origin": "2026-08-14",
+              "p_up_ledger": 0.645,
+              "p_up_pre": 0.615
+            },
+            {
+              "grid_max_abs": 0.0,
+              "hs_mae": 0.0,
+              "median_ledger": 0.01910266432705271,
+              "median_pre": 0.016509798587894395,
+              "origin": "2026-08-28",
+              "p_up_ledger": 0.655,
+              "p_up_pre": 0.625
+            },
+            {
+              "grid_max_abs": 0.00012756473311167915,
+              "hs_mae": 0.0,
+              "median_ledger": 0.018648609841074873,
+              "median_pre": 0.016193775480474126,
+              "origin": "2026-09-04",
+              "p_up_ledger": 0.655,
+              "p_up_pre": 0.625
+            },
+            {
+              "grid_max_abs": 6.609945130087169e-05,
+              "hs_mae": 0.0,
+              "median_ledger": 0.017805128147586727,
+              "median_pre": 0.01566451041073199,
+              "origin": "2026-09-11",
+              "p_up_ledger": 0.66,
+              "p_up_pre": 0.63
+            },
+            {
+              "grid_max_abs": 2.6158597164704922e-05,
+              "hs_mae": 0.0,
+              "median_ledger": 0.018560821669296783,
+              "median_pre": 0.016017855430059083,
+              "origin": "2026-09-18",
+              "p_up_ledger": 0.655,
+              "p_up_pre": 0.625
+            },
+            {
+              "grid_max_abs": 9.773077565667677e-05,
+              "hs_mae": 0.0,
+              "median_ledger": 0.01819324014482155,
+              "median_pre": 0.015940392928553843,
+              "origin": "2026-09-25",
+              "p_up_ledger": 0.655,
+              "p_up_pre": 0.63
+            },
+            {
+              "grid_max_abs": 4.592456161130187e-05,
+              "hs_mae": 0.0,
+              "median_ledger": 0.01740667136603634,
+              "median_pre": 0.015329447897792442,
+              "origin": "2026-10-02",
+              "p_up_ledger": 0.66,
+              "p_up_pre": 0.635
+            },
+            {
+              "grid_max_abs": 0.00012951364788361605,
+              "hs_mae": 0.0,
+              "median_ledger": 0.017135770549010942,
+              "median_pre": 0.015099427468917594,
+              "origin": "2026-10-09",
+              "p_up_ledger": 0.66,
+              "p_up_pre": 0.63
+            },
+            {
+              "grid_max_abs": 0.0001489141230204688,
+              "hs_mae": 0.0,
+              "median_ledger": 0.01742778381484117,
+              "median_pre": 0.01538422155236452,
+              "origin": "2026-10-16",
+              "p_up_ledger": 0.66,
+              "p_up_pre": 0.63
+            },
+            {
+              "grid_max_abs": 0.0001923345596635817,
+              "hs_mae": 0.0,
+              "median_ledger": 0.019694377400580335,
+              "median_pre": 0.017092683677523368,
+              "origin": "2026-10-23",
+              "p_up_ledger": 0.65,
+              "p_up_pre": 0.62
+            },
+            {
+              "grid_max_abs": 0.00028608966682746456,
+              "hs_mae": 0.0,
+              "median_ledger": 0.019105642984884597,
+              "median_pre": 0.016586312648574797,
+              "origin": "2026-10-30",
+              "p_up_ledger": 0.655,
+              "p_up_pre": 0.62
+            },
+            {
+              "grid_max_abs": 0.0002194387405562992,
+              "hs_mae": 0.0,
+              "median_ledger": 0.021821871812406943,
+              "median_pre": 0.018269758159957714,
+              "origin": "2026-11-06",
+              "p_up_ledger": 0.64,
+              "p_up_pre": 0.61
+            }
+          ],
+          "scored": {
+            "ledger_grid": {
+              "delta_b4": 0.011700881334877195,
+              "delta_b4_note": "양수 = B4 가 CRPS 를 키움. 부호는 결과 방향(하락이면 악화)에 기계적으로 종속",
+              "n": 7,
+              "origins": [
+                "2026-08-14",
+                "2026-08-28",
+                "2026-09-04",
+                "2026-09-11",
+                "2026-09-18",
+                "2026-09-25",
+                "2026-10-02"
+              ],
+              "skill_ledger_grid": 0.01554381577436581,
+              "skill_post_recon": 0.015539462393322268,
+              "skill_pre_b4": 0.027244697109242932
+            },
+            "xnas_diagnostic_v1.all_closed_targets": {
+              "delta_b4": 0.025719750727398967,
+              "delta_b4_note": "양수 = B4 가 CRPS 를 키움. 부호는 결과 방향(하락이면 악화)에 기계적으로 종속",
+              "n": 8,
+              "origins": [
+                "2026-08-14",
+                "2026-08-28",
+                "2026-09-04",
+                "2026-09-11",
+                "2026-09-18",
+                "2026-09-25",
+                "2026-10-02",
+                "2026-10-09"
+              ],
+              "skill_ledger_grid": -0.03020829641280498,
+              "skill_post_recon": -0.030219783929865462,
+              "skill_pre_b4": -0.00448854568540602
+            },
+            "xnas_diagnostic_v1.matched_ledger_rows": {
+              "delta_b4": 0.017908467382500896,
+              "delta_b4_note": "양수 = B4 가 CRPS 를 키움. 부호는 결과 방향(하락이면 악화)에 기계적으로 종속",
+              "n": 7,
+              "origins": [
+                "2026-08-14",
+                "2026-08-28",
+                "2026-09-04",
+                "2026-09-11",
+                "2026-09-18",
+                "2026-09-25",
+                "2026-10-02"
+              ],
+              "skill_ledger_grid": -0.0017799361659491808,
+              "skill_post_recon": -0.0017881320628920783,
+              "skill_pre_b4": 0.016128531216551667
+            }
+          },
+          "width80_ratio_ledger_over_pre_mean": 0.9423747484614373
+        },
+        "h63": {
+          "n_origins": 12,
+          "p_up_ledger_mean": 0.7158333333333333,
+          "p_up_pre_mean": 0.6720833333333333,
+          "per_origin": [
+            {
+              "grid_max_abs": 0.0,
+              "hs_mae": 0.0,
+              "median_ledger": 0.04645794055457777,
+              "median_pre": 0.040359667972451385,
+              "origin": "2026-08-14",
+              "p_up_ledger": 0.71,
+              "p_up_pre": 0.665
+            },
+            {
+              "grid_max_abs": 0.0,
+              "hs_mae": 0.0,
+              "median_ledger": 0.04373625926097979,
+              "median_pre": 0.03806974706255866,
+              "origin": "2026-08-28",
+              "p_up_ledger": 0.715,
+              "p_up_pre": 0.67
+            },
+            {
+              "grid_max_abs": 5.162551094566037e-05,
+              "hs_mae": 0.0,
+              "median_ledger": 0.042703073255591306,
+              "median_pre": 0.03728535699729772,
+              "origin": "2026-09-04",
+              "p_up_ledger": 0.715,
+              "p_up_pre": 0.67
+            },
+            {
+              "grid_max_abs": 1.675526219012402e-05,
+              "hs_mae": 0.0,
+              "median_ledger": 0.04135176079823033,
+              "median_pre": 0.03630987134732264,
+              "origin": "2026-09-11",
+              "p_up_ledger": 0.72,
+              "p_up_pre": 0.68
+            },
+            {
+              "grid_max_abs": 8.048280059258506e-05,
+              "hs_mae": 0.0,
+              "median_ledger": 0.04284333191514354,
+              "median_pre": 0.03752278547561261,
+              "origin": "2026-09-18",
+              "p_up_ledger": 0.715,
+              "p_up_pre": 0.67
+            },
+            {
+              "grid_max_abs": 0.00015903820335978758,
+              "hs_mae": 0.0,
+              "median_ledger": 0.04213223980239991,
+              "median_pre": 0.03682116139873755,
+              "origin": "2026-09-25",
+              "p_up_ledger": 0.715,
+              "p_up_pre": 0.675
+            },
+            {
+              "grid_max_abs": 0.00016803380451006766,
+              "hs_mae": 0.0,
+              "median_ledger": 0.040436372097971685,
+              "median_pre": 0.035613727452568966,
+              "origin": "2026-10-02",
+              "p_up_ledger": 0.725,
+              "p_up_pre": 0.685
+            },
+            {
+              "grid_max_abs": 0.00011335975219376598,
+              "hs_mae": 0.0,
+              "median_ledger": 0.040428218974986135,
+              "median_pre": 0.03576726308265815,
+              "origin": "2026-10-09",
+              "p_up_ledger": 0.725,
+              "p_up_pre": 0.68
+            },
+            {
+              "grid_max_abs": 0.00010259549186238115,
+              "hs_mae": 0.0,
+              "median_ledger": 0.040770636305699,
+              "median_pre": 0.03590565476593318,
+              "origin": "2026-10-16",
+              "p_up_ledger": 0.72,
+              "p_up_pre": 0.68
+            },
+            {
+              "grid_max_abs": 0.00025521399165776004,
+              "hs_mae": 0.0,
+              "median_ledger": 0.04455300258539091,
+              "median_pre": 0.038663209933469354,
+              "origin": "2026-10-23",
+              "p_up_ledger": 0.715,
+              "p_up_pre": 0.665
+            },
+            {
+              "grid_max_abs": 0.00018333794429993555,
+              "hs_mae": 0.0,
+              "median_ledger": 0.04371622384642748,
+              "median_pre": 0.03806058551263413,
+              "origin": "2026-10-30",
+              "p_up_ledger": 0.715,
+              "p_up_pre": 0.67
+            },
+            {
+              "grid_max_abs": 0.0002624206084301528,
+              "hs_mae": 0.0,
+              "median_ledger": 0.048763933216381616,
+              "median_pre": 0.041921096360514554,
+              "origin": "2026-11-06",
+              "p_up_ledger": 0.7,
+              "p_up_pre": 0.655
+            }
+          ],
+          "scored": {},
+          "width80_ratio_ledger_over_pre_mean": 0.9317539847537564
+        }
+      },
+      "caveat": "연구 쌍둥이 — 채점·판정·승격 근거 아님(사전등록 전). ΔB4 부호는 결과 방향에 기계적으로 종속",
+      "display_only": true,
+      "scoring_excluded": true,
+      "status": "reconstructed",
+      "verification": {
+        "failures": [],
+        "grid_max_abs_max": 0.004,
+        "grid_max_abs_observed_max": 0.00028608966682746456,
+        "hs_mae_max": 0.0025,
+        "hs_mae_observed_max": 0.0,
+        "lambda_fallback_rule": "봉인 평가 원장·섀도 원장에 λ 가 없는 주간 원점은 직전 알려진 λ 이월",
+        "lambda_source": "봉인 평가 원장 scores.ewma_lambda 필드(점수는 읽지 않음) + 섀도 원장",
+        "n_checked": 24,
+        "pit_history_end": "2026-07-31",
+        "unknown_lambda_origins": [
+          "2026-05-15",
+          "2026-05-22",
+          "2026-05-29",
+          "2026-06-05",
+          "2026-06-12",
+          "2026-06-18",
+          "2026-06-26",
+          "2026-07-02",
+          "2026-07-10",
+          "2026-07-17",
+          "2026-07-24",
+          "2026-07-31"
+        ]
+      }
+    },
+    "h1_h5_b4_pre": "범위 밖 — tier2 replay 필요",
+    "location_neutral": {
+      "ledger_grid": {
+        "h1": {
+          "delta_loc": 0.0659776757722773,
+          "delta_shape": -0.011715473767764273,
+          "identity": "loss_vs_hs = delta_loc + delta_shape = −skill",
+          "location_neutral": "grid − q50 + q50_HS",
+          "loss_vs_hs": 0.05426220200451293,
+          "n": 11,
+          "skill_location_neutral_twin": 0.011715473767764273
+        },
+        "h21": {
+          "delta_loc": 0.01518045751771066,
+          "delta_shape": -0.030724273292076498,
+          "identity": "loss_vs_hs = delta_loc + delta_shape = −skill",
+          "location_neutral": "grid − q50 + q50_HS",
+          "loss_vs_hs": -0.01554381577436581,
+          "n": 7,
+          "skill_location_neutral_twin": 0.030724273292076498
+        },
+        "h5": {
+          "delta_loc": 0.027944511280780734,
+          "delta_shape": -0.034768363487868714,
+          "identity": "loss_vs_hs = delta_loc + delta_shape = −skill",
+          "location_neutral": "grid − q50 + q50_HS",
+          "loss_vs_hs": -0.0068238522070879215,
+          "n": 11,
+          "skill_location_neutral_twin": 0.034768363487868714
+        }
+      },
+      "rule": "grid − q50 + q50_HS (원장만으로 결정론)",
+      "scoring_excluded": true,
+      "xnas_diagnostic_v1.all_closed_targets": {
+        "h1": {
+          "delta_loc": 0.05250909814701782,
+          "delta_shape": -0.013044011848694193,
+          "identity": "loss_vs_hs = delta_loc + delta_shape = −skill",
+          "location_neutral": "grid − q50 + q50_HS",
+          "loss_vs_hs": 0.03946508629832368,
+          "n": 12,
+          "skill_location_neutral_twin": 0.013044011848694193
+        },
+        "h21": {
+          "delta_loc": 0.017359823334374982,
+          "delta_shape": 0.012848473078429956,
+          "identity": "loss_vs_hs = delta_loc + delta_shape = −skill",
+          "location_neutral": "grid − q50 + q50_HS",
+          "loss_vs_hs": 0.03020829641280498,
+          "n": 8,
+          "skill_location_neutral_twin": -0.012848473078429956
+        },
+        "h5": {
+          "delta_loc": 0.026008231391428695,
+          "delta_shape": -0.018722563431118333,
+          "identity": "loss_vs_hs = delta_loc + delta_shape = −skill",
+          "location_neutral": "grid − q50 + q50_HS",
+          "loss_vs_hs": 0.0072856679603103824,
+          "n": 11,
+          "skill_location_neutral_twin": 0.018722563431118333
+        }
+      },
+      "xnas_diagnostic_v1.matched_ledger_rows": {
+        "h1": {
+          "delta_loc": 0.06483003302346504,
+          "delta_shape": -0.007596286957327281,
+          "identity": "loss_vs_hs = delta_loc + delta_shape = −skill",
+          "location_neutral": "grid − q50 + q50_HS",
+          "loss_vs_hs": 0.057233746066137625,
+          "n": 11,
+          "skill_location_neutral_twin": 0.007596286957327281
+        },
+        "h21": {
+          "delta_loc": 0.016233431941380886,
+          "delta_shape": -0.014453495775431646,
+          "identity": "loss_vs_hs = delta_loc + delta_shape = −skill",
+          "location_neutral": "grid − q50 + q50_HS",
+          "loss_vs_hs": 0.0017799361659491808,
+          "n": 7,
+          "skill_location_neutral_twin": 0.014453495775431646
+        },
+        "h5": {
+          "delta_loc": 0.026008231391428695,
+          "delta_shape": -0.018722563431118333,
+          "identity": "loss_vs_hs = delta_loc + delta_shape = −skill",
+          "location_neutral": "grid − q50 + q50_HS",
+          "loss_vs_hs": 0.0072856679603103824,
+          "n": 11,
+          "skill_location_neutral_twin": 0.018722563431118333
+        }
+      }
+    }
+  },
+  "verb": "v8-live-monitor",
+  "window_k": {
+    "h1": 12,
+    "h21": 8,
+    "h5": 11,
+    "h63": 8
+  }
+}

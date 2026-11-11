@@ -1,0 +1,1153 @@
+{
+  "as_of": "2026-11-09",
+  "cells": {
+    "rv_h21": {
+      "expected_loss_sign": {
+        "direction": "pi_true < threshold 이면 E[d]>0",
+        "formula": "E[d] = (pi - p)(pi + p - 2*pi_true)",
+        "p": 0.501788,
+        "pi": 0.670848,
+        "pi_true_threshold": 0.586318
+      },
+      "holdout_cox": {
+        "all_bins": {
+          "a": -0.7945,
+          "b": 1.2253,
+          "drop_bin0": false,
+          "n": 985,
+          "n_bins": 10,
+          "se_naive": [
+            0.0953,
+            0.0825
+          ],
+          "se_note": "원점 iid 가정 SE — 겹침 창이라 과소(공시). 구간 평균 근사."
+        },
+        "drop_bin0": {
+          "a": -0.7778,
+          "b": 1.1955,
+          "drop_bin0": true,
+          "n": 908,
+          "n_bins": 9,
+          "se_naive": [
+            0.0951,
+            0.0831
+          ],
+          "se_note": "원점 iid 가정 SE — 겹침 창이라 과소(공시). 구간 평균 근사."
+        },
+        "example_probability_not_published": {
+          "label": "발행값 아님 — 진단 예시. 교정은 새 사전등록 계약에서만",
+          "p_as_of": 0.996994,
+          "p_cox": 0.998198
+        },
+        "low_bin": {
+          "bin": 0,
+          "n": 77,
+          "obs": 0.0,
+          "pred": 0.0787
+        },
+        "source": "holdout_scorings.jsonl 기록 곡선(2015~2018) — 홀드아웃 바이트 신규 열람 없음"
+      },
+      "in_t7_scope": true,
+      "live": {
+        "brier_climatology": 0.286617,
+        "brier_model": 0.199675,
+        "bss": 0.3033,
+        "event_runs": 1,
+        "events": 11,
+        "expected_events_model": 11.047,
+        "first_origin": "2026-09-04",
+        "last_origin": "2026-10-09",
+        "matured": 23,
+        "single_episode": true,
+        "status": "insufficient_sample"
+      },
+      "live_cox": {
+        "note": "사건 run 1 — 라이브 적합은 추론 의미 없음",
+        "status": "not_fit_single_episode"
+      },
+      "n": 23,
+      "reliability_live": [
+        {
+          "event_runs": 0,
+          "events": 0,
+          "mean_p": null,
+          "n": 0,
+          "obs_rate": null,
+          "p_range": [
+            0.0,
+            0.1
+          ],
+          "sum_p": 0.0
+        },
+        {
+          "event_runs": 0,
+          "events": 0,
+          "mean_p": null,
+          "n": 0,
+          "obs_rate": null,
+          "p_range": [
+            0.1,
+            0.3
+          ],
+          "sum_p": 0.0
+        },
+        {
+          "event_runs": 1,
+          "events": 11,
+          "mean_p": 0.4803,
+          "n": 23,
+          "obs_rate": 0.4783,
+          "p_range": [
+            0.3,
+            0.65
+          ],
+          "sum_p": 11.0465
+        },
+        {
+          "event_runs": 0,
+          "events": 0,
+          "mean_p": null,
+          "n": 0,
+          "obs_rate": null,
+          "p_range": [
+            0.65,
+            1.0
+          ],
+          "sum_p": 0.0
+        }
+      ],
+      "rv_mechanics_split": {
+        "all": {
+          "base_rate": 0.478261,
+          "brier_climatology": 0.2866172,
+          "brier_model": 0.19967517,
+          "bss": 0.303338,
+          "n": 23,
+          "status": "OK"
+        },
+        "cell": "rv_h21",
+        "decomposition": {
+          "contribution_mechanical": 0.0,
+          "contribution_nonmechanical": 0.08694203,
+          "delta_bs_mechanical": null,
+          "delta_bs_nonmechanical": 0.08694203,
+          "delta_bs_total": 0.08694203,
+          "n": 23,
+          "n_mechanical": 0,
+          "share_mechanical": 0.0
+        },
+        "events": 11,
+        "mechanical": {
+          "n": 0,
+          "status": "EMPTY"
+        },
+        "mechanical_positives": 0,
+        "n": 23,
+        "nonmechanical": {
+          "base_rate": 0.478261,
+          "brier_climatology": 0.2866172,
+          "brier_model": 0.19967517,
+          "bss": 0.303338,
+          "n": 23,
+          "status": "OK"
+        },
+        "nonmechanical_event_floors": [
+          {
+            "max_floor": 0.1414,
+            "origin": "2026-09-25"
+          },
+          {
+            "max_floor": 0.1442,
+            "origin": "2026-09-28"
+          },
+          {
+            "max_floor": 0.1442,
+            "origin": "2026-09-29"
+          },
+          {
+            "max_floor": 0.1384,
+            "origin": "2026-09-30"
+          },
+          {
+            "max_floor": 0.138,
+            "origin": "2026-10-01"
+          },
+          {
+            "max_floor": 0.1358,
+            "origin": "2026-10-02"
+          },
+          {
+            "max_floor": 0.1386,
+            "origin": "2026-10-05"
+          },
+          {
+            "max_floor": 0.1376,
+            "origin": "2026-10-06"
+          },
+          {
+            "max_floor": 0.1351,
+            "origin": "2026-10-07"
+          },
+          {
+            "max_floor": 0.1416,
+            "origin": "2026-10-08"
+          },
+          {
+            "max_floor": 0.1399,
+            "origin": "2026-10-09"
+          }
+        ],
+        "nonmechanical_event_split": {
+          "events_n": 11,
+          "events_sse_climatology": 1.1918,
+          "events_sse_model": 2.3454,
+          "nonevents_n": 12,
+          "nonevents_sse_climatology": 5.4004,
+          "nonevents_sse_model": 2.2471
+        },
+        "note": "소표본 기술 분해 — 판정 아님. 기계확정 플래그는 원점 정보(감사 NASDAQCOM 그리드)만 쓴다.",
+        "single_episode": true,
+        "theta": 0.1694207105468098
+      },
+      "t7": {
+        "cell": "rv_h21",
+        "climatology_pi": 0.670848,
+        "contrast_nonevent_only_upper": 0.178358,
+        "contrast_note": "사건·p→1 경로((1−π)²)를 빼고 π² 만 쓴 상한 — V13E-2 원 주장의 오류, 판단에 쓰지 않는다",
+        "d_lower": -0.218356,
+        "d_upper": 0.172663,
+        "demotion_at_best_path": false,
+        "demotion_at_worst_path": true,
+        "determined_events": 30,
+        "determined_matured_n": 23,
+        "determined_n": 42,
+        "future_best_d": 0.450037,
+        "future_origins": 17,
+        "future_worst_d": -0.891659,
+        "n_target": 60,
+        "note": "경로 극단 2개 + 지속 가정 2개의 산술 — CI 하한의 경로 단조성은 가정이다. 판정 적용 아님.",
+        "open_origins": [
+          {
+            "best_d": 0.1083,
+            "best_y": 1.0,
+            "origin": "2026-11-09",
+            "p": 0.996994
+          }
+        ],
+        "paths": {
+          "best_case": {
+            "ci90": [
+              0.0314,
+              0.3082
+            ],
+            "events": 31,
+            "mean_d": 0.172663,
+            "null_pass_rate": 0.04,
+            "status": "gate_passed_descriptive"
+          },
+          "persistence_event": {
+            "assumption": "열린·미래 원점 y=1, 미래 p=마지막 기록 p 0.996994",
+            "ci90": [
+              0.002,
+              0.1446
+            ],
+            "events": 48,
+            "mean_d": 0.075846,
+            "null_pass_rate": 0.16,
+            "status": "verdict_void_negative_control"
+          },
+          "persistence_nonevent": {
+            "assumption": "열린·미래 원점 y=0, 미래 p=마지막 기록 p 0.996994",
+            "ci90": [
+              -0.2682,
+              0.0123
+            ],
+            "events": 30,
+            "mean_d": -0.119842,
+            "null_pass_rate": 0.04,
+            "status": "demotion_candidate"
+          },
+          "worst_case": {
+            "ci90": [
+              -0.4479,
+              -0.0081
+            ],
+            "events": 47,
+            "mean_d": -0.218356,
+            "null_pass_rate": 0.0,
+            "status": "demotion_candidate"
+          }
+        },
+        "recorded_origins": 43,
+        "single_episode": true,
+        "sum_d_determined": 2.6008,
+        "target_origin_session": "2026-12-03",
+        "target_verdict_session": "2027-01-05"
+      }
+    },
+    "rv_h5": {
+      "expected_loss_sign": {
+        "direction": "pi_true < threshold 이면 E[d]>0",
+        "formula": "E[d] = (pi - p)(pi + p - 2*pi_true)",
+        "p": 0.247937,
+        "pi": 0.552434,
+        "pi_true_threshold": 0.400185
+      },
+      "holdout_cox": {
+        "all_bins": {
+          "a": -0.4652,
+          "b": 1.0562,
+          "drop_bin0": false,
+          "n": 1001,
+          "n_bins": 10,
+          "se_naive": [
+            0.1427,
+            0.0729
+          ],
+          "se_note": "원점 iid 가정 SE — 겹침 창이라 과소(공시). 구간 평균 근사."
+        },
+        "drop_bin0": {
+          "a": -0.7202,
+          "b": 1.7715,
+          "drop_bin0": true,
+          "n": 516,
+          "n_bins": 9,
+          "se_naive": [
+            0.1987,
+            0.1848
+          ],
+          "se_note": "원점 iid 가정 SE — 겹침 창이라 과소(공시). 구간 평균 근사."
+        },
+        "example_probability_not_published": {
+          "label": "발행값 아님 — 진단 예시. 교정은 새 사전등록 계약에서만",
+          "p_as_of": 0.999897,
+          "p_cox": 0.999902
+        },
+        "low_bin": {
+          "bin": 0,
+          "n": 485,
+          "obs": 0.0392,
+          "pred": 0.0263
+        },
+        "source": "holdout_scorings.jsonl 기록 곡선(2015~2018) — 홀드아웃 바이트 신규 열람 없음"
+      },
+      "in_t7_scope": true,
+      "live": {
+        "brier_climatology": 0.272067,
+        "brier_model": 0.084094,
+        "bss": 0.6909,
+        "event_runs": 1,
+        "events": 12,
+        "expected_events_model": 12.526,
+        "first_origin": "2026-09-04",
+        "last_origin": "2026-11-02",
+        "matured": 38,
+        "single_episode": true,
+        "status": "insufficient_sample"
+      },
+      "live_cox": {
+        "note": "사건 run 1 — 라이브 적합은 추론 의미 없음",
+        "status": "not_fit_single_episode"
+      },
+      "n": 38,
+      "reliability_live": [
+        {
+          "event_runs": 0,
+          "events": 0,
+          "mean_p": 0.081,
+          "n": 7,
+          "obs_rate": 0.0,
+          "p_range": [
+            0.0,
+            0.1
+          ],
+          "sum_p": 0.5673
+        },
+        {
+          "event_runs": 1,
+          "events": 1,
+          "mean_p": 0.2135,
+          "n": 18,
+          "obs_rate": 0.0556,
+          "p_range": [
+            0.1,
+            0.3
+          ],
+          "sum_p": 3.8423
+        },
+        {
+          "event_runs": 1,
+          "events": 5,
+          "mean_p": 0.4722,
+          "n": 7,
+          "obs_rate": 0.7143,
+          "p_range": [
+            0.3,
+            0.65
+          ],
+          "sum_p": 3.3054
+        },
+        {
+          "event_runs": 1,
+          "events": 6,
+          "mean_p": 0.8018,
+          "n": 6,
+          "obs_rate": 1.0,
+          "p_range": [
+            0.65,
+            1.0
+          ],
+          "sum_p": 4.8111
+        }
+      ],
+      "rv_mechanics_split": {
+        "all": {
+          "base_rate": 0.315789,
+          "brier_climatology": 0.27206689,
+          "brier_model": 0.08409362,
+          "bss": 0.690908,
+          "n": 38,
+          "status": "OK"
+        },
+        "cell": "rv_h5",
+        "decomposition": {
+          "contribution_mechanical": 0.0257656,
+          "contribution_nonmechanical": 0.16220767,
+          "delta_bs_mechanical": 0.1398704,
+          "delta_bs_nonmechanical": 0.19883521,
+          "delta_bs_total": 0.18797327,
+          "n": 38,
+          "n_mechanical": 7,
+          "share_mechanical": 0.184211
+        },
+        "events": 12,
+        "mechanical": {
+          "base_rate": 1.0,
+          "brier_climatology": 0.20031576,
+          "brier_model": 0.06044536,
+          "bss": 0.69825,
+          "n": 7,
+          "status": "OK"
+        },
+        "mechanical_positives": 7,
+        "n": 38,
+        "nonmechanical": {
+          "base_rate": 0.16129,
+          "brier_climatology": 0.28826875,
+          "brier_model": 0.08943354,
+          "bss": 0.689756,
+          "n": 31,
+          "status": "OK"
+        },
+        "nonmechanical_event_floors": [
+          {
+            "max_floor": 0.1433,
+            "origin": "2026-10-15"
+          },
+          {
+            "max_floor": 0.1455,
+            "origin": "2026-10-19"
+          },
+          {
+            "max_floor": 0.144,
+            "origin": "2026-10-20"
+          },
+          {
+            "max_floor": 0.145,
+            "origin": "2026-10-21"
+          },
+          {
+            "max_floor": 0.1687,
+            "origin": "2026-10-23"
+          }
+        ],
+        "nonmechanical_event_split": {
+          "events_n": 5,
+          "events_sse_climatology": 1.0016,
+          "events_sse_model": 1.6729,
+          "nonevents_n": 26,
+          "nonevents_sse_climatology": 7.9348,
+          "nonevents_sse_model": 1.0996
+        },
+        "note": "소표본 기술 분해 — 판정 아님. 기계확정 플래그는 원점 정보(감사 NASDAQCOM 그리드)만 쓴다.",
+        "single_episode": true,
+        "theta": 0.1694207105468098
+      },
+      "t7": {
+        "cell": "rv_h5",
+        "climatology_pi": 0.552434,
+        "contrast_nonevent_only_upper": 0.223817,
+        "contrast_note": "사건·p→1 경로((1−π)²)를 빼고 π² 만 쓴 상한 — V13E-2 원 주장의 오류, 판단에 쓰지 않는다",
+        "d_lower": -0.105892,
+        "d_upper": 0.222069,
+        "demotion_at_best_path": false,
+        "demotion_at_worst_path": true,
+        "determined_events": 16,
+        "determined_matured_n": 38,
+        "determined_n": 42,
+        "future_best_d": 0.305183,
+        "future_origins": 17,
+        "future_worst_d": -0.799684,
+        "n_target": 60,
+        "note": "경로 극단 2개 + 지속 가정 2개의 산술 — CI 하한의 경로 단조성은 가정이다. 판정 적용 아님.",
+        "open_origins": [
+          {
+            "best_d": 0.2003,
+            "best_y": 1.0,
+            "origin": "2026-11-09",
+            "p": 0.999897
+          }
+        ],
+        "paths": {
+          "best_case": {
+            "ci90": [
+              0.1557,
+              0.2799
+            ],
+            "events": 17,
+            "mean_d": 0.222069,
+            "null_pass_rate": 0.06,
+            "status": "gate_passed_descriptive"
+          },
+          "persistence_event": {
+            "assumption": "열린·미래 원점 y=1, 미래 p=마지막 기록 p 0.999897",
+            "ci90": [
+              0.1419,
+              0.2401
+            ],
+            "events": 34,
+            "mean_d": 0.192357,
+            "null_pass_rate": 0.06,
+            "status": "gate_passed_descriptive"
+          },
+          "persistence_nonevent": {
+            "assumption": "열린·미래 원점 y=0, 미래 p=마지막 기록 p 0.999897",
+            "ci90": [
+              -0.3004,
+              0.1422
+            ],
+            "events": 16,
+            "mean_d": -0.076121,
+            "null_pass_rate": 0.0,
+            "status": "demotion_candidate"
+          },
+          "worst_case": {
+            "ci90": [
+              -0.3551,
+              0.1359
+            ],
+            "events": 33,
+            "mean_d": -0.105892,
+            "null_pass_rate": 0.0,
+            "status": "demotion_candidate"
+          }
+        },
+        "recorded_origins": 43,
+        "single_episode": true,
+        "sum_d_determined": 7.9357,
+        "target_origin_session": "2026-12-03",
+        "target_verdict_session": "2026-12-10"
+      }
+    },
+    "vix25_h21": {
+      "const_baselines": {
+        "design_calm_band": {
+          "band": [
+            16.0,
+            21.0
+          ],
+          "c": 0.2423,
+          "caveat": "밴드 [16,21) 은 라이브 결과 뒤 감사가 고른 좌표 — 사전등록 상수가 아니며 skill 주장 근거 아님",
+          "cell": "vix25_h21",
+          "events": 134,
+          "loss": {
+            "brier_const": 0.125935,
+            "brier_model": 0.122427,
+            "bss_vs_const": 0.0279,
+            "c": 0.2423,
+            "events": 3,
+            "logloss_const": 0.4262,
+            "logloss_model": 0.4343,
+            "n": 23
+          },
+          "n": 553,
+          "wilson90": [
+            0.2136,
+            0.2735
+          ],
+          "window": [
+            "2007-01-01",
+            "2014-12-31"
+          ]
+        },
+        "design_climatology": {
+          "brier_const": 0.196962,
+          "brier_model": 0.122427,
+          "bss_vs_const": 0.3784,
+          "c": 0.419468,
+          "events": 3,
+          "logloss_const": 0.5862,
+          "logloss_model": 0.4343,
+          "n": 23
+        },
+        "hindsight_live_rate": {
+          "brier_const": 0.113422,
+          "brier_model": 0.122427,
+          "bss_vs_const": -0.0794,
+          "c": 0.130435,
+          "events": 3,
+          "label": "사후(hindsight) 상수 — 대조 전용, skill 주장 금지",
+          "logloss_const": 0.3872,
+          "logloss_model": 0.4343,
+          "n": 23
+        }
+      },
+      "expected_loss_sign": {
+        "direction": "pi_true < threshold 이면 E[d]>0",
+        "formula": "E[d] = (pi - p)(pi + p - 2*pi_true)",
+        "p": 0.088267,
+        "pi": 0.419468,
+        "pi_true_threshold": 0.253868
+      },
+      "holdout_cox": {
+        "all_bins": {
+          "a": -0.2104,
+          "b": 0.6655,
+          "drop_bin0": false,
+          "n": 985,
+          "n_bins": 10,
+          "se_naive": [
+            0.1382,
+            0.0559
+          ],
+          "se_note": "원점 iid 가정 SE — 겹침 창이라 과소(공시). 구간 평균 근사."
+        },
+        "drop_bin0": {
+          "a": -0.2346,
+          "b": 0.8682,
+          "drop_bin0": true,
+          "n": 294,
+          "n_bins": 9,
+          "se_naive": [
+            0.1473,
+            0.1174
+          ],
+          "se_note": "원점 iid 가정 SE — 겹침 창이라 과소(공시). 구간 평균 근사."
+        },
+        "example_probability_not_published": {
+          "label": "발행값 아님 — 진단 예시. 교정은 새 사전등록 계약에서만",
+          "p_as_of": 0.357263,
+          "p_cox": 0.354064
+        },
+        "low_bin": {
+          "bin": 0,
+          "n": 691,
+          "obs": 0.0912,
+          "pred": 0.0357
+        },
+        "source": "holdout_scorings.jsonl 기록 곡선(2015~2018) — 홀드아웃 바이트 신규 열람 없음"
+      },
+      "in_t7_scope": true,
+      "live": {
+        "brier_climatology": 0.196962,
+        "brier_model": 0.122427,
+        "bss": 0.3784,
+        "event_runs": 1,
+        "events": 3,
+        "expected_events_model": 2.346,
+        "first_origin": "2026-09-04",
+        "last_origin": "2026-10-09",
+        "matured": 23,
+        "single_episode": true,
+        "status": "insufficient_sample"
+      },
+      "live_cox": {
+        "note": "사건 run 1 — 라이브 적합은 추론 의미 없음",
+        "status": "not_fit_single_episode"
+      },
+      "n": 23,
+      "reliability_live": [
+        {
+          "event_runs": 1,
+          "events": 3,
+          "mean_p": 0.0768,
+          "n": 14,
+          "obs_rate": 0.2143,
+          "p_range": [
+            0.0,
+            0.1
+          ],
+          "sum_p": 1.0747
+        },
+        {
+          "event_runs": 0,
+          "events": 0,
+          "mean_p": 0.1413,
+          "n": 9,
+          "obs_rate": 0.0,
+          "p_range": [
+            0.1,
+            0.3
+          ],
+          "sum_p": 1.2713
+        },
+        {
+          "event_runs": 0,
+          "events": 0,
+          "mean_p": null,
+          "n": 0,
+          "obs_rate": null,
+          "p_range": [
+            0.3,
+            0.65
+          ],
+          "sum_p": 0.0
+        },
+        {
+          "event_runs": 0,
+          "events": 0,
+          "mean_p": null,
+          "n": 0,
+          "obs_rate": null,
+          "p_range": [
+            0.65,
+            1.0
+          ],
+          "sum_p": 0.0
+        }
+      ],
+      "t7": {
+        "cell": "vix25_h21",
+        "climatology_pi": 0.419468,
+        "contrast_nonevent_only_upper": 0.006342,
+        "contrast_note": "사건·p→1 경로((1−π)²)를 빼고 π² 만 쓴 상한 — V13E-2 원 주장의 오류, 판단에 쓰지 않는다",
+        "d_lower": -0.293051,
+        "d_upper": 0.052126,
+        "demotion_at_best_path": true,
+        "demotion_at_worst_path": true,
+        "determined_events": 21,
+        "determined_matured_n": 23,
+        "determined_n": 41,
+        "future_best_d": 0.337017,
+        "future_origins": 17,
+        "future_worst_d": -0.824046,
+        "n_target": 60,
+        "note": "경로 극단 2개 + 지속 가정 2개의 산술 — CI 하한의 경로 단조성은 가정이다. 판정 적용 아님.",
+        "open_origins": [
+          {
+            "best_d": 0.3125,
+            "best_y": 1.0,
+            "origin": "2026-11-06",
+            "p": 0.843535
+          },
+          {
+            "best_d": 0.0483,
+            "best_y": 0.0,
+            "origin": "2026-11-09",
+            "p": 0.357263
+          }
+        ],
+        "paths": {
+          "best_case": {
+            "ci90": [
+              -0.1212,
+              0.2101
+            ],
+            "events": 39,
+            "mean_d": 0.052126,
+            "null_pass_rate": 0.0,
+            "status": "demotion_candidate"
+          },
+          "persistence_event": {
+            "assumption": "열린·미래 원점 y=1, 미래 p=마지막 기록 p 0.357263",
+            "ci90": [
+              -0.1783,
+              0.0413
+            ],
+            "events": 40,
+            "mean_d": -0.066995,
+            "null_pass_rate": 0.0,
+            "status": "demotion_candidate"
+          },
+          "persistence_nonevent": {
+            "assumption": "열린·미래 원점 y=0, 미래 p=마지막 기록 p 0.357263",
+            "ci90": [
+              -0.1674,
+              0.0746
+            ],
+            "events": 21,
+            "mean_d": -0.043808,
+            "null_pass_rate": 0.0,
+            "status": "demotion_candidate"
+          },
+          "worst_case": {
+            "ci90": [
+              -0.4863,
+              -0.0946
+            ],
+            "events": 22,
+            "mean_d": -0.293051,
+            "null_pass_rate": 0.04,
+            "status": "demotion_candidate"
+          }
+        },
+        "recorded_origins": 43,
+        "single_episode": true,
+        "sum_d_determined": -2.9626,
+        "target_origin_session": "2026-12-03",
+        "target_verdict_session": "2027-01-05"
+      }
+    },
+    "vix25_h5": {
+      "const_baselines": {
+        "design_calm_band": {
+          "band": [
+            16.0,
+            21.0
+          ],
+          "c": 0.0304,
+          "caveat": "밴드 [16,21) 은 라이브 결과 뒤 감사가 고른 좌표 — 사전등록 상수가 아니며 skill 주장 근거 아님",
+          "cell": "vix25_h5",
+          "events": 17,
+          "loss": {
+            "brier_const": 0.075072,
+            "brier_model": 0.065705,
+            "bss_vs_const": 0.1248,
+            "c": 0.0304,
+            "events": 3,
+            "logloss_const": 0.3042,
+            "logloss_model": 0.2294,
+            "n": 38
+          },
+          "n": 559,
+          "wilson90": [
+            0.0205,
+            0.0448
+          ],
+          "window": [
+            "2007-01-01",
+            "2014-12-31"
+          ]
+        },
+        "design_climatology": {
+          "brier_const": 0.125004,
+          "brier_model": 0.065705,
+          "bss_vs_const": 0.4744,
+          "c": 0.307616,
+          "events": 3,
+          "logloss_const": 0.4317,
+          "logloss_model": 0.2294,
+          "n": 38
+        },
+        "hindsight_live_rate": {
+          "brier_const": 0.072715,
+          "brier_model": 0.065705,
+          "bss_vs_const": 0.0964,
+          "c": 0.078947,
+          "events": 3,
+          "label": "사후(hindsight) 상수 — 대조 전용, skill 주장 금지",
+          "logloss_const": 0.2762,
+          "logloss_model": 0.2294,
+          "n": 38
+        }
+      },
+      "expected_loss_sign": {
+        "direction": "pi_true < threshold 이면 E[d]>0",
+        "formula": "E[d] = (pi - p)(pi + p - 2*pi_true)",
+        "p": 0.013739,
+        "pi": 0.307616,
+        "pi_true_threshold": 0.160677
+      },
+      "holdout_cox": {
+        "all_bins": {
+          "a": -0.3776,
+          "b": 0.7278,
+          "drop_bin0": false,
+          "n": 1001,
+          "n_bins": 10,
+          "se_naive": [
+            0.1942,
+            0.06
+          ],
+          "se_note": "원점 iid 가정 SE — 겹침 창이라 과소(공시). 구간 평균 근사."
+        },
+        "drop_bin0": {
+          "a": -0.3918,
+          "b": 0.7707,
+          "drop_bin0": true,
+          "n": 143,
+          "n_bins": 9,
+          "se_naive": [
+            0.2016,
+            0.1417
+          ],
+          "se_note": "원점 iid 가정 SE — 겹침 창이라 과소(공시). 구간 평균 근사."
+        },
+        "example_probability_not_published": {
+          "label": "발행값 아님 — 진단 예시. 교정은 새 사전등록 계약에서만",
+          "p_as_of": 0.099152,
+          "p_cox": 0.120933
+        },
+        "low_bin": {
+          "bin": 0,
+          "n": 858,
+          "obs": 0.0221,
+          "pred": 0.0088
+        },
+        "source": "holdout_scorings.jsonl 기록 곡선(2015~2018) — 홀드아웃 바이트 신규 열람 없음"
+      },
+      "in_t7_scope": false,
+      "live": {
+        "brier_climatology": 0.125004,
+        "brier_model": 0.065705,
+        "bss": 0.4744,
+        "event_runs": 1,
+        "events": 3,
+        "expected_events_model": 0.906,
+        "first_origin": "2026-09-04",
+        "last_origin": "2026-11-02",
+        "matured": 38,
+        "single_episode": true,
+        "status": "insufficient_sample"
+      },
+      "live_cox": {
+        "note": "사건 run 1 — 라이브 적합은 추론 의미 없음",
+        "status": "not_fit_single_episode"
+      },
+      "n": 38,
+      "reliability_live": [
+        {
+          "event_runs": 1,
+          "events": 2,
+          "mean_p": 0.0195,
+          "n": 37,
+          "obs_rate": 0.0541,
+          "p_range": [
+            0.0,
+            0.1
+          ],
+          "sum_p": 0.7227
+        },
+        {
+          "event_runs": 1,
+          "events": 1,
+          "mean_p": 0.1837,
+          "n": 1,
+          "obs_rate": 1.0,
+          "p_range": [
+            0.1,
+            0.3
+          ],
+          "sum_p": 0.1837
+        },
+        {
+          "event_runs": 0,
+          "events": 0,
+          "mean_p": null,
+          "n": 0,
+          "obs_rate": null,
+          "p_range": [
+            0.3,
+            0.65
+          ],
+          "sum_p": 0.0
+        },
+        {
+          "event_runs": 0,
+          "events": 0,
+          "mean_p": null,
+          "n": 0,
+          "obs_rate": null,
+          "p_range": [
+            0.65,
+            1.0
+          ],
+          "sum_p": 0.0
+        }
+      ],
+      "t7": {
+        "cell": "vix25_h5",
+        "climatology_pi": 0.307616,
+        "contrast_nonevent_only_upper": 0.063435,
+        "contrast_note": "사건·p→1 경로((1−π)²)를 빼고 π² 만 쓴 상한 — V13E-2 원 주장의 오류, 판단에 쓰지 않는다",
+        "d_lower": -0.236483,
+        "d_upper": 0.177692,
+        "demotion_at_best_path": false,
+        "demotion_at_worst_path": true,
+        "determined_events": 6,
+        "determined_matured_n": 38,
+        "determined_n": 41,
+        "future_best_d": 0.479396,
+        "future_origins": 17,
+        "future_worst_d": -0.905373,
+        "n_target": 60,
+        "note": "경로 극단 2개 + 지속 가정 2개의 산술 — CI 하한의 경로 단조성은 가정이다. 판정 적용 아님.",
+        "open_origins": [
+          {
+            "best_d": 0.4188,
+            "best_y": 1.0,
+            "origin": "2026-11-06",
+            "p": 0.75387
+          },
+          {
+            "best_d": 0.0848,
+            "best_y": 0.0,
+            "origin": "2026-11-09",
+            "p": 0.099152
+          }
+        ],
+        "paths": {
+          "best_case": {
+            "ci90": [
+              0.0732,
+              0.2867
+            ],
+            "events": 24,
+            "mean_d": 0.177692,
+            "null_pass_rate": 0.06,
+            "status": "gate_passed_descriptive"
+          },
+          "persistence_event": {
+            "assumption": "열린·미래 원점 y=1, 미래 p=마지막 기록 p 0.099152",
+            "ci90": [
+              -0.1677,
+              0.0489
+            ],
+            "events": 25,
+            "mean_d": -0.05919,
+            "null_pass_rate": 0.0,
+            "status": "demotion_candidate"
+          },
+          "persistence_nonevent": {
+            "assumption": "열린·미래 원점 y=0, 미래 p=마지막 기록 p 0.099152",
+            "ci90": [
+              0.0025,
+              0.0923
+            ],
+            "events": 6,
+            "mean_d": 0.051014,
+            "null_pass_rate": 0.0,
+            "status": "gate_passed_descriptive"
+          },
+          "worst_case": {
+            "ci90": [
+              -0.491,
+              0.018
+            ],
+            "events": 7,
+            "mean_d": -0.236483,
+            "null_pass_rate": 0.0,
+            "status": "demotion_candidate"
+          }
+        },
+        "recorded_origins": 43,
+        "single_episode": true,
+        "sum_d_determined": 2.0082,
+        "target_origin_session": "2026-12-03",
+        "target_verdict_session": "2026-12-10"
+      }
+    }
+  },
+  "claim_restriction": {
+    "form": "restrictive_additive_only",
+    "min_episodes": 5,
+    "min_events": 20,
+    "registered": "2026-10-22"
+  },
+  "display_only": true,
+  "governance": [
+    "원장·계약·동결 계수 무수정, 판정 적용 없음",
+    "Cox 교정 예시는 발행값 아님 — 학습형 보정은 해소 100+ 게이트 뒤 새 계약에서만",
+    "기후 대비 통과 ≠ 보정됨 (expected_loss_sign)",
+    "모든 사건 양성이 단일 에피소드(2026-11-05)면 single_episode=true — 추론 근거 아님"
+  ],
+  "holdout_row_content_hash": "41754791de53465fa2adb4e9f284490db00b348ffeb3dd74823e45ee694228f4",
+  "inputs_sha256": {
+    "data/contracts/multivariate_timeseries_v13_vol.yaml": "5436d8b35fbe04840800b2d49329fcfc770e4920c73f290d467b2566f5164fd6",
+    "data/mts_research/experiments/rv_mechanics/prereg.json": "28339521e97c7afd6f21333e55b228aedd513a185abb7ebf5ac42bd6e558973c",
+    "data/timeseries_v13/ledgers/holdout_scorings.jsonl": "ff86e6c317e45961ca98e7a0441982e1db62065250ea32c96208c1c0541e53e2",
+    "data/timeseries_v13/ledgers/vol_live.jsonl": "6a7bd979f242e5e5c6f7a6739218d9db612f283eb781b81c50e4f3ef28d768ff",
+    "data/timeseries_v13/ledgers/vol_live_resolutions.jsonl": "cc37a763ef00e549e05f020af99760e0bca00c43b790f80c7e2e82a423d2802d",
+    "data/timeseries_v13/vol/champion_coefficients.json": "1a85785056738775f732531dc442616908e20ca0f356187eb5fd1adb614b3ac1"
+  },
+  "jump_support": {
+    "design_days": 2013,
+    "design_max_log_jump": 0.496,
+    "design_max_session": "2007-02-27",
+    "design_window": [
+      "2007-01-01",
+      "2014-12-31"
+    ],
+    "live_exceedances": [
+      {
+        "design_days_at_or_above": 0,
+        "from": 16.61,
+        "log_jump": 0.5286,
+        "session": "2026-11-05",
+        "to": 28.18
+      }
+    ],
+    "live_window": [
+      "2026-09-04",
+      "2026-11-09"
+    ],
+    "pre_jump_origins": [
+      {
+        "band80": [
+          0.011023,
+          0.020591
+        ],
+        "design_frequency_same_vix_bin": {
+          "bin": [
+            16,
+            17
+          ],
+          "events": 0,
+          "n": 133,
+          "wilson90_iid": [
+            0.0,
+            0.0199
+          ]
+        },
+        "note": "band80 은 계수 불확실성만 반영(KNOWN_LIMITS 35) — Wilson 은 원점 iid 가정",
+        "origin": "2026-11-04",
+        "p_vix25_h5": 0.015807,
+        "vix_close": 16.61
+      }
+    ],
+    "scope_note": "2015~2026-09 구간 순위는 홀드아웃·봉인 바이트 신규 열람이라 계산하지 않는다",
+    "single_episode": true
+  },
+  "n": 43,
+  "n_origins": 43,
+  "notice": "참고 의견, 매매 신호 아님",
+  "p_recompute": {
+    "checked": 172,
+    "max_abs_delta": 0.0,
+    "ok": true,
+    "tolerance": 5e-07
+  },
+  "probability_space": "research_volatility_v13_base_rate",
+  "schema": "mts_v13_live_diagnostics_v1",
+  "scoring_excluded": true,
+  "single_episode": true,
+  "t7_summary": {
+    "demotion_in_all_paths": [
+      "vix25_h21"
+    ],
+    "demotion_reachable": [
+      "rv_h21",
+      "rv_h5",
+      "vix25_h21"
+    ],
+    "note": "T7 = 범위 3셀 60 도달 뒤 2셀 이상 강등. 이 요약은 산술이며 적용(강등·종결)은 사용자 결정",
+    "scope_cells": [
+      "vix25_h21",
+      "rv_h5",
+      "rv_h21"
+    ],
+    "t7_trigger_determined": false,
+    "t7_trigger_reachable": true
+  },
+  "writes_to_ledgers": 0
+}
