@@ -500,3 +500,31 @@ def test_published_ipo_chart_discloses_the_census_and_spac_rule() -> None:
     assert "SPAC은 닷컴기" in chart["caveat"] and "혼합 척도" in chart["caveat"]
     assert "상장 대기" in chart["conclusion"] and "상장 달부터 집계" in chart["conclusion"]
     assert "theme_listing_additions" not in chart, "회사 목록 전체는 페이로드 예산 때문에 싣지 않는다"
+
+
+def test_nasdaq_fetch_retries_and_records_http_status(monkeypatch: pytest.MonkeyPatch) -> None:
+    """일시 오류는 재시도하고, 실패하면 상태 코드를 남긴다(2026-11-10 러너 HTTPError 의 원인을 보이게)."""
+    import io
+
+    from ai_fc import ipo_monthly_counts as M
+
+    calls = []
+
+    class Response(io.BytesIO):
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *exc):
+            return False
+
+    def urlopen(request, timeout):
+        calls.append(dict(request.header_items()))
+        if len(calls) < 3:
+            raise urllib.error.HTTPError(request.full_url, 403, "Forbidden", {}, None)
+        return Response(b"{}")
+
+    monkeypatch.setattr(M.urllib.request, "urlopen", urlopen)
+    assert M._nasdaq_fetch("https://api.nasdaq.com/api/ipo/calendar?date=2026-10", sleep=lambda s: None) == b"{}"
+    assert len(calls) == 3
+    assert M._error_label(urllib.error.HTTPError("u", 403, "Forbidden", {}, None)) == "HTTPError 403"
+    assert M._error_label(TimeoutError()) == "TimeoutError"

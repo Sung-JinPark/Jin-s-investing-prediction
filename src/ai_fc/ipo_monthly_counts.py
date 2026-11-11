@@ -432,13 +432,34 @@ def _ritter_fetch(url: str) -> tuple[bytes, int, str | None]:
         return response.read(), int(response.status), response.headers.get("Last-Modified")
 
 
-def _nasdaq_fetch(url: str) -> bytes:
-    request = urllib.request.Request(url, headers={
-        "User-Agent": NASDAQ_USER_AGENT,
-        "Accept": "application/json, text/plain, */*",
-    })
-    with urllib.request.urlopen(request, timeout=30) as response:
-        return response.read()
+#: 2026-11-10 실측: GitHub 러너에서 api.nasdaq.com 이 일괄 HTTPError(로컬은 200). 원천의 접근 차단을 우회하지는
+#: 않는다 — 일시적 네트워크 오류만 짧게 재시도하고, 실패하면 상태 코드를 남겨 감시 이슈에 원인이 보이게 한다.
+NASDAQ_HEADERS = {
+    "User-Agent": NASDAQ_USER_AGENT,
+    "Accept": "application/json, text/plain, */*",
+}
+NASDAQ_ATTEMPTS = 3
+
+
+def _nasdaq_fetch(url: str, *, sleep: Callable[[float], None] = time.sleep) -> bytes:
+    last: Exception | None = None
+    for attempt in range(NASDAQ_ATTEMPTS):
+        request = urllib.request.Request(url, headers=NASDAQ_HEADERS)
+        try:
+            with urllib.request.urlopen(request, timeout=30) as response:
+                return response.read()
+        except (OSError, urllib.error.URLError, TimeoutError) as exc:
+            last = exc
+            if attempt + 1 < NASDAQ_ATTEMPTS:
+                sleep(3 * (attempt + 1))
+    assert last is not None
+    raise last
+
+
+def _error_label(exc: BaseException) -> str:
+    """닫힌 형식의 오류 이름 — HTTP 상태 코드까지만(응답 본문·URL 은 남기지 않는다)."""
+    code = getattr(exc, "code", None)
+    return f"{type(exc).__name__} {code}" if isinstance(code, int) else type(exc).__name__
 
 
 _FETCH_ERRORS = (OSError, urllib.error.URLError, TimeoutError, ValueError)
@@ -580,7 +601,7 @@ def refresh_nasdaq_table(
             body = fetcher(NASDAQ_CALENDAR_URL.format(month=month))
             counts = count_nasdaq_month(body)
         except (*_FETCH_ERRORS, IPOMonthlyCountsError) as exc:
-            errors.append({"month": month, "error": type(exc).__name__})
+            errors.append({"month": month, "error": _error_label(exc)})
             if row:
                 stored[month] = {**row, "stale": True}
             continue
