@@ -1,4 +1,9 @@
-"""수집 신호 분류기 ``ingest_triage`` (P7, D12·D13·D14 분류 측면) — 도구만, 워크플로 배선 없음.
+"""수집 신호 분류기 ``ingest_triage`` (P7, D12·D13·D14 분류 측면).
+
+배선(U2a, 2026-11-11): ``daily6m-sources-refresh`` 의 두 분류 단계가 관문 ``triage_gate`` 로
+이 분류기를 부른다(``WIRED_KINDS``). v2-refresh 배선은 U2b(별도 PR)다. 운영 분류 임계는 해시로
+고정한 정책 파일 ``data/mts_research/contracts/ingest_triage_policy_v1.json`` 에서만 읽는다
+(``registration_kind: post_hoc_operational`` — 예측·채점·게이트와 무관).
 
 배경 (감사 PH-1·PH-5·PH-6, 2026-11-11):
 
@@ -19,7 +24,8 @@
 - 저장소 파일과 ``--report`` JSON 만 읽는다. 연구 원장은 쓰지 않는다(등록된 원장 없음).
 
 Triage = {status, exit_code, reasons[], github_annotations[], evidence{}}.
-exit_code: 0 = ok·notice·*_pending·by_design_notice, 1 = fail·escalate, 3 = unexpected.
+exit_code: 0 = ok·notice·*_pending·by_design_notice·known_stall, 1 = fail·escalate, 3 = unexpected.
+``known_stall`` 은 실패를 숨기지 않는다 — warning 주석·단계 요약·분류 JSON 으로 매 실행 공시한다.
 """
 
 from __future__ import annotations
@@ -33,6 +39,7 @@ from pathlib import Path
 from typing import Any, NamedTuple, Sequence
 from zoneinfo import ZoneInfo
 
+from ..timeseries_v8.contracts import canonical_hash
 from .artifacts import MtsArtifactError
 from .monitor_thresholds import NOTICE
 
@@ -44,17 +51,30 @@ EASTERN = ZoneInfo("America/New_York")
 # 심각도 순서 — 항목 여러 개면 가장 심각한 상태가 전체 상태다.
 STATUS_SEVERITY = (
     "ok", "by_design_notice", "pending_date_boundary", "intraday_pending",
-    "transport_pending", "escalate", "fail", "unexpected",
+    "transport_pending", "known_stall", "escalate", "fail", "unexpected",
 )
 STATUS_EXIT = {
     "ok": 0, "by_design_notice": 0, "pending_date_boundary": 0, "intraday_pending": 0,
-    "transport_pending": 0, "escalate": 1, "fail": 1, "unexpected": 3,
+    "transport_pending": 0, "known_stall": 0, "escalate": 1, "fail": 1, "unexpected": 3,
 }
 ANNOTATION_LEVEL = {
     "ok": "notice", "by_design_notice": "notice", "pending_date_boundary": "notice",
-    "intraday_pending": "notice", "transport_pending": "warning", "escalate": "error",
-    "fail": "error", "unexpected": "error",
+    "intraday_pending": "notice", "transport_pending": "warning", "known_stall": "warning",
+    "escalate": "error", "fail": "error", "unexpected": "error",
 }
+# 워크플로가 실제로 이 분류기를 부르는 kind. U2a 는 daily6m_sources 만 배선한다(v2_* 는 U2b).
+WIRED_KINDS = frozenset({"daily6m_sources"})
+
+# --- 운영 정책 (해시 고정) ----------------------------------------------------------
+POLICY_RELATIVE = Path("data/mts_research/contracts/ingest_triage_policy_v1.json")
+PINNED_POLICY_HASH = "0f13a917fec036500dc7332223f04b870424b82919dd17c0aceddd1855f0f2f1"
+FED_EBP_STALL_ID = "fed_ebp_sealed_parser_iso_dates"
+NASDAQ_STALL_ID = "nasdaq_forbidden_alfred_supplemented"
+HISTORY_PROVIDER = "daily6m_receipts_session_anchored_v1"
+HISTORY_MODES = ("receipts_ledger",)
+DAILY6M_RECEIPTS_RELATIVE = Path("data/timeseries_daily6m/source_receipts.jsonl")
+DAILY6M_OBSERVATIONS_RELATIVE = Path("data/timeseries_daily6m/source_observations.jsonl")
+NASDAQ_SOURCE_ID = "nasdaq_comp_official"
 
 # --- v2_verify -------------------------------------------------------------------
 DFM_INCOMPLETE = re.compile(r"DFM evaluation cache incomplete: ([1-9][0-9]*) cutoff\(s\)")
@@ -141,6 +161,25 @@ def _triage(kind: str, items: list[dict[str, Any]], evidence: dict[str, Any]) ->
 
 def _item(status: str, reason: str, **detail: Any) -> dict[str, Any]:
     return {"status": status, "reason": reason, **detail}
+
+
+def load_policy(root: Path) -> dict[str, Any]:
+    """운영 분류 정책 — canonical_hash 가 핀과 같을 때만 돌려준다(아니면 IngestTriageError → exit 2).
+
+    ``monitor_thresholds.load_pinned_thresholds`` 와 같은 방식이다. 정책을 바꾸려면 새 파일(v2)을
+    등록한다 — v1 은 해시 고정이라 개정하지 않는다.
+    """
+    path = Path(root) / POLICY_RELATIVE
+    if not path.is_file():
+        raise IngestTriageError(f"분류 정책 파일이 없다: {POLICY_RELATIVE.as_posix()}")
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+        raise IngestTriageError(f"분류 정책 파일이 JSON 이 아니다: {exc}") from exc
+    digest = canonical_hash(payload)
+    if digest != PINNED_POLICY_HASH:
+        raise IngestTriageError(f"분류 정책 해시 불일치: {digest} ≠ 핀 {PINNED_POLICY_HASH}")
+    return payload
 
 
 # =============================================================================
@@ -315,17 +354,111 @@ def _shim_compensated(report: dict, series: str) -> bool:
     )
 
 
-def classify_market_failures(refresh_report: dict) -> dict[str, Any]:
+def decide_fed_ebp(onset: datetime, now: datetime, compensator: dict[str, Any],
+                   rule: dict[str, Any]) -> tuple[str, str]:
+    """FED_EBP known_stall 결정(순수 함수) → (status, reason_code).
+
+    개시 24h 안은 ``escalate``(first_window), 그 뒤 사이드카가 신선하지 않으면 ``escalate``
+    (sidecar_lagging), 그 밖은 ``known_stall``(known_stall_compensated, warning·exit 0).
+    """
+    age = now - onset
+    if age < timedelta(hours=float(rule["escalate_window_hours"])):
+        return "escalate", "first_window"
+    if not compensator.get("fresh"):
+        return "escalate", "sidecar_lagging"
+    return "known_stall", "known_stall_compensated"
+
+
+def fed_ebp_known_stall(root: Path, entry: Any, now: datetime, policy: dict[str, Any], *,
+                        now_source: str | None = None) -> dict[str, Any] | None:
+    """FED_EBP 봉인 파서 ISO 날짜 실패의 known_stall 판정 — 서명이 정책과 다르면 None(기존 unexpected).
+
+    판정 시각 ``now`` 는 보고의 market.retrieved_at(벽시계 아님)이다. 사이드카 재생은
+    ``retrieved_until=now``, 원장 대조는 ``_plan_append`` 의 cutoff 규칙으로 now 이후 행을 뺀다 —
+    분류가 늦게 돌아도 판정은 같다. 무결성 위반(원장이 재생 접두부가 아님)은 지연과 구분해
+    ``unexpected``(sidecar_ledger_integrity)로 올리고 결코 낮추지 않는다.
+    """
+    from . import fed_ebp_sidecar as sidecar
+
+    rule = policy["known_stalls"][FED_EBP_STALL_ID]
+    reason = entry.get("reason") if isinstance(entry, dict) else None
+    if not (isinstance(entry, dict) and set(entry) == {"series", "reason"} and entry.get("series") == rule["series"]
+            and isinstance(reason, str) and re.fullmatch(rule["reason_regex"], reason)):
+        return None
+    base = {"series": rule["series"], "stall_id": FED_EBP_STALL_ID, "now": now.isoformat(),
+            "now_source": now_source}
+    try:
+        replay = sidecar._replay(root, retrieved_until=now)
+    except (MtsArtifactError, OSError, ValueError, KeyError) as exc:
+        return _item("unexpected", f"FED_EBP 사이드카 재생 실패: {exc}", reason_code="sidecar_replay_error", **base)
+    vintages = replay["vintages"]
+    trailing: list[dict[str, Any]] = []
+    for vintage in reversed(vintages):
+        if vintage["sealed_v2_parser"]["ok"] is not False:
+            break
+        trailing.append(vintage)
+    trailing.reverse()
+    if not trailing:
+        return _item("unexpected", "FED_EBP 최신 빈티지를 봉인 파서가 읽는다 — 이 실패를 설명하지 못한다",
+                     reason_code="sealed_parser_reads_latest", **base)
+    latest = trailing[-1]
+    signature = {
+        "error_exact": latest["sealed_v2_parser"]["error"] == reason,
+        "date_format_iso": latest["date_format"] == "iso",
+        "received_this_run": _utc(latest["last_retrieved_at"], field="last_retrieved_at") == now,
+    }
+    if not all(signature.values()):
+        return _item("unexpected", "FED_EBP 봉인 파서 오류 서명 불일치(오류문·ISO 형식·이 실행의 영수증)",
+                     reason_code="signature_mismatch", signature=signature,
+                     latest_vintage_seq=latest["vintage_seq"], **base)
+    onset = _utc(trailing[0]["available_at"], field="available_at")
+    age_hours = round((now - onset).total_seconds() / 3600.0, 3)
+    max_lag = timedelta(hours=float(rule["compensator_max_lag_hours"]))
+    try:
+        chain = sidecar.read_chain(root, sidecar.LEDGER_RELATIVE)
+        pending = sidecar._plan_append(chain, replay["rows"], now)
+    except MtsArtifactError as exc:
+        return _item("unexpected", f"FED_EBP 사이드카 원장 무결성 위반(지연 아님): {exc}",
+                     reason_code="sidecar_ledger_integrity", detail=str(exc), onset=onset.isoformat(),
+                     age_hours=age_hours, latest_vintage_seq=latest["vintage_seq"], **base)
+    stamps = [_utc(row["available_at"], field="available_at") for row in pending]
+    compensator = {
+        "fresh": all(stamp > now - max_lag for stamp in stamps),
+        "pending_rows": len(pending),
+        "oldest_pending_available_at": min(stamps).isoformat() if stamps else None,
+        "max_lag_hours": rule["compensator_max_lag_hours"],
+        "ledger_integrity": "ok",
+    }
+    status, reason_code = decide_fed_ebp(onset, now, compensator, rule)
+    text = {
+        "first_window": f"FED_EBP 봉인 파서 ISO 날짜 실패 개시 {age_hours:.1f}h < 24h — 첫 창 error",
+        "sidecar_lagging": "FED_EBP 사이드카 원장 지연 — U1 감시 워크플로 확인",
+        "known_stall_compensated": (f"FED_EBP 봉인 파서 ISO 날짜 실패(알려진 정지, 개시 {age_hours:.1f}h) — "
+                                    f"사이드카 원장 {rule['compensator_max_lag_hours']}h 안 보완"),
+    }[reason_code]
+    return _item(status, text, reason_code=reason_code, onset=onset.isoformat(), age_hours=age_hours,
+                 latest_vintage_seq=latest["vintage_seq"], compensator=compensator, **base)
+
+
+def classify_market_failures(refresh_report: dict, *, root: Path | None = None,
+                             policy: dict[str, Any] | None = None, now: datetime | None = None,
+                             now_source: str | None = None) -> dict[str, Any]:
     """timeseries-v2-refresh 보고의 market.failures 분류.
 
     허용목록은 fredgraph HTTP 451 {NASDAQCOM, DTWEXB, DTWEXBGS} 의 정확한 문자열뿐이고, 같은 보고의
     FRED 공식 API 가 그 원천을 실패 없이 받았을 때만 notice 다. 그 밖(FED_EBP·VIX·TREASURY 파서
     실패 등)은 전부 ``unexpected``(exit 3) — 단계가 exit 0 이라 지금까지 초록으로 숨어 있던 실패다.
+
+    ``root`` 와 ``policy`` 를 함께 주면 FED_EBP 봉인 파서 실패를 정책의 known_stall 규칙으로 판정한다
+    (``now`` 없으면 보고의 market.retrieved_at). 인자 없이 부르면 동작은 종전과 같다(FED_EBP → unexpected).
     """
     kind = "v2_refresh"
     market = refresh_report.get("market") if isinstance(refresh_report, dict) else None
     if not isinstance(market, dict) or not isinstance(market.get("failures"), list) or type(market.get("ok")) is not bool:
         return _triage(kind, [_item("unexpected", "market 보고 형식이 아니다(failures:list·ok:bool 필요)")], {})
+    if root is not None and policy is not None and now is None:
+        now = _utc(market.get("retrieved_at"), field="market.retrieved_at")
+        now_source = now_source or "report_market_retrieved_at"
     items: list[dict[str, Any]] = []
     seen: set[str] = set()
     for entry in market["failures"]:
@@ -342,6 +475,9 @@ def classify_market_failures(refresh_report: dict) -> dict[str, Any]:
         elif exact:
             items.append(_item("unexpected", f"{series} HTTP 451 인데 FRED 공식 API 대체가 확인되지 않는다",
                                series=series))
+        elif (root is not None and policy is not None and now is not None
+              and (stall := fed_ebp_known_stall(root, entry, now, policy, now_source=now_source)) is not None):
+            items.append(stall)
         else:
             items.append(_item("unexpected", f"허용목록 밖 market 실패: {json.dumps(entry, ensure_ascii=False)}",
                                series=series))
@@ -390,12 +526,14 @@ def classify_log_only(kind: str, log_lines: Sequence[str]) -> dict[str, Any]:
     return _triage(kind, [_item("fail", reason, log_lines=lines)], {"log_lines": len(lines)})
 
 
-def classify_v2_refresh(report: dict | None, log_lines: Sequence[str] = ()) -> dict[str, Any]:
+def classify_v2_refresh(report: dict | None, log_lines: Sequence[str] = (), *, root: Path | None = None,
+                        policy: dict[str, Any] | None = None, now: datetime | None = None,
+                        now_source: str | None = None) -> dict[str, Any]:
     """v2-refresh 워크플로 입력 분기 — market 보고 · ALFRED 단계 보고 · 로그만."""
     if report is None:
         return classify_log_only("v2_refresh", log_lines)
     if isinstance(report, dict) and "market" in report:
-        return classify_market_failures(report)
+        return classify_market_failures(report, root=root, policy=policy, now=now, now_source=now_source)
     if isinstance(report, dict) and "failures" in report and "realtime_window" in report:
         return classify_alfred_refresh(report)
     return _triage("v2_refresh", [_item("unexpected", "알 수 없는 v2-refresh 보고 형식")], {})
@@ -514,8 +652,105 @@ def transport_streak(kind: str, completed_at: datetime, history: Sequence[dict])
             "n_observations": n_forbidden + n_other}
 
 
-def _streak_item(source: str, streak: dict[str, Any]) -> dict[str, Any]:
-    """연속 구간 → 항목. 상한이 24h 미만으로 확인될 때만 ``transport_pending``(완전일치 하향)."""
+def _read_jsonl(path: Path) -> list[dict[str, Any]]:
+    if not path.is_file():
+        raise IngestTriageError(f"원장이 없다: {path.as_posix()}")
+    rows: list[dict[str, Any]] = []
+    for number, line in enumerate(path.read_text(encoding="utf-8").splitlines(), start=1):
+        if not line.strip():
+            continue
+        try:
+            rows.append(json.loads(line))
+        except json.JSONDecodeError as exc:
+            raise IngestTriageError(f"{path.name} {number}행이 JSON 이 아니다") from exc
+    return rows
+
+
+def receipt_history(root: Path, completed_at: datetime) -> list[dict[str, Any]]:
+    """저장소 영수증 원장 기반 세션 고정 history (``daily6m_receipts_session_anchored_v1``).
+
+    - (a) ``source_receipts.jsonl`` 의 nasdaq_* 영수증(http 200, retrieved_at < completed_at) 하나마다
+      그 kind 만 clean 인 항목 — 다른 nasdaq kind 는 source_pending(관측 안 됨)으로 둔다.
+    - (b) 세션 앵커: 영수증은 **값이 바뀐 수집에만** append 되므로(주말·휴일엔 새 영수증이 없다)
+      마지막 영수증 시각만 쓰면 주말마다 거짓 escalate 가 난다. 마지막으로 수집한 Nasdaq 관측
+      세션 s_last 의 다음 XNAS 세션 종가 + 정착 버퍼 이전에는 잃은 자료가 없다 → 그 시각을 두 kind
+      모두 clean 인 항목으로 넣는다. 그 시각이 completed_at 이후면 completed_at − 1초(caught_up).
+    원장은 ``< completed_at`` 로 걸러 이후 append 가 있어도 결과가 같다(재현성).
+    """
+    from .sessions import SESSION_SETTLE_SECONDS, session_table
+
+    completed_at = _utc(completed_at, field="completed_at")
+    kinds = tuple(sorted(ALFRED_SUPPLEMENTED_KINDS))
+    history: list[dict[str, Any]] = []
+    for row in _read_jsonl(Path(root) / DAILY6M_RECEIPTS_RELATIVE):
+        if row.get("kind") not in kinds or row.get("http_status") != 200:
+            continue
+        stamp = _utc(row.get("retrieved_at"), field="receipt.retrieved_at")
+        if stamp >= completed_at:
+            continue
+        history.append({
+            "completed_at": stamp.isoformat(), "status": "captured",
+            "transport_failures": [], "source_failures": [],
+            "source_pending": [{"kind": other, "reason": "not_observed_in_receipts_ledger"}
+                               for other in kinds if other != row["kind"]],
+            "provider": HISTORY_PROVIDER, "basis": "receipt",
+        })
+    observed = [
+        str(row["observation_time"])
+        for row in _read_jsonl(Path(root) / DAILY6M_OBSERVATIONS_RELATIVE)
+        if row.get("source_id") == NASDAQ_SOURCE_ID
+        and _utc(row.get("available_at"), field="observation.available_at") < completed_at
+    ]
+    if observed:
+        s_last = date.fromisoformat(max(observed))
+        table = session_table(s_last + timedelta(days=1), s_last + timedelta(days=15))
+        if not table:
+            raise IngestTriageError(f"{s_last} 다음 XNAS 세션을 찾지 못했다")
+        nxt = table[0]
+        anchor = nxt.close_utc + timedelta(seconds=SESSION_SETTLE_SECONDS)
+        caught_up = anchor >= completed_at
+        if caught_up:
+            anchor = completed_at - timedelta(seconds=1)
+        history.append({
+            "completed_at": anchor.isoformat(), "status": "captured",
+            "transport_failures": [], "source_failures": [], "source_pending": [],
+            "provider": HISTORY_PROVIDER, "basis": "session_anchor",
+            "s_last": s_last.isoformat(), "next_session": nxt.session, "caught_up": caught_up,
+        })
+    return history
+
+
+def alfred_nasdaq_compensator(root: Path, completed_at: datetime, policy: dict[str, Any]) -> dict[str, Any]:
+    """ALFRED NASDAQCOM 네이티브 보완 신선도 — (native_last, last_completed] 안 XNAS 세션 수 ≤ 임계.
+
+    봉인 ``daily6m_sources`` 는 import 만 한다. 네이티브 기준선을 읽지 못하면 신선하지 않다(fail-closed).
+    """
+    from .. import daily6m_sources
+    from .sessions import session_table
+
+    rule = policy["known_stalls"][NASDAQ_STALL_ID]
+    limit = int(rule["max_native_lag_sessions"])
+    try:
+        native = daily6m_sources._native_at(Path(root), completed_at)
+        native_last = max(native["NASDAQCOM"])
+        last = daily6m_sources.last_completed_session(completed_at)
+    except Exception as exc:  # noqa: BLE001 — 보완 확인 실패는 '신선 아님'으로 공시(낮추지 않음)
+        return {"native_last": None, "last_completed": None, "lag_sessions": None, "fresh": False,
+                "max_native_lag_sessions": limit, "error": f"{type(exc).__name__}: {exc}"}
+    start = date.fromisoformat(native_last) + timedelta(days=1)
+    end = date.fromisoformat(last)
+    lag = len(session_table(start, end)) if start <= end else 0
+    return {"native_last": native_last, "last_completed": last, "lag_sessions": lag,
+            "fresh": lag <= limit, "max_native_lag_sessions": limit}
+
+
+def _streak_item(source: str, streak: dict[str, Any], *, policy: dict[str, Any] | None = None,
+                 compensator: dict[str, Any] | None = None) -> dict[str, Any]:
+    """연속 구간 → 항목. 상한이 24h 미만으로 확인될 때만 ``transport_pending``(완전일치 하향).
+
+    정책이 있으면(운영 등록, 설계 P7 '24h+ escalate' 의 사후 완화): 24~26h escalate(첫 창),
+    26h~14일은 ALFRED 보완이 신선할 때만 ``known_stall``(warning), 그 밖은 escalate.
+    """
     supplement = f"ALFRED {ALFRED_SUPPLEMENTED_KINDS[source]} 보완"
     other = f", 비-403 실패 {streak['n_other_failures']}건 포함" if streak["n_other_failures"] else ""
     if not streak["length_known"]:
@@ -523,14 +758,31 @@ def _streak_item(source: str, streak: dict[str, Any]) -> dict[str, Any]:
                                  f"관측 하한 {streak['hours_lower']:.1f}h{other}) — {supplement}",
                      source=source, streak=streak)
     span = f"{streak['hours_lower']:.1f}~{streak['hours_upper']:.1f}h{other}"
-    if timedelta(hours=streak["hours_upper"]) >= ESCALATE_AFTER:
+    hours = float(streak["hours_upper"])
+    if timedelta(hours=hours) < ESCALATE_AFTER:
+        return _item("transport_pending", f"{source} HTTP 403 연속 {span} < 24h — {supplement}",
+                     source=source, streak=streak)
+    if policy is None:
         return _item("escalate", f"{source} HTTP 403 연속 상한 {span} ≥ 24h — {supplement}",
                      source=source, streak=streak)
-    return _item("transport_pending", f"{source} HTTP 403 연속 {span} < 24h — {supplement}",
-                 source=source, streak=streak)
+    rule = policy["known_stalls"][NASDAQ_STALL_ID]
+    window_end = float(rule["escalate_window_hours"][1])
+    until = float(rule["known_stall_until_hours"])
+    detail = {"source": source, "streak": streak, "stall_id": NASDAQ_STALL_ID, "compensator": compensator}
+    if hours < window_end:
+        return _item("escalate", f"{source} HTTP 403 연속 상한 {span} — 24~{window_end:g}h 첫 창 error",
+                     reason_code="first_window", **detail)
+    if hours < until and compensator is not None and compensator.get("fresh") is True:
+        return _item("known_stall", f"{source} HTTP 403 연속 상한 {span} — 알려진 정지, {supplement} "
+                                    f"지연 {compensator.get('lag_sessions')}세션(≤{compensator.get('max_native_lag_sessions')})",
+                     reason_code="known_stall_compensated", **detail)
+    why = "14일 초과 — 원천 정책 결정 필요(위장 금지)" if hours >= until else f"{supplement} 정지"
+    return _item("escalate", f"{source} HTTP 403 연속 상한 {span} — {why}",
+                 reason_code="beyond_known_stall" if hours >= until else "compensator_stale", **detail)
 
 
-def classify_daily6m_sources(report: dict, history: Sequence[dict]) -> dict[str, Any]:
+def classify_daily6m_sources(report: dict, history: Sequence[dict], *, root: Path | None = None,
+                             policy: dict[str, Any] | None = None) -> dict[str, Any]:
     """daily6m 원천 수집 보고 분류.
 
     - ALFRED 보완이 있는 Nasdaq 원천의 transport 403(정확 문자열) → 연속 상한(completed_at −
@@ -557,10 +809,13 @@ def classify_daily6m_sources(report: dict, history: Sequence[dict]) -> dict[str,
         else:
             items.append(_item("fail", f"허용목록 밖 transport 실패: {json.dumps(entry, ensure_ascii=False)}"))
     streaks = {}
+    compensator = None
+    if forbidden and root is not None and policy is not None:
+        compensator = alfred_nasdaq_compensator(root, completed_at, policy)
     for source in sorted(forbidden):
         streak = transport_streak(source, completed_at, history)
         streaks[source] = streak
-        items.append(_streak_item(source, streak))
+        items.append(_streak_item(source, streak, policy=policy, compensator=compensator))
     for entry in lists["source_failures"]:
         source, reason = entry.get("kind"), entry.get("reason")
         if set(entry) != {"kind", "reason"} or not isinstance(reason, str):
@@ -577,6 +832,8 @@ def classify_daily6m_sources(report: dict, history: Sequence[dict]) -> dict[str,
     evidence = {"completed_at": completed_at.isoformat(), "report_status": report["status"],
                 "source_pending": lists["source_pending"], "streaks": streaks,
                 "n_history": len(history), "escalate_after_hours": ESCALATE_AFTER.total_seconds() / 3600}
+    if compensator is not None:
+        evidence["alfred_compensator"] = compensator
     return _triage(kind, items, evidence)
 
 
@@ -649,28 +906,72 @@ def _load_input(path_text: str | None) -> tuple[dict[str, Any], dict[str, Any]]:
 
 
 def _resolve_now(args: argparse.Namespace, body: dict[str, Any], kind: str) -> tuple[datetime, str]:
-    if getattr(args, "now", None):
+    """판정 시각 — ``--now`` > fixture ``now`` > (kind 별) 보고 시각 > 벽시계.
+
+    v2_refresh 는 벽시계로 떨어지지 않는다(B1): market 보고면 ``market.retrieved_at``, ALFRED 단계
+    보고면 그 ``retrieved_at`` 이고, 값이 없거나 시간대가 없으면 IngestTriageError(exit 2)다. 그래서
+    분류 워크플로가 상류 run 보다 몇 시간 늦게 돌아도 판정은 같다.
+    """
+    if getattr(args, "now", None) is not None:
+        if not str(args.now).strip():
+            raise IngestTriageError("--now 가 비어 있다")
         return _utc(args.now, field="--now"), "cli_now"
     if body.get("now"):
         return _utc(body["now"], field="fixture.now"), "fixture_now"
     report = body.get("report")
     if kind == "daily6m_sources" and isinstance(report, dict) and report.get("completed_at"):
         return _utc(report["completed_at"], field="completed_at"), "report_completed_at"
+    if kind == "v2_refresh":
+        if isinstance(report, dict) and isinstance(report.get("market"), dict):
+            return _utc(report["market"].get("retrieved_at"), field="market.retrieved_at"), "report_market_retrieved_at"
+        if isinstance(report, dict) and "realtime_window" in report:
+            return _utc(report.get("retrieved_at"), field="retrieved_at"), "report_retrieved_at"
+        raise IngestTriageError("v2_refresh 판정 시각이 없다 — 보고 시각이 없으면 --now 가 필요하다(벽시계 금지)")
     return datetime.now(timezone.utc), "wall_clock"
 
 
-def triage_input(root: Path, kind: str, body: dict[str, Any], now: datetime) -> dict[str, Any]:
-    """kind 별 분류기 호출 (CLI·테스트 공용)."""
+def _resolve_history(root: Path, kind: str, body: dict[str, Any], now: datetime,
+                     history_mode: str | None) -> tuple[list[dict[str, Any]], str | None]:
+    """history 해석을 한 곳에 모은다(N3) → (history 목록, 제공자).
+
+    daily6m_sources 가 아니면 ([], None). fixture ``history`` 가 있으면 그것("fixture"), 없고
+    ``--history receipts_ledger`` 면 저장소 영수증 원장 세션 고정 history, 둘 다 없으면 ([], None)
+    — 길이 미확인이라 escalate 다(fail-closed).
+    """
+    if history_mode is not None and history_mode not in HISTORY_MODES:
+        raise IngestTriageError(f"등록되지 않은 --history: {history_mode!r}")
+    if kind != "daily6m_sources":
+        if history_mode is not None:
+            raise IngestTriageError("--history 는 daily6m_sources 에만 쓴다")
+        return [], None
+    if body.get("history") is not None:
+        history = body["history"]
+        if not isinstance(history, list):
+            raise IngestTriageError("history 는 목록이어야 한다")
+        return history, "fixture"
+    if history_mode == "receipts_ledger":
+        report = body.get("report")
+        completed = report.get("completed_at") if isinstance(report, dict) else None
+        anchor = _utc(completed, field="completed_at") if completed else now
+        return receipt_history(root, anchor), HISTORY_PROVIDER
+    return [], None
+
+
+def triage_input(root: Path, kind: str, body: dict[str, Any], now: datetime, *,
+                 history: list[dict[str, Any]] | None = None, now_source: str | None = None) -> dict[str, Any]:
+    """kind 별 분류기 호출 (CLI·테스트 공용). v2_refresh·daily6m_sources 는 해시 고정 정책을 읽는다."""
     report = body.get("report")
     if kind == "v2_verify":
         return classify_v2_verify(report, now, root)
     if kind == "v2_refresh":
-        return classify_v2_refresh(report, body.get("log_lines") or ())
+        return classify_v2_refresh(report, body.get("log_lines") or (), root=root, policy=load_policy(root),
+                                   now=now, now_source=now_source)
     if kind == "daily6m_sources":
-        history = body.get("history") or []
+        if history is None:
+            history = body.get("history") or []
         if not isinstance(history, list):
             raise IngestTriageError("history 는 목록이어야 한다")
-        return classify_daily6m_sources(report, history)
+        return classify_daily6m_sources(report, history, root=root, policy=load_policy(root))
     if kind == "v2_monitor":
         log_line = body.get("log_line")
         if log_line is None and isinstance(report, dict):
@@ -679,16 +980,18 @@ def triage_input(root: Path, kind: str, body: dict[str, Any], now: datetime) -> 
     raise IngestTriageError(f"등록되지 않은 kind: {kind}")
 
 
-def _n_dates(now: datetime, body: dict[str, Any]) -> int:
+def _n_dates(now: datetime, history: Sequence[dict[str, Any]]) -> int:
+    """판정 시각 날짜 + 해석된 history 항목 날짜의 개수(body 가 아니라 해석된 목록을 받는다)."""
     stamps = {now.date()}
-    for entry in body.get("history") or []:
+    for entry in history or ():
         if isinstance(entry, dict) and entry.get("completed_at"):
             stamps.add(_utc(entry["completed_at"], field="history.completed_at").date())
     return len(stamps)
 
 
 def run_cli(root: Path, args: argparse.Namespace) -> tuple[int, dict[str, Any]]:
-    """ingest-triage verb — 분류 결과 JSON 과 exit code(0 ok·pending / 1 fail·escalate / 3 unexpected).
+    """ingest-triage verb — 분류 결과 JSON 과 exit code(0 ok·pending·known_stall / 1 fail·escalate /
+    2 입력 오류 / 3 unexpected).
 
     연구 원장이 없으므로 --append 는 아무것도 쓰지 않는다(``ledger_write: not_applicable``).
     """
@@ -715,10 +1018,15 @@ def run_cli(root: Path, args: argparse.Namespace) -> tuple[int, dict[str, Any]]:
             raise IngestTriageError(f"--kind 가 필요하다({'|'.join(KINDS)}): {kind!r}")
         if body.get("kind") not in (None, kind):
             raise IngestTriageError(f"--kind {kind} 와 픽스처 kind {body.get('kind')} 가 다르다")
+        base["workflow_wired"] = kind in WIRED_KINDS
         now, now_source = _resolve_now(args, body, kind)
-        triage = triage_input(root, kind, body, now)
+        history, provider = _resolve_history(root, kind, body, now, getattr(args, "history", None))
+        triage = triage_input(root, kind, body, now, history=history, now_source=now_source)
+        policy_hash = PINNED_POLICY_HASH if kind in ("v2_refresh", "daily6m_sources") else None
     except (MtsArtifactError, ValueError, KeyError) as exc:
         return 2, {**base, "status": "error", "exit_code": 2, "error": str(exc)}
+    triage["evidence"] = {**triage["evidence"], "history_provider": provider, "policy_hash": policy_hash,
+                          "now_source": now_source}
     payload = {
         **base,
         **meta,
@@ -727,6 +1035,6 @@ def run_cli(root: Path, args: argparse.Namespace) -> tuple[int, dict[str, Any]]:
         "now_source": now_source,
         **triage,
         "n": len(triage["items"]),
-        "n_dates": _n_dates(now, body),
+        "n_dates": _n_dates(now, history if kind == "daily6m_sources" else ()),
     }
     return int(triage["exit_code"]), payload

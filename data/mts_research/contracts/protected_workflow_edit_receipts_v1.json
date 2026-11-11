@@ -1,0 +1,48 @@
+{
+  "schema_version": "mts_protected_edit_receipts_v1",
+  "rule": "pin=true 인 경로는 경로별 마지막 항목의 after.sha256 이 현재 LF 바이트 sha256 과 같아야 한다. 다시 고치면 새 항목을 append 한다(before = 직전 after). pin=false 는 기록 전용. 기존 항목은 수정하지 않는다",
+  "edits": [
+    {
+      "edit_id": "u2a-20261111-scenario-holiday-rule",
+      "path": "src/ai_fc/scenario.py",
+      "pin": false,
+      "protected_by": [
+        "V7 protected_v6_baseline predecessor_source glob src/ai_fc/scenario*.py (CI 아님)"
+      ],
+      "before": {
+        "git_commit": "4950e8a5",
+        "git_blob": "437f405f277e38242c7c127b44ba2aaf5d404e08",
+        "sha256": "edee17234ace59754e508e7388dece31355cde642728417c08d8bf1088dfb7dd"
+      },
+      "after": {
+        "sha256": "5a4ec8241946d98a4da6eb1ea41a58f9cabe782fe6e40f019f5228ce165980f6"
+      },
+      "changed_steps": [
+        "_holiday_for_rule fixed branch: saturday_observance none"
+      ],
+      "changed_effects": [
+        "data/contracts/nyse_holidays.yaml new_year saturday_observance: none — 2027-12-31 (and 2004/2010/2021-12-31) become trading days; first exposure is the scenario asof 2026-12-30 label horizon"
+      ],
+      "unchanged_invariants": [
+        "rules without saturday_observance behave identically",
+        "not in any model_code_hash",
+        "not in scenario_v5 PROTECTED_PATHS",
+        "retained scenario artifacts (trading_days horizons 2026-08-04..2027-11-11) replay unchanged"
+      ],
+      "v7_baseline": {
+        "path": "data/timeseries_v7/manifests/protected_v6_baseline.json",
+        "action": "not_regenerated",
+        "reason": "동결된 V7 일회성 증거 — create_baseline 은 덮어쓰기 거부. 2026-11-11 실측 이미 어긋남",
+        "drift_measured": {"at": "2026-11-11", "changed": 162, "added": 11566, "removed": 204}
+      },
+      "approval": {
+        "approval_form": "delegated_bundle_instruction",
+        "literal_template_match": false,
+        "approval_text": "네가 나머지 작업 다 완료시켜.  네가 최적의 선택을 내려서 u1~u7까지 다 진행시켜",
+        "template_text": "U2a scenario._holiday_for_rule 1함수 편집(NYSE Rule 7.2 신정 토요일 — 12/31 개장) 승인",
+        "instructed_at_upper_bound": "2026-11-11T09:03:44Z"
+      },
+      "decision_ref": "docs/DECISIONS.md 2026-11-11 — MTS U2a"
+    }
+  ]
+}

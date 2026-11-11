@@ -82,7 +82,7 @@ def is_trading_day(day: date, *, root=None) -> bool:
     if day.weekday() >= 5:
         return False
     key = None if root is None else str(root)
-    # 1/1 이 토요일이면 대체 휴장일이 전년 12/31 이다 — 다음 해 규칙도 함께 본다.
+    # 신정이 토요일이면 전년 12/31 은 개장한다(NYSE Rule 7.2, saturday_observance: none) — 다음 해 규칙도 함께 본다.
     return day not in (_holidays(day.year, key) | _holidays(day.year + 1, key))
 
 

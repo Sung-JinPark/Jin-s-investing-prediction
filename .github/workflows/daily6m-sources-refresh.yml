@@ -40,8 +40,19 @@ jobs:
         run: pip install -e ".[pit,timeseries]" "exchange-calendars>=4.6,<5"
       - name: Capture official completed-session sources without ledger writes
         id: capture
-        continue-on-error: true
-        run: python -m ai_fc timeseries-daily6m-sources-capture --out .tmp/daily6m-sources-capture --report .tmp/daily6m-sources-capture-report.json
+        shell: bash
+        run: |
+          set +e
+          python -m ai_fc timeseries-daily6m-sources-capture --out .tmp/daily6m-sources-capture --report .tmp/daily6m-sources-capture-report.json
+          code=$?
+          set -e
+          echo "exit_code=$code" >> "$GITHUB_OUTPUT"
+          # 0 = complete capture. 1 with its bounded report = partial capture, classified after the
+          # evidence upload below (that step always runs). Anything else fails here, unclassified.
+          if [ "$code" -eq 0 ]; then exit 0; fi
+          if [ "$code" -eq 1 ] && [ -f .tmp/daily6m-sources-capture-report.json ]; then exit 0; fi
+          echo "::error title=daily6m capture::exit $code without a classifiable report"
+          exit "$code"
       - name: Preserve only a complete immutable capture bundle
         id: bundle
         if: ${{ always() }}
@@ -62,11 +73,17 @@ jobs:
           include-hidden-files: true
           retention-days: 3
           if-no-files-found: error
-      - name: Report an incomplete capture after preserving its public evidence
-        if: ${{ always() && (steps.bundle.outputs.bundle_ready != 'true' || steps.capture.outcome == 'failure') }}
+      - name: Classify an incomplete capture after preserving its public evidence
+        # ingest-triage 관문(U2a): Nasdaq 403·장중 응답은 완전일치 규칙으로만 pending/known_stall 로 낮추고,
+        # 모르는 실패는 fail/unexpected 로 남긴다 — 조용한 성공 없음. 판정은 참고 의견, 매매 신호 아님.
+        if: ${{ always() && (steps.bundle.outputs.bundle_ready != 'true' || steps.capture.outputs.exit_code != '0') }}
+        shell: bash
         run: |
-          echo "A daily6m source was unavailable. Any complete capture remains auditable."
-          exit 1
+          if [ "${{ steps.capture.outputs.exit_code }}" != "1" ] || [ ! -f .tmp/daily6m-sources-capture-report.json ]; then
+            echo "A daily6m capture left no classifiable report; any complete capture remains auditable."
+            exit 1
+          fi
+          python -m ai_fc.mts_research.triage_gate --kind daily6m_sources --history receipts_ledger --report .tmp/daily6m-sources-capture-report.json --out .tmp/daily6m-sources-capture-triage.json
 
   publish:
     needs: capture
@@ -173,8 +190,6 @@ jobs:
           include-hidden-files: true
           retention-days: 3
           if-no-files-found: ignore
-      - name: Report a partial source checkpoint after preserving valid appends
+      - name: Classify a partial source checkpoint after preserving valid appends
         if: ${{ always() && steps.decision.outputs.status == 'partial' }}
-        run: |
-          echo "A source remains unavailable; validated appends were preserved."
-          exit 1
+        run: python -m ai_fc.mts_research.triage_gate --kind daily6m_sources --history receipts_ledger --report .tmp/daily6m-sources-report.json --out .tmp/daily6m-sources-triage.json

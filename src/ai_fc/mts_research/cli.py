@@ -233,6 +233,16 @@ def main(argv: list[str] | None = None) -> int:
         tool.add_argument("--kind", default=None,
                           choices=["v2_verify", "v2_refresh", "daily6m_sources", "v2_monitor"])
         tool.add_argument("--now", default=None, help="ISO8601 UTC 기준 시각 (재현용)")
+        # verb 전용 인자 — 무관한 verb 에서는 argparse 가 거부한다(SystemExit 2). 모듈은 getattr 로 방어적으로 읽는다.
+        if verb == "coherence-monitor":
+            tool.add_argument("--catch-up", action="store_true",
+                              help="원장 마지막 as_of 다음 세션부터 준비된 세션을 순서대로 소급 append (U1)")
+        if verb == "v8-live-monitor":
+            tool.add_argument("--if-stale", action="store_true",
+                              help="입력·코드·봉인 원장 지문이 직전 derived 와 같으면 건너뛴다 (U1)")
+        if verb == "ingest-triage":
+            tool.add_argument("--history", default=None, choices=["receipts_ledger"],
+                              help="daily6m_sources: 저장소 영수증 원장으로 403 연속 길이를 잰다 (U2a)")
         tool.set_defaults(func=cmd_research_tool)
 
     args = parser.parse_args(argv)

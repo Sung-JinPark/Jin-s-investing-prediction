@@ -618,3 +618,207 @@ def test_daily_fingerprint_rejects_nonfinite_inference_inputs(field):
     getattr(bundle, field)[0, 0] = np.nan
     with pytest.raises(daily.TimeSeriesV8DailyError, match="invalid"):
         daily.model_input_fingerprint(bundle, {"value": 26424.82})
+
+
+# ── U2a: 연방휴일 캐리 가드 (carry_policy federal_holiday_neutral_exclusion_v1) ──────
+# 국채가 없는 연방휴일 세션은 봉인 build_core_market_frame 의 dropna 로 어차피 버려진다 — 그 캐리를
+# 빼도 프레임·data_grades 가 비트 동일이어야 한다(가드 2조건). 국채 개장 휴일·유일한 overlay 행은 유지.
+
+def _holiday_root(tmp_path: Path, *, sessions: dict[str, tuple[str, ...]], dollar: tuple[str, ...]) -> Path:
+    """series → 세션 목록으로 합성 아카이브를 만든다(값은 결정론, 사용 가능 시각은 모두 과거)."""
+    root = tmp_path / "repo"
+    (root / CONTRACT_RELATIVE).parent.mkdir(parents=True)
+    shutil.copyfile(REPO / CONTRACT_RELATIVE, root / CONTRACT_RELATIVE)
+    base = {"NASDAQCOM": 27000.0, "VIX": 16.0, "DGS2": 4.80, "DGS10": 5.25}
+    rows = []
+    for series, days in sessions.items():
+        for index, day in enumerate(days):
+            value = round(base[series] * (1 + 0.001 * index), 4)
+            rows.append(_observation(series, day, value, available_at="2026-09-01T00:00:00+00:00"))
+    for index, day in enumerate(dollar):
+        rows.append(_observation("DTWEXBGS", day, round(121.0 + 0.1 * index, 4),
+                                 available_at="2026-09-01T00:00:00+00:00"))
+    archive = root / "data/timeseries_v2/ledgers/market_observations.jsonl"
+    archive.parent.mkdir(parents=True)
+    archive.write_text("".join(json.dumps(row) + "\n" for row in rows), encoding="utf-8")
+    return root
+
+
+OCT_ALL = ("2026-10-05", "2026-10-06", "2026-10-07", "2026-10-08", "2026-10-09", "2026-10-12", "2026-10-13")
+OCT_TREASURY = ("2026-10-05", "2026-10-06", "2026-10-07", "2026-10-08", "2026-10-09", "2026-10-13")
+OCT_NOW = datetime(2026, 10, 14, 5, 49, tzinfo=timezone.utc)
+NOV_NOW = datetime(2026, 11, 12, 5, 49, tzinfo=timezone.utc)
+
+
+def _treasury_closed_root(tmp_path: Path) -> Path:
+    """콜럼버스데이(2026-10-12): 주식 개장·국채 휴장. 달러는 10-09 까지."""
+    return _holiday_root(tmp_path, sessions={"NASDAQCOM": OCT_ALL, "VIX": OCT_ALL, "DGS2": OCT_TREASURY,
+                                             "DGS10": OCT_TREASURY}, dollar=OCT_ALL[:5])
+
+
+def _treasury_open_root(tmp_path: Path) -> Path:
+    """재향군인의 날(2026-11-11) 을 국채가 연 합성 사례 — 아카이브에 11-11 DGS2·DGS10 이 있다."""
+    days = ("2026-11-02", "2026-11-03", "2026-11-04", "2026-11-05", "2026-11-06", "2026-11-09", "2026-11-10",
+            "2026-11-11")
+    return _holiday_root(tmp_path, sessions={series: days for series in ("NASDAQCOM", "VIX", "DGS2", "DGS10")},
+                         dollar=days[:5])
+
+
+def _sole_overlay_root(tmp_path: Path) -> Path:
+    """달러 마지막 11-10, 기대 세션 11-11(국채 휴장), fills 없음 → 캐리 후보가 11-11 하나뿐."""
+    days = ("2026-11-04", "2026-11-05", "2026-11-06", "2026-11-09", "2026-11-10", "2026-11-11")
+    return _holiday_root(tmp_path, sessions={"NASDAQCOM": days, "VIX": days, "DGS2": days[:-1],
+                                             "DGS10": days[:-1]}, dollar=days[:-1])
+
+
+HOLIDAY_CASES = {
+    "treasury_closed": (_treasury_closed_root, OCT_NOW),
+    "treasury_open": (_treasury_open_root, NOV_NOW),
+    "sole_overlay": (_sole_overlay_root, NOV_NOW),
+}
+
+
+def _inputs(root: Path, now: datetime) -> dict:
+    return daily.collect_inputs(root, contract=load_contract_v8(root), now=now, fetcher=None,
+                                quote_fetcher=_no_quote)
+
+
+def test_federal_holiday_carry_excluded_when_treasury_closed(tmp_path: Path) -> None:
+    inputs = _inputs(_treasury_closed_root(tmp_path), OCT_NOW)
+    assert inputs["expected_session"] == "2026-10-13" and inputs["fills"] == []
+    assert [row["observation_time"] for row in inputs["carried"]] == ["2026-10-13"]
+    assert inputs["carry_policy"] == {"policy": "federal_holiday_neutral_exclusion_v1",
+                                      "excluded": ["2026-10-12"], "retained": []}
+
+
+def test_federal_holiday_carry_retained_when_treasury_open(tmp_path: Path) -> None:
+    inputs = _inputs(_treasury_open_root(tmp_path), NOV_NOW)
+    assert inputs["expected_session"] == "2026-11-11"
+    assert [row["observation_time"] for row in inputs["carried"]] == ["2026-11-09", "2026-11-10", "2026-11-11"]
+    assert inputs["carry_policy"] == {"policy": "federal_holiday_neutral_exclusion_v1", "excluded": [],
+                                      "retained": [{"day": "2026-11-11", "reason": "treasury_open"}]}
+
+
+def test_federal_holiday_sole_overlay_row_is_retained(tmp_path: Path) -> None:
+    inputs = _inputs(_sole_overlay_root(tmp_path), NOV_NOW)
+    assert inputs["fills"] == []
+    assert [row["observation_time"] for row in inputs["carried"]] == ["2026-11-11"]
+    assert inputs["carry_policy"] == {"policy": "federal_holiday_neutral_exclusion_v1", "excluded": [],
+                                      "retained": [{"day": "2026-11-11", "reason": "sole_overlay_row"}]}
+
+
+def _frame_and_grades(root: Path, inputs: dict) -> tuple:
+    from ai_fc.timeseries_v2 import features
+
+    with daily.market_overlay(daily._overlay_rows(inputs)):
+        frame, rows = features.build_core_market_frame(root, knowledge_cutoff=inputs["knowledge_cutoff"])
+    grades = tuple(sorted({row.data_grade for row in rows if row.series_id in daily.V8_USED_MARKET_SERIES}))
+    return frame, grades
+
+
+@pytest.mark.parametrize("case", sorted(HOLIDAY_CASES))
+def test_holiday_exclusion_bundle_bit_identical(tmp_path: Path, monkeypatch: pytest.MonkeyPatch, case: str) -> None:
+    """합성 루트에는 DFM 캐시가 없어 번들 전체 대신 build_core_market_frame 프레임 + data_grades 동일로 대신한다
+    (번들의 dates·endogenous 는 이 프레임에서 오고, exogenous·missing_features 는 캐리와 무관)."""
+    build, now = HOLIDAY_CASES[case]
+    root = build(tmp_path)
+    new_inputs = _inputs(root, now)
+    monkeypatch.setattr(daily, "_federal_holiday", lambda day: False)  # 가드 끔 = 종전 캐리
+    legacy_inputs = _inputs(root, now)
+    monkeypatch.undo()
+    assert "carry_policy" not in legacy_inputs
+    new_frame, new_grades = _frame_and_grades(root, new_inputs)
+    old_frame, old_grades = _frame_and_grades(root, legacy_inputs)
+    assert list(new_frame.index) == list(old_frame.index) and list(new_frame.columns) == list(old_frame.columns)
+    assert new_frame.equals(old_frame) and new_frame.to_numpy().tobytes() == old_frame.to_numpy().tobytes()
+    assert new_grades == old_grades
+    if case == "treasury_closed":
+        assert new_frame.index[-1].date().isoformat() == "2026-10-13"
+        assert "2026-10-12" not in {item.date().isoformat() for item in new_frame.index}
+
+
+def test_used_market_series_matches_sealed_features() -> None:
+    import ast
+
+    source = (REPO / "src/ai_fc/timeseries_v2/features.py").read_text(encoding="utf-8")
+    literals = [
+        node.value for node in ast.walk(ast.parse(source))
+        if isinstance(node, ast.Assign) and any(isinstance(t, ast.Name) and t.id == "used_market_series"
+                                                for t in node.targets)
+    ]
+    assert len(literals) == 1 and isinstance(literals[0], ast.Set)
+    assert {ast.literal_eval(element) for element in literals[0].elts} == set(daily.V8_USED_MARKET_SERIES)
+
+
+def test_real_ledger_holiday_rows_bundle_identical() -> None:
+    """실원장 재생(읽기만): 캐리에 연방휴일이 든 원점(≤ 2026-11-10) 행에서 종전 캐리와 가드 캐리의 프레임·data_grades 동일.
+
+    2026-11-11 실측 10/10·10/10. 원점 상한을 고정해 이후 행이 늘어도 오라클이 같다."""
+    rows = [json.loads(line) for line in (REPO / daily.DAILY_LEDGER_RELATIVE).read_text(encoding="utf-8").splitlines()
+            if line.strip()]
+    selected = [row for row in rows if row["origin"] <= "2026-11-10"
+                and any(daily._federal_holiday(item["observation_time"]) for item in row["carried_forward"])]
+    assert len(selected) == 10
+    for row in selected:
+        treasury = {(item["series_id"], item["observation_time"]) for item in row["provisional_inputs"]}
+        base = {"knowledge_cutoff": row["knowledge_cutoff"], "fills": row["provisional_inputs"]}
+        legacy = {**base, "carried": row["carried_forward"]}
+        guarded = {**base, "carried": [
+            item for item in row["carried_forward"]
+            if not (daily._federal_holiday(item["observation_time"])
+                    and not {("DGS2", item["observation_time"]), ("DGS10", item["observation_time"])} <= treasury)
+        ]}
+        assert len(guarded["carried"]) < len(legacy["carried"])
+        old_frame, old_grades = _frame_and_grades(REPO, legacy)
+        new_frame, new_grades = _frame_and_grades(REPO, guarded)
+        assert new_frame.equals(old_frame) and new_frame.to_numpy().tobytes() == old_frame.to_numpy().tobytes()
+        assert list(new_frame.index) == list(old_frame.index)
+        assert new_frame.index[-1].date().isoformat() == row["origin"]
+        assert new_grades == old_grades
+
+
+def test_neutrality_assertion_fails_closed(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    from ai_fc.timeseries_v2 import market_archive
+
+    root = _treasury_closed_root(tmp_path)
+    _wire_heavy_parts(monkeypatch, sealed={"run_id": "tsv8-sealed-test"})
+    original = market_archive.read_market_observations
+
+    def late_confirmation(root_arg, *, knowledge_cutoff=None):
+        rows = list(original(root_arg, knowledge_cutoff=knowledge_cutoff))
+        if knowledge_cutoff is None:  # 조립 뒤 재독(컷오프 없음)에서만 국채가 그 휴일을 확정한 상황
+            rows += [SimpleNamespace(series_id=series, observation_time="2026-10-12") for series in ("DGS2", "DGS10")]
+        return rows
+
+    def never(*args, **kwargs):
+        raise AssertionError("추론 전에 멈춰야 한다")
+
+    monkeypatch.setattr(market_archive, "read_market_observations", late_confirmation)
+    monkeypatch.setattr(daily, "frozen_inference", never)
+    with pytest.raises(daily.TimeSeriesV8DailyError, match="no longer output-neutral"):
+        daily.daily_forecast_timeseries_v8(root, now=OCT_NOW, fetcher=None, quote_fetcher=_no_quote)
+    assert not (root / daily.DAILY_LEDGER_RELATIVE).exists()
+
+
+def test_daily_row_discloses_carry_policy_without_changing_the_state_hash(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    root = _treasury_closed_root(tmp_path)
+    _wire_heavy_parts(monkeypatch, sealed={"run_id": "tsv8-sealed-test"})
+    result = daily.daily_forecast_timeseries_v8(root, now=OCT_NOW, fetcher=None, quote_fetcher=_no_quote)
+    assert result["appended"] is True and result["origin"] == "2026-10-13"
+    row = daily.read_daily_rows(root)[-1]
+    assert row["carry_policy"]["excluded"] == ["2026-10-12"]
+    assert [item["observation_time"] for item in row["carried_forward"]] == ["2026-10-13"]
+    assert daily.verify_daily_display(root)["ok"] is True
+
+
+def test_holiday_free_window_has_no_carry_policy(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """휴일 없는 창(10-05·10-06)은 carry_policy 키가 없고 행 필드·input_state_hash 정의가 종전과 같다."""
+    root = _root(tmp_path)
+    inputs = daily.collect_inputs(root, contract=load_contract_v8(root), now=NOW, fetcher=_fetcher(),
+                                  quote_fetcher=_no_quote)
+    assert "carry_policy" not in inputs
+    _wire_heavy_parts(monkeypatch, sealed={"run_id": "tsv8-sealed-test"})
+    daily.daily_forecast_timeseries_v8(root, now=NOW, fetcher=_fetcher(), quote_fetcher=_no_quote)
+    assert "carry_policy" not in daily.read_daily_rows(root)[-1]

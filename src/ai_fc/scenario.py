@@ -179,7 +179,13 @@ def _holiday_for_rule(year: int, rule: dict[str, Any]) -> date | None:
     kind = rule.get("type")
     if kind == "fixed":
         day = date(year, int(rule["month"]), int(rule["day"]))
-        return _observed_fixed(day) if rule.get("observed") == "nearest_weekday" else day
+        if rule.get("observed") != "nearest_weekday":
+            return day
+        # NYSE Rule 7.2: a Saturday holiday closes the preceding Friday unless that Friday ends a
+        # monthly or yearly accounting period — New Year's Day on a Saturday keeps Dec 31 open.
+        if day.weekday() == 5 and rule.get("saturday_observance") == "none":
+            return None
+        return _observed_fixed(day)
     if kind == "nth_weekday":
         return _nth_weekday(
             year, int(rule["month"]), int(rule["weekday"]), int(rule["ordinal"]))
