@@ -116,7 +116,7 @@ live_shadow:
     계약이 armed 인 상태로 main 예약 CI(step env V15_VOL_ARMING_CONTEXT=main_scheduled_ci)에서 timeseries-v15-vol-shadow 가 처음 실행될 때
     arming.jsonl 에 1행을 쓰고, effective_from = 그 실행의 UTC 날짜보다 엄격히 뒤의 첫 XNAS 세션. 사람이 고르는 날짜 0 — 머지 전 원점은 구조적으로 제외.
   arming_ledger: data/timeseries_v15_vol/ledgers/arming.jsonl
-  armed_at: null            # 커밋 B 의 ISO 시각(정보 — effective_from 산출에 쓰지 않음)
+  armed_at: '2026-11-11T13:32:15+00:00'   # 커밋 B 의 ISO 시각(정보 — effective_from 산출에 쓰지 않음)
   row_contract_sha256: informational   # verify 비대조, 계약 개정이 과거 행을 무효화하지 않음
   execution_path: named_verbs_scheduled   # timeseries-v15-vol-shadow / -resolve / -verify (워크플로 v15-vol-shadow). verdict 는 수동·인쇄 전용
   derivation: pure_function_of_v13_row   # 아카이브 읽기 0 — PIT 는 V13 행에서 상속(late_capture 포함)
@@ -212,10 +212,10 @@ development_protocol:
     - tools/v15_vol_freeze_constants.py --write (커밋 A, 1회 — 2026-11-11T10:55:38Z)
     - src/tests/test_timeseries_v15_vol_arms.py 설계창 오라클(상수 재현 대조 — 새 추정 0)
   approvals_ledger: data/timeseries_v15_vol/ledgers/approvals.jsonl
-  prereg_commit: null               # 커밋 B 에서 커밋 A 해시 기입
+  prereg_commit: '51c8e049e4767550319ea1eb3b8f6c4e303e461d'        # 커밋 A 해시 (커밋 B 에서 기입)
 
 gates:
-  armed: false                      # 커밋 B 에서 true (영수증 V15VOL-D2)
+  armed: true                       # 커밋 B (영수증 V15VOL-D2)
   armed_requires: [frozen_constants.sha256·content_hash 기입, verdict_code_sha256 5개 기입, prereg_commit 기입, armed_at 기입(정보), 영수증 V15VOL-D2]
   armed_effect: 머지 뒤 main 예약 CI 첫 실행이 arming.jsonl 을 쓰는 순간 축적 시작. 그 전은 arming_pending_ci(정상)
   armed_hold_policy: armed ∧ 무장행 존재 ∧ hold 사유 → verify 실패(ops-failure-alert 이슈). 예외 parent_v13.termination_acknowledged
