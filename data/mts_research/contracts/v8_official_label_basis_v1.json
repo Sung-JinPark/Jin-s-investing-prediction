@@ -1,0 +1,48 @@
+{
+  "schema_version": 1,
+  "basis_set_id": "v8_official_label_basis_v1",
+  "registered_on": "2026-11-11",
+  "decision_id": "U7",
+  "decision": "keep_ledger_grid",
+  "official_basis": {
+    "label_basis": "ledger_grid",
+    "definition": "V8 번들 그리드(5계열 교집합, 국채 휴장일 제외)의 h번째 날짜 종가 대비 원점 종가 로그수익",
+    "ledger": "data/timeseries_v8/ledgers/shadow_resolutions.jsonl",
+    "consumers": ["timeseries_v8 shadow resolve", "score100", "operational_gate", "promotion"],
+    "frozen_contract": "data/contracts/multivariate_timeseries_v8.yaml",
+    "frozen_coordinates_hash_prefix": "7c56ee4eaa569782",
+    "contract_file_sha256_at_registration": "9d8c539a9cefc2685951f836f77bc0b73783797a1d6045137a660d7e0bba9478"
+  },
+  "diagnostic_bases": [
+    {
+      "label_basis": "xnas_diagnostic_v1",
+      "ledger": "data/mts_research/ledgers/v8_xnas_label_diagnostics.jsonl",
+      "scoring_excluded": true,
+      "display_only": true,
+      "prereg": "docs/research/mts_upgrade/xnas_label_basis_prereg_20261111.md"
+    }
+  ],
+  "successor_path": {
+    "contract": "data/contracts/multivariate_timeseries_v15_coherence.yaml",
+    "arm": "A3 xnas_label",
+    "status": "shadow_only"
+  },
+  "display_rule": "XNAS 수치의 화면 병기는 mts_display_diagnostics_v1 계약(U1) 아래에서만, basis 라벨과 함께 접기 안에",
+  "prohibitions": [
+    "원장 grid 라벨 행을 supersedes 로 정정하지 않는다(2026-10-12 노출 6행 포함)",
+    "두 label_basis 를 한 평균·한 점수·한 배지에 결합하지 않는다",
+    "공식 basis 를 소급 변경해 과거 해소를 재채점하지 않는다(캘리브레이션 조작)",
+    "XNAS 진단 결과를 V8 operational_gate·승격·숨김·재예측에 연결하지 않는다",
+    "V8 계약 파일을 이 결정 때문에 수정하지 않는다"
+  ],
+  "approval": {
+    "approval_form": "delegated_bundle_instruction",
+    "approval_text": "네가 나머지 작업 다 완료시켜.  네가 최적의 선택을 내려서 u1~u7까지 다 진행시켜",
+    "template_text": "U7 V8 공식 채점 basis = 원장 grid 유지(XNAS 는 진단 원장·V15 A3 팔 전용)",
+    "literal_template_match": false,
+    "approver_role": "repository_owner_and_operator",
+    "instructed_at_upper_bound": "2026-11-11T09:03:44Z",
+    "timestamp_note": "도구 기록 상한 — 합성 시각 아님. 지시 원문은 approval_text, template_text 는 이 결정의 요약(V13·V14 위임 영수증 선례)"
+  },
+  "notice": "참고 의견, 매매 신호 아님"
+}
