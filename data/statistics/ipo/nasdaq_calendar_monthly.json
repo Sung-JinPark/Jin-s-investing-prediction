@@ -40,7 +40,7 @@
   ],
   "stores": "monthly counts only; no deal lists",
   "provisional_after": "2025-12",
-  "status": "current",
+  "status": "stale",
   "months": {
     "2026-01": {
       "priced_total": 35,
@@ -117,18 +117,18 @@
     "2026-10": {
       "priced_total": 17,
       "operating_approx": 10,
-      "fetched_at": "2026-11-08T13:26:30+00:00",
-      "response_sha256": "aa039a38836e5067222f855c8453c2d7b3da89eef487b4a0adbfa53e83a665f6",
+      "fetched_at": "2026-11-10T08:32:25+00:00",
+      "response_sha256": "ebc22b69eccd132a5d5ccdb91eb809adbe6b8f9acb684783bece5ebb3c26f0d6",
       "complete": true,
-      "stale": false
+      "stale": true
     },
     "2026-11": {
       "priced_total": 1,
       "operating_approx": 1,
-      "fetched_at": "2026-11-08T13:26:30+00:00",
-      "response_sha256": "6f15245b8c56958721625b0e623e0fb4a26963a664ced8d40836e2b40cc952b0",
+      "fetched_at": "2026-11-10T08:32:25+00:00",
+      "response_sha256": "896dc0064e56f80f8a0d01016bd4b2f0e56cf6f314e6ae690f0372d31377804c",
       "complete": false,
-      "stale": false
+      "stale": true
     }
   }
 }

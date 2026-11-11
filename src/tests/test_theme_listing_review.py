@@ -88,6 +88,10 @@ def test_jpx_outline_fields() -> None:
                                        "current_listed_market": "N/A", "company_en": "TOKIUM Inc."}
     html = ('<span id="664A"></span>664A</td><td><a href="/english/x/11TOKIUM-OutlineEN.pdf">PDF</a></td></tr>')
     assert jpx_outline_links(html) == {"664A": "https://www.jpx.co.jp/english/x/11TOKIUM-OutlineEN.pdf"}
+    # 2026-11 실측: JPX 가 'OutlinetEN.pdf' 로 올린 파일을 놓쳐 Allganize(AI)·estie 가 판정 대기에 묶였다.
+    typo = ('<span id="656A"></span>656A</td><td><a href="/english/y/11AllganizeHoldings-OutlinetEN.pdf">PDF</a>'
+            '</td><td><a href="/english/y/11AllganizeHoldings-k.pdf">PDF</a></td></tr>')
+    assert jpx_outline_links(typo) == {"656A": "https://www.jpx.co.jp/english/y/11AllganizeHoldings-OutlinetEN.pdf"}
 
 
 def _root(tmp_path: Path) -> Path:

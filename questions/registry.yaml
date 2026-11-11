@@ -640,7 +640,7 @@ questions:
   domain: macro
   cadence: r1 + D-3
   action_link: 고용 시리즈 연속성 (jul·aug 후속) + P2 표본
-  status: active
+  status: resolved
   created: 2026-07-20
   notes: '등록필터: (b) 실시간 대체 데이터(청구·ADP·ISM) 추적의 컨센 대비 정보 우위 — 7·8월분 시리즈와 동일 논거. 발표일 확정 (OMB PFEI CY2026
     PDF 직접 판독, 2026-07-20). 셧다운 시 연기 가능 — D-30 재확인.'

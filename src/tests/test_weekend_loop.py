@@ -3,6 +3,7 @@ from __future__ import annotations
 import os
 import shutil
 import subprocess
+import sys
 import time
 from datetime import datetime
 from pathlib import Path
@@ -29,7 +30,10 @@ def _loop_repo(tmp_path: Path, *, branch: str) -> Path:
 
 
 def _run_loop(repo: Path, *, env_extra: dict[str, str]) -> subprocess.CompletedProcess:
-    env = {**os.environ, "DRY_RUN": "1", "MAX_CYCLES": "1", **env_extra}
+    # 복사본 repo 에는 .venv 가 없어 스크립트가 PATH 의 `python` 으로 떨어진다.
+    # 테스트를 돌리는 인터프리터(의존성 보유)가 먼저 잡히게 해 환경 무관하게 만든다.
+    path = os.pathsep.join([str(Path(sys.executable).parent), os.environ.get("PATH", "")])
+    env = {**os.environ, "PATH": path, "DRY_RUN": "1", "MAX_CYCLES": "1", **env_extra}
     return subprocess.run(
         [BASH, "tools/weekend_loop.sh"], cwd=repo, env=env,
         capture_output=True, text=True, timeout=180,

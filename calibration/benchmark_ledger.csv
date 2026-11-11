@@ -49,3 +49,4 @@ resolved_date,question_id,forecast_id,llm_prob,llm_brier,ml_prob,ml_brier,market
 2026-11-05,googl-eps-beat-2026q3,2026-10-26_googl-eps-beat-2026q3_r2,0.75,0.5625,,,,,,,
 2026-11-05,gdp-q3adv-2026-beat,2026-08-31_gdp-q3adv-2026-beat_r1,0.52,0.2304,,,,,,,
 2026-11-05,gdp-q3adv-2026-beat,2026-10-26_gdp-q3adv-2026-beat_r2,0.49,0.2601,,,,,,,
+2026-11-09,nfp-oct2026-below100k,2026-08-31_nfp-oct2026-below100k_r1,0.66,0.4356,,,,,,,

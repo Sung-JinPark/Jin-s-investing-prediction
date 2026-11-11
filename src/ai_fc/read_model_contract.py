@@ -598,6 +598,6 @@ def write_schema(root: Path) -> Path:
     target = root / "docs" / "generated" / "read_model_v2.schema.json"
     target.parent.mkdir(parents=True, exist_ok=True)
     target.write_text(
-        json.dumps(schema(), ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
+        json.dumps(schema(), ensure_ascii=False, indent=2) + "\n", encoding="utf-8", newline="\n"
     )
     return target
