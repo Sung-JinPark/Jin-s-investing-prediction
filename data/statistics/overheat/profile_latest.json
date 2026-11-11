@@ -10,10 +10,10 @@
   "official_forecast_input": false,
   "trading_signal": false,
   "composite": null,
-  "generated_at": "2026-11-11T06:55:45+00:00",
+  "generated_at": "2026-11-11T08:45:25+00:00",
   "anchor_label": "2000년 3월 = 100",
   "max_age_days": 10,
-  "as_of": "2026-11-09",
+  "as_of": "2026-11-10",
   "status": "ok",
   "families": [
     {
@@ -27,15 +27,15 @@
           "frequency": "daily",
           "zero_is": "return_zero",
           "status": "ok",
-          "score": 29,
-          "score_raw": 28.7,
+          "score": 28,
+          "score_raw": 27.8,
           "beyond_peak": false,
           "below_normal": false,
-          "period": "2026-11-09",
+          "period": "2026-11-10",
           "age_days": 0,
           "basis": "live",
           "median_1995_2019": 23,
-          "change_4w": -10.5,
+          "change_4w": -11.1,
           "high_12m": {
             "value": 52,
             "date": "2025-11-10"
@@ -47,15 +47,15 @@
           "frequency": "daily",
           "zero_is": "return_zero",
           "status": "ok",
-          "score": 1,
-          "score_raw": 1.1,
+          "score": 0,
+          "score_raw": -0.4,
           "beyond_peak": false,
-          "below_normal": false,
-          "period": "2026-11-09",
+          "below_normal": true,
+          "period": "2026-11-10",
           "age_days": 0,
           "basis": "live",
           "median_1995_2019": 11,
-          "change_4w": -16.5,
+          "change_4w": -17.4,
           "high_12m": {
             "value": 31,
             "date": "2025-11-10"
@@ -74,14 +74,14 @@
           "frequency": "daily_numerator",
           "zero_is": "median_1995_2019",
           "status": "ok",
-          "score": 100,
-          "score_raw": 99.5,
+          "score": 98,
+          "score_raw": 98.5,
           "beyond_peak": false,
           "below_normal": false,
           "period": "2026-09",
-          "age_days": 40,
+          "age_days": 41,
           "basis": "live",
-          "change_4w": -12.3,
+          "change_4w": -13.1,
           "high_12m": {
             "value": 115,
             "date": "2026-06-02"
@@ -105,7 +105,7 @@
           "beyond_peak": false,
           "below_normal": true,
           "period": "2025-12",
-          "age_days": 313,
+          "age_days": 314,
           "basis": "carried",
           "previous": {
             "period": "2025-11",
@@ -136,7 +136,7 @@
           "beyond_peak": true,
           "below_normal": false,
           "period": "2026Q3",
-          "age_days": 40,
+          "age_days": 41,
           "basis": "carried",
           "previous": {
             "period": "2026Q2",
@@ -147,6 +147,6 @@
     }
   ],
   "scored": 5,
-  "nasdaq_age_days": 2,
+  "nasdaq_age_days": 1,
   "note": "합산 지수가 아니다. 대표값(v5)의 내역이 아니며 척도가 다르다. 확률이 아니다."
 }
