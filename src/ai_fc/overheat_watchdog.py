@@ -285,11 +285,13 @@ def check_profile(profile: dict[str, Any] | None, live: dict[str, Any] | None, *
                                      f"사이트 상태 {shown.get('status')} — {shown.get('reason')}"))
         elif shown.get("composite") is not None:
             findings.append(_finding("profile", "fail", "사이트 프로필", "사이트 데이터에 합산 값이 있다"))
-        elif str(shown.get("as_of")) < str(profile.get("as_of")) and age is not None and age >= 1:
-            findings.append(_finding("profile", "warn", "사이트 프로필",
-                                     f"사이트 {shown.get('as_of')} < 저장소 {profile.get('as_of')}"))
         else:
-            findings.append(_finding("profile", "ok", "사이트 프로필", f"기준일 {shown.get('as_of')}"))
+            ours, theirs = _ts(profile.get("generated_at")), _ts(shown.get("generated_at"))
+            if ours and theirs and (ours - theirs) > timedelta(hours=LIVE_MAX_LAG_HOURS):
+                findings.append(_finding("profile", "warn", "사이트 프로필",
+                                         f"사이트 {shown.get('generated_at')} < 저장소 {profile.get('generated_at')}"))
+            else:
+                findings.append(_finding("profile", "ok", "사이트 프로필", f"기준일 {shown.get('as_of')}"))
     return findings
 
 

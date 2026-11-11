@@ -47,7 +47,8 @@ jobs:
       - name: Fetch authoritative sources and append the official observation ledger
         run: python -m ai_fc statistics-refresh
       - name: Build the dot-com overheat profile from the appended ledger (per-indicator, no composite)
-        # dotcom_overheat_profile_v1. Fail-closed inside: a stale ledger or a drifted anchor writes status hold.
+        # dotcom_overheat_profile_v1. Display-only and fail-soft: any failure writes a closed payload and exits 0,
+        # so it never blocks the official ledger commit below. overheat-watchdog reports a closed profile.
         run: python -m ai_fc overheat-profile
       - name: Export the cumulative Excel audit view
         run: python -m ai_fc official-data-workbook

@@ -60,10 +60,16 @@ def test_profile_scores_each_admitted_indicator_and_never_combines(tmp_path: Pat
             assert row["score"] == int(round(expected)) and row["score_raw"] == round(expected, 1)
             assert row["beyond_peak"] == (expected >= 100) and row["below_normal"] == (expected < 0)
             if row["frequency"] in prof.DAILY:
-                assert row["high_12m"]["value"] >= row["score"] and "change_4w" in row
-            else:
-                assert "change_4w" not in row and "high_12m" not in row  # 다음 발표까지 그대로 — 기간만 보인다
+                assert row["high_12m"]["value"] >= row["score"] and "change_4w" in row and "previous" not in row
+            else:  # 다음 발표까지 그대로 — 기간과 직전 기간의 점수를 보인다(발표 한 번의 계단을 숨기지 않는다)
+                assert "change_4w" not in row and "high_12m" not in row
+                assert row["previous"]["period"] < row["period"] and isinstance(row["previous"]["score"], int)
+            kind = v6._meta(contract, row["id"])["kind"]
+            assert row["zero_is"] == ("return_zero" if kind == "return" else "median_1995_2019")
+            assert ("median_1995_2019" in row) == (kind == "return")  # 0 이 평상이 아닌 지표에는 장기 중앙값을 싣는다
     assert out["scored"] == sum(len(ids) for ids in frozen["members"].values())
+    assert out["source_admission_sha256"] == prof.admission_digest(contract)
+    assert out["max_age_days"] == contract["staleness_limits_days"]["daily"]
 
 
 def test_profile_closes_on_stale_ledger_drifted_anchor_and_changed_admission(tmp_path: Path, inp, contract,  # noqa: F811
@@ -106,10 +112,34 @@ def test_materialized_profile_is_only_served_while_it_is_current(tmp_path: Path,
     (root / v6.CONTRACT_RELATIVE).write_text(yaml.safe_dump(changed, allow_unicode=True, sort_keys=False), encoding="utf-8")
     assert prof.load_profile(root, today=as_of)["reason"] == "profile belongs to another contract state"
 
+    # 계약 쪽 지문을 새 동결에 맞춰 고쳐도, 옛 기준값으로 만든 산출물은 실리지 않는다(산출물에도 지문이 적혀 있다).
+    _root(tmp_path, changed)
+    assert prof.load_profile(root, today=as_of)["reason"] == "profile belongs to another contract state"
+    for broken in ("null", "[]", "{", ""):
+        (root / prof.PROFILE_RELATIVE).write_text(broken, encoding="utf-8")
+        assert prof.load_profile(root, today=as_of)["status"] == "unavailable"
+
+
+def test_a_failed_computation_writes_a_closed_profile_instead_of_raising(tmp_path: Path, contract, monkeypatch) -> None:  # noqa: F811
+    """표시용 계산이 공식 원장 커밋(같은 워크플로의 다음 단계)을 막으면 안 된다."""
+    root = _root(tmp_path, contract)
+
+    def boom(_root: Path):
+        raise v6.OverheatV6Error("ledger is missing v6 input series: GDP")
+
+    monkeypatch.setattr(v6, "load_inputs", boom)
+    out = prof.materialize(root, now=NOW)
+    assert out["status"] == "unavailable" and "OverheatV6Error" in out["reason"] and out["composite"] is None
+    assert json.loads((root / prof.PROFILE_RELATIVE).read_text(encoding="utf-8")) == out
+    assert prof.load_profile(root)["status"] == "unavailable"
+    (root / prof.CONTRACT_RELATIVE).write_text("", encoding="utf-8")  # 계약이 비어도 예외 없이 닫힌다
+    assert prof.materialize(root, now=NOW)["status"] == "unavailable"
+    assert prof.load_profile(root)["status"] == "unavailable"
+
 
 def test_watchdog_reports_a_missing_stale_or_combined_profile() -> None:
     ok_row = {"id": "x", "label": "지표", "status": "ok", "score": 10}
-    profile = {"status": "ok", "composite": None, "as_of": "2026-11-09",
+    profile = {"status": "ok", "composite": None, "as_of": "2026-11-09", "generated_at": "2026-11-10T00:30:00+00:00",
                "families": [{"id": "speed", "indicators": [ok_row]}]}
 
     def statuses(found: list[dict]) -> list[tuple[str, str]]:
@@ -126,7 +156,11 @@ def test_watchdog_reports_a_missing_stale_or_combined_profile() -> None:
     live_ok = {"dotcom_overheat_profile": profile}
     assert statuses(check_profile(profile, live_ok, now=NOW)) == [("프로필", "ok"), ("사이트 프로필", "ok")]
     assert statuses(check_profile(profile, {}, now=NOW))[-1] == ("사이트 프로필", "warn")
-    behind = {"dotcom_overheat_profile": {**profile, "as_of": "2026-11-05"}}
+    deploying = {"dotcom_overheat_profile": {**profile, "as_of": "2026-11-06",
+                                             "generated_at": "2026-11-09T22:40:00+00:00"}}
+    assert statuses(check_profile(profile, deploying, now=NOW))[-1] == ("사이트 프로필", "ok")  # 배포 대기 중
+    behind = {"dotcom_overheat_profile": {**profile, "as_of": "2026-11-05",
+                                          "generated_at": "2026-11-08T00:30:00+00:00"}}
     assert statuses(check_profile(profile, behind, now=NOW))[-1] == ("사이트 프로필", "warn")
     combined = {"dotcom_overheat_profile": {**profile, "composite": 50}}
     assert statuses(check_profile(profile, combined, now=NOW))[-1] == ("사이트 프로필", "fail")
@@ -149,8 +183,12 @@ def test_repository_profile_is_bound_to_the_frozen_admission_and_wired_without_a
 
     script = (ROOT / "src/ai_fc/dashboard_parts/dashboard.js").read_text(encoding="utf-8")
     block = script[script.index("function overheatProfileBlock"):script.index("function statisticsOverheatPanel")]
-    assert "합산 지수 아님" in block and "통과 지표 없음" in block and "overheatTone" not in block
+    assert "합산 지수 아님" in block and "대표값 내역 아님" in block and "미측정" in block
+    assert "다른 척도" in block and "overheatTone" not in block and "max_age_days" in block
     assert "reduce(" not in block and "<svg" not in block  # 화면에서도 합치지 않고, 글자는 HTML 로만
-    assert "overheatProfileBlock(DATA.dotcom_overheat_profile)" in script
+    panel = script[script.index("function statisticsOverheatPanel"):script.index("function predictionSectionNav")]
+    call = "overheatProfileBlock(DATA.dotcom_overheat_profile)"
+    assert panel.count(call) == 1 and panel.index(call) > panel.index('class="oh-grid"')  # v5 분해·주석 뒤, 카드 맨 아래
+    assert panel.index(call) > panel.rindex('class="oh-note"')
     board = (ROOT / "src/ai_fc/dashboard.py").read_text(encoding="utf-8")
     assert '"dotcom_overheat_profile": dotcom_overheat_profile' in board

@@ -1945,7 +1945,7 @@ body[data-view="future"] .page-heading .page-lede{margin:6px 0 0;font-size:12px}
 .oh-track .oh-peak{top:-3px;bottom:-3px}
 .oh-note{margin:14px 0 0;color:#8a877e;font-size:11.5px}
 /* 닷컴 정점 대비 부문별 프로필 (dotcom_overheat_profile_v1) — 합산 없음, 색 신호등 없음 */
-.oh-profile{margin-top:22px;padding-top:16px;border-top:1px solid var(--line)}
+.oh-profile{margin-top:22px;padding-top:16px;border-top:3px double var(--line-strong)}
 .oh-profile h3{margin:0 0 8px;color:#65635d;font-size:12px;font-weight:700}
 .oh-profile h3 small{margin-left:8px;color:#8a877e;font-weight:500}
 .ohp-family{display:grid;grid-template-columns:104px minmax(0,1fr);gap:10px;align-items:start;padding:7px 0;border-bottom:1px solid #f0efea}
@@ -1960,6 +1960,7 @@ body[data-view="future"] .page-heading .page-lede{margin:6px 0 0;font-size:12px}
 .ohp-zero,.ohp-peak{position:absolute;top:-3px;bottom:-3px;width:0}
 .ohp-zero{border-left:1px solid #8a877e}
 .ohp-peak{border-left:2px dashed #8c0020}
+.ohp-median{position:absolute;top:-3px;bottom:-3px;width:0;border-left:2px dotted #4f6b82}
 .ohp-row strong{font:800 14px/1.1 var(--mono);text-align:right}
 .ohp-meta{min-width:0;color:#706d65;font-size:11px;line-height:1.4;overflow-wrap:anywhere}
 .ohp-none{margin:0;padding-top:4px;color:#8a877e;font-size:12px}
