@@ -599,5 +599,56 @@
         }
       ]
     }
-  ]
+  ],
+  "what_this_is": "사람 패널이 아니다. 같은 언어모델의 에이전트 5개(관점 프롬프트 5종)가 한 번의 워크플로 실행에서 서로의 답을 보지 않고 매긴 점수다.",
+  "model": "claude-fable-5-2",
+  "prompt_template": "You are ${lens}. Answer ONLY from your knowledge of the 1995-2002 US dot-com bubble and crash.\nDo NOT read any files, run any commands, or search the web. Do NOT consider present-day market levels or any current readings; they are deliberately withheld.\n\nTask: for each indicator below, give an integer 0-5 for \"how directly did the thing this indicator measures sit on the path by which the dot-com bubble formed and collapsed\". This is a judgment about the historical mechanism, not about statistical predictive power.\n\nAnchors:\n5 = a direct path of the bubble's formation and collapse and one of its core symptoms\n4 = directly measures the size of the bubble itself\n3 = a funding or leverage channel that amplified the bubble\n2 = a condition that accompanied the period\n1 = background macro indicator\n0 = unrelated to the dot-com path\n\nUse the full range where warranted; do not give everything the same score. Score every indicator, using exactly these ids:\n${list}\n\nReturn for each id: the integer score and a one-sentence reason grounded in what happened in 1995-2002.",
+  "lenses": [
+    "a financial historian of the 1995-2002 US technology bubble",
+    "a macroeconomist who studies asset-price booms and busts",
+    "a corporate-finance researcher specialising in IPO markets and equity issuance",
+    "a sceptical risk manager who distrusts tidy bubble narratives",
+    "a market strategist who lived through the 2000 NASDAQ peak and crash"
+  ],
+  "indicator_descriptions_given": {
+    "speed_r24": "NASDAQ Composite 2-year price return (how fast the index rose)",
+    "speed_d200": "NASDAQ Composite gap above its 200-day moving average",
+    "nasdaq_per_m2": "NASDAQ Composite relative to M2 money supply",
+    "nasdaq_per_household_liquid_assets": "NASDAQ Composite relative to household cash-like assets",
+    "spx_per_federal_debt": "US broad share price index relative to federal debt outstanding",
+    "valuation_proxy": "Market value of nonfinancial corporate equity divided by after-tax corporate profits (aggregate P/E proxy)",
+    "ipo_count_operating_12m": "Number of US operating-company IPOs over the trailing 12 months",
+    "margin_credit": "Broker-dealer margin credit extended to customers",
+    "investment_share_gdp": "Business investment in IT equipment, software and R&D as a share of GDP",
+    "corporate_bond_stock": "Nonfinancial corporate bonds outstanding as a share of GDP",
+    "consumer_credit_growth": "Year-over-year growth of consumer credit",
+    "household_debt_service": "Household debt service payments as a share of disposable income",
+    "financial_conditions": "Chicago Fed National Financial Conditions Index (lower = looser)",
+    "bond_spread": "Corporate bond yield minus Treasury yield (narrower = more risk appetite)",
+    "loan_standards": "Share of banks tightening business lending standards (lower = looser)",
+    "unemployment_rate": "US unemployment rate (lower = tighter labour market)"
+  },
+  "withheld": "오늘의 지표 값, 저장소 파일, v5·v7 결과",
+  "tool_calls": {
+    "judge_runs": 5,
+    "by_agent": [
+      {
+        "StructuredOutput": 1
+      },
+      {
+        "StructuredOutput": 1
+      },
+      {
+        "StructuredOutput": 1
+      },
+      {
+        "StructuredOutput": 2
+      },
+      {
+        "StructuredOutput": 2
+      }
+    ],
+    "note": "에이전트 실행 기록의 tool_use 항목을 세어 확인(2026-11-12). 파일 읽기·검색·명령 실행 0회. 2회는 답변 형식 재제출."
+  },
+  "agreement": "16개 지표 중 14개에서 다섯 점수가 같다 — 같은 모델이라 독립 표본으로 볼 수 없다"
 }

@@ -153,7 +153,7 @@ def build_profile(root: Path, *, now: datetime | None = None, inp: v6.Inputs | N
     if not scored:
         return {**base, "status": "hold", "reason": "no indicator could be scored", "families": families}
     return {**base, "status": "ok", "families": families, "scored": scored, "nasdaq_age_days": nasdaq_age,
-            "note": "합산 지수가 아니다. 대표값(v5)의 내역이 아니며 척도가 다르다. 확률이 아니다."}
+            "note": "합산 지수가 아니다. 프로필은 합치지 않는다(대표값 v8 이 상승 속도 2종을 읽어 갈 뿐이다). 확률이 아니다."}
 
 
 def materialize(root: Path, *, now: datetime | None = None) -> dict[str, Any]:

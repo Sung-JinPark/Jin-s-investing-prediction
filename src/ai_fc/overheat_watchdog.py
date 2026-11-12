@@ -177,7 +177,8 @@ def check_live_site(snapshot: dict[str, Any], live: dict[str, Any] | None, *, co
         findings.append(_finding("live_site", "fail", "과열도",
                                  f"지표 {index.get('included')}/{expected}종만 반영 — 빠진 지표: {skipped or '-'}"))
     else:
-        findings.append(_finding("live_site", "ok", "과열도", f"{index.get('overheat_pct')}% · 지표 {expected}종 모두"))
+        # 이 값은 v5(부문 중앙값) — v8 이 열려 있으면 화면 대표값은 아래 '가중 평균' 줄의 값이고 이 줄은 그 입력이다.
+        findings.append(_finding("live_site", "ok", "과열도 입력(v5)", f"{index.get('overheat_pct')}% · 지표 {expected}종 모두"))
     ours, theirs = _ts(snapshot.get("generated_at")), _ts(index.get("generated_at"))
     if ours and theirs and (ours - theirs) > timedelta(hours=LIVE_MAX_LAG_HOURS):
         findings.append(_finding("live_site", "fail", "배포 시점",
@@ -315,6 +316,19 @@ def check_weighted(live: dict[str, Any] | None) -> list[dict[str, str]]:
     return [_finding("weighted", "ok", "가중 평균", f"{shown.get('overheat_pct')}% · 지표 {shown.get('included')}개")]
 
 
+def check_weight_basis(root: Path) -> list[dict[str, str]]:
+    """v8 점수의 '정점 방향' 근거(닷컴 구간 마지막 위치)가 원장 개정으로 다른 칸으로 넘어가지 않았는가."""
+    from .dotcom_overheat_v8 import CLOSED_ERRORS, end_position_drift
+
+    try:
+        problems = end_position_drift(root)
+    except CLOSED_ERRORS as exc:
+        return [_finding("weighted", "warn", "가중 근거", f"다시 읽지 못함 — {type(exc).__name__}")]
+    if problems:
+        return [_finding("weighted", "warn", "가중 근거", "; ".join(problems) + " — 계약 새 판 필요")]
+    return [_finding("weighted", "ok", "가중 근거", "정점 방향 점수의 근거가 원장과 같은 칸")]
+
+
 def run_watchdog(root: Path, *, now: datetime | None = None, fred_key: str | None = None,
                  last_success: str | None = None, live: dict[str, Any] | None | str = "fetch",
                  get: Callable[[str], bytes] = _get) -> dict[str, Any]:
@@ -344,6 +358,7 @@ def run_watchdog(root: Path, *, now: datetime | None = None, fred_key: str | Non
     findings += check_theme_watch(read(WATCH_RELATIVE), now=moment)
     findings += check_profile(read(PROFILE_RELATIVE), live if isinstance(live, dict) else None, now=moment)
     findings += check_weighted(live if isinstance(live, dict) else None)
+    findings += check_weight_basis(root)
     counts = {state: sum(1 for row in findings if row["status"] == state) for state in ("fail", "warn", "ok")}
     return {
         "schema_version": 1,

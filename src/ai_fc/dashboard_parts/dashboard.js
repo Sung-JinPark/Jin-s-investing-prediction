@@ -1440,7 +1440,7 @@ function overheatProfileBlock(profile){
   const groups=profile.families.map(f=>`<div class="ohp-family"><h4>${esc(f.label||f.id)}</h4>${(f.indicators||[]).length?`<ul>${f.indicators.map(row).join('')}</ul>`:'<p class="ohp-none">미측정</p>'}</div>`).join('');
   return `<div class="oh-profile" data-oh-profile="${esc(profile.as_of||'')}"><h3>지표별 닮음 <small>2000년 3월 = 100 · 위 대표값과 다른 척도</small></h3>`
     +`<div class="ohp-family ohp-headrow" aria-hidden="true"><h4></h4><div class="ohp-row"><em></em><span class="ohp-ticks"><span style="left:${P(0).toFixed(1)}%">0</span><span class="is-peak" style="left:${P(100).toFixed(1)}%">100</span></span><strong></strong><span class="ohp-meta"></span></div></div>`
-    +groups+`<p class="oh-note">합산 지수 아님 · ${overheatWeighted(DATA.dotcom_overheat_weighted)?'상승 속도 2종만 대표값에 반영':'대표값 내역 아님'} · 0 = 1995~2019 중앙값(상승 속도는 상승률 0) · 확률 아님 · 참고 의견 · ${esc(profile.as_of)} 기준</p></div>`;
+    +groups+`<p class="oh-note">합산 지수 아님 · ${overheatSpeedCount(overheatWeighted(DATA.dotcom_overheat_weighted))?`상승 속도 ${overheatSpeedCount(overheatWeighted(DATA.dotcom_overheat_weighted))}종만 대표값에 반영`:'대표값 내역 아님'} · 0 = 1995~2019 중앙값(상승 속도는 상승률 0) · 확률 아님 · 참고 의견 · ${esc(profile.as_of)} 기준</p></div>`;
 }
 /* 지표별 과거 표본 점수 (dotcom_overheat_index_v7 의 점수제) — 과거 고점 부근에서 각 지표가 이후 NASDAQ 하락폭과 얼마나
    같은 방향이었나를 잰 점수(0~100). 오늘 값이 아니고, 지수도 가중치도 아니다: 합산값은 쏠림 상한을 채우지 못해 만들지 않았다.
@@ -1458,7 +1458,7 @@ function overheatInfluenceBlock(data){
   let lastEligible=-1;data.rows.forEach((r,i)=>{if(r.evidence==='eligible')lastEligible=i;});
   const cut=Math.max(8,lastEligible+1),head=data.rows.slice(0,cut),rest=data.rows.slice(cut);
   const count=v=>Number.isFinite(Number(v))?Number(v):'—';
-  return `<div class="oh-influence" data-oh-influence="${esc(data.measured_as_of||'')}"><h3>지표별 과거 표본 점수 <small>오늘 값 아님 · 위 닮음과 합치지 않음</small></h3>`
+  return `<div class="oh-influence" data-oh-influence="${esc(data.measured_as_of||'')}"><h3>지표별 과거 표본 점수 <small>오늘 값 아님 · ${overheatWeighted(DATA.dotcom_overheat_weighted)?'판정만 대표값 점수의 과거 근거로 읽음':'위 닮음과 합치지 않음'}</small></h3>`
     +`<ul class="ohi-list">${head.map(row).join('')}</ul>`
     +(rest.length?`<details class="ohi-more"><summary>나머지 ${rest.length}개</summary><ul class="ohi-list">${rest.map(row).join('')}</ul></details>`:'')
     +`<p class="oh-note">과거 표본 점수 · ${overheatWeighted(DATA.dotcom_overheat_weighted)?'이 점수만으로 만든 지수 없음 · 대표값 점수의 과거 근거 항목으로만 읽음':'합산 지수 아님(만들지 않음) · 대표값 가중치 아님'} · 매매 신호 아님 · 확률 아님 · 참고 의견${data.measured_as_of?` · ${esc(data.measured_as_of)} 측정`:''}</p>`
@@ -1476,23 +1476,38 @@ function overheatInfluenceBlock(data){
    매기고 같은 것을 재는 지표는 한 묶음으로 평균해 한 번만 센다. 가중치는 판단값이다 — 검증된 값이 아니라는 말을 화면에서
    지우지 않는다. 닫히면(hold·unavailable) 이전 산식(v5 부문 중앙값)으로 돌아간다. JS 는 그리기만 한다. */
 function overheatWeighted(w){
-  return w&&w.status==='ok'&&hasNumeric(w.overheat_pct)&&Array.isArray(w.groups)&&w.groups.length&&Array.isArray(w.indicators)?w:null;
+  if(!w||w.status!=='ok'||!hasNumeric(w.overheat_pct)||!Array.isArray(w.groups)||!w.groups.length||!Array.isArray(w.indicators))return null;
+  if(!w.range||!hasNumeric(w.range.low)||!hasNumeric(w.range.high))return null;
+  /* 속도 2종은 매일 값이다. 배포가 멈춰 그 기준일이 프로필 한도보다 오래되면 마지막 값으로 버티지 않고 이전 산식으로 내려간다
+     (overheatProfileBlock 과 같은 판정 — 한쪽만 닫히면 같은 값이 한 곳에서는 사라지고 한 곳에서는 대표값에 남는다). */
+  if(w.speed_as_of){
+    const born=Date.parse(`${w.speed_as_of}T00:00:00Z`),limit=Number(w.speed_max_age_days);
+    if(!Number.isFinite(born)||!Number.isFinite(limit)||(Date.now()-born)/86400000>limit+1)return null;
+  }
+  return w;
+}
+function overheatSpeedCount(w){return w?w.indicators.filter(r=>r.source==='profile'&&r.status==='ok').length:0;}
+function overheatClampNote(w){
+  const hi=Number(w.clamped_high_count)||0,lo=Number(w.clamped_low_count)||0;
+  return hi||lo?`지금 ${[hi?`상한 ${hi}개`:'',lo?`하한 ${lo}개`:''].filter(Boolean).join(' · ')}`:'지금 잘린 지표 없음';
 }
 function overheatRubricBlock(w){
-  const label=Object.fromEntries(w.groups.map(g=>[g.id,g.label])),n=v=>Number.isFinite(Number(v))&&v!=null?Number(v):'—';
-  const rows=w.indicators.map(r=>`<tr><th scope="row">${esc(r.label||r.id)}</th><td>${esc(label[r.group]||r.group||'')}</td><td>${n(r.A)}${r.a_source==='owner'?'*':''}</td><td>${n(r.B)}</td><td>${n(r.C)}</td><td><b>${n(r.points)}</b></td><td>${r.weight_pct==null?'—':`${n(r.weight_pct)}%`}</td></tr>`).join('');
+  const n=v=>Number.isFinite(Number(v))&&v!=null?Number(v):'—';
+  const rows=w.indicators.map(r=>`<tr><th scope="row">${esc(r.label||r.id)}</th><td>${esc(r.group_label||r.group||'')}</td><td>${n(r.A)}${r.a_source==='owner'?'*':''}</td><td>${n(r.B)}</td><td>${n(r.C)}</td><td><b>${n(r.points)}</b></td><td>${r.status!=='ok'?'빠짐':r.weight_pct==null?'—':`${n(r.weight_pct)}%`}</td></tr>`).join('');
   return `<details class="ohi-more oh-rubric"><summary>점수 기준·가중치</summary><div class="oh-rubric-scroll"><table><thead><tr><th scope="col">지표</th><th scope="col">묶음</th><th scope="col">닷컴 경로</th><th scope="col">과거 근거</th><th scope="col">정점 방향</th><th scope="col">점수</th><th scope="col">가중</th></tr></thead><tbody>${rows}</tbody></table></div>`
-    +`<ul class="ohi-limits"><li>닷컴 경로 0~5 = 오늘 값을 보지 않은 5인 평가의 중앙값 · * 는 소유자 지정</li>`
+    +`<ul class="ohi-limits"><li>닷컴 경로 0~5 = 오늘 값을 주지 않은 AI 평가 5회(같은 언어모델, 관점 5종)의 중앙값 · * 는 소유자 지정</li>`
     +`<li>과거 근거 0~3 = 아래 '과거 표본 점수'의 판정 · 정점 방향 0~2 = 1999년 말에 실제로 그 방향이었는가</li>`
     +`<li>같은 것을 재는 지표는 한 묶음으로 평균해 한 번만 셈</li>`
-    +`<li>값은 ${esc(w.clamp?.[0])}~${esc(w.clamp?.[1])} 으로 잘라 평균 · 지금 ${esc(w.clamped_count)}개가 상한</li>`
+    +`<li>값은 ${esc(w.clamp?.[0])}~${esc(w.clamp?.[1])} 으로 잘라 평균 · ${esc(overheatClampNote(w))}</li>`
+    +((w.missing||[]).length?`<li>값이 없는 지표 ${esc(w.missing.length)}개는 빼고 가중을 다시 나눔 — 그만큼 대표값이 달라짐</li>`:'')
     +`<li>가중치는 판단값 — 과거 자료로 검증한 값 아님 · 지표마다 같은 가중이면 ${esc(w.variants?.equal_indicators)} · 묶음마다 같은 가중이면 ${esc(w.variants?.equal_groups)}</li>`
     +`<li>확률 아님 · 매매 신호 아님 · 참고 의견</li></ul></details>`;
 }
 function statisticsOverheatPanel(idx){
-  const sig=dotcomOverheatSignal(idx);
+  const sig=dotcomOverheatSignal(idx,overheatWeighted(DATA.dotcom_overheat_weighted));
   if(!sig)return null;
   const w=sig.weighted?overheatWeighted(DATA.dotcom_overheat_weighted):null;
+  const one=v=>Number(v).toFixed(1),gone=(w?.missing||[]).length;
   const weightOf=Object.fromEntries((w?.indicators||[]).filter(r=>r.status==='ok').map(r=>[r.id,r]));
   const weightTag=id=>weightOf[id]?`<small>가중 ${esc(weightOf[id].weight_pct)}%</small>`:'';
   const rows=idx.indicators||[],cats=Object.entries(idx.category_medians||{}).sort((a,b)=>b[1]-a[1]);
@@ -1505,13 +1520,13 @@ function statisticsOverheatPanel(idx){
   const indRows=rows.map(r=>{const info=overheatIndicatorFreshness(r);return `<li><button type="button" data-oh-jump="${esc(r.chart||'')}" title="${esc(r.why||'')}"><em>${esc(r.title||r.id)}<small>${esc(OVERHEAT_CATEGORY_LABELS[r.category]||r.category)}${r.why?` · ${esc(r.why)}`:''}</small></em>${bar(r.pct)}<strong class="${overheatTone(r.pct)}">${Math.round(r.pct)}%${r.beyond_dotcom_peak?'<small>정점 초과</small>':''}${weightTag(r.id)}</strong>${info.provisional||info.note?`<span class="oh-freshness" data-oh-freshness="${esc(info.status)}">${info.provisional?`<span>${esc(info.provisional)}</span>`:''}${info.note?`<span>${esc(info.note)}</span>`:''}</span>`:''}</button></li>`;}).join('');
   // 상승 속도 2종은 통계 카드가 없어 이동 단추가 아니다(값은 아래 '지표별 닮음'과 같은 것).
   const speedRows=(w?.indicators||[]).filter(r=>r.source==='profile'&&r.status==='ok').map(r=>`<li><div class="oh-row-static"><em>${esc(r.label||r.id)}<small>상승 속도 · 매일 갱신</small></em>${bar(r.reading)}<strong class="${overheatTone(r.reading)}">${Math.round(r.reading)}%${weightTag(r.id)}</strong></div></li>`).join('');
-  const groupRows=(w?.groups||[]).map(g=>{const cut=(g.members||[]).some(id=>weightOf[id]?.clamped);
-    return `<li><em>${esc(g.label||g.id)}<small>${esc(g.points)}점 · 가중 ${esc(g.weight_pct)}%</small></em>${bar(g.reading)}<strong class="${overheatTone(g.reading)}">${Math.round(g.reading)}%<small>기여 ${esc(g.contribution)}${cut?' · 상한':''}</small></strong></li>`;}).join('');
+  const cutLabel={high:' · 상한',low:' · 하한',both:' · 상·하한'};
+  const groupRows=(w?.groups||[]).map(g=>`<li><em>${esc(g.label||g.id)}<small>${esc(g.points)}점 · 가중 ${esc(g.weight_pct)}%</small></em>${bar(g.reading)}<strong class="${overheatTone(g.reading)}">${Math.round(g.reading)}%<small>기여 ${esc(g.contribution)}${cutLabel[g.clamped]||''}</small></strong></li>`).join('');
   const node=el(`<section class="statistics-overheat" aria-labelledby="statistics-overheat-title"><h2 id="statistics-overheat-title">닷컴 대비 과열도</h2>`
-    +`<div class="oh-hero"><div class="oh-score ${overheatTone(sig.pct)}"><span>현재</span><strong>${w&&hasNumeric(w.value_raw)?Number(w.value_raw).toFixed(1):sig.pct}<small>%</small></strong><p>${w?`판단 가중 평균 · 가중에 따라 ${sig.lo}~${sig.hi}% · 이전 산식 ${esc(sig.previous)}%`:`부문별 ${sig.lo}~${sig.hi}% · 정점 초과 ${sig.beyond}개 / ${sig.included}개`}</p></div>`
+    +`<div class="oh-hero"><div class="oh-score ${overheatTone(sig.pct)}"><span>현재</span><strong>${w&&hasNumeric(w.value_raw)?one(w.value_raw):sig.pct}<small>%</small></strong><p>${w?`판단 가중 평균 · 검증된 값 아님 · 가중에 따라 ${hasNumeric(w.range.low_raw)&&hasNumeric(w.range.high_raw)?`${one(w.range.low_raw)}~${one(w.range.high_raw)}`:`${sig.lo}~${sig.hi}`}% · 이전 산식 ${esc(sig.previous)}%${gone?` · 지표 ${gone}개 빠짐(가중 재배분)`:''}`:`부문별 ${sig.lo}~${sig.hi}% · 정점 초과 ${sig.beyond}개 / ${sig.included}개`}</p></div>`
     +`<div class="oh-gauge"><div class="oh-gauge-bar"><i class="oh-span" style="left:${X(sig.lo).toFixed(1)}%;width:${(X(sig.hi)-X(sig.lo)).toFixed(1)}%"></i><b class="oh-peak" style="left:${X(100).toFixed(1)}%"></b><b class="oh-pin" style="left:${X(sig.pct).toFixed(1)}%"></b></div>`
     +`<div class="oh-gauge-scale"><span style="left:0">0%</span><span style="left:${X(50).toFixed(1)}%">50%</span><span class="is-peak" style="left:${X(100).toFixed(1)}%">닷컴 정점 100%</span></div></div></div>`
-    +`<div class="oh-grid"><div><h3>${w?`묶음별 가중 ${w.groups.length}개`:'부문별'}</h3><ul class="oh-list${w?' is-groups':''}">${w?groupRows:catRows}</ul></div><div><h3>지표별 ${rows.length+(w?.indicators||[]).filter(r=>r.source==='profile'&&r.status==='ok').length}개</h3><ul class="oh-list is-indicators">${indRows}${speedRows}</ul></div></div>`
+    +`<div class="oh-grid"><div><h3>${w?`묶음별 가중 ${w.groups.length}개`:'부문별'}</h3><ul class="oh-list${w?' is-groups':''}">${w?groupRows:catRows}</ul></div><div><h3>지표별 ${rows.length+overheatSpeedCount(w)}개</h3><ul class="oh-list is-indicators">${indRows}${speedRows}</ul></div></div>`
     +(w?overheatRubricBlock(w):'')
     +(overheatProfileBlock(DATA.dotcom_overheat_profile)||'<p class="oh-note">확률 아님 · 참고 의견</p>')
     +overheatInfluenceBlock(DATA.dotcom_overheat_influence)+`</section>`);
@@ -3321,17 +3336,16 @@ function tsForecastSignal(ts){
     stale:age!=null&&warn!=null&&age>warn
   };
 }
-function dotcomOverheatSignal(idx){
+function dotcomOverheatSignal(idx,weighted){
   /* dotcom_overheat_index_v1 — 100% 가 닷컴 사이클 극단(정점)인 축. 100% 면 그 부문은
      닷컴이 터지기 직전 수준이라는 뜻이다. 확률이 아니다. 부문 산포를 항상 함께 낸다 —
      대표값만 보면 부문이 33~160% 로 갈려 있다는 사실이 지워진다. */
   if(!idx||idx.status!=='ok'||idx.overheat_pct==null)return null;
   /* 대표값은 v8 판단 가중 평균이다(열려 있을 때). 산포 자리에는 가중을 달리 잡았을 때의 범위를 싣는다 — 확률 구간이 아니다.
-     닫히면 아래 v5(부문 중앙값·부문 산포)로 돌아간다. 홈과 통계 탭이 같은 함수를 써서 같은 게이트를 탄다. */
-  const w=overheatWeighted(DATA?.dotcom_overheat_weighted);
-  if(w&&hasNumeric(w.range?.low)&&hasNumeric(w.range?.high))
-    return {pct:w.overheat_pct,lo:w.range.low,hi:w.range.high,weighted:true,previous:idx.overheat_pct,
-            categories:w.groups.length,included:w.included??null,beyond:w.beyond_peak_count??0,checkedAt:idx.generated_at??null};
+     닫히면 아래 v5(부문 중앙값·부문 산포)로 돌아간다. 홈과 통계 탭이 같은 함수·같은 게이트(overheatWeighted)를 쓴다. */
+  const w=weighted||null;   // 호출부가 overheatWeighted() 로 게이트를 통과시킨 것만 넘긴다 — 이 함수는 바깥을 읽지 않는다
+  if(w)return {pct:w.overheat_pct,lo:w.range.low,hi:w.range.high,weighted:true,previous:idx.overheat_pct,
+               categories:w.groups.length,included:w.included??null,beyond:w.beyond_peak_count??0,checkedAt:idx.generated_at??null};
   const span=idx.category_span||[];
   return {pct:idx.overheat_pct,lo:span[0],hi:span[1],
           categories:Object.keys(idx.category_medians||{}).length,
@@ -3710,7 +3724,7 @@ function renderOverview(){
   const sc=DATA.scenario;
   const upProb=sc.paths.S1.prob+sc.paths.S2.prob, rangeProb=sc.paths.S3.prob, closeProb=scenarioCloseAboveProb(sc);
   const vintage=scenarioVintage(), stale=vintage.status==='stale';
-  const tsf=tsForecastSignal(DATA.timeseries),cycle=dotcomCycleSignal(DATA.statistics_lab),heat=dotcomOverheatSignal(DATA.dotcom_overheat);
+  const tsf=tsForecastSignal(DATA.timeseries),cycle=dotcomCycleSignal(DATA.statistics_lab),heat=dotcomOverheatSignal(DATA.dotcom_overheat,overheatWeighted(DATA.dotcom_overheat_weighted));
   const base=marketThesis(upProb,rangeProb,closeProb),summary=homeSignalSummary(upProb,tsf,heat);
   const thesis=stale
     ?{lead:'시나리오 갱신 필요',accent:`마지막 기준 ${vintage.asof}`}
@@ -3744,7 +3758,7 @@ function renderOverview(){
              '#future/timeseries','시계열 예측 상세 보기')}
       ${card('닷컴 대비 과열도', heat==null?'집계 대기':`${heat.pct}%`,
              heat==null?'과열도 통계 집계 대기'
-                       :heat.weighted?`100 = 닷컴 정점 · 가중에 따라 ${heat.lo}~${heat.hi}`
+                       :heat.weighted?`100 = 닷컴 정점 · 판단 가중 · 가중에 따라 ${heat.lo}~${heat.hi}`
                        :`100 = 닷컴 정점 · 분야별 ${heat.lo}~${heat.hi}`,
              heat&&heat.beyond?`${heat.beyond}개 지표는 이미 정점 초과`:null,
              heat==null?'':signalHeatViz(heat.pct,heat.lo,heat.hi,

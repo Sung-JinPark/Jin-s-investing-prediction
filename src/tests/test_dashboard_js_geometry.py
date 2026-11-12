@@ -508,7 +508,11 @@ def test_home_cards_say_in_plain_words_what_each_percent_counts() -> None:
 
 
 def test_home_overheat_card_never_shows_the_composite_without_its_spread() -> None:
-    """대표값만 내보내면 부문이 33~160% 로 갈려 있다는 사실이 지워진다."""
+    """대표값만 내보내면 부문이 33~160% 로 갈려 있다는 사실이 지워진다.
+
+    2026-11-12 부터 대표값은 v8 판단 가중 평균이다(열려 있을 때). 그때 산포 자리에는 '가중을 달리 잡았을 때의 범위'가
+    들어간다 — 부문 산포를 다른 것으로 바꾼 것이지 없앤 것이 아니다. v8 이 닫히면 아래 v5 경로(부문 산포) 그대로다.
+    """
     source = _dashboard_source()
     pattern = "function dotcomOverheatSignal" + r"\([\s\S]+?" + chr(10) + "}" + chr(10)
     match = re.search(pattern, source)
@@ -528,8 +532,22 @@ def test_home_overheat_card_never_shows_the_composite_without_its_spread() -> No
     assert [result["ok"]["lo"], result["ok"]["hi"]] == live["category_span"]
     assert result["ok"]["beyond"] == live["beyond_peak_count"], "필드명이 모듈과 어긋났다"
     assert result["unavailable"] is None and result["missing"] is None
+    assert "weighted" not in result["ok"]  # v8 을 넘기지 않으면 이전 산식 경로다
 
-    card = source.split("'닷컴 대비 과열도'", 1)[1][:420]
+    from ai_fc.dotcom_overheat_v8 import compute as weighted_index
+    weighted = weighted_index(Path(__file__).resolve().parents[2], v5=live, profile={})  # 속도 없이도 열린다(가중 85%)
+    assert weighted["status"] == "ok", weighted
+    call = ("console.log(JSON.stringify({open:dotcomOverheatSignal(" + json.dumps(live, default=str) + ","
+            + json.dumps(weighted, default=str) + "),closed:dotcomOverheatSignal(" + json.dumps(live, default=str)
+            + ",null),dead:dotcomOverheatSignal({status:'unavailable'}," + json.dumps(weighted, default=str) + ")}));")
+    result = _run_js_file(match.group(0) + chr(10) + call + chr(10))
+    assert result["open"]["weighted"] is True and result["open"]["pct"] == weighted["overheat_pct"]
+    assert [result["open"]["lo"], result["open"]["hi"]] == [weighted["range"]["low"], weighted["range"]["high"]]
+    assert result["open"]["previous"] == live["overheat_pct"] and result["open"]["beyond"] == weighted["beyond_peak_count"]
+    assert result["closed"]["pct"] == live["overheat_pct"] and "weighted" not in result["closed"]
+    assert result["dead"] is None  # v5 값이 없으면 v8 만으로 숫자를 내지 않는다
+
+    card = source.split("'닷컴 대비 과열도'", 1)[1][:520]
     assert "100 = 닷컴 정점" in card, "축의 의미를 카드가 직접 말해야 한다"
     assert "분야별 ${heat.lo}~${heat.hi}" in card, "산포 없이 대표값만 내보내면 안 된다"
     assert "${heat.beyond}개 지표는 이미 정점 초과" in card

@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import math
 import statistics
 from datetime import date
 from pathlib import Path
@@ -24,8 +25,10 @@ from . import dotcom_overheat_v7 as v7
 CONTRACT_RELATIVE = Path("data/contracts/dotcom_overheat_index_v8.yaml")
 RULE_KEYS = ("contract_id", "version", "readings", "points", "groups", "missing", "variants", "indicators", "panel")
 VARIANTS = ("declared", "equal_groups", "equal_indicators")
-CLOSED_ERRORS = (OSError, ValueError, KeyError, TypeError, AttributeError, IndexError, ZeroDivisionError,
+CLOSED_ERRORS = (OSError, ValueError, KeyError, TypeError, AttributeError, IndexError, ArithmeticError,
                  yaml.YAMLError, json.JSONDecodeError)
+STATISTICS_RELATIVE = Path("data/statistics/dotcom_statistics_latest.json")
+V5_CONTRACT_RELATIVE = Path("data/contracts/dotcom_overheat_index_v5.yaml")
 
 
 class OverheatV8Error(ValueError):
@@ -41,8 +44,25 @@ def load_contract(root: Path) -> dict[str, Any]:
 
 def _closed(status: str, reason: str, **extra: Any) -> dict[str, Any]:
     return {"status": status, "reason": reason, "dataset_id": "dotcom_overheat_weighted",
+            "contract_id": "dotcom_overheat_index_v8", "weights_basis": "declared_judgment",
             "probability_space": "reference_only", "model_use": False, "official_forecast_input": False,
             "trading_signal": False, "overheat_pct": None, **extra}
+
+
+def _number(value: Any) -> float | None:
+    """유한한 숫자만 값으로 친다 — bool·문자열·NaN·무한대·변환 불가 정수는 '값 없음'이다."""
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        return None
+    try:
+        number = float(value)
+    except OverflowError:
+        return None
+    return number if math.isfinite(number) else None
+
+
+def _half_up(value: float) -> int:
+    """화면 정수 — 58.5 는 59 다(파이썬 round 의 짝수 반올림을 쓰지 않는다)."""
+    return int(math.floor(value + 0.5))
 
 
 def rules_digest(contract: dict[str, Any]) -> str:
@@ -136,10 +156,42 @@ def _profile_speed(profile: dict[str, Any]) -> dict[str, float]:
     out: dict[str, float] = {}
     for family in profile.get("families") or []:
         for row in family.get("indicators") or []:
-            value = row.get("score_raw")
-            if row.get("status") == "ok" and isinstance(value, (int, float)) and not isinstance(value, bool):
-                out[str(row.get("id"))] = float(value)
+            value = _number(row.get("score_raw"))
+            if row.get("status") == "ok" and value is not None:
+                out[str(row.get("id"))] = value
     return out
+
+
+def end_position_drift(root: Path) -> list[str]:
+    """계약의 dotcom_end_position(정점 방향 C 의 근거)이 지금 통계 원장으로 다시 읽은 값과 같은 칸에 있는가.
+
+    닷컴 구간은 과거지만 분기 자료는 개정된다. 개정이 33·67 문턱을 넘기면 C 점수의 근거가 사라진 것이므로 감시가 알린다
+    (자동으로 고치지 않는다 — 계약 새 판이 필요하다). 카드 14개만 본다: 속도 2종은 개정되지 않는 NASDAQ 종가에서 나온다.
+    """
+    from .dotcom_overheat import dotcom_range_position
+
+    contract = load_contract(root)
+    v5 = yaml.safe_load((root / V5_CONTRACT_RELATIVE).read_text(encoding="utf-8"))
+    payload = json.loads((root / STATISTICS_RELATIVE).read_text(encoding="utf-8"))
+    charts = {chart.get("id"): chart for chart in payload.get("charts") or []}
+    specs = {spec["id"]: spec for spec in v5.get("indicators") or []}
+    cut = contract["points"]["C"]["thresholds"]
+    bucket = lambda value: 2 if value >= cut["two"] else 1 if value >= cut["one"] else 0  # noqa: E731
+    problems = []
+    for item in contract["indicators"]:
+        if item["source"] != "v5":
+            continue
+        spec = specs.get(item["id"]) or {}
+        chart = charts.get(spec.get("chart")) or {}
+        series = next((s for s in chart.get("series") or []
+                       if s.get("label") == spec.get("dotcom_series") and not s.get("provisional")), None)
+        points = [p["value"] for p in (series or {}).get("points") or [] if _number(p.get("value")) is not None]
+        now = dotcom_range_position(float(points[-1]), [float(v) for v in points], spec.get("direction")) if points else None
+        if now is None:
+            problems.append(f"{item['id']}: 닷컴 계열을 다시 읽지 못함")
+        elif bucket(now) != bucket(float(item["dotcom_end_position"])):
+            problems.append(f"{item['id']}: 계약 {item['dotcom_end_position']} → 지금 {now:.1f} (점수 칸이 바뀜)")
+    return problems
 
 
 def compute(root: Path, *, v5: dict[str, Any] | None = None, profile: dict[str, Any] | None = None,
@@ -174,9 +226,9 @@ def _evaluate(contract: dict[str, Any], v5: dict[str, Any], profile: dict[str, A
     readings: dict[str, float] = {}
     for spec in contract["indicators"]:
         key = spec["id"]
-        value = speed.get(key) if spec["source"] == "profile" else (card.get(key) or {}).get("pct")
-        if isinstance(value, (int, float)) and not isinstance(value, bool):
-            readings[key] = float(value)
+        value = _number(speed.get(key) if spec["source"] == "profile" else (card.get(key) or {}).get("pct"))
+        if value is not None:
+            readings[key] = value
     live = [spec["id"] for spec in contract["indicators"] if spec["id"] in readings]
     missing = [spec["id"] for spec in contract["indicators"] if spec["id"] not in readings]
     live_weight = sum(float(frozen["indicators"][key]["weight"]) for key in live)
@@ -185,6 +237,8 @@ def _evaluate(contract: dict[str, Any], v5: dict[str, Any], profile: dict[str, A
         "contract_version": contract["version"], "probability_space": "reference_only", "model_use": False,
         "official_forecast_input": False, "trading_signal": False, "weights_basis": "declared_judgment",
         "as_of": v5.get("as_of"), "speed_as_of": profile.get("as_of") if speed else None,
+        # 화면이 프로필과 같은 나이 판정을 걸 수 있게 한도를 함께 싣는다(속도 값이 낡으면 화면은 이전 산식으로 내려간다).
+        "speed_max_age_days": _number(profile.get("max_age_days")) if speed else None,
         "previous_formula": {"contract_id": v5.get("contract_id"), "overheat_pct": v5.get("overheat_pct")},
         "live_weight": round(live_weight, 4), "missing": missing,
     }
@@ -192,6 +246,7 @@ def _evaluate(contract: dict[str, Any], v5: dict[str, Any], profile: dict[str, A
         return {**base, "status": "hold", "overheat_pct": None,
                 "reason": f"live weight {live_weight:.2f} below the contract minimum"}
     clamped = {key: min(high, max(low, readings[key])) for key in live}
+    cut = {key: "high" if readings[key] > high else "low" if readings[key] < low else None for key in live}
     values: dict[str, float] = {}
     shares: dict[str, dict[str, float]] = {}
     for variant in VARIANTS:
@@ -206,8 +261,10 @@ def _evaluate(contract: dict[str, Any], v5: dict[str, Any], profile: dict[str, A
         if not ids:
             continue
         weight = sum(share[key] for key in ids)
+        sides = {cut[key] for key in ids} - {None}
         group_rows.append({
             "id": name, "label": labels.get(name, name), "members": ids,
+            "clamped": "both" if len(sides) == 2 else next(iter(sides), None),
             "points": round(statistics.fmean(points[key] for key in ids), 1), "weight_pct": round(100 * weight, 1),
             "reading": round(statistics.fmean(clamped[key] for key in ids), 1),
             "contribution": round(sum(share[key] * clamped[key] for key in ids), 1),
@@ -216,21 +273,24 @@ def _evaluate(contract: dict[str, Any], v5: dict[str, Any], profile: dict[str, A
     for spec in contract["indicators"]:
         key = spec["id"]
         row = frozen["indicators"][key]
-        item = {"id": key, "label": spec["label"], "group": spec["group"], "source": spec["source"],
+        item = {"id": key, "label": spec["label"], "group": spec["group"],
+                "group_label": labels.get(spec["group"], spec["group"]), "source": spec["source"],
                 "A": row["A"], "B": row["B"], "C": row["C"], "points": row["points"], "evidence": row["evidence"],
                 "a_source": row["a_source"], "status": "ok" if key in readings else "missing"}
         if key in readings:
-            item.update({"reading": round(readings[key], 1), "clamped": clamped[key] != readings[key],
+            item.update({"reading": round(readings[key], 1), "clamped": cut[key],
                          "weight_pct": round(100 * share[key], 1),
                          "contribution": round(share[key] * clamped[key], 1)})
         indicator_rows.append(item)
     value = values["declared"]
     return {
-        **base, "status": "ok", "overheat_pct": int(round(value)), "value_raw": round(value, 1),
-        "range": {"low": int(round(values[order[0]])), "high": int(round(values[order[-1]])),
+        **base, "status": "ok", "overheat_pct": _half_up(value), "value_raw": round(value, 1),
+        "range": {"low": _half_up(values[order[0]]), "high": _half_up(values[order[-1]]),
+                  "low_raw": round(values[order[0]], 1), "high_raw": round(values[order[-1]], 1),
                   "low_variant": order[0], "high_variant": order[-1]},
         "variants": {name: round(values[name], 1) for name in VARIANTS},
-        "clamp": [low, high], "clamped_count": sum(1 for key in live if clamped[key] != readings[key]),
+        "clamp": [low, high], "clamped_high_count": sum(1 for key in live if cut[key] == "high"),
+        "clamped_low_count": sum(1 for key in live if cut[key] == "low"),
         "beyond_peak_count": sum(1 for key in live if readings[key] > 100.0),
         "included": len(live), "groups": sorted(group_rows, key=lambda r: -r["contribution"]),
         "indicators": indicator_rows,

@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import copy
+import json
+import math
 import statistics
 from pathlib import Path
 
@@ -11,7 +13,7 @@ import yaml
 
 from ai_fc import dotcom_overheat_v7 as v7
 from ai_fc import dotcom_overheat_v8 as v8
-from ai_fc.overheat_watchdog import check_weighted
+from ai_fc.overheat_watchdog import check_weight_basis, check_weighted
 
 ROOT = Path(__file__).resolve().parents[2]
 CONTRACT = v8.load_contract(ROOT)
@@ -27,7 +29,7 @@ def _v5(values: dict[str, float]) -> dict:
 
 
 def _profile(values: dict[str, float]) -> dict:
-    return {"status": "ok", "as_of": "2026-11-10",
+    return {"status": "ok", "as_of": "2026-11-10", "max_age_days": 10,
             "families": [{"id": "speed", "indicators": [{"id": key, "status": "ok", "score_raw": value}
                                                          for key, value in values.items()]}]}
 
@@ -44,6 +46,13 @@ def test_contract_is_a_declared_judgment_and_frozen_block_derives_from_the_rules
     assert CONTRACT["status"] == "declared_judgment" and CONTRACT["probability_space"] == "reference_only"
     assert CONTRACT["trading_signal"] is False and CONTRACT["model_use"] is False
     assert CONTRACT["official_forecast_input"] is False and CONTRACT["decided_by"] == "user"
+    assert "사람 패널이 아니다" in CONTRACT["panel"]["method"] and "언어모델" in CONTRACT["panel"]["method"]
+    assert "증거금" in CONTRACT["groups"]["basis"] and "작성자 판단" in CONTRACT["groups"]["basis"]  # v7 중복 판정을 숨기지 않는다
+    record = json.loads((ROOT / CONTRACT["panel"]["record"]).read_text(encoding="utf-8"))
+    assert record["table"] == {key: {"values": CONTRACT["panel"]["values"][key], "median": CONTRACT["panel"]["median"][key]}
+                               for key in IDS}
+    assert "prompt_template" in record and len(record["lenses"]) == 5 and "사람 패널이 아니다" in record["what_this_is"]
+    assert all(set(calls) == {"StructuredOutput"} for calls in record["tool_calls"]["by_agent"])  # 파일을 읽지 않았다
     assert any("판단값" in line and "검증" in line for line in CONTRACT["disclosures"])  # 검증됐다고 말하지 않는다
     assert v8.frozen_problem(CONTRACT, V7) is None
     frozen = CONTRACT["frozen"]
@@ -125,17 +134,36 @@ def test_weighted_average_is_the_declared_sum_and_clamps_only_inside_the_average
     weights = {key: row["weight"] for key, row in CONTRACT["frozen"]["indicators"].items()}
     clamp = lambda value: min(150.0, max(-50.0, value))  # noqa: E731
     expected = sum(weights[key] * clamp({**readings, **speed}[key]) for key in IDS)
-    assert out["value_raw"] == pytest.approx(expected, abs=0.06) and out["overheat_pct"] == int(round(out["value_raw"]))
+    assert out["value_raw"] == pytest.approx(expected, abs=0.06) and out["overheat_pct"] == math.floor(expected + 0.5)
     rows = {row["id"]: row for row in out["indicators"]}
-    assert rows["investment_share_gdp"]["reading"] == 260.3 and rows["investment_share_gdp"]["clamped"] is True
-    assert rows["consumer_credit_growth"]["reading"] == -80.0 and rows["consumer_credit_growth"]["clamped"] is True
-    assert out["clamped_count"] == 2 and rows["speed_r24"]["clamped"] is False  # 행에는 원값, 평균에만 자른 값
+    # 행에는 원값, 평균에만 자른 값. 어느 쪽에서 잘렸는지 구분한다 — 하한에서 잘린 것을 '상한'이라 부르면 반대 말이 된다.
+    assert rows["investment_share_gdp"]["reading"] == 260.3 and rows["investment_share_gdp"]["clamped"] == "high"
+    assert rows["consumer_credit_growth"]["reading"] == -80.0 and rows["consumer_credit_growth"]["clamped"] == "low"
+    assert rows["speed_r24"]["clamped"] is None and rows["speed_r24"]["group_label"] == "상승 속도"
+    assert out["clamped_high_count"] == 1 and out["clamped_low_count"] == 1 and "clamped_count" not in out
+    groups = {group["id"]: group for group in out["groups"]}
+    assert groups["real_investment"]["clamped"] == "high" and groups["household_debt"]["clamped"] == "low"
+    assert groups["speed"]["clamped"] is None
+    both = v8.compute(ROOT, v5=_v5({**readings, "household_debt_service": 400.0}), profile=_profile(speed))
+    assert {g["id"]: g for g in both["groups"]}["household_debt"]["clamped"] == "both"
     assert sum(group["contribution"] for group in out["groups"]) == pytest.approx(out["value_raw"], abs=0.3)
     assert sum(group["weight_pct"] for group in out["groups"]) == pytest.approx(100.0, abs=0.3)
-    assert out["range"]["low"] <= out["overheat_pct"] <= out["range"]["high"] or out["range"]["low_variant"] == "declared" \
-        or out["range"]["high_variant"] == "declared"
-    assert out["range"]["low"] == int(round(min(out["variants"].values())))
-    assert out["range"]["high"] == int(round(max(out["variants"].values())))
+    flat_index = sum(clamp({**readings, **speed}[key]) for key in IDS) / len(IDS)
+    assert out["variants"]["equal_indicators"] == pytest.approx(flat_index, abs=0.06)  # 변형은 실제로 다른 가중이다
+    assert out["variants"]["equal_groups"] != out["variants"]["declared"] != out["variants"]["equal_indicators"]
+    assert out["range"]["low_raw"] == min(out["variants"].values()) and out["range"]["high_raw"] == max(out["variants"].values())
+    assert out["range"]["low"] == math.floor(min(out["variants"].values()) + 0.5)
+    assert out["range"]["low_raw"] <= out["value_raw"] <= out["range"]["high_raw"]  # 같은 자릿수로는 범위 안이다
+
+
+def test_display_integer_rounds_half_up_and_non_finite_readings_are_not_values() -> None:
+    assert [v8._half_up(x) for x in (57.46, 57.5, 58.5, -0.5, -30.9)] == [57, 58, 59, 0, -31]
+    assert v8._number(float("nan")) is None and v8._number(float("inf")) is None and v8._number(10 ** 400) is None
+    assert v8._number(True) is None and v8._number("28") is None and v8._number(3) == 3.0
+    card = {key: 40.0 for key in CARD}
+    for poison in (float("nan"), float("inf"), 10 ** 400):
+        out = v8.compute(ROOT, v5=_v5({**card, "unemployment_rate": poison}), profile=_profile({key: 40.0 for key in SPEED}))
+        assert out["status"] == "ok" and out["missing"] == ["unemployment_rate"] and out["overheat_pct"] == 40
 
 
 def test_missing_readings_are_reweighted_and_too_little_live_weight_holds() -> None:
@@ -143,6 +171,22 @@ def test_missing_readings_are_reweighted_and_too_little_live_weight_holds() -> N
     no_speed = v8.compute(ROOT, v5=_v5(card), profile={"status": "hold", "reason": "old"})
     assert no_speed["status"] == "ok" and no_speed["missing"] == SPEED and no_speed["overheat_pct"] == 40
     assert no_speed["speed_as_of"] is None and no_speed["included"] == 14 and 0.7 <= no_speed["live_weight"] < 1.0
+    assert no_speed["speed_max_age_days"] is None
+    # 값이 서로 다를 때의 재배분을 계약 규칙으로 손계산해 대조한다: 묶음 점수 = 살아 있는 구성원 점수의 평균, 묶음 사이는 점수 비례.
+    points = {key: row["points"] for key, row in CONTRACT["frozen"]["indicators"].items()}
+    group_of = {spec["id"]: spec["group"] for spec in CONTRACT["indicators"]}
+    varied = {key: float(7 * index - 20) for index, key in enumerate(CARD)}
+    del varied["nasdaq_per_m2"], varied["loan_standards"]
+    members: dict[str, list[str]] = {}
+    for key in varied:
+        members.setdefault(group_of[key], []).append(key)
+    score = {name: statistics.fmean(points[key] for key in ids) for name, ids in members.items()}
+    by_hand = sum(score[name] / sum(score.values()) * statistics.fmean(varied[key] for key in ids)
+                  for name, ids in members.items())
+    hand = v8.compute(ROOT, v5=_v5(varied), profile={})
+    assert hand["status"] == "ok" and hand["value_raw"] == pytest.approx(by_hand, abs=0.06)
+    assert set(hand["missing"]) == {"nasdaq_per_m2", "loan_standards", *SPEED}
+    assert v8.compute(ROOT, v5=_v5(card), profile=_profile({key: 40.0 for key in SPEED}))["speed_max_age_days"] == 10
     assert all(group["id"] != "speed" for group in no_speed["groups"])
     assert sum(group["weight_pct"] for group in no_speed["groups"]) == pytest.approx(100.0, abs=0.3)
     partial = dict(card)
@@ -155,7 +199,9 @@ def test_missing_readings_are_reweighted_and_too_little_live_weight_holds() -> N
     few = {key: 40.0 for key in ("unemployment_rate", "loan_standards", "bond_spread")}
     held = v8.compute(ROOT, v5=_v5(few), profile={})
     assert held["status"] == "hold" and held["overheat_pct"] is None and "live weight" in held["reason"]
-    assert v8.compute(ROOT, v5={"status": "unavailable"}, profile={})["status"] == "hold"
+    no_v5 = v8.compute(ROOT, v5={"status": "unavailable"}, profile={})
+    assert no_v5["status"] == "hold" and no_v5["contract_id"] == held["contract_id"] == "dotcom_overheat_index_v8"
+    assert no_v5["weights_basis"] == "declared_judgment"  # 닫힌 출력도 같은 이름표를 단다
     bad = v8.compute(ROOT, v5=_v5({**card, "margin_credit": True}), profile=_profile({"speed_r24": "28"}))
     assert set(bad["missing"]) == {"margin_credit", *SPEED}  # 숫자가 아닌 값은 값으로 치지 않는다
 
@@ -187,12 +233,31 @@ def test_untouched_copy_stays_open_and_missing_files_never_raise(tmp_path: Path)
 
 def test_repository_state_computes_from_the_committed_inputs() -> None:
     out = v8.compute(ROOT)
-    assert out["status"] in {"ok", "hold"}  # 프로필이 오래되면 속도 2종이 빠질 뿐 값은 난다(가중 85%)
+    # 커밋된 프로필이 오래됐으면 속도 2종이 빠진 채 ok(가중 85%)이고, 통계 스냅샷이 ok 가 아니면 hold 다 — 둘 다 예외는 아니다.
+    assert out["status"] in {"ok", "hold"}
     assert out["contract_id"] == "dotcom_overheat_index_v8" and out["weights_basis"] == "declared_judgment"
-    assert out["previous_formula"]["contract_id"] == "dotcom_overheat_index_v5"
     if out["status"] == "ok":
+        assert out["previous_formula"]["contract_id"] == "dotcom_overheat_index_v5"
         assert -50 <= out["value_raw"] <= 150 and out["range"]["low"] <= out["range"]["high"]
         assert {row["id"] for row in out["indicators"]} == set(IDS) and "판단값" in out["note"]
+
+
+def test_direction_points_still_match_the_statistics_ledger_and_drift_is_reported(tmp_path: Path) -> None:
+    assert v8.end_position_drift(ROOT) == []  # 계약에 적은 1999년 말 위치가 지금 원장과 같은 점수 칸에 있다
+    assert [row["status"] for row in check_weight_basis(ROOT)] == ["ok"]
+    for relative in (v8.CONTRACT_RELATIVE, v8.V5_CONTRACT_RELATIVE):
+        (tmp_path / relative).parent.mkdir(parents=True, exist_ok=True)
+        (tmp_path / relative).write_bytes((ROOT / relative).read_bytes())
+    payload = json.loads((ROOT / v8.STATISTICS_RELATIVE).read_text(encoding="utf-8"))
+    chart = next(c for c in payload["charts"] if c["id"] == "unemployment_rate")
+    series = next(s for s in chart["series"] if s["label"] == "닷컴")
+    series["points"][-1]["value"] = max(p["value"] for p in series["points"])  # 1999년 말 실업률이 구간 최고였다고 개정됐다면
+    (tmp_path / v8.STATISTICS_RELATIVE).parent.mkdir(parents=True, exist_ok=True)
+    (tmp_path / v8.STATISTICS_RELATIVE).write_text(json.dumps(payload, ensure_ascii=False), encoding="utf-8")
+    drift = v8.end_position_drift(tmp_path)
+    assert len(drift) == 1 and drift[0].startswith("unemployment_rate") and "점수 칸이 바뀜" in drift[0]
+    assert check_weight_basis(tmp_path)[0]["status"] == "warn"
+    assert check_weight_basis(tmp_path / "nothing")[0]["status"] == "warn"  # 못 읽어도 감시는 죽지 않는다
 
 
 def test_dashboard_shows_the_weighted_value_as_headline_and_says_the_weights_are_a_judgment() -> None:
@@ -202,17 +267,30 @@ def test_dashboard_shows_the_weighted_value_as_headline_and_says_the_weights_are
     assert "_dotcom_overheat_weighted(root, v5=dotcom_overheat, profile=dotcom_overheat_profile)" in builder
     rubric = script[script.index("function overheatRubricBlock"):script.index("function statisticsOverheatPanel")]
     assert "가중치는 판단값" in rubric and "검증한 값 아님" in rubric and "소유자 지정" in rubric
+    assert "AI 평가 5회" in rubric and "같은 언어모델" in rubric and "5인" not in rubric  # 사람 패널처럼 읽히지 않게
+    assert "overheatClampNote(w)" in rubric and "'빠짐'" in rubric and "r.group_label" in rubric
+    gate = script[script.index("function overheatWeighted"):script.index("function overheatRubricBlock")]
+    assert "w.speed_as_of" in gate and "w.speed_max_age_days" in gate and "limit+1" in gate  # 프로필 블록과 같은 나이 판정
+    assert "상한 ${hi}개" in gate and "하한 ${lo}개" in gate
     assert "확률 아님" in rubric and "매매 신호 아님" in rubric and "참고 의견" in rubric
     assert "reduce(" not in rubric and "<svg" not in rubric  # JS 는 그리기만 한다 — 가중·평균은 파이썬이 낸다
     panel = script[script.index("function statisticsOverheatPanel"):script.index("function predictionSectionNav")]
     assert "판단 가중 평균" in panel and "이전 산식" in panel and "가중에 따라" in panel
+    assert "검증된 값 아님" in panel and "빠짐(가중 재배분)" in panel and "low_raw" in panel  # 대표값 바로 아래 줄
+    assert "{high:' · 상한',low:' · 하한',both:' · 상·하한'}" in panel
+    assert "dotcomOverheatSignal(idx,overheatWeighted(DATA.dotcom_overheat_weighted))" in panel
     assert "부문별 ${sig.lo}~${sig.hi}%" in panel  # 닫히면 이전 산식 화면으로 돌아간다
     assert "reduce(" not in panel
     signal = script[script.index("function dotcomOverheatSignal"):script.index("function dotcomCycleSignal")]
-    assert "overheatWeighted(DATA?.dotcom_overheat_weighted)" in signal and "weighted:true" in signal
+    assert "function dotcomOverheatSignal(idx,weighted)" in signal and "weighted:true" in signal
+    assert "DATA" not in signal.split("*/")[-1]  # 신호 함수는 바깥을 읽지 않는다 — 게이트는 호출부가 건다
     assert "category_span" in signal  # 이전 산식 경로가 남아 있다
     home = script[script.index("${card('닷컴 대비 과열도'"):script.index("'닷컴 대비 과열도 상세 보기'")]
-    assert "heat.weighted?" in home and "가중에 따라" in home and "분야별 ${heat.lo}~${heat.hi}" in home
+    assert "heat.weighted?" in home and "판단 가중 · 가중에 따라" in home and "분야별 ${heat.lo}~${heat.hi}" in home
+    assert "dotcomOverheatSignal(DATA.dotcom_overheat,overheatWeighted(DATA.dotcom_overheat_weighted))" in script
+    blocks = script[script.index("function overheatProfileBlock"):script.index("function overheatWeighted")]
+    assert "overheatSpeedCount(overheatWeighted(DATA.dotcom_overheat_weighted))" in blocks  # 실제로 들어간 속도 지표 수를 말한다
+    assert "판정만 대표값 점수의 과거 근거로 읽음" in blocks and "위 닮음과 합치지 않음" in blocks
 
 
 def test_watchdog_reports_when_the_site_fell_back_to_the_previous_formula() -> None:

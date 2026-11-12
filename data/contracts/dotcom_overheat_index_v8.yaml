@@ -24,7 +24,8 @@ disclosures:
   - >-
     규칙을 고정한 시점에 작성자는 오늘의 지표별 값(카드에 실린 14개 값과 프로필 값)을 이미 본 상태였다. 그래서 판단이
     들어가는 항목 A 는 오늘 값을 보지 않은 5인 패널의 중앙값으로 정하고, B·C 는 이미 기록된 숫자에서 기계적으로 읽는다.
-    묶음(중복) 규칙과 A 의 소유자 지정(IPO)은 작성자·소유자의 판단이다.
+    묶음(중복) 규칙과 A 의 소유자 지정(IPO)은 작성자·소유자의 판단이다. 패널은 사람이 아니라 같은 언어모델의 에이전트
+    5개다 — 닷컴이 어떻게 끝났는지 아는 모델의 사후 판단이며, 그것이 이 항목의 뜻이다(예측력 검증이 아니다).
   - >-
     v7 계약의 '같은 자료로 같은 채점표를 다시 지정하지 않는다'는 측정 채점표에 대한 약속이다. v8 은 측정이 아니라 선언이다.
     v7 이 잰 점수를 근거 한 항목(B)으로 읽을 뿐 다시 채점하지 않는다.
@@ -72,7 +73,9 @@ groups:
   basis: >-
     분자가 같은 주가 지수인 비율(주가 ÷ 돈), 같은 NASDAQ 가격에서 나온 속도 2종, 금융여건지수와 그 구성 요소(스프레드·
     대출 심사), 가계 차입 2종을 각각 한 묶음으로 둔다. v7 측정에서 통화량 대비 NASDAQ 과 가계 현금 대비 NASDAQ 은
-    |ρ| ≥ 0.80 중복으로 기록됐다.
+    |ρ| ≥ 0.80 중복으로 기록됐다. v7 은 증거금 신용 ÷ GDP 도 통화량 대비 NASDAQ 의 중복으로 기록했다 — 그래도 증거금을
+    따로 둔 것은 작성자 판단이다(빌린 돈으로 사는 경로는 가격 수준과 다른 것을 잰다고 보았다). 묶음은 측정된 상관이 아니라
+    '무엇을 재는가'로 나눴다. 증거금을 주가 ÷ 돈 묶음에 넣으면 2026-11-10 값은 58.3 이 아니라 60.6 이다.
   labels:
     speed: 상승 속도
     price_vs_money: 주가 ÷ 돈
@@ -115,13 +118,30 @@ indicators:
 mapping_notes:
   - margin_credit 는 v5 에서 증거금 신용 수준(사이클 시작 = 100)이고 v7 의 가장 가까운 후보는 증거금 신용 ÷ GDP 다(근사 대응).
   - investment_share_gdp 는 v5 에서 장비+지식재산 투자 ÷ GDP 이고 v7 의 같은 정의 후보(equipment_ip_gdp)에 대응한다.
-  - dotcom_end_position 은 2026-11-12 원장 기준으로 읽은 값이다(닷컴 구간은 과거라 바뀌지 않는다 — 개정이 있으면 새 판).
+  - >-
+    dotcom_end_position 은 2026-11-12 원장 기준으로 읽은 값이다. 닷컴 구간도 분기 자료는 개정될 수 있다 — 감시
+    (overheat-watchdog)가 원장에서 다시 읽어 점수 칸(33·67)이 바뀌면 경고하고, 그때는 계약 새 판을 낸다(자동으로 고치지 않는다).
+  - >-
+    ipo_count_operating_12m 은 v5 에서 Ritter 순 미국 IPO 에 테마 기업 상장(ADR·해외, 규모 무관)을 더한 값이고, v7 이 잰
+    후보(ipo_count_12m)는 미국 IPO 건수만이다. B 점수는 정의가 조금 다른 후보의 판정을 읽은 것이다(근사 대응).
+
+amendments_before_publication:           # 배포 전 정정 — 점수·묶음·가중은 한 글자도 바뀌지 않았다(문구만)
+  - at: 2026-11-12T03:51:43Z
+    why: 독립 검토 지적
+    changed:
+      - panel.method · tools_used — '5인'이 사람처럼 읽혔다. 같은 언어모델의 에이전트 5개임을 적었다
+      - groups.basis — v7 이 증거금도 중복으로 기록했다는 사실과 따로 둔 이유, 넣었을 때의 값(60.6)을 적었다
+      - mapping_notes — IPO 정의 차이, 닷컴 구간 값도 개정될 수 있음
+    effect: 규칙 지문(rules_sha256)만 바뀜. frozen 의 지표 점수·가중·묶음 가중은 정정 전과 같다(재유도해 대조)
 
 panel:
-  method: 서로 독립인 5인(관점 5종)이 지표마다 0~5 정수를 매김 — 오늘 값·저장소 파일을 보지 않음
+  method: >-
+    사람 패널이 아니다. 같은 언어모델(claude-fable-5-2)의 에이전트 5개가 서로의 답을 보지 않고 관점 프롬프트 5종으로
+    지표마다 0~5 정수를 매겼다. 오늘 값은 프롬프트에 주지 않았고 에이전트는 저장소 파일을 읽지 않았다. 같은 모델이라
+    다섯 답은 통계적으로 독립이 아니다(16개 중 14개에서 다섯이 같은 점수) — 중앙값은 '한 모델의 판단'에 가깝다.
   run_id: wf_802346b5-e00
   scored_on: '2026-11-12'
-  tools_used: 구조화 답변 제출만(파일 읽기·검색 0회 — 실행 기록으로 확인)
+  tools_used: 구조화 답변 제출만(파일 읽기·검색 0회) — 에이전트별 도구 호출 수와 프롬프트 전문은 record 에 있다
   record: docs/audit/overheat_v8_panel_20261112.json
   values:
     speed_r24: [5, 5, 5, 5, 5]
@@ -143,7 +163,7 @@ panel:
   median: {speed_r24: 5, speed_d200: 5, nasdaq_per_m2: 4, nasdaq_per_household_liquid_assets: 4, spx_per_federal_debt: 2, valuation_proxy: 4, ipo_count_operating_12m: 5, margin_credit: 3, investment_share_gdp: 5,
     corporate_bond_stock: 3, consumer_credit_growth: 1, household_debt_service: 1, financial_conditions: 2, bond_spread: 2, loan_standards: 2, unemployment_rate: 1}
 frozen:
-  rules_sha256: 3cc5395d9136a76be14ca9c87d7f749e38e42f6e33fe3e1be710367b371482db
+  rules_sha256: 42465da7033ba83cf14c3b8f17265ed0ec10a2076a1ecfb68e75625847371e40
   v7_rules_sha256: 6077a95fb27739a7702a4fd30e1229bf75afabe610058dda63d71c43817b1489
   indicators:
     speed_r24: {A: 5.0, B: 3.0, C: 2.0, points: 10.0, evidence: eligible, a_source: panel, weight: 0.072386}
