@@ -1,18 +1,18 @@
 {
-  "as_of": null,
+  "as_of": "2026-11-12T11:56:14.620752+00:00",
   "descriptive": {
     "inputs_differ_sensitivity": {
       "main": {
-        "n_rows": 0,
-        "qs5_mean_delta": null
+        "n_rows": 1,
+        "qs5_mean_delta": -0.00015727786272912853
       },
       "term_structure": {
-        "n_rows": 0,
-        "qs5_mean_delta": null
+        "n_rows": 1,
+        "qs5_mean_delta": -0.00015727786272912853
       },
       "zero_drift": {
-        "n_rows": 0,
-        "qs5_mean_delta": null
+        "n_rows": 1,
+        "qs5_mean_delta": -0.0002785739941071081
       }
     },
     "lead_buckets": {
@@ -61,7 +61,7 @@
     },
     "note": "dependence underestimated (overlapping windows) — not a label basis; r1 rule false-rejection 0.29-0.46",
     "post_verdict_v1_revisions": 0,
-    "representative_runs": 1,
+    "representative_runs": 2,
     "target_date_equal": {
       "main": {
         "block_bootstrap_ci90": null,
@@ -95,13 +95,13 @@
   },
   "footnote": "연구 섀도 · 비공개 · 라벨은 verdicts 에서만 · 참고 의견, 매매 신호 아님",
   "n_pairs_missing": 0,
-  "n_runs": 1,
+  "n_runs": 2,
   "pair_eligibility": {
     "rule": "r3",
     "runs": {
       "excluded": 1,
       "identical_inputs": 0,
-      "tolerance_equivalent": 0
+      "tolerance_equivalent": 1
     }
   },
   "phase_origin": "2026-11-10",
@@ -110,8 +110,8 @@
   "schema_version": 1,
   "thinned": {
     "h1": {
-      "blocking_origin": null,
-      "blocking_sessions_behind": null,
+      "blocking_origin": "2026-11-11",
+      "blocking_sessions_behind": 0,
       "by_arm": {
         "main": {
           "ci90": null,
@@ -138,7 +138,7 @@
       "n_excluded": 1,
       "n_missing": 0,
       "n_no_target": 0,
-      "n_pending_blocking": 0,
+      "n_pending_blocking": 1,
       "n_scored": 0,
       "n_target": 50,
       "n_tolerance_equivalent": 0
