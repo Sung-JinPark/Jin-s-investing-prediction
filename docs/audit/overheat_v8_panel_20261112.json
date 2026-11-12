@@ -1,0 +1,603 @@
+{
+  "run_id": "wf_802346b5-e00",
+  "question": "닷컴 경로 직접성 0~5",
+  "table": {
+    "speed_r24": {
+      "values": [
+        5,
+        5,
+        5,
+        5,
+        5
+      ],
+      "median": 5
+    },
+    "speed_d200": {
+      "values": [
+        5,
+        5,
+        5,
+        5,
+        5
+      ],
+      "median": 5
+    },
+    "nasdaq_per_m2": {
+      "values": [
+        4,
+        4,
+        4,
+        4,
+        4
+      ],
+      "median": 4
+    },
+    "nasdaq_per_household_liquid_assets": {
+      "values": [
+        4,
+        4,
+        4,
+        4,
+        4
+      ],
+      "median": 4
+    },
+    "spx_per_federal_debt": {
+      "values": [
+        1,
+        1,
+        2,
+        2,
+        2
+      ],
+      "median": 2
+    },
+    "valuation_proxy": {
+      "values": [
+        4,
+        4,
+        4,
+        4,
+        5
+      ],
+      "median": 4
+    },
+    "ipo_count_operating_12m": {
+      "values": [
+        5,
+        5,
+        5,
+        5,
+        5
+      ],
+      "median": 5
+    },
+    "margin_credit": {
+      "values": [
+        3,
+        3,
+        3,
+        3,
+        3
+      ],
+      "median": 3
+    },
+    "investment_share_gdp": {
+      "values": [
+        5,
+        5,
+        5,
+        5,
+        5
+      ],
+      "median": 5
+    },
+    "corporate_bond_stock": {
+      "values": [
+        3,
+        3,
+        3,
+        3,
+        3
+      ],
+      "median": 3
+    },
+    "consumer_credit_growth": {
+      "values": [
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "median": 1
+    },
+    "household_debt_service": {
+      "values": [
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "median": 1
+    },
+    "financial_conditions": {
+      "values": [
+        2,
+        2,
+        2,
+        2,
+        2
+      ],
+      "median": 2
+    },
+    "bond_spread": {
+      "values": [
+        2,
+        2,
+        2,
+        2,
+        2
+      ],
+      "median": 2
+    },
+    "loan_standards": {
+      "values": [
+        2,
+        2,
+        2,
+        2,
+        2
+      ],
+      "median": 2
+    },
+    "unemployment_rate": {
+      "values": [
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "median": 1
+    }
+  },
+  "judges": [
+    {
+      "judge": 1,
+      "lens": "a financial historian of the 1995-2002 US technology bubble",
+      "ok": true,
+      "scores": [
+        {
+          "id": "speed_r24",
+          "a": 5,
+          "reason": "The NASDAQ roughly tripled from late 1998 to its March 2000 peak near 5,048 and then fell about 78% by October 2002, so the speed of the index's rise was the bubble's defining symptom."
+        },
+        {
+          "id": "speed_d200",
+          "a": 5,
+          "reason": "In early 2000 the NASDAQ stood at an extreme premium above its 200-day average, a parabolic blow-off that directly marked the final stage before the March-April 2000 break."
+        },
+        {
+          "id": "nasdaq_per_m2",
+          "a": 4,
+          "reason": "Scaling the NASDAQ level against the money stock gauges how far tech equity prices outran the economy's money base at the 2000 peak, i.e. the size of the bubble itself."
+        },
+        {
+          "id": "nasdaq_per_household_liquid_assets",
+          "a": 4,
+          "reason": "Households rotated from cash-like holdings into tech stocks and equity mutual funds in 1998-2000, so this ratio measures the bubble's size against retail buying power."
+        },
+        {
+          "id": "spx_per_federal_debt",
+          "a": 2,
+          "reason": "The ratio rose in the late 1990s partly because federal surpluses shrank debt while stocks soared, making it an accompanying condition and not a mechanism of the tech bubble."
+        },
+        {
+          "id": "valuation_proxy",
+          "a": 4,
+          "reason": "Aggregate equity value relative to profits reached record highs in 1999-2000 as prices decoupled from earnings, directly measuring the overvaluation that later unwound."
+        },
+        {
+          "id": "ipo_count_operating_12m",
+          "a": 5,
+          "reason": "The 1996 and 1999-early 2000 floods of profitless internet IPOs with huge first-day pops were a core channel of the mania, and the IPO window slammed shut after the spring 2000 crash."
+        },
+        {
+          "id": "margin_credit",
+          "a": 3,
+          "reason": "Margin debt surged from late 1999 to a March 2000 peak and forced liquidations on margin calls amplified the April 2000 sell-off, a classic leverage amplifier."
+        },
+        {
+          "id": "investment_share_gdp",
+          "a": 5,
+          "reason": "The boom rested on a real overinvestment wave in IT, telecom and software (Y2K, fiber build-out, dot-com spending) whose collapse in 2000-2002 drove the 2001 recession."
+        },
+        {
+          "id": "corporate_bond_stock",
+          "a": 3,
+          "reason": "Telecom and tech-related firms financed the network build-out with heavy bond issuance in 1997-2000, and the resulting defaults (WorldCom, Global Crossing and others) deepened the bust."
+        },
+        {
+          "id": "consumer_credit_growth",
+          "a": 1,
+          "reason": "Consumer credit grew steadily in the late 1990s expansion but was not a channel through which tech equity prices were bid up or collapsed."
+        },
+        {
+          "id": "household_debt_service",
+          "a": 1,
+          "reason": "Household debt service drifted higher through the period as a background feature of the expansion, with no direct role in the equity-centred bubble."
+        },
+        {
+          "id": "financial_conditions",
+          "a": 2,
+          "reason": "Conditions were generally loose apart from the 1998 LTCM episode and were eased by Fed cuts in late 1998 and Y2K liquidity, then tightened with the 1999-2000 hikes, accompanying the cycle without being its core."
+        },
+        {
+          "id": "bond_spread",
+          "a": 2,
+          "reason": "Credit spreads actually widened from 1998 onward while the NASDAQ kept rising, then blew out in 2001-2002 with telecom defaults, so they accompanied the bust more than they drove the boom."
+        },
+        {
+          "id": "loan_standards",
+          "a": 2,
+          "reason": "Banks began tightening business lending standards from 1998 and sharply in 2000-2001, a condition that accompanied the downturn while the bubble itself was equity- and venture-financed."
+        },
+        {
+          "id": "unemployment_rate",
+          "a": 1,
+          "reason": "Unemployment fell to about 4% by 2000 and rose to around 6% after the 2001 recession, a background macro backdrop to the new-economy narrative."
+        }
+      ]
+    },
+    {
+      "judge": 2,
+      "lens": "a macroeconomist who studies asset-price booms and busts",
+      "ok": true,
+      "scores": [
+        {
+          "id": "speed_r24",
+          "a": 5,
+          "reason": "The NASDAQ's near-vertical climb from about 1,500 in late 1998 to 5,048 in March 2000 and its 78% fall by October 2002 was the bubble itself in motion, with momentum-chasing the central symptom."
+        },
+        {
+          "id": "speed_d200",
+          "a": 5,
+          "reason": "The parabolic blow-off of late 1999 to March 2000 carried the index to an extreme premium over its 200-day average, and the snap back through that trend marked the collapse."
+        },
+        {
+          "id": "nasdaq_per_m2",
+          "a": 4,
+          "reason": "Scaling the NASDAQ by the money stock gauges how far tech equity prices outran the economy's liquidity base, which peaked dramatically in early 2000."
+        },
+        {
+          "id": "nasdaq_per_household_liquid_assets",
+          "a": 4,
+          "reason": "Households shifted from cash-like holdings into tech stocks and aggressive-growth mutual funds, so this ratio sizes the bubble against the retail cash that fed it."
+        },
+        {
+          "id": "spx_per_federal_debt",
+          "a": 2,
+          "reason": "Broad equities rose while federal debt stagnated during the 1998-2001 budget surpluses, so the ratio moved with the era but the denominator played no causal role."
+        },
+        {
+          "id": "valuation_proxy",
+          "a": 5,
+          "reason": "Record-high aggregate valuations, with prices detached from profits and many listed firms having no earnings at all, were the defining symptom Greenspan and Shiller flagged as irrational exuberance."
+        },
+        {
+          "id": "ipo_count_operating_12m",
+          "a": 5,
+          "reason": "The 1998-2000 flood of internet IPOs with huge first-day pops was the main channel turning venture funding into public speculation, and the IPO window slamming shut in 2000 starved cash-burning dot-coms."
+        },
+        {
+          "id": "margin_credit",
+          "a": 3,
+          "reason": "Margin debt roughly doubled into March 2000 as retail and day traders levered up, and margin calls then amplified the spring 2000 selloff."
+        },
+        {
+          "id": "investment_share_gdp",
+          "a": 5,
+          "reason": "The IT, software and telecom capex boom, boosted by Y2K spending and fibre overbuilding, was the real-economy side of the bubble, and its collapse drove the 2001 recession."
+        },
+        {
+          "id": "corporate_bond_stock",
+          "a": 3,
+          "reason": "Heavy corporate and high-yield bond issuance, especially by telecom carriers, financed the network overbuild and ended in the 2001-2002 default wave including WorldCom and Global Crossing."
+        },
+        {
+          "id": "consumer_credit_growth",
+          "a": 1,
+          "reason": "Consumer credit grew steadily in the late-1990s expansion but the bubble was equity- and business-investment-driven rather than a consumer-borrowing episode."
+        },
+        {
+          "id": "household_debt_service",
+          "a": 1,
+          "reason": "Household debt service burdens rose gradually but played no meaningful role in the formation or bursting of the tech bubble, and household balance sheets were not the breaking point."
+        },
+        {
+          "id": "financial_conditions",
+          "a": 2,
+          "reason": "Conditions were easy after the Fed's late-1998 LTCM cuts and Y2K liquidity provision, then tightened with the 1999-2000 hikes, forming a permissive backdrop rather than the core mechanism."
+        },
+        {
+          "id": "bond_spread",
+          "a": 2,
+          "reason": "Credit spreads actually widened from 1998 onward even as equities soared, so they accompanied the period and the 2001-2002 credit bust more than they drove the equity mania."
+        },
+        {
+          "id": "loan_standards",
+          "a": 2,
+          "reason": "Banks began tightening business lending standards in 1998 and tightened sharply in 2000-2001, which accompanied the bust, but the bubble was funded mainly through equity and bond markets rather than bank loans."
+        },
+        {
+          "id": "unemployment_rate",
+          "a": 1,
+          "reason": "Unemployment fell to about 4% in 2000 and rose to around 6% by 2003, a background reflection of the boom and mild recession rather than a part of the bubble's path."
+        }
+      ]
+    },
+    {
+      "judge": 3,
+      "lens": "a corporate-finance researcher specialising in IPO markets and equity issuance",
+      "ok": true,
+      "scores": [
+        {
+          "id": "speed_r24",
+          "a": 5,
+          "reason": "The NASDAQ Composite roughly tripled from late 1998 to its March 2000 peak near 5,000 and then fell about 78% by October 2002, so the speed of the index's rise and reversal was the bubble's defining symptom."
+        },
+        {
+          "id": "speed_d200",
+          "a": 5,
+          "reason": "In early 2000 the NASDAQ traded at an extreme premium (on the order of 50%+) above its 200-day average, a parabolic blow-off that marked the final phase and broke immediately in March-April 2000."
+        },
+        {
+          "id": "nasdaq_per_m2",
+          "a": 4,
+          "reason": "The index outran money supply growth many times over in 1998-2000, so the ratio is a scale measure of how large the price bubble became relative to liquidity rather than a causal channel itself."
+        },
+        {
+          "id": "nasdaq_per_household_liquid_assets",
+          "a": 4,
+          "reason": "Households shifted heavily from cash-like assets into equities and tech mutual funds and online brokerage accounts in 1998-2000, so the ratio gauges the size of the bubble against retail dry powder."
+        },
+        {
+          "id": "spx_per_federal_debt",
+          "a": 1,
+          "reason": "Federal debt was flat to shrinking amid the 1998-2001 budget surpluses, which makes this ratio rise mechanically but federal borrowing played no real role in forming or bursting the bubble."
+        },
+        {
+          "id": "valuation_proxy",
+          "a": 4,
+          "reason": "Aggregate equity value relative to profits reached record highs in 1999-2000 (S&P trailing P/E above 30, Shiller CAPE about 44), directly measuring the size of the overvaluation, though the excess was concentrated in tech and profitless firms."
+        },
+        {
+          "id": "ipo_count_operating_12m",
+          "a": 5,
+          "reason": "Roughly 470 IPOs in 1999 and about 380 in 2000, many profitless internet firms with average first-day returns near 70%, were the core mechanism feeding the mania, and the window slammed shut to under 80 deals in 2001."
+        },
+        {
+          "id": "margin_credit",
+          "a": 3,
+          "reason": "Margin debt roughly doubled from late 1998 to a record near 280 billion dollars in March 2000 and forced margin calls accelerated the spring 2000 selloff, making it a clear leverage amplifier."
+        },
+        {
+          "id": "investment_share_gdp",
+          "a": 5,
+          "reason": "The boom in IT equipment, software and telecom network spending (including Y2K outlays) was the real-economy side of the bubble, and its overcapacity-driven collapse in 2000-2002 caused the 2001 recession."
+        },
+        {
+          "id": "corporate_bond_stock",
+          "a": 3,
+          "reason": "Telecom and tech firms financed the fiber and network buildout with heavy bond and high-yield issuance, which ended in record defaults such as WorldCom and Global Crossing in 2001-2002."
+        },
+        {
+          "id": "consumer_credit_growth",
+          "a": 1,
+          "reason": "Consumer credit grew steadily in the late 1990s expansion but the bubble was an equity and corporate-investment episode, not a consumer-credit one."
+        },
+        {
+          "id": "household_debt_service",
+          "a": 1,
+          "reason": "Household debt service ratios drifted upward in the late 1990s but were not a mechanism of the dot-com run-up or crash, which did not run through household balance-sheet stress."
+        },
+        {
+          "id": "financial_conditions",
+          "a": 2,
+          "reason": "Conditions were loose after the Fed's autumn 1998 LTCM cuts and Y2K liquidity injections and then tightened as the Fed hiked to 6.5% by May 2000, an accompanying condition rather than the bubble's core path."
+        },
+        {
+          "id": "bond_spread",
+          "a": 2,
+          "reason": "Credit spreads were already widening from 1998 onward even as the NASDAQ soared, so they accompanied the period and reflected the 2001-2002 telecom default wave rather than driving the equity mania."
+        },
+        {
+          "id": "loan_standards",
+          "a": 2,
+          "reason": "Banks began tightening business loan standards in 1998 and tightened sharply in 2000-2001, coinciding with the bust, but the bubble was funded by equity and venture capital rather than bank lending."
+        },
+        {
+          "id": "unemployment_rate",
+          "a": 1,
+          "reason": "Unemployment fell to about 3.9% in 2000 and rose toward 6% by 2002-2003 as a background and lagging macro consequence, not part of the bubble's formation path."
+        }
+      ]
+    },
+    {
+      "judge": 4,
+      "lens": "a sceptical risk manager who distrusts tidy bubble narratives",
+      "ok": true,
+      "scores": [
+        {
+          "id": "speed_r24",
+          "a": 5,
+          "reason": "The NASDAQ roughly tripling from late 1998 to March 2000 and then falling about 78% was the defining symptom of the bubble, with price momentum itself drawing in retail and fund flows."
+        },
+        {
+          "id": "speed_d200",
+          "a": 5,
+          "reason": "The extreme stretch above trend in the winter 1999-2000 blow-off and its violent reversal from March 2000 was the same price path at a shorter horizon, a core symptom of the mania."
+        },
+        {
+          "id": "nasdaq_per_m2",
+          "a": 4,
+          "reason": "Scaling the NASDAQ by money supply gauges how far tech equity prices outran the monetary base, a size-of-bubble measure, though M2 itself was not a driver."
+        },
+        {
+          "id": "nasdaq_per_household_liquid_assets",
+          "a": 4,
+          "reason": "Households shifted from cash-like holdings into tech stocks and mutual funds through online brokerages, so this ratio sizes the bubble against the retail cash that fed it."
+        },
+        {
+          "id": "spx_per_federal_debt",
+          "a": 1,
+          "reason": "Federal debt was flat to shrinking under the 1998-2001 surpluses, so the ratio moved partly for fiscal reasons unrelated to the tech mania and only loosely sizes broad equity prices."
+        },
+        {
+          "id": "valuation_proxy",
+          "a": 4,
+          "reason": "Aggregate price-to-earnings multiples reached record highs by 1999-2000 as profitless internet firms were capitalised at tens of billions, directly measuring the size of the bubble."
+        },
+        {
+          "id": "ipo_count_operating_12m",
+          "a": 5,
+          "reason": "The 1999 to early 2000 flood of internet IPOs with huge first-day pops supplied the bubble paper and financed cash-burning firms, and the window closing in 2000 is what killed them."
+        },
+        {
+          "id": "margin_credit",
+          "a": 3,
+          "reason": "Margin debt rose sharply into March 2000 and forced liquidations amplified the spring 2000 sell-off, a leverage amplifier rather than the root cause."
+        },
+        {
+          "id": "investment_share_gdp",
+          "a": 5,
+          "reason": "The IT, telecom and Y2K capex boom was the real-economy core of the bubble, and its collapse in 2000-2002 produced the overcapacity bust and the 2001 recession."
+        },
+        {
+          "id": "corporate_bond_stock",
+          "a": 3,
+          "reason": "Telecom and fibre builders such as WorldCom and Global Crossing funded the build-out with heavy bond issuance, and their 2001-2002 defaults deepened the crash, a funding channel but an economy-wide aggregate."
+        },
+        {
+          "id": "consumer_credit_growth",
+          "a": 1,
+          "reason": "Consumer credit grew steadily in the late 1990s expansion but the bubble was financed by equity, venture and corporate debt rather than household borrowing."
+        },
+        {
+          "id": "household_debt_service",
+          "a": 1,
+          "reason": "Household debt service drifted up through the period but played no real role in a bust that was driven by corporate capex and equity valuations, not household balance sheets."
+        },
+        {
+          "id": "financial_conditions",
+          "a": 2,
+          "reason": "Conditions were loose after the autumn 1998 LTCM rate cuts and Y2K liquidity, then tightened with Fed hikes to 6.5% by May 2000, accompanying the turn without being specific to tech."
+        },
+        {
+          "id": "bond_spread",
+          "a": 2,
+          "reason": "Credit spreads were already widening from 1998 while the NASDAQ kept soaring, so they accompanied the period and the telecom default wave rather than tracking the equity mania."
+        },
+        {
+          "id": "loan_standards",
+          "a": 2,
+          "reason": "Banks began tightening business lending standards from 1998 and sharply in 2000-2001, a credit-cycle condition alongside the bust but bank loans were not the main funding source for dot-coms."
+        },
+        {
+          "id": "unemployment_rate",
+          "a": 1,
+          "reason": "Unemployment falling to about 4% in 2000 was the macro backdrop of the New Economy boom and rose only after the crash, a lagging background indicator."
+        }
+      ]
+    },
+    {
+      "judge": 5,
+      "lens": "a market strategist who lived through the 2000 NASDAQ peak and crash",
+      "ok": true,
+      "scores": [
+        {
+          "id": "speed_r24",
+          "a": 5,
+          "reason": "The NASDAQ roughly tripled from late 1998 to March 2000 and that parabolic price run, followed by a 78% collapse to October 2002, was the bubble's defining symptom."
+        },
+        {
+          "id": "speed_d200",
+          "a": 5,
+          "reason": "In early 2000 the NASDAQ stood some 50%+ above its 200-day average, a blow-off extension that marked the final speculative phase and reversed violently from March 2000."
+        },
+        {
+          "id": "nasdaq_per_m2",
+          "a": 4,
+          "reason": "The index outran money growth by a wide margin in 1998-2000, so the ratio gauges how large the price level had become relative to available liquidity rather than a causal channel."
+        },
+        {
+          "id": "nasdaq_per_household_liquid_assets",
+          "a": 4,
+          "reason": "Households shifted from cash into equity funds and day-trading accounts, so index value relative to their cash-like holdings sized the bubble against the buying power feeding it."
+        },
+        {
+          "id": "spx_per_federal_debt",
+          "a": 2,
+          "reason": "Federal debt stagnated during the 1998-2001 surpluses while stocks soared, so the ratio rose, but federal debt itself played no role in how the bubble formed or burst."
+        },
+        {
+          "id": "valuation_proxy",
+          "a": 4,
+          "reason": "Aggregate equity value relative to profits reached record highs in 1999-2000 as prices detached from earnings, directly measuring the overvaluation that later unwound."
+        },
+        {
+          "id": "ipo_count_operating_12m",
+          "a": 5,
+          "reason": "The 1998-2000 flood of profitless internet IPOs with huge first-day pops was the core mechanism converting enthusiasm into supply, and the IPO window slammed shut after March 2000."
+        },
+        {
+          "id": "margin_credit",
+          "a": 3,
+          "reason": "Margin debt surged to about $280 billion by March 2000 and forced margin calls accelerated the spring 2000 selloff, making it a clear leverage amplifier."
+        },
+        {
+          "id": "investment_share_gdp",
+          "a": 5,
+          "reason": "The IT, telecom and Y2K capex boom was the real-economy core of the bubble and its collapse in 2001 produced the recession and the tech earnings wipeout."
+        },
+        {
+          "id": "corporate_bond_stock",
+          "a": 3,
+          "reason": "Telecom and other firms issued heavy debt to fund network overbuild and buybacks, and the resulting defaults (WorldCom, Global Crossing) deepened the 2001-2002 leg down."
+        },
+        {
+          "id": "consumer_credit_growth",
+          "a": 1,
+          "reason": "Consumer credit grew steadily with the strong economy but was not a channel through which technology stocks were bid up or collapsed."
+        },
+        {
+          "id": "household_debt_service",
+          "a": 1,
+          "reason": "Household debt service rose gradually in the late 1990s as background, with household leverage becoming central only in the later housing cycle."
+        },
+        {
+          "id": "financial_conditions",
+          "a": 2,
+          "reason": "Easy conditions after the 1998 LTCM rate cuts and Y2K liquidity accompanied the final run-up, and Fed tightening into 2000 coincided with the peak, but conditions were permissive rather than the driver."
+        },
+        {
+          "id": "bond_spread",
+          "a": 2,
+          "reason": "Credit spreads were already widening from 1998 through 2000 even as equities soared, so they accompanied the period and reflected the later telecom credit bust rather than driving the equity mania."
+        },
+        {
+          "id": "loan_standards",
+          "a": 2,
+          "reason": "Banks began tightening business lending standards from 1998 and sharply in 2000-2001, accompanying the capex bust, while the bubble itself was financed mainly by equity and bond markets rather than bank loans."
+        },
+        {
+          "id": "unemployment_rate",
+          "a": 1,
+          "reason": "Unemployment fell to about 4% in 2000 and rose only after the bust, serving as macro backdrop rather than a part of the bubble mechanism."
+        }
+      ]
+    }
+  ]
+}

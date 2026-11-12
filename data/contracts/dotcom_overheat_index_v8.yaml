@@ -117,5 +117,51 @@ mapping_notes:
   - investment_share_gdp 는 v5 에서 장비+지식재산 투자 ÷ GDP 이고 v7 의 같은 정의 후보(equipment_ip_gdp)에 대응한다.
   - dotcom_end_position 은 2026-11-12 원장 기준으로 읽은 값이다(닷컴 구간은 과거라 바뀌지 않는다 — 개정이 있으면 새 판).
 
-panel: {}                                 # A 를 매긴 뒤 채운다(패널 점수 전부 + 중앙값). 채우기 전에는 계산이 닫혀 있다
-frozen: {}                                # 지표별 A·B·C·점수와 묶음 가중. 채우기 전에는 계산이 닫혀 있다
+panel:
+  method: 서로 독립인 5인(관점 5종)이 지표마다 0~5 정수를 매김 — 오늘 값·저장소 파일을 보지 않음
+  run_id: wf_802346b5-e00
+  scored_on: '2026-11-12'
+  tools_used: 구조화 답변 제출만(파일 읽기·검색 0회 — 실행 기록으로 확인)
+  record: docs/audit/overheat_v8_panel_20261112.json
+  values:
+    speed_r24: [5, 5, 5, 5, 5]
+    speed_d200: [5, 5, 5, 5, 5]
+    nasdaq_per_m2: [4, 4, 4, 4, 4]
+    nasdaq_per_household_liquid_assets: [4, 4, 4, 4, 4]
+    spx_per_federal_debt: [1, 1, 2, 2, 2]
+    valuation_proxy: [4, 4, 4, 4, 5]
+    ipo_count_operating_12m: [5, 5, 5, 5, 5]
+    margin_credit: [3, 3, 3, 3, 3]
+    investment_share_gdp: [5, 5, 5, 5, 5]
+    corporate_bond_stock: [3, 3, 3, 3, 3]
+    consumer_credit_growth: [1, 1, 1, 1, 1]
+    household_debt_service: [1, 1, 1, 1, 1]
+    financial_conditions: [2, 2, 2, 2, 2]
+    bond_spread: [2, 2, 2, 2, 2]
+    loan_standards: [2, 2, 2, 2, 2]
+    unemployment_rate: [1, 1, 1, 1, 1]
+  median: {speed_r24: 5, speed_d200: 5, nasdaq_per_m2: 4, nasdaq_per_household_liquid_assets: 4, spx_per_federal_debt: 2, valuation_proxy: 4, ipo_count_operating_12m: 5, margin_credit: 3, investment_share_gdp: 5,
+    corporate_bond_stock: 3, consumer_credit_growth: 1, household_debt_service: 1, financial_conditions: 2, bond_spread: 2, loan_standards: 2, unemployment_rate: 1}
+frozen:
+  rules_sha256: 3cc5395d9136a76be14ca9c87d7f749e38e42f6e33fe3e1be710367b371482db
+  v7_rules_sha256: 6077a95fb27739a7702a4fd30e1229bf75afabe610058dda63d71c43817b1489
+  indicators:
+    speed_r24: {A: 5.0, B: 3.0, C: 2.0, points: 10.0, evidence: eligible, a_source: panel, weight: 0.072386}
+    speed_d200: {A: 5.0, B: 1.0, C: 2.0, points: 8.0, evidence: weak, a_source: panel, weight: 0.072386}
+    nasdaq_per_m2: {A: 4.0, B: 3.0, C: 2.0, points: 9.0, evidence: eligible, a_source: panel, weight: 0.042895}
+    nasdaq_per_household_liquid_assets: {A: 4.0, B: 2.0, C: 2.0, points: 8.0, evidence: duplicate, a_source: panel, weight: 0.042895}
+    spx_per_federal_debt: {A: 2.0, B: 3.0, C: 2.0, points: 7.0, evidence: eligible, a_source: panel, weight: 0.042895}
+    valuation_proxy: {A: 4.0, B: 1.0, C: 2.0, points: 7.0, evidence: chance, a_source: panel, weight: 0.112601}
+    ipo_count_operating_12m: {A: 5.0, B: 1.0, C: 1.0, points: 7.0, evidence: chance, a_source: owner, weight: 0.112601}
+    margin_credit: {A: 3.0, B: 2.0, C: 2.0, points: 7.0, evidence: duplicate, a_source: panel, weight: 0.112601}
+    investment_share_gdp: {A: 5.0, B: 1.0, C: 2.0, points: 8.0, evidence: chance, a_source: panel, weight: 0.128686}
+    corporate_bond_stock: {A: 3.0, B: 0.0, C: 2.0, points: 5.0, evidence: opposite, a_source: panel, weight: 0.080429}
+    consumer_credit_growth: {A: 1.0, B: 0.0, C: 0.0, points: 1.0, evidence: none, a_source: panel, weight: 0.020107}
+    household_debt_service: {A: 1.0, B: 1.0, C: 2.0, points: 4.0, evidence: chance, a_source: panel, weight: 0.020107}
+    financial_conditions: {A: 2.0, B: 0.0, C: 0.0, points: 2.0, evidence: opposite, a_source: panel, weight: 0.014298}
+    bond_spread: {A: 2.0, B: 0.0, C: 0.0, points: 2.0, evidence: none, a_source: panel, weight: 0.014298}
+    loan_standards: {A: 2.0, B: 1.0, C: 1.0, points: 4.0, evidence: chance, a_source: panel, weight: 0.014298}
+    unemployment_rate: {A: 1.0, B: 3.0, C: 2.0, points: 6.0, evidence: eligible, a_source: panel, weight: 0.096515}
+  group_points: {speed: 9.0, price_vs_money: 8.0, valuation: 7.0, ipo: 7.0, leverage: 7.0, real_investment: 8.0, corporate_debt: 5.0, household_debt: 2.5, conditions: 2.6667, economy: 6.0}
+  group_weights: {speed: 0.144772, price_vs_money: 0.128686, valuation: 0.112601, ipo: 0.112601, leverage: 0.112601, real_investment: 0.128686, corporate_debt: 0.080429, household_debt: 0.040214, conditions: 0.042895,
+    economy: 0.096515}
