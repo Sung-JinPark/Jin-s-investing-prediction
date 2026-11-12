@@ -1,0 +1,253 @@
+version: 2026-11-12.v7
+contract_id: dotcom_overheat_index_v7
+supersedes: dotcom_overheat_index_v5      # v1~v6.1 파일은 역사 기록으로 그대로 둔다
+status: rules_fixed_shadow                # 게이트 통과 전에는 화면에 지수를 싣지 않는다
+rules_fixed_at: "2026-11-12T00:53:10Z"
+gate_as_of: "2026-11-10"                  # 고정 입력 파일의 마지막 NASDAQ 거래일
+scope: dotcom_ai_comparison_display_only
+probability_space: reference_only
+model_use: false
+official_forecast_input: false
+combine_with_official_forecasts: false
+combine_with_scenario: false
+trading_signal: false
+
+change_log:
+  - date: 2026-11-12
+    decided_by: user
+    decision_record: docs/DECISIONS.md (2026-11-12 닷컴 대비 과열도 v7 — 영향도 점수제)
+    owner_instruction: >-
+      "54% 가 현실적으로 변할 수 있는 값을 줘라. 각 지표에 점수제를 하고 가중치를 다시 검증하라 — 단순 회사채보다 금리 인상
+      지표가 증시에 더 강하게 작용할 수도 있다. 전수분석하고, 순위를 점수제로 매긴 다음 그 기준으로 가중치 영향도를 평가해 적용하라."
+    what_changes_from_v6: >-
+      v6 는 가중치를 선언했고 지표마다 '2000년 3월 = 100' 으로 쟀다. v7 은 (1) 후보마다 과거 자료에서 증시 하락과의 관계를 재어
+      점수를 매기고 (2) 점수 비례로 가중하며 (3) '닷컴 정점 = 100' 은 합산값에 건다. (4) 금리 긴축은 열기가 아니라 압력이라
+      약세장 바닥에서도 높게 남는다 — 그래서 '과열도'(열기)와 '긴축 압력'을 두 줄로 나눠 잰다.
+    relation_to_v6_1_stop_rule: >-
+      v6.1 의 정지 규칙은 '선언 가중 + 지표별 닷컴 척도' 설계에 대한 것이다. v7 은 소유자가 지시한 다른 설계다.
+      같은 자료에 대한 세 번째 시도이므로 v7 이 실패하면 같은 자료로 점수 규칙을 다시 쓰지 않는다(on_failure).
+    numeric_fit_exception: >-
+      CLAUDE.md 원칙 5 의 명문화된 예외(결정론 수치 계산의 과거 자료 적합)다. LLM 은 계산에 개입하지 않는다. 회귀·최적화·학습은 없다.
+      산출물은 참고 지표이며 캘리브레이션 표본이 아니다. 방향은 선언했고 가중은 표본 내 점수다 — 진짜 검증은 전진 구간이다.
+    blind_review: >-
+      초안을 어떤 수치도 계산하기 전에 독립 검토 4건(계량·금융·무결성·구현, 계약만 읽음)에 넘겼고 4건 모두 '고친 뒤 실행'이었다.
+      받아들인 것 — 선언 방향, 고점 부근 표본, 블록 안 순위상관, 12·24개월 결과 병행, 결과 창 완충(purge), 위약 검정, 음성 대조군,
+      걷기 전진(walk-forward)과 기준선, 하락장 규칙 수정, 발표 지연 기준일, 가중 상한의 순서, 열기·압력 분리.
+      받아들이지 않은 것은 not_adopted 에 이유와 함께 적는다.
+
+seen:                                     # 규칙을 쓰는 시점에 저자가 이미 본 것
+  - v6 후보 9개의 오늘 점수와 1995~2026 이력(통화량 대비 NASDAQ ≈ 정점 수준, 장비 투자 ≈ 정점 이상, 2년 상승률 낮음, IPO 평상 이하)
+  - v5 14개 지표의 오늘 값과 닷컴 구간 값, 오늘의 부문별 닮음이 크게 갈린다는 사실
+  - 2022년 긴축과 그해 하락장을 안다(금리 후보는 그것을 아는 상태에서 넣었다 — holdout 은 후보 선택에 대해 맹검이 아니다)
+  - 아래 규칙으로 계산한 어떤 점수·순위·가중치·합산값도 본 적이 없다. 금리 계열의 영향도 통계도 계산한 적이 없다
+
+# ── 자료 ────────────────────────────────────────────────────────────────
+analysis_inputs:
+  file: data/statistics/overheat/influence_inputs_v7.json   # 공식 FRED API 1회 수집본(1960~), sha256 은 파일 안
+  plus: data/statistics/ipo/ritter_ipoall_monthly.json (+ 같은 raw 의 첫날 수익률 열)
+  vintage: 수집 시점의 최신 개정본. 과거 시점은 아래 발표 지연을 적용해 재현한다(당시 발표본이 아니다)
+  source_of_truth: 방향·점수·가중·기준값은 전부 이 고정 파일에서 계산한다. 매일의 지수는 원장에서 계산하고, 원장으로 다시 계산한 기준값이 어긋나면 보류한다
+sessions: NASDAQCOM 값이 있는 날짜. 월말 세션 = 각 달력월의 마지막 세션
+availability: >-
+  기간 p 의 관측은 anchor(p) + lag(달력일) 이상인 첫 세션부터 보인다. anchor = 월 자료는 그 달 말일, 분기 자료는 분기 말일,
+  주간·일간은 관측일. 식에 계열이 둘 이상이면 계열마다 그날 보이는 최신 값을 쓴다. 'k 기간 전' 은 그 계열에서 보이는 최신 기간의 k 기간 전 값.
+series_lag_days: {NASDAQCOM: 0, T10Y3M: 1, T10Y2Y: 1, DCOILWTICO: 7, NFCI: 7, FEDFUNDS: 5, GS10: 5, UNRATE: 10, CPIAUCSL: 20,
+  HQMCB10YR: 30, M2SL: 30, TOTALSL: 45, SPASTT01USM661N: 60, GDP: 35, Y034RC1Q027SBEA: 35, Y001RC1Q027SBEA: 35,
+  W328RC1Q027SBEA: 90, NCBEILQ027S: 85, BOGZ1LM153064475Q: 85, BOGZ1LM893064105Q: 85, DABSHNO: 85, FL663067003: 85,
+  FL103163005: 85, FA103163005: 85, BOGZ1FL010000346Q: 95, DRTSCILM: 45, GFDEBTN: 60, RITTER: 45}
+lag_note: 발표 달력과 한 줄씩 대조하지는 못했다 [미검증]. 실제 발표보다 이르지 않도록 넉넉한 쪽으로 잡았다
+staleness_limits_days: {daily: 10, weekly: 30, monthly: 120, quarterly: 230, ritter: 520}
+outcome:
+  DD: "DD_H(t) = max(0, 1 − min(N_u, u = t+1 .. t+H) / N_t). 세션 t+H 가 없으면 결측"
+  horizons: {DD12: 252, DD24: 504}
+sample:
+  near_high: "월말 세션 t 가운데 N_t >= 0.90 * max(N over the trailing 252 sessions incl. t)"   # 과열 판단이 필요한 때 = 고점 부근
+  why: 이미 폭락 중인 달을 넣으면 '스프레드 확대·금리 인하·200일선 아래 = 뜨겁다' 가 된다. 묻는 것은 고점 부근에서 이후 하락을 가르느냐다
+windows:
+  purge: 월말 t 는 t 와 t+H 세션이 모두 같은 구간 안에 있을 때만 그 구간의 표본이다(H 는 그 통계가 쓰는 결과 창)
+  train: 1973-01 .. 2017-12, excluding 1997-01 .. 2002-12
+  why_exclude_dotcom: 후보 목록과 척도(정점 = 100)가 닷컴을 보고 만든 것이다. 그 구간으로 점수까지 매기면 자기충족이 된다
+  embargo: 2018-01 .. 2019-12              # 점수에 쓰지 않는다
+  holdout: 2020-01 .. gate_as_of minus 12 months
+  blocks: [1973-01..1982-09, 1982-10..2007-12 (excluding 1997-01..2002-12), 2008-01..2017-12]   # 통화정책 체제 경계
+  standardisation: 1995-01 .. 2019-12 월말 세션(생산 원장으로 재현 가능한 구간)
+
+# ── 후보 지표(전수) — 방향은 측정 전에 선언한다 ──────────────────────────
+# sign +1 = 높을수록 그 줄(열기/압력)이 강하다. group heat = 과열도 줄, pressure = 긴축 압력 줄.
+candidates:
+  - {id: nasdaq_m2, group: heat, family: valuation, sign: 1, label: 통화량 대비 NASDAQ, formula: NASDAQCOM / M2SL, frequency: daily, price_term: true}
+  - {id: nasdaq_household_cash, group: heat, family: valuation, sign: 1, label: 가계 현금성 자산 대비 NASDAQ, formula: NASDAQCOM / DABSHNO, frequency: daily, price_term: true}
+  - {id: shares_federal_debt, group: heat, family: valuation, sign: 1, label: 연방부채 대비 미국 주가, formula: SPASTT01USM661N / GFDEBTN, frequency: monthly, price_term: true}
+  - {id: mktcap_gdp, group: heat, family: valuation, sign: 1, label: 주식 시가총액 ÷ GDP, formula: BOGZ1LM893064105Q / (GDP * 1000), frequency: quarterly, price_term: true}
+  - {id: equity_profit, group: heat, family: valuation, sign: 1, label: 기업가치 ÷ 세후이익, formula: NCBEILQ027S / (W328RC1Q027SBEA * 1000), frequency: quarterly, price_term: true}
+  - {id: equity_profit_smoothed, group: heat, family: valuation, sign: 1, label: 기업가치 ÷ 3년 평균 세후이익, formula: NCBEILQ027S / (1000 * mean(W328RC1Q027SBEA over the last 12 quarters)), frequency: quarterly, price_term: true}
+  - {id: household_equity_alloc, group: heat, family: participation, sign: 1, label: 가계 주식 ÷ 현금성 자산, formula: BOGZ1LM153064475Q / DABSHNO, frequency: quarterly, price_term: true}
+  - {id: margin_gdp, group: heat, family: participation, sign: 1, label: 증거금 신용 ÷ GDP, formula: FL663067003 / (GDP * 1000), frequency: quarterly, price_term: true}
+  - {id: margin_mktcap, group: heat, family: participation, sign: 1, label: 증거금 신용 ÷ 시가총액, formula: FL663067003 / BOGZ1LM893064105Q, frequency: quarterly, price_term: true}
+  - {id: speed_r24, group: heat, family: speed, sign: 1, label: NASDAQ 2년 상승률, formula: "ln(N_t / mean(N over sessions t-524..t-485))", frequency: daily, price_term: true}
+  - {id: speed_d200, group: heat, family: speed, sign: 1, label: NASDAQ 200일 평균 대비 이격, formula: "N_t / mean(last 200 sessions incl. t) - 1", frequency: daily, price_term: true}
+  - {id: ipo_count_12m, group: heat, family: ipo, sign: 1, label: IPO 건수(미국 12개월), formula: trailing 12-month sum of Ritter net monthly counts, frequency: ritter, price_term: false}
+  - {id: ipo_first_day_12m, group: heat, family: ipo, sign: 1, label: IPO 첫날 평균 수익률(12개월), formula: net-count-weighted mean first-day return over 12 months (>= 50 deals), frequency: ritter, price_term: false}
+  - {id: it_equipment_gdp, group: heat, family: real, sign: 1, label: 정보처리 장비 투자 ÷ GDP, formula: Y034RC1Q027SBEA / GDP, frequency: quarterly, price_term: false}
+  - {id: equipment_ip_gdp, group: heat, family: real, sign: 1, label: 장비+지식재산 투자 ÷ GDP, formula: (Y034RC1Q027SBEA + Y001RC1Q027SBEA) / GDP, frequency: quarterly, price_term: false}
+  - {id: corp_bonds_gdp, group: heat, family: credit, sign: 1, label: 기업 회사채 잔액 ÷ GDP, formula: FL103163005 / (GDP * 1000), frequency: quarterly, price_term: false}
+  - {id: corp_bonds_gdp_change_3y, group: heat, family: credit, sign: 1, label: 회사채 잔액/GDP 의 3년 변화, formula: corp_bonds_gdp − corp_bonds_gdp(12 quarters earlier), frequency: quarterly, price_term: false}
+  - {id: net_bond_issuance_gdp, group: heat, family: credit, sign: 1, label: 회사채 순발행 ÷ GDP(4분기 평균), formula: mean(FA103163005 over the last 4 quarters) / (GDP * 1000), frequency: quarterly, price_term: false}
+  - {id: consumer_credit_yoy, group: heat, family: credit, sign: 1, label: 소비자신용 증가율, formula: TOTALSL / TOTALSL(12 months earlier) − 1, frequency: monthly, price_term: false}
+  - {id: household_debt_service, group: heat, family: credit, sign: 1, label: 가계 원리금 상환 부담, formula: BOGZ1FL010000346Q, frequency: quarterly, price_term: false}
+  - {id: m2_yoy, group: heat, family: liquidity, sign: 1, label: 통화량 증가율, formula: M2SL / M2SL(12 months earlier) − 1, frequency: monthly, price_term: false}
+  - {id: loan_standards, group: heat, family: conditions, sign: -1, label: 은행 기업대출 심사 강화, formula: DRTSCILM, frequency: quarterly, price_term: false}
+  - {id: financial_conditions, group: heat, family: conditions, sign: -1, label: 금융여건지수, formula: NFCI, frequency: weekly, price_term: false}
+  - {id: bond_spread, group: heat, family: conditions, sign: -1, label: 회사채 금리 − 국채 금리, formula: HQMCB10YR − GS10, frequency: monthly, price_term: false}
+  - {id: unemployment_rate, group: heat, family: economy, sign: -1, label: 실업률, formula: UNRATE, frequency: monthly, price_term: false}
+  - {id: policy_rate_change_12m, group: pressure, family: rates, sign: 1, label: 기준금리 1년 변화(금리 인상 속도), formula: FEDFUNDS − FEDFUNDS(12 months earlier), frequency: monthly, price_term: false}
+  - {id: policy_tightening_36m, group: pressure, family: rates, sign: 1, label: 기준금리 3년 저점 대비 상승폭(누적 긴축), formula: FEDFUNDS − min(FEDFUNDS over the last 36 months incl. current), frequency: monthly, price_term: false}
+  - {id: long_rate_change_12m, group: pressure, family: rates, sign: 1, label: 10년물 금리 1년 변화, formula: GS10 − GS10(12 months earlier), frequency: monthly, price_term: false}
+  - {id: real_policy_rate, group: pressure, family: rates, sign: 1, label: 실질 기준금리, formula: FEDFUNDS − 100 * (CPIAUCSL / CPIAUCSL(12 months earlier) − 1), frequency: monthly, price_term: false}
+  - {id: real_long_rate, group: pressure, family: rates, sign: 1, label: 실질 10년 금리, formula: GS10 − 100 * (CPIAUCSL / CPIAUCSL(12 months earlier) − 1), frequency: monthly, price_term: false}
+  - {id: curve_10y_ff, group: pressure, family: curve, sign: -1, label: 장단기 금리차(10년 − 기준금리), formula: GS10 − FEDFUNDS, frequency: monthly, price_term: false}
+  - {id: curve_10y3m, group: pressure, family: curve, sign: -1, label: 장단기 금리차(10년 − 3개월), formula: T10Y3M, frequency: daily, price_term: false}
+  - {id: curve_10y2y, group: pressure, family: curve, sign: -1, label: 장단기 금리차(10년 − 2년), formula: T10Y2Y, frequency: daily, price_term: false}
+  - {id: inflation_yoy, group: pressure, family: inflation, sign: 1, label: 소비자물가 상승률, formula: 100 * (CPIAUCSL / CPIAUCSL(12 months earlier) − 1), frequency: monthly, price_term: false}
+  - {id: oil_change_12m, group: pressure, family: inflation, sign: 1, label: 유가 1년 변화, formula: ln(DCOILWTICO / DCOILWTICO(252 sessions earlier)), frequency: daily, price_term: false}
+negative_controls:                        # 같은 규칙으로 채점해 순위표에 싣는다. 가중에는 절대 들어가지 않는다
+  - {id: nc_time_trend, formula: 월 번호(1973-01 = 0), sign: 1}
+  - {id: nc_shifted_nasdaq_m2, formula: nasdaq_m2 의 84개월 전 값, sign: 1}
+excluded_with_reason:
+  - VIX·실현변동성·BAA 스프레드·2년물 금리·TB3MS — 생산 원장에 없는 계열이다. 넣으려면 원천 등록과 수집 개정이 먼저다
+  - v6 next_versions 의 BSADF·NASDAQ100 상대수익·A679RC1Q027SBEA·IPHITEK2S·펀드 순매수 — 원장에 없는 계열이거나 새 구성이라 다음 개정
+  - 실업률 저점 대비 상승(Sahm형) — 과열도 긴축도 아니라 이미 시작된 침체의 지표다
+  - 10년 중앙값 대비 갭형(실질금리·실업률) — 원장이 1995년부터라 2000-03-10 에 계산할 수 없다
+
+# ── 점수제 ──────────────────────────────────────────────────────────────
+# 지표 i 의 원값 x_i(t) 와 결과 DD(t) 의 관계를 train 의 고점 부근 월말 표본에서 잰다. 선언 방향 d_i 를 곱한 hot_i = d_i * x_i.
+scoring:
+  scoreable: train 고점 부근 표본 120개월 이상(DD12 기준)
+  rho: "pooled-within-block Spearman — 블록 안에서만 순위를 매겨(동순위는 평균 순위) 블록별 Spearman(hot_i, DD) 을 구하고 블록 표본 수로 가중 평균(표본 12개 미만 블록은 뺀다)"
+  P1_rank_association:
+    max: 35
+    points: "35 * clip((rbar_i − 0.05) / 0.30, 0, 1),  rbar_i = (rho12_i + rho24_i) / 2 if both > 0 else 0"
+  P2_tail_frequency:
+    max: 25
+    points: "25 * clip((delta_i − 0.05) / 0.25, 0, 1),  delta_i = P(DD12 >= 0.20 | hot_i 가 자기 블록 상위 20%) − P(DD12 >= 0.20 | 나머지)"
+  P3_bear_episodes:
+    max: 20
+    episode_rule: >-
+      NASDAQ 종가 전체에 상태기계를 한 번 돌린다. 상승 상태(시작): 기준 고점 M = 그때까지의 최고 종가(고점일 P). 종가 <= 0.75 * M 인
+      첫 세션에 하락장 1건(P 기록) → 하락 상태(저점 L = 그 종가). 하락 상태: 종가 < L 이면 L 갱신, 종가 >= 1.30 * L 인 첫 세션에
+      상승 상태로 돌아가 M = 그 종가, P = 그 세션. 센다 = P 가 train 월 범위 안인 건. 건 목록은 frozen 에 적는다.
+    hit: "P 이하 마지막 월말의 hot_i 가, 그 월말 이전 240개월(최소 120개월)의 자기 월말 값 분포에서 70 백분위 이상"
+    points: "20 * clip((hits / episodes_with_data − 0.30) / 0.70, 0, 1)"
+    not_scored: price_term 지표(고점에서 높은 것이 정의상 당연하다)와 episodes_with_data < 4 인 지표는 0점이 아니라 '미채점'
+  P4_block_stability:
+    max: 20
+    witness: 블록 안 고점 부근 표본 48개월 이상이고 |rho12_block| >= 0.10 인 블록
+    points: 증언 블록이 2개 이상이고 전부 양(선언 방향)이면 20, 증언 블록 3개 중 하나만 음이면 8, 그 밖은 0
+  total: "E_i = 100 * (채점된 항목 점수 합) / (채점된 항목 만점 합)"       # 발표 주기는 점수가 아니다(동점일 때만 빠른 쪽이 앞)
+  placebo: >-
+    자리 밀기 위약. train 고점 부근 표본을 시간순으로 이어 붙인 뒤 hot_i 를 결과에 대해 k = 24, 36, 48, … (12 간격, n−24 이하)개월 순환
+    이동하고 같은 공식으로 E_core = 100 * (P1 + P2 + P4) / 80 을 잰다. 난수 없음. 지표의 실제 E_core 가 자기 위약 값들의 90 백분위를 넘어야 한다.
+  redundancy: >-
+    E_i 내림차순(동점은 발표 주기 빠른 쪽, 그다음 후보 목록 순서)으로 훑으며, 같은 group 에서 이미 통과한 지표와
+    train 고점 부근 표본의 |Spearman(hot_i, hot_k)| 가 0.80 이상이면 '중복'(가중 0, 어느 지표와 겹쳤는지 표시).
+  eligible: >-
+    scoreable AND rbar_i > 0 (측정 부호 = 선언 부호) AND 실제 E_core > 위약 90 백분위 AND E_i >= 35 AND 중복 아님
+    AND 생산 가능(standardisation 월말의 80% 이상과 2000-03-10 에 값이 있고 MAD > 0). 그 밖은 '참고'(가중 0, 사유 표시).
+  chance_disclosure: 위약 문턱이 90 백분위이므로 영향이 전혀 없는 후보도 10개 중 1개꼴로 이 관문을 넘는다. 순위표 머리에 적는다
+  minimum_eligible: {heat: 4, pressure: 2}   # 미달이면 그 줄을 만들지 않는다. heat 는 2개 부문 이상이어야 한다
+
+weights:                                  # group 마다 따로. 합 = 100
+  fill: "w_i = total * E_i / sum(E). cap 을 넘는 지표를 cap 에 고정하고 남은 total 을 나머지에 E 비례로 다시 나눈다(반복). count * cap < total 이면 불능"
+  step_A: fill(적격 전체, 100, cap_per_indicator)
+  step_B: 어느 부문의 합이 cap_per_family 를 넘으면 그 부문 지표를 같은 비율로 줄여 cap_per_family 에 맞추고 고정한 뒤, 남은 몫을 다른 부문 적격 지표에 fill 로 나눈다(부문 합이 큰 순서로 반복)
+  step_C: (heat 만) price_term 합이 50 을 넘으면 price_term 지표를 같은 비율로 줄여 50 에 맞추고, 나머지 지표에 fill 로 50 을 나눈다
+  infeasible: 어느 단계든 불능이면 그 줄을 만들지 않는다
+  cap_per_indicator: 25
+  cap_per_family: 40
+  cap_price_term_total: 50
+  nothing_else_is_estimated: true
+
+# ── 합산과 척도 ─────────────────────────────────────────────────────────
+reading: "z_i(t) = d_i * (x_i(t) − median_i) / (1.4826 * MAD_i), median·MAD = standardisation 월말 세션에 보이는 x_i 의 중앙값·중앙절대편차. 합산에만 [−10, 10] 으로 자른다(이상값 방어)"
+composite: "C(t) = sum(w_i * z_i(t)) / sum(w_i present). 한도보다 오래된 지표는 빼고 재정규화, 살아 있는 가중이 70 미만이면 보류"
+heat_headline: "H(t) = 100 * (C_heat(t) − C0) / (Cpk − C0),  C0 = median of month-end C_heat over standardisation window,  Cpk = C_heat on 2000-03-10 (as displayed)"
+heat_label: 닷컴 정점 = 100                 # 정수, % 기호 없음. 0 미만은 '평상 이하'
+pressure_companion: "Q(t) = C_pressure(t) 의 standardisation 월말 분포 안 백분위(0~100). 닷컴 척도를 쓰지 않고 H 와 더하지 않는다"
+pressure_label: 긴축 압력(1995~2019 대비 백분위)
+frozen_numbers: 방향·점수·가중·median·MAD·C0·Cpk·백분위 눈금을 frozen 에 숫자로 적는다. 생산 계산은 그 숫자만 쓴다
+drift_hold: 원장으로 다시 계산한 C0·Cpk 가 frozen 값에서 (Cpk − C0) 의 1% 넘게 어긋나면 H 를 내지 않고 보류한다
+
+# ── 게이트 ──────────────────────────────────────────────────────────────
+construction_checks:                      # 정의상 성립 — 구현 확인용이며 검증이라 부르지 않는다
+  - {id: C1, rule: "H = 100 at 2000-03-10 and median month-end H over the standardisation window = 0"}
+  - {id: C2, rule: "H changed on at least 45 of the last 60 sessions at 0.1 resolution"}
+  - {id: C3, rule: "weights satisfy every cap"}
+gates:                                    # heat 줄(대표값)의 게이트. 임계값은 여기서 고정한다
+  - {id: G1, rule: "(Cpk − C0) >= 2.0 * 1.4826 * MAD of month-end C_heat over the standardisation window", why: 합산값의 닷컴 정점이 평상에서 충분히 멀다}
+  - {id: G2, rule: "H <= 25 at 2002-10-09, 2009-03-09 and 2022-12-28", why: 약세장 바닥에서 뜨겁지 않다(v6 임계 그대로)}
+  - {id: G3, rule: "max month-end H over 2003-01 .. gate_as_of minus 12 months among months with DD12 < 0.10 is <= 60", why: 거짓 과열 — 뜨거웠는데 하락이 뒤따르지 않은 달}
+  - {id: G4, rule: "median month-end H over 2012-01 .. 2016-12 <= 15", why: 평온기(v6 임계 그대로)}
+  - {id: G5, rule: "pooled-within-block Spearman(C_heat, DD12) on the train near-high sample exceeds the 95th percentile of its placebo distribution — DD12 를 표본 순서에서 k = 24, 36, … 개월 순환 이동한 자료마다 점수·적격·가중을 처음부터 다시 계산해 얻은 값", why: 같은 표본에서 고른 가중이라 표본 내 상관은 자동으로 나온다 — 우연 수준을 넘는지 본다}
+  - {id: G6, rule: "neither negative control is eligible", why: 추세나 지속성만으로 점수를 받는 규칙이 아니다}
+  - {id: G7, rule: "walk-forward — 접힘마다 fit 구간만으로 점수·적격·가중을 다시 구해 test 구간 고점 부근의 Spearman(C_heat, DD12) 를 잰다. 계산 가능한 접힘이 3개 이상이고 표본 수 가중 평균이 0.10 이상이며 nasdaq_only 기준선(speed_d200 하나)보다 0.05 넘게 낮지 않다", folds: ["fit 1973-01..1988-12 → test 1990-01..1996-12", "fit 1973-01..1996-12 → test 2003-01..2009-12", "fit 1973-01..2009-12 (excl. 1997-01..2002-12) → test 2010-01..2017-12", "fit train → test holdout"], note: 표준화 구간(1995~2019)은 접힘마다 다시 잡지 않는다 — 척도에만 쓰이는 약한 누수로 공시}
+  - {id: G8, rule: "largest one-session change of H on a day when any monthly/quarterly/ritter input period changes, since 2023-01, <= 5"}
+  - {id: G9, rule: "a +10% and a −10% NASDAQ close move change today's H by <= 10, with and without the clamp"}
+  - {id: G10, rule: "weight sitting on the clamp today <= 25"}
+  - {id: G11, rule: "squared correlation of monthly H changes with same-month NASDAQ log returns over 2010-01 .. gate_as_of <= 0.70, and max − min of month-end H over the last 36 months >= 10", why: NASDAQ 의 재표기가 아니고 실제로 움직인다}
+  - {id: G12, rule: "measurement band width today <= 35", why: 점수 규칙의 합리적 대안들 사이에서 값이 크게 갈리지 않는다}
+pressure_gates:                           # 긴축 압력 줄을 실으려면
+  - {id: Q1, rule: "eligible pressure indicators >= 2 and weights feasible"}
+  - {id: Q2, rule: "same placebo test as G5 on C_pressure at the 90th percentile"}
+measurement_band:                         # G12 — 변형마다 점수·적격·가중·C0·Cpk 를 처음부터 다시 계산한 H 의 최소~최대
+  variants:
+    - {id: dd12_only, change: P1 uses rho12 only}
+    - {id: dd24_only, change: P1 uses rho24 only}
+    - {id: all_months, change: score on all train month-ends (no near-high filter)}
+    - {id: train_from_1985, change: train starts 1985-01}
+    - {id: include_dotcom, change: train includes 1997-01..2002-12}
+    - {id: equal_weights, change: equal weight across eligible indicators (caps still apply)}
+    - {id: no_placebo_gate, change: eligibility without the placebo condition}
+    - {id: threshold_25, change: E_i >= 25}
+    - {id: threshold_45, change: E_i >= 45}
+    - {id: no_redundancy, change: skip the redundancy rule}
+    - {id: cap_20, change: cap per indicator 20}
+    - {id: drop_top, change: leave out the top-weighted indicator of the base specification and rescore}
+    - {id: no_clamp, change: readings unclamped}
+  uncomputable: 적격 미달·가중 불능인 변형은 값을 만들지 않고 이름을 적는다. 2개 이상이면 G12 실패
+family_band:                              # 게이트가 아니다 — 화면에 항상 함께 싣는다
+  rule: 적격 지표가 있는 부문마다 그 부문을 뺀 H(가중·C0·Cpk 재계산)의 최소~최대
+  disclosure: >-
+    v6 는 이 범위의 폭(35 이하)을 게이트로 썼고 두 번 실패했다. 오늘의 닮음이 부문마다 갈려 있어 생기는 폭이라 지표를 바꿔도 좁아지지 않는다.
+    소유자가 '움직이는 대표값'을 지시했으므로 v7 은 이 폭을 숨기지 않고 대표값 옆에 싣되 게이트로 쓰지 않는다. 검토자 한 명은 이 변경에 반대했다(not_adopted).
+reported_not_gated:
+  - 전 후보 순위표(P1~P4, rho12·rho24, 블록별 rho, 위약 90 백분위, 하락장 적중, 사유) — 게이트 결과와 무관하게 공개한다
+  - 부문별 영향도(부문 최고점·적격 평균·가중) — '금리 인상 대 회사채' 의 직접 답
+  - 순위 차이의 구분 가능성 — 두 지표의 E 차이가 두 위약 분포 폭(90 백분위 − 중앙값)의 평균보다 작으면 '구분 불가' 로 적는다
+  - 표본 내 Spearman(C, DD12), holdout Spearman, 동일 가중 합산값과의 비교, H at 2007-10-31 · 2020-02-19 · 2021-11-19
+on_failure: v5 가 대표값으로 남는다(지표별 닮음 프로필도 그대로). 순위표는 공개한다. 같은 자료로 점수 규칙을 다시 쓰지 않는다
+on_pass: >-
+  소유자 지시(2026-11-12 "적용")에 따라 H 를 과열도 카드와 홈 카드의 대표값으로 싣고 v5 는 '이전 산식' 한 줄로 남긴다.
+  라벨 '가중은 과거 자료 기준 · 전진 검증 중' 과 부문 제외 범위를 항상 함께 싣는다. 검토자 한 명은 병행 표시에 그치라고 했다(not_adopted).
+forward_only: [다음 25% 이상 NASDAQ 하락 앞에서의 H, 매년 다시 재는 holdout 상관, Z.1·GDP 발표일의 계단]
+
+not_adopted:                              # 독립 검토의 제안 가운데 받아들이지 않은 것 — 이유를 남긴다
+  - 병행 표시만 하고 대표값은 v5 로 둘 것 — 소유자가 대표값 교체를 지시했다. 대신 라벨과 범위를 항상 싣고, 실패하면 v5 로 남는다
+  - 부문 제외 범위를 게이트로 유지할 것 — family_band.disclosure 참조
+  - 겹치지 않는 연간 표본 12벌 — 블록 안 순위와 고점 부근 표본을 함께 쓰면 벌마다 표본이 너무 작다. 표본 의존성은 자리 밀기 위약으로 다룬다
+  - 접힘마다 표준화 구간 재계산 — 생산 원장이 1995년부터라 재현할 수 없다. 약한 누수로 공시
+  - 발표 달력 대조표 — 하지 못했다. 지연을 넉넉하게 잡고 [미검증] 으로 적는다
+
+peak_knowledge_hyperparameters:
+  - 정점일 2000-03-10 · 제외 구간 1997~2002 · 표준화 구간 1995~2019 · 약세장 저점일 3개
+  - clamp [−10, 10] · 고점 부근 0.90 · 하락장 25% · 회복 30% · 상위 20% · 70 백분위 · P 임계(0.05/0.30, 0.05/0.25, 0.30)
+  - 적격 35 · 위약 90/95 백분위 · 중복 0.80 · 상한 25/40/50 · 최소 적격 4/2 · 게이트 임계 전부
+known_limits:
+  - 가중은 1973~2017 자료(닷컴 구간 제외)에 맞춘 표본 내 점수다. 그 구간의 큰 하락장은 손에 꼽는다 — 순위 차이의 상당수는 오차 범위 안이다.
+  - 후보 35개를 한꺼번에 잰다. 위약 문턱을 넘은 지표 가운데 일부는 우연이다(10개 중 1개꼴).
+  - 과거 구간은 최신 개정 자료에 고정 발표 지연을 적용한 재현이지 당시 발표본이 아니다. 발표 지연은 달력과 대조하지 못했다.
+  - 100 은 2000-03-10 화면에 보였을 합산값이다. 사례 하나의 기준이지 '100 이면 붕괴'가 아니다.
+  - 선형 합산은 '과열 × 긴축' 같은 상호작용을 표현하지 못한다. 그래서 두 줄을 따로 보인다.
+  - 긴축 지표는 약세장 바닥에서도 높게 남는다(2022-12). 압력이 높다는 것과 과열이라는 것은 다르다.
+  - 확률이 아니다. 하락에 앞서 높았다는 것과 하락을 예측한다는 것은 다르다.
+
+frozen: {}                                # tools/measure_overheat_influence_v7.py 가 한 번 채운다
