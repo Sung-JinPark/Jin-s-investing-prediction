@@ -295,6 +295,26 @@ def check_profile(profile: dict[str, Any] | None, live: dict[str, Any] | None, *
     return findings
 
 
+def check_weighted(live: dict[str, Any] | None) -> list[dict[str, str]]:
+    """대표값(dotcom_overheat_index_v8 판단 가중 평균)이 사이트에 열려 있는가.
+
+    닫혀 있으면 화면은 조용히 이전 산식(v5)으로 돌아가 있다 — 숫자가 바뀐 이유를 사람이 알 수 있게 알린다.
+    """
+    if not isinstance(live, dict):
+        return []  # 배포본을 못 읽은 것은 check_live_site 가 이미 실패로 알린다
+    shown = live.get("dotcom_overheat_weighted")
+    if not isinstance(shown, dict):
+        return [_finding("weighted", "warn", "가중 평균", "사이트 데이터에 없음 — 이전 산식(v5)이 대표값으로 보인다")]
+    if shown.get("status") != "ok" or shown.get("overheat_pct") is None:
+        return [_finding("weighted", "warn", "가중 평균",
+                         f"상태 {shown.get('status')} — {shown.get('reason')} · 이전 산식(v5)이 대표값으로 보인다")]
+    missing = [str(key) for key in shown.get("missing") or []]
+    if missing:
+        return [_finding("weighted", "warn", "가중 평균",
+                         f"{shown.get('overheat_pct')}% · 빠진 지표(가중 재배분): {', '.join(missing)}")]
+    return [_finding("weighted", "ok", "가중 평균", f"{shown.get('overheat_pct')}% · 지표 {shown.get('included')}개")]
+
+
 def run_watchdog(root: Path, *, now: datetime | None = None, fred_key: str | None = None,
                  last_success: str | None = None, live: dict[str, Any] | None | str = "fetch",
                  get: Callable[[str], bytes] = _get) -> dict[str, Any]:
@@ -323,6 +343,7 @@ def run_watchdog(root: Path, *, now: datetime | None = None, fred_key: str | Non
     findings += check_ipo_sources(read(IPO_STATUS_RELATIVE), now=moment)
     findings += check_theme_watch(read(WATCH_RELATIVE), now=moment)
     findings += check_profile(read(PROFILE_RELATIVE), live if isinstance(live, dict) else None, now=moment)
+    findings += check_weighted(live if isinstance(live, dict) else None)
     counts = {state: sum(1 for row in findings if row["status"] == state) for state in ("fail", "warn", "ok")}
     return {
         "schema_version": 1,

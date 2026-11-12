@@ -1957,6 +1957,17 @@ body[data-view="future"] .page-heading .page-lede{margin:6px 0 0;font-size:12px}
 .oh-freshness[data-oh-freshness="check_overdue"],.oh-freshness[data-oh-freshness="observation_overdue"],.oh-freshness[data-oh-freshness="unverified"]{color:#9a410c}
 .oh-list strong{color:var(--oh);font:800 14px/1.1 var(--mono);text-align:right}
 .oh-list strong small{display:block;font-size:9.5px;font-weight:600}
+/* v8 판단 가중 평균 — 묶음 행(점수·가중·기여)과 점수 기준표 */
+.oh-list.is-groups li{grid-template-columns:118px minmax(0,1fr) 78px}
+.oh-list .oh-row-static{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr) 62px;gap:10px;align-items:center;padding:6px 0;border-bottom:1px solid #f0efea}
+.oh-rubric{margin-top:14px}
+.oh-rubric-scroll{min-width:0;overflow-x:auto}
+.oh-rubric table{width:100%;min-width:520px;border-collapse:collapse;font-size:12px}
+.oh-rubric th,.oh-rubric td{padding:5px 8px;border-bottom:1px solid #f0efea;text-align:right;white-space:nowrap;font-weight:500}
+.oh-rubric thead th{color:#65635d;font-size:11px;font-weight:700}
+.oh-rubric th:first-child,.oh-rubric td:nth-child(2){text-align:left}
+.oh-rubric tbody th{font-weight:650}
+.oh-rubric td b{font:800 12.5px/1 var(--mono)}
 .oh-track{position:relative;display:block;height:10px;border-radius:5px;background:#efeee8}
 .oh-fill{display:block;height:100%;border-radius:5px;background:var(--oh)}
 .oh-track .oh-peak{top:-3px;bottom:-3px}

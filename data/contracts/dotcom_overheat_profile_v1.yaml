@@ -48,6 +48,10 @@ rules:
 display:
   where: 통계 화면 '닷컴 대비 과열도' 카드의 맨 아래 — v5 대표값·분해·주석 뒤, 구분선 아래
   headline_stays: dotcom_overheat_index_v5
+  headline_since_2026_11_12: >-
+    dotcom_overheat_index_v8(판단 가중 평균, 소유자 지시)이 대표값이 됐다. 프로필 자신은 여전히 합치지 않는다 — v8 이
+    상승 속도 2종의 점수를 읽어 갈 뿐이다. 그래서 화면 주석은 v8 이 열려 있으면 '대표값 내역 아님' 대신 '상승 속도 2종만
+    대표값에 반영'으로 바뀐다. v8 이 닫히면 위 headline_stays 로 돌아간다.
   never: [composite_number, average, weighted_sum, rank, traffic_light]
   required_labels: [합산 지수 아님, 대표값 내역 아님, 다른 척도, 참고 의견, 기준일]
 
