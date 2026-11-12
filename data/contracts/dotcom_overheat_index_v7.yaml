@@ -274,4 +274,794 @@ known_limits:
   - 긴축 지표는 약세장 바닥에서도 높게 남는다(2022-12). 압력이 높다는 것과 과열이라는 것은 다르다.
   - 확률이 아니다. 하락에 앞서 높았다는 것과 하락을 예측한다는 것은 다르다.
 
-frozen: {}                                # tools/measure_overheat_influence_v7.py 가 한 번 채운다
+frozen:
+  frozen_at: '2026-11-12T01:34:26+00:00'
+  gate_as_of: '2026-11-10'
+  inputs_sha256: 7cd44a3d9428b9277d22a7972a30c4068e21405e43f1a41b7546372b60031580
+  ritter_raw_sha256: 00f2f3ae0badd4566e3f4f10ead1936c0a0e9e983d70c0eac52d77728ac1ce25
+  rules_sha256: 6077a95fb27739a7702a4fd30e1229bf75afabe610058dda63d71c43817b1489
+  verdict: failed
+  failed_gates:
+  - G1
+  - G2
+  - G3
+  - G4
+  - G5
+  - G6
+  - G7
+  - G8
+  - G9
+  - G10
+  - G11
+  - G12
+  gates:
+    G1:
+      passed: false
+      value: null
+    G2:
+      passed: false
+      value: null
+    G3:
+      passed: false
+      value: null
+    G4:
+      passed: false
+      value: null
+    G5:
+      passed: false
+      value: null
+    G6:
+      passed: false
+      value: null
+    G7:
+      passed: false
+      value: null
+    G8:
+      passed: false
+      value: null
+    G9:
+      passed: false
+      value: null
+    G10:
+      passed: false
+      value: null
+    G11:
+      passed: false
+      value: null
+    G12:
+      passed: false
+      value: null
+  construction_checks: {}
+  pressure_gates:
+    Q1:
+      passed: false
+      value: null
+    Q2:
+      passed: false
+      value: null
+  scores:
+    nasdaq_m2:
+      group: heat
+      family: valuation
+      sign: 1
+      rank: 2
+      E: 72.49
+      E_core: 72.4941
+      placebo90: 37.38
+      P1: 35.0
+      P2: 2.9953
+      P3: null
+      P4: 20.0
+      rho12: 0.3442
+      rho24: 0.3853
+      n: 306
+      status: eligible
+      reason: null
+      weight: null
+    nasdaq_household_cash:
+      group: heat
+      family: valuation
+      sign: 1
+      rank: 4
+      E: 69.56
+      E_core: 69.5563
+      placebo90: 18.63
+      P1: 32.6497
+      P2: 2.9953
+      P3: null
+      P4: 20.0
+      rho12: 0.321
+      rho24: 0.3387
+      n: 306
+      status: reference
+      reason: 중복(nasdaq_m2)
+      weight: null
+    shares_federal_debt:
+      group: heat
+      family: valuation
+      sign: 1
+      rank: 5
+      E: 64.51
+      E_core: 64.5131
+      placebo90: 40.84
+      P1: 31.6105
+      P2: 0.0
+      P3: null
+      P4: 20.0
+      rho12: 0.309
+      rho24: 0.3329
+      n: 306
+      status: eligible
+      reason: null
+      weight: null
+    mktcap_gdp:
+      group: heat
+      family: valuation
+      sign: 1
+      rank: 14
+      E: 32.44
+      E_core: 32.4402
+      placebo90: 28.19
+      P1: 5.9522
+      P2: 0.0
+      P3: null
+      P4: 20.0
+      rho12: 0.1039
+      rho24: 0.0981
+      n: 306
+      status: reference
+      reason: 점수 35 미만
+      weight: null
+    equity_profit:
+      group: heat
+      family: valuation
+      sign: 1
+      rank: 11
+      E: 36.57
+      E_core: 36.5686
+      placebo90: 42.67
+      P1: 9.1034
+      P2: 0.1515
+      P3: null
+      P4: 20.0
+      rho12: 0.1585
+      rho24: 0.0975
+      n: 306
+      status: reference
+      reason: 우연 수준(위약 90 백분위 이하)
+      weight: null
+    equity_profit_smoothed:
+      group: heat
+      family: valuation
+      sign: 1
+      rank: 23
+      E: 13.35
+      E_core: 13.354
+      placebo90: 51.2
+      P1: 2.6832
+      P2: 0.0
+      P3: null
+      P4: 8.0
+      rho12: 0.1161
+      rho24: 0.0298
+      n: 306
+      status: reference
+      reason: 우연 수준(위약 90 백분위 이하)
+      weight: null
+    household_equity_alloc:
+      group: heat
+      family: participation
+      sign: 1
+      rank: 22
+      E: 15.91
+      E_core: 15.9072
+      placebo90: 41.69
+      P1: 4.7258
+      P2: 0.0
+      P3: null
+      P4: 8.0
+      rho12: 0.0897
+      rho24: 0.0913
+      n: 306
+      status: reference
+      reason: 우연 수준(위약 90 백분위 이하)
+      weight: null
+    margin_gdp:
+      group: heat
+      family: participation
+      sign: 1
+      rank: 3
+      E: 70.0
+      E_core: 69.9956
+      placebo90: 41.37
+      P1: 35.0
+      P2: 0.9965
+      P3: null
+      P4: 20.0
+      rho12: 0.3504
+      rho24: 0.3815
+      n: 306
+      status: reference
+      reason: 중복(nasdaq_m2)
+      weight: null
+    margin_mktcap:
+      group: heat
+      family: participation
+      sign: 1
+      rank: 18
+      E: 20.46
+      E_core: 20.4637
+      placebo90: 43.03
+      P1: 10.0847
+      P2: 6.2863
+      P3: null
+      P4: 0.0
+      rho12: 0.1309
+      rho24: 0.142
+      n: 306
+      status: reference
+      reason: 우연 수준(위약 90 백분위 이하)
+      weight: null
+    speed_r24:
+      group: heat
+      family: speed
+      sign: 1
+      rank: 1
+      E: 88.54
+      E_core: 88.5437
+      placebo90: 12.41
+      P1: 35.0
+      P2: 15.835
+      P3: null
+      P4: 20.0
+      rho12: 0.4289
+      rho24: 0.3833
+      n: 305
+      status: eligible
+      reason: null
+      weight: null
+    speed_d200:
+      group: heat
+      family: speed
+      sign: 1
+      rank: 24
+      E: 11.34
+      E_core: 11.3379
+      placebo90: 11.12
+      P1: 9.0704
+      P2: 0.0
+      P3: null
+      P4: 0.0
+      rho12: 0.1153
+      rho24: 0.1402
+      n: 306
+      status: reference
+      reason: 점수 35 미만
+      weight: null
+    ipo_count_12m:
+      group: heat
+      family: ipo
+      sign: 1
+      rank: 9
+      E: 41.39
+      E_core: 41.3875
+      placebo90: 57.77
+      P1: 7.8859
+      P2: 5.2241
+      P3: null
+      P4: 20.0
+      rho12: 0.1299
+      rho24: 0.1053
+      n: 301
+      status: reference
+      reason: 우연 수준(위약 90 백분위 이하)
+      weight: null
+    ipo_first_day_12m:
+      group: heat
+      family: ipo
+      sign: 1
+      rank: 28
+      E: 5.83
+      E_core: 5.8289
+      placebo90: 46.96
+      P1: 0.0
+      P2: 4.6631
+      P3: null
+      P4: 0.0
+      rho12: -0.0528
+      rho24: -0.1699
+      n: 236
+      status: reference
+      reason: 선언 방향과 반대이거나 관계 없음
+      weight: null
+    it_equipment_gdp:
+      group: heat
+      family: real
+      sign: 1
+      rank: 17
+      E: 24.35
+      E_core: 12.5782
+      placebo90: 32.14
+      P1: 6.0474
+      P2: 4.0152
+      P3: 14.29
+      P4: 0.0
+      rho12: 0.0566
+      rho24: 0.147
+      n: 306
+      status: reference
+      reason: 우연 수준(위약 90 백분위 이하)
+      weight: null
+    equipment_ip_gdp:
+      group: heat
+      family: real
+      sign: 1
+      rank: 16
+      E: 29.15
+      E_core: 11.433
+      placebo90: 55.16
+      P1: 8.9949
+      P2: 0.1515
+      P3: 20.0
+      P4: 0.0
+      rho12: 0.1151
+      rho24: 0.1391
+      n: 306
+      status: reference
+      reason: 우연 수준(위약 90 백분위 이하)
+      weight: null
+    corp_bonds_gdp:
+      group: heat
+      family: credit
+      sign: 1
+      rank: 31
+      E: 2.86
+      E_core: 0.0
+      placebo90: 58.58
+      P1: 0.0
+      P2: 0.0
+      P3: 2.86
+      P4: 0.0
+      rho12: -0.0757
+      rho24: -0.1255
+      n: 306
+      status: reference
+      reason: 선언 방향과 반대이거나 관계 없음
+      weight: null
+    corp_bonds_gdp_change_3y:
+      group: heat
+      family: credit
+      sign: 1
+      rank: 19
+      E: 17.56
+      E_core: 11.2397
+      placebo90: 50.37
+      P1: 0.0
+      P2: 8.9918
+      P3: 8.57
+      P4: 0.0
+      rho12: -0.0085
+      rho24: 0.0232
+      n: 306
+      status: reference
+      reason: 선언 방향과 반대이거나 관계 없음
+      weight: null
+    net_bond_issuance_gdp:
+      group: heat
+      family: credit
+      sign: 1
+      rank: 36
+      E: 0.0
+      E_core: 0.0
+      placebo90: 61.51
+      P1: 0.0
+      P2: 0.0
+      P3: 0.0
+      P4: 0.0
+      rho12: -0.0741
+      rho24: -0.0464
+      n: 306
+      status: reference
+      reason: 선언 방향과 반대이거나 관계 없음
+      weight: null
+    consumer_credit_yoy:
+      group: heat
+      family: credit
+      sign: 1
+      rank: 34
+      E: 0.0
+      E_core: 0.0
+      placebo90: 54.72
+      P1: 0.0
+      P2: 0.0
+      P3: 0.0
+      P4: 0.0
+      rho12: -0.0479
+      rho24: 0.0746
+      n: 306
+      status: reference
+      reason: 선언 방향과 반대이거나 관계 없음
+      weight: null
+    household_debt_service:
+      group: heat
+      family: credit
+      sign: 1
+      rank: 20
+      E: 16.68
+      E_core: 16.68
+      placebo90: 30.37
+      P1: 13.344
+      P2: 0.0
+      P3: null
+      P4: 0.0
+      rho12: 0.1365
+      rho24: 0.1922
+      n: 255
+      status: reference
+      reason: 우연 수준(위약 90 백분위 이하)
+      weight: null
+    m2_yoy:
+      group: heat
+      family: liquidity
+      sign: 1
+      rank: 30
+      E: 3.56
+      E_core: 0.8846
+      placebo90: 46.12
+      P1: 0.0
+      P2: 0.7076
+      P3: 2.86
+      P4: 0.0
+      rho12: -0.0661
+      rho24: -0.0549
+      n: 306
+      status: reference
+      reason: 선언 방향과 반대이거나 관계 없음
+      weight: null
+    loan_standards:
+      group: heat
+      family: conditions
+      sign: -1
+      rank: 32
+      E: 1.65
+      E_core: 1.6473
+      placebo90: 49.06
+      P1: 1.3178
+      P2: 0.0
+      P3: null
+      P4: 0.0
+      rho12: 0.0342
+      rho24: 0.0884
+      n: 182
+      status: reference
+      reason: 우연 수준(위약 90 백분위 이하)
+      weight: null
+    financial_conditions:
+      group: heat
+      family: conditions
+      sign: -1
+      rank: 33
+      E: 0.0
+      E_core: 0.0
+      placebo90: 60.6
+      P1: 0.0
+      P2: 0.0
+      P3: 0.0
+      P4: 0.0
+      rho12: -0.2062
+      rho24: -0.3768
+      n: 306
+      status: reference
+      reason: 선언 방향과 반대이거나 관계 없음
+      weight: null
+    bond_spread:
+      group: heat
+      family: conditions
+      sign: -1
+      rank: 35
+      E: 0.0
+      E_core: 0.0
+      placebo90: 34.02
+      P1: 0.0
+      P2: 0.0
+      P3: null
+      P4: 0.0
+      rho12: -0.1217
+      rho24: 0.0046
+      n: 229
+      status: reference
+      reason: 선언 방향과 반대이거나 관계 없음
+      weight: null
+    unemployment_rate:
+      group: heat
+      family: economy
+      sign: -1
+      rank: 8
+      E: 43.26
+      E_core: 50.5015
+      placebo90: 44.16
+      P1: 20.4012
+      P2: 0.0
+      P3: 2.86
+      P4: 20.0
+      rho12: 0.1499
+      rho24: 0.2998
+      n: 306
+      status: eligible
+      reason: null
+      weight: null
+    policy_rate_change_12m:
+      group: pressure
+      family: rates
+      sign: 1
+      rank: 25
+      E: 10.24
+      E_core: 12.8015
+      placebo90: 51.15
+      P1: 10.2412
+      P2: 0.0
+      P3: 0.0
+      P4: 0.0
+      rho12: 0.0457
+      rho24: 0.2298
+      n: 306
+      status: reference
+      reason: 우연 수준(위약 90 백분위 이하)
+      weight: null
+    policy_tightening_36m:
+      group: pressure
+      family: rates
+      sign: 1
+      rank: 12
+      E: 33.86
+      E_core: 38.7578
+      placebo90: 43.59
+      P1: 26.9911
+      P2: 4.0152
+      P3: 2.86
+      P4: 0.0
+      rho12: 0.1537
+      rho24: 0.409
+      n: 306
+      status: reference
+      reason: 우연 수준(위약 90 백분위 이하)
+      weight: null
+    long_rate_change_12m:
+      group: pressure
+      family: rates
+      sign: 1
+      rank: 26
+      E: 9.63
+      E_core: 12.0414
+      placebo90: 42.3
+      P1: 8.6366
+      P2: 0.9965
+      P3: 0.0
+      P4: 0.0
+      rho12: 0.0888
+      rho24: 0.1592
+      n: 306
+      status: reference
+      reason: 우연 수준(위약 90 백분위 이하)
+      weight: null
+    real_policy_rate:
+      group: pressure
+      family: rates
+      sign: 1
+      rank: 15
+      E: 30.59
+      E_core: 34.6719
+      placebo90: 32.3
+      P1: 18.7457
+      P2: 8.9918
+      P3: 2.86
+      P4: 0.0
+      rho12: 0.1189
+      rho24: 0.3025
+      n: 306
+      status: reference
+      reason: 점수 35 미만
+      weight: null
+    real_long_rate:
+      group: pressure
+      family: rates
+      sign: 1
+      rank: 27
+      E: 7.85
+      E_core: 6.2427
+      placebo90: 34.89
+      P1: 0.0
+      P2: 4.9941
+      P3: 2.86
+      P4: 0.0
+      rho12: -0.0193
+      rho24: 0.0356
+      n: 306
+      status: reference
+      reason: 선언 방향과 반대이거나 관계 없음
+      weight: null
+    curve_10y_ff:
+      group: pressure
+      family: curve
+      sign: -1
+      rank: 6
+      E: 59.48
+      E_core: 63.6307
+      placebo90: 23.95
+      P1: 30.3426
+      P2: 12.562
+      P3: 8.57
+      P4: 8.0
+      rho12: 0.1847
+      rho24: 0.4354
+      n: 306
+      status: eligible
+      reason: null
+      weight: null
+    curve_10y3m:
+      group: pressure
+      family: curve
+      sign: -1
+      rank: 21
+      E: 16.31
+      E_core: 16.3133
+      placebo90: 33.85
+      P1: 13.0507
+      P2: 0.0
+      P3: null
+      P4: 0.0
+      rho12: 0.0042
+      rho24: 0.3195
+      n: 241
+      status: reference
+      reason: 우연 수준(위약 90 백분위 이하)
+      weight: null
+    curve_10y2y:
+      group: pressure
+      family: curve
+      sign: -1
+      rank: 7
+      E: 44.03
+      E_core: 44.0291
+      placebo90: 48.37
+      P1: 28.1354
+      P2: 7.0879
+      P3: null
+      P4: 0.0
+      rho12: 0.1533
+      rho24: 0.429
+      n: 297
+      status: reference
+      reason: 우연 수준(위약 90 백분위 이하)
+      weight: null
+    inflation_yoy:
+      group: pressure
+      family: inflation
+      sign: 1
+      rank: 29
+      E: 4.99
+      E_core: 6.2427
+      placebo90: 31.27
+      P1: 0.0
+      P2: 4.9941
+      P3: 0.0
+      P4: 0.0
+      rho12: 0.0043
+      rho24: 0.051
+      n: 306
+      status: reference
+      reason: 우연 수준(위약 90 백분위 이하)
+      weight: null
+    oil_change_12m:
+      group: pressure
+      family: inflation
+      sign: 1
+      rank: 10
+      E: 37.65
+      E_core: 37.6546
+      placebo90: 18.22
+      P1: 9.7104
+      P2: 20.4133
+      P3: null
+      P4: 0.0
+      rho12: 0.1593
+      rho24: 0.1071
+      n: 209
+      status: eligible
+      reason: null
+      weight: null
+    nc_time_trend:
+      group: control
+      family: control
+      sign: 1
+      rank: 13
+      E: 33.05
+      E_core: 16.3176
+      placebo90: 69.19
+      P1: 12.0576
+      P2: 0.9965
+      P3: 20.0
+      P4: 0.0
+      rho12: 0.1199
+      rho24: 0.1868
+      n: 306
+      status: control
+      reason: 우연 수준(위약 90 백분위 이하)
+      weight: null
+    nc_shifted_nasdaq_m2:
+      group: control
+      family: control
+      sign: 1
+      rank: 37
+      E: 0.0
+      E_core: 0.0
+      placebo90: 27.81
+      P1: 0.0
+      P2: 0.0
+      P3: null
+      P4: 0.0
+      rho12: -0.0022
+      rho24: -0.0615
+      n: 277
+      status: control
+      reason: 선언 방향과 반대이거나 관계 없음
+      weight: null
+  heat: null
+  pressure: null
+  family_variants: {}
+  measurement_band_today:
+    lo: 38
+    hi: 44
+  episodes:
+  - peak: '1973-01-11'
+    trigger: '1973-05-21'
+    low: '1974-10-03'
+    in_train: true
+  - peak: '1981-05-29'
+    trigger: '1982-07-08'
+    low: '1982-08-13'
+    in_train: true
+  - peak: '1983-06-24'
+    trigger: '1984-04-05'
+    low: '1984-07-25'
+    in_train: true
+  - peak: '1987-08-26'
+    trigger: '1987-10-20'
+    low: '1987-10-28'
+    in_train: true
+  - peak: '1989-10-09'
+    trigger: '1990-08-23'
+    low: '1990-10-16'
+    in_train: true
+  - peak: '1998-07-20'
+    trigger: '1998-08-31'
+    low: '1998-10-08'
+    in_train: false
+  - peak: '2000-03-10'
+    trigger: '2000-04-12'
+    low: '2000-05-23'
+    in_train: false
+  - peak: '2000-07-17'
+    trigger: '2000-10-11'
+    low: '2001-04-04'
+    in_train: false
+  - peak: '2001-05-22'
+    trigger: '2001-09-06'
+    low: '2001-09-21'
+    in_train: false
+  - peak: '2002-01-04'
+    trigger: '2002-06-07'
+    low: '2002-10-09'
+    in_train: false
+  - peak: '2007-10-31'
+    trigger: '2008-09-17'
+    low: '2009-03-09'
+    in_train: true
+  - peak: '2020-02-19'
+    trigger: '2020-03-12'
+    low: '2020-03-23'
+    in_train: false
+  - peak: '2021-11-19'
+    trigger: '2022-05-09'
+    low: '2022-12-28'
+    in_train: false
