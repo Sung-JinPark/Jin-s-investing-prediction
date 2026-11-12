@@ -9,7 +9,7 @@
       "h5": "normal"
     }
   },
-  "as_of_session": "2026-11-10",
+  "as_of_session": "2026-11-11",
   "bases": {
     "ledger_grid": {
       "cohort": "resolved_ledger_rows",
@@ -708,7 +708,7 @@
               ],
               "q05_q50_q95": [
                 -0.5795239974014711,
-                -0.02598768121187669,
+                -0.025987681211876702,
                 0.4209824016861176
               ],
               "source": "data/timeseries_v8/ledgers/sealed_evaluations.jsonl scores, 2019-01-01+ 연속 창",
@@ -768,11 +768,11 @@
               "proxy": true,
               "q05_ci90_block": [
                 -0.37712038988037294,
-                -0.23974056050447518
+                -0.23974056050447512
               ],
               "q05_q50_q95": [
-                -0.3685216565786242,
-                -0.03563185077540078,
+                -0.36852165657862423,
+                -0.03563185077540077,
                 0.17479964663090572
               ],
               "source": "data/timeseries_v8/ledgers/sealed_evaluations.jsonl scores, 2019-01-01+ 연속 창",
@@ -1857,7 +1857,7 @@
     }
   },
   "display_only": true,
-  "input_fingerprint": "f093cbd7968c28b163d78efb0bd6e30e6128e48889b519b7f3e2b1f77ebdba8f",
+  "input_fingerprint": "87702a639e39748dfbd2a97e67890dc2cc1cfe16635a987fd18af8c44d1b9310",
   "label_bases": [
     "ledger_grid",
     "xnas_diagnostic_v1"
