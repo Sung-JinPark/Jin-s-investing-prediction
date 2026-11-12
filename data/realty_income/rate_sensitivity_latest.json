@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
-  "asof": "2026-11-10",
-  "generated_at": "2026-11-11T07:11:33+00:00",
+  "asof": "2026-11-11",
+  "generated_at": "2026-11-12T07:46:03+00:00",
   "probability_space": "reference_only",
   "status": "ok",
   "beta_rate": {
@@ -26,12 +26,12 @@
     "market_control": "NASDAQ weekly log return"
   },
   "beta_credit": {
-    "measured_effect_per_100bp_pct": -7.278,
+    "measured_effect_per_100bp_pct": -7.239,
     "bootstrap_10_90_pct": [
-      -8.777,
-      -5.657
+      -8.747,
+      -5.656
     ],
-    "used_effect_per_100bp_pct": -7.278,
+    "used_effect_per_100bp_pct": -7.239,
     "status": "eligible",
     "observations": 156,
     "minimum_observations": 156,
@@ -104,8 +104,8 @@
     ],
     "warning": "The official table is dividends paid during the calendar year; Yahoo events are grouped by ex-date. Exact annual totals are therefore not asserted equal. The cross-check validates the continuous-increase direction and discloses the basis mismatch."
   },
-  "observation_period": "2026-11-10",
-  "available_at": "2026-11-11T07:11:32+00:00",
+  "observation_period": "2026-11-11",
+  "available_at": "2026-11-12T07:46:02+00:00",
   "source_url": "https://api.stlouisfed.org/fred/series/observations?series_id=DGS10&file_type=json&observation_start=2000-01-01 + https://api.stlouisfed.org/fred/series/observations?series_id=DFII10&file_type=json&observation_start=2000-01-01 + https://api.stlouisfed.org/fred/series/observations?series_id=BAMLH0A0HYM2&file_type=json&observation_start=2000-01-01 + https://api.stlouisfed.org/fred/series/observations?series_id=BAMLC0A0CM&file_type=json&observation_start=2000-01-01 + https://api.stlouisfed.org/fred/series/observations?series_id=FEDFUNDS&file_type=json&observation_start=2000-01-01",
   "source_fingerprint": "1fa0a3d9bd8b2db937a9e8c720727363714fd5af794f1aa27e76e0c4074911d8",
   "revision_vintage": "captured_current",
@@ -115,7 +115,7 @@
       "series_id": "DGS10",
       "request_url": "https://api.stlouisfed.org/fred/series/observations?series_id=DGS10&file_type=json&observation_start=2000-01-01",
       "response_sha256": "7705cb4c8181913566ab1fa7fc91ebd4a7e6f913e7ff6558c834fed291c65eab",
-      "fetched_at": "2026-11-11T07:11:31+00:00",
+      "fetched_at": "2026-11-12T07:46:01+00:00",
       "revision_vintage": "captured_current"
     },
     {
@@ -123,7 +123,7 @@
       "series_id": "DFII10",
       "request_url": "https://api.stlouisfed.org/fred/series/observations?series_id=DFII10&file_type=json&observation_start=2000-01-01",
       "response_sha256": "f77dee106ad0cbef0d53a686b9c8815a27b021ed65e2c2381c05f8c3efe56375",
-      "fetched_at": "2026-11-11T07:11:32+00:00",
+      "fetched_at": "2026-11-12T07:46:01+00:00",
       "revision_vintage": "captured_current"
     },
     {
@@ -131,7 +131,7 @@
       "series_id": "BAMLH0A0HYM2",
       "request_url": "https://api.stlouisfed.org/fred/series/observations?series_id=BAMLH0A0HYM2&file_type=json&observation_start=2000-01-01",
       "response_sha256": "7a5b3153578ecf90784216073d4216ab08fed03b103f7f6eb79087be0c6082d3",
-      "fetched_at": "2026-11-11T07:11:32+00:00",
+      "fetched_at": "2026-11-12T07:46:02+00:00",
       "revision_vintage": "captured_current"
     },
     {
@@ -139,7 +139,7 @@
       "series_id": "BAMLC0A0CM",
       "request_url": "https://api.stlouisfed.org/fred/series/observations?series_id=BAMLC0A0CM&file_type=json&observation_start=2000-01-01",
       "response_sha256": "a58e4feaf2aa712148aa8838c998be3017d957765fc7aabc3f0c29459997fe89",
-      "fetched_at": "2026-11-11T07:11:32+00:00",
+      "fetched_at": "2026-11-12T07:46:02+00:00",
       "revision_vintage": "captured_current"
     },
     {
@@ -147,7 +147,7 @@
       "series_id": "FEDFUNDS",
       "request_url": "https://api.stlouisfed.org/fred/series/observations?series_id=FEDFUNDS&file_type=json&observation_start=2000-01-01",
       "response_sha256": "2577caeaff38aa2a9cedb2c376706f4ed8f83c589e228f07439b2cacc38d939c",
-      "fetched_at": "2026-11-11T07:11:32+00:00",
+      "fetched_at": "2026-11-12T07:46:02+00:00",
       "revision_vintage": "captured_current"
     }
   ],
