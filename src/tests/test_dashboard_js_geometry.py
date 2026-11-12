@@ -535,7 +535,9 @@ def test_home_overheat_card_never_shows_the_composite_without_its_spread() -> No
     assert "weighted" not in result["ok"]  # v8 을 넘기지 않으면 이전 산식 경로다
 
     from ai_fc.dotcom_overheat_v8 import compute as weighted_index
-    weighted = weighted_index(Path(__file__).resolve().parents[2], v5=live, profile={})  # 속도 없이도 열린다(가중 85%)
+    speed = {"status": "ok", "as_of": live["as_of"], "max_age_days": 10, "families": [{"id": "speed", "indicators": [
+        {"id": "speed_r24", "status": "ok", "score_raw": 27.8}, {"id": "speed_d200", "status": "ok", "score_raw": -0.4}]}]}
+    weighted = weighted_index(Path(__file__).resolve().parents[2], v5=live, profile=speed)
     assert weighted["status"] == "ok", weighted
     call = ("console.log(JSON.stringify({open:dotcomOverheatSignal(" + json.dumps(live, default=str) + ","
             + json.dumps(weighted, default=str) + "),closed:dotcomOverheatSignal(" + json.dumps(live, default=str)
@@ -544,6 +546,7 @@ def test_home_overheat_card_never_shows_the_composite_without_its_spread() -> No
     assert result["open"]["weighted"] is True and result["open"]["pct"] == weighted["overheat_pct"]
     assert [result["open"]["lo"], result["open"]["hi"]] == [weighted["range"]["low"], weighted["range"]["high"]]
     assert result["open"]["previous"] == live["overheat_pct"] and result["open"]["beyond"] == weighted["beyond_peak_count"]
+    assert result["open"]["missing"] == len(weighted["missing"]) == 0
     assert result["closed"]["pct"] == live["overheat_pct"] and "weighted" not in result["closed"]
     assert result["dead"] is None  # v5 값이 없으면 v8 만으로 숫자를 내지 않는다
 

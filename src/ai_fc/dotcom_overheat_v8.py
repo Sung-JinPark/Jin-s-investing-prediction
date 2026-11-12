@@ -232,19 +232,28 @@ def _evaluate(contract: dict[str, Any], v5: dict[str, Any], profile: dict[str, A
     live = [spec["id"] for spec in contract["indicators"] if spec["id"] in readings]
     missing = [spec["id"] for spec in contract["indicators"] if spec["id"] not in readings]
     live_weight = sum(float(frozen["indicators"][key]["weight"]) for key in live)
+    speed_live = any(spec["source"] == "profile" and spec["id"] in readings for spec in contract["indicators"])
     base = {
         "dataset_id": "dotcom_overheat_weighted", "contract_id": contract["contract_id"],
         "contract_version": contract["version"], "probability_space": "reference_only", "model_use": False,
         "official_forecast_input": False, "trading_signal": False, "weights_basis": "declared_judgment",
-        "as_of": v5.get("as_of"), "speed_as_of": profile.get("as_of") if speed else None,
-        # 화면이 프로필과 같은 나이 판정을 걸 수 있게 한도를 함께 싣는다(속도 값이 낡으면 화면은 이전 산식으로 내려간다).
-        "speed_max_age_days": _number(profile.get("max_age_days")) if speed else None,
+        # 속도 값의 기준일과 나이 한도 — 화면이 프로필과 같은 나이 판정을 건다(낡으면 화면도 이전 산식으로 내려간다).
+        # v8 이 실제로 읽은 속도 지표가 있을 때만 싣는다(프로필의 다른 부문 행은 v8 의 입력이 아니다).
+        "speed_as_of": profile.get("as_of") if speed_live else None,
+        "speed_max_age_days": _number(profile.get("max_age_days")) if speed_live else None,
         "previous_formula": {"contract_id": v5.get("contract_id"), "overheat_pct": v5.get("overheat_pct")},
         "live_weight": round(live_weight, 4), "missing": missing,
     }
     if live_weight < float(contract["missing"]["hold_below_live_weight"]):
         return {**base, "status": "hold", "overheat_pct": None,
                 "reason": f"live weight {live_weight:.2f} below the contract minimum"}
+    # 매일 움직이는 묶음이 통째로 없으면 재배분하지 않고 닫는다. 재배분하면 시장이 그대로인데 숫자가 58 → 66 으로 뛰고,
+    # 화면 시점의 나이 판정(낡으면 이전 산식)과 빌드 시점의 결과가 서로 달라진다 — 두 경로가 같은 곳(v5)에 닿게 한다.
+    absent = [name for name in contract["missing"].get("required_groups") or []
+              if not any(groups[key] == name for key in live)]
+    if absent:
+        return {**base, "status": "hold", "overheat_pct": None,
+                "reason": f"required group has no reading: {', '.join(absent)}"}
     clamped = {key: min(high, max(low, readings[key])) for key in live}
     cut = {key: "high" if readings[key] > high else "low" if readings[key] < low else None for key in live}
     values: dict[str, float] = {}

@@ -296,20 +296,31 @@ def check_profile(profile: dict[str, Any] | None, live: dict[str, Any] | None, *
     return findings
 
 
-def check_weighted(live: dict[str, Any] | None) -> list[dict[str, str]]:
+def check_weighted(live: dict[str, Any] | None, *, now: datetime | None = None) -> list[dict[str, str]]:
     """대표값(dotcom_overheat_index_v8 판단 가중 평균)이 사이트에 열려 있는가.
 
     닫혀 있으면 화면은 조용히 이전 산식(v5)으로 돌아가 있다 — 숫자가 바뀐 이유를 사람이 알 수 있게 알린다.
+    화면과 같은 판정을 쓴다: 속도 값의 기준일이 한도보다 오래되면 화면은 이미 이전 산식이다.
     """
     if not isinstance(live, dict):
         return []  # 배포본을 못 읽은 것은 check_live_site 가 이미 실패로 알린다
+    v5_ok = (live.get("dotcom_overheat") or {}).get("status") == "ok" if isinstance(live.get("dotcom_overheat"), dict) else False
+    instead = "이전 산식(v5)이 대표값으로 보인다" if v5_ok else "v5 도 닫혀 있어 대표값 없음(집계 대기)"
     shown = live.get("dotcom_overheat_weighted")
     if not isinstance(shown, dict):
-        return [_finding("weighted", "warn", "가중 평균", "사이트 데이터에 없음 — 이전 산식(v5)이 대표값으로 보인다")]
+        return [_finding("weighted", "warn", "가중 평균", f"사이트 데이터에 없음 — {instead}")]
     if shown.get("status") != "ok" or shown.get("overheat_pct") is None:
+        return [_finding("weighted", "warn", "가중 평균", f"상태 {shown.get('status')} — {shown.get('reason')} · {instead}")]
+    try:
+        age = (_now(now).date() - date.fromisoformat(str(shown.get("speed_as_of")))).days
+        limit = float(shown.get("speed_max_age_days"))
+    except (TypeError, ValueError):
+        age = limit = None
+    if age is None or limit is None or age > limit + 1:
         return [_finding("weighted", "warn", "가중 평균",
-                         f"상태 {shown.get('status')} — {shown.get('reason')} · 이전 산식(v5)이 대표값으로 보인다")]
-    missing = [str(key) for key in shown.get("missing") or []]
+                         f"속도 값 기준일 {shown.get('speed_as_of')} — 화면은 낡은 값으로 버티지 않고 내려가 있다 · {instead}")]
+    raw = shown.get("missing")
+    missing = [str(key) for key in raw] if isinstance(raw, list) else []
     if missing:
         return [_finding("weighted", "warn", "가중 평균",
                          f"{shown.get('overheat_pct')}% · 빠진 지표(가중 재배분): {', '.join(missing)}")]
@@ -357,7 +368,7 @@ def run_watchdog(root: Path, *, now: datetime | None = None, fred_key: str | Non
     findings += check_ipo_sources(read(IPO_STATUS_RELATIVE), now=moment)
     findings += check_theme_watch(read(WATCH_RELATIVE), now=moment)
     findings += check_profile(read(PROFILE_RELATIVE), live if isinstance(live, dict) else None, now=moment)
-    findings += check_weighted(live if isinstance(live, dict) else None)
+    findings += check_weighted(live if isinstance(live, dict) else None, now=moment)
     findings += check_weight_basis(root)
     counts = {state: sum(1 for row in findings if row["status"] == state) for state in ("fail", "warn", "ok")}
     return {

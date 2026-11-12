@@ -1401,8 +1401,9 @@ function renderFearGreedLab(){
   </section>`);
 }
 
-/* 닷컴 대비 과열도 (dotcom_overheat_index_v4) — 통계 화면 맨 위. 100% = 닷컴 사이클 정점.
-   확률이 아니다. 대표값은 언제나 부문 산포와 함께 낸다(홈 카드와 같은 규칙). */
+/* 닷컴 대비 과열도 — 통계 화면 맨 위. 100% = 닷컴 사이클 정점. 확률이 아니다.
+   대표값은 v8 판단 가중 평균(열려 있을 때)이고 가중을 달리 잡았을 때의 범위와 함께 낸다. 닫히면 v5(부문 중앙값 + 부문 산포)다.
+   어느 쪽이든 대표값만 혼자 내보내지 않는다(홈 카드와 같은 규칙). */
 const OVERHEAT_CATEGORY_LABELS={economy:'경기·물가',rates:'금리',valuation:'기업가치',credit:'신용',liquidity:'유동성',ipo:'IPO·상장'};
 const overheatTone=v=>v>=100?'is-over':v>=80?'is-hot':v>=50?'is-warm':'is-cool';
 function overheatIndicatorFreshness(row){
@@ -1417,8 +1418,8 @@ function overheatIndicatorFreshness(row){
   return {period:`${row.id==='ipo_count_operating_12m'?'확정 통계 기간':'통계 기간'} ${period}${source}`,check:`원천 확인 ${formatKstTimestamp(info.last_successful_check)} · ${labels[status]||labels.unverified}`,status,provisional,note:info.note||''};
 }
 /* 닷컴 정점 대비 지표별 프로필 (dotcom_overheat_profile_v1) — 지표별 닮음을 합치지 않고 나란히 보인다.
-   2000년 3월 = 100. 지수가 아니므로 합·평균·종합 등급·색 신호등을 만들지 않는다. 위의 v5 대표값과 척도가 다르고
-   그 내역도 아니다 — 그래서 카드 맨 아래에 따로 둔다. 0 의 뜻은 지표마다 다르다(수준형 = 1995~2019 중앙값,
+   2000년 3월 = 100. 지수가 아니므로 합·평균·종합 등급·색 신호등을 만들지 않는다. 위의 대표값과 척도가 다르다
+   (v8 이 열려 있으면 상승 속도 2종의 점수만 대표값이 읽어 간다 — 이 블록이 합치는 것은 아니다) — 그래서 카드 맨 아래에 따로 둔다. 0 의 뜻은 지표마다 다르다(수준형 = 1995~2019 중앙값,
    상승 속도 = 상승률 0 — 장기 중앙값 위치를 점선으로 표시). 막대는 −50~150 구간에 그리고 숫자는 원값을 적는다. */
 function overheatProfileBlock(profile){
   if(!profile||profile.status!=='ok'||!Array.isArray(profile.families))return '';
@@ -1479,11 +1480,11 @@ function overheatWeighted(w){
   if(!w||w.status!=='ok'||!hasNumeric(w.overheat_pct)||!Array.isArray(w.groups)||!w.groups.length||!Array.isArray(w.indicators))return null;
   if(!w.range||!hasNumeric(w.range.low)||!hasNumeric(w.range.high))return null;
   /* 속도 2종은 매일 값이다. 배포가 멈춰 그 기준일이 프로필 한도보다 오래되면 마지막 값으로 버티지 않고 이전 산식으로 내려간다
-     (overheatProfileBlock 과 같은 판정 — 한쪽만 닫히면 같은 값이 한 곳에서는 사라지고 한 곳에서는 대표값에 남는다). */
-  if(w.speed_as_of){
-    const born=Date.parse(`${w.speed_as_of}T00:00:00Z`),limit=Number(w.speed_max_age_days);
-    if(!Number.isFinite(born)||!Number.isFinite(limit)||(Date.now()-born)/86400000>limit+1)return null;
-  }
+     (overheatProfileBlock 과 같은 판정 — 한쪽만 닫히면 같은 값이 한 곳에서는 사라지고 한 곳에서는 대표값에 남는다).
+     빌드 시점에도 같다: 속도 묶음이 통째로 없으면 파이썬이 값을 내지 않는다(계약 missing.required_groups). 그래서 기준일이
+     없는 'ok' 는 있을 수 없고, 있다면 닫는다. */
+  const born=Date.parse(`${w.speed_as_of}T00:00:00Z`),limit=Number(w.speed_max_age_days);
+  if(w.speed_max_age_days==null||!Number.isFinite(born)||!Number.isFinite(limit)||(Date.now()-born)/86400000>limit+1)return null;
   return w;
 }
 function overheatSpeedCount(w){return w?w.indicators.filter(r=>r.source==='profile'&&r.status==='ok').length:0;}
@@ -1500,13 +1501,14 @@ function overheatRubricBlock(w){
     +`<li>같은 것을 재는 지표는 한 묶음으로 평균해 한 번만 셈</li>`
     +`<li>값은 ${esc(w.clamp?.[0])}~${esc(w.clamp?.[1])} 으로 잘라 평균 · ${esc(overheatClampNote(w))}</li>`
     +((w.missing||[]).length?`<li>값이 없는 지표 ${esc(w.missing.length)}개는 빼고 가중을 다시 나눔 — 그만큼 대표값이 달라짐</li>`:'')
-    +`<li>가중치는 판단값 — 과거 자료로 검증한 값 아님 · 지표마다 같은 가중이면 ${esc(w.variants?.equal_indicators)} · 묶음마다 같은 가중이면 ${esc(w.variants?.equal_groups)}</li>`
+    +`<li>가중치는 판단값 — 과거 자료로 검증한 값 아님 · 지표마다 같은 가중이면 ${hasNumeric(w.variants?.equal_indicators)?Number(w.variants.equal_indicators).toFixed(1):'—'} · 묶음마다 같은 가중이면 ${hasNumeric(w.variants?.equal_groups)?Number(w.variants.equal_groups).toFixed(1):'—'}</li>`
     +`<li>확률 아님 · 매매 신호 아님 · 참고 의견</li></ul></details>`;
 }
 function statisticsOverheatPanel(idx){
-  const sig=dotcomOverheatSignal(idx,overheatWeighted(DATA.dotcom_overheat_weighted));
+  const gated=overheatWeighted(DATA.dotcom_overheat_weighted);   // 한 번만 판정한다 — 시각에 따라 달라지는 게이트다
+  const sig=dotcomOverheatSignal(idx,gated);
   if(!sig)return null;
-  const w=sig.weighted?overheatWeighted(DATA.dotcom_overheat_weighted):null;
+  const w=sig.weighted?gated:null;
   const one=v=>Number(v).toFixed(1),gone=(w?.missing||[]).length;
   const weightOf=Object.fromEntries((w?.indicators||[]).filter(r=>r.status==='ok').map(r=>[r.id,r]));
   const weightTag=id=>weightOf[id]?`<small>가중 ${esc(weightOf[id].weight_pct)}%</small>`:'';
@@ -3345,7 +3347,8 @@ function dotcomOverheatSignal(idx,weighted){
      닫히면 아래 v5(부문 중앙값·부문 산포)로 돌아간다. 홈과 통계 탭이 같은 함수·같은 게이트(overheatWeighted)를 쓴다. */
   const w=weighted||null;   // 호출부가 overheatWeighted() 로 게이트를 통과시킨 것만 넘긴다 — 이 함수는 바깥을 읽지 않는다
   if(w)return {pct:w.overheat_pct,lo:w.range.low,hi:w.range.high,weighted:true,previous:idx.overheat_pct,
-               categories:w.groups.length,included:w.included??null,beyond:w.beyond_peak_count??0,checkedAt:idx.generated_at??null};
+               categories:w.groups.length,included:w.included??null,beyond:w.beyond_peak_count??0,
+               missing:Array.isArray(w.missing)?w.missing.length:0,checkedAt:idx.generated_at??null};
   const span=idx.category_span||[];
   return {pct:idx.overheat_pct,lo:span[0],hi:span[1],
           categories:Object.keys(idx.category_medians||{}).length,
@@ -3760,7 +3763,8 @@ function renderOverview(){
              heat==null?'과열도 통계 집계 대기'
                        :heat.weighted?`100 = 닷컴 정점 · 판단 가중 · 가중에 따라 ${heat.lo}~${heat.hi}`
                        :`100 = 닷컴 정점 · 분야별 ${heat.lo}~${heat.hi}`,
-             heat&&heat.beyond?`${heat.beyond}개 지표는 이미 정점 초과`:null,
+             heat&&heat.beyond?`${heat.beyond}개 지표는 이미 정점 초과${heat.missing?` · ${heat.missing}개 빠짐(가중 재배분)`:''}`
+               :heat&&heat.missing?`지표 ${heat.missing}개 빠짐(가중 재배분)`:null,
              heat==null?'':signalHeatViz(heat.pct,heat.lo,heat.hi,
                `닷컴 정점 100 기준 ${heat.pct}, ${heat.weighted?'가중에 따라':'분야별'} ${heat.lo}~${heat.hi}`),
              '#statistics','닷컴 대비 과열도 상세 보기')}
