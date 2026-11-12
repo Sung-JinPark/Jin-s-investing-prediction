@@ -3,6 +3,7 @@ contract_id: dotcom_overheat_index_v7
 supersedes: dotcom_overheat_index_v5      # v1~v6.1 파일은 역사 기록으로 그대로 둔다
 status: rules_fixed_shadow                # 게이트 통과 전에는 화면에 지수를 싣지 않는다
 rules_fixed_at: "2026-11-12T00:53:10Z"
+rules_amended_before_run_at: "2026-11-12T01:28:51Z"   # pre_run_amendments 참조 — 여전히 어떤 실제 점수도 계산하기 전
 gate_as_of: "2026-11-10"                  # 고정 입력 파일의 마지막 NASDAQ 거래일
 scope: dotcom_ai_comparison_display_only
 probability_space: reference_only
@@ -154,17 +155,17 @@ scoring:
     scoreable AND rbar_i > 0 (측정 부호 = 선언 부호) AND 실제 E_core > 위약 90 백분위 AND E_i >= 35 AND 중복 아님
     AND 생산 가능(standardisation 월말의 80% 이상과 2000-03-10 에 값이 있고 MAD > 0). 그 밖은 '참고'(가중 0, 사유 표시).
   chance_disclosure: 위약 문턱이 90 백분위이므로 영향이 전혀 없는 후보도 10개 중 1개꼴로 이 관문을 넘는다. 순위표 머리에 적는다
-  minimum_eligible: {heat: 4, pressure: 2}   # 미달이면 그 줄을 만들지 않는다. heat 는 2개 부문 이상이어야 한다
+  minimum_eligible: {heat: 4, pressure: 3}   # 미달이면 그 줄을 만들지 않는다(상한 때문에 heat 는 3개 부문, pressure 는 2개 부문 이상이어야 한다)
 
 weights:                                  # group 마다 따로. 합 = 100
   fill: "w_i = total * E_i / sum(E). cap 을 넘는 지표를 cap 에 고정하고 남은 total 을 나머지에 E 비례로 다시 나눈다(반복). count * cap < total 이면 불능"
-  step_A: fill(적격 전체, 100, cap_per_indicator)
-  step_B: 어느 부문의 합이 cap_per_family 를 넘으면 그 부문 지표를 같은 비율로 줄여 cap_per_family 에 맞추고 고정한 뒤, 남은 몫을 다른 부문 적격 지표에 fill 로 나눈다(부문 합이 큰 순서로 반복)
+  step_A: fill(적격 전체, 100, 지표 상한)
+  step_B: 어느 부문의 합이 부문 상한을 넘으면 그 부문 지표를 같은 비율로 줄여 부문 상한에 맞추고 고정한 뒤, 남은 몫을 다른 부문 적격 지표에 fill 로 나눈다(부문 합이 큰 순서로 반복)
   step_C: (heat 만) price_term 합이 50 을 넘으면 price_term 지표를 같은 비율로 줄여 50 에 맞추고, 나머지 지표에 fill 로 50 을 나눈다
   infeasible: 어느 단계든 불능이면 그 줄을 만들지 않는다
-  cap_per_indicator: 25
-  cap_per_family: 40
-  cap_price_term_total: 50
+  caps:
+    heat: {indicator: 25, family: 40, price_term_total: 50}
+    pressure: {indicator: 40, family: 60}     # 후보 부문이 rates·curve·inflation 셋뿐이다
   nothing_else_is_estimated: true
 
 # ── 합산과 척도 ─────────────────────────────────────────────────────────
@@ -187,7 +188,7 @@ gates:                                    # heat 줄(대표값)의 게이트. �
   - {id: G2, rule: "H <= 25 at 2002-10-09, 2009-03-09 and 2022-12-28", why: 약세장 바닥에서 뜨겁지 않다(v6 임계 그대로)}
   - {id: G3, rule: "max month-end H over 2003-01 .. gate_as_of minus 12 months among months with DD12 < 0.10 is <= 60", why: 거짓 과열 — 뜨거웠는데 하락이 뒤따르지 않은 달}
   - {id: G4, rule: "median month-end H over 2012-01 .. 2016-12 <= 15", why: 평온기(v6 임계 그대로)}
-  - {id: G5, rule: "pooled-within-block Spearman(C_heat, DD12) on the train near-high sample exceeds the 95th percentile of its placebo distribution — DD12 를 표본 순서에서 k = 24, 36, … 개월 순환 이동한 자료마다 점수·적격·가중을 처음부터 다시 계산해 얻은 값", why: 같은 표본에서 고른 가중이라 표본 내 상관은 자동으로 나온다 — 우연 수준을 넘는지 본다}
+  - {id: G5, rule: "pooled-within-block Spearman(C_heat, DD12) on the train near-high sample exceeds the 95th percentile of its placebo distribution — DD12 를 표본 순서에서 k = 24, 36, … 개월 순환 이동한 자료마다 점수를 처음부터 다시 매기고, 실제 줄과 같은 개수의 점수 상위 후보(생산 가능한 것)를 점수 비례로 묶은 합산값의 상관", why: 같은 표본에서 고른 가중이라 표본 내 상관은 자동으로 나온다 — 우연 수준을 넘는지 본다}
   - {id: G6, rule: "neither negative control is eligible", why: 추세나 지속성만으로 점수를 받는 규칙이 아니다}
   - {id: G7, rule: "walk-forward — 접힘마다 fit 구간만으로 점수·적격·가중을 다시 구해 test 구간 고점 부근의 Spearman(C_heat, DD12) 를 잰다. 계산 가능한 접힘이 3개 이상이고 표본 수 가중 평균이 0.10 이상이며 nasdaq_only 기준선(speed_d200 하나)보다 0.05 넘게 낮지 않다", folds: ["fit 1973-01..1988-12 → test 1990-01..1996-12", "fit 1973-01..1996-12 → test 2003-01..2009-12", "fit 1973-01..2009-12 (excl. 1997-01..2002-12) → test 2010-01..2017-12", "fit train → test holdout"], note: 표준화 구간(1995~2019)은 접힘마다 다시 잡지 않는다 — 척도에만 쓰이는 약한 누수로 공시}
   - {id: G8, rule: "largest one-session change of H on a day when any monthly/quarterly/ritter input period changes, since 2023-01, <= 5"}
@@ -196,7 +197,7 @@ gates:                                    # heat 줄(대표값)의 게이트. �
   - {id: G11, rule: "squared correlation of monthly H changes with same-month NASDAQ log returns over 2010-01 .. gate_as_of <= 0.70, and max − min of month-end H over the last 36 months >= 10", why: NASDAQ 의 재표기가 아니고 실제로 움직인다}
   - {id: G12, rule: "measurement band width today <= 35", why: 점수 규칙의 합리적 대안들 사이에서 값이 크게 갈리지 않는다}
 pressure_gates:                           # 긴축 압력 줄을 실으려면
-  - {id: Q1, rule: "eligible pressure indicators >= 2 and weights feasible"}
+  - {id: Q1, rule: "eligible pressure indicators >= 3 and weights feasible"}
   - {id: Q2, rule: "same placebo test as G5 on C_pressure at the 90th percentile"}
 measurement_band:                         # G12 — 변형마다 점수·적격·가중·C0·Cpk 를 처음부터 다시 계산한 H 의 최소~최대
   variants:
@@ -230,6 +231,26 @@ on_pass: >-
   라벨 '가중은 과거 자료 기준 · 전진 검증 중' 과 부문 제외 범위를 항상 함께 싣는다. 검토자 한 명은 병행 표시에 그치라고 했다(not_adopted).
 forward_only: [다음 25% 이상 NASDAQ 하락 앞에서의 H, 매년 다시 재는 holdout 상관, Z.1·GDP 발표일의 계단]
 
+pre_run_amendments:                       # 규칙 고정 뒤·실제 자료 실행 전에, 독립 코드 감사(수치 열람 금지)가 찾은 모순·빈칸을 메운 것
+  why_allowed: 감사자는 실제 자료로 채점하지 않았고 보고에 실제 수치가 없다. 저자도 이 시점까지 실제 점수를 하나도 보지 않았다
+  changes:
+    - 가중 상한을 줄마다 둔다(weights.caps). 고정본의 상한 25/40 은 긴축 압력 줄(부문 3개)에서 거의 언제나 불능이었다 — 계약 내부 모순
+    - minimum_eligible.pressure 2 → 3, Q1 도 같이(상한 40 아래에서 2개로는 100 을 채울 수 없다)
+    - G5·Q2 의 위약 — 자격 문턱을 그대로 쓰면 위약 대부분에서 줄이 생기지 않아 게이트가 '상관 > 0' 으로 퇴화한다. 위약에서는 실제 줄과 같은 개수의 점수 상위 후보로 줄을 만든다(선택 효과를 같은 조건으로 맞춘다). 하락장 적중(P3)은 날짜를 밀 수 없어 위약에서 채점하지 않는다
+clarifications:                           # 고정본이 비워 둔 읽기 — 실행 전에 정한다
+  lookback: "'k 기간 전' 은 달력 기간이다. 그 달·분기의 관측이 없으면(예: 발표되지 않은 2025-10 CPI) 값을 만들지 않는다(행 위치로 대신하지 않는다)"
+  staleness: 나이는 관측이 보이기 시작한 날(anchor + lag)부터 센다
+  production_uses_lags: 매일의 값도 게이트·이력과 같은 발표 지연 기준으로 계산한다(원장에 먼저 들어와 있어도 지연이 지나야 쓴다)
+  purge_segments: purge 의 '구간' 은 train 의 이어진 조각(1973-01..1996-12, 2003-01..2017-12)과 holdout 이다. 블록은 t 의 날짜로만 나눈다
+  negative_controls: 대조군도 P3 를 포함해 같은 규칙으로 채점한다
+  thresholds: 문턱 비교는 반올림 전 값으로 한다. 백분위는 선형 보간(type 7)
+  small_blocks: 표본 12개 미만 블록은 순위상관에서, 5개 미만 블록은 상위 20% 판정에서 뺀다
+  redundancy_overlap: 두 지표의 공통 표본이 60개월 미만이면 중복으로 보지 않는다. 생산 불가 지표는 다른 지표를 중복으로 만들지 않는다
+  oil: DCOILWTICO(252 sessions earlier) 는 252 세션 전 그날 보이던 유가다
+  bond_change: corp_bonds_gdp(12 quarters earlier) 는 두 계열 각각의 12분기 전 값으로 만든 비율이다
+  loan_standards: DRTSCILM 도 분기 말 + 45일 뒤에 보이는 것으로 둔다(실제 발표보다 늦다 — 이른 쪽으로는 새지 않는다)
+  one_official_run: 측정 도구는 frozen 이 비어 있으면 --write-frozen 과 함께만 돈다(판정을 먼저 적고 보고서를 쓴다). frozen 이 있으면 재현·대조만 한다
+
 not_adopted:                              # 독립 검토의 제안 가운데 받아들이지 않은 것 — 이유를 남긴다
   - 병행 표시만 하고 대표값은 v5 로 둘 것 — 소유자가 대표값 교체를 지시했다. 대신 라벨과 범위를 항상 싣고, 실패하면 v5 로 남는다
   - 부문 제외 범위를 게이트로 유지할 것 — family_band.disclosure 참조
@@ -242,6 +263,9 @@ peak_knowledge_hyperparameters:
   - clamp [−10, 10] · 고점 부근 0.90 · 하락장 25% · 회복 30% · 상위 20% · 70 백분위 · P 임계(0.05/0.30, 0.05/0.25, 0.30)
   - 적격 35 · 위약 90/95 백분위 · 중복 0.80 · 상한 25/40/50 · 최소 적격 4/2 · 게이트 임계 전부
 known_limits:
+  - 가계 원리금 상환 부담(BOGZ1FL010000346Q)은 계약 지연 95일보다 실제로 더 늦게 나온다(2026-11-12 수집본에 2026Q2 가 없다 — 135일 이상).
+    Ritter IPO 는 연 1회 안팎 갱신되는데 재현은 월말 + 45일로 다룬다. 두 지표의 과거 재현은 실제 화면보다 앞서 본다 — 측정된 사실이다.
+  - 유가(DCOILWTICO)는 고정 입력 파일에 원장보다 620일치 관측일이 적다(같은 날의 값은 같다). 유가 지표의 일부 날짜가 두 자료에서 다르게 읽힌다.
   - 가중은 1973~2017 자료(닷컴 구간 제외)에 맞춘 표본 내 점수다. 그 구간의 큰 하락장은 손에 꼽는다 — 순위 차이의 상당수는 오차 범위 안이다.
   - 후보 35개를 한꺼번에 잰다. 위약 문턱을 넘은 지표 가운데 일부는 우연이다(10개 중 1개꼴).
   - 과거 구간은 최신 개정 자료에 고정 발표 지연을 적용한 재현이지 당시 발표본이 아니다. 발표 지연은 달력과 대조하지 못했다.

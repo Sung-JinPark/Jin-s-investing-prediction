@@ -59,6 +59,10 @@ def _anchor(frequency: str, first: date) -> date:
     return first
 
 
+def _ordinal(frequency: str, first: date) -> int:
+    return first.year * 4 + (first.month - 1) // 3 if frequency == "quarterly" else first.year * 12 + first.month - 1
+
+
 def _period_key(frequency: str, first: date) -> str:
     if frequency == "quarterly":
         return f"{first.year}Q{(first.month - 1) // 3 + 1}"
@@ -111,7 +115,8 @@ class Store:
             return -1
         cutoff = day - timedelta(days=self.lag(sid, use_lags))
         index = bisect.bisect_right(data["anchor"], cutoff) - 1
-        if index < 0 or (day - data["anchor"][index]).days > int(self.stale[data["frequency"]]):
+        # 나이는 '보이기 시작한 날'(anchor + lag)부터 센다 — 계약 clarifications.staleness
+        if index < 0 or (cutoff - data["anchor"][index]).days > int(self.stale[data["frequency"]]):
             return -1
         return index
 
@@ -139,6 +144,17 @@ def load_ritter_series(root: Path) -> dict[str, list[tuple[date, float]]]:
     return {"RITTER_NET": net, "RITTER_FIRST": first}
 
 
+def _require_all(series: dict[str, Any], where: str) -> None:
+    missing = sorted(sid for sid in FREQUENCY if not series.get(sid))
+    if missing:
+        raise OverheatV7Error(f"{where} is missing series: " + ", ".join(missing))
+
+
+def ritter_fingerprint(root: Path) -> str:
+    table = json.loads((root / RITTER_TABLE_RELATIVE).read_text(encoding="utf-8"))
+    return str(table.get("raw_sha256"))
+
+
 def load_analysis_store(root: Path, contract: dict[str, Any]) -> Store:
     """점수 계산용 — 고정 입력 파일(1960~). 파일의 sha256 을 확인한다."""
     payload = json.loads((root / INPUTS_RELATIVE).read_text(encoding="utf-8"))
@@ -147,6 +163,7 @@ def load_analysis_store(root: Path, contract: dict[str, Any]) -> Store:
         raise OverheatV7Error("influence inputs do not match their sha256")
     series = {sid: _rows(item["observations"]) for sid, item in payload["series"].items() if sid in FREQUENCY}
     series.update(load_ritter_series(root))
+    _require_all(series, "influence inputs")
     return Store(series, contract["series_lag_days"], contract["staleness_limits_days"])
 
 
@@ -157,9 +174,8 @@ def load_ledger_store(root: Path, contract: dict[str, Any]) -> Store:
     rows = _load_authoritative_current_rows(root)
     series = {sid: [(date.fromisoformat(r["date"]), float(r["value"])) for r in rows[sid]]
               for sid in FREQUENCY if sid in rows}
-    if "NASDAQCOM" not in series:
-        raise OverheatV7Error("ledger has no NASDAQCOM")
     series.update(load_ritter_series(root))
+    _require_all(series, "ledger")
     return Store(series, contract["series_lag_days"], contract["staleness_limits_days"])
 
 
@@ -190,13 +206,23 @@ class Calc:
         if index < 0 or index - back < 0:
             return None
         data = self.s.obs[sid]
-        return data["value"][index - back], _period_key(data["frequency"], data["start"][index])
+        target = index - back
+        if back and data["frequency"] in {"monthly", "quarterly", "ritter"}:
+            want = _ordinal(data["frequency"], data["start"][index]) - back
+            while target < index and _ordinal(data["frequency"], data["start"][target]) < want:
+                target += 1
+            if _ordinal(data["frequency"], data["start"][target]) != want:
+                return None  # 그 달·분기의 관측이 없다(예: 발표되지 않은 2025-10 CPI)
+        return data["value"][target], _period_key(data["frequency"], data["start"][index])
 
     def window(self, sid: str, n: int) -> tuple[list[float], str] | None:
         index = self.pos(sid)
         if index < 0 or index - n + 1 < 0:
             return None
         data = self.s.obs[sid]
+        if data["frequency"] in {"monthly", "quarterly", "ritter"} and _ordinal(
+                data["frequency"], data["start"][index]) - _ordinal(data["frequency"], data["start"][index - n + 1]) != n - 1:
+            return None  # 기간이 이어져 있지 않다
         return data["value"][index - n + 1:index + 1], _period_key(data["frequency"], data["start"][index])
 
 
@@ -254,8 +280,6 @@ def _ritter(c: Calc, first_day: bool) -> Reading | None:
         return None
     index = c.pos("RITTER_NET")
     starts = c.s.obs["RITTER_NET"]["start"]
-    if (starts[index].year * 12 + starts[index].month) - (starts[index - 11].year * 12 + starts[index - 11].month) != 11:
-        return None  # 12개월이 이어져 있지 않다
     total = sum(net[0])
     if not first_day:
         return total, (net[1],)
@@ -403,7 +427,8 @@ def bear_episodes(sessions: list[date], close: np.ndarray) -> list[dict[str, Any
             if price > peak:
                 peak, peak_i = price, i
             elif price <= 0.75 * peak:
-                out.append({"peak": sessions[peak_i], "peak_index": peak_i, "trigger": sessions[i]})
+                out.append({"peak": sessions[peak_i], "peak_index": peak_i, "trigger": sessions[i],
+                            "low": sessions[i]})
                 bull, low = False, price
         else:
             if price < low:
@@ -555,7 +580,7 @@ class Options:
         self.placebo_gate = kw.get("placebo_gate", True)
         self.threshold = kw.get("threshold", 35.0)
         self.redundancy = kw.get("redundancy", True)
-        self.cap_indicator = kw.get("cap_indicator", 25.0)
+        self.cap_indicator = kw.get("cap_indicator")  # None = 계약의 상한
         self.drop: frozenset[str] = frozenset(kw.get("drop", ()))
         self.drop_families: frozenset[str] = frozenset(kw.get("drop_families", ()))
         self.clamp = kw.get("clamp", True)
@@ -588,9 +613,9 @@ class Panel:
 
 
 def _p3(panel: Panel, key: str, windows: Windows) -> dict[str, Any]:
-    meta = panel.candidates.get(key)
-    if meta is None or meta.get("price_term"):
-        return {"scored": False, "reason": "price term" if meta else "control"}
+    meta = panel.candidates.get(key) or panel.controls[key]
+    if meta.get("price_term"):
+        return {"scored": False, "reason": "price term"}
     hot = panel.hot(key)
     hits = total = 0
     for episode in panel.episodes:
@@ -655,6 +680,8 @@ def score_candidates(panel: Panel, windows: Windows, options: Options, *,
                    for k in range(24, n - 23, 12)]
         row["placebo90"] = round(percentile(placebo, 90), 2) if placebo else None
         row["placebo_median"] = round(percentile(placebo, 50), 2) if placebo else None
+        row["_raw"] = {"E": 100.0 * total / scored_max, "E_core": core["E_core"], "rbar": core["rbar"],
+                       "placebo90": percentile(placebo, 90) if placebo else None}
         row["_hot_sample"] = (positions[present], hot)
         out[key] = row
     return out
@@ -663,11 +690,12 @@ def score_candidates(panel: Panel, windows: Windows, options: Options, *,
 def _reason(row: dict[str, Any], options: Options) -> str | None:
     if row.get("status") in {"dropped", "not_scoreable"}:
         return row.get("reason") or row["status"]
-    if not row["rbar"] or row["rbar"] <= 0:
+    raw = row["_raw"]
+    if not raw["rbar"] or raw["rbar"] <= 0:
         return "선언 방향과 반대이거나 관계 없음"
-    if options.placebo_gate and (row["placebo90"] is None or row["E_core"] <= row["placebo90"]):
+    if options.placebo_gate and (raw["placebo90"] is None or raw["E_core"] <= raw["placebo90"]):
         return "우연 수준(위약 90 백분위 이하)"
-    if row["E"] < options.threshold:
+    if raw["E"] < options.threshold:
         return f"점수 {options.threshold:g} 미만"
     return None
 
@@ -675,7 +703,7 @@ def _reason(row: dict[str, Any], options: Options) -> str | None:
 def decide_eligibility(panel: Panel, scores: dict[str, dict[str, Any]], options: Options,
                        producible: Callable[[str], str | None]) -> None:
     """자격·중복·생산 가능 여부를 정해 ``scores`` 에 적는다(대조군은 가중에 들어가지 않는다)."""
-    order = sorted(scores, key=lambda k: (-scores[k]["E"], FREQUENCY_RANK.get(
+    order = sorted(scores, key=lambda k: (-(scores[k].get("_raw") or {}).get("E", 0.0), FREQUENCY_RANK.get(
         (panel.candidates.get(k) or {}).get("frequency", "ritter"), 9), list(scores).index(k)))
     accepted: dict[str, list[str]] = {"heat": [], "pressure": [], "control": []}
     for rank, key in enumerate(order, start=1):
@@ -726,13 +754,14 @@ def _fill(points: dict[str, float], total: float, cap: float) -> dict[str, float
 def derive_weights(panel: Panel, scores: dict[str, dict[str, Any]], group: str, options: Options,
                    contract: dict[str, Any]) -> dict[str, float] | None:
     """계약의 가중 규칙(step A·B·C). 불능이면 None."""
-    rule = contract["weights"]
-    cap, family_cap, price_cap = options.cap_indicator, float(rule["cap_per_family"]), float(rule["cap_price_term_total"])
+    caps = contract["weights"]["caps"][group]
+    cap = float(options.cap_indicator if group == "heat" and options.cap_indicator is not None else caps["indicator"])
+    family_cap, price_cap = float(caps["family"]), float(caps.get("price_term_total", 100.0))
     points = {k: (1.0 if options.equal_weights else float(r["E"])) for k, r in scores.items()
               if r.get("eligible") and r["group"] == group}
     minimum = int(contract["scoring"]["minimum_eligible"][group])
     families = {k: scores[k]["family"] for k in points}
-    if len(points) < minimum or (group == "heat" and len(set(families.values())) < 2):
+    if len(points) < minimum:
         return None
     weights = _fill(points, 100.0, cap)
     if weights is None:
@@ -880,6 +909,7 @@ def build_spec(panel: Panel, ledger: Store, contract: dict[str, Any], options: O
         lines[group] = None if scale is None else {**spec, "scale": scale}
     for row in scores.values():
         row.pop("_hot_sample", None)
+        row.pop("_raw", None)
     return {"scores": scores, "lines": lines, "windows": windows, "options": options}
 
 
@@ -944,7 +974,8 @@ def digest(payload: Any) -> str:
 RULE_KEYS = ("contract_id", "version", "gate_as_of", "analysis_inputs", "sessions", "availability", "series_lag_days",
              "staleness_limits_days", "outcome", "sample", "windows", "candidates", "negative_controls", "scoring",
              "weights", "reading", "composite", "heat_headline", "pressure_companion", "drift_hold",
-             "construction_checks", "gates", "pressure_gates", "measurement_band", "family_band")
+             "construction_checks", "gates", "pressure_gates", "measurement_band", "family_band",
+             "pre_run_amendments", "clarifications")
 
 
 def rules_digest(contract: dict[str, Any]) -> str:
@@ -999,7 +1030,7 @@ def build_latest(root: Path, *, now: datetime | None = None, ledger: Store | Non
     if check is None or abs(check["C0"] - heat["scale"]["C0"]) > 0.01 * abs(width) \
             or abs(check["Cpk"] - heat["scale"]["Cpk"]) > 0.01 * abs(width):
         return {**base, "status": "hold", "reason": "recomputed anchors drifted from the frozen ones"}
-    today = composite(ledger, last, heat, use_lags=False, detail=True)
+    today = composite(ledger, last, heat, detail=True)
     value = headline(today["value"], heat["scale"])
     if value is None:
         return {**base, "status": "hold", "reason": "live weight below threshold", "live_weight": today["live_weight"]}
@@ -1025,9 +1056,9 @@ def build_latest(root: Path, *, now: datetime | None = None, ledger: Store | Non
             history.append((round(v, 1), ledger.sessions[i].isoformat()))
     back = next((v for v, d in history if d == ledger.sessions[max(0, last - 20)].isoformat()), None)
     high = max([*history, (round(value, 1), as_of.isoformat())], key=lambda item: item[0])
-    family_values = {name: heat_today(ledger, _line_spec(line), use_lags=False)
-                     for name, line in (frozen.get("family_variants") or {}).items()}
-    family_values = {k: v for k, v in family_values.items() if v is not None}
+    family_all = {name: heat_today(ledger, _line_spec(line))
+                  for name, line in (frozen.get("family_variants") or {}).items()}
+    family_values = {k: v for k, v in family_all.items() if v is not None}
     out = {
         **base, "status": "ok", "index": int(round(value)), "index_raw": round(value, 1), "below_normal": value < 0,
         "four_week_change": None if back is None else round(value - back, 1),
@@ -1035,7 +1066,8 @@ def build_latest(root: Path, *, now: datetime | None = None, ledger: Store | Non
         "measurement_band": frozen.get("measurement_band_today"),
         "family_band": None if not family_values else {
             "lo": int(round(min(family_values.values()))), "hi": int(round(max(family_values.values()))),
-            "lo_family": min(family_values, key=family_values.get), "hi_family": max(family_values, key=family_values.get)},
+            "lo_family": min(family_values, key=family_values.get), "hi_family": max(family_values, key=family_values.get),
+            "missing": sorted(set(family_all) - set(family_values))},
         "indicators": indicators, "live_weight": round(live, 1),
         "sparkline": [[d, v] for v, d in history[-120:]] + [[as_of.isoformat(), round(value, 1)]],
         "weights_basis": "가중은 과거 자료 기준 · 전진 검증 중",
@@ -1044,7 +1076,7 @@ def build_latest(root: Path, *, now: datetime | None = None, ledger: Store | Non
     pressure = frozen.get("pressure")
     if pressure and pressure.get("displayable"):
         spec = _line_spec(pressure)
-        q = percentile_of(composite(ledger, last, spec, use_lags=False)["value"], spec["scale"]["grid"])
+        q = percentile_of(composite(ledger, last, spec)["value"], spec["scale"]["grid"])
         if q is not None:
             out["pressure"] = {"percentile": int(round(q)), "label": "긴축 압력(1995~2019 대비 백분위)",
                                "indicators": [{"id": k, "label": labels[k]["label"], "weight": round(w, 1)}

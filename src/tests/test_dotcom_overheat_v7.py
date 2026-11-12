@@ -317,3 +317,118 @@ def test_repository_state_is_closed_until_a_passed_verdict_is_recorded() -> None
     assert (problem is None) == (frozen.get("verdict") == "passed" and frozen.get("rules_sha256") == v7.rules_digest(CONTRACT))
     if problem:
         assert v7.build_latest(ROOT, contract=CONTRACT)["status"] == "unavailable"
+
+
+# ── 실행 전 감사에서 고친 것 ──────────────────────────────────────────────
+
+
+def test_lookback_is_by_calendar_period_not_by_row_position() -> None:
+    """발표되지 않은 달이 있으면 '12개월 전' 을 13행 전으로 대신하지 않는다."""
+    days = [date(2019, 1, 1) + timedelta(days=i) for i in range(1300) if (date(2019, 1, 1) + timedelta(days=i)).weekday() < 5]
+    months = [m for m in _months((2018, 1), (2022, 3)) if m != date(2019, 10, 1)]  # 2019-10 은 끝내 없다
+    series = {"NASDAQCOM": [(d, 100.0 + i) for i, d in enumerate(days)],
+              "CPIAUCSL": [(m, 100.0 * 1.01 ** ((m.year - 2018) * 12 + m.month - 1)) for m in months]}
+    store = v7.Store(series, CONTRACT["series_lag_days"], CONTRACT["staleness_limits_days"])
+    ok = v7.read(store, "inflation_yoy", store.session_index(date(2020, 9, 30)))    # 2020-08 대 2019-08
+    assert ok[0] == pytest.approx(100.0 * (1.01 ** 12 - 1)) and ok[1] == ("2020-08",)
+    assert v7.read(store, "inflation_yoy", store.session_index(date(2020, 11, 30))) is None  # 2020-10 은 2019-10 이 필요하다
+    after = v7.read(store, "inflation_yoy", store.session_index(date(2020, 12, 31)))
+    assert after[0] == pytest.approx(100.0 * (1.01 ** 12 - 1)) and after[1] == ("2020-11",)
+    calc = v7.Calc(store, store.session_index(date(2020, 3, 31)))
+    assert calc.window("CPIAUCSL", 3) is not None and calc.window("CPIAUCSL", 6) is None  # 이어지지 않은 창
+
+
+def test_staleness_runs_from_first_visibility() -> None:
+    days = [date(2020, 1, 1) + timedelta(days=i) for i in range(1300) if (date(2020, 1, 1) + timedelta(days=i)).weekday() < 5]
+    oil = [(d, 50.0) for d in days if d <= date(2020, 2, 28)]
+    store = v7.Store({"NASDAQCOM": [(d, 100.0) for d in days], "DCOILWTICO": oil},
+                     CONTRACT["series_lag_days"], CONTRACT["staleness_limits_days"])
+    lag, limit = CONTRACT["series_lag_days"]["DCOILWTICO"], CONTRACT["staleness_limits_days"]["daily"]
+    last = date(2020, 2, 28)
+    assert store.visible("DCOILWTICO", last + timedelta(days=lag + limit)) >= 0      # 보인 지 10일째까지는 쓴다
+    assert store.visible("DCOILWTICO", last + timedelta(days=lag + limit + 3)) == -1
+    assert store.visible("DCOILWTICO", last + timedelta(days=limit + 1), use_lags=False) == -1
+    assert store.visible("UNKNOWN", last) == -1
+
+
+def test_loaders_refuse_a_store_with_a_missing_series() -> None:
+    with pytest.raises(v7.OverheatV7Error):
+        v7._require_all({"NASDAQCOM": [1]}, "ledger")
+
+
+def test_caps_are_per_line_and_pressure_needs_three_indicators() -> None:
+    caps = CONTRACT["weights"]["caps"]
+    assert caps["heat"] == {"indicator": 25, "family": 40, "price_term_total": 50}
+    assert caps["pressure"] == {"indicator": 40, "family": 60}
+    assert CONTRACT["scoring"]["minimum_eligible"] == {"heat": 4, "pressure": 3}
+    assert len(CONTRACT["pre_run_amendments"]["changes"]) == 3 and "lookback" in CONTRACT["clarifications"]
+    assert CONTRACT["rules_amended_before_run_at"] > CONTRACT["rules_fixed_at"]
+
+
+def _tool():
+    import importlib.util
+
+    spec = importlib.util.spec_from_file_location("measure_overheat_influence_v7",
+                                                  ROOT / "tools/measure_overheat_influence_v7.py")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def test_measurement_tool_runs_once_and_its_frozen_block_drives_production(store: v7.Store, tmp_path: Path,
+                                                                           monkeypatch) -> None:
+    """합성 자료로 끝에서 끝까지: 공식 실행 → frozen → 재현 대조 → 매일의 값. 시험 실행과 재작성은 거부한다."""
+    import json as _json
+
+    tool = _tool()
+    contract = copy.deepcopy(CONTRACT)
+    contract["frozen"] = {}
+    path = tmp_path / v7.CONTRACT_RELATIVE
+    path.parent.mkdir(parents=True)
+    path.write_text(yaml.safe_dump(contract, allow_unicode=True, sort_keys=False) , encoding="utf-8")
+    (tmp_path / v7.INPUTS_RELATIVE).parent.mkdir(parents=True)
+    (tmp_path / v7.INPUTS_RELATIVE).write_text(_json.dumps({"sha256": "synthetic"}), encoding="utf-8")
+    monkeypatch.setattr(v7, "load_analysis_store", lambda _root, _contract: store)
+    monkeypatch.setattr(v7, "load_ledger_store", lambda _root, _contract: store)
+    monkeypatch.setattr(v7, "ritter_fingerprint", lambda _root: "synthetic")
+    monkeypatch.setattr(tool, "ROOT", tmp_path)
+
+    monkeypatch.setattr("sys.argv", ["tool", "--root", str(tmp_path)])
+    with pytest.raises(SystemExit):  # frozen 이 비어 있는데 적지 않는 실행은 없다
+        tool.main()
+    (tmp_path / "docs/audit").mkdir(parents=True)
+    monkeypatch.setattr("sys.argv", ["tool", "--root", str(tmp_path), "--write-frozen",
+                                     "--report", "docs/audit/overheat_v7_test.md"])
+    assert tool.main() == 0
+    frozen = yaml.safe_load(path.read_text(encoding="utf-8"))["frozen"]
+    report = _json.loads((tmp_path / "docs/audit/overheat_v7_test.json").read_text(encoding="utf-8"))
+    assert frozen["verdict"] == report["verdict"] and frozen["rules_sha256"] == v7.rules_digest(contract)
+    assert set(report["gates"]) == {f"G{n}" for n in range(1, 13)} and set(report["pressure_gates"]) == {"Q1", "Q2"}
+    assert set(frozen["scores"]) == {row["id"] for row in CONTRACT["candidates"]} | {"nc_time_trend", "nc_shifted_nasdaq_m2"}
+    assert frozen["episodes"] and all(e["low"] for e in frozen["episodes"])
+    assert "| 순위 | 지표 |" in (tmp_path / "docs/audit/overheat_v7_test.md").read_text(encoding="utf-8")
+    for gate in report["gates"].values():  # 값이 없는 게이트가 통과로 적히지 않는다
+        assert not (gate["passed"] and gate.get("value") is None)
+
+    monkeypatch.setattr("sys.argv", ["tool", "--root", str(tmp_path), "--write-frozen"])
+    with pytest.raises(SystemExit):  # 한 번 적힌 판정은 다시 쓰지 않는다
+        tool.main()
+    monkeypatch.setattr("sys.argv", ["tool", "--root", str(tmp_path), "--report", "docs/audit/overheat_v7_test.md"])
+    assert tool.main() == 0
+    again = _json.loads((tmp_path / "docs/audit/overheat_v7_test.json").read_text(encoding="utf-8"))
+    assert again["matches_frozen"] == {"verdict": True, "failed_gates": True, "heat_weights": True,
+                                       "pressure_weights": True, "scores": True}
+
+    stored = yaml.safe_load(path.read_text(encoding="utf-8"))
+    now = datetime(2026, 11, 11, 1, 0, tzinfo=timezone.utc)
+    live = v7.build_latest(tmp_path, now=now, ledger=store, contract=stored)
+    if frozen["verdict"] == "passed":
+        assert live["status"] == "ok" and live["index_raw"] == pytest.approx(report["measurement_band"]["base"], abs=0.11)
+    else:
+        assert live["status"] == "unavailable" and live["reason"] == "gates not passed"
+    forced = copy.deepcopy(stored)  # 판정만 통과로 바꿔도, 값은 동결 숫자에서 그대로 나온다
+    forced["frozen"]["verdict"] = "passed"
+    if forced["frozen"].get("heat"):
+        opened = v7.build_latest(tmp_path, now=now, ledger=store, contract=forced)
+        assert opened["status"] == "ok" and opened["index_raw"] == pytest.approx(report["measurement_band"]["base"], abs=0.11)
+        assert opened["family_band"] is None or opened["family_band"]["lo"] <= opened["family_band"]["hi"]
