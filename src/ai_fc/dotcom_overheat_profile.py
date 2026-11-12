@@ -2,7 +2,8 @@
 
 과열도 v6 는 단일 지수로는 자체 게이트를 넘지 못했다(v6.0·v6.1 탈락, DECISIONS 2026-11-11). 사용자 결정
 (2026-11-11 "프로필로 싣기")에 따라, 편입 시험을 통과한 지표 다섯의 점수(100 = 2000년 3월 정점 당시 상태)를
-**합·평균·가중·종합 등급 없이** 표시한다. 대표값은 v5 그대로이고, 이 프로필은 그 54% 의 내역이 아니다(척도가 다르다).
+**합·평균·가중·종합 등급 없이** 표시한다. 프로필은 대표값의 내역이 아니다(척도가 다르다). 2026-11-12 부터 대표값은
+v8 판단 가중 평균이고 v8 이 상승 속도 2종의 점수를 읽어 가지만, 프로필 자신은 여전히 아무것도 합치지 않는다.
 
 점수 0 의 뜻은 지표마다 다르다: 수준형은 1995~2019 중앙값, 상승 속도(수익률형)는 상승률 0 이다 — 그래서 수익률형에는
 장기 중앙값 점수를 함께 싣는다. 월·분기 지표는 발표 때 크게 뛸 수 있어 직전 기간의 점수를 함께 싣는다.
@@ -153,7 +154,7 @@ def build_profile(root: Path, *, now: datetime | None = None, inp: v6.Inputs | N
     if not scored:
         return {**base, "status": "hold", "reason": "no indicator could be scored", "families": families}
     return {**base, "status": "ok", "families": families, "scored": scored, "nasdaq_age_days": nasdaq_age,
-            "note": "합산 지수가 아니다. 대표값(v5)의 내역이 아니며 척도가 다르다. 확률이 아니다."}
+            "note": "합산 지수가 아니다. 프로필은 합치지 않는다(대표값 v8 이 상승 속도 2종을 읽어 갈 뿐이다). 확률이 아니다."}
 
 
 def materialize(root: Path, *, now: datetime | None = None) -> dict[str, Any]:

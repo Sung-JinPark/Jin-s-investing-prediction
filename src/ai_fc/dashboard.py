@@ -885,6 +885,8 @@ def build_read_model(
     dotcom_overheat_profile = _dotcom_overheat_profile(root)
     from .dotcom_overheat_v7 import load_influence as _dotcom_overheat_influence
     dotcom_overheat_influence = _dotcom_overheat_influence(root)
+    from .dotcom_overheat_v8 import compute as _dotcom_overheat_weighted
+    dotcom_overheat_weighted = _dotcom_overheat_weighted(root, v5=dotcom_overheat, profile=dotcom_overheat_profile)
     from .timeseries.artifact import load_projection as load_timeseries_projection
     from .timeseries_v2.artifact import load_projection as load_timeseries_v2_projection
     from .timeseries_v5.artifact import load_projection as load_timeseries_v5_projection
@@ -1156,6 +1158,7 @@ def build_read_model(
         "dotcom_overheat": dotcom_overheat,
         "dotcom_overheat_profile": dotcom_overheat_profile,
         "dotcom_overheat_influence": dotcom_overheat_influence,
+        "dotcom_overheat_weighted": dotcom_overheat_weighted,
         "timeseries": timeseries,
         "timeseries_v13_vol": timeseries_v13_vol,
         "mts_display_diagnostics": mts_display_diagnostics,
