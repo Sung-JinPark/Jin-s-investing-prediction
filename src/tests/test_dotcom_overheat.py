@@ -216,9 +216,14 @@ def test_statistics_page_leads_with_the_overheat_panel() -> None:
     render = html[html.index("function renderStatistics("):html.index("function timeseriesFeatureLabel")]
     assert render.index("statisticsOverheatPanel(DATA.dotcom_overheat)") < render.index("statistics-filters")
     panel = html[html.index("function statisticsOverheatPanel"):html.index("function renderStatistics(")]
-    # 대표값은 산포와 함께, 확률 아님·100%=정점 라벨 유지
-    assert "부문별 ${sig.lo}~${sig.hi}%" in panel
-    assert "확률 아님 · 100% = 닷컴 사이클 정점" in panel and "참고 의견" in panel
+    # 대표값은 산포와 함께. 2026-11-12 사용자 지시로 카드 아래 설명 두 줄은 뺐다 — 확률 아님·참고 의견 라벨은
+    # 지표별 닮음 블록의 주석이 싣고, 그 블록이 닫혀 있을 때만 짧은 라벨이 대신 나온다.
+    assert "부문별 ${sig.lo}~${sig.hi}%" in panel and "닷컴 정점 100%" in panel
+    assert "100% = 닷컴 사이클 정점(1995~1999 범위 위치)" not in panel and "부문 중앙값의 중앙값" not in panel
+    assert "통계 기간은 값이 측정된 기간" not in panel
+    assert "||'<p class=\"oh-note\">확률 아님 · 참고 의견</p>'" in panel
+    profile = html[html.index("function overheatProfileBlock"):html.index("function statisticsOverheatPanel")]
+    assert "확률 아님 · 참고 의견" in profile
 
 
 def test_v2_contract_adds_the_ipo_count_and_keeps_v1_as_history() -> None:

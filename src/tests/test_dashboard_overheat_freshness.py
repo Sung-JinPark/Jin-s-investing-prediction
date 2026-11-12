@@ -95,6 +95,8 @@ def test_check_and_provisional_information_are_visible_inside_each_indicator_row
     panel = source[source.index("function statisticsOverheatPanel("):
                    source.index("function predictionSectionNav(")]
     assert "overheatIndicatorFreshness(r)" in panel
-    assert "${esc(info.period)}" in panel
-    assert "${esc(info.check)}" in panel
-    assert "${esc(info.provisional)}" in panel
+    # 2026-11-12 사용자 지시: 통계 기간·원천 확인 줄은 14개 행에서 뺐다. IPO 의 잠정 참고·주석만 남는다.
+    assert "${esc(info.period)}" not in panel
+    assert "${esc(info.check)}" not in panel
+    assert "${esc(info.provisional)}" in panel and "${esc(info.note)}" in panel
+    assert "info.provisional||info.note?" in panel  # 실을 것이 없는 행에는 빈 줄도 만들지 않는다

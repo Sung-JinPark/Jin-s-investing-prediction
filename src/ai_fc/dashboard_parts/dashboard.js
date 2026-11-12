@@ -1450,14 +1450,15 @@ function statisticsOverheatPanel(idx){
   const X=v=>Math.max(0,Math.min(100,Number(v)/top*100));
   const bar=(v,cls='')=>`<span class="oh-track"><i class="oh-fill ${cls||overheatTone(v)}" style="width:${X(v).toFixed(1)}%"></i><b class="oh-peak" style="left:${X(100).toFixed(1)}%"></b></span>`;
   const catRows=cats.map(([key,v])=>`<li><em>${esc(OVERHEAT_CATEGORY_LABELS[key]||key)}</em>${bar(v)}<strong class="${overheatTone(v)}">${Math.round(v)}%</strong></li>`).join('');
-  // 통계 기간(분기·월)과 실제 원천 확인 시각을 분리한다. 둘 다 갱신 성공을 뜻하지는 않는다.
-  const indRows=rows.map(r=>{const info=overheatIndicatorFreshness(r);return `<li><button type="button" data-oh-jump="${esc(r.chart||'')}" title="${esc(r.why||'')}"><em>${esc(r.title||r.id)}<small>${esc(OVERHEAT_CATEGORY_LABELS[r.category]||r.category)}${r.why?` · ${esc(r.why)}`:''}</small></em>${bar(r.pct)}<strong class="${overheatTone(r.pct)}">${Math.round(r.pct)}%${r.beyond_dotcom_peak?'<small>정점 초과</small>':''}</strong><span class="oh-freshness" data-oh-freshness="${esc(info.status)}"><span>${esc(info.period)}</span><span>${esc(info.check)}</span>${info.provisional?`<span>${esc(info.provisional)}</span>`:''}${info.note?`<span>${esc(info.note)}</span>`:''}</span></button></li>`;}).join('');
+  // 2026-11-12 사용자 지시: 지표 행에는 부제(부문 · 이유)만 두고 통계 기간·원천 확인 줄은 싣지 않는다.
+  // 원천 갱신 상태는 statistics-freshness 점검과 overheat-watchdog 이 본다. IPO 행의 잠정 참고·주석만 남긴다.
+  const indRows=rows.map(r=>{const info=overheatIndicatorFreshness(r);return `<li><button type="button" data-oh-jump="${esc(r.chart||'')}" title="${esc(r.why||'')}"><em>${esc(r.title||r.id)}<small>${esc(OVERHEAT_CATEGORY_LABELS[r.category]||r.category)}${r.why?` · ${esc(r.why)}`:''}</small></em>${bar(r.pct)}<strong class="${overheatTone(r.pct)}">${Math.round(r.pct)}%${r.beyond_dotcom_peak?'<small>정점 초과</small>':''}</strong>${info.provisional||info.note?`<span class="oh-freshness" data-oh-freshness="${esc(info.status)}">${info.provisional?`<span>${esc(info.provisional)}</span>`:''}${info.note?`<span>${esc(info.note)}</span>`:''}</span>`:''}</button></li>`;}).join('');
   const node=el(`<section class="statistics-overheat" aria-labelledby="statistics-overheat-title"><h2 id="statistics-overheat-title">닷컴 대비 과열도</h2>`
     +`<div class="oh-hero"><div class="oh-score ${overheatTone(sig.pct)}"><span>현재</span><strong>${sig.pct}<small>%</small></strong><p>부문별 ${sig.lo}~${sig.hi}% · 정점 초과 ${sig.beyond}개 / ${sig.included}개</p></div>`
     +`<div class="oh-gauge"><div class="oh-gauge-bar"><i class="oh-span" style="left:${X(sig.lo).toFixed(1)}%;width:${(X(sig.hi)-X(sig.lo)).toFixed(1)}%"></i><b class="oh-peak" style="left:${X(100).toFixed(1)}%"></b><b class="oh-pin" style="left:${X(sig.pct).toFixed(1)}%"></b></div>`
     +`<div class="oh-gauge-scale"><span style="left:0">0%</span><span style="left:${X(50).toFixed(1)}%">50%</span><span class="is-peak" style="left:${X(100).toFixed(1)}%">닷컴 정점 100%</span></div></div></div>`
     +`<div class="oh-grid"><div><h3>부문별</h3><ul class="oh-list">${catRows}</ul></div><div><h3>지표별 ${rows.length}개</h3><ul class="oh-list is-indicators">${indRows}</ul></div></div>`
-    +`<p class="oh-note">확률 아님 · 100% = 닷컴 사이클 정점(1995~1999 범위 위치) · 부문 중앙값의 중앙값 · 참고 의견${idx.as_of?` · ${esc(idx.as_of)} 기준`:''}</p><p class="oh-note">통계 기간은 값이 측정된 기간이고 원천 확인은 공개 자료를 확인한 시각입니다. 분기 자료는 다음 발표 전까지 유지됩니다.</p>`+overheatProfileBlock(DATA.dotcom_overheat_profile)+`</section>`);
+    +(overheatProfileBlock(DATA.dotcom_overheat_profile)||'<p class="oh-note">확률 아님 · 참고 의견</p>')+`</section>`);
   node.querySelectorAll('[data-oh-jump]').forEach(button=>button.onclick=()=>{
     const card=document.querySelector(`[data-stat-id="${CSS.escape(button.dataset.ohJump)}"]`);
     if(!card)return;
