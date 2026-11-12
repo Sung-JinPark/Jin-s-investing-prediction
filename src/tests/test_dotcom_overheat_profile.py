@@ -188,7 +188,7 @@ def test_repository_profile_is_bound_to_the_frozen_admission_and_wired_without_a
     assert "reduce(" not in block and "<svg" not in block  # 화면에서도 합치지 않고, 글자는 HTML 로만
     panel = script[script.index("function statisticsOverheatPanel"):script.index("function predictionSectionNav")]
     call = "overheatProfileBlock(DATA.dotcom_overheat_profile)"
-    assert panel.count(call) == 1 and panel.index(call) > panel.index('class="oh-grid"')  # v5 분해·주석 뒤, 카드 맨 아래
-    assert panel.index(call) > panel.rindex('class="oh-note"')
+    assert panel.count(call) == 1 and panel.index(call) > panel.index('class="oh-grid"')  # v5 분해 뒤, 카드 맨 아래
+    assert panel.index(call) < panel.index("</section>") < panel.index("data-oh-jump]")
     board = (ROOT / "src/ai_fc/dashboard.py").read_text(encoding="utf-8")
     assert '"dotcom_overheat_profile": dotcom_overheat_profile' in board
