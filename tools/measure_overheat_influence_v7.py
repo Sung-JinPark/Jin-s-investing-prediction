@@ -416,12 +416,15 @@ def markdown(report: dict[str, Any], contract: dict[str, Any]) -> str:
     lines = [
         "# 닷컴 대비 과열도 v7 — 영향도 점수제 측정",
         "",
-        f"- 계약 판 `{report['contract_version']}` · 규칙 고정 {report['rules_fixed_at']} · 판정 기준일 {report['gate_as_of']}",
+        f"- 계약 판 `{report['contract_version']}` · 규칙 고정 {report['rules_fixed_at']} · 실행 전 수정 "
+        f"{contract.get('rules_amended_before_run_at')} · 판정 기준일 {report['gate_as_of']}",
         f"- 입력 지문 `{report['inputs_sha256'][:16]}…` · 규칙 지문 `{report['rules_sha256'][:16]}…`",
         f"- **과열도 줄 판정: {'통과' if report['verdict'] == 'passed' else '탈락'}**"
         + ("" if not report["failed_gates"] else f" — 실패 {', '.join(report['failed_gates'])}"),
         f"- 긴축 압력 줄: {'표시 가능' if report['pressure_displayable'] else '표시 불가'}",
         f"- 동결 블록과 이번 재현 일치: {report.get('matches_frozen')}",
+        f"- 기록 정오: 계약 `errata` {len(contract.get('errata') or [])}건(G6 는 실제로는 충족, 측정 범위 값은 변형 3개에서만 나온 것, "
+        "'우연 문턱 통과 11개'와 '자격 충족 6개'의 구분 등)",
         "",
         "참고 지표다. 확률이 아니며 매매 신호가 아니다. 가중은 과거 자료(1973~2017, 닷컴 1997~2002 제외)에 맞춘 표본 내 점수다.",
         f"{report['reported']['chance_note']}.",

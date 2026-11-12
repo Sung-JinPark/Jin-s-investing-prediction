@@ -1087,38 +1087,53 @@ def build_latest(root: Path, *, now: datetime | None = None, ledger: Store | Non
 
 
 def _evidence(row: dict[str, Any]) -> str:
-    """순위표의 한 낱말 상태 — beyond_chance(우연 수준을 넘음)·duplicate·chance·weak·none·unscored."""
+    """순위표의 판정 — 동결된 사유를 그대로 옮긴다.
+
+    eligible(자격 충족) · duplicate(문턱은 넘었으나 다른 지표와 중복) · weak(문턱은 넘었으나 35점 미만) ·
+    chance(우연 수준) · opposite(선언 방향과 반대) · none(무관) · unscored(채점 불가).
+    """
     reason = str(row.get("reason") or "")
     if row.get("status") in {"not_scoreable", "dropped"}:
         return "unscored"
     if row.get("status") == "eligible":
-        return "beyond_chance"
+        return "eligible"
     if reason.startswith("중복"):
         return "duplicate"
-    if reason.startswith("우연"):
-        return "chance"
     if reason.startswith("점수"):
         return "weak"
+    if reason.startswith("우연"):
+        return "chance"
     if reason.startswith("선언"):
-        return "none"
+        r12, r24 = row.get("rho12"), row.get("rho24")
+        both_negative = r12 is not None and r24 is not None and float(r12) <= -0.05 and float(r24) <= -0.05
+        return "opposite" if both_negative else "none"
     return "unscored"
 
 
+BEYOND_PLACEBO = {"eligible", "duplicate", "weak"}  # 자리 밀기 위약 90 백분위를 넘은 것(자격과는 다르다)
+
+
 def ranking_for_display(contract: dict[str, Any]) -> list[dict[str, Any]]:
-    """전 후보 순위표 — 게이트 결과와 무관하게 공개한다(frozen 에 점수가 있을 때). 대조군은 싣지 않는다."""
+    """전 후보 순위표(점수 내림차순) — 게이트 결과와 무관하게 공개한다. 순위 번호는 싣지 않는다(인접 순위는 오차 범위 안)."""
     frozen = contract.get("frozen") or {}
     labels = {row["id"]: row for row in contract["candidates"]}
     rows = []
     for key, row in (frozen.get("scores") or {}).items():
         if key not in labels:
             continue
-        rows.append({"id": key, "label": labels[key]["label"], "group": row["group"], "family": row["family"],
-                     "score": None if row.get("E") is None else int(round(float(row["E"]))),
-                     "evidence": _evidence(row), "weight": row.get("weight"), "_rank": row.get("rank") or 999})
-    rows.sort(key=lambda r: r["_rank"])
-    for position, row in enumerate(rows, start=1):
-        row["rank"] = position
-        row.pop("_rank")
+        evidence = _evidence(row)
+        reason = str(row.get("reason") or "")
+        duplicate_of = reason[3:-1] if evidence == "duplicate" and reason.endswith(")") else None
+        rows.append({
+            "id": key, "label": labels[key]["label"], "group": row["group"], "family": row["family"],
+            "score": None if evidence == "unscored" or row.get("E") is None else int(round(float(row["E"]))),
+            "evidence": evidence, "low_is_hot": int(labels[key]["sign"]) < 0, "months": row.get("n"),
+            "duplicate_of": None if duplicate_of not in labels else labels[duplicate_of]["label"],
+            "_order": row.get("rank") or 999,
+        })
+    rows.sort(key=lambda r: r["_order"])
+    for row in rows:
+        row.pop("_order")
     return rows
 
 
@@ -1131,14 +1146,21 @@ def load_influence(root: Path) -> dict[str, Any]:
         if not frozen.get("scores") or frozen.get("rules_sha256") != rules_digest(contract):
             return {**closed, "reason": "ranking not measured for the current rules"}
         rows = ranking_for_display(contract)
+        trend = (frozen["scores"].get(NC_TREND) or {}).get("E")
+        episodes = [e for e in frozen.get("episodes") or [] if e.get("in_train")]
         return {
             "status": "ok", "dataset_id": "dotcom_overheat_influence", "contract_id": contract["contract_id"],
             "contract_version": contract["version"], "probability_space": "reference_only", "trading_signal": False,
             "composite": None, "index_verdict": frozen.get("verdict"), "measured_as_of": frozen.get("gate_as_of"),
-            "sample": "1973~2017 고점 부근 월말 · 닷컴 구간 제외", "candidates": len(rows),
-            "beyond_chance": sum(1 for row in rows if row["evidence"] == "beyond_chance"), "rows": rows,
+            "in_sample_only": True, "candidates": len(rows),
+            "eligible": sum(1 for row in rows if row["evidence"] == "eligible"),
+            "beyond_placebo": sum(1 for row in rows if row["evidence"] in BEYOND_PLACEBO),
+            "bear_episodes": len(episodes),
+            "bear_episodes_before_1991": sum(1 for e in episodes if str(e.get("peak")) < "1991"),
+            "trend_control_score": None if trend is None else int(round(float(trend))),
+            "rows": rows,
         }
-    except (OSError, ValueError, KeyError, TypeError, AttributeError, yaml.YAMLError):
+    except Exception:  # noqa: BLE001 — 표시용 읽기는 대시보드 빌드를 절대 막지 않는다
         return {**closed, "reason": "ranking unavailable"}
 
 

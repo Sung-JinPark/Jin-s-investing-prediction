@@ -1442,22 +1442,34 @@ function overheatProfileBlock(profile){
     +`<div class="ohp-family ohp-headrow" aria-hidden="true"><h4></h4><div class="ohp-row"><em></em><span class="ohp-ticks"><span style="left:${P(0).toFixed(1)}%">0</span><span class="is-peak" style="left:${P(100).toFixed(1)}%">100</span></span><strong></strong><span class="ohp-meta"></span></div></div>`
     +groups+`<p class="oh-note">합산 지수 아님 · 대표값 내역 아님 · 0 = 1995~2019 중앙값(상승 속도는 상승률 0) · 확률 아님 · 참고 의견 · ${esc(profile.as_of)} 기준</p></div>`;
 }
-/* 지표별 영향도 순위 (dotcom_overheat_index_v7 의 점수제) — 과거 하락장에 앞서 어느 지표가 움직였나를 잰 점수(0~100).
-   지수가 아니다: 합산값은 쏠림 상한을 채우지 못해 만들지 않았고(계약 frozen.verdict), 여기에는 순위표만 싣는다.
-   합·평균을 만들지 않는다. 위쪽 대표값(v5)의 가중치도 아니다. */
+/* 지표별 과거 표본 점수 (dotcom_overheat_index_v7 의 점수제) — 과거 고점 부근에서 각 지표가 이후 NASDAQ 하락폭과 얼마나
+   같은 방향이었나를 잰 점수(0~100). 오늘 값이 아니고, 지수도 가중치도 아니다: 합산값은 쏠림 상한을 채우지 못해 만들지 않았다.
+   순위 번호를 싣지 않는다(인접 순위는 오차 범위 안). 합·평균을 만들지 않는다. 위의 '지표별 닮음'과 곱하거나 더하지 않는다. */
 const OVERHEAT_FAMILY_LABELS={valuation:'밸류에이션',participation:'참여·레버리지',speed:'상승 속도',ipo:'IPO 창구',real:'실물 투자',credit:'신용',liquidity:'유동성',conditions:'금융 여건',economy:'경기',rates:'금리',curve:'금리차',inflation:'물가'};
-const OVERHEAT_EVIDENCE_LABELS={beyond_chance:'우연 넘음',duplicate:'중복',chance:'우연 수준',weak:'약함',none:'관계 없음',unscored:'채점 불가'};
+const OVERHEAT_EVIDENCE_LABELS={eligible:'자격 충족',duplicate:'중복',weak:'약함',chance:'우연 수준',opposite:'방향 반대',none:'무관',unscored:'채점 불가'};
 function overheatInfluenceBlock(data){
   if(!data||data.status!=='ok'||!Array.isArray(data.rows)||!data.rows.length)return '';
   const row=r=>{
-    const score=Number.isFinite(Number(r.score))&&r.score!=null?Math.max(0,Math.min(100,Number(r.score))):null;
-    return `<li class="ohi-row" data-ohi-evidence="${esc(r.evidence||'')}"><span class="ohi-rank">${esc(r.rank)}</span><em>${esc(r.label||r.id)}<small>${esc(OVERHEAT_FAMILY_LABELS[r.family]||r.family||'')}</small></em><span class="ohi-track">${score==null?'':`<i style="width:${score}%"></i>`}</span><strong>${score==null?'—':score}</strong><span class="ohi-chip">${esc(OVERHEAT_EVIDENCE_LABELS[r.evidence]||'')}</span></li>`;
+    const score=r.score!=null&&Number.isFinite(Number(r.score))?Math.max(0,Math.min(100,Number(r.score))):null;
+    const chip=`${OVERHEAT_EVIDENCE_LABELS[r.evidence]||''}${r.evidence==='duplicate'&&r.duplicate_of?` · ${r.duplicate_of}`:''}`;
+    return `<li class="ohi-row" data-ohi-evidence="${esc(r.evidence||'')}"><em>${esc(r.label||r.id)}<small>${esc(OVERHEAT_FAMILY_LABELS[r.family]||r.family||'')}${r.low_is_hot?' · 낮을수록':''}</small></em><span class="ohi-track">${score==null?'':`<i style="width:${score}%"></i>`}</span><strong>${score==null?'—':`${score}점`}</strong><span class="ohi-chip">${esc(chip)}</span></li>`;
   };
-  const head=data.rows.slice(0,8),rest=data.rows.slice(8);
-  return `<div class="oh-influence" data-oh-influence="${esc(data.measured_as_of||'')}"><h3>지표별 영향도 순위 <small>과거 하락장 앞에서의 움직임 · 0~100점</small></h3>`
+  let lastEligible=-1;data.rows.forEach((r,i)=>{if(r.evidence==='eligible')lastEligible=i;});
+  const cut=Math.max(8,lastEligible+1),head=data.rows.slice(0,cut),rest=data.rows.slice(cut);
+  const count=v=>Number.isFinite(Number(v))?Number(v):'—';
+  return `<div class="oh-influence" data-oh-influence="${esc(data.measured_as_of||'')}"><h3>지표별 과거 표본 점수 <small>오늘 값 아님 · 위 닮음과 합치지 않음</small></h3>`
     +`<ul class="ohi-list">${head.map(row).join('')}</ul>`
     +(rest.length?`<details class="ohi-more"><summary>나머지 ${rest.length}개</summary><ul class="ohi-list">${rest.map(row).join('')}</ul></details>`:'')
-    +`<p class="oh-note">순위표 · 합산 지수 아님(만들지 않음) · 대표값 가중치 아님 · ${esc(data.sample||'')} · '우연 넘음' ${esc(data.beyond_chance)}개 / ${esc(data.candidates)}개 · 확률 아님 · 참고 의견</p></div>`;
+    +`<p class="oh-note">과거 표본 점수 · 합산 지수 아님(만들지 않음) · 대표값 가중치 아님 · 매매 신호 아님 · 확률 아님 · 참고 의견${data.measured_as_of?` · ${esc(data.measured_as_of)} 측정`:''}</p>`
+    +`<details class="ohi-more ohi-how"><summary>읽는 법·한계</summary><ul class="ohi-limits">`
+    +`<li>점수 = 1973~2017년 고점 부근 달의 값이 이후 1~2년 NASDAQ 최대 하락폭과 같은 방향이었던 정도(닷컴 1997~2002 제외)</li>`
+    +`<li>표본 안에서 잰 값 — 2020·2022년을 포함한 전진 검증은 없음</li>`
+    +`<li>큰 하락장은 표본에 ${count(data.bear_episodes)}번, 그중 ${count(data.bear_episodes_before_1991)}번이 1991년 이전</li>`
+    +`<li>인접한 줄의 순서는 오차 범위 안 — 순위 번호를 매기지 않음</li>`
+    +`<li>자격 충족 ${count(data.eligible)}개 · 우연 문턱을 넘은 것 ${count(data.beyond_placebo)}개 / ${count(data.candidates)}개 — 영향이 없어도 10개 중 1개꼴로 문턱을 넘음</li>`
+    +`<li>정보가 없는 달력 추세도 ${count(data.trend_control_score)}점을 받음(대조군)</li>`
+    +`<li>'방향 반대'는 가정한 방향과 반대로 움직였다는 뜻, '무관'·'우연 수준'은 관계가 없다는 증명이 아니라 우연과 구분되지 않았다는 뜻</li>`
+    +`</ul></details></div>`;
 }
 function statisticsOverheatPanel(idx){
   const sig=dotcomOverheatSignal(idx);

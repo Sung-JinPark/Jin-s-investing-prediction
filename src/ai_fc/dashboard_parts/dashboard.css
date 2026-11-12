@@ -1983,21 +1983,23 @@ body[data-view="future"] .page-heading .page-lede{margin:6px 0 0;font-size:12px}
 .oh-influence h3{margin:0 0 8px;color:#65635d;font-size:12px;font-weight:700}
 .oh-influence h3 small{margin-left:8px;color:#8a877e;font-weight:500}
 .ohi-list{list-style:none;margin:0;padding:0}
-.ohi-row{display:grid;grid-template-columns:26px minmax(0,1.5fr) minmax(0,1fr) 36px 72px;gap:10px;align-items:center;min-width:0;padding:5px 0;border-bottom:1px solid #f0efea}
-.ohi-rank{color:#8a877e;font:600 11px/1 var(--mono);text-align:right}
+.ohi-row{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr) 44px minmax(0,.9fr);gap:10px;align-items:center;min-width:0;padding:5px 0;border-bottom:1px solid #f0efea}
 .ohi-row em{min-width:0;font-style:normal;font-size:13px;line-height:1.35;word-break:keep-all}
 .ohi-row em small{margin-left:6px;color:#8a877e;font-size:10.5px;font-weight:500;white-space:nowrap}
 .ohi-track{display:block;min-width:0;height:8px;border-radius:4px;background:#efeee8}
 .ohi-track i{display:block;height:100%;border-radius:4px;background:#b9b6ab}
-.ohi-row[data-ohi-evidence="beyond_chance"] .ohi-track i{background:#3a3934}
-.ohi-row strong{font:800 13px/1.1 var(--mono);text-align:right}
-.ohi-chip{color:#8a877e;font-size:11px;white-space:nowrap}
-.ohi-row[data-ohi-evidence="beyond_chance"] .ohi-chip{color:#11110f;font-weight:700}
+.ohi-row[data-ohi-evidence="eligible"] .ohi-track i{background:#3a3934}
+.ohi-row strong{font:800 13px/1.1 var(--mono);text-align:right;white-space:nowrap}
+.ohi-chip{min-width:0;color:#8a877e;font-size:11px;line-height:1.35;overflow-wrap:anywhere}
+.ohi-row[data-ohi-evidence="eligible"] .ohi-chip{color:#11110f;font-weight:700}
+.ohi-row[data-ohi-evidence="opposite"] .ohi-chip{color:#8c0020}
+.ohi-limits{margin:4px 0 0;padding-left:18px;color:#706d65;font-size:11.5px;line-height:1.6}
 .ohi-more{margin-top:4px}
 .ohi-more summary{padding:6px 0;color:#65635d;font-size:12px;font-weight:600;cursor:pointer}
 @media(max-width:760px){
-.ohi-row{grid-template-columns:22px minmax(0,1fr) 34px 64px}
-.ohi-row .ohi-track{grid-column:2/-1;grid-row:2}
+.ohi-row{grid-template-columns:minmax(0,1fr) 44px}
+.ohi-row .ohi-track{grid-column:1/-1;grid-row:2}
+.ohi-row .ohi-chip{grid-column:1/-1;grid-row:3}
 .ohi-row em small{display:block;margin-left:0}
 }
 .ohp-row strong{font:800 14px/1.1 var(--mono);text-align:right}

@@ -2159,6 +2159,12 @@
   "train_near_high_months": 306,
   "chance_note": "위약 문턱이 90 백분위이므로 영향이 없는 후보도 10개 중 1개꼴로 그 관문을 넘는다"
  },
- "generated_at": "2026-11-12T01:34:26+00:00",
- "matches_frozen": "official run"
+ "generated_at": "2026-11-12T02:08:45+00:00",
+ "matches_frozen": {
+  "verdict": true,
+  "failed_gates": true,
+  "heat_weights": true,
+  "pressure_weights": true,
+  "scores": true
+ }
 }

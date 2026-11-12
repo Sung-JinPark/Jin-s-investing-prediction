@@ -450,18 +450,31 @@ def test_recorded_verdict_is_a_failed_composite_with_a_published_ranking() -> No
 
     shown = v7.load_influence(ROOT)
     assert shown["status"] == "ok" and shown["composite"] is None and shown["index_verdict"] == "failed"
-    assert shown["candidates"] == 35 and shown["beyond_chance"] == 6 and shown["trading_signal"] is False
-    assert [row["rank"] for row in shown["rows"]] == list(range(1, 36))
-    assert not any(row["id"].startswith("nc_") for row in shown["rows"])  # 대조군은 화면에 없다
-    assert all(row["weight"] is None for row in shown["rows"])  # 가중은 정해지지 않았다
-    assert {row["evidence"] for row in shown["rows"]} <= {"beyond_chance", "duplicate", "chance", "weak", "none", "unscored"}
-    assert shown["rows"][0]["id"] == "speed_r24" and shown["rows"][0]["score"] == 89
+    assert shown["in_sample_only"] is True and shown["trading_signal"] is False
+    # 자격을 채운 것은 6개, 우연 문턱을 넘은 것은 11개(중복 2 · 35점 미만 3 포함) — 둘은 다른 수다.
+    assert (shown["candidates"], shown["eligible"], shown["beyond_placebo"]) == (35, 6, 11)
+    assert (shown["bear_episodes"], shown["bear_episodes_before_1991"]) == (6, 5)
+    assert shown["trend_control_score"] == 33  # 정보 없는 달력 추세가 받는 점수도 공시한다
+    rows = {row["id"]: row for row in shown["rows"]}
+    assert len(rows) == 35 and not any("rank" in row or "weight" in row for row in shown["rows"])
+    scores = [row["score"] for row in shown["rows"] if row["score"] is not None]
+    assert scores == sorted(scores, reverse=True) and shown["rows"][0]["id"] == "speed_r24" and scores[0] == 89
+    assert {row["evidence"] for row in shown["rows"]} <= {"eligible", "duplicate", "weak", "chance", "opposite", "none",
+                                                           "unscored"}
+    assert rows["margin_gdp"]["evidence"] == "duplicate" and rows["margin_gdp"]["duplicate_of"] == "통화량 대비 NASDAQ"
+    assert rows["financial_conditions"]["evidence"] == "opposite"  # 가정과 반대로 움직인 것을 '무관'으로 뭉개지 않는다
+    assert rows["corp_bonds_gdp_change_3y"]["evidence"] == "none" and rows["speed_d200"]["evidence"] == "weak"
+    assert rows["unemployment_rate"]["low_is_hot"] is True and rows["speed_r24"]["low_is_hot"] is False
+    assert rows["oil_change_12m"]["months"] == 209  # 지표마다 표본 길이가 다르다
 
 
 def test_ranking_is_shown_as_a_table_and_the_index_is_not_wired() -> None:
     script = (ROOT / "src/ai_fc/dashboard_parts/dashboard.js").read_text(encoding="utf-8")
     block = script[script.index("function overheatInfluenceBlock"):script.index("function statisticsOverheatPanel")]
     assert "합산 지수 아님" in block and "대표값 가중치 아님" in block and "참고 의견" in block
+    assert "오늘 값 아님" in block and "매매 신호 아님" in block and "전진 검증은 없음" in block
+    assert "ohi-rank" not in block and "순위 번호를 매기지 않음" in block  # 인접 순위는 오차 범위 안
+    assert "영향도" not in block  # 인과로 읽히는 말을 쓰지 않는다
     assert "reduce(" not in block and "<svg" not in block  # 화면에서도 합치지 않고, 글자는 HTML 로만
     panel = script[script.index("function statisticsOverheatPanel"):script.index("function predictionSectionNav")]
     assert panel.count("overheatInfluenceBlock(DATA.dotcom_overheat_influence)") == 1
