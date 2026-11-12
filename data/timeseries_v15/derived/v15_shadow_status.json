@@ -1,0 +1,104 @@
+{
+  "contract_hash": "6ea9c14bd393894314a094c4ba8eecfc5a8a2ed28e92234d8b8852ebc8fb4e9e",
+  "counts": {
+    "a0_identity_attempts": 1,
+    "attempts": {},
+    "issuance_forecasts": 0,
+    "shadow_forecasts": 0,
+    "shadow_resolutions": 0,
+    "verdicts": 0
+  },
+  "display": "none — 화면 없음(scoring_excluded_from_official). d̄·CI 는 이 파일에 두지 않는다",
+  "families": {
+    "noninferiority": {
+      "members": {
+        "A5:h21": {
+          "pairs": 0,
+          "reached": false,
+          "required": 26
+        },
+        "A5:h5": {
+          "pairs": 0,
+          "reached": false,
+          "required": 26
+        },
+        "A5:h63": {
+          "pairs": 0,
+          "reached": false,
+          "required": 39
+        }
+      },
+      "t_star": null
+    },
+    "superiority": {
+      "members": {
+        "A1:h21": {
+          "pairs": 0,
+          "reached": false,
+          "required": 26
+        },
+        "A1:h5": {
+          "pairs": 0,
+          "reached": false,
+          "required": 26
+        },
+        "A1:h63": {
+          "pairs": 0,
+          "reached": false,
+          "required": 39
+        },
+        "A2:h21": {
+          "pairs": 0,
+          "reached": false,
+          "required": 26
+        },
+        "A2:h5": {
+          "pairs": 0,
+          "reached": false,
+          "required": 26
+        },
+        "A2:h63": {
+          "pairs": 0,
+          "reached": false,
+          "required": 39
+        },
+        "A3:h21": {
+          "pairs": 0,
+          "reached": false,
+          "required": 26
+        },
+        "A3:h5": {
+          "pairs": 0,
+          "reached": false,
+          "required": 26
+        },
+        "A3:h63": {
+          "pairs": 0,
+          "reached": false,
+          "required": 39
+        },
+        "A4:h21": {
+          "pairs": 0,
+          "reached": false,
+          "required": 26
+        },
+        "A4:h5": {
+          "pairs": 0,
+          "reached": false,
+          "required": 26
+        },
+        "A4:h63": {
+          "pairs": 0,
+          "reached": false,
+          "required": 39
+        }
+      },
+      "t_star": null
+    }
+  },
+  "mde_status": "computed",
+  "model_id": "shadow.mf_dfm_varx_coherence_v15",
+  "notice": "참고 의견, 매매 신호 아님",
+  "schema_version": 1,
+  "track_open": true
+}
