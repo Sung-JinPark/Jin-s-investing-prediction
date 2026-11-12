@@ -1442,6 +1442,23 @@ function overheatProfileBlock(profile){
     +`<div class="ohp-family ohp-headrow" aria-hidden="true"><h4></h4><div class="ohp-row"><em></em><span class="ohp-ticks"><span style="left:${P(0).toFixed(1)}%">0</span><span class="is-peak" style="left:${P(100).toFixed(1)}%">100</span></span><strong></strong><span class="ohp-meta"></span></div></div>`
     +groups+`<p class="oh-note">합산 지수 아님 · 대표값 내역 아님 · 0 = 1995~2019 중앙값(상승 속도는 상승률 0) · 확률 아님 · 참고 의견 · ${esc(profile.as_of)} 기준</p></div>`;
 }
+/* 지표별 영향도 순위 (dotcom_overheat_index_v7 의 점수제) — 과거 하락장에 앞서 어느 지표가 움직였나를 잰 점수(0~100).
+   지수가 아니다: 합산값은 쏠림 상한을 채우지 못해 만들지 않았고(계약 frozen.verdict), 여기에는 순위표만 싣는다.
+   합·평균을 만들지 않는다. 위쪽 대표값(v5)의 가중치도 아니다. */
+const OVERHEAT_FAMILY_LABELS={valuation:'밸류에이션',participation:'참여·레버리지',speed:'상승 속도',ipo:'IPO 창구',real:'실물 투자',credit:'신용',liquidity:'유동성',conditions:'금융 여건',economy:'경기',rates:'금리',curve:'금리차',inflation:'물가'};
+const OVERHEAT_EVIDENCE_LABELS={beyond_chance:'우연 넘음',duplicate:'중복',chance:'우연 수준',weak:'약함',none:'관계 없음',unscored:'채점 불가'};
+function overheatInfluenceBlock(data){
+  if(!data||data.status!=='ok'||!Array.isArray(data.rows)||!data.rows.length)return '';
+  const row=r=>{
+    const score=Number.isFinite(Number(r.score))&&r.score!=null?Math.max(0,Math.min(100,Number(r.score))):null;
+    return `<li class="ohi-row" data-ohi-evidence="${esc(r.evidence||'')}"><span class="ohi-rank">${esc(r.rank)}</span><em>${esc(r.label||r.id)}<small>${esc(OVERHEAT_FAMILY_LABELS[r.family]||r.family||'')}</small></em><span class="ohi-track">${score==null?'':`<i style="width:${score}%"></i>`}</span><strong>${score==null?'—':score}</strong><span class="ohi-chip">${esc(OVERHEAT_EVIDENCE_LABELS[r.evidence]||'')}</span></li>`;
+  };
+  const head=data.rows.slice(0,8),rest=data.rows.slice(8);
+  return `<div class="oh-influence" data-oh-influence="${esc(data.measured_as_of||'')}"><h3>지표별 영향도 순위 <small>과거 하락장 앞에서의 움직임 · 0~100점</small></h3>`
+    +`<ul class="ohi-list">${head.map(row).join('')}</ul>`
+    +(rest.length?`<details class="ohi-more"><summary>나머지 ${rest.length}개</summary><ul class="ohi-list">${rest.map(row).join('')}</ul></details>`:'')
+    +`<p class="oh-note">순위표 · 합산 지수 아님(만들지 않음) · 대표값 가중치 아님 · ${esc(data.sample||'')} · '우연 넘음' ${esc(data.beyond_chance)}개 / ${esc(data.candidates)}개 · 확률 아님 · 참고 의견</p></div>`;
+}
 function statisticsOverheatPanel(idx){
   const sig=dotcomOverheatSignal(idx);
   if(!sig)return null;
@@ -1458,7 +1475,8 @@ function statisticsOverheatPanel(idx){
     +`<div class="oh-gauge"><div class="oh-gauge-bar"><i class="oh-span" style="left:${X(sig.lo).toFixed(1)}%;width:${(X(sig.hi)-X(sig.lo)).toFixed(1)}%"></i><b class="oh-peak" style="left:${X(100).toFixed(1)}%"></b><b class="oh-pin" style="left:${X(sig.pct).toFixed(1)}%"></b></div>`
     +`<div class="oh-gauge-scale"><span style="left:0">0%</span><span style="left:${X(50).toFixed(1)}%">50%</span><span class="is-peak" style="left:${X(100).toFixed(1)}%">닷컴 정점 100%</span></div></div></div>`
     +`<div class="oh-grid"><div><h3>부문별</h3><ul class="oh-list">${catRows}</ul></div><div><h3>지표별 ${rows.length}개</h3><ul class="oh-list is-indicators">${indRows}</ul></div></div>`
-    +(overheatProfileBlock(DATA.dotcom_overheat_profile)||'<p class="oh-note">확률 아님 · 참고 의견</p>')+`</section>`);
+    +(overheatProfileBlock(DATA.dotcom_overheat_profile)||'<p class="oh-note">확률 아님 · 참고 의견</p>')
+    +overheatInfluenceBlock(DATA.dotcom_overheat_influence)+`</section>`);
   node.querySelectorAll('[data-oh-jump]').forEach(button=>button.onclick=()=>{
     const card=document.querySelector(`[data-stat-id="${CSS.escape(button.dataset.ohJump)}"]`);
     if(!card)return;

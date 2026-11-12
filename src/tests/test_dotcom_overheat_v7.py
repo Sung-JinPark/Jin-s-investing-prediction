@@ -432,3 +432,53 @@ def test_measurement_tool_runs_once_and_its_frozen_block_drives_production(store
         opened = v7.build_latest(tmp_path, now=now, ledger=store, contract=forced)
         assert opened["status"] == "ok" and opened["index_raw"] == pytest.approx(report["measurement_band"]["base"], abs=0.11)
         assert opened["family_band"] is None or opened["family_band"]["lo"] <= opened["family_band"]["hi"]
+
+
+# ── 저장소에 기록된 판정과 순위표 표시 ────────────────────────────────────
+
+
+def test_recorded_verdict_is_a_failed_composite_with_a_published_ranking() -> None:
+    frozen = CONTRACT["frozen"]
+    assert frozen["verdict"] == "failed" and frozen["heat"] is None and frozen["pressure"] is None
+    assert frozen["rules_sha256"] == v7.rules_digest(CONTRACT) and frozen["gate_as_of"] == CONTRACT["gate_as_of"]
+    assert set(frozen["scores"]) == {row["id"] for row in CONTRACT["candidates"]} | {"nc_time_trend", "nc_shifted_nasdaq_m2"}
+    eligible = sorted(k for k, row in frozen["scores"].items() if row["status"] == "eligible")
+    assert eligible == ["curve_10y_ff", "nasdaq_m2", "oil_change_12m", "shares_federal_debt", "speed_r24", "unemployment_rate"]
+    assert all(frozen["scores"][k]["status"] == "control" for k in ("nc_time_trend", "nc_shifted_nasdaq_m2"))
+    assert v7.frozen_problem(CONTRACT) == "gates not passed"
+    assert v7.build_latest(ROOT, contract=CONTRACT)["status"] == "unavailable"  # 지수는 닫혀 있다
+
+    shown = v7.load_influence(ROOT)
+    assert shown["status"] == "ok" and shown["composite"] is None and shown["index_verdict"] == "failed"
+    assert shown["candidates"] == 35 and shown["beyond_chance"] == 6 and shown["trading_signal"] is False
+    assert [row["rank"] for row in shown["rows"]] == list(range(1, 36))
+    assert not any(row["id"].startswith("nc_") for row in shown["rows"])  # 대조군은 화면에 없다
+    assert all(row["weight"] is None for row in shown["rows"])  # 가중은 정해지지 않았다
+    assert {row["evidence"] for row in shown["rows"]} <= {"beyond_chance", "duplicate", "chance", "weak", "none", "unscored"}
+    assert shown["rows"][0]["id"] == "speed_r24" and shown["rows"][0]["score"] == 89
+
+
+def test_ranking_is_shown_as_a_table_and_the_index_is_not_wired() -> None:
+    script = (ROOT / "src/ai_fc/dashboard_parts/dashboard.js").read_text(encoding="utf-8")
+    block = script[script.index("function overheatInfluenceBlock"):script.index("function statisticsOverheatPanel")]
+    assert "합산 지수 아님" in block and "대표값 가중치 아님" in block and "참고 의견" in block
+    assert "reduce(" not in block and "<svg" not in block  # 화면에서도 합치지 않고, 글자는 HTML 로만
+    panel = script[script.index("function statisticsOverheatPanel"):script.index("function predictionSectionNav")]
+    assert panel.count("overheatInfluenceBlock(DATA.dotcom_overheat_influence)") == 1
+    board = (ROOT / "src/ai_fc/dashboard.py").read_text(encoding="utf-8")
+    assert '"dotcom_overheat_influence": dotcom_overheat_influence' in board
+    assert "build_latest" not in board.split("dotcom_overheat_v7 import")[1].split("\n")[0]  # 순위표만 읽는다
+    workflow = (ROOT / ".github/workflows/statistics-refresh.yml").read_text(encoding="utf-8")
+    assert "overheat_v7" not in workflow and "overheat-v7" not in workflow  # 닫힌 지수는 갱신 배선에 넣지 않는다
+
+
+def test_ranking_loader_never_raises_and_closes_when_rules_change(tmp_path: Path) -> None:
+    assert v7.load_influence(tmp_path)["status"] == "unavailable"  # 계약이 없다
+    edited = copy.deepcopy(CONTRACT)
+    edited["scoring"]["P1_rank_association"]["max"] = 50
+    path = tmp_path / v7.CONTRACT_RELATIVE
+    path.parent.mkdir(parents=True)
+    path.write_text(yaml.safe_dump(edited, allow_unicode=True, sort_keys=False), encoding="utf-8")
+    assert v7.load_influence(tmp_path)["reason"] == "ranking not measured for the current rules"
+    path.write_text("not: [valid", encoding="utf-8")
+    assert v7.load_influence(tmp_path)["status"] == "unavailable"

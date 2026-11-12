@@ -987,10 +987,12 @@ def rules_digest(contract: dict[str, Any]) -> str:
 
 def frozen_problem(contract: dict[str, Any]) -> str | None:
     frozen = contract.get("frozen") or {}
-    if not frozen.get("heat"):
+    if not frozen:
         return "contract not frozen"
     if frozen.get("verdict") != "passed":
         return "gates not passed"
+    if not frozen.get("heat"):
+        return "no heat line"
     if frozen.get("rules_sha256") != rules_digest(contract):
         return "frozen block does not match the contract rules"
     return None
@@ -1084,8 +1086,26 @@ def build_latest(root: Path, *, now: datetime | None = None, ledger: Store | Non
     return out
 
 
+def _evidence(row: dict[str, Any]) -> str:
+    """순위표의 한 낱말 상태 — beyond_chance(우연 수준을 넘음)·duplicate·chance·weak·none·unscored."""
+    reason = str(row.get("reason") or "")
+    if row.get("status") in {"not_scoreable", "dropped"}:
+        return "unscored"
+    if row.get("status") == "eligible":
+        return "beyond_chance"
+    if reason.startswith("중복"):
+        return "duplicate"
+    if reason.startswith("우연"):
+        return "chance"
+    if reason.startswith("점수"):
+        return "weak"
+    if reason.startswith("선언"):
+        return "none"
+    return "unscored"
+
+
 def ranking_for_display(contract: dict[str, Any]) -> list[dict[str, Any]]:
-    """전 후보 순위표 — 게이트 결과와 무관하게 공개한다(frozen 에 점수가 있을 때)."""
+    """전 후보 순위표 — 게이트 결과와 무관하게 공개한다(frozen 에 점수가 있을 때). 대조군은 싣지 않는다."""
     frozen = contract.get("frozen") or {}
     labels = {row["id"]: row for row in contract["candidates"]}
     rows = []
@@ -1093,9 +1113,33 @@ def ranking_for_display(contract: dict[str, Any]) -> list[dict[str, Any]]:
         if key not in labels:
             continue
         rows.append({"id": key, "label": labels[key]["label"], "group": row["group"], "family": row["family"],
-                     "rank": row.get("rank"), "score": row.get("E"), "status": row.get("status"),
-                     "reason": row.get("reason"), "weight": row.get("weight")})
-    return sorted(rows, key=lambda r: (r["rank"] is None, r["rank"]))
+                     "score": None if row.get("E") is None else int(round(float(row["E"]))),
+                     "evidence": _evidence(row), "weight": row.get("weight"), "_rank": row.get("rank") or 999})
+    rows.sort(key=lambda r: r["_rank"])
+    for position, row in enumerate(rows, start=1):
+        row["rank"] = position
+        row.pop("_rank")
+    return rows
+
+
+def load_influence(root: Path) -> dict[str, Any]:
+    """대시보드용 순위표 — 계약의 frozen 에서만 읽는다(원장을 훑지 않는다). 어떤 경우에도 예외를 올리지 않는다."""
+    closed = {"status": "unavailable", "probability_space": "reference_only", "composite": None}
+    try:
+        contract = load_contract(root)
+        frozen = contract.get("frozen") or {}
+        if not frozen.get("scores") or frozen.get("rules_sha256") != rules_digest(contract):
+            return {**closed, "reason": "ranking not measured for the current rules"}
+        rows = ranking_for_display(contract)
+        return {
+            "status": "ok", "dataset_id": "dotcom_overheat_influence", "contract_id": contract["contract_id"],
+            "contract_version": contract["version"], "probability_space": "reference_only", "trading_signal": False,
+            "composite": None, "index_verdict": frozen.get("verdict"), "measured_as_of": frozen.get("gate_as_of"),
+            "sample": "1973~2017 고점 부근 월말 · 닷컴 구간 제외", "candidates": len(rows),
+            "beyond_chance": sum(1 for row in rows if row["evidence"] == "beyond_chance"), "rows": rows,
+        }
+    except (OSError, ValueError, KeyError, TypeError, AttributeError, yaml.YAMLError):
+        return {**closed, "reason": "ranking unavailable"}
 
 
 def materialize(root: Path, *, now: datetime | None = None) -> dict[str, Any]:
