@@ -1,33 +1,33 @@
 {
-  "as_of": "2026-11-12T11:56:14.620752+00:00",
+  "as_of": "2026-11-13T11:38:49.702346+00:00",
   "descriptive": {
     "inputs_differ_sensitivity": {
       "main": {
-        "n_rows": 1,
-        "qs5_mean_delta": -0.00015727786272912853
+        "n_rows": 2,
+        "qs5_mean_delta": 0.00042941525176345106
       },
       "term_structure": {
-        "n_rows": 1,
-        "qs5_mean_delta": -0.00015727786272912853
+        "n_rows": 2,
+        "qs5_mean_delta": 0.00042500868889595
       },
       "zero_drift": {
-        "n_rows": 1,
-        "qs5_mean_delta": -0.0002785739941071081
+        "n_rows": 2,
+        "qs5_mean_delta": 0.0004947679870144018
       }
     },
     "lead_buckets": {
       "1-21": {
         "main": {
-          "mean_delta": null,
-          "n_rows": 0
+          "mean_delta": -4.630589343749755e-05,
+          "n_rows": 1
         },
         "term_structure": {
-          "mean_delta": null,
-          "n_rows": 0
+          "mean_delta": -4.630589343749755e-05,
+          "n_rows": 1
         },
         "zero_drift": {
-          "mean_delta": null,
-          "n_rows": 0
+          "mean_delta": 0.00021155654506553427,
+          "n_rows": 1
         }
       },
       "22-63": {
@@ -65,31 +65,31 @@
     "target_date_equal": {
       "main": {
         "block_bootstrap_ci90": null,
-        "max_single_date_share": null,
-        "mean_delta": null,
-        "n_dates": 0
+        "max_single_date_share": 1.0,
+        "mean_delta": -4.630589343749755e-05,
+        "n_dates": 1
       },
       "term_structure": {
         "block_bootstrap_ci90": null,
-        "max_single_date_share": null,
-        "mean_delta": null,
-        "n_dates": 0
+        "max_single_date_share": 1.0,
+        "mean_delta": -4.630589343749755e-05,
+        "n_dates": 1
       },
       "zero_drift": {
         "block_bootstrap_ci90": null,
-        "max_single_date_share": null,
-        "mean_delta": null,
-        "n_dates": 0
+        "max_single_date_share": 1.0,
+        "mean_delta": 0.00021155654506553427,
+        "n_dates": 1
       }
     },
     "twin_contrasts": {
       "term_structure_minus_main": {
-        "mean": null,
-        "n_rows": 0
+        "mean": 0.0,
+        "n_rows": 1
       },
       "zero_drift_minus_main": {
-        "mean": null,
-        "n_rows": 0
+        "mean": 0.0002578624385030318,
+        "n_rows": 1
       }
     }
   },
@@ -110,38 +110,119 @@
   "schema_version": 1,
   "thinned": {
     "h1": {
-      "blocking_origin": "2026-11-11",
-      "blocking_sessions_behind": 1,
+      "blocking_origin": "2026-11-12",
+      "blocking_sessions_behind": 0,
       "by_arm": {
         "main": {
-          "ci90": null,
-          "mean": null,
-          "n": 0,
+          "ci90": [
+            -4.630589343749755e-05,
+            -4.630589343749755e-05
+          ],
+          "mean": -4.630589343749755e-05,
+          "n": 1,
           "p_better": null,
-          "secondary": null
+          "secondary": {
+            "brier": {
+              "ci90": [
+                -0.004939199999999921,
+                -0.004939199999999921
+              ],
+              "estimate": -0.004939199999999921
+            },
+            "coverage80_abs_error": {
+              "arm_coverage80": 1.0,
+              "ci90": [
+                0.0,
+                0.0
+              ],
+              "estimate": 0.0,
+              "v1_coverage80": 1.0
+            },
+            "qs5": {
+              "ci90": [
+                -6.873747103750862e-05,
+                -6.873747103750862e-05
+              ],
+              "estimate": -6.873747103750862e-05
+            }
+          }
         },
         "term_structure": {
-          "ci90": null,
-          "mean": null,
-          "n": 0,
+          "ci90": [
+            -4.630589343749755e-05,
+            -4.630589343749755e-05
+          ],
+          "mean": -4.630589343749755e-05,
+          "n": 1,
           "p_better": null,
-          "secondary": null
+          "secondary": {
+            "brier": {
+              "ci90": [
+                -0.004939199999999921,
+                -0.004939199999999921
+              ],
+              "estimate": -0.004939199999999921
+            },
+            "coverage80_abs_error": {
+              "arm_coverage80": 1.0,
+              "ci90": [
+                0.0,
+                0.0
+              ],
+              "estimate": 0.0,
+              "v1_coverage80": 1.0
+            },
+            "qs5": {
+              "ci90": [
+                -6.873747103750862e-05,
+                -6.873747103750862e-05
+              ],
+              "estimate": -6.873747103750862e-05
+            }
+          }
         },
         "zero_drift": {
-          "ci90": null,
-          "mean": null,
-          "n": 0,
+          "ci90": [
+            0.00021155654506553427,
+            0.00021155654506553427
+          ],
+          "mean": 0.00021155654506553427,
+          "n": 1,
           "p_better": null,
-          "secondary": null
+          "secondary": {
+            "brier": {
+              "ci90": [
+                0.022134020000000088,
+                0.022134020000000088
+              ],
+              "estimate": 0.022134020000000088
+            },
+            "coverage80_abs_error": {
+              "arm_coverage80": 1.0,
+              "ci90": [
+                0.0,
+                0.0
+              ],
+              "estimate": 0.0,
+              "v1_coverage80": 1.0
+            },
+            "qs5": {
+              "ci90": [
+                0.00013764097541783381,
+                0.00013764097541783381
+              ],
+              "estimate": 0.00013764097541783381
+            }
+          }
         }
       },
       "n_excluded": 1,
       "n_missing": 0,
       "n_no_target": 0,
       "n_pending_blocking": 1,
-      "n_scored": 0,
+      "n_scored": 1,
       "n_target": 50,
-      "n_tolerance_equivalent": 0
+      "n_tolerance_equivalent": 1
     },
     "h126": {
       "blocking_origin": null,
