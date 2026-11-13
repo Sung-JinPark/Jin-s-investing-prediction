@@ -1,6 +1,6 @@
 {
   "as_of": "2026-11-06",
-  "content_hash": "8572be186cbaf8a45bd72b92a486723b65f19c6a8c050ccb148f7f396536b333",
+  "content_hash": "183f63def6bea3b493c272ee1948f1cec4387f3d8e57b8009534e6c951d69ecc",
   "data_summary": {
     "candidate": "C1",
     "data_grades": [
@@ -21,7 +21,7 @@
     "required_market_freshness": {
       "groups": [
         {
-          "age_hours": 11.249166666666667,
+          "age_hours": 16.64472222222222,
           "available_at": "2026-11-13T11:01:04.815687+00:00",
           "group": "NASDAQCOM",
           "observation_time": "2026-11-12",
@@ -29,7 +29,7 @@
           "status": "fresh"
         },
         {
-          "age_hours": 11.249166666666667,
+          "age_hours": 16.64472222222222,
           "available_at": "2026-11-13T02:57:50.780689+00:00",
           "group": "VIX",
           "observation_time": "2026-11-12",
@@ -37,7 +37,7 @@
           "status": "fresh"
         },
         {
-          "age_hours": 12.882777777777777,
+          "age_hours": 18.278333333333332,
           "available_at": "2026-11-12T22:21:58+00:00",
           "group": "DGS2",
           "observation_time": "2026-11-12",
@@ -45,7 +45,7 @@
           "status": "fresh"
         },
         {
-          "age_hours": 12.882777777777777,
+          "age_hours": 18.278333333333332,
           "available_at": "2026-11-12T22:21:58+00:00",
           "group": "DGS10",
           "observation_time": "2026-11-12",
@@ -53,7 +53,7 @@
           "status": "fresh"
         },
         {
-          "age_hours": 155.24916666666667,
+          "age_hours": 160.6447222222222,
           "available_at": "2026-11-10T01:54:09+00:00",
           "group": "DTWEXBGS_or_DTWEXB",
           "observation_time": "2026-11-06",
@@ -86,7 +86,7 @@
       "필수 시장 입력 48시간 SLA 초과: DTWEXBGS_or_DTWEXB"
     ]
   },
-  "knowledge_cutoff": "2026-11-13T11:14:56+00:00",
+  "knowledge_cutoff": "2026-11-13T16:38:40+00:00",
   "model_id": "shadow.mf_dfm_ridge_varx_v2",
   "model_version": 2,
   "probability_space": "research_timeseries_v2_conditional",
