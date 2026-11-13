@@ -139,12 +139,12 @@
     "policy": "아카이브 날짜를 달력으로 쓰지 않는다 — 비세션 행은 무시하고 목록으로만 보고",
     "window": [
       "1995-01-03",
-      "2026-11-11"
+      "2026-11-12"
     ],
     "xnas_sessions_missing_nasdaqcom": [],
     "xnas_sessions_missing_nasdaqcom_since_first_origin": []
   },
-  "as_of_session": "2026-11-11",
+  "as_of_session": "2026-11-12",
   "bootstrap": {
     "caveats": [
       "serial overlap ignored — 주간 원점의 h21 창은 약 16/21 세션이 겹친다. 원점 i.i.d. 복원추출이라 CI 가 좁게 나올 수 있다(설계 §1.1 은 h21 에 블록 부트스트랩)",
@@ -158,9 +158,25 @@
   },
   "display_only": true,
   "divergence_episodes": [
-    "2026-10-12"
+    "2026-10-12",
+    "2026-11-11"
   ],
   "divergent_rows": [
+    {
+      "dropped_sessions_confirmed": [
+        "2026-10-12",
+        "2026-11-11"
+      ],
+      "grid_target_session": "2026-11-16",
+      "h": 63,
+      "origin": "2026-08-14",
+      "pit": 0.17,
+      "pit_ledger": null,
+      "stage": "provisional",
+      "xnas_target_session": "2026-11-12",
+      "y_ledger": null,
+      "y_xnas": -0.052341861596884844
+    },
     {
       "dropped_sessions_confirmed": [
         "2026-10-12"
@@ -448,26 +464,26 @@
       "status": "checked",
       "window": [
         "2025-01-01",
-        "2028-01-05"
+        "2028-01-06"
       ]
     },
     "daily6m": {
       "mismatches": [],
-      "n_dates": 20,
-      "n_forecasts": 17,
-      "n_rows": 165,
+      "n_dates": 21,
+      "n_forecasts": 18,
+      "n_rows": 183,
       "status": "checked"
     },
     "diagnostics_chain": {
       "error": null,
       "ok": true,
-      "rows": 31
+      "rows": 32
     },
     "failed_checks": [],
     "status": "PASS",
     "v13": {
       "mismatches": [],
-      "n": 201,
+      "n": 207,
       "status": "checked"
     },
     "v8": {
@@ -544,14 +560,14 @@
   "ledger": {
     "fresh_rows_covered": true,
     "path": "data/mts_research/ledgers/v8_xnas_label_diagnostics.jsonl",
-    "rows": 31,
+    "rows": 32,
     "rows_by_stage": {
-      "provisional": 2,
+      "provisional": 3,
       "reconciled": 29
     }
   },
-  "n": 31,
-  "n_dates": 25,
+  "n": 32,
+  "n_dates": 26,
   "n_origins": 12,
   "network_fetch_enabled": false,
   "notice": "참고 의견, 매매 신호 아님",
@@ -559,7 +575,7 @@
     "pending_archive": [],
     "resolved": 29,
     "rows_by_stage": {
-      "provisional": 2,
+      "provisional": 3,
       "reconciled": 29
     },
     "total": 48,
@@ -568,26 +584,24 @@
     "unresolved_list": [
       {
         "dropped_sessions_confirmed": [
-          "2026-10-12"
-        ],
-        "dropped_sessions_projected": [
+          "2026-10-12",
           "2026-11-11"
         ],
+        "dropped_sessions_projected": [],
         "grid_target_session": "2026-11-16",
         "h": 63,
         "ledger_resolution_eta": "2026-11-24T03:10:00+00:00",
         "official_resolution_status": "pending_grid",
         "origin": "2026-08-14",
-        "state": "target_open",
+        "state": "provisional",
         "xnas_target_session": "2026-11-12"
       },
       {
         "dropped_sessions_confirmed": [
-          "2026-10-12"
-        ],
-        "dropped_sessions_projected": [
+          "2026-10-12",
           "2026-11-11"
         ],
+        "dropped_sessions_projected": [],
         "grid_target_session": "2026-12-01",
         "h": 63,
         "ledger_resolution_eta": "2026-12-08T03:10:00+00:00",
@@ -598,11 +612,10 @@
       },
       {
         "dropped_sessions_confirmed": [
-          "2026-10-12"
-        ],
-        "dropped_sessions_projected": [
+          "2026-10-12",
           "2026-11-11"
         ],
+        "dropped_sessions_projected": [],
         "grid_target_session": "2026-12-08",
         "h": 63,
         "ledger_resolution_eta": "2026-12-15T03:10:00+00:00",
@@ -613,11 +626,10 @@
       },
       {
         "dropped_sessions_confirmed": [
-          "2026-10-12"
-        ],
-        "dropped_sessions_projected": [
+          "2026-10-12",
           "2026-11-11"
         ],
+        "dropped_sessions_projected": [],
         "grid_target_session": "2026-12-14",
         "h": 63,
         "ledger_resolution_eta": "2026-12-22T03:10:00+00:00",
@@ -628,11 +640,10 @@
       },
       {
         "dropped_sessions_confirmed": [
-          "2026-10-12"
-        ],
-        "dropped_sessions_projected": [
+          "2026-10-12",
           "2026-11-11"
         ],
+        "dropped_sessions_projected": [],
         "grid_target_session": "2026-12-21",
         "h": 63,
         "ledger_resolution_eta": "2026-12-29T03:10:00+00:00",
@@ -643,11 +654,10 @@
       },
       {
         "dropped_sessions_confirmed": [
-          "2026-10-12"
-        ],
-        "dropped_sessions_projected": [
+          "2026-10-12",
           "2026-11-11"
         ],
+        "dropped_sessions_projected": [],
         "grid_target_session": "2026-12-29",
         "h": 63,
         "ledger_resolution_eta": "2027-01-05T03:10:00+00:00",
@@ -658,11 +668,10 @@
       },
       {
         "dropped_sessions_confirmed": [
-          "2026-10-12"
-        ],
-        "dropped_sessions_projected": [
+          "2026-10-12",
           "2026-11-11"
         ],
+        "dropped_sessions_projected": [],
         "grid_target_session": "2027-01-06",
         "h": 63,
         "ledger_resolution_eta": "2027-01-12T03:10:00+00:00",
@@ -686,11 +695,10 @@
       },
       {
         "dropped_sessions_confirmed": [
-          "2026-10-12"
-        ],
-        "dropped_sessions_projected": [
+          "2026-10-12",
           "2026-11-11"
         ],
+        "dropped_sessions_projected": [],
         "grid_target_session": "2027-01-13",
         "h": 63,
         "ledger_resolution_eta": "2027-01-20T03:10:00+00:00",
@@ -700,10 +708,10 @@
         "xnas_target_session": "2027-01-11"
       },
       {
-        "dropped_sessions_confirmed": [],
-        "dropped_sessions_projected": [
+        "dropped_sessions_confirmed": [
           "2026-11-11"
         ],
+        "dropped_sessions_projected": [],
         "grid_target_session": "2026-11-17",
         "h": 21,
         "ledger_resolution_eta": "2026-11-24T03:10:00+00:00",
@@ -713,10 +721,10 @@
         "xnas_target_session": "2026-11-16"
       },
       {
-        "dropped_sessions_confirmed": [],
-        "dropped_sessions_projected": [
+        "dropped_sessions_confirmed": [
           "2026-11-11"
         ],
+        "dropped_sessions_projected": [],
         "grid_target_session": "2027-01-20",
         "h": 63,
         "ledger_resolution_eta": "2027-01-26T03:10:00+00:00",
@@ -726,10 +734,10 @@
         "xnas_target_session": "2027-01-19"
       },
       {
-        "dropped_sessions_confirmed": [],
-        "dropped_sessions_projected": [
+        "dropped_sessions_confirmed": [
           "2026-11-11"
         ],
+        "dropped_sessions_projected": [],
         "grid_target_session": "2026-11-24",
         "h": 21,
         "ledger_resolution_eta": "2026-12-01T03:10:00+00:00",
@@ -739,10 +747,10 @@
         "xnas_target_session": "2026-11-23"
       },
       {
-        "dropped_sessions_confirmed": [],
-        "dropped_sessions_projected": [
+        "dropped_sessions_confirmed": [
           "2026-11-11"
         ],
+        "dropped_sessions_projected": [],
         "grid_target_session": "2027-01-27",
         "h": 63,
         "ledger_resolution_eta": "2027-02-02T03:10:00+00:00",
@@ -752,10 +760,10 @@
         "xnas_target_session": "2027-01-26"
       },
       {
-        "dropped_sessions_confirmed": [],
-        "dropped_sessions_projected": [
+        "dropped_sessions_confirmed": [
           "2026-11-11"
         ],
+        "dropped_sessions_projected": [],
         "grid_target_session": "2026-12-02",
         "h": 21,
         "ledger_resolution_eta": "2026-12-08T03:10:00+00:00",
@@ -765,10 +773,10 @@
         "xnas_target_session": "2026-12-01"
       },
       {
-        "dropped_sessions_confirmed": [],
-        "dropped_sessions_projected": [
+        "dropped_sessions_confirmed": [
           "2026-11-11"
         ],
+        "dropped_sessions_projected": [],
         "grid_target_session": "2027-02-03",
         "h": 63,
         "ledger_resolution_eta": "2027-02-09T03:10:00+00:00",
@@ -789,10 +797,10 @@
         "xnas_target_session": "2026-11-09"
       },
       {
-        "dropped_sessions_confirmed": [],
-        "dropped_sessions_projected": [
+        "dropped_sessions_confirmed": [
           "2026-11-11"
         ],
+        "dropped_sessions_projected": [],
         "grid_target_session": "2026-11-16",
         "h": 5,
         "ledger_resolution_eta": "2026-11-24T03:10:00+00:00",
@@ -802,10 +810,10 @@
         "xnas_target_session": "2026-11-13"
       },
       {
-        "dropped_sessions_confirmed": [],
-        "dropped_sessions_projected": [
+        "dropped_sessions_confirmed": [
           "2026-11-11"
         ],
+        "dropped_sessions_projected": [],
         "grid_target_session": "2026-12-09",
         "h": 21,
         "ledger_resolution_eta": "2026-12-15T03:10:00+00:00",
@@ -815,10 +823,10 @@
         "xnas_target_session": "2026-12-08"
       },
       {
-        "dropped_sessions_confirmed": [],
-        "dropped_sessions_projected": [
+        "dropped_sessions_confirmed": [
           "2026-11-11"
         ],
+        "dropped_sessions_projected": [],
         "grid_target_session": "2027-02-10",
         "h": 63,
         "ledger_resolution_eta": "2027-02-17T03:10:00+00:00",
@@ -828,7 +836,7 @@
         "xnas_target_session": "2027-02-09"
       }
     ],
-    "unresolved_projected_nonempty": 17
+    "unresolved_projected_nonempty": 0
   },
   "primary_comparison": {
     "basis_pair": [
@@ -840,8 +848,8 @@
   "probability_space": "v8_log_return_h",
   "schema_version": 1,
   "scoring_excluded": true,
-  "single_episode": true,
-  "single_episode_note": "2026-10-12 holiday",
+  "single_episode": false,
+  "single_episode_note": null,
   "skill_by_basis": {
     "ledger_grid": {
       "cohort": "resolved_ledger_rows",
