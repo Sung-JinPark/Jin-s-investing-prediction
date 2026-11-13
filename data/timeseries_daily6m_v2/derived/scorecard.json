@@ -61,7 +61,7 @@
     },
     "note": "dependence underestimated (overlapping windows) — not a label basis; r1 rule false-rejection 0.29-0.46",
     "post_verdict_v1_revisions": 0,
-    "representative_runs": 2,
+    "representative_runs": 3,
     "target_date_equal": {
       "main": {
         "block_bootstrap_ci90": null,
@@ -95,13 +95,13 @@
   },
   "footnote": "연구 섀도 · 비공개 · 라벨은 verdicts 에서만 · 참고 의견, 매매 신호 아님",
   "n_pairs_missing": 0,
-  "n_runs": 2,
+  "n_runs": 3,
   "pair_eligibility": {
     "rule": "r3",
     "runs": {
       "excluded": 1,
       "identical_inputs": 0,
-      "tolerance_equivalent": 1
+      "tolerance_equivalent": 2
     }
   },
   "phase_origin": "2026-11-10",
@@ -111,7 +111,7 @@
   "thinned": {
     "h1": {
       "blocking_origin": "2026-11-11",
-      "blocking_sessions_behind": 0,
+      "blocking_sessions_behind": 1,
       "by_arm": {
         "main": {
           "ci90": null,
