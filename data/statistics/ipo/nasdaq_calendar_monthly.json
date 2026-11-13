@@ -117,7 +117,7 @@
     "2026-10": {
       "priced_total": 17,
       "operating_approx": 10,
-      "fetched_at": "2026-11-12T15:17:11+00:00",
+      "fetched_at": "2026-11-13T02:43:08+00:00",
       "response_sha256": "0ae63e90bcc10068ee564a81c212541198cfd3fe24634245dcdb0ca830c08a68",
       "complete": true,
       "stale": false
@@ -125,7 +125,7 @@
     "2026-11": {
       "priced_total": 1,
       "operating_approx": 1,
-      "fetched_at": "2026-11-12T15:17:11+00:00",
+      "fetched_at": "2026-11-13T02:43:08+00:00",
       "response_sha256": "969d295f51f3006b7bc15656d07d0f902915745668049cc2950aa83f6e29af56",
       "complete": false,
       "stale": false
