@@ -139,12 +139,12 @@
     "policy": "아카이브 날짜를 달력으로 쓰지 않는다 — 비세션 행은 무시하고 목록으로만 보고",
     "window": [
       "1995-01-03",
-      "2026-11-12"
+      "2026-11-13"
     ],
     "xnas_sessions_missing_nasdaqcom": [],
     "xnas_sessions_missing_nasdaqcom_since_first_origin": []
   },
-  "as_of_session": "2026-11-12",
+  "as_of_session": "2026-11-13",
   "bootstrap": {
     "caveats": [
       "serial overlap ignored — 주간 원점의 h21 창은 약 16/21 세션이 겹친다. 원점 i.i.d. 복원추출이라 CI 가 좁게 나올 수 있다(설계 §1.1 은 h21 에 블록 부트스트랩)",
@@ -274,6 +274,20 @@
       "xnas_target_session": "2026-11-09",
       "y_ledger": null,
       "y_xnas": -0.08035707460092395
+    },
+    {
+      "dropped_sessions_confirmed": [
+        "2026-11-11"
+      ],
+      "grid_target_session": "2026-11-16",
+      "h": 5,
+      "origin": "2026-11-06",
+      "pit": 0.73,
+      "pit_ledger": null,
+      "stage": "provisional",
+      "xnas_target_session": "2026-11-13",
+      "y_ledger": null,
+      "y_xnas": 0.022402315581821413
     }
   ],
   "emission_timing": {
@@ -464,26 +478,26 @@
       "status": "checked",
       "window": [
         "2025-01-01",
-        "2028-01-06"
+        "2028-01-07"
       ]
     },
     "daily6m": {
       "mismatches": [],
-      "n_dates": 21,
-      "n_forecasts": 18,
-      "n_rows": 183,
+      "n_dates": 22,
+      "n_forecasts": 19,
+      "n_rows": 202,
       "status": "checked"
     },
     "diagnostics_chain": {
       "error": null,
       "ok": true,
-      "rows": 32
+      "rows": 33
     },
     "failed_checks": [],
     "status": "PASS",
     "v13": {
       "mismatches": [],
-      "n": 207,
+      "n": 213,
       "status": "checked"
     },
     "v8": {
@@ -560,14 +574,14 @@
   "ledger": {
     "fresh_rows_covered": true,
     "path": "data/mts_research/ledgers/v8_xnas_label_diagnostics.jsonl",
-    "rows": 32,
+    "rows": 33,
     "rows_by_stage": {
-      "provisional": 3,
+      "provisional": 4,
       "reconciled": 29
     }
   },
-  "n": 32,
-  "n_dates": 26,
+  "n": 33,
+  "n_dates": 27,
   "n_origins": 12,
   "network_fetch_enabled": false,
   "notice": "참고 의견, 매매 신호 아님",
@@ -575,7 +589,7 @@
     "pending_archive": [],
     "resolved": 29,
     "rows_by_stage": {
-      "provisional": 3,
+      "provisional": 4,
       "reconciled": 29
     },
     "total": 48,
@@ -806,7 +820,7 @@
         "ledger_resolution_eta": "2026-11-24T03:10:00+00:00",
         "official_resolution_status": "pending_grid",
         "origin": "2026-11-06",
-        "state": "target_open",
+        "state": "provisional",
         "xnas_target_session": "2026-11-13"
       },
       {
@@ -956,35 +970,35 @@
         "h5": {
           "bootstrap_valid_draws": 5000,
           "ci90": [
-            -0.0516915989412849,
-            0.060936161670493434
+            -0.05107849709886155,
+            0.053737959516128815
           ],
-          "cov80": 0.8181818181818182,
-          "n": 11,
-          "n_origins": 11,
-          "pit_mean": 0.35818181818181816,
-          "skill": -0.0072856679603103824,
+          "cov80": 0.8333333333333334,
+          "n": 12,
+          "n_origins": 12,
+          "pit_mean": 0.38916666666666666,
+          "skill": -0.008906421759133032,
           "sufficiency": "ok",
-          "up_brier_mean": 0.27252727272727273,
+          "up_brier_mean": 0.26669166666666666,
           "wins": 7
         },
         "label": "XNAS 목표 종가가 확정된 모든 쌍(원장 미해소 잠정 포함)",
         "mean_h1_h5_h21": {
           "bootstrap_valid_draws": 5000,
           "ci90": [
-            -0.06189731445965436,
-            0.027096460940148195
+            -0.0615632147839315,
+            0.024194432565600592
           ],
           "insufficient_horizons": [],
-          "n": 31,
+          "n": 32,
           "n_by_h": {
             "h1": 12,
             "h21": 8,
-            "h5": 11
+            "h5": 12
           },
           "n_origins": 12,
           "note": "같은 basis 안의 지평 단순 평균 — basis 간 평균은 금지",
-          "skill": -0.02565301689047968,
+          "skill": -0.026193268156753897,
           "sufficiency": "ok"
         }
       },
