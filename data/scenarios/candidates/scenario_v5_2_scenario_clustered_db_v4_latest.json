@@ -25456,12 +25456,12 @@
     "archive": "not_opened_for_write"
   },
   "model_content_sha256": "edd87f2751276e98e647dd248175c10f1ef91db33dda2a456ebf9ecbd8c1d995",
-  "generated_at": "2026-11-13T23:48:31+00:00",
+  "generated_at": "2026-11-14T07:03:45+00:00",
   "build_receipt": {
     "artifact_type": "scenario_v5_2_research_candidate",
     "candidate_id": "scenario_v5_2_scenario_clustered_db_v4",
     "model_content_sha256": "edd87f2751276e98e647dd248175c10f1ef91db33dda2a456ebf9ecbd8c1d995",
-    "generated_at": "2026-11-13T23:48:31+00:00",
+    "generated_at": "2026-11-14T07:03:45+00:00",
     "source_hashes": {
       "data/raw/macro/bls_empsit_2026_07_20260807_browser_capture.txt": "9277c5da5507eda6689f9ae5a7d41063a105c3f5f03e84a33e31fc6b55b5dc79",
       "data/normalized/macro/bls_empsit_2026_07_20260807.json": "a86bd117ccb90081ae95cb59f1be7c51c59fa9061ef5023d8a11fdb0d3d0b035",
@@ -25852,9 +25852,10 @@
         "data/cross_asset/archive/2026-11-10.json": "b57e46132cdd2fa54a280fe1ffcd211f4d5f9c5730c967b1b20f2f7eba327d8f",
         "data/cross_asset/archive/2026-11-11.json": "e9b76a7765edf0e41be854507f577f6bd7f33b5680b297703c2c2c87fc765aa1",
         "data/cross_asset/archive/2026-11-12.json": "bb862064c75a77e20231893e4c479b6637a2d1a04614875aaa4f263d0e5449b3",
-        "data/cross_asset/cross_asset_latest.json": "bb862064c75a77e20231893e4c479b6637a2d1a04614875aaa4f263d0e5449b3",
+        "data/cross_asset/archive/2026-11-13.json": "db5b17672e67bae8fe775b4cf36726524d73d96d5c99e48e39d834711e2e9cbc",
+        "data/cross_asset/cross_asset_latest.json": "db5b17672e67bae8fe775b4cf36726524d73d96d5c99e48e39d834711e2e9cbc",
         "data/cross_asset/path_tracking.csv": "1c39695f8dfbc89f0f9b25d8754aca3e103d5f883137f274df01a59e585c5453",
-        "data/cross_asset/path_tracking_v2.csv": "ba32425879c72d802b7b310c398e81134b66fc4f95a25cb3a2749412b3f82b37",
+        "data/cross_asset/path_tracking_v2.csv": "c545d38c049d308a0e64c3bcad15b1559dadbb5961732bab5716b1c6a1d58b16",
         "data/cross_asset/receipts/2026-07-31_0f40b3636e5e.json": "b5dc815b2eac1b0a46dcbe10c7a8f21350f9e34ec37eb4abbb09f88023b4595c",
         "data/cross_asset/receipts/2026-07-31_ab2ab50e4cca.json": "c9d22350ab144bf7371618a6a63f205cf619df5b79a1aca7cf6d8394d14f8e64",
         "data/cross_asset/receipts/2026-07-31_b1e7c681fd2b.json": "c1d0e76d97e657c1fb31fd29df95c7251dcc6d9bf73ec1c4710f8353e043a5c7",
@@ -25924,6 +25925,7 @@
         "data/cross_asset/receipts/2026-11-10_79db832f4c1c.json": "06a782f14dec64c1516a7ec048317fc75fbd442c5fe6fc87aa30198e6e192822",
         "data/cross_asset/receipts/2026-11-11_5d8e7af4bfd9.json": "72a089d94332323a4270c29b888508b74adfcc2cf596ccd465a3d280c280253d",
         "data/cross_asset/receipts/2026-11-12_942b5f3bfade.json": "2d7c64d8588e82efbb8cf526381bc2340f0c8f3e3df11e71c6f9d2093c337118",
+        "data/cross_asset/receipts/2026-11-13_a7883e385e81.json": "0bf4fae82cef3e54130c996896b1ffde605d982e7cb72934009106a82bc90442",
         "data/ai_capital_cycle/ai_regime_latest.json": "3ece628716275381fcaf685cb145a811c5eb043b6051886ef219154cc724ab75",
         "data/ai_capital_cycle/canonical_segment_map.yaml": "e21be70a85473fd2d7c185b6a8c276f7266d5111142bc1a46a4928609b1d356c",
         "data/ai_capital_cycle/circular_finance_candidates.csv": "5801a917659c430654829d4d60a50944933d289958c0b1f606c2548a23d42b65",
@@ -25944,15 +25946,15 @@
         "data/ai_capital_cycle/segment_filing_accessions_latest.json": "58ff8900157d2230406f6d3a79e99a32988bcf83db31452f499531ec059456e3"
       },
       "missing_roots": [],
-      "manifest_sha256": "1228d46b2e4ecd7d2891fad898bfbc3e1b2c47561a4d00f9f363b34be4ac1488"
+      "manifest_sha256": "ec15fbbc47d384a94fb3b0bf9ca617de8b2aa19e19ee0a32b831625b953a2a6a"
     },
     "build_context": {
-      "head": "8638caca230d62b077d4a339ce7430df6351f659",
+      "head": "3a51a129c5385b8afcc680679a697745b7b8fc7e",
       "branch": "main",
-      "dirty": false,
-      "status_entry_count": 0,
+      "dirty": true,
+      "status_entry_count": 8,
       "python": "3.12.16"
     }
   },
-  "build_receipt_sha256": "97a29c5afcc71d6677a04b21105f6a084a29ef1285526a3d51a64f77aec7fa23"
+  "build_receipt_sha256": "bc669e1120d86bc2a5002f6175379ef591b8e8c38597a77f3c954c36c045efcc"
 }
