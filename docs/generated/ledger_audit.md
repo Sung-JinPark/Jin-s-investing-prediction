@@ -1,6 +1,6 @@
 # Ledger accumulation audit
 
-- Generated: `2026-11-14T07:48:16+00:00`
+- Generated: `2026-11-14T14:33:19+00:00`
 - Latest completed NYSE day: `2026-11-13`
 - Result: accumulating 86 · frozen 2 · stalled 1 · inactive 12 · violation 0 · planned 16
 
@@ -8,12 +8,12 @@
 |---|---:|---:|---:|---:|---|
 | `forecast_records` | event | 90 | 2026-11-09 | **accumulating** | — |
 | `forecast_evidence` | event | 54 | 2026-11-09 | **accumulating** | — |
-| `ml_market_history` | weekly | 1 | 2026-11-07 | **accumulating** | — |
+| `ml_market_history` | weekly | 1 | 2026-11-14 | **accumulating** | — |
 | `method_changes` | event | 1 | — | **accumulating** | — |
 | `calibration_ledger` | event | 1 / 51 | 2026-11-09 | **accumulating** | — |
 | `corrections_ledger` | event | 1 / 23 | — | **accumulating** | — |
 | `benchmark_ledger` | event | 1 / 51 | — | **accumulating** | — |
-| `cost_ledger` | event | 1 / 136 | — | **accumulating** | — |
+| `cost_ledger` | event | 1 / 137 | — | **accumulating** | — |
 | `provider_shadow_ledger` | event | 1 / 0 | — | **accumulating** | — |
 | `scenario_archive` | trading_daily | 75 | 2026-11-13 | **accumulating** | missing trading days: 2026-08-04, 2026-08-05, 2026-09-03, 2026-09-16, 2026-09-17, 2026-09-21, 2026-09-22, 2026-10-02, 2026-10-05 |
 | `scenario_latest` | trading_daily | 1 | 2026-11-13 | **accumulating** | — |
@@ -24,7 +24,7 @@
 | `timeseries_daily6m_research_resolutions` | trading_daily | 1 | 2026-11-14 | **accumulating** | — |
 | `timeseries_daily6m_research_runs` | weekly | 20 | 2026-11-14 | **accumulating** | — |
 | `timeseries_daily6m_v2_forecasts` | weekly | 1 | 2026-11-14 | **accumulating** | — |
-| `timeseries_daily6m_v2_resolutions` | weekly | 1 | 2026-11-13 | **accumulating** | — |
+| `timeseries_daily6m_v2_resolutions` | weekly | 1 | 2026-11-14 | **accumulating** | — |
 | `timeseries_daily6m_v2_verdicts` | event | 0 | — | **planned** | — |
 | `timeseries_daily6m_v2_runs` | weekly | 4 | 2026-11-14 | **accumulating** | — |
 | `timeseries_daily6m_v2_approvals` | event | 1 | 2026-11-11 | **accumulating** | — |
@@ -41,8 +41,8 @@
 | `realty_o_entry_cohort_archive` | monthly | 5 | 2026-11-03 | **accumulating** | — |
 | `ai_capital_archives` | monthly | 9 | 2026-11-05 | **accumulating** | — |
 | `dualdb_model_runs` | weekly | 0 | — | **inactive** | — |
-| `source_monitoring` | trading_daily | 96 | 2026-11-13 | **stalled** | missing trading days: 2026-08-25, 2026-08-27, 2026-08-28, 2026-10-23, 2026-11-04; writer settles within 18h of the close; expects 2026-11-12 |
-| `source_monitoring_status` | trading_daily | 1 | 2026-11-13 | **accumulating** | writer settles within 18h of the close; expects 2026-11-12 |
+| `source_monitoring` | trading_daily | 97 | 2026-11-14 | **stalled** | missing trading days: 2026-08-25, 2026-08-27, 2026-08-28, 2026-10-23, 2026-11-04; writer settles within 18h of the close; expects 2026-11-12 |
+| `source_monitoring_status` | trading_daily | 1 | 2026-11-14 | **accumulating** | writer settles within 18h of the close; expects 2026-11-12 |
 | `ipo_reference_batch_receipts` | event | 4 | 2026-08-19 | **accumulating** | — |
 | `ipo_reference_batch_status` | weekly | 1 | 2026-11-14 | **accumulating** | — |
 | `ipo_edgar_candidates` | weekly | 1 | 2026-11-14 | **accumulating** | — |
@@ -52,10 +52,10 @@
 | `timeseries_observation_facts` | trading_daily | 1 | — | **accumulating** | — |
 | `timeseries_event_facts` | event | 0 | — | **inactive** | — |
 | `timeseries_event_raw_receipts` | event | 0 | — | **inactive** | — |
-| `timeseries_shadow_forecasts` | trading_daily | 1 | 2026-11-13 | **accumulating** | writer settles within 18h of the close; expects 2026-11-12 |
+| `timeseries_shadow_forecasts` | trading_daily | 1 | 2026-11-14 | **accumulating** | writer settles within 18h of the close; expects 2026-11-12 |
 | `timeseries_shadow_resolutions` | trading_daily | 0 | — | **inactive** | — |
 | `timeseries_shadow_corrections` | event | 0 | — | **inactive** | — |
-| `timeseries_model_runs` | weekly | 14 | — | **accumulating** | — |
+| `timeseries_model_runs` | weekly | 15 | — | **accumulating** | — |
 | `timeseries_backtest_runs` | monthly | 5 | — | **accumulating** | — |
 | `raw_receipts` | event | 0 | — | **planned** | — |
 | `quarantine` | event | 0 | — | **planned** | — |

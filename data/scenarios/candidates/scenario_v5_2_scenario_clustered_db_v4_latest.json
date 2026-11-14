@@ -25456,12 +25456,12 @@
     "archive": "not_opened_for_write"
   },
   "model_content_sha256": "edd87f2751276e98e647dd248175c10f1ef91db33dda2a456ebf9ecbd8c1d995",
-  "generated_at": "2026-11-14T08:59:17+00:00",
+  "generated_at": "2026-11-14T14:33:01+00:00",
   "build_receipt": {
     "artifact_type": "scenario_v5_2_research_candidate",
     "candidate_id": "scenario_v5_2_scenario_clustered_db_v4",
     "model_content_sha256": "edd87f2751276e98e647dd248175c10f1ef91db33dda2a456ebf9ecbd8c1d995",
-    "generated_at": "2026-11-14T08:59:17+00:00",
+    "generated_at": "2026-11-14T14:33:01+00:00",
     "source_hashes": {
       "data/raw/macro/bls_empsit_2026_07_20260807_browser_capture.txt": "9277c5da5507eda6689f9ae5a7d41063a105c3f5f03e84a33e31fc6b55b5dc79",
       "data/normalized/macro/bls_empsit_2026_07_20260807.json": "a86bd117ccb90081ae95cb59f1be7c51c59fa9061ef5023d8a11fdb0d3d0b035",
@@ -25591,7 +25591,7 @@
         "data/scenarios/archive/2026-11-12.json": "2d45d89440403473d066936412c5063df73e076ecbb91d9ed94adf3e8d593419",
         "data/scenarios/archive/2026-11-13.json": "33ee81de9978fa68f37de19b54780ddb31d292ccfbbb09e3c1612b4cd50d14cc",
         "forecasts/.hashes": "9ff1c36f18bae29962fc12aa36fc003096ccfdfec2e58c493a5ae8c119a388c2",
-        "forecasts/.hashes.ots": "6dc5f1a635cdd76a9ba3f6cc4717eb41fd83b5a32793b8f640aac0eba59f5801",
+        "forecasts/.hashes.ots": "1f43a692fc1dd378d13294620902d34d79ca5a9733c3fdf21ca4a05b4ed3ae6a",
         "forecasts/2026/2026-07-08_btc-alt-mania-90d_r1.md": "779245a813c3bfd0f5f74436ee36ead16b431b6d42fc2103114d94ec5b827ad4",
         "forecasts/2026/2026-07-08_btc-alt-mania-90d_r1_evidence.md": "70f747ade4947c2471128413045522b2b90de021d730ba54ca971efd2b2c06d3",
         "forecasts/2026/2026-07-08_fomc-2026-10-28-hike_r1.md": "81dcd6a50564cec111f889f17c4d322a4ac3d9360b45095731a17ff60e9630c7",
@@ -25946,15 +25946,15 @@
         "data/ai_capital_cycle/segment_filing_accessions_latest.json": "58ff8900157d2230406f6d3a79e99a32988bcf83db31452f499531ec059456e3"
       },
       "missing_roots": [],
-      "manifest_sha256": "00b7d583b8c2bcec510ee35a89e2db0f78980d294d2e00492e1a2b42a2f7f891"
+      "manifest_sha256": "45d62183e65555117d67d7624cc7a4c303fde8ad6749d92d2b2e159e6afb7988"
     },
     "build_context": {
-      "head": "b4387b4db2e5480d5eb7169324eaeafe30b15ff1",
+      "head": "e3c9227dc4eb7de29b7ec7ad9c661c9ab2dcadbf",
       "branch": "main",
-      "dirty": true,
-      "status_entry_count": 4,
+      "dirty": false,
+      "status_entry_count": 0,
       "python": "3.12.16"
     }
   },
-  "build_receipt_sha256": "cc7ebe27c10657b41a606e6166d0aaa90c38937a5a650b54ea386ff5b0583ae7"
+  "build_receipt_sha256": "fc16cf52cd2937334877a3194e0ecdd31f020cca292b5d5d68a609f8b7aa2604"
 }
