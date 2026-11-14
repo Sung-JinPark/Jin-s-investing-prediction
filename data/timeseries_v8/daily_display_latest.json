@@ -1,6 +1,6 @@
 {
   "as_of": "2026-11-13",
-  "content_hash": "d9b02f9f3b1352b81457bfeb70d63f8582688552402c6fb3e73318ad4e607424",
+  "content_hash": "b035f435ff9eb6f858daac0d4e50ab3119e46df99169f9cd9641e6a390e15f2c",
   "daily": {
     "anchor": {
       "provisional": true,
@@ -31,7 +31,7 @@
         "series_id": "DTWEXBGS"
       }
     ],
-    "display_id": "tsv8-daily-3065de0eef45741b171841fd",
+    "display_id": "tsv8-daily-19c449acb404396f3fd646d8",
     "display_only": true,
     "input_state": "provisional",
     "provisional_inputs": [
@@ -40,19 +40,12 @@
         "series_id": "NASDAQCOM",
         "source": "nasdaq_quote_api_comp",
         "value": 25136.27
-      },
-      {
-        "observation_time": "2026-11-13",
-        "series_id": "VIX",
-        "source": "cboe_delayed_quote",
-        "value": 19.3
       }
     ],
     "provisional_series": [
-      "NASDAQCOM",
-      "VIX"
+      "NASDAQCOM"
     ],
-    "row_knowledge_cutoff": "2026-11-14T00:17:25+00:00",
+    "row_knowledge_cutoff": "2026-11-14T03:01:29+00:00",
     "scoring_excluded": true
   },
   "display_state": "research_reference",
@@ -97,13 +90,13 @@
       "probability_up": 0.695
     }
   },
-  "knowledge_cutoff": "2026-11-14T02:57:42+00:00",
+  "knowledge_cutoff": "2026-11-14T03:45:01+00:00",
   "model_id": "shadow.mf_dfm_varx_calibrated_v8",
   "model_version": 8,
   "operational": {
     "freshness": [
       {
-        "age_hours": 2.962065,
+        "age_hours": 3.750669,
         "expected_observation": "2026-11-12",
         "group": "NASDAQCOM",
         "next_publication_deadline": "2026-11-14T15:00:00+00:00",
@@ -117,21 +110,21 @@
         "status": "fresh"
       },
       {
-        "age_hours": 2.962065,
+        "age_hours": 3.750669,
         "expected_observation": "2026-11-12",
         "group": "VIX",
         "next_publication_deadline": "2026-11-14T15:00:00+00:00",
         "observation_time": "2026-11-13",
         "policy_id": "forecast-source-freshness-v1",
         "policy_sha256": "fa15e7be79bc7da593b310f6e04b92e6aab6d350b8129cda36f5c39eab32fb56",
-        "provisional": true,
+        "provisional": false,
         "publication_deadline": "2026-11-13T15:00:00+00:00",
         "rule": "xnas_completed_session_publication",
         "series_id": "VIX",
         "status": "fresh"
       },
       {
-        "age_hours": 2.962065,
+        "age_hours": 3.750669,
         "expected_observation": "2026-11-12",
         "group": "DGS2",
         "next_publication_deadline": "2026-11-16T23:15:00+00:00",
@@ -145,7 +138,7 @@
         "status": "fresh"
       },
       {
-        "age_hours": 2.962065,
+        "age_hours": 3.750669,
         "expected_observation": "2026-11-12",
         "group": "DGS10",
         "next_publication_deadline": "2026-11-16T23:15:00+00:00",
@@ -159,7 +152,7 @@
         "status": "fresh"
       },
       {
-        "age_hours": 170.962065,
+        "age_hours": 171.750669,
         "expected_observation": "2026-11-06",
         "group": "DTWEXBGS_or_DTWEXB",
         "next_publication_deadline": "2026-11-16T23:15:00+00:00",
