@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "baseline_at": "2026-11-14T07:04:13+00:00",
+  "baseline_at": "2026-11-14T07:48:16+00:00",
   "files": {
     "calibration/benchmark_ledger.csv": "6a23056eeca872c5a9a07b985d953c32bf768b5eed390719588e5d0385aef7fb",
     "calibration/corrections.csv": "cf777217ef95d01838e8b636fc35dcea4373ed49c155dab59ea87368bccd6bb3",
@@ -450,7 +450,7 @@
     "data/statistics/ipo/reference_batch_receipts/ritter_ipo_sales_2025_ba46b7c6e812599b.json": "a3837052c4120d571fc54f00ea3d12ca0c3f2e5096e7d7bb83d47936197a5ecb",
     "data/statistics/ipo/reference_batch_receipts/ritter_ipo_underpricing_2025_2d595cd02217f5d7.json": "31f690f8b57a0b02c1082602cb36933560accf1502e3a80eb19d22457769b299",
     "data/statistics/ipo/reference_batch_receipts/ritter_tech_ipo_2025_4b46b97a921ac46b.json": "fce59db946101ed8f346759cfbda35fd4c842fa63b410cbf7456ba93b56a8c91",
-    "data/statistics/ipo/reference_batch_status.json": "06b9748480fd5939f0da07a435c86c854f29013f1afe1fbec24c84eff9da23c5",
+    "data/statistics/ipo/reference_batch_status.json": "da6c8ca7bc8e1f1bbc6b430d30fc69515f05bcaba3f1257a3c92f0c257ee417b",
     "data/timeseries/ledgers/forecasts.jsonl": "02b8861341ae5bab8b4f2bad8be0c27289a4d884ad12b913667defc259142c04",
     "data/timeseries/ledgers/observation_chunks.jsonl": "162f1e61657d64f97bd35dcd39b2aea740211250be71e14fb7b45777fc377364",
     "data/timeseries/ledgers/raw_receipts.jsonl": "56f6edb56b1dd09fe3f2244221ab2ef8be436782768ea495ce7d573841e8b233",
