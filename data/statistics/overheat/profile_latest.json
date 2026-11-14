@@ -10,7 +10,7 @@
   "official_forecast_input": false,
   "trading_signal": false,
   "composite": null,
-  "generated_at": "2026-11-13T14:37:42+00:00",
+  "generated_at": "2026-11-14T02:33:04+00:00",
   "anchor_label": "2000년 3월 = 100",
   "max_age_days": 10,
   "as_of": "2026-11-12",
@@ -147,6 +147,6 @@
     }
   ],
   "scored": 5,
-  "nasdaq_age_days": 1,
+  "nasdaq_age_days": 2,
   "note": "합산 지수가 아니다. 프로필은 합치지 않는다(대표값 v8 이 상승 속도 2종을 읽어 갈 뿐이다). 확률이 아니다."
 }
