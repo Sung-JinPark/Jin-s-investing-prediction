@@ -5,7 +5,7 @@
   "probability_space": "reference_only",
   "model_use": false,
   "official_forecast_input": false,
-  "as_of": "2026-11-07",
+  "as_of": "2026-11-14",
   "coverage": {
     "dotcom_years": [
       1995,
@@ -31,7 +31,7 @@
     "ai_broad_limit": "This is a reviewed market-narrative cohort, not a complete keyword census. It is intentionally broader than the AI-core minimum and should not be read as a pure-play count.",
     "ai_core_series": "Reviewed minimum count: final SEC 424B4, traditional U.S. exchange IPO, offer price at least USD 5, excluding ADRs, SPACs, REITs and direct listings; AI/ML product or compute infrastructure must be central to the prospectus summary",
     "ai_core_limit": "This is a conservative reviewed minimum, not a keyword census. A company that merely uses AI is excluded.",
-    "reviewed_through": "2026-11-07",
+    "reviewed_through": "2026-11-14",
     "excluded_2026_examples": "SharonAI was already public after a business combination; QumulusAI and Ionic Digital used direct listings. They are excluded from both traditional-IPO counts. Reformation is excluded because the public tracker rates it minimal AI usage.",
     "automation_policy": "sec_424b4_ai_label_v5",
     "automation_semantics": "SEC final 424B4 deterministic classification; every current-year actual IPO found by the registered AI keyword search is included in both the broad and core cohorts; structural follow-ons, mergers, and already-public issuers remain excluded"
@@ -207,7 +207,7 @@
     },
     {
       "year": 2026,
-      "through": "2026-11-07",
+      "through": "2026-11-14",
       "issuers": [
         {
           "name": "Rank One Computing",
@@ -653,7 +653,7 @@
       "scale": "log1p",
       "description": "닷컴기의 인터넷 IPO와 현재의 AI 표방 신규 IPO를 함께 봅니다. 현재 광의선은 SEC 공모 문서에 AI 키워드가 있고 실제 신규 IPO인 운영회사·SPAC을 모두 포함하며, 핵심선도 같은 AI 표방 신규 IPO 전체를 반영합니다.",
       "caveat": "현재 광의 27건은 AI 표방 여부를 넓게 포착한 관심도 지표라 닷컴기의 Ritter 전통 IPO 정의와 완전히 같은 모집단은 아닙니다. SPAC도 포함합니다. 현재 핵심선은 사용자 지정 AI 표방 기준으로 분류되어 과거의 엄격한 사업 중요도 기준과 직접 비교할 때 이 정의 차이를 함께 봐야 합니다. SK하이닉스 NASDAQ ADS 사건을 더한 영향 포함 값은 28건이며, 세로축은 log(1+x)입니다.",
-      "insight": "SEC 공모 문서에서 AI를 표방한 신규 IPO는 2026-11-07까지 27건이고 NASDAQ ADS를 포함한 자본시장 사건 진단치는 28입니다.",
+      "insight": "SEC 공모 문서에서 AI를 표방한 신규 IPO는 2026-11-14까지 27건이고 NASDAQ ADS를 포함한 자본시장 사건 진단치는 28입니다.",
       "source_ids": [
         "RITTER_INTERNET_IPO_2025",
         "RC_AI_MARKET_2024",
@@ -726,7 +726,7 @@
             },
             {
               "period": 36,
-              "date": "2026-11-07",
+              "date": "2026-11-14",
               "value": 27
             }
           ]
@@ -753,7 +753,7 @@
             },
             {
               "period": 36,
-              "date": "2026-11-07",
+              "date": "2026-11-14",
               "value": 28
             }
           ]
@@ -780,7 +780,7 @@
             },
             {
               "period": 36,
-              "date": "2026-11-07",
+              "date": "2026-11-14",
               "value": 23
             }
           ]
