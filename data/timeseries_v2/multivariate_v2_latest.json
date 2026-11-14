@@ -1,6 +1,6 @@
 {
   "as_of": "2026-11-06",
-  "content_hash": "ef4c8de0188c943a832fb37b033b70f46508f4f6e99bacf188391c4339e8b64b",
+  "content_hash": "4ba36a8f3491325757207717b5b64c82a27bc975e9b1e2bb96332486a2f55e40",
   "data_summary": {
     "candidate": "C1",
     "data_grades": [
@@ -21,7 +21,7 @@
     "required_market_freshness": {
       "groups": [
         {
-          "age_hours": 6.659722222222222,
+          "age_hours": 15.29,
           "available_at": "2026-11-14T06:25:00.914120+00:00",
           "group": "NASDAQCOM",
           "observation_time": "2026-11-13",
@@ -29,7 +29,7 @@
           "status": "fresh"
         },
         {
-          "age_hours": 6.659722222222222,
+          "age_hours": 15.29,
           "available_at": "2026-11-14T03:00:07+00:00",
           "group": "VIX",
           "observation_time": "2026-11-13",
@@ -37,7 +37,7 @@
           "status": "fresh"
         },
         {
-          "age_hours": 7.711388888888889,
+          "age_hours": 16.341666666666665,
           "available_at": "2026-11-13T22:56:53+00:00",
           "group": "DGS2",
           "observation_time": "2026-11-13",
@@ -45,7 +45,7 @@
           "status": "fresh"
         },
         {
-          "age_hours": 7.711388888888889,
+          "age_hours": 16.341666666666665,
           "available_at": "2026-11-13T22:56:53+00:00",
           "group": "DGS10",
           "observation_time": "2026-11-13",
@@ -53,7 +53,7 @@
           "status": "fresh"
         },
         {
-          "age_hours": 174.65972222222223,
+          "age_hours": 183.29,
           "available_at": "2026-11-10T01:54:09+00:00",
           "group": "DTWEXBGS_or_DTWEXB",
           "observation_time": "2026-11-06",
@@ -86,7 +86,7 @@
       "필수 시장 입력 48시간 SLA 초과: DTWEXBGS_or_DTWEXB"
     ]
   },
-  "knowledge_cutoff": "2026-11-14T06:39:34+00:00",
+  "knowledge_cutoff": "2026-11-14T15:17:23+00:00",
   "model_id": "shadow.mf_dfm_ridge_varx_v2",
   "model_version": 2,
   "probability_space": "research_timeseries_v2_conditional",
