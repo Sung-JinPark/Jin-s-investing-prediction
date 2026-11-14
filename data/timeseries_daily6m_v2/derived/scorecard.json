@@ -1,33 +1,33 @@
 {
-  "as_of": "2026-11-13T11:38:49.702346+00:00",
+  "as_of": "2026-11-14T11:00:13.835043+00:00",
   "descriptive": {
     "inputs_differ_sensitivity": {
       "main": {
-        "n_rows": 2,
-        "qs5_mean_delta": 0.00042941525176345106
+        "n_rows": 3,
+        "qs5_mean_delta": 0.0007903574885842283
       },
       "term_structure": {
-        "n_rows": 2,
-        "qs5_mean_delta": 0.00042500868889595
+        "n_rows": 3,
+        "qs5_mean_delta": 0.0007753613075450275
       },
       "zero_drift": {
-        "n_rows": 2,
-        "qs5_mean_delta": 0.0004947679870144018
+        "n_rows": 3,
+        "qs5_mean_delta": 0.0009687070864967572
       }
     },
     "lead_buckets": {
       "1-21": {
         "main": {
-          "mean_delta": -4.630589343749755e-05,
-          "n_rows": 1
+          "mean_delta": 0.00010613895501766345,
+          "n_rows": 3
         },
         "term_structure": {
-          "mean_delta": -4.630589343749755e-05,
-          "n_rows": 1
+          "mean_delta": 0.00010594215564266232,
+          "n_rows": 3
         },
         "zero_drift": {
-          "mean_delta": 0.00021155654506553427,
-          "n_rows": 1
+          "mean_delta": 0.00045926494549784064,
+          "n_rows": 3
         }
       },
       "22-63": {
@@ -64,32 +64,41 @@
     "representative_runs": 4,
     "target_date_equal": {
       "main": {
-        "block_bootstrap_ci90": null,
-        "max_single_date_share": 1.0,
-        "mean_delta": -4.630589343749755e-05,
-        "n_dates": 1
+        "block_bootstrap_ci90": [
+          6.802774290387299e-05,
+          6.802774290387299e-05
+        ],
+        "max_single_date_share": 0.7974966295166185,
+        "mean_delta": 6.802774290387299e-05,
+        "n_dates": 2
       },
       "term_structure": {
-        "block_bootstrap_ci90": null,
-        "max_single_date_share": 1.0,
-        "mean_delta": -4.630589343749755e-05,
-        "n_dates": 1
+        "block_bootstrap_ci90": [
+          6.788014337262213e-05,
+          6.788014337262213e-05
+        ],
+        "max_single_date_share": 0.797234868942427,
+        "mean_delta": 6.788014337262213e-05,
+        "n_dates": 2
       },
       "zero_drift": {
-        "block_bootstrap_ci90": null,
-        "max_single_date_share": 1.0,
-        "mean_delta": 0.00021155654506553427,
-        "n_dates": 1
+        "block_bootstrap_ci90": [
+          0.0003973378453897636,
+          0.0003973378453897636
+        ],
+        "max_single_date_share": 0.733782538562353,
+        "mean_delta": 0.0003973378453897636,
+        "n_dates": 2
       }
     },
     "twin_contrasts": {
       "term_structure_minus_main": {
-        "mean": 0.0,
-        "n_rows": 1
+        "mean": -1.9679937500113875e-07,
+        "n_rows": 3
       },
       "zero_drift_minus_main": {
-        "mean": 0.0002578624385030318,
-        "n_rows": 1
+        "mean": 0.0003531259904801772,
+        "n_rows": 3
       }
     }
   },
@@ -110,24 +119,24 @@
   "schema_version": 1,
   "thinned": {
     "h1": {
-      "blocking_origin": "2026-11-12",
-      "blocking_sessions_behind": 1,
+      "blocking_origin": "2026-11-13",
+      "blocking_sessions_behind": 0,
       "by_arm": {
         "main": {
           "ci90": [
             -4.630589343749755e-05,
-            -4.630589343749755e-05
+            0.00041684052892798553
           ],
-          "mean": -4.630589343749755e-05,
-          "n": 1,
+          "mean": 0.000185267317745244,
+          "n": 2,
           "p_better": null,
           "secondary": {
             "brier": {
               "ci90": [
                 -0.004939199999999921,
-                -0.004939199999999921
+                0.008612842500000023
               ],
-              "estimate": -0.004939199999999921
+              "estimate": 0.0018368212500000508
             },
             "coverage80_abs_error": {
               "arm_coverage80": 1.0,
@@ -141,27 +150,27 @@
             "qs5": {
               "ci90": [
                 -6.873747103750862e-05,
-                -6.873747103750862e-05
+                0.000670853360845422
               ],
-              "estimate": -6.873747103750862e-05
+              "estimate": 0.0003010579449039567
             }
           }
         },
         "term_structure": {
           "ci90": [
             -4.630589343749755e-05,
-            -4.630589343749755e-05
+            0.00041684052892798553
           ],
-          "mean": -4.630589343749755e-05,
-          "n": 1,
+          "mean": 0.000185267317745244,
+          "n": 2,
           "p_better": null,
           "secondary": {
             "brier": {
               "ci90": [
                 -0.004939199999999921,
-                -0.004939199999999921
+                0.008612842500000023
               ],
-              "estimate": -0.004939199999999921
+              "estimate": 0.0018368212500000508
             },
             "coverage80_abs_error": {
               "arm_coverage80": 1.0,
@@ -175,27 +184,27 @@
             "qs5": {
               "ci90": [
                 -6.873747103750862e-05,
-                -6.873747103750862e-05
+                0.000670853360845422
               ],
-              "estimate": -6.873747103750862e-05
+              "estimate": 0.0003010579449039567
             }
           }
         },
         "zero_drift": {
           "ci90": [
             0.00021155654506553427,
-            0.00021155654506553427
+            0.0008626036271779883
           ],
-          "mean": 0.00021155654506553427,
-          "n": 1,
+          "mean": 0.0005370800861217613,
+          "n": 2,
           "p_better": null,
           "secondary": {
             "brier": {
               "ci90": [
                 0.022134020000000088,
-                0.022134020000000088
+                0.03516854249999998
               ],
-              "estimate": 0.022134020000000088
+              "estimate": 0.028651281250000035
             },
             "coverage80_abs_error": {
               "arm_coverage80": 1.0,
@@ -209,9 +218,9 @@
             "qs5": {
               "ci90": [
                 0.00013764097541783381,
-                0.00013764097541783381
+                0.0008718938483690637
               ],
-              "estimate": 0.00013764097541783381
+              "estimate": 0.0005047674118934488
             }
           }
         }
@@ -220,9 +229,9 @@
       "n_missing": 0,
       "n_no_target": 0,
       "n_pending_blocking": 1,
-      "n_scored": 1,
+      "n_scored": 2,
       "n_target": 50,
-      "n_tolerance_equivalent": 1
+      "n_tolerance_equivalent": 2
     },
     "h126": {
       "blocking_origin": null,
