@@ -1,6 +1,6 @@
 # Ledger accumulation audit
 
-- Generated: `2026-11-14T22:42:28+00:00`
+- Generated: `2026-11-15T22:04:03+00:00`
 - Latest completed NYSE day: `2026-11-13`
 - Result: accumulating 86 · frozen 2 · stalled 1 · inactive 12 · violation 0 · planned 16
 
@@ -41,10 +41,10 @@
 | `realty_o_entry_cohort_archive` | monthly | 5 | 2026-11-03 | **accumulating** | — |
 | `ai_capital_archives` | monthly | 9 | 2026-11-05 | **accumulating** | — |
 | `dualdb_model_runs` | weekly | 0 | — | **inactive** | — |
-| `source_monitoring` | trading_daily | 97 | 2026-11-14 | **stalled** | missing trading days: 2026-08-25, 2026-08-27, 2026-08-28, 2026-10-23, 2026-11-04; writer settles within 18h of the close; expects 2026-11-13 |
-| `source_monitoring_status` | trading_daily | 1 | 2026-11-14 | **accumulating** | writer settles within 18h of the close; expects 2026-11-13 |
+| `source_monitoring` | trading_daily | 98 | 2026-11-15 | **stalled** | missing trading days: 2026-08-25, 2026-08-27, 2026-08-28, 2026-10-23, 2026-11-04; writer settles within 18h of the close; expects 2026-11-13 |
+| `source_monitoring_status` | trading_daily | 1 | 2026-11-15 | **accumulating** | writer settles within 18h of the close; expects 2026-11-13 |
 | `ipo_reference_batch_receipts` | event | 4 | 2026-08-19 | **accumulating** | — |
-| `ipo_reference_batch_status` | weekly | 1 | 2026-11-14 | **accumulating** | — |
+| `ipo_reference_batch_status` | weekly | 1 | 2026-11-15 | **accumulating** | — |
 | `ipo_edgar_candidates` | weekly | 1 | 2026-11-14 | **accumulating** | — |
 | `ipo_ai_classification_decisions` | biweekly | 1 | 2026-11-07 | **accumulating** | — |
 | `statistics_alert_notify_state` | event | 1 | 2026-11-14 | **accumulating** | — |
@@ -60,7 +60,7 @@
 | `raw_receipts` | event | 0 | — | **planned** | — |
 | `quarantine` | event | 0 | — | **planned** | — |
 | `bitemporal_facts` | event | 0 | — | **planned** | — |
-| `forecast_timestamp_proof` | weekly | 1 | 2026-11-14 | **accumulating** | — |
+| `forecast_timestamp_proof` | weekly | 1 | 2026-11-15 | **accumulating** | — |
 | `research_pack` | monthly | 5 | — | **accumulating** | — |
 | `scenario_v5_2_distinctness_shadow` | trading_daily | 1 | — | **accumulating** | — |
 | `scenario_v5_2_sensitivity_grid` | event | 1 | — | **accumulating** | — |
