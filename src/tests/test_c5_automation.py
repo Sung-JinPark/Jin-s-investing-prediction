@@ -98,17 +98,14 @@ def test_draft_workflow_is_read_only_on_contents() -> None:
     assert "contents: read" in text
 
 
-def test_investing_refresh_still_caps_paid_work() -> None:
-    """자동 경로의 유료 상한이 사라지지 않았는지.
-
-    C5-A4 (2026-09-11): 이 경로는 더 이상 공식 회차를 생산하지 않는다(T05 가 은퇴시킨
-    생산자 조합이었다). 남은 유료 호출은 키 생존 smoke 뿐이라 상한도 $25 -> $2 다.
-    상한을 지우는 것이 아니라 남은 용도에 맞춰 **내린다**.
-    """
+def test_investing_refresh_has_no_paid_openai_call() -> None:
+    """공개 자료 수집 예약은 OpenAI 키나 유료 smoke 를 호출하지 않는다."""
     text = (ROOT / ".github" / "workflows" / "investing-refresh.yml").read_text(
         encoding="utf-8")
     assert "--max 3" not in text
-    assert 'AI_FC_MONTHLY_BUDGET: "2.00"' in text
+    assert "OPENAI_API_KEY" not in text
+    assert "openai-smoke" not in text
+    assert "python -m ai_fc provider-guard" in text
 
 
 # ── 마감 임박 우선 (2026-09-09 추가) ───────────────────────────────

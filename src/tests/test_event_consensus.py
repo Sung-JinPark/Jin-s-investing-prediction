@@ -150,8 +150,11 @@ def test_dashboard_renders_actual_forecast_previous() -> None:
 
     html = dashboard.render_html({}, mode="embed")
     assert "<th scope=\"col\">실제</th><th scope=\"col\">예상</th><th scope=\"col\">이전</th>" in html
-    board = html[html.index("function renderEventBoard"):html.index("function homeSignalSummary")]
-    assert "evAfpCluster(item)" in board, "홈 일정 카드마다 세 칸"
+    calendar = html[html.index("function renderEventEstimates"):html.index("function renderEventCalendar")]
+    assert "actual=metric?.actual" in calendar
+    assert "expected=metric?.consensus" in calendar
+    assert "previous=metric?.previous" in calendar
+    assert "evAfpCell(expected)" in calendar, "홈 예상치 행은 실제·예상·이전 세 칸"
     detail = html[html.index("function renderEventForecast"):html.index("function upcoming(")]
     assert "evAfpTable(afp)" in detail and "earningsCompanyName(peer)" in detail
     # 경제지표는 상회·하회에 색을 칠하지 않는다 — 좋고 나쁨이 지표마다 다르다

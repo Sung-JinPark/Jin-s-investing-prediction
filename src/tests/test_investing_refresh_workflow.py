@@ -4,15 +4,14 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 
 
-def test_investing_refresh_scopes_secret_and_caps_paid_work() -> None:
+def test_investing_refresh_uses_no_paid_openai_call() -> None:
     workflow = (ROOT / ".github" / "workflows" / "investing-refresh.yml").read_text(
         encoding="utf-8"
     )
 
-    assert "OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}" in workflow
-    # C5-A4 (2026-09-11): 자동 경로의 유료 호출은 키 생존 smoke 하나뿐이다.
-    assert "python -m ai_fc openai-smoke" in workflow
-    assert 'AI_FC_OPENAI_MONTHLY_BUDGET: "2.00"' in workflow
+    assert "OPENAI_API_KEY" not in workflow
+    assert "python -m ai_fc openai-smoke" not in workflow
+    assert "python -m ai_fc provider-guard" in workflow
     assert "gpt-5.6-terra" in workflow
     assert "cancel-in-progress: false" in workflow
 

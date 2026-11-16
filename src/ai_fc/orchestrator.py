@@ -86,6 +86,23 @@ def reserve_zone_block_reason(monthly: float, q: Question, today: date) -> str |
     return f"{head}. {q.question_id}의 마감은 {q.deadline} (D-{days})로 임박하지 않다"
 
 
+def budget_headroom_block_reason(spent: float, limit: float, required: float,
+                                 label: str) -> str | None:
+    """다음 회차 전체 상한을 예약할 수 없으면 과금 전에 차단한다.
+
+    provider 호출은 응답 뒤에야 실제 비용이 확정된다. 남은 금액만 PipelineBudget 으로
+    낮추면 리서치 중간에 돈만 쓰고 공식 결과가 남지 않을 수 있으므로, 기본 회차 상한
+    전체가 남아 있을 때만 시작한다. 실패 비용도 ``month_cost`` 에 포함된다.
+    """
+    if spent >= limit:
+        return f"{label} 월 예산 초과: ${spent:.2f} >= ${limit:.2f}"
+    remaining = limit - spent
+    if remaining + 1e-9 < required:
+        return (f"{label} 회차 예산 여유 부족: 남은 ${remaining:.2f} < "
+                f"필요 ${required:.2f} (월 상한 ${limit:.2f})")
+    return None
+
+
 def run_forecast(conn: sqlite3.Connection, root: Path, question_id: str,
                  n_agents: int = 2, budget_usd: float = config.DEFAULT_PIPELINE_BUDGET,
                  dry_run: bool = False) -> str:
@@ -118,9 +135,12 @@ def run_forecast(conn: sqlite3.Connection, root: Path, question_id: str,
         else config.REASONING_MODEL
     )
     assert_official_provider_allowed(root, requested_provider, requested_snapshot)
+    required_headroom = max(float(budget_usd), config.DEFAULT_PIPELINE_BUDGET)
     monthly = queries.month_cost(conn, now.year, now.month)
-    if monthly >= config.MONTHLY_BUDGET:
-        raise PreflightError(f"월 예산 초과: ${monthly:.2f} >= ${config.MONTHLY_BUDGET:.2f}")
+    budget_block = budget_headroom_block_reason(
+        monthly, config.MONTHLY_BUDGET, required_headroom, "전체")
+    if budget_block:
+        raise PreflightError(budget_block)
     reserve_block = reserve_zone_block_reason(monthly, q, today)
     if reserve_block:
         raise PreflightError(reserve_block)
@@ -130,10 +150,10 @@ def run_forecast(conn: sqlite3.Connection, root: Path, question_id: str,
         config.OPENAI_MONTHLY_BUDGET if requested_provider == "openai"
         else config.ANTHROPIC_MONTHLY_BUDGET
     )
-    if provider_monthly >= provider_limit:
-        raise PreflightError(
-            f"{requested_provider} 월 예산 초과: ${provider_monthly:.2f} >= ${provider_limit:.2f}"
-        )
+    provider_block = budget_headroom_block_reason(
+        provider_monthly, provider_limit, required_headroom, requested_provider)
+    if provider_block:
+        raise PreflightError(provider_block)
 
     budget = PipelineBudget(limit_usd=budget_usd)
     if requested_provider == "anthropic":

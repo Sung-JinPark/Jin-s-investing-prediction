@@ -410,8 +410,8 @@ def test_ui_contract() -> None:
     assert 'aria-current' in html, "aria-current 처리 없음"
     assert "prefers-reduced-motion" in html
     assert "view-enter" in html, "화면 진입 전환 클래스 없음"
-    # 홈은 3카드 + 이벤트 레일로 단순화됐다 (소유자 지시 2026-09-14, DECISIONS).
-    assert "agenda-rail" in html, "다음 이벤트 레일 없음"
+    # 홈은 3카드 + 실제 월간 이벤트 달력으로 구성한다.
+    assert "event-month-table" in html, "경제·실적 월간 달력 없음"
     assert "analysis-panel" in html, "분석 패널 없음"
     assert 'class="product-rail"' in html, "데스크톱 제품 rail 없음"
     assert 'class="mobile-drawer"' in html, "모바일 drawer 없음"
@@ -520,10 +520,8 @@ def test_five_section_information_architecture_contract() -> None:
     ):
         assert mapping in script
     assert 'data-home-core="true"' in html
-    # 홈 재설계 (소유자 지시 2026-09-14, docs/DECISIONS.md): 지표 5장 → 3장,
-    # 최근 변경 섹션 제거, 다음 이벤트는 레일 UI. 메타(질문·해소·대기)는 카드에서
-    # 푸터 한 줄로 내렸다. UX_AUDIT_260805 의 "축약" 방향으로 되돌아온 변경이다.
-    assert "핵심 지표 3개" in html and "다음 이벤트" in html
+    # 홈 재설계: 지표 3장과 경제·실적 월간 달력. 최근 변경 섹션은 두지 않는다.
+    assert "핵심 지표 3개" in html and "경제·실적 캘린더" in html
     assert "최근 변경" not in html, "최근 변경 섹션은 홈에서 제거됐다"
     # 카드 라벨이 평이한 말로 무엇을 재는지 말하므로 별도 주석줄은 두지 않는다.
     for plain in ("몬테카를로 예측 · 연말", "시계열 예측 · 3개월", "닷컴 대비 과열도"):
@@ -1535,27 +1533,20 @@ def test_repository_snapshot_stays_within_dashboard_budget(tmp_path: Path) -> No
 
 
 def test_estimated_schedule_rows_stay_visually_distinct_from_confirmed() -> None:
-    """추정을 확정처럼 그리지 않는다 — 홈은 표식으로, 전체 달력은 문장으로 말한다.
-
-    홈 보드는 깔끔함을 위해 정의 문단을 싣지 않는다. 대신 **예외에만** 표식을 단다:
-    추정 카드에 파선 테두리와 `추정` 알약이 붙고, 화면 낭독기에는 확정·추정이 카드마다
-    그대로 읽힌다. 정의 문장(계약 `calendar_sources.yaml` 의 confirmed_definition /
-    estimated_definition)과 확률 비연결 고지는 `#future` 의 전체 달력이 싣고, 홈의
-    '전체 일정' 링크가 거기로 보낸다 — 지워진 것이 아니라 한 곳으로 모인 것이다.
-    """
+    """추정을 확정처럼 그리지 않고 달력 칩과 화면 낭독기에 함께 표시한다."""
     script = (
         dashboard.config.ROOT / "src/ai_fc/dashboard_parts/dashboard.js"
     ).read_text(encoding="utf-8")
-    board = script[script.index("function renderEventBoard"):]
-    board = board[:board.index("function renderOverview")]
-    assert 'class="ev-tag is-estimated"' in board, "추정에는 표식이 붙는다"
-    assert "${esc(word)}" in board and "'추정'" in board
-    assert "sr-only" in board, "낭독기에는 카드마다 확정·추정을 읽어 준다"
+    calendar = script[script.index("function renderEventMonth"):]
+    calendar = calendar[:calendar.index("function renderEventEstimates")]
+    assert "month-event${confirmed?'':' is-estimated'}" in calendar
+    assert "const confirmed=item.status==='confirmed'" in calendar
+    assert "sr-only" in calendar and "'추정'" in calendar
 
     css = (
         dashboard.config.ROOT / "src/ai_fc/dashboard_parts/dashboard.css"
     ).read_text(encoding="utf-8")
-    assert "border-top-style:dashed" in css.split(".ev-card.is-estimated")[1][:80]
+    assert "border-style:dashed" in css.split(".month-event.is-estimated")[1][:100]
 
     # 정의와 확률 비연결 고지는 전체 달력 쪽에 살아 있어야 한다.
     ribbon = script[script.index("market-event-note"):][:400]
@@ -1563,19 +1554,15 @@ def test_estimated_schedule_rows_stay_visually_distinct_from_confirmed() -> None
     assert "이벤트와 분포 확률을 연결하지 않습니다" in ribbon
 
 
-def test_home_event_board_carries_no_prose_block() -> None:
-    """홈 보드는 카드만 싣는다 — 주석 문단·규모 칩·출처 링크를 두지 않는다(사용자 요청).
-
-    지운 것이 정보 손실이 아니어야 한다: 출처는 카드 제목이 가리키는 전체 달력에
-    행마다 '공식 근거' 로 그대로 있고, 확정·추정 건수는 그 화면의 요약 칩이 센다.
-    """
+def test_home_event_calendar_keeps_detail_in_the_full_schedule() -> None:
+    """홈은 간결한 달력·예상치만 싣고 출처와 상세 설명은 전체 일정에 보존한다."""
     script = (
         dashboard.config.ROOT / "src/ai_fc/dashboard_parts/dashboard.js"
     ).read_text(encoding="utf-8")
-    board = script[script.index("function renderEventBoard"):]
-    board = board[:board.index("function renderOverview")]
-    for gone in ("ev-note", "ev-src", "ev-head", "evCountChip", "근거 ↗"):
-        assert gone not in board, f"홈 보드에 남으면 안 되는 것: {gone}"
+    calendar = script[script.index("function renderEventCalendar"):]
+    calendar = calendar[:calendar.index("function homeSignalSummary")]
+    for gone in ("ev-note", "ev-src", "evCountChip", "근거 ↗"):
+        assert gone not in calendar, f"홈 달력에 남으면 안 되는 것: {gone}"
     # 전체 달력 쪽에는 그대로 있어야 한다 — 옮긴 것이지 지운 것이 아니다.
     assert "공식 근거 ↗" in script
     assert "event-summary-chip" in script
@@ -1585,10 +1572,9 @@ def test_today_events_open_forecast_detail_without_shape_icons() -> None:
     script = (
         dashboard.config.ROOT / "src/ai_fc/dashboard_parts/dashboard.js"
     ).read_text(encoding="utf-8")
-    board = script[script.index("function renderEventBoard"):script.index("function renderOverview")]
-    assert "#today/event/${encodeURIComponent(item.event_id)}" in board
-    assert "ev-glyph" not in board
-    assert "#future'" not in board
+    calendar = script[script.index("const evEventHref"):script.index("function homeSignalSummary")]
+    assert "#today/event/${encodeURIComponent(item.event_id)}" in calendar
+    assert "ev-glyph" not in calendar
     assert "event:renderEventForecast" in script
     detail = script[script.index("function eventForecastValue"):script.index("function upcoming")]
     assert "DATA.event_forecasts?.[eventId]" in detail
@@ -2086,15 +2072,56 @@ def test_home_cards_link_to_their_detail_pages() -> None:
     assert ".has-card-link:hover" in css and ".has-card-link:focus-within" in css
 
 
-def test_event_board_merges_same_week_earnings_of_one_category() -> None:
-    """분류당 첫 카드만 남기는 선택 규칙이 같은 주 실적을 떨어뜨리지 않게 한 카드로 묶는다
-    (2026-10-11: ASML 10-14 를 넣자 TSMC 10-15 가 홈 보드에서 사라졌다)."""
-    html = dashboard.load_template()
-    assert "function evMergeWeekEarnings(rows)" in html
-    assert "evMergeWeekEarnings(groupFlowCalendarEvents(list))" in html
-    assert "evWeekStart(item.date)===evWeekStart(row.date)" in html
-    # 여러 날에 걸친 묶음 카드는 한 회사의 시각 대신 날짜들을 보인다
-    assert "(item.clusterDates||[]).length>1" in html
+def test_event_calendar_month_math_and_month_end_preview() -> None:
+    """윤년·연말 전환과 마지막 7일의 다음 달 자동 표시를 실제 JS 헬퍼로 검증한다."""
+    node = shutil.which("node")
+    if node is None:
+        pytest.skip("node 없음 — 달력 JS 헬퍼 실행 불가")
+    script = dashboard.DASHBOARD_SCRIPT.read_text(encoding="utf-8")
+    helpers = script[script.index("const evMonthParts"):script.index("function evCalendarLabel")]
+    probe = "let homeCalendarOffset=0;\n" + helpers + """
+const out={
+  leap:evDaysInMonth(2028,2),
+  rollover:evShiftMonth('2026-12-15',1),
+  normal:evVisibleMonths('2026-11-23'),
+  monthEnd:evVisibleMonths('2026-11-24')
+};
+process.stdout.write(JSON.stringify(out));
+"""
+    done = subprocess.run([node, "-e", probe], capture_output=True, text=True)
+    assert done.returncode == 0, done.stderr
+    out = json.loads(done.stdout)
+    assert out["leap"] == 29
+    assert out["rollover"] == {"year": 2027, "month": 1}
+    assert out["normal"] == [{"year": 2026, "month": 11}]
+    assert out["monthEnd"] == [
+        {"year": 2026, "month": 11}, {"year": 2026, "month": 12},
+    ]
+
+
+def test_event_calendar_is_sunday_first_and_keeps_same_day_earnings() -> None:
+    script = dashboard.DASHBOARD_SCRIPT.read_text(encoding="utf-8")
+    calendar = script[script.index("function renderEventMonth"):script.index("function renderEventEstimates")]
+    assert "EV_WEEKDAY='일월화수목금토'" in script
+    assert "new Date(Date.UTC(month.year,month.month-1,1)).getUTCDay()" in calendar
+    assert "byDay.get(day).push(item)" in calendar
+    assert "items.map(item=>" in calendar
+    assert "event-day is-empty" in calendar
+    css = dashboard.DASHBOARD_STYLES.read_text(encoding="utf-8")
+    assert ".event-month-table{width:100%;min-width:0;table-layout:fixed" in css
+
+
+def test_event_estimates_use_one_primary_metric_without_fallback_values() -> None:
+    script = dashboard.DASHBOARD_SCRIPT.read_text(encoding="utf-8")
+    primary = script[script.index("function evPrimaryMetric"):script.index("function renderEventMonth")]
+    for metric in ("headline_cpi_yoy", "real_gdp", "payroll_change", "policy_rate", "eps"):
+        assert metric in primary
+    assert "candidate.actual!=null" in primary
+    estimates = script[script.index("function renderEventEstimates"):script.index("function renderEventCalendar")]
+    assert "expected=metric?.consensus" in estimates
+    assert "evAfpCell(expected)" in estimates
+    assert "event_forecasts" not in estimates
+    assert "표시할 일정이 없습니다" in estimates
 
 
 def test_embed_budget_constant_matches_payload_contract_adr_004() -> None:

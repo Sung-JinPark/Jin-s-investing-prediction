@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""월 예산 규칙 (C5-A4 2026-09-11 — 상한 $50 체제).
+"""월 예산 규칙 (2026-11-16 — 상한 $15, 주 1건 체제).
 
 여기서 지키려는 것은 금액 하나가 아니라 **규칙들이 서로 모순되지 않는다**는 성질이다.
 상한을 올릴 때마다 케이던스·예비 구간·회차당 상한이 따로 놀아서, 상한은 $40 인데
@@ -9,12 +9,14 @@
 from __future__ import annotations
 
 from datetime import date
+import sqlite3
 
 import pytest
 
 from ai_fc import config
+from ai_fc.db import queries
 from ai_fc.models import Question
-from ai_fc.orchestrator import reserve_zone_block_reason
+from ai_fc.orchestrator import budget_headroom_block_reason, reserve_zone_block_reason
 
 
 # 2026-09-11 실측 (cost_log, anthropic cli/api 표준 회차 n=5):
@@ -37,21 +39,21 @@ def _q(question_id: str = "q", *, kind: str = "fixed",
 
 # ── 금액 ──────────────────────────────────────────────────────────
 
-def test_monthly_cap_is_the_user_set_fifty() -> None:
-    assert config.MONTHLY_BUDGET == 50.00
+def test_monthly_cap_is_the_user_set_fifteen() -> None:
+    assert config.MONTHLY_BUDGET == 15.00
 
 
 def test_the_only_gate_producer_is_not_capped_below_the_global_cap() -> None:
     """생산자가 하나뿐일 때 그 하나에 더 낮은 캡을 걸면 전역 상한이 거짓말이 된다.
 
-    남는 금액을 쓸 수 있는 주체가 없어서, 사용자가 정한 $50 이 사실상 그 sub-cap 으로
+    남는 금액을 쓸 수 있는 주체가 없어서, 사용자가 정한 $15가 사실상 그 sub-cap 으로
     내려앉는다. 생산을 조이는 것은 캡이 아니라 예비 구간 규칙과 케이던스다.
     """
     assert config.ANTHROPIC_MONTHLY_BUDGET == config.MONTHLY_BUDGET
 
 
-def test_the_retired_auto_path_cap_matches_what_it_may_still_spend() -> None:
-    """자동 경로에 남은 유료 호출은 키 생존 smoke 뿐이다 — 캡도 거기 맞춘다."""
+def test_the_retired_openai_path_keeps_a_manual_diagnostic_cap() -> None:
+    """예약 smoke 는 제거했지만 명시적 수동 진단에는 별도 방어선이 남는다."""
     assert config.OPENAI_MONTHLY_BUDGET == 2.00
     assert config.OPENAI_MONTHLY_BUDGET < config.MONTHLY_BUDGET
 
@@ -69,10 +71,38 @@ def test_the_normal_cadence_never_reaches_the_reserve_zone() -> None:
     assert ROUNDS_PER_MONTH * MEASURED_UNIT_COST < floor
 
 
-def test_the_reserve_zone_still_buys_a_full_month_of_deadline_rounds() -> None:
-    """예비 구간이 한 회차도 못 사면 그것은 예비가 아니라 그냥 상한이다."""
+def test_the_reserve_zone_spans_the_measured_worst_round() -> None:
+    """마지막 20%가 실측 최악 회차보다 작아지지는 않는다."""
     reserve = config.MONTHLY_BUDGET * config.MONTHLY_BUDGET_RESERVE_RATIO
-    assert reserve / MEASURED_UNIT_COST_MAX >= 3
+    assert reserve >= MEASURED_UNIT_COST_MAX
+
+
+def test_full_round_headroom_is_required_before_paid_work() -> None:
+    assert budget_headroom_block_reason(11.00, 15.00, 4.00, "전체") is None
+    reason = budget_headroom_block_reason(11.01, 15.00, 4.00, "전체")
+    assert reason is not None
+    assert "남은 $3.99" in reason and "필요 $4.00" in reason
+
+
+def test_spend_at_or_above_the_cap_is_blocked() -> None:
+    assert "월 예산 초과" in budget_headroom_block_reason(15.00, 15.00, 4.00, "전체")
+
+
+def test_failed_cost_rows_count_toward_the_same_monthly_cap() -> None:
+    conn = sqlite3.connect(":memory:")
+    conn.row_factory = sqlite3.Row
+    conn.execute("CREATE TABLE cost_log (ts TEXT, stage TEXT, cost_usd REAL, provider TEXT)")
+    conn.executemany(
+        "INSERT INTO cost_log VALUES (?,?,?,?)",
+        [
+            ("2026-11-01T10:00:00+09:00", "inference", 7.60, "anthropic"),
+            ("2026-11-02T10:00:00+09:00", "failed", 3.50, "anthropic"),
+            ("2026-11-03T10:00:00+09:00", "smoke", 0.50, "openai"),
+        ],
+    )
+    spent = queries.month_cost(conn, 2026, 11, "anthropic")
+    assert spent == pytest.approx(11.10)
+    assert budget_headroom_block_reason(spent, 15.00, 4.00, "Anthropic") is not None
 
 
 # ── 예비 구간 가드 ────────────────────────────────────────────────

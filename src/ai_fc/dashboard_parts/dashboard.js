@@ -996,6 +996,9 @@ utilityContent.addEventListener('input',e=>{if(e.target.id!=='workspace-note')re
 });
 document.addEventListener('click',e=>{const b=e.target.closest('[data-action]');if(!b)return;const a=b.dataset.action;
   if(a==='pin')toggleCurrentPin();else if(a==='share')shareCurrentView(true);else if(a==='utility')setUtility(true);else if(a==='briefing')setBriefing(true);
+  else if(a==='event-month-prev'){homeCalendarOffset-=1;renderOverview();}
+  else if(a==='event-month-today'){homeCalendarOffset=0;renderOverview();}
+  else if(a==='event-month-next'){homeCalendarOffset+=1;renderOverview();}
 });
 app().addEventListener('click',e=>{
   const open=e.target.closest('[data-open-q]');if(open){e.preventDefault();location.hash='#records/question/'+open.dataset.openQ;return;}
@@ -3500,6 +3503,7 @@ function renderMarketMood(){
 const EV_WEEKDAY='일월화수목금토';          // LOOKUP_WEEKDAYS(js:2709)는 이 줄보다 뒤의 const 라 참조하면 TDZ 로 페이지가 죽는다
 const EV_KIND_COLOR={fomc:'#3f4248',cpi:'#717780',nfp:'#969ba2',gdp:'#555b63',earnings:'#20242a',question:'#6f6c65',other:'#747981'};
 const EV_BOARD_CAP=6;                       // 3 으로도 2 로도 나누어떨어져 어느 열 수에서도 고아 카드가 없다
+let homeCalendarOffset=0;
 
 const evFuture=(rows,today)=>(rows||[]).filter(r=>String(r.date||'').slice(0,10)>=today
   ||(r.kind==='earnings'&&dayDiff(r.date,today)>=0&&dayDiff(r.date,today)<=7&&evReleaseState(r).code!=='scheduled'))
@@ -3677,37 +3681,73 @@ function evAfpTable(rows){
   return `<div class="afp-table-wrap"><table class="afp-table${display.some(r=>r.display_projection)?' has-conversion':''}"><thead><tr><th scope="col">지표</th><th scope="col">실제</th><th scope="col">예상</th><th scope="col">이전</th></tr></thead><tbody>${body}</tbody></table></div>`
     +`<p class="afp-source">${src.map(r=>`<a href="${esc(r.source_url)}" target="_blank" rel="noopener noreferrer">${esc(r.source)} ↗</a>`).join(' · ')} · 수집 ${esc(String(evidence.map(r=>r.captured_at).filter(Boolean).sort().at(-1)||'').slice(0,16).replace('T',' '))} UTC · 외부 공개값 · 참고 의견</p>`;
 }
-function renderEventBoard(rows,today){
-  const list=evFuture(rows,today);
-  if(!list.length)return '<p class="agenda-empty">예정된 이벤트가 없습니다.</p>';
-  const cards=evPick(list,EV_BOARD_CAP).map(item=>{
-    const iso=String(item.date).slice(0,10),d=dayDiff(today,iso),wd=evWeekday(iso);
-    const ok=evConfirmed(list,item),near=d!=null&&d>=0&&d<=7;
-    /* 질문 폴백의 '판정'을 확정/추정 2분법에 밀어넣지 않는다 — 레지스트리에 박힌 판정일을
-       '추정'이라고 부르면 그 자체가 거짓말이다(현재 코드의 tag() 가 막고 있던 지점). */
-    const word=item.status==='question'?'판정':ok?'확정':'추정';
-    /* 알약은 **예외에만** 단다. 6장 중 4장이 확정이라 전부 붙이면 알약이 배경이 되고
-       정작 도드라져야 할 추정이 묻힌다. 확정은 파선 없는 실선 테두리가 말하고,
-       화면 낭독기에는 tear-off 의 sr-only 가 6장 모두에 확정/추정을 그대로 읽어 준다. */
-    const mo=Number(iso.slice(5,7)),day=Number(iso.slice(8,10));
-    const kindKey=item.status==='question'?'question':item.kind;
-    /* 공식 일정 event_id로 해당 발표의 예측치 화면에 연결한다. 질문 폴백만 질문 상세로 간다. */
-    const href=item.event_id?`#today/event/${encodeURIComponent(item.event_id)}`
-      :item.id?`#records/question/${encodeURIComponent(item.id)}`:'#today';
-    const members=item.kind==='earnings'?(item.clusterIds||[item.event_id]).map(id=>(DATA.calendar_events||[]).find(row=>row.event_id===id)).filter(Boolean):[];
-    const releases=members.map(event=>`<a href="#today/event/${encodeURIComponent(event.event_id)}">${esc(earningsCompanyName(event))} · ${esc(evReleaseState(event).label)}</a>`).join('');
-    return `<li class="ev-card${item.kind==='earnings'?' is-earnings':''}${near?' is-near':''}${ok?'':' is-estimated'}" style="--k:${EV_KIND_COLOR[kindKey]||EV_KIND_COLOR.other}">
-      <time class="ev-date" datetime="${esc(iso)}"><span class="sr-only">${mo}월 ${day}일 ${esc(wd)}요일 · ${esc(word)}</span>
-        <b aria-hidden="true">${mo}월</b><strong aria-hidden="true">${day}</strong><i aria-hidden="true">${esc(wd)}</i></time>
-      <span class="ev-body">
-        <span class="ev-line"><a class="ev-title" href="${esc(href)}"
-          ><b>${esc(evFullLabel(item))}</b><em>${esc(evShortLabel(item))}</em></a
-          ></span>
-        <span class="ev-meta"><span><b class="ev-dday">${d==null?'—':d===0?'오늘':d<0?`${-d}일 전`:`D-${d}`}</b> · ${(item.clusterDates||[]).length>1?esc(item.clusterDates.map(x=>`${Number(x.slice(5,7))}/${Number(x.slice(8,10))}`).join(' · ')):item.time_et?`${esc(item.time_et)} ET`:'시각 미정'}</span
-          >${ok?'':`<em class="ev-tag is-estimated">${esc(word)}</em>`}</span>
-        ${releases?`<span class="ev-company-links">${releases}</span>`:''}
-      </span>${evAfpCluster(item)}</li>`;}).join('');
-  return `<ol class="ev-cards">${cards}</ol>`;
+const evMonthParts=iso=>({year:Number(String(iso).slice(0,4)),month:Number(String(iso).slice(5,7))});
+const evMonthKey=(year,month)=>`${year}-${String(month).padStart(2,'0')}`;
+function evShiftMonth(iso,offset){
+  const {year,month}=evMonthParts(iso),date=new Date(Date.UTC(year,month-1+offset,1));
+  return {year:date.getUTCFullYear(),month:date.getUTCMonth()+1};
+}
+const evDaysInMonth=(year,month)=>new Date(Date.UTC(year,month,0)).getUTCDate();
+function evVisibleMonths(today){
+  const selected=evShiftMonth(today,homeCalendarOffset),months=[selected];
+  const day=Number(String(today).slice(8,10)),remaining=evDaysInMonth(selected.year,selected.month)-day;
+  /* 자동 모드의 마지막 7일만 다음 달을 미리 펼친다. 수동 이동은 선택 월 하나만 보인다. */
+  if(homeCalendarOffset===0&&remaining<=6)months.push(evShiftMonth(today,1));
+  return months;
+}
+function evCalendarLabel(item){
+  if(item.kind==='earnings')return item.ticker||earningsCompanyName(item)||'실적';
+  return {fomc:'FOMC',cpi:'CPI',nfp:'고용',gdp:'GDP'}[item.kind]||evShortLabel(item);
+}
+const evEventHref=item=>item.event_id?`#today/event/${encodeURIComponent(item.event_id)}`:'#today';
+function evPrimaryMetric(item){
+  const rows=evDisplayRows(evConsensusRows(item.event_id));
+  const priority={
+    cpi:['headline_cpi_yoy','headline_cpi_mom'],
+    gdp:['real_gdp','real_gdp_saar'],
+    nfp:['payroll_change'],
+    fomc:['policy_rate'],
+    earnings:['eps','eps_reported','eps_reported_adr']
+  }[item.kind]||[];
+  /* 발표가 끝난 실적은 실제값이 있는 EPS 행을 우선한다. 컨센서스 전용 EPS를 먼저 잡아
+     이미 공개된 공식 EPS를 '실제 —'로 숨기지 않는다. 서로 다른 기준의 예상은 합치지 않는다. */
+  if(item.kind==='earnings'){
+    const actual=rows.find(candidate=>priority.includes(candidate.metric)&&candidate.actual!=null&&candidate.actual!=='');
+    if(actual)return actual;
+  }
+  for(const metric of priority){const row=rows.find(candidate=>candidate.metric===metric);if(row)return row;}
+  return rows[0]||null;
+}
+function renderEventMonth(month,rows,today){
+  const key=evMonthKey(month.year,month.month),firstDay=new Date(Date.UTC(month.year,month.month-1,1)).getUTCDay();
+  const days=evDaysInMonth(month.year,month.month),byDay=new Map();
+  rows.filter(item=>String(item.date||'').slice(0,7)===key).sort((a,b)=>String(a.date).localeCompare(String(b.date))||String(a.kind||'').localeCompare(String(b.kind||''))).forEach(item=>{
+    const day=Number(String(item.date).slice(8,10));if(!byDay.has(day))byDay.set(day,[]);byDay.get(day).push(item);
+  });
+  const cells=[];
+  for(let i=0;i<firstDay;i++)cells.push('<td class="event-day is-empty" aria-hidden="true"></td>');
+  for(let day=1;day<=days;day++){
+    const iso=`${key}-${String(day).padStart(2,'0')}`,items=byDay.get(day)||[];
+    const events=items.map(item=>{const confirmed=item.status==='confirmed',word=confirmed?'확정':'추정';
+      return `<a class="month-event${confirmed?'':' is-estimated'}" style="--k:${EV_KIND_COLOR[item.kind]||EV_KIND_COLOR.other}" href="${esc(evEventHref(item))}" title="${esc(evFullLabel(item))} · ${word}"><span class="sr-only">${esc(word)} 일정 · </span>${esc(evCalendarLabel(item))}</a>`;}).join('');
+    cells.push(`<td class="event-day${iso===today?' is-today':''}"><time datetime="${iso}">${day}</time><span class="event-day-items">${events}</span></td>`);
+  }
+  while(cells.length%7)cells.push('<td class="event-day is-empty" aria-hidden="true"></td>');
+  const weeks=[];for(let i=0;i<cells.length;i+=7)weeks.push(`<tr>${cells.slice(i,i+7).join('')}</tr>`);
+  return `<section class="event-month-card" aria-labelledby="event-month-${key}"><h3 id="event-month-${key}">${month.year}년 ${month.month}월</h3><table class="event-month-table"><thead><tr>${[...EV_WEEKDAY].map((day,index)=>`<th scope="col" class="${index===0?'is-sunday':index===6?'is-saturday':''}">${day}</th>`).join('')}</tr></thead><tbody>${weeks.join('')}</tbody></table></section>`;
+}
+function renderEventEstimates(months,rows,today){
+  return months.map(month=>{
+    const key=evMonthKey(month.year,month.month),events=rows.filter(item=>String(item.date||'').slice(0,7)===key).sort((a,b)=>String(a.date).localeCompare(String(b.date))||String(a.title||'').localeCompare(String(b.title||'')));
+    const items=events.map(item=>{const metric=evPrimaryMetric(item),actual=metric?.actual,expected=metric?.consensus,previous=metric?.previous;
+      return `<li class="${String(item.date).slice(0,10)>=today?'is-future':'is-past'}"><a class="event-estimate-title" href="${esc(evEventHref(item))}"><time datetime="${esc(String(item.date).slice(0,10))}">${Number(String(item.date).slice(5,7))}/${Number(String(item.date).slice(8,10))}</time><span>${esc(evCalendarLabel(item))}</span>${metric?`<small>${esc(evAfpShortLabel(metric))}</small>`:''}</a><span class="event-estimate-values"><span><i>실제</i><b>${evAfpCell(actual)}</b></span><span class="is-forecast"><i>예상</i><b>${evAfpCell(expected)}</b></span><span><i>이전</i><b>${evAfpCell(previous)}</b></span></span></li>`;
+    }).join('');
+    return `<section class="event-estimate-group" aria-labelledby="event-estimates-${key}"><h3 id="event-estimates-${key}">${month.year}년 ${month.month}월 예상치</h3>${items?`<ol class="event-estimate-list">${items}</ol>`:'<p class="event-estimate-empty">표시할 일정이 없습니다.</p>'}</section>`;
+  }).join('');
+}
+function renderEventCalendar(rows,today){
+  const months=evVisibleMonths(today);
+  return `<div class="event-calendar-toolbar"><p>확정 일정은 실선, 추정 일정은 점선으로 표시합니다.</p><div class="event-month-nav" aria-label="달력 월 이동"><button type="button" data-action="event-month-prev" aria-label="이전 달">이전</button><button type="button" data-action="event-month-today"${homeCalendarOffset===0?' disabled':''}>오늘</button><button type="button" data-action="event-month-next" aria-label="다음 달">다음</button></div></div><div class="event-months${months.length>1?' is-dual':''}">${months.map(month=>renderEventMonth(month,rows,today)).join('')}</div><div class="event-estimate-groups">${renderEventEstimates(months,rows,today)}</div>`;
 }
 
 /* 히어로 요약줄 — 바로 아래 카드 세 장을 한 줄로 줄인다. 세 숫자는 재는 것이 서로
@@ -3733,11 +3773,7 @@ function renderOverview(){
     ?{lead:'시나리오 갱신 필요',accent:`마지막 기준 ${vintage.asof}`}
     :{lead:base.headline,accent:''};
   const today=generatedDay();
-  /* .slice(0,4) 를 뗐다 — 46건이 이미 payload 안에 있는데 홈이 42건을 버리고 있었다(추가 바이트 0).
-     몇 장을 보일지는 evPick 이 종류 인덱스로 정한다. */
-  const calendar=evFuture(DATA.calendar_events,today);
-  const events=calendar.length?calendar
-    :upcoming(EV_BOARD_CAP).map(item=>({date:item.deadline,title:item.title,status:'question',id:item.id}));
+  const calendar=DATA.calendar_events||[];
   /* 카드는 라벨·숫자·한 줄만 싣는다. 경고는 산문에 이어 붙이지 않고 칩으로 빼서,
      부제가 길어져 뒤가 잘리는 일이 생기지 않게 한다. */
   const card=(label,value,note,flag,viz,href,aria)=>`<article class="has-card-link"><span>${esc(label)}</span><strong>${esc(value)}</strong>`
@@ -3771,8 +3807,8 @@ function renderOverview(){
     </div>
     ${renderMarketMood()}
     <section class="today-agenda" aria-labelledby="today-events">
-      <div class="today-section-head"><h2 id="today-events">다음 이벤트 · 최근 실적</h2><a href="#future">전체 일정</a></div>
-      ${renderEventBoard(events,today)}
+      <div class="today-section-head"><h2 id="today-events">경제·실적 캘린더</h2><a href="#future">전체 일정</a></div>
+      ${renderEventCalendar(calendar,today)}
     </section>
   </section></div>`);
   mount(root);
