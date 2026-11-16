@@ -3,7 +3,7 @@
   "counts": {
     "a0_identity_attempts": 1,
     "attempts": {},
-    "issuance_forecasts": 0,
+    "issuance_forecasts": 1,
     "shadow_forecasts": 0,
     "shadow_resolutions": 0,
     "verdicts": 0
