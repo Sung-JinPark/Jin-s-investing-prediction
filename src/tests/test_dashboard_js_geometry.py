@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import re
 import subprocess
+import tempfile
 from pathlib import Path
 
 NL = chr(10)
@@ -653,7 +654,7 @@ console.log(JSON.stringify(grouped.map(r=>[r.kind,r.clusterCount||1,evConfirmed(
     assert verdicts["nfp"][1] is False, "미지의 status 는 추정 쪽으로 떨어진다"
 
 
-def test_home_event_board_never_uses_time_et_as_status_proxy() -> None:
+def test_home_event_calendar_never_uses_time_et_as_status_proxy() -> None:
     """time_et 공백과 estimated 가 지금 정확히 겹치지만 둘을 묶지 않는다.
 
     실측상 time_et 공백 34건 = estimated 34건이라 '최적화'하고 싶어지는 자리다.
@@ -664,17 +665,9 @@ def test_home_event_board_never_uses_time_et_as_status_proxy() -> None:
     ).read_text(encoding="utf-8")
     decider = source[source.index("function evConfirmed"):source.index("function evPick")]
     assert "time_et" not in decider, "확정/추정 판정에 time_et 이 들어가면 안 된다"
-    board = source[source.index("function renderEventBoard"):]
-    board = board[:board.index(NL + "}" + NL)]
-    # time_et 이 나오는 줄은 전부 '무엇을 인쇄할지'를 고르는 줄이어야 한다.
-    # 확정/추정을 가르는 이름(ok·word·is-estimated)과 같은 줄에 있으면 프록시가 된 것이다.
-    for line in board.split(NL):
-        if "time_et" not in line:
-            continue
-        assert "ev-meta" in line, f"time_et 은 메타 줄에서만 쓴다: {line.strip()[:80]}"
-        for name in ("is-estimated", "confirmed", "word", "ok?"):
-            assert name not in line, f"time_et 이 판정에 섞였다: {line.strip()[:80]}"
-    assert "시각 미정" in board, "시각이 없으면 0시로 채우지 않고 말로 적는다"
+    calendar = source[source.index("function renderEventMonth"):source.index("function renderEventEstimates")]
+    assert "time_et" not in calendar
+    assert "item.status==='confirmed'" in calendar
 
 
 def test_home_event_board_column_counts_collapse_without_orphans() -> None:
@@ -767,7 +760,13 @@ const DATA={meta:{generated:'2026-10-15T00:40:00Z'},calendar_events:[
 
 
 def _run_earnings_js(program: str) -> dict:
-    completed = subprocess.run(["node", "-e", _earnings_display_helpers() + program], check=True, capture_output=True, text=True, encoding="utf-8")
+    # Windows CreateProcess has a short command-line limit; the monthly calendar helpers
+    # are large enough that `node -e` can exceed it. Execute the same program from temp.
+    with tempfile.TemporaryDirectory() as directory:
+        source = Path(directory) / "earnings-calendar-test.js"
+        source.write_text(_earnings_display_helpers() + program, encoding="utf-8")
+        completed = subprocess.run(["node", str(source)], check=True, capture_output=True,
+                                   text=True, encoding="utf-8")
     return json.loads(completed.stdout)
 
 
@@ -794,22 +793,20 @@ console.log(JSON.stringify({before,awaiting,announced,future,kst:generatedDay(),
     assert result["naive"] is None
 
 
-def test_recent_earnings_remain_visible_without_retaining_past_macro_events() -> None:
+def test_month_calendar_retains_released_events_and_their_detail_links() -> None:
     result = _run_earnings_js(r"""
 const rows=[...DATA.calendar_events,{...DATA.calendar_events[0],event_id:'old',date:'2026-10-07'},{kind:'cpi',date:'2026-10-14',event_id:'past-cpi'}];
 const visible=evFuture(rows,generatedDay());
-console.log(JSON.stringify({ids:visible.map(row=>row.event_id),board:renderEventBoard(rows,generatedDay())}));
+console.log(JSON.stringify({ids:visible.map(row=>row.event_id),calendar:renderEventCalendar(rows,generatedDay())}));
 """)
     assert result["ids"] == ["asml", "tsmc"]
-    board = result["board"]
-    assert 'href="#today/event/asml"' in board and 'href="#today/event/tsmc"' in board
-    assert "ASML · 발표값 확인" in board and "TSMC · 발표 예정" in board
-    assert "EUR 12.95" in board and "$12.47" in board and "$4.45" in board
-    assert "EUR 11,662M" in board and "57.5%" in board
-    assert board.index("EUR 12.95") < board.index("$12.47")
-    assert board.index("EUR 12.95") < board.index("EUR 11,662M")
-    assert 'data-afp-label="실제"' in board and 'data-afp-label="예상"' in board
-    assert "D--" not in board and "1일 전" in board
+    calendar = result["calendar"]
+    for event_id in ("asml", "tsmc", "old", "past-cpi"):
+        assert f'href="#today/event/{event_id}"' in calendar
+    assert "EUR 12.95" in calendar and "$4.45" in calendar
+    assert "$12.47" not in calendar, "기준이 다른 공식 EPS와 제공업체 예상은 묵시적으로 합치지 않는다"
+    assert "실제" in calendar and "예상" in calendar and "이전" in calendar
+    assert "D--" not in calendar
 
 
 def test_incompatible_earnings_basis_has_no_beat_colour_and_keeps_sources() -> None:
@@ -862,7 +859,7 @@ console.log(JSON.stringify({eps,revenue,metrics:display.map(row=>row.metric),ton
 def test_usd_display_preserves_all_sources_and_uses_dollars_in_primary_cells() -> None:
     result = _run_earnings_js(_asml_usd_display_fixture() + r"""
 renderEventForecast('asml');
-console.log(JSON.stringify({table:evAfpTable(rows),projectedTable:evAfpTable(evDisplayRows(rows)),detail:mounted,board:renderEventBoard(DATA.calendar_events,generatedDay())}));
+console.log(JSON.stringify({table:evAfpTable(rows),projectedTable:evAfpTable(evDisplayRows(rows)),detail:mounted,estimates:renderEventEstimates([{year:2026,month:10}],DATA.calendar_events,generatedDay())}));
 """)
     for key in ("table", "projectedTable", "detail"):
         html = result[key]
@@ -880,13 +877,13 @@ console.log(JSON.stringify({table:evAfpTable(rows),projectedTable:evAfpTable(evD
         primary = re.findall(r'<td class="afp-actual">(.*?)</td>', html)
         assert "$14.50" in primary and "$13,056M" in primary
         assert not any("EUR" in value for value in primary)
-    board = result["board"]
-    primary = re.findall(r'data-afp-label="실제" class="afp-actual">(.*?)</b>', board)
-    assert "$14.50" in primary and "$13,056M" in primary
-    assert not any("EUR" in value for value in primary)
-    assert board.count("$12.47") == board.count("$8.81") == 1
-    assert "EPS 환산 · USD" in board and "매출 환산 · USD" in board
-    assert "is-beat" not in board and "is-miss" not in board
+    estimates = result["estimates"]
+    assert "$14.50" in estimates and "$12.47" in estimates and "$8.81" in estimates
+    assert "EPS 환산" in estimates
+    # 홈은 이벤트당 대표 지표 하나만 보이고, 매출·전체 출처는 상세 표에 보존한다.
+    assert "$13,056M" not in estimates and "매출 환산" not in estimates
+    assert "EUR 12.95" not in estimates
+    assert "is-beat" not in estimates and "is-miss" not in estimates
 
 
 def test_usd_projection_keeps_unlinked_or_incompatible_consensus_separate() -> None:

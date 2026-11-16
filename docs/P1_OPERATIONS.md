@@ -62,23 +62,22 @@ python -m ai_fc sync --check           # 파일↔DB 정합·불변성 검사 (�
   (CLAUDE.md "forecasts/ 아래 파일은 생성 후 절대 수정·삭제 금지"의 문언 그대로). 따라서 양식 변경은
   이 문서와 `/forecast` 스킬에만 기록한다. 2026-09-09 세션에서 TEMPLATE 을 고쳤다가 검증기가
   잡아내 되돌렸다.
-- `--budget 4.00`: 파이프라인당 비용 상한 (기본 $4, 전역 월 상한 **$50** — 환경변수 `AI_FC_MONTHLY_BUDGET`. C5-A4 2026-09-11 승인으로 $40에서 인상). 상세는 아래 '비용·처리량 규율'
+- `--budget 4.00`: 파이프라인당 비용 상한 (기본 $4, 전역·Anthropic 월 상한 **$15** — 환경변수 `AI_FC_MONTHLY_BUDGET`, `AI_FC_ANTHROPIC_MONTHLY_BUDGET`). 새 회차는 $4 전액의 여유가 남아 있을 때만 시작한다. 상세는 아래 '비용·처리량 규율'
 - deadline이 null인 질문은 실행 거부됨 → 발표일 확인 후 registry에 deadline 기록하고 재실행
 
 ## LLM provider 운영과 비용
 
 - **게이트 회차 생산자는 로컬 `anthropic` 경로 하나다** (C5-A4 2026-09-11). GitHub 자동 갱신은
   승인 원장에 `openai:gpt-5.6-terra`가 고정돼 있지만 **더 이상 공식 회차를 생산하지 않는다** —
-  그 스텝에 남은 유료 호출은 키 생존 확인 `openai-smoke` 하나뿐이다. 승인 행은 지우지 않았다
-  (원장은 append-only). 되살리려면 워크플로의 run 과 `AI_FC_*_MONTHLY_BUDGET` 두 핀을 함께 올린다.
+  2026-11-16부터 키 생존 확인용 유료 호출도 제거했다. 승인 행은 지우지 않았다(원장은 append-only).
+  수동 `openai-smoke`는 진단 명령으로만 남으며 예약 워크플로에서는 호출하지 않는다.
 - OpenAI 모델은 명시적 tier(`gpt-5.6-sol|terra|luna`) 또는 검증된 날짜 snapshot만 허용한다.
   `gpt-5.6` 같은 이동 family alias는 재현성을 위해 거부한다.
 - OpenAI shadow는 `AI_FC_OPENAI_SHADOW_MODEL`과 신규 question id allowlist인
   `AI_FC_OPENAI_SHADOW_QUESTIONS`를 함께 지정한 경우에만 실행한다.
 - provider별 월 상한은 `AI_FC_ANTHROPIC_MONTHLY_BUDGET`, `AI_FC_OPENAI_MONTHLY_BUDGET`으로 분리한다.
-  현재 값은 anthropic = 전역($50) · openai = $2. anthropic 쪽을 **일부러 전역과 같게 둔다** —
-  게이트급 생산자가 하나뿐인데 그 하나에 더 낮은 캡을 걸면 남는 금액을 쓸 주체가 없어
-  사용자가 정한 $50이 사실상 그 캡으로 내려앉는다.
+  현재 값은 anthropic = 전역($15) · openai = $2(명시적 수동 진단용)다. 월 상한에는 수동 실행과
+  실패 비용도 포함하며, 기존 비용 행을 수정하거나 초기화하지 않는다.
 - `python -m ai_fc provider-guard`는 승인 없는 공식 전환을 검사한다. `calibration/approvals.csv`를 임의로 채우는 것은 사용자 승인을 대체하지 않는다.
 - OpenAI 결과는 `calibration/provider_shadow_ledger.csv`에만 append하고 공식 forecast와 결합하지 않는다.
 - 비용 감사는 `calibration/cost_log.csv`의 provider/model snapshot/request id/cached input/web search 열을 사용한다.
@@ -91,8 +90,7 @@ python -m ai_fc sync --check           # 파일↔DB 정합·불변성 검사 (�
 1. 커밋된 원천 원장에서 SQLite 인덱스를 재구축한다.
 2. Yahoo·FRED 정량 데이터와 Kalshi·Polymarket·CBOE 시장 참조값을 갱신한다.
 3. 최신 확정 일봉으로 Nasdaq 시나리오를 갱신한다.
-4. OpenAI 키가 살아 있는지 `openai-smoke`로만 확인한다 — **공식 예측은 생산하지 않는다**
-   (C5-A4 2026-09-11. 그 전에는 `forecast --due --max 3`으로 매주 최대 3회차를 만들었다).
+4. `provider-guard`로 비과금 구성만 검사한다. 유료 키 주입과 `openai-smoke`는 실행하지 않는다.
 5. 비용 원장·데이터·인벤토리를 커밋하고 Pages 재빌드를 유도한다.
 
 봇 커밋은 GitHub의 재귀 실행 차단 때문에 일반 `push` 이벤트를 발생시키지 않는다. 따라서
@@ -102,8 +100,7 @@ HTML 용량 한도로 배포가 멈추지 않는다.
 예측 해시의 OpenTimestamps 스탬프도 같은 완료 이벤트를 구독해 봇이 만든 신규 예측을
 빠뜨리지 않는다.
 
-OpenAI 단계는 `OPENAI_API_KEY` secret을 그 단계에만 주입하며 로그나 파일에 출력하지 않는다.
-자동 실행 한도는 OpenAI/전역 월 `$2`다 — 남은 유료 호출이 smoke 하나뿐이라 거기에 맞췄다.
+예약 갱신에는 OpenAI 비밀값을 주입하지 않는다. 수동 진단 명령은 유지하되 예약 실행과 분리한다.
 **왜 생산을 뺐는가**: T05(2026-09-11)가 `openai:gpt-5.6-terra` + 축소 핀(검색 3~4회·리서치
 6000토큰) 조합을 "게이트급 회차를 하나도 내지 못했다"(0/4 ok, Fisher p=0.029)로 은퇴시켰는데,
 은퇴가 레지스트리의 `tier: lite` **라벨**에만 걸려 그 라벨을 만들던 이 예약 실행은 그대로
@@ -227,7 +224,7 @@ due 계산은 순수 함수라 PC가 꺼져 있던 날이 있어도 다음 실�
 - **dualdb DB**: `dualdb/db/dualdb.sqlite`·`dualdb/data/raw` 는 gitignore 라 worktree 에 없다.
   메인 체크아웃에서 복사해 쓰고, 끝나면 갱신된 DB 를 메인 체크아웃으로 되돌려 둔다.
 
-## 비용·처리량 규율 (C5-A4, 2026-09-11 — 월 상한 $50)
+## 비용·처리량 규율 (2026-11-16 개정 — 월 상한 $15)
 
 ### 실측 (2026-09-11 `calibration/cost_log.csv`)
 
@@ -245,34 +242,26 @@ due 계산은 순수 함수라 PC가 꺼져 있던 날이 있어도 다음 실�
 
 | 규칙 | 값 | 구현 |
 |---|---|---|
-| 전역 월 상한 | **$50** | `config.MONTHLY_BUDGET`, `orchestrator` 프리플라이트 |
-| 예비 구간 | 마지막 **20%**($40~$50)는 마감 **D-30** 이내 질문 전용 | `MONTHLY_BUDGET_RESERVE_RATIO`·`RESERVE_DEADLINE_DAYS`, `reserve_zone_block_reason` |
+| 전역 월 상한 | **$15** | `config.MONTHLY_BUDGET`, `orchestrator` 프리플라이트 |
+| 새 회차 시작 가드 | 누적 **$11 초과**면 $4 회차 시작 금지 | `budget_headroom_block_reason` |
+| 예비 구간 | 마지막 **20%**($12~$15)는 마감 **D-30** 이내 질문 전용 | `MONTHLY_BUDGET_RESERVE_RATIO`·`RESERVE_DEADLINE_DAYS`, `reserve_zone_block_reason` |
 | 회차당 상한 | **$4** | `DEFAULT_PIPELINE_BUDGET` (실측 상단 $2.75 대비 45% 여유) |
-| provider sub-cap | anthropic = 전역 $50 · openai $2 | `*_MONTHLY_BUDGET` |
+| provider sub-cap | anthropic = 전역 $15 · openai $2 | `*_MONTHLY_BUDGET` |
 
-예비 구간은 **떼어 두는 예비비가 아니라 우선순위 가드**다. 돈은 쓸 수 있고 쓸 수 있는
-대상만 좁아진다. 막으려는 실패는 실측된 것이다 — `cpi-jun2026-accel`은 예산이 앞선
-질문들에 먼저 쓰여 **첫 예측 없이 만료**했고(처리량 소실 11.1%), 무예측 만료는 게이트
-분자에 0을 더한다. deadline이 없는 질문(rolling·tbd)은 임박 판정 불가라 **페일클로즈**.
+실패분도 append-only 비용 원장 합계에 포함한다. 일부 호출만 소비한 뒤 월 상한에서 실패하지
+않도록 전역·provider 양쪽 모두에 $4 전체 회차 여유를 요구한다. 따라서 누적 $11.00은 시작할
+수 있지만 $11.01은 시작하지 않는다. 예비 구간 가드는 방어선으로 유지한다.
 
-### 케이던스와 우선순위 (운영 규칙 — 기계 강제 아님)
+2026년 11월 Anthropic 전체 원장은 이미 **$41.94**로 $15를 넘었다. 과거 행은 그대로 두고
+11월 추가 유료 예측을 차단하며, 새 월 원장으로 계산되는 12월부터 재개한다.
 
-- **주 3건** = 13회차/월 × $2.303 ≈ **$29.9** = 상한의 60%. 정상 케이던스는 예비 구간에
-  닿지 않는다(`test_budget_rules.py`가 이 부등식을 지킨다).
+### 케이던스와 우선순위
+
+- **주 1건** = 4.33회차/월 × $2.303 ≈ **$9.97**. 예약 스킬은 `forecast --due --max 1`만 실행한다.
 - 우선순위 ① 미예측 질문의 r1 ② 마감 D-30 재예측 ③ 정기 재예측.
   게이트 문항 수는 DISTINCT라 **재예측은 문항 수에 0을 더한다** — 빠듯하면 언제나 r1이 먼저다.
-- 케이던스를 기계로 막지 않는 이유: 밀린 뒤 따라잡는 주가 정당하게 생긴다. 상한 두 개가
-  바닥을 지키므로 케이던스까지 하드 가드로 만들면 과잉 차단이 된다.
-
-### 이 케이던스가 마감을 앞서는가 (2026-09-11 측정)
-
-- 미예측 활성 **27건**. 가장 이른 마감은 **2026-11-30**(D-80) — 60일 이내 마감은 **0건**이라
-  지금 처리량 소실 위험은 없다.
-- 주 3건이면 27건 소진에 9주(2026-09-14~11-15) → 최초 마감보다 **15일 이르다**.
-- 월별 지출 전망: 2026-09 $36.5 · 2026-10 약 $30 · 2026-11 약 $20 — 전부 $50 아래.
-- 게이트 분모 전망(전건 예측 가정): 2026-10말 26문항 · 2026-11말 33 · **2026-12말 54** —
-  P3의 50문항 조건은 **2026-12월에 처음 충족 가능**하다. 즉 상한 $50은 게이트 도달 시점의
-  제약이 아니다. 제약은 마감 도래 속도다.
+- 자동화의 `--max 1`과 비용 가드는 별개다. 수동 실행을 포함해 월 비용이 먼저 $11를 넘으면
+  그 주의 예약 회차도 시작하지 않는다.
 
 ## 불변성 규칙 (P0과 동일)
 
