@@ -341,8 +341,11 @@ def test_replay_c11_confirmed_and_projected_drops(replay):
     horizons = {item["h"]: item for item in replay[date(2026, 10, 2)]["C11"]["horizons"]}
     assert horizons[21]["dropped_sessions_confirmed"] == ["2026-10-12"]
     assert horizons[1]["exposed"] is False
-    late = {item["h"]: item for item in replay[date(2026, 11, 9)]["C11"]["horizons"]}
-    assert late[5]["dropped_sessions_projected"] == ["2026-11-11"]
+    c11 = replay[date(2026, 11, 9)]["C11"]
+    late = {item["h"]: item for item in c11["horizons"]}
+    bucket = ("confirmed" if date(2026, 11, 11) <= date.fromisoformat(c11["grid_known_through"])
+              else "projected")
+    assert late[5][f"dropped_sessions_{bucket}"] == ["2026-11-11"]
 
 
 def test_replay_c12_fed_ebp_silent_stall(replay):

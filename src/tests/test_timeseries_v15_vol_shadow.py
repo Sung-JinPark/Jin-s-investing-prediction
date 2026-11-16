@@ -52,6 +52,10 @@ def _pinned_v13_rows(root: Path) -> list[dict]:
 @pytest.fixture()
 def live_root(tmp_path: Path) -> Path:
     root = make_root(tmp_path)
+    # 이 모듈의 오라클은 NOW 시점에 고정되어 있다. 실제 append-only V13 원장은 계속
+    # 늘어나므로 미래 행을 tmp 사본에서 제외해 픽스처의 시점 계약을 보존한다.
+    v13_rows = [row for row in read_jsonl(root / V13_LIVE) if row["as_of"] <= NOW.date().isoformat()]
+    write_jsonl(root / V13_LIVE, v13_rows)
     arm(root)
     write_arming(root, effective_from="2026-10-01")
     result = SH.publish_shadow_v15_vol(root, now=NOW)
