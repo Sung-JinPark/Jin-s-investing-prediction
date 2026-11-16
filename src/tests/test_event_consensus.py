@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 import shutil
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 from ai_fc import event_consensus as ec
@@ -75,6 +75,29 @@ def test_cpi_mom_then_yoy_by_order() -> None:
     assert rows["headline_cpi_mom"]["actual"] is None and rows["headline_cpi_mom"]["consensus"] is None
 
 
+def test_added_calendar_metrics_match_provider_names_and_aliases() -> None:
+    fixtures = {
+        "ppi": ("ppi_x", "2026-11-13", "08:30", [
+            {"gmt": "08:30", "eventName": "PPI", "actual": "0.3%", "consensus": "0.4%", "previous": "1.4%"},
+            {"gmt": "08:30", "eventName": "PPI", "actual": "6.5%", "consensus": "6.6%", "previous": "6.3%"},
+        ], {"headline_ppi_mom", "headline_ppi_yoy"}),
+        "pmi": ("pmi_x", "2026-11-02", "10:00", [
+            {"gmt": "10:00", "eventName": "ISM Manufacturing", "actual": "55.5", "consensus": "54.5", "previous": "54.5"},
+        ], {"ism_manufacturing_pmi"}),
+        "hmi": ("hmi_x", "2026-11-17", "10:00", [
+            {"gmt": "10:00", "eventName": "Housing Market Index", "actual": "", "consensus": "29", "previous": "29"},
+        ], {"nahb_hmi"}),
+        "jolts": ("jolts_x", "2026-11-03", "10:00", [
+            {"gmt": "10:00", "eventName": "JOLTS Job Openings", "actual": "7.523M", "consensus": "7.150M", "previous": "7.190M"},
+        ], {"job_openings"}),
+    }
+    for kind, (event_id, day, time_et, source_rows, expected) in fixtures.items():
+        event = {"event_id": event_id, "kind": kind, "date": day, "time_et": time_et}
+        next_day = (datetime.fromisoformat(day) + timedelta(days=1)).date().isoformat()
+        fetch, _ = _stub({f"date={next_day}": _econ(source_rows)})
+        assert {row["metric"] for row in ec.macro_rows(event, fetch)} == expected
+
+
 def _eps_pages(reported_rows, forecast_rows):
     return {
         "earnings-surprise": {"data": {"earningsSurpriseTable": {"rows": reported_rows}}},
@@ -143,6 +166,9 @@ def test_committed_ledger_rows_are_well_formed() -> None:
     for row in rows:
         assert {"captured_at", "event_id", "metric", "actual", "consensus", "previous", "source"} <= set(row)
         assert row["source_url"].startswith("https://")
+    loaded = ec.load_event_consensus(ROOT, datetime(2026, 11, 16, tzinfo=timezone.utc))
+    assert loaded["ppi_2026_11"][1]["actual"] == "6.5%"
+    assert loaded["hmi_2026_11"][0]["consensus"] == "29"
 
 
 def test_dashboard_renders_actual_forecast_previous() -> None:

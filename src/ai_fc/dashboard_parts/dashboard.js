@@ -3501,7 +3501,7 @@ function renderMarketMood(){
    "다음 FOMC 언제 / 다음 실적 언제"이고 그건 데이터 밀도와 무관하게 답해야 한다.
    글자는 SVG 안에 넣지 않는다(DECISIONS 2026-09-02) — 이 표면은 전부 HTML 이다. */
 const EV_WEEKDAY='일월화수목금토';          // LOOKUP_WEEKDAYS(js:2709)는 이 줄보다 뒤의 const 라 참조하면 TDZ 로 페이지가 죽는다
-const EV_KIND_COLOR={fomc:'#3f4248',cpi:'#717780',nfp:'#969ba2',gdp:'#555b63',earnings:'#20242a',question:'#6f6c65',other:'#747981'};
+const EV_KIND_COLOR={fomc:'#3f4248',cpi:'#717780',ppi:'#7d7373',nfp:'#969ba2',jolts:'#59635b',pmi:'#4f5f68',hmi:'#6d6258',gdp:'#555b63',earnings:'#20242a',question:'#6f6c65',other:'#747981'};
 const EV_BOARD_CAP=6;                       // 3 으로도 2 로도 나누어떨어져 어느 열 수에서도 고아 카드가 없다
 let homeCalendarOffset=0;
 
@@ -3648,6 +3648,8 @@ function evAfpStrip(row){
 /* 카드 안 행 이름 — 상세 화면은 전체 라벨(title 속성에도 실림), 카드는 좁아서 짧게. */
 const EV_AFP_SHORT={headline_cpi_mom:'전월',headline_cpi_yoy:'전년',core_cpi_mom:'근원 전월',core_cpi_yoy:'근원 전년',
   payroll_change:'고용',unemployment_rate:'실업률',avg_hourly_earnings_mom:'임금 전월',
+  headline_ppi_mom:'전월',headline_ppi_yoy:'전년',core_ppi_mom:'근원 전월',core_ppi_yoy:'근원 전년',
+  job_openings:'구인건수',ism_manufacturing_pmi:'제조업',nahb_hmi:'주택심리',
   real_gdp:'GDP',gdp_price_index:'물가지수',policy_rate:'기준금리',eps:'EPS',eps_reported:'공식 EPS',eps_reported_adr:'공식 ADR EPS',revenue_reported:'공식 매출',gross_margin_reported:'매출총이익률'};
 function evAfpShortLabel(row){
   return row.display_projection&&row.metric==='eps_reported'?'EPS 환산':row.display_projection&&row.metric==='revenue_reported'?'매출 환산':EV_AFP_SHORT[row.metric]||row.label;
@@ -3697,15 +3699,19 @@ function evVisibleMonths(today){
 }
 function evCalendarLabel(item){
   if(item.kind==='earnings')return item.ticker||earningsCompanyName(item)||'실적';
-  return {fomc:'FOMC',cpi:'CPI',nfp:'고용',gdp:'GDP'}[item.kind]||evShortLabel(item);
+  return {fomc:'FOMC',cpi:'CPI',ppi:'PPI',nfp:'고용',jolts:'JOLTS',pmi:'PMI',hmi:'HMI',gdp:'GDP'}[item.kind]||evShortLabel(item);
 }
 const evEventHref=item=>item.event_id?`#today/event/${encodeURIComponent(item.event_id)}`:'#today';
 function evPrimaryMetric(item){
   const rows=evDisplayRows(evConsensusRows(item.event_id));
   const priority={
     cpi:['headline_cpi_yoy','headline_cpi_mom'],
+    ppi:['headline_ppi_yoy','headline_ppi_mom'],
     gdp:['real_gdp','real_gdp_saar'],
     nfp:['payroll_change'],
+    jolts:['job_openings'],
+    pmi:['ism_manufacturing_pmi'],
+    hmi:['nahb_hmi'],
     fomc:['policy_rate'],
     earnings:['eps','eps_reported','eps_reported_adr']
   }[item.kind]||[];
@@ -3913,7 +3919,7 @@ function horizonCoverageForDay(sc,tradingDay){
   const rate=Number(selected.inside_p10_p90_rate_pct),dev=rate-80,wide=Math.abs(dev)>=5;
   return {label:`${selected.label} 적중률 집계 완료`,detail:`p10–p90 적중률 ${rate}% · 공칭 80% 대비 ${dev>=0?'+':''}${dev.toFixed(1)}%p${wide?(dev>0?' · 구간이 설계보다 넓음 — 잘 맞혔다는 뜻이 아닙니다':' · 구간이 설계보다 좁음(과신)'):''} · n=${n}`,status:wide?'wide':'verified'};
 }
-const EVENT_KIND_META={fomc:['FOMC','◇'],cpi:['CPI','□'],nfp:['고용','○'],gdp:['GDP','△'],earnings:['실적','⬡'],other:['기타','·']};
+const EVENT_KIND_META={fomc:['FOMC','◇'],cpi:['CPI','□'],ppi:['PPI','▱'],nfp:['고용','○'],jolts:['JOLTS','↗'],pmi:['PMI','◆'],hmi:['HMI','⌂'],gdp:['GDP','△'],earnings:['실적','⬡'],other:['기타','·']};
 function lookupEventSummary(sc,mapped){
   const events=(sc.calendar_events||[]).filter(event=>event.date>sc.asof&&event.date<=mapped.mapped),counts=new Map();
   events.forEach(event=>{const key=event.kind==='earnings'?(event.ticker||'실적'):EVENT_KIND_META[event.kind]?.[0]||'기타';counts.set(key,(counts.get(key)||0)+1);});
@@ -5116,7 +5122,11 @@ function flowCalendarEventLabel(event){
   }
   if(event.kind==='fomc')return `${md} ${/SEP/i.test(title)?'FOMC·SEP':'FOMC'}`;
   if(event.kind==='cpi')return `${md} CPI`;
+  if(event.kind==='ppi')return `${md} PPI`;
   if(event.kind==='nfp')return `${md} 고용`;
+  if(event.kind==='jolts')return `${md} JOLTS`;
+  if(event.kind==='pmi')return `${md} PMI`;
+  if(event.kind==='hmi')return `${md} HMI`;
   if(event.kind==='gdp'){const stage=title.match(/(속보|[23]차)/)?.[1];return `${md} GDP${stage?` ${stage}`:''}`;}
   return `${md} ${title.slice(0,14)||'주요 일정'}`;
 }

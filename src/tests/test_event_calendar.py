@@ -21,6 +21,24 @@ def test_calendar_contract_and_twelve_month_events_are_registered() -> None:
     assert len([row for row in events if row["kind"] == "fomc"]) == 8
     assert len([row for row in events
                 if row["kind"] == "cpi" and row["status"] == "confirmed"]) == 5
+    core_monthly = {kind: [row for row in events if row["kind"] == kind]
+                    for kind in ("ppi", "pmi", "hmi", "jolts")}
+    assert all(core_monthly.values())
+    assert len(core_monthly["ppi"]) == 12
+    assert len(core_monthly["pmi"]) == 12
+    assert len(core_monthly["hmi"]) == 12
+    assert len(core_monthly["jolts"]) == 12
+    horizon_months = {f"2026-{month:02d}" for month in range(8, 13)} | {
+        f"2027-{month:02d}" for month in range(1, 8)
+    }
+    for kind in ("ppi", "pmi", "hmi"):
+        assert {row["date"][:7] for row in core_monthly[kind]} == horizon_months
+    assert all(row["status"] == "confirmed"
+               for kind in ("ppi", "hmi", "jolts") for row in core_monthly[kind])
+    assert all(row["status"] == "estimated" for row in core_monthly["pmi"]
+               if row["date"].startswith("2027-"))
+    assert next(row for row in events if row["event_id"] == "ppi_2027_07")["date"] == "2027-07-15"
+    assert next(row for row in events if row["event_id"] == "hmi_2027_07")["date"] == "2027-07-19"
     assert any(row["kind"] == "earnings" and row["status"] == "estimated"
                for row in events)
     micron = next(row for row in events if row["event_id"] == "mu_fy26_q4")
