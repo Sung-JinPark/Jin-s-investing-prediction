@@ -20,7 +20,10 @@ EVENT_FIELDS = [
     "source_id", "source_url", "available_at", "registered_at", "supersedes",
     "superseded_by",
 ]
-KINDS = {"fomc", "cpi", "nfp", "gdp", "earnings", "other"}
+KINDS = {
+    "fomc", "cpi", "ppi", "nfp", "jolts", "pmi", "hmi", "gdp",
+    "earnings", "other",
+}
 STATUSES = {"confirmed", "estimated"}
 FORECAST_FIELDS = [
     "snapshot_id", "event_id", "metric", "label", "value", "unit",

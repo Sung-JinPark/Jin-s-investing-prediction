@@ -10,7 +10,8 @@
 
 ## 원천
 
-- 경제지표(CPI·고용·GDP·FOMC): Nasdaq 경제 캘린더 API(`/api/calendar/economicevents`).
+- 경제지표(CPI·PPI·고용·JOLTS·PMI·HMI·GDP·FOMC): Nasdaq 경제 캘린더
+  API(`/api/calendar/economicevents`).
   **이 API 의 date 파라미터는 미국 날짜보다 하루 뒤로 밀려 있다** — 2026-10-02(금) 고용보고서가
   date=2026-10-03 에, 2026-10-14 CPI 가 10-15 에 실린다(2026-10-07 실측). 그래서 발표일과
   다음날 두 장을 조회하고, 같은 이름·같은 시각(ET) 행만 취한다.
@@ -55,9 +56,9 @@ USER_AGENT = ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
 LOOKBACK_DAYS = 14
 LOOKAHEAD_DAYS = 60
 
-# kind → (metric, 화면 라벨, Nasdaq 이벤트 이름, 같은 이름 중 몇 번째 행)
+# kind → (metric, 화면 라벨, Nasdaq 이벤트 이름 또는 별칭들, 같은 이름 중 몇 번째 행)
 # 같은 이름이 두 번 나오면 Nasdaq 은 전월 대비(MoM) → 전년 대비(YoY) 순으로 싣는다.
-MACRO_METRICS: dict[str, list[tuple[str, str, str, int]]] = {
+MACRO_METRICS: dict[str, list[tuple[str, str, str | tuple[str, ...], int]]] = {
     "cpi": [
         ("headline_cpi_mom", "CPI 전월 대비", "CPI", 0),
         ("headline_cpi_yoy", "CPI 전년 대비", "CPI", 1),
@@ -68,6 +69,21 @@ MACRO_METRICS: dict[str, list[tuple[str, str, str, int]]] = {
         ("payroll_change", "비농업 고용 증감", "Nonfarm Payrolls", 0),
         ("unemployment_rate", "실업률", "Unemployment Rate", 0),
         ("avg_hourly_earnings_mom", "평균 시간당 임금 전월 대비", "Average Hourly Earnings", 0),
+    ],
+    "ppi": [
+        ("headline_ppi_mom", "PPI 전월 대비", "PPI", 0),
+        ("headline_ppi_yoy", "PPI 전년 대비", "PPI", 1),
+        ("core_ppi_mom", "근원 PPI 전월 대비", "Core PPI", 0),
+        ("core_ppi_yoy", "근원 PPI 전년 대비", "Core PPI", 1),
+    ],
+    "jolts": [
+        ("job_openings", "JOLTS 구인건수", ("JOLTS Job Openings", "Job Openings"), 0),
+    ],
+    "pmi": [
+        ("ism_manufacturing_pmi", "ISM 제조업 PMI", ("ISM Manufacturing", "ISM Manufacturing PMI"), 0),
+    ],
+    "hmi": [
+        ("nahb_hmi", "NAHB 주택시장지수", ("NAHB Housing Market Index", "Housing Market Index"), 0),
     ],
     "gdp": [
         ("real_gdp", "실질 GDP 성장률(연율)", "GDP", 0),
@@ -141,8 +157,9 @@ def macro_rows(event: dict[str, Any], fetch: Callable[[str], dict[str, Any]]) ->
         pages.append([row for row in rows if row.get("country") == "United States"])
     out: list[dict[str, Any]] = []
     for metric, label, name, occurrence in specs:
+        names = (name,) if isinstance(name, str) else name
         for rows in pages:
-            hits = [row for row in rows if (row.get("eventName") or "").strip() == name
+            hits = [row for row in rows if (row.get("eventName") or "").strip() in names
                     and (not wanted_time or (row.get("gmt") or "").strip() == wanted_time)]
             if len(hits) > occurrence:
                 hit = hits[occurrence]

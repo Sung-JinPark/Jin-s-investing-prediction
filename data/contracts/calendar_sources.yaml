@@ -1,5 +1,5 @@
 schema_version: 1
-as_of: 2026-09-26
+as_of: 2026-11-16
 policy:
   probability_linkage: forbidden
   confirmed_definition: institution_or_issuer_published_date
@@ -25,6 +25,35 @@ sources:
     authority: U.S. Bureau of Labor Statistics
     kinds: [nfp]
     url: https://www.bls.gov/schedule/news_release/empsit.htm
+    official: true
+    access: free
+    cadence: monthly_schedule
+  - id: bls_ppi
+    authority: U.S. Bureau of Labor Statistics
+    kinds: [ppi]
+    url: https://www.bls.gov/schedule/news_release/ppi.htm
+    official: true
+    access: free
+    cadence: monthly_schedule
+  - id: bls_jolts
+    authority: U.S. Bureau of Labor Statistics
+    kinds: [jolts]
+    url: https://www.bls.gov/schedule/news_release/jolts.htm
+    official: true
+    access: free
+    cadence: monthly_schedule
+  - id: ism_pmi
+    authority: Institute for Supply Management
+    kinds: [pmi]
+    url: https://www.ismworld.org/supply-management-news-and-reports/reports/rob-report-calendar/
+    official: true
+    access: free
+    cadence: monthly_schedule
+    note: Manufacturing PMI is normally released on the first business day at 10:00 ET.
+  - id: nahb_hmi
+    authority: National Association of Home Builders
+    kinds: [hmi]
+    url: https://www.nahb.org/News-and-Economics/Housing-Economics/Indices/NAHB-Wells-Fargo-Housing-Market-Index-Release-Dates
     official: true
     access: free
     cadence: monthly_schedule
