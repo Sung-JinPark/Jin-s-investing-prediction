@@ -1,6 +1,6 @@
 {
   "as_of": "2026-11-13",
-  "content_hash": "68d3bba6cd7a998c7e69ac9de5490bc21fc395cad2a7ac90fb3bd569f8ccb732",
+  "content_hash": "cf7991ec08a1f3844d26a28e589acd0f27578b5acfa859546e0d9edcb9fa7fd4",
   "daily": {
     "anchor": {
       "provisional": false,
@@ -9,34 +9,13 @@
       "value": 25136.27
     },
     "cadence": "daily",
-    "carried_forward": [
-      {
-        "carried_from": "2026-11-06",
-        "observation_time": "2026-11-09",
-        "series_id": "DTWEXBGS"
-      },
-      {
-        "carried_from": "2026-11-06",
-        "observation_time": "2026-11-10",
-        "series_id": "DTWEXBGS"
-      },
-      {
-        "carried_from": "2026-11-06",
-        "observation_time": "2026-11-12",
-        "series_id": "DTWEXBGS"
-      },
-      {
-        "carried_from": "2026-11-06",
-        "observation_time": "2026-11-13",
-        "series_id": "DTWEXBGS"
-      }
-    ],
-    "display_id": "tsv8-daily-d56c8fa0f13b4ee71919d3d8",
+    "carried_forward": [],
+    "display_id": "tsv8-daily-48ebf541eeaff3f2b7cc7142",
     "display_only": true,
     "input_state": "confirmed",
     "provisional_inputs": [],
     "provisional_series": [],
-    "row_knowledge_cutoff": "2026-11-14T06:29:43+00:00",
+    "row_knowledge_cutoff": "2026-11-16T22:06:39+00:00",
     "scoring_excluded": true
   },
   "display_state": "research_reference",
@@ -49,11 +28,11 @@
   },
   "horizons": {
     "1": {
-      "p10": -0.021706830388692644,
-      "p25": -0.007716856728793171,
-      "p50": 0.002662634055565474,
-      "p75": 0.013495164289820689,
-      "p90": 0.023727157412563416,
+      "p10": -0.021640822838982762,
+      "p25": -0.007685465626641794,
+      "p50": 0.002766074585985513,
+      "p75": 0.013577970937347363,
+      "p90": 0.023801885149521244,
       "probability_up": 0.57
     },
     "21": {
@@ -65,12 +44,12 @@
       "probability_up": 0.64
     },
     "5": {
-      "p10": -0.05169439770444238,
-      "p25": -0.02154983175719367,
-      "p50": 0.008195974989886086,
-      "p75": 0.03201344490895711,
-      "p90": 0.05200732607954107,
-      "probability_up": 0.575
+      "p10": -0.05168501568347906,
+      "p25": -0.02149173700224964,
+      "p50": 0.008229575812090769,
+      "p75": 0.032111558523889895,
+      "p90": 0.05215776393670112,
+      "probability_up": 0.58
     },
     "63": {
       "p10": -0.13466886359650249,
@@ -81,13 +60,13 @@
       "probability_up": 0.695
     }
   },
-  "knowledge_cutoff": "2026-11-16T22:00:48+00:00",
+  "knowledge_cutoff": "2026-11-16T23:02:41+00:00",
   "model_id": "shadow.mf_dfm_varx_calibrated_v8",
   "model_version": 8,
   "operational": {
     "freshness": [
       {
-        "age_hours": 70.01366,
+        "age_hours": 71.045201,
         "expected_observation": "2026-11-13",
         "group": "NASDAQCOM",
         "next_publication_deadline": "2026-11-17T15:00:00+00:00",
@@ -101,7 +80,7 @@
         "status": "fresh"
       },
       {
-        "age_hours": 70.01366,
+        "age_hours": 71.045201,
         "expected_observation": "2026-11-13",
         "group": "VIX",
         "next_publication_deadline": "2026-11-17T15:00:00+00:00",
@@ -115,11 +94,11 @@
         "status": "fresh"
       },
       {
-        "age_hours": 70.01366,
+        "age_hours": 0.0,
         "expected_observation": "2026-11-12",
         "group": "DGS2",
         "next_publication_deadline": "2026-11-16T23:15:00+00:00",
-        "observation_time": "2026-11-13",
+        "observation_time": "2026-11-16",
         "policy_id": "forecast-source-freshness-v1",
         "policy_sha256": "fa15e7be79bc7da593b310f6e04b92e6aab6d350b8129cda36f5c39eab32fb56",
         "provisional": false,
@@ -129,11 +108,11 @@
         "status": "fresh"
       },
       {
-        "age_hours": 70.01366,
+        "age_hours": 0.0,
         "expected_observation": "2026-11-12",
         "group": "DGS10",
         "next_publication_deadline": "2026-11-16T23:15:00+00:00",
-        "observation_time": "2026-11-13",
+        "observation_time": "2026-11-16",
         "policy_id": "forecast-source-freshness-v1",
         "policy_sha256": "fa15e7be79bc7da593b310f6e04b92e6aab6d350b8129cda36f5c39eab32fb56",
         "provisional": false,
@@ -143,11 +122,11 @@
         "status": "fresh"
       },
       {
-        "age_hours": 238.01366,
+        "age_hours": 71.045201,
         "expected_observation": "2026-11-06",
         "group": "DTWEXBGS_or_DTWEXB",
         "next_publication_deadline": "2026-11-16T23:15:00+00:00",
-        "observation_time": "2026-11-06",
+        "observation_time": "2026-11-13",
         "policy_id": "forecast-source-freshness-v1",
         "policy_sha256": "fa15e7be79bc7da593b310f6e04b92e6aab6d350b8129cda36f5c39eab32fb56",
         "provisional": false,
