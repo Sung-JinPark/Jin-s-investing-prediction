@@ -1,13 +1,13 @@
 {
-  "as_of": "2026-11-06",
-  "content_hash": "096708db017309fa7253a06405c6caafff1dea2ef4917f4ea05dccc74396dd73",
+  "as_of": "2026-11-13",
+  "content_hash": "d0d2d8e3656f95f0fa71f1780df5149dc1c3321e7dfe8bccd3f0476c7d5284a7",
   "data_summary": {
     "candidate": "C1",
     "data_grades": [
       "captured_forward",
       "reconstructed_market_archive"
     ],
-    "dfm_cache_count": 2077,
+    "dfm_cache_count": 2078,
     "missing_features": [],
     "operational_monitoring": {
       "coverage_p10_p90": {
@@ -21,7 +21,7 @@
     "required_market_freshness": {
       "groups": [
         {
-          "age_hours": 68.18805555555555,
+          "age_hours": 70.20055555555555,
           "available_at": "2026-11-14T06:25:00.914120+00:00",
           "group": "NASDAQCOM",
           "observation_time": "2026-11-13",
@@ -29,7 +29,7 @@
           "status": "stale"
         },
         {
-          "age_hours": 68.18805555555555,
+          "age_hours": 70.20055555555555,
           "available_at": "2026-11-14T03:00:07+00:00",
           "group": "VIX",
           "observation_time": "2026-11-13",
@@ -37,26 +37,26 @@
           "status": "stale"
         },
         {
-          "age_hours": 69.23972222222223,
-          "available_at": "2026-11-13T22:56:53+00:00",
+          "age_hours": 0.11972222222222222,
+          "available_at": "2026-11-16T22:04:50+00:00",
           "group": "DGS2",
-          "observation_time": "2026-11-13",
+          "observation_time": "2026-11-16",
           "selected_series": "DGS2",
-          "status": "stale"
+          "status": "fresh"
         },
         {
-          "age_hours": 69.23972222222223,
-          "available_at": "2026-11-13T22:56:53+00:00",
+          "age_hours": 0.11972222222222222,
+          "available_at": "2026-11-16T22:04:50+00:00",
           "group": "DGS10",
-          "observation_time": "2026-11-13",
+          "observation_time": "2026-11-16",
           "selected_series": "DGS10",
-          "status": "stale"
+          "status": "fresh"
         },
         {
-          "age_hours": 236.18805555555556,
-          "available_at": "2026-11-10T01:54:09+00:00",
+          "age_hours": 70.20055555555555,
+          "available_at": "2026-11-16T22:04:54+00:00",
           "group": "DTWEXBGS_or_DTWEXB",
-          "observation_time": "2026-11-06",
+          "observation_time": "2026-11-13",
           "selected_series": "DTWEXBGS",
           "status": "stale"
         }
@@ -66,12 +66,10 @@
       "stale_groups": [
         "NASDAQCOM",
         "VIX",
-        "DGS2",
-        "DGS10",
         "DTWEXBGS_or_DTWEXB"
       ]
     },
-    "sessions": 7189,
+    "sessions": 7193,
     "start": "1997-02-19"
   },
   "display_state": "validation_pending",
@@ -89,12 +87,10 @@
       "최근 63일 p10-p90 적중률이 계약 범위를 이탈",
       "필수 시장 입력 48시간 SLA 초과: NASDAQCOM",
       "필수 시장 입력 48시간 SLA 초과: VIX",
-      "필수 시장 입력 48시간 SLA 초과: DGS2",
-      "필수 시장 입력 48시간 SLA 초과: DGS10",
       "필수 시장 입력 48시간 SLA 초과: DTWEXBGS_or_DTWEXB"
     ]
   },
-  "knowledge_cutoff": "2026-11-16T20:11:16+00:00",
+  "knowledge_cutoff": "2026-11-16T22:12:01+00:00",
   "model_id": "shadow.mf_dfm_ridge_varx_v2",
   "model_version": 2,
   "probability_space": "research_timeseries_v2_conditional",
