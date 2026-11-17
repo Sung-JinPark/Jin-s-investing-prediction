@@ -1,6 +1,6 @@
 # Ledger accumulation audit
 
-- Generated: `2026-11-17T02:00:09+00:00`
+- Generated: `2026-11-17T08:31:35+00:00`
 - Latest completed NYSE day: `2026-11-16`
 - Result: accumulating 85 · frozen 2 · stalled 3 · inactive 12 · violation 0 · planned 15
 
@@ -17,8 +17,8 @@
 | `provider_shadow_ledger` | event | 1 / 0 | — | **accumulating** | — |
 | `scenario_archive` | trading_daily | 76 | 2026-11-16 | **accumulating** | missing trading days: 2026-08-04, 2026-08-05, 2026-09-03, 2026-09-16, 2026-09-17, 2026-09-21, 2026-09-22, 2026-10-02, 2026-10-05 |
 | `scenario_latest` | trading_daily | 1 | 2026-11-16 | **accumulating** | — |
-| `cross_asset_archive` | trading_daily | 70 | 2026-11-13 | **accumulating** | missing trading days: 2026-08-04, 2026-08-25, 2026-09-03, 2026-09-16, 2026-09-17, 2026-09-21, 2026-09-22, 2026-10-02, 2026-10-06, 2026-10-16, 2026-10-30; writer settles within 18h of the close; expects 2026-11-13 |
-| `cross_asset_latest` | trading_daily | 1 | 2026-11-13 | **accumulating** | writer settles within 18h of the close; expects 2026-11-13 |
+| `cross_asset_archive` | trading_daily | 71 | 2026-11-16 | **accumulating** | missing trading days: 2026-08-04, 2026-08-25, 2026-09-03, 2026-09-16, 2026-09-17, 2026-09-21, 2026-09-22, 2026-10-02, 2026-10-06, 2026-10-16, 2026-10-30; writer settles within 18h of the close; expects 2026-11-13 |
+| `cross_asset_latest` | trading_daily | 1 | 2026-11-16 | **accumulating** | writer settles within 18h of the close; expects 2026-11-13 |
 | `cross_asset_path_tracking` | trading_daily | 1 / 3 | — | **frozen** | — |
 | `timeseries_daily6m_research_forecasts` | weekly | 1 | 2026-11-14 | **accumulating** | — |
 | `timeseries_daily6m_research_resolutions` | trading_daily | 1 | 2026-11-14 | **stalled** | — |
@@ -30,13 +30,13 @@
 | `timeseries_daily6m_v2_approvals` | event | 1 | 2026-11-11 | **accumulating** | — |
 | `timeseries_daily6m_v2_prereg` | event | 2 | — | **accumulating** | — |
 | `timeseries_daily6m_v2_scorecard` | weekly | 1 | — | **accumulating** | — |
-| `cross_asset_path_tracking_v2` | trading_daily | 1 / 189 | 2026-11-13 | **accumulating** | writer settles within 18h of the close; expects 2026-11-13 |
+| `cross_asset_path_tracking_v2` | trading_daily | 1 / 192 | 2026-11-16 | **accumulating** | writer settles within 18h of the close; expects 2026-11-13 |
 | `scenario_band_calibration` | trading_daily | 1 / 2145 | 2026-11-16 | **accumulating** | — |
 | `market_event_calendar` | event | 1 / 107 | 2026-11-16 | **accumulating** | — |
 | `signal_archive` | weekly | 18 | 2026-11-13 | **accumulating** | — |
 | `liquidity_archive` | weekly | 16 | 2026-11-13 | **accumulating** | — |
-| `rate_event_archive` | monthly | 65 | 2026-11-13 | **accumulating** | — |
-| `realty_rate_sensitivity_archive` | monthly | 65 | 2026-11-13 | **accumulating** | — |
+| `rate_event_archive` | monthly | 66 | 2026-11-16 | **accumulating** | — |
+| `realty_rate_sensitivity_archive` | monthly | 66 | 2026-11-16 | **accumulating** | — |
 | `realty_dividends` | monthly | 1 / 346 | 2026-11-03 | **accumulating** | — |
 | `realty_o_entry_cohort_archive` | monthly | 5 | 2026-11-03 | **accumulating** | — |
 | `ai_capital_archives` | monthly | 9 | 2026-11-05 | **accumulating** | — |
