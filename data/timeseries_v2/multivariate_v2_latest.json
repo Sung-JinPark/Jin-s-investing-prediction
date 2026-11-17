@@ -1,6 +1,6 @@
 {
   "as_of": "2026-11-13",
-  "content_hash": "d0d2d8e3656f95f0fa71f1780df5149dc1c3321e7dfe8bccd3f0476c7d5284a7",
+  "content_hash": "66e9d94440c9aaf410121de2d4578cf3727e20b40cf164aef418334738cdbab7",
   "data_summary": {
     "candidate": "C1",
     "data_grades": [
@@ -21,7 +21,7 @@
     "required_market_freshness": {
       "groups": [
         {
-          "age_hours": 70.20055555555555,
+          "age_hours": 75.23666666666666,
           "available_at": "2026-11-14T06:25:00.914120+00:00",
           "group": "NASDAQCOM",
           "observation_time": "2026-11-13",
@@ -29,15 +29,15 @@
           "status": "stale"
         },
         {
-          "age_hours": 70.20055555555555,
-          "available_at": "2026-11-14T03:00:07+00:00",
+          "age_hours": 3.236666666666667,
+          "available_at": "2026-11-17T02:56:57.053188+00:00",
           "group": "VIX",
-          "observation_time": "2026-11-13",
+          "observation_time": "2026-11-16",
           "selected_series": "VIX",
-          "status": "stale"
+          "status": "fresh"
         },
         {
-          "age_hours": 0.11972222222222222,
+          "age_hours": 5.155833333333334,
           "available_at": "2026-11-16T22:04:50+00:00",
           "group": "DGS2",
           "observation_time": "2026-11-16",
@@ -45,7 +45,7 @@
           "status": "fresh"
         },
         {
-          "age_hours": 0.11972222222222222,
+          "age_hours": 5.155833333333334,
           "available_at": "2026-11-16T22:04:50+00:00",
           "group": "DGS10",
           "observation_time": "2026-11-16",
@@ -53,7 +53,7 @@
           "status": "fresh"
         },
         {
-          "age_hours": 70.20055555555555,
+          "age_hours": 75.23666666666666,
           "available_at": "2026-11-16T22:04:54+00:00",
           "group": "DTWEXBGS_or_DTWEXB",
           "observation_time": "2026-11-13",
@@ -65,7 +65,6 @@
       "ok": false,
       "stale_groups": [
         "NASDAQCOM",
-        "VIX",
         "DTWEXBGS_or_DTWEXB"
       ]
     },
@@ -86,11 +85,10 @@
       "최근 21일 p10-p90 적중률이 계약 범위를 이탈",
       "최근 63일 p10-p90 적중률이 계약 범위를 이탈",
       "필수 시장 입력 48시간 SLA 초과: NASDAQCOM",
-      "필수 시장 입력 48시간 SLA 초과: VIX",
       "필수 시장 입력 48시간 SLA 초과: DTWEXBGS_or_DTWEXB"
     ]
   },
-  "knowledge_cutoff": "2026-11-16T22:12:01+00:00",
+  "knowledge_cutoff": "2026-11-17T03:14:11+00:00",
   "model_id": "shadow.mf_dfm_ridge_varx_v2",
   "model_version": 2,
   "probability_space": "research_timeseries_v2_conditional",
