@@ -4,8 +4,8 @@
     "a0_identity_attempts": 1,
     "attempts": {},
     "issuance_forecasts": 1,
-    "shadow_forecasts": 0,
-    "shadow_resolutions": 0,
+    "shadow_forecasts": 5,
+    "shadow_resolutions": 6,
     "verdicts": 0
   },
   "display": "none — 화면 없음(scoring_excluded_from_official). d̄·CI 는 이 파일에 두지 않는다",
