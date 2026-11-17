@@ -3,15 +3,15 @@
   "source_id": "fear_greed_index",
   "source_url": "https://feargreedmeter.com/",
   "source_label": "Stock Market Fear and Greed Index",
-  "observed_date": "2026-11-17",
-  "value": 31,
-  "value_raw": 31,
-  "history_days": 314,
+  "observed_date": "2026-11-18",
+  "value": 25,
+  "value_raw": 25,
+  "history_days": 315,
   "seeded_days": 250,
   "band": "fear",
   "band_label": "공포",
-  "previous_close": 39,
-  "week_ago": 32,
+  "previous_close": 31,
+  "week_ago": 33,
   "month_ago": 18,
   "bands": [
     {
@@ -46,10 +46,6 @@
     }
   ],
   "trail": [
-    {
-      "d": "2025-12-01",
-      "v": 22.09
-    },
     {
       "d": "2025-12-02",
       "v": 23.26
@@ -1085,10 +1081,14 @@
     {
       "d": "2026-11-17",
       "v": 31
+    },
+    {
+      "d": "2026-11-18",
+      "v": 25
     }
   ],
   "stability": {
-    "streak_days": 64,
+    "streak_days": 65,
     "gate_days": 14,
     "gate_met": true
   },
