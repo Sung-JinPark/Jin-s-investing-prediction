@@ -1,33 +1,33 @@
 {
-  "as_of": "2026-11-14T11:00:13.835043+00:00",
+  "as_of": "2026-11-17T14:01:09.096367+00:00",
   "descriptive": {
     "inputs_differ_sensitivity": {
       "main": {
-        "n_rows": 3,
-        "qs5_mean_delta": 0.0007903574885842283
+        "n_rows": 4,
+        "qs5_mean_delta": 0.00056799699081645
       },
       "term_structure": {
-        "n_rows": 3,
-        "qs5_mean_delta": 0.0007753613075450275
+        "n_rows": 4,
+        "qs5_mean_delta": 0.0005458431195923537
       },
       "zero_drift": {
-        "n_rows": 3,
-        "qs5_mean_delta": 0.0009687070864967572
+        "n_rows": 4,
+        "qs5_mean_delta": 0.0007649335185734693
       }
     },
     "lead_buckets": {
       "1-21": {
         "main": {
-          "mean_delta": 0.00010613895501766345,
-          "n_rows": 3
+          "mean_delta": -0.00017375988485386035,
+          "n_rows": 6
         },
         "term_structure": {
-          "mean_delta": 0.00010594215564266232,
-          "n_rows": 3
+          "mean_delta": -0.00017107737054136173,
+          "n_rows": 6
         },
         "zero_drift": {
-          "mean_delta": 0.00045926494549784064,
-          "n_rows": 3
+          "mean_delta": -0.00019500068856168756,
+          "n_rows": 6
         }
       },
       "22-63": {
@@ -61,56 +61,56 @@
     },
     "note": "dependence underestimated (overlapping windows) — not a label basis; r1 rule false-rejection 0.29-0.46",
     "post_verdict_v1_revisions": 0,
-    "representative_runs": 4,
+    "representative_runs": 5,
     "target_date_equal": {
       "main": {
         "block_bootstrap_ci90": [
-          6.802774290387299e-05,
-          6.802774290387299e-05
+          -0.00010586774630588017,
+          -0.00010586774630588017
         ],
-        "max_single_date_share": 0.7974966295166185,
-        "mean_delta": 6.802774290387299e-05,
-        "n_dates": 2
+        "max_single_date_share": 0.6648709362513625,
+        "mean_delta": -0.00010586774630588017,
+        "n_dates": 3
       },
       "term_structure": {
         "block_bootstrap_ci90": [
-          6.788014337262213e-05,
-          6.788014337262213e-05
+          -0.00010411220332671421,
+          -0.00010411220332671421
         ],
-        "max_single_date_share": 0.797234868942427,
-        "mean_delta": 6.788014337262213e-05,
-        "n_dates": 2
+        "max_single_date_share": 0.662405692453923,
+        "mean_delta": -0.00010411220332671421,
+        "n_dates": 3
       },
       "zero_drift": {
         "block_bootstrap_ci90": [
-          0.0003973378453897636,
-          0.0003973378453897636
+          -1.8196877280562847e-05,
+          -1.8196877280562847e-05
         ],
-        "max_single_date_share": 0.733782538562353,
-        "mean_delta": 0.0003973378453897636,
-        "n_dates": 2
+        "max_single_date_share": 0.5166035758550752,
+        "mean_delta": -1.8196877280562847e-05,
+        "n_dates": 3
       }
     },
     "twin_contrasts": {
       "term_structure_minus_main": {
-        "mean": -1.9679937500113875e-07,
-        "n_rows": 3
+        "mean": 2.68251431249864e-06,
+        "n_rows": 6
       },
       "zero_drift_minus_main": {
-        "mean": 0.0003531259904801772,
-        "n_rows": 3
+        "mean": -2.1240803707827202e-05,
+        "n_rows": 6
       }
     }
   },
   "footnote": "연구 섀도 · 비공개 · 라벨은 verdicts 에서만 · 참고 의견, 매매 신호 아님",
   "n_pairs_missing": 0,
-  "n_runs": 4,
+  "n_runs": 5,
   "pair_eligibility": {
     "rule": "r3",
     "runs": {
       "excluded": 1,
       "identical_inputs": 0,
-      "tolerance_equivalent": 3
+      "tolerance_equivalent": 4
     }
   },
   "phase_origin": "2026-11-10",
@@ -119,108 +119,108 @@
   "schema_version": 1,
   "thinned": {
     "h1": {
-      "blocking_origin": "2026-11-13",
+      "blocking_origin": "2026-11-16",
       "blocking_sessions_behind": 0,
       "by_arm": {
         "main": {
           "ci90": [
-            -4.630589343749755e-05,
-            0.00041684052892798553
+            -0.00044836299338888,
+            0.00026245838813949117
           ],
-          "mean": 0.000185267317745244,
-          "n": 2,
+          "mean": -9.295230262469443e-05,
+          "n": 3,
           "p_better": null,
           "secondary": {
             "brier": {
               "ci90": [
-                -0.004939199999999921,
-                0.008612842500000023
+                -0.008255274999999895,
+                0.004095495000000042
               ],
-              "estimate": 0.0018368212500000508
+              "estimate": -0.0020798899999999267
             },
             "coverage80_abs_error": {
-              "arm_coverage80": 1.0,
+              "arm_coverage80": 0.6666666666666666,
               "ci90": [
                 0.0,
                 0.0
               ],
               "estimate": 0.0,
-              "v1_coverage80": 1.0
+              "v1_coverage80": 0.6666666666666666
             },
             "qs5": {
               "ci90": [
-                -6.873747103750862e-05,
-                0.000670853360845422
+                -0.0010067895301904904,
+                0.0004243230835511118
               ],
-              "estimate": 0.0003010579449039567
+              "estimate": -0.00029123322331968925
             }
           }
         },
         "term_structure": {
           "ci90": [
-            -4.630589343749755e-05,
-            0.00041684052892798553
+            -0.00044836299338888,
+            0.00026245838813949117
           ],
-          "mean": 0.000185267317745244,
-          "n": 2,
+          "mean": -9.295230262469443e-05,
+          "n": 3,
           "p_better": null,
           "secondary": {
             "brier": {
               "ci90": [
-                -0.004939199999999921,
-                0.008612842500000023
+                -0.008255274999999895,
+                0.004095495000000042
               ],
-              "estimate": 0.0018368212500000508
+              "estimate": -0.0020798899999999267
             },
             "coverage80_abs_error": {
-              "arm_coverage80": 1.0,
+              "arm_coverage80": 0.6666666666666666,
               "ci90": [
                 0.0,
                 0.0
               ],
               "estimate": 0.0,
-              "v1_coverage80": 1.0
+              "v1_coverage80": 0.6666666666666666
             },
             "qs5": {
               "ci90": [
-                -6.873747103750862e-05,
-                0.000670853360845422
+                -0.0010067895301904904,
+                0.0004243230835511118
               ],
-              "estimate": 0.0003010579449039567
+              "estimate": -0.00029123322331968925
             }
           }
         },
         "zero_drift": {
           "ci90": [
-            0.00021155654506553427,
-            0.0008626036271779883
+            -0.0011697415574712013,
+            0.0006455879331405037
           ],
-          "mean": 0.0005370800861217613,
-          "n": 2,
+          "mean": -0.00026207681216534884,
+          "n": 3,
           "p_better": null,
           "secondary": {
             "brier": {
               "ci90": [
-                0.022134020000000088,
-                0.03516854249999998
+                -0.026608148333333286,
+                0.030823701666666686
               ],
-              "estimate": 0.028651281250000035
+              "estimate": 0.0021077766666666997
             },
             "coverage80_abs_error": {
-              "arm_coverage80": 1.0,
+              "arm_coverage80": 0.6666666666666666,
               "ci90": [
                 0.0,
                 0.0
               ],
               "estimate": 0.0,
-              "v1_coverage80": 1.0
+              "v1_coverage80": 0.6666666666666666
             },
             "qs5": {
               "ci90": [
-                0.00013764097541783381,
-                0.0008718938483690637
+                -0.0019526677890244657,
+                0.0006271428907186537
               ],
-              "estimate": 0.0005047674118934488
+              "estimate": -0.0006627624491529061
             }
           }
         }
@@ -229,9 +229,9 @@
       "n_missing": 0,
       "n_no_target": 0,
       "n_pending_blocking": 1,
-      "n_scored": 2,
+      "n_scored": 3,
       "n_target": 50,
-      "n_tolerance_equivalent": 2
+      "n_tolerance_equivalent": 3
     },
     "h126": {
       "blocking_origin": null,
