@@ -144,7 +144,7 @@
         "2026-11-09",
         "2026-11-10"
       ],
-      "n_dates_evaluated": 31,
+      "n_dates_evaluated": 32,
       "n_episodes": 1,
       "n_flagged": 28,
       "single_episode": true
@@ -180,7 +180,8 @@
           "2026-11-10",
           "2026-11-11",
           "2026-11-12",
-          "2026-11-13"
+          "2026-11-13",
+          "2026-11-16"
         ]
       ],
       "flagged_dates": [
@@ -212,11 +213,12 @@
         "2026-11-10",
         "2026-11-11",
         "2026-11-12",
-        "2026-11-13"
+        "2026-11-13",
+        "2026-11-16"
       ],
-      "n_dates_evaluated": 31,
+      "n_dates_evaluated": 32,
       "n_episodes": 1,
-      "n_flagged": 29,
+      "n_flagged": 30,
       "single_episode": true
     },
     "C2": {
@@ -300,7 +302,8 @@
           "2026-11-10",
           "2026-11-11",
           "2026-11-12",
-          "2026-11-13"
+          "2026-11-13",
+          "2026-11-16"
         ]
       ],
       "flagged_dates": [
@@ -324,11 +327,12 @@
         "2026-11-10",
         "2026-11-11",
         "2026-11-12",
-        "2026-11-13"
+        "2026-11-13",
+        "2026-11-16"
       ],
-      "n_dates_evaluated": 25,
+      "n_dates_evaluated": 26,
       "n_episodes": 3,
-      "n_flagged": 21,
+      "n_flagged": 22,
       "single_episode": false
     },
     "C7": {
@@ -340,7 +344,7 @@
       "flagged_dates": [
         "2026-10-29"
       ],
-      "n_dates_evaluated": 31,
+      "n_dates_evaluated": 32,
       "n_episodes": 1,
       "n_flagged": 1,
       "single_episode": true
@@ -376,7 +380,7 @@
         "2026-11-02",
         "2026-11-03"
       ],
-      "n_dates_evaluated": 31,
+      "n_dates_evaluated": 32,
       "n_episodes": 3,
       "n_flagged": 10,
       "single_episode": false
@@ -384,44 +388,42 @@
     "C9": {
       "episodes": [],
       "flagged_dates": [],
-      "n_dates_evaluated": 31,
+      "n_dates_evaluated": 32,
       "n_episodes": 0,
       "n_flagged": 0,
       "single_episode": true
     }
   },
-  "last_as_of": "2026-11-13",
+  "last_as_of": "2026-11-16",
   "latest": {
-    "as_of": "2026-11-13",
+    "as_of": "2026-11-16",
     "c12_stalled_series": [
       "FED_EBP"
     ],
     "c6_triggered": [
-      "near_tie",
-      "disagree"
+      "near_tie"
     ],
-    "coherence_id": "coh-2026-11-13-v1",
-    "computed_at": "2026-11-14T18:04:50.004811+00:00",
+    "coherence_id": "coh-2026-11-16-v1",
+    "computed_at": "2026-11-18T01:20:26.706678+00:00",
     "flags": [
       "C6",
-      "C10",
       "C12"
     ],
-    "n": 11,
-    "result_hash": "33af12acbb286881f913dd9a2d517001f8f7ab67c06d3a1056c9ed6436dc702d",
-    "retrospective": false,
+    "n": 6,
+    "result_hash": "0c80e3c090b986bde78952219648b45acfdd3b4474c130045bccd366863646e5",
+    "retrospective": true,
     "status": "ok",
     "threshold_hash": "bcc24081030d654a845a50dd4a434aebb11b6c0fae7213bcbae4457577702d76",
     "threshold_status": "ok"
   },
   "ledger": "data/mts_research/ledgers/coherence_daily.jsonl",
-  "ledger_last_content_hash": "655893b5ede99ea5958d1f766fccff327a9bf11a6e2786e78c183641ed627661",
-  "ledger_rows": 31,
+  "ledger_last_content_hash": "065b6d72191b0b7cc384bc702287af68943db6e444195c6c161f8fea3cf9fb57",
+  "ledger_rows": 32,
   "monitor_version": "coherence_monitor_v1",
-  "n": 31,
-  "n_dates": 31,
+  "n": 32,
+  "n_dates": 32,
   "notice": "참고 의견, 매매 신호 아님",
-  "retrospective_rows": 28,
+  "retrospective_rows": 29,
   "schema_version": 1,
   "scoring_excluded": true,
   "single_episode": false
