@@ -1,5 +1,5 @@
 version: 1
-updated: '2026-09-10'
+updated: '2026-11-18'
 questions:
 - id: nvda-dc-beat-2026aug
   drivers:
@@ -2022,6 +2022,148 @@ questions:
     · 예상확률 17% (첫 예측 전 고정)]'
   status: active
   created: '2026-09-10'
+  schedule:
+  - once: true
+  - from: D-3
+    once: true
+- id: nasdaq-comp-down25-from-ath-by-2027-03-31
+  tier: standard
+  drivers:
+  - vol-regime
+  - ai-capex-cycle
+  title: 나스닥 종합 종가 20,699.84 이하 — 2026-11-19 ~ 2027-03-31
+  question: 2026-11-19부터 2027-03-31까지의 미국 거래일 중, 나스닥 종합지수 종가가 20,699.84 이하인 날이 1일 이상 존재할 확률은?
+  deadline: '2027-03-31'
+  resolution: YES = 2026-11-19 이후 2027-03-31 까지의 어느 미국 거래일이든 FRED NASDAQCOM 일간 값 <= 20699.84. 임계는 등록 시점에 고정하며 이후의 고점 갱신이나 지수 개정과 무관하다. 창 시작 이전 값과 장중가는 판정에 쓰지 않는다.
+    FRED 값이 없는 거래일은 Nasdaq 공식 종가로 보충한다. 조건을 충족한 날 YES 로 판정할 수 있고, 창 마지막 거래일까지 충족이 없으면 NO 다. 지수 산출이 중단되면 void. 단일 계열의 수치 비교이므로 문구 형태와 무관하다.
+  resolution_source: FRED NASDAQCOM + Nasdaq 공식 종가
+  domain: market-regime
+  cadence: r1 + D-3
+  action_link: 사용자 드로다운 하드룰의 심화 구간 조기경보 — 조정이 1998 LTCM형(나스닥 -29.6%)으로 깊어지는지 본다
+  preflight:
+    not_yet_occurred: 창이 2026-11-19 에 시작하므로 등록일 2026-11-18 기준 창 안에 거래일이 없다. 직전 종가는 2026-11-17 24,328.38 (FRED NASDAQCOM 공식 API 확인)이고 임계까지 -14.9% 남았다. 2026-10-06 고점
+      대비 -25%. 임계 산식은 27,599.79 x 0.75.
+    window_start: 2026-11-19 (question·resolution 양쪽에 명시)
+    resolution_wording_checked: 2026-11-18 확인 — FRED 공식 API 로 NASDAQCOM 계열과 최근 값을 조회했다. 판정은 단일 계열의 부등호 비교이고 리터럴 문자열에 의존하지 않는다.
+  prereg:
+    sigma_quantity: window_min_log_return
+    sigma_path: manual_reference_class
+    sigma_reproduce: docs/p3_gate_path/candidates/DOTCOM_PARALLEL_20261118.md 3절 절차로 재현
+    contract: questions/portfolio_prereg_v1.yaml (9337f183)
+    z: 1.59
+    sigma: 0.0714
+    sigma_source: dualdb price_daily ^IXIC + Yahoo 연장(2026-11-17까지), 89거래일 창의 window_min_log_return 분포, 전체 표본(1990-01-02~2026-11-17), n=9198, IQR/1.349
+    center_estimate: -0.0483 (로그수익률 중앙값)
+    threshold_log_distance: -0.1615
+    cross_check: '고점 대비 -15%~-9% 출발 조건: n=860 · σ 0.0574 · 중앙값 -0.0371 · z 2.17 · 빈도 11.6%'
+    conditioning_note: 두 표본을 모두 계산했으므로 유리한 쪽을 고르지 않고 z 가 낮은 쪽을 등록값으로 삼았다. 정직확률은 두 빈도 범위의 상단 쪽으로 고정했다.
+    honest_probability_estimate: 0.16
+    expected_brier_floor: 0.1344
+    exception_slot: false
+    correlated_with:
+    - nasdaq-drawdown-15pct-by-2027-03-31
+    - hy-oas-500bp-2026q4-2027q1
+    - vix-40-touch-by-2027-01-15
+    correlation_note: 같은 AI·기술주 드라이버를 공유해 독립 표본이 아니다.
+    source_doc: docs/p3_gate_path/candidates/DOTCOM_PARALLEL_20261118.md
+  notes: '등록필터: (a) base rate 극단 — 같은 창 역사적 빈도 11.6%~16.2%, 정직확률 16% 는 [35,65] 밖이고 사구간 [23.5,76.5] 밖이다. z=1.59. [닷컴 평행 후속 신규 3건 · 분류 market_regime_threshold · 예상확률
+    16% (첫 예측 전 고정)]'
+  status: active
+  created: '2026-11-18'
+  schedule:
+  - once: true
+  - from: D-3
+    once: true
+- id: nasdaq-comp-new-ath-by-2027-01-22
+  tier: standard
+  drivers:
+  - ai-capex-cycle
+  - fed-path
+  title: 나스닥 종합 종가 27,599.79 초과 — 2026-11-19 ~ 2027-01-22
+  question: 2026-11-19부터 2027-01-22까지의 미국 거래일 중, 나스닥 종합지수 종가가 27,599.79를 초과하는 날이 1일 이상 존재할 확률은?
+  deadline: '2027-01-22'
+  resolution: YES = 2026-11-19 이후 2027-01-22 까지의 어느 미국 거래일이든 FRED NASDAQCOM 일간 값 > 27599.79. 임계는 등록 시점에 고정하며 이후의 고점 갱신이나 지수 개정과 무관하다. 창 시작 이전 값과 장중가는 판정에 쓰지 않는다.
+    FRED 값이 없는 거래일은 Nasdaq 공식 종가로 보충한다. 조건을 충족한 날 YES 로 판정할 수 있고, 창 마지막 거래일까지 충족이 없으면 NO 다. 지수 산출이 중단되면 void. 단일 계열의 수치 비교이므로 문구 형태와 무관하다.
+  resolution_source: FRED NASDAQCOM + Nasdaq 공식 종가
+  domain: market-regime
+  cadence: r1 + D-3
+  action_link: 드로다운 조기경보 해제 판단의 참고 — 1997-10 조정(고점 후 92거래일 회복)보다 빠른 회복인지 본다
+  preflight:
+    not_yet_occurred: 창이 2026-11-19 에 시작하므로 등록일 2026-11-18 기준 창 안에 거래일이 없다. 직전 종가는 2026-11-17 24,328.38 (FRED NASDAQCOM 공식 API 확인)이고 임계까지 +13.5% 남았다. 2026-10-06 사상
+      최고 종가(Yahoo·AP 표기 27,599.79) 재돌파. FRED 값은 27,599.89 라서 임계와 0.10 차이가 있다.
+    window_start: 2026-11-19 (question·resolution 양쪽에 명시)
+    resolution_wording_checked: 2026-11-18 확인 — FRED 공식 API 로 NASDAQCOM 계열과 최근 값을 조회했다. 판정은 단일 계열의 부등호 비교이고 리터럴 문자열에 의존하지 않는다.
+  prereg:
+    sigma_quantity: window_max_log_return
+    sigma_path: manual_reference_class
+    sigma_reproduce: docs/p3_gate_path/candidates/DOTCOM_PARALLEL_20261118.md 3절 절차로 재현
+    contract: questions/portfolio_prereg_v1.yaml (9337f183)
+    z: 1.21
+    sigma: 0.0529
+    sigma_source: dualdb price_daily ^IXIC + Yahoo 연장(2026-11-17까지), 43거래일 창의 window_max_log_return 분포, 고점 대비 -15%~-9% 출발 조건, n=861, IQR/1.349
+    center_estimate: +0.0619 (로그수익률 중앙값)
+    threshold_log_distance: 0.1262
+    cross_check: '전체 표본(1990-01-02~2026-11-17): n=9244 · σ 0.0468 · 중앙값 +0.0560 · z 1.5 · 빈도 11.6%'
+    conditioning_note: 두 표본을 모두 계산했으므로 유리한 쪽을 고르지 않고 z 가 낮은 쪽을 등록값으로 삼았다. 정직확률은 두 빈도 범위의 상단 쪽으로 고정했다.
+    honest_probability_estimate: 0.16
+    expected_brier_floor: 0.1344
+    exception_slot: false
+    correlated_with:
+    - nasdaq-comp-30000-close-2027-01-15
+    - nasdaq-eoy-above-jul9-2026
+    correlation_note: 같은 AI·기술주 드라이버를 공유해 독립 표본이 아니다.
+    source_doc: docs/p3_gate_path/candidates/DOTCOM_PARALLEL_20261118.md
+  notes: '등록필터: (a) base rate 극단 — 같은 창 역사적 빈도 11.6%~15.9%, 정직확률 16% 는 [35,65] 밖이고 사구간 [23.5,76.5] 밖이다. z=1.21. [닷컴 평행 후속 신규 3건 · 분류 market_regime_threshold · 예상확률
+    16% (첫 예측 전 고정)]'
+  status: active
+  created: '2026-11-18'
+  schedule:
+  - once: true
+  - from: D-3
+    once: true
+- id: sox-down55-from-ath-by-2027-06-30
+  tier: standard
+  drivers:
+  - memory-cycle
+  - ai-capex-cycle
+  title: SOX 종가 6,585.62 이하 — 2026-11-19 ~ 2027-06-30
+  question: 2026-11-19부터 2027-06-30까지의 미국 거래일 중, 필라델피아 반도체지수(SOX) 종가가 6,585.62 이하인 날이 1일 이상 존재할 확률은?
+  deadline: '2027-06-30'
+  resolution: YES = 2026-11-19 이후 2027-06-30 까지의 어느 미국 거래일이든 FRED NASDAQSOX 일간 값 <= 6585.62. 임계는 등록 시점에 고정하며 이후의 고점 갱신이나 지수 개정과 무관하다. 창 시작 이전 값과 장중가는 판정에 쓰지 않는다.
+    FRED 값이 없는 거래일은 Nasdaq 공식 종가로 보충한다. 조건을 충족한 날 YES 로 판정할 수 있고, 창 마지막 거래일까지 충족이 없으면 NO 다. 지수 산출이 중단되면 void. 단일 계열의 수치 비교이므로 문구 형태와 무관하다.
+  resolution_source: FRED NASDAQSOX + Nasdaq 공식 종가
+  domain: market-regime
+  cadence: r1 + D-3
+  action_link: 반도체 사이클 EXIT 트리거 조기경보 — 1997~98 SOX 낙폭(-53%)을 넘는지 본다
+  preflight:
+    not_yet_occurred: 창이 2026-11-19 에 시작하므로 등록일 2026-11-18 기준 창 안에 거래일이 없다. 직전 종가는 2026-11-17 9,642.88 (FRED NASDAQSOX 공식 API 확인)이고 임계까지 -31.7% 남았다. 2026-06-22 고점
+      14,634.72 대비 -55%. 임계 산식은 14,634.72 x 0.45.
+    window_start: 2026-11-19 (question·resolution 양쪽에 명시)
+    resolution_wording_checked: 2026-11-18 확인 — FRED 공식 API 로 NASDAQSOX 계열과 최근 값을 조회했다. 판정은 단일 계열의 부등호 비교이고 리터럴 문자열에 의존하지 않는다.
+  prereg:
+    sigma_quantity: window_min_log_return
+    sigma_path: manual_reference_class
+    sigma_reproduce: docs/p3_gate_path/candidates/DOTCOM_PARALLEL_20261118.md 3절 절차로 재현
+    contract: questions/portfolio_prereg_v1.yaml (9337f183)
+    z: 1.07
+    sigma: 0.2006
+    sigma_source: dualdb price_daily ^SOX + Yahoo 연장(2026-11-17까지), 152거래일 창의 window_min_log_return 분포, 고점 대비 -42%~-28% 출발 조건, n=630, IQR/1.349
+    center_estimate: -0.1669 (로그수익률 중앙값)
+    threshold_log_distance: -0.3813
+    cross_check: '전체 표본(1994-05-04~2026-11-17): n=8038 · σ 0.172 · 중앙값 -0.1058 · z 1.6 · 빈도 13.8%'
+    conditioning_note: 두 표본을 모두 계산했으므로 유리한 쪽을 고르지 않고 z 가 낮은 쪽을 등록값으로 삼았다. 정직확률은 두 빈도 범위의 상단 쪽으로 고정했다.
+    honest_probability_estimate: 0.14
+    expected_brier_floor: 0.1204
+    exception_slot: false
+    correlated_with:
+    - soxx-eoy-down15
+    - sox-ndx-relative-strength-2026ye
+    correlation_note: 같은 AI·기술주 드라이버를 공유해 독립 표본이 아니다.
+    source_doc: docs/p3_gate_path/candidates/DOTCOM_PARALLEL_20261118.md
+  notes: '등록필터: (a) base rate 극단 — 같은 창 역사적 빈도 9.2%~13.8%, 정직확률 14% 는 [35,65] 밖이고 사구간 [23.5,76.5] 밖이다. z=1.07. [닷컴 평행 후속 신규 3건 · 분류 market_regime_threshold · 예상확률
+    14% (첫 예측 전 고정)]'
+  status: active
+  created: '2026-11-18'
   schedule:
   - once: true
   - from: D-3
