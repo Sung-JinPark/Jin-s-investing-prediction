@@ -124,14 +124,15 @@ def test_zero_warnings_is_reported_with_its_coverage() -> None:
     assert "판정 자체가 불가능하다" in lines
 
 
-def test_the_twelve_new_questions_raise_no_dead_zone_warning() -> None:
-    """T02 등록분은 계약 훅을 통과했으므로 감시기도 조용해야 한다."""
+def test_prereg_questions_raise_no_dead_zone_warning() -> None:
+    """계약 훅을 통과한 등록분(T02 승인 12건과 이후 등록분)은 감시기도 조용해야 한다."""
     import yaml
 
     from ai_fc.dead_zone_watch import check
     data = yaml.safe_load((ROOT / "questions/registry.yaml").read_text(encoding="utf-8"))
     prereg = [q for q in data["questions"] if isinstance(q.get("prereg"), dict)]
-    assert len(prereg) == 12
+    contract = yaml.safe_load((ROOT / "questions/portfolio_prereg_v1.yaml").read_text(encoding="utf-8"))
+    assert set(contract["new_registration"]["user_approved_list"]) <= {q["id"] for q in prereg}
     for q in prereg:
         p = q["prereg"]
         hits = check(ROOT, question_id=q["id"],
