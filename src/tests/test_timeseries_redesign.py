@@ -14,23 +14,15 @@ def _html() -> str:
     return dashboard.load_template()
 
 
-def test_method_box_is_last_child_of_summary_panel_only() -> None:
+def test_method_box_is_removed_from_every_timeseries_path() -> None:
+    """2026-11-18 소유자 지시: '예측 방식' 접기는 독자에게 필요 없는 설명 — V8·HOLD·레거시 어디에도 없다."""
     html = _html()
-    assert "timeseriesSpecCard()" not in html, "패널 밖 구 호출이 남아 있다"
-    assert len(re.findall(r"\$\{timeseriesSpecCard\(ts\)\}", html)) == 3, "V8·HOLD·레거시 세 경로에 각 1회"
+    assert "timeseriesSpecCard" not in html, "시계열 '예측 방식' 접기가 다시 생겼다"
+    assert "시계열 예측 — 예측 방식" not in html
     v8 = html[html.index("function renderTimeseriesV8"):html.index("function renderTimeseries(")]
     summary_literal = v8[v8.index("const summaryPanel"):v8.index("const pathPanel")]
-    assert "${timeseriesSpecCard(ts)}</div>`;" in summary_literal, "summary 패널 문자열의 마지막 자식"
-    assert "timeseriesSpecCard" not in v8[v8.index("const pathPanel"):v8.index("const root=el(")], "path/drivers/backtest 문자열에 없음"
-    assert "${panel('summary',summaryPanel)}" in v8 and "timeseriesSpecCard" not in v8[v8.index("const root=el("):], "패널 밖(root 템플릿)에 없음"
-    legacy = html[html.index("function renderTimeseries("):html.index("const GC_API=")]
-    hold_start = legacy.index("if(!visible){")
-    hold = legacy[hold_start:legacy.index("mount(root);", hold_start)]
-    visible = legacy[legacy.index("mount(root);", hold_start) + 12:]
-    assert hold.count("${timeseriesSpecCard(ts)}") == 1 and "</section>${timeseriesSpecCard(ts)}`)}" in hold, "HOLD: summary 패널 마지막 자식"
-    assert visible.count("${timeseriesSpecCard(ts)}") == 1 and "</section>${timeseriesSpecCard(ts)}`)}" in visible, "레거시: summary 패널 마지막 자식"
-    assert "${timeseriesSpecCard(ts)}${footnote}" not in legacy
-    assert visible.index("${timeseriesSpecCard(ts)}") < visible.index("${panel('path'")
+    assert "</section></div>`;" in summary_literal, "summary 패널은 범위 카드로 끝난다"
+    assert "${panel('summary',summaryPanel)}" in v8
 
 
 def test_every_timeseries_chart_has_hover_and_screen_reader_readout() -> None:
@@ -111,11 +103,13 @@ def test_beginner_language_layer_leads_every_tab() -> None:
     card = html[html.index("function timeseriesScore100Card"):html.index("function timeseriesErrorCompare")]
     pillars = html[html.index("const TS_SCORE_PILLARS="):html.index("function timeseriesScore100Card")]
     assert 'class="ts-scorecard ts-score100"' in card
-    assert v8.index('timeseriesScore100Card(') < v8.index('단 1회 공개된 봉인 평가')
-    assert v8.index('<details class="ts-expert">') < v8.index('단 1회 공개된 봉인 평가')
+    assert v8.index('timeseriesScore100Card(') < v8.index('<details class="ts-expert">')
+    # 2026-11-18: 상세 지표 머리의 봉인 공시 문단(설명)은 제거 — 다시 생기지 않게 부재를 고정한다
+    for removed in ("단 1회 공개된 봉인 평가", "완전히 청정한 봉인은 아닙니다"):
+        assert removed not in v8, removed
     for question in ("단순한 예측 방법보다 정확했나", "약속만큼 담겼나", "실전(배포 후)에서 검증됐나"):
         assert question in pillars, question
-    assert "위 성적은 전부 과거 구간 재실행입니다" in pillars
+    assert "위 성적은 전부 과거 구간 재실행입니다" not in pillars, "설명 꼬리는 제거(2026-11-18)"
     # 점수는 빌더가 싣는 값을 그대로 그린다 — 화면에서 재계산하지 않는다
     assert "sealed_metrics||{}).score100" in card
     assert "표시 전용 점수 — 게이트·모델·확률 무변경" not in card
@@ -236,9 +230,10 @@ def test_phase2_separates_sealed_window_from_development_inclusive_backtest() ->
     v8 = html[html.index("function renderTimeseriesV8"):html.index("function renderTimeseries(")]
     assert "봉인 원점 ${Number(sealed.origin_count" not in v8, "1,011원점을 '봉인 원점'이라 부르지 않는다"
     assert "2019년 이후 봉인 구간" in v8
-    # 봉인창 자체 판정(보류)과 사유를 화면에 인쇄한다
+    # 봉인창 자체 판정(보류)과 사유를 화면에 인쇄한다 — 해설 문장은 2026-11-18 제거
     verdict = html[html.index("function timeseriesSealedVerdict"):html.index("function bindTimeseriesV8Interactions")]
-    assert "win.reasons" in verdict and "금융위기급 급락에서 검증된 적이 없습니다" in verdict
+    assert "win.reasons" in verdict
+    assert "금융위기급 급락에서 검증된 적이 없습니다" not in verdict
 
 
 def test_phase2_charts_are_wired_with_hover_and_honest_labels() -> None:
@@ -329,7 +324,10 @@ def test_payload_budget_declarations_match_code() -> None:
 
 
 def test_score_card_discloses_bounds_and_shadow_progress_as_labels_only() -> None:
-    """A8·A11(2026-10-21): 실전 축 옆 섀도 진행률 라벨 + 총점 상한 한 줄 — 산식은 빌더 값 그대로."""
+    """A8·A11(2026-10-21): 실전 축 옆 섀도 진행률 라벨 + 총점 상한 한 줄 — 산식은 빌더 값 그대로.
+
+    2026-11-18: '점수 기준' 설명 접기(총점 상한 해설 포함)는 소유자 지시로 제거 — 라벨 한 줄만 남는다.
+    """
     html = _html()
     helper = html[html.index("function tsShadowProgressLabel"):html.index("function timeseriesScore100Card")]
     assert "섀도 세션 ${done}/${need}" in helper and "거래일 성숙" in helper
@@ -337,10 +335,9 @@ def test_score_card_discloses_bounds_and_shadow_progress_as_labels_only() -> Non
     assert "sealed_metrics||{}).score100_bounds" in card and "sealed_metrics||{}).shadow_progress" in card
     assert "key==='live'?progressLabel:''" in card
     assert 'class="ts-score-bounds"' in card and "점 고정" in card
-    # 요약은 라벨 한 줄, 상세 문장은 접기(점수 기준) 안에만
-    assert card.index('class="ts-score-bounds"') < card.index('<details class="ts-score-method">')
-    assert "총점 상한" in card[card.index("const boundsNote="):card.index("const scale=")]
-    assert card.index("+boundsNote") > card.index('<details class="ts-score-method">')
+    # 요약은 라벨 한 줄만 — 설명 접기(점수 기준)와 총점 상한 해설은 없다
+    assert '<details class="ts-score-method">' not in card and "점수 기준</summary>" not in card
+    assert "boundsNote" not in card and "총점 상한" not in card
     live = html[html.index("function timeseriesLiveTiles"):html.index("function bindTimeseriesV8Interactions")]
     assert "tsShadowProgressLabel(" in live
 

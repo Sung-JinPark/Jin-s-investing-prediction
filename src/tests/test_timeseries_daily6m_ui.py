@@ -141,32 +141,24 @@ process.stdout.write(JSON.stringify({display:tsDailyIssuedAt(asOf),source:asOf})
 """)
     assert out["display"] == "2026. 10. 10. 07:00 KST"
     assert out["source"] == "2026-10-09T22:00:00+00:00"
+    # 2026-11-18 소유자 지시: 일별 전망 히어로의 기준일·발행 시각 줄(출처 메타)은 제거
     source = _source()
-    assert 'title="${esc(ts.as_of||\'\')}"' in source
-    assert "미국 거래일 종가 기준" in source
+    daily = source[source.index("function renderTimeseriesDaily("):source.index("function bindTimeseriesTabs")]
+    assert "미국 거래일 종가 기준" not in source
+    assert "<h1>6개월 일별 전망</h1></div></header>" in daily
 
 
-def test_hold_without_a_run_labels_check_time_without_relabeling_published_run(tmp_path: Path) -> None:
-    out = _run(tmp_path, """
-const as_of='2026-10-12T11:06:27.237443+00:00';
-const absent={status:'hold',numbers_visible:false,as_of,gate:{reasons:['no independent daily6m forecast exists']}};
-const published={...absent,run_id:'original-run',anchor_date:'2026-10-09'};
-const before=JSON.stringify([absent,published]);
-process.stdout.write(JSON.stringify({unissued:tsDailyMetadataMarkup(absent),published:tsDailyMetadataMarkup(published),
-  missing:tsDailyMetadataMarkup({status:'absent'}),unknown:tsDailyMetadataMarkup({status:'hold',as_of,gate:{reasons:['required source NASDAQCOM stale']}}),
-  unchanged:before===JSON.stringify([absent,published])}));
-""")
-    assert "아직 발행된 일별 전망이 없습니다" in out["unissued"]
-    assert "검사 시각 2026. 10. 12. 20:06 KST" in out["unissued"]
-    assert "발행 2026. 10. 12. 20:06 KST" in out["published"]
-    assert "검사 시각" not in out["published"]
-    assert "2026-10-09 미국 거래일 종가 기준" in out["published"]
-    for key in ("unissued", "published"):
-        assert 'title="2026-10-12T11:06:27.237443+00:00"' in out[key]
-    assert "검사 시각" not in out["missing"] and "발행 준비 중" not in out["missing"]
-    assert "기준 시각 2026. 10. 12. 20:06 KST" in out["unknown"]
-    assert "검사 시각" not in out["unknown"] and "아직 발행된" not in out["unknown"]
-    assert out["unchanged"]
+def test_daily_hero_carries_no_provenance_metadata_line() -> None:
+    """2026-11-18 소유자 지시: 기준일·검사 시각·발행 시각 메타 줄은 독자에게 필요 없는 출처 정보 — 다시 생기지 않게 부재를 고정.
+
+    보류 사유(tsHoldReasonsMarkup)와 상태 태그(NOT PUBLISHED·HOLD)는 그대로 남는다.
+    """
+    source = _source()
+    assert "function tsDailyMetadataMarkup(" not in source
+    daily = source[source.index("function renderTimeseriesDaily("):source.index("function bindTimeseriesTabs")]
+    for removed in ("검사 시각", "기준 시각", "일별 전망 기준일 확인 대기"):
+        assert removed not in daily, removed
+    assert "tsHoldReasonsMarkup(reasons)" in daily and "NOT PUBLISHED" in daily
 
 
 def test_hold_reasons_have_readable_labels_and_retain_every_original_reason(tmp_path: Path) -> None:
@@ -676,9 +668,12 @@ process.stdout.write(JSON.stringify({withRows,empty,absent}));
     out = _run(tmp_path, program)
     full = out["withRows"]
     assert "0.228" in full and "4/5" in full and "2 / 4" in full and "검증 전" in full
-    assert "무정보 0.25" in full and "predictive_validation=not_established" in full
+    assert "무정보 0.25" in full
+    # 2026-11-18: 원시 필드명(predictive_validation=…) 줄은 제거 — '검증 전' 라벨만 남는다
+    for markup in (full, out["empty"], out["absent"]):
+        assert "predictive_validation=" not in markup and "not_established" not in markup
     for markup in (out["empty"], out["absent"]):
-        assert markup.count("—") >= 3 and "검증 전" in markup and "not_established" in markup
+        assert markup.count("—") >= 3 and "검증 전" in markup
     for markup in out.values():
         assert "전진 검증 전" not in markup and "연구 프리뷰" not in markup
     source = _source()
@@ -959,7 +954,9 @@ process.stdout.write(JSON.stringify({html,strong}));""")
     assert "skill 판단 불가" in html
     assert '<details class="ts-daily-record-guide">' in html and "in-sample" in html
     assert "10/18" in html and "20/37" in html and "103/132" in html and "단일 에피소드" in html
-    assert "<svg" not in html and "참고 의견, 매매 신호 아님" in html
+    # 2026-11-18: 접기 안 설명 문단·카드별 고지·seed 는 제거(전역 푸터가 고지를 맡는다)
+    assert "<svg" not in html and "참고 의견, 매매 신호 아님" not in html
+    assert "읽는 법" not in html and "seed" not in html and "주 숫자다" not in html
     # 접기 밖 KPI 문구는 라벨만 — 자기설명 문장(…다.)은 접기 안에만 둔다.
     outside = html[:html.index("<details")]
     assert "다." not in outside and "비독립" not in outside
