@@ -300,7 +300,7 @@ questions:
   domain: market-regime
   cadence: 월 2회 + 이벤트 트리거
   action_link: v4 오버레이 F1 — 멜트업 vs 이미-정점 경로 판별
-  status: active
+  status: resolved
   created: 2026-07-10
   schedule:
   - per_week: 0.5
