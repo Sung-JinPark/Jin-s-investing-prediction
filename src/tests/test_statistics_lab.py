@@ -956,10 +956,11 @@ def test_dashboard_statistics_route_and_daily_workflow_are_wired() -> None:
     assert "${esc(chart.description)}" not in script
     assert "닷컴 1995~1999" in script
     assert "해석할 때 주의" not in script
-    # 검수 결정: caveat 첫 문장은 카드마다 상시 노출(UX-D3). 전체 문장을 펼치던
-    # '한계 전체 보기' 접힘 블록은 사용자 요청으로 뺐다(2026-09-18) — 전문은 데이터에 남는다.
-    assert "statistics-caveat-lead" in script
-    assert "firstSentenceOf(chart.caveat)" in script
+    # 2026-11-18 사용자 지시: caveat 첫 문장 상시 노출(UX-D3)도 뺐다 — 전문은 데이터에 남고 화면에는 싣지 않는다.
+    # 같은 지시로 '읽는 법' 접힘과 '최신 시세 자동 갱신 · 과거 N개는 보존된 원본 이력' 줄도 뺐다.
+    assert "statistics-caveat-lead" not in script
+    assert "chart.caveat" not in script
+    assert "statistics-reading-guide" not in script and "보존된 원본 이력" not in script
     assert "한계 전체 보기" not in script
     assert 'class="chart-method statistics-caveat"' not in script
     # 닷컴 vs 지금 막대 비교 (설비·지식재산 투자 · 회사채)

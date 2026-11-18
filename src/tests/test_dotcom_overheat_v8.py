@@ -278,18 +278,23 @@ def test_dashboard_shows_the_weighted_value_as_headline_and_says_the_weights_are
     assert '"dotcom_overheat_weighted": dotcom_overheat_weighted' in builder
     assert "_dotcom_overheat_weighted(root, v5=dotcom_overheat, profile=dotcom_overheat_profile)" in builder
     rubric = script[script.index("function overheatRubricBlock"):script.index("function statisticsOverheatPanel")]
-    assert "가중치는 판단값" in rubric and "검증한 값 아님" in rubric and "소유자 지정" in rubric
-    assert "AI 평가 5회" in rubric and "같은 언어모델" in rubric and "5인" not in rubric  # 사람 패널처럼 읽히지 않게
-    assert "overheatClampNote(w)" in rubric and "'빠짐'" in rubric and "r.group_label" in rubric
+    # 2026-11-18 사용자 지시: 점수 기준 표는 남고 그 아래 설명 목록(판단값·AI 평가·묶음·자르기·소유자 지정 표시)은 뺐다.
+    for removed in ("가중치는 판단값", "검증한 값 아님", "소유자 지정", "AI 평가 5회", "같은 언어모델", "ohi-limits",
+                    "overheatClampNote", "a_source==='owner'"):
+        assert removed not in rubric, removed
+    assert "'빠짐'" in rubric and "r.group_label" in rubric and "<table>" in rubric
     gate = script[script.index("function overheatWeighted"):script.index("function overheatRubricBlock")]
     assert "w.speed_as_of" in gate and "w.speed_max_age_days" in gate and "limit+1" in gate  # 프로필 블록과 같은 나이 판정
     assert "if(w.speed_as_of)" not in gate  # 기준일이 없는 것은 통과가 아니라 닫힘이다
-    assert "상한 ${hi}개" in gate and "하한 ${lo}개" in gate
-    assert "확률 아님" in rubric and "매매 신호 아님" in rubric and "참고 의견" in rubric
+    assert "function overheatClampNote" not in script  # 자르기 설명 줄만 만들던 도우미는 지웠다
+    assert "확률 아님" not in rubric and "매매 신호 아님" not in rubric and "참고 의견" not in rubric  # 사이트 하단 공통 고지가 싣는다
     assert "reduce(" not in rubric and "<svg" not in rubric  # JS 는 그리기만 한다 — 가중·평균은 파이썬이 낸다
     panel = script[script.index("function statisticsOverheatPanel"):script.index("function predictionSectionNav")]
-    assert "판단 가중 평균" in panel and "이전 산식" in panel and "가중에 따라" in panel
-    assert "검증된 값 아님" in panel and "빠짐(가중 재배분)" in panel and "low_raw" in panel  # 대표값 바로 아래 줄
+    # 2026-11-18 사용자 지시: v8 대표값은 숫자만 — 아래 설명 줄(판단 가중 평균 · 검증된 값 아님 · 가중에 따라 … · 이전 산식 …)은 뺐다.
+    # 가중을 달리 잡았을 때의 범위는 게이지 막대(oh-span)가 계속 그린다.
+    for removed in ("판단 가중 평균", "이전 산식", "가중에 따라", "검증된 값 아님", "빠짐(가중 재배분)", "low_raw"):
+        assert removed not in panel, removed
+    assert 'class="oh-span"' in panel and "one(w.value_raw)" in panel
     assert "{high:' · 상한',low:' · 하한',both:' · 상·하한'}" in panel
     assert "const gated=overheatWeighted(DATA.dotcom_overheat_weighted)" in panel and "dotcomOverheatSignal(idx,gated)" in panel
     assert panel.count("overheatWeighted(") == 1  # 시각에 따라 달라지는 게이트를 한 번만 판정한다
@@ -305,8 +310,9 @@ def test_dashboard_shows_the_weighted_value_as_headline_and_says_the_weights_are
     assert "missing:Array.isArray(w.missing)?w.missing.length:0" in signal
     assert "dotcomOverheatSignal(DATA.dotcom_overheat,overheatWeighted(DATA.dotcom_overheat_weighted))" in script
     blocks = script[script.index("function overheatProfileBlock"):script.index("function overheatWeighted")]
-    assert "overheatSpeedCount(overheatWeighted(DATA.dotcom_overheat_weighted))" in blocks  # 실제로 들어간 속도 지표 수를 말한다
-    assert "판정만 대표값 점수의 과거 근거로 읽음" in blocks and "위 닮음과 합치지 않음" in blocks
+    # 2026-11-18 사용자 지시: 프로필·과거 표본 점수 블록의 주석 줄은 뺐다.
+    assert "overheatSpeedCount(overheatWeighted(DATA.dotcom_overheat_weighted))" not in blocks
+    assert "판정만 대표값 점수의 과거 근거로 읽음" not in blocks and "위 닮음과 합치지 않음" not in blocks
 
 
 def test_watchdog_reports_when_the_site_fell_back_to_the_previous_formula() -> None:

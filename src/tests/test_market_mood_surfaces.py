@@ -311,7 +311,11 @@ def test_the_lab_declares_its_provenance_and_status() -> None:
     assert "상관을 주장하지 않습니다" not in renderer
     assert "회귀도 상관계수도 계산하지 않고" not in renderer
     assert "fngOverlayChart(lab.dates" in renderer and 'class="fng-comp-grid"' in renderer
-    assert "아래 선은 원자료(점수 추이 아님)" in renderer
+    # 2026-11-18 사용자 지시: 출처·원천 갱신 각주와 '아래 선은 원자료' 안내는 화면에서 뺐다(출처는 payload 에 남는다).
+    for removed in ("아래 선은 원자료", "fng-lab-foot", "무료 공개 API", "원천 갱신", "표시 전용", "자동갱신"):
+        assert removed not in renderer, removed
+    card = source.split("function renderFearGreedCard(fng){", 1)[1].split("\n}", 1)[0]
+    assert "표시 전용" not in card and "일일 수집" not in card and "provider" not in card
 
 
 def test_the_lab_line_continues_daily_past_the_seed() -> None:

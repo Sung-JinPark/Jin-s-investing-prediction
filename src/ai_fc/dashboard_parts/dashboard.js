@@ -1288,7 +1288,7 @@ function statisticsApproachAlert(chart){
   return `<div class="statistics-approach-alert" data-alert-status="${esc(alert.status)}" role="status" aria-label="${esc(alert.boundary_label)} 접근 ${esc(String(alert.proximity_percent))}% — ${esc(alert.status_label)}">
     <div class="statistics-alert-head"><b>${icon} ${esc(alert.status_label)}</b><span>${esc(alert.boundary_label)} 접근 <strong>${esc(String(alert.proximity_percent))}%</strong></span><small>현재 ${esc(statisticsValue(chart.unit,alert.current_value))} / 경계 ${esc(statisticsValue(chart.unit,alert.boundary_value))}</small></div>
     <div class="statistics-alert-track"><i style="width:${width.toFixed(1)}%"></i><em style="left:${alert.thresholds.watch_percent}%"></em><em style="left:${alert.thresholds.alert_percent}%"></em></div>
-    <small class="statistics-alert-note">주의 ${esc(String(alert.thresholds.watch_percent))}% · 경고 ${esc(String(alert.thresholds.alert_percent))}% — 표시 규약이며 매매 신호가 아닙니다</small>
+    <small class="statistics-alert-note">주의 ${esc(String(alert.thresholds.watch_percent))}% · 경고 ${esc(String(alert.thresholds.alert_percent))}%</small>
   </div>`;
 }
 function statisticsChartSvg(chart,alignment={}){
@@ -1374,8 +1374,8 @@ function fngComponentRow(key,c){
     <div class="fng-comp-head"><b>${esc(c.label||key)}</b><span class="mood-chip" style="--chip:${color}">${esc(c.rating||'')}</span></div>
     <div class="fng-comp-score"><span><i style="width:${Math.max(1,Math.min(100,score)).toFixed(0)}%;background:${color}"></i></span><b>${score.toFixed(1)}</b></div>
     ${moodSpark(( c.series||[]).map((v,i)=>({d:i,v})),{lo,hi,w:210,h:38,stroke:color})}
-    <p class="fng-comp-note">${esc(c.unit||'')} · ${esc(c.hint||'')}</p>
-    ${c.observed_at?`<p class="fng-comp-note">관측 ${esc(c.observed_at)} · 원자료 ${hasNumeric((c.series||[]).at(-1))?Number(c.series.at(-1)).toLocaleString(undefined,{maximumFractionDigits:4}):'—'}</p>`:''}
+    ${c.unit?`<p class="fng-comp-note">${esc(c.unit)}</p>`:''}
+    ${c.observed_at?`<p class="fng-comp-note">원자료 ${hasNumeric((c.series||[]).at(-1))?Number(c.series.at(-1)).toLocaleString(undefined,{maximumFractionDigits:4}):'—'}</p>`:''}
   </article>`;
 }
 
@@ -1384,8 +1384,6 @@ function renderFearGreedLab(){
   if(!lab||lab.status!=='live')return null;
   const comps=Object.entries(lab.components||{}).map(([k,c])=>fngComponentRow(k,c)).join('');
   const nqEnd=(lab.nasdaq||[]).filter(hasNumeric).at(-1);
-  const componentDate=lab.components_observed_through||'갱신 대기';
-  const componentSource=String(lab.components_source_url||'').replace(/\/api\/fear-greed$/,'/data');
   const componentAge=Date.now()-Date.parse(lab.components_source_as_of||'');
   const componentsLive=lab.components_status==='live'&&Number.isFinite(componentAge)&&componentAge>=-300000&&componentAge<=96*3600000&&Object.values(lab.components||{}).every(c=>{const age=Date.now()-Date.parse(c.observed_at||'');return Number.isFinite(age)&&age>=-300000&&age<=96*3600000;});
   return el(`<section class="fng-lab" id="fear-greed" aria-labelledby="fng-lab-head">
@@ -1393,29 +1391,16 @@ function renderFearGreedLab(){
     <div class="fng-lab-legend"><span class="is-fng">공포·탐욕 (좌 0~100)</span><span class="is-nq">NASDAQ 종합 (우${hasNumeric(nqEnd)?` · ${esc(lab.observed_through||'')} ${Math.round(nqEnd).toLocaleString()}`:''})</span></div>
     <div class="fng-lab-legend fng-lab-zones">${[['extreme_fear','극단적 공포'],['fear','공포'],['neutral','중립'],['greed','탐욕'],['extreme_greed','극단적 탐욕']].map(([k,label])=>`<span style="--chip:${MOOD_BAND_COLOR[k]}">${label}</span>`).join('')}</div>
     ${fngOverlayChart(lab.dates||[],lab.fng||[],lab.nasdaq||[])}
-    <h3 class="fng-lab-sub">구성요소 7종 · ${esc(componentDate)}${componentsLive?' · 자동갱신':''}</h3>
-    <p class="fng-lab-lead">${componentsLive?'아래 선은 원자료(점수 추이 아님)':'최신 구성요소를 확인하지 못했습니다. 이전 점수는 표시하지 않습니다.'}</p>
-    ${componentsLive?`<div class="fng-comp-grid">${comps}</div>`:''}
-    <p class="fng-lab-foot">구성요소 <a href="${esc(componentSource)}" target="_blank" rel="noopener">Fear &amp; Greed 무료 공개 API</a>${componentsLive?` · 원천 갱신 ${esc(lab.components_source_as_of||'')} · 해당 원천 지수 ${esc(lab.components_headline_at_source)} (상단 종합지수와 원천·시점이 다를 수 있음)`:''} · 지수·NASDAQ ${esc(lab.observed_through||'')}까지 · 표시 전용</p>
+    <h3 class="fng-lab-sub">구성요소 7종</h3>
+    ${componentsLive?`<div class="fng-comp-grid">${comps}</div>`:'<p class="fng-lab-lead">최신 구성요소를 확인하지 못했습니다.</p>'}
   </section>`);
 }
 
 /* 닷컴 대비 과열도 — 통계 화면 맨 위. 100% = 닷컴 사이클 정점. 확률이 아니다.
-   대표값은 v8 판단 가중 평균(열려 있을 때)이고 가중을 달리 잡았을 때의 범위와 함께 낸다. 닫히면 v5(부문 중앙값 + 부문 산포)다.
-   어느 쪽이든 대표값만 혼자 내보내지 않는다(홈 카드와 같은 규칙). */
+   대표값은 v8 판단 가중 평균(열려 있을 때)이고 가중을 달리 잡았을 때의 범위는 게이지 막대(oh-span)로 그린다. 닫히면 v5(부문 중앙값 + 부문 산포)다.
+   2026-11-18 사용자 지시: 대표값 아래 설명 줄·카드 주석·읽는 법은 화면에 싣지 않는다(숫자만). */
 const OVERHEAT_CATEGORY_LABELS={economy:'경기·물가',rates:'금리',valuation:'기업가치',credit:'신용',liquidity:'유동성',ipo:'IPO·상장'};
 const overheatTone=v=>v>=100?'is-over':v>=80?'is-hot':v>=50?'is-warm':'is-cool';
-function overheatIndicatorFreshness(row){
-  const info=row.freshness||{},status=info.status||'unverified';
-  const labels={current:'정상 확인',source_waiting:'원천 응답 대기',check_overdue:'원천 재확인 필요',observation_overdue:'관측 지연 검수 필요',unverified:'확인 정보 없음'};
-  const period=info.period_label||row.current_date||'기간 미상';
-  const quarter=value=>/^\d{4}-(0[1-9]|1[0-2])/.test(String(value||''))?`${String(value).slice(0,4)}-${Math.floor((Number(String(value).slice(5,7))-1)/3)}`:null;
-  const observedQuarter=quarter(info.latest_observation),sourceQuarter=quarter(info.source_observation_through);
-  const alignedQuarterEnd=(info.sources||[]).some(source=>source.frequency==='quarterly')&&observedQuarter&&observedQuarter===sourceQuarter&&[3,6,9,12].includes(Number(String(info.latest_observation).slice(5,7)));
-  const source=info.source_observation_through&&info.source_observation_through!==info.latest_observation?(alignedQuarterEnd?` · 분기말 월 ${String(info.latest_observation).slice(0,7)}`:` · 원자료 ${info.source_observation_through}까지`):'';
-  const provisional=info.provisional_through?`잠정 참고 ${String(info.provisional_through).slice(0,7)} 최근 12개월${Number.isFinite(info.provisional_value)?` ${info.provisional_value.toLocaleString()}건`:''} · 확정치와 정의가 달라 지수에 미반영`:'';
-  return {period:`${row.id==='ipo_count_operating_12m'?'확정 통계 기간':'통계 기간'} ${period}${source}`,check:`원천 확인 ${formatKstTimestamp(info.last_successful_check)} · ${labels[status]||labels.unverified}`,status,provisional,note:info.note||''};
-}
 /* 닷컴 정점 대비 지표별 프로필 (dotcom_overheat_profile_v1) — 지표별 닮음을 합치지 않고 나란히 보인다.
    2000년 3월 = 100. 지수가 아니므로 합·평균·종합 등급·색 신호등을 만들지 않는다. 위의 대표값과 척도가 다르다
    (v8 이 열려 있으면 상승 속도 2종의 점수만 대표값이 읽어 간다 — 이 블록이 합치는 것은 아니다) — 그래서 카드 맨 아래에 따로 둔다. 0 의 뜻은 지표마다 다르다(수준형 = 1995~2019 중앙값,
@@ -1438,9 +1423,9 @@ function overheatProfileBlock(profile){
     return `<li class="ohp-row"><em>${esc(r.label||r.id)}</em><span class="ohp-track"><i class="ohp-fill${r.score_raw<0?' is-neg':''}" style="left:${Math.min(a,b).toFixed(1)}%;width:${Math.abs(b-a).toFixed(1)}%"></i>${marks}${hasMedian?`<b class="ohp-median" style="left:${P(r.median_1995_2019).toFixed(1)}%"></b>`:''}</span><strong>${esc(r.score)}</strong><span class="ohp-meta">${bits.join(' · ')}</span></li>`;
   };
   const groups=profile.families.map(f=>`<div class="ohp-family"><h4>${esc(f.label||f.id)}</h4>${(f.indicators||[]).length?`<ul>${f.indicators.map(row).join('')}</ul>`:'<p class="ohp-none">미측정</p>'}</div>`).join('');
-  return `<div class="oh-profile" data-oh-profile="${esc(profile.as_of||'')}"><h3>지표별 닮음 <small>2000년 3월 = 100 · 위 대표값과 다른 척도</small></h3>`
+  return `<div class="oh-profile" data-oh-profile="${esc(profile.as_of||'')}"><h3>지표별 닮음 <small>2000년 3월 = 100</small></h3>`
     +`<div class="ohp-family ohp-headrow" aria-hidden="true"><h4></h4><div class="ohp-row"><em></em><span class="ohp-ticks"><span style="left:${P(0).toFixed(1)}%">0</span><span class="is-peak" style="left:${P(100).toFixed(1)}%">100</span></span><strong></strong><span class="ohp-meta"></span></div></div>`
-    +groups+`<p class="oh-note">합산 지수 아님 · ${overheatSpeedCount(overheatWeighted(DATA.dotcom_overheat_weighted))?`상승 속도 ${overheatSpeedCount(overheatWeighted(DATA.dotcom_overheat_weighted))}종만 대표값에 반영`:'대표값 내역 아님'} · 0 = 1995~2019 중앙값(상승 속도는 상승률 0) · 확률 아님 · 참고 의견 · ${esc(profile.as_of)} 기준</p></div>`;
+    +groups+`</div>`;
 }
 /* 지표별 과거 표본 점수 (dotcom_overheat_index_v7 의 점수제) — 과거 고점 부근에서 각 지표가 이후 NASDAQ 하락폭과 얼마나
    같은 방향이었나를 잰 점수(0~100). 오늘 값이 아니고, 지수도 가중치도 아니다: 합산값은 쏠림 상한을 채우지 못해 만들지 않았다.
@@ -1453,28 +1438,18 @@ function overheatInfluenceBlock(data){
   const row=r=>{
     const score=r.score!=null&&Number.isFinite(Number(r.score))?Math.max(0,Math.min(100,Number(r.score))):null;
     const chip=`${OVERHEAT_EVIDENCE_LABELS[r.evidence]||''}${r.evidence==='duplicate'&&r.duplicate_of?` · ${r.duplicate_of}`:''}`;
-    return `<li class="ohi-row" data-ohi-evidence="${esc(r.evidence||'')}"><em>${esc(r.label||r.id)}<small>${esc(OVERHEAT_FAMILY_LABELS[r.family]||r.family||'')}${r.low_is_hot?' · 낮을수록':''}</small></em><span class="ohi-track">${score==null?'':`<i style="width:${score}%"></i>`}</span><strong>${score==null?'—':`${score}점`}</strong><span class="ohi-chip">${esc(chip)}</span></li>`;
+    return `<li class="ohi-row" data-ohi-evidence="${esc(r.evidence||'')}"><em>${esc(r.label||r.id)}<small>${esc(OVERHEAT_FAMILY_LABELS[r.family]||r.family||'')}</small></em><span class="ohi-track">${score==null?'':`<i style="width:${score}%"></i>`}</span><strong>${score==null?'—':`${score}점`}</strong><span class="ohi-chip">${esc(chip)}</span></li>`;
   };
   let lastEligible=-1;data.rows.forEach((r,i)=>{if(r.evidence==='eligible')lastEligible=i;});
   const cut=Math.max(8,lastEligible+1),head=data.rows.slice(0,cut),rest=data.rows.slice(cut);
-  const count=v=>Number.isFinite(Number(v))?Number(v):'—';
-  return `<div class="oh-influence" data-oh-influence="${esc(data.measured_as_of||'')}"><h3>지표별 과거 표본 점수 <small>오늘 값 아님 · ${overheatWeighted(DATA.dotcom_overheat_weighted)?'판정만 대표값 점수의 과거 근거로 읽음':'위 닮음과 합치지 않음'}</small></h3>`
+  return `<div class="oh-influence" data-oh-influence="${esc(data.measured_as_of||'')}"><h3>지표별 과거 표본 점수</h3>`
     +`<ul class="ohi-list">${head.map(row).join('')}</ul>`
     +(rest.length?`<details class="ohi-more"><summary>나머지 ${rest.length}개</summary><ul class="ohi-list">${rest.map(row).join('')}</ul></details>`:'')
-    +`<p class="oh-note">과거 표본 점수 · ${overheatWeighted(DATA.dotcom_overheat_weighted)?'이 점수만으로 만든 지수 없음 · 대표값 점수의 과거 근거 항목으로만 읽음':'합산 지수 아님(만들지 않음) · 대표값 가중치 아님'} · 매매 신호 아님 · 확률 아님 · 참고 의견${data.measured_as_of?` · ${esc(data.measured_as_of)} 측정`:''}</p>`
-    +`<details class="ohi-more ohi-how"><summary>읽는 법·한계</summary><ul class="ohi-limits">`
-    +`<li>점수 = 1973~2017년 고점 부근 달의 값이 이후 1~2년 NASDAQ 최대 하락폭과 같은 방향이었던 정도(닷컴 1997~2002 제외)</li>`
-    +`<li>표본 안에서 잰 값 — 2020·2022년을 포함한 전진 검증은 없음</li>`
-    +`<li>큰 하락장은 표본에 ${count(data.bear_episodes)}번, 그중 ${count(data.bear_episodes_before_1991)}번이 1991년 이전</li>`
-    +`<li>인접한 줄의 순서는 오차 범위 안 — 순위 번호를 매기지 않음</li>`
-    +`<li>자격 충족 ${count(data.eligible)}개 · 우연 문턱을 넘은 것 ${count(data.beyond_placebo)}개 / ${count(data.candidates)}개 — 영향이 없어도 10개 중 1개꼴로 문턱을 넘음</li>`
-    +`<li>정보가 없는 달력 추세도 ${count(data.trend_control_score)}점을 받음(대조군)</li>`
-    +`<li>'방향 반대'는 가정한 방향과 반대로 움직였다는 뜻, '무관'·'우연 수준'은 관계가 없다는 증명이 아니라 우연과 구분되지 않았다는 뜻</li>`
-    +`</ul></details></div>`;
+    +`</div>`;
 }
 /* 대표값 = 판단 가중 평균 (dotcom_overheat_index_v8, 2026-11-12 소유자 지시). 지표마다 점수(닷컴 경로 + 과거 근거 + 정점 방향)를
-   매기고 같은 것을 재는 지표는 한 묶음으로 평균해 한 번만 센다. 가중치는 판단값이다 — 검증된 값이 아니라는 말을 화면에서
-   지우지 않는다. 닫히면(hold·unavailable) 이전 산식(v5 부문 중앙값)으로 돌아간다. JS 는 그리기만 한다. */
+   매기고 같은 것을 재는 지표는 한 묶음으로 평균해 한 번만 센다. 가중치는 판단값이다(검증된 값 아님 — 계약
+   disclosures 에 기록; 2026-11-18 사용자 지시로 화면 문구는 뺐다). 닫히면(hold·unavailable) 이전 산식(v5 부문 중앙값)으로 돌아간다. JS 는 그리기만 한다. */
 function overheatWeighted(w){
   if(!w||w.status!=='ok'||!hasNumeric(w.overheat_pct)||!Array.isArray(w.groups)||!w.groups.length||!Array.isArray(w.indicators))return null;
   if(!w.range||!hasNumeric(w.range.low)||!hasNumeric(w.range.high))return null;
@@ -1487,28 +1462,18 @@ function overheatWeighted(w){
   return w;
 }
 function overheatSpeedCount(w){return w?w.indicators.filter(r=>r.source==='profile'&&r.status==='ok').length:0;}
-function overheatClampNote(w){
-  const hi=Number(w.clamped_high_count)||0,lo=Number(w.clamped_low_count)||0;
-  return hi||lo?`지금 ${[hi?`상한 ${hi}개`:'',lo?`하한 ${lo}개`:''].filter(Boolean).join(' · ')}`:'지금 잘린 지표 없음';
-}
 function overheatRubricBlock(w){
   const n=v=>Number.isFinite(Number(v))&&v!=null?Number(v):'—';
-  const rows=w.indicators.map(r=>`<tr><th scope="row">${esc(r.label||r.id)}</th><td>${esc(r.group_label||r.group||'')}</td><td>${n(r.A)}${r.a_source==='owner'?'*':''}</td><td>${n(r.B)}</td><td>${n(r.C)}</td><td><b>${n(r.points)}</b></td><td>${r.status!=='ok'?'빠짐':r.weight_pct==null?'—':`${n(r.weight_pct)}%`}</td></tr>`).join('');
+  const rows=w.indicators.map(r=>`<tr><th scope="row">${esc(r.label||r.id)}</th><td>${esc(r.group_label||r.group||'')}</td><td>${n(r.A)}</td><td>${n(r.B)}</td><td>${n(r.C)}</td><td><b>${n(r.points)}</b></td><td>${r.status!=='ok'?'빠짐':r.weight_pct==null?'—':`${n(r.weight_pct)}%`}</td></tr>`).join('');
   return `<details class="ohi-more oh-rubric"><summary>점수 기준·가중치</summary><div class="oh-rubric-scroll"><table><thead><tr><th scope="col">지표</th><th scope="col">묶음</th><th scope="col">닷컴 경로</th><th scope="col">과거 근거</th><th scope="col">정점 방향</th><th scope="col">점수</th><th scope="col">가중</th></tr></thead><tbody>${rows}</tbody></table></div>`
-    +`<ul class="ohi-limits"><li>닷컴 경로 0~5 = 오늘 값을 주지 않은 AI 평가 5회(같은 언어모델, 관점 5종)의 중앙값 · * 는 소유자 지정</li>`
-    +`<li>과거 근거 0~3 = 아래 '과거 표본 점수'의 판정 · 정점 방향 0~2 = 1999년 말에 실제로 그 방향이었는가</li>`
-    +`<li>같은 것을 재는 지표는 한 묶음으로 평균해 한 번만 셈</li>`
-    +`<li>값은 ${esc(w.clamp?.[0])}~${esc(w.clamp?.[1])} 으로 잘라 평균 · ${esc(overheatClampNote(w))}</li>`
-    +((w.missing||[]).length?`<li>값이 없는 지표 ${esc(w.missing.length)}개는 빼고 가중을 다시 나눔 — 그만큼 대표값이 달라짐</li>`:'')
-    +`<li>가중치는 판단값 — 과거 자료로 검증한 값 아님 · 지표마다 같은 가중이면 ${hasNumeric(w.variants?.equal_indicators)?Number(w.variants.equal_indicators).toFixed(1):'—'} · 묶음마다 같은 가중이면 ${hasNumeric(w.variants?.equal_groups)?Number(w.variants.equal_groups).toFixed(1):'—'}</li>`
-    +`<li>확률 아님 · 매매 신호 아님 · 참고 의견</li></ul></details>`;
+    +`</details>`;
 }
 function statisticsOverheatPanel(idx){
   const gated=overheatWeighted(DATA.dotcom_overheat_weighted);   // 한 번만 판정한다 — 시각에 따라 달라지는 게이트다
   const sig=dotcomOverheatSignal(idx,gated);
   if(!sig)return null;
   const w=sig.weighted?gated:null;
-  const one=v=>Number(v).toFixed(1),gone=(w?.missing||[]).length;
+  const one=v=>Number(v).toFixed(1);
   const weightOf=Object.fromEntries((w?.indicators||[]).filter(r=>r.status==='ok').map(r=>[r.id,r]));
   const weightTag=id=>weightOf[id]?`<small>가중 ${esc(weightOf[id].weight_pct)}%</small>`:'';
   const rows=idx.indicators||[],cats=Object.entries(idx.category_medians||{}).sort((a,b)=>b[1]-a[1]);
@@ -1516,20 +1481,20 @@ function statisticsOverheatPanel(idx){
   const X=v=>Math.max(0,Math.min(100,Number(v)/top*100));
   const bar=(v,cls='')=>`<span class="oh-track"><i class="oh-fill ${cls||overheatTone(v)}" style="width:${X(v).toFixed(1)}%"></i><b class="oh-peak" style="left:${X(100).toFixed(1)}%"></b></span>`;
   const catRows=cats.map(([key,v])=>`<li><em>${esc(OVERHEAT_CATEGORY_LABELS[key]||key)}</em>${bar(v)}<strong class="${overheatTone(v)}">${Math.round(v)}%</strong></li>`).join('');
-  // 2026-11-12 사용자 지시: 지표 행에는 부제(부문 · 이유)만 두고 통계 기간·원천 확인 줄은 싣지 않는다.
-  // 원천 갱신 상태는 statistics-freshness 점검과 overheat-watchdog 이 본다. IPO 행의 잠정 참고·주석만 남긴다.
-  const indRows=rows.map(r=>{const info=overheatIndicatorFreshness(r);return `<li><button type="button" data-oh-jump="${esc(r.chart||'')}" title="${esc(r.why||'')}"><em>${esc(r.title||r.id)}<small>${esc(OVERHEAT_CATEGORY_LABELS[r.category]||r.category)}${r.why?` · ${esc(r.why)}`:''}</small></em>${bar(r.pct)}<strong class="${overheatTone(r.pct)}">${Math.round(r.pct)}%${r.beyond_dotcom_peak?'<small>정점 초과</small>':''}${weightTag(r.id)}</strong>${info.provisional||info.note?`<span class="oh-freshness" data-oh-freshness="${esc(info.status)}">${info.provisional?`<span>${esc(info.provisional)}</span>`:''}${info.note?`<span>${esc(info.note)}</span>`:''}</span>`:''}</button></li>`;}).join('');
+  // 2026-11-12 사용자 지시: 지표 행에는 부제(부문 · 이유)만 둔다. 2026-11-18 사용자 지시로 IPO 행의 잠정치·개정 주석 줄도 뺐다.
+  // 원천 갱신 상태는 statistics-freshness 점검과 overheat-watchdog 이 본다.
+  const indRows=rows.map(r=>`<li><button type="button" data-oh-jump="${esc(r.chart||'')}" title="${esc(r.why||'')}"><em>${esc(r.title||r.id)}<small>${esc(OVERHEAT_CATEGORY_LABELS[r.category]||r.category)}${r.why?` · ${esc(r.why)}`:''}</small></em>${bar(r.pct)}<strong class="${overheatTone(r.pct)}">${Math.round(r.pct)}%${r.beyond_dotcom_peak?'<small>정점 초과</small>':''}${weightTag(r.id)}</strong></button></li>`).join('');
   // 상승 속도 2종은 통계 카드가 없어 이동 단추가 아니다(값은 아래 '지표별 닮음'과 같은 것).
-  const speedRows=(w?.indicators||[]).filter(r=>r.source==='profile'&&r.status==='ok').map(r=>`<li><div class="oh-row-static"><em>${esc(r.label||r.id)}<small>상승 속도 · 매일 갱신</small></em>${bar(r.reading)}<strong class="${overheatTone(r.reading)}">${Math.round(r.reading)}%${weightTag(r.id)}</strong></div></li>`).join('');
+  const speedRows=(w?.indicators||[]).filter(r=>r.source==='profile'&&r.status==='ok').map(r=>`<li><div class="oh-row-static"><em>${esc(r.label||r.id)}<small>상승 속도</small></em>${bar(r.reading)}<strong class="${overheatTone(r.reading)}">${Math.round(r.reading)}%${weightTag(r.id)}</strong></div></li>`).join('');
   const cutLabel={high:' · 상한',low:' · 하한',both:' · 상·하한'};
   const groupRows=(w?.groups||[]).map(g=>`<li><em>${esc(g.label||g.id)}<small>${esc(g.points)}점 · 가중 ${esc(g.weight_pct)}%</small></em>${bar(g.reading)}<strong class="${overheatTone(g.reading)}">${Math.round(g.reading)}%<small>기여 ${esc(g.contribution)}${cutLabel[g.clamped]||''}</small></strong></li>`).join('');
   const node=el(`<section class="statistics-overheat" aria-labelledby="statistics-overheat-title"><h2 id="statistics-overheat-title">닷컴 대비 과열도</h2>`
-    +`<div class="oh-hero"><div class="oh-score ${overheatTone(sig.pct)}"><span>현재</span><strong>${w&&hasNumeric(w.value_raw)?one(w.value_raw):sig.pct}<small>%</small></strong><p>${w?`판단 가중 평균 · 검증된 값 아님 · 가중에 따라 ${hasNumeric(w.range.low_raw)&&hasNumeric(w.range.high_raw)?`${one(w.range.low_raw)}~${one(w.range.high_raw)}`:`${sig.lo}~${sig.hi}`}% · 이전 산식 ${esc(sig.previous)}%${gone?` · 지표 ${gone}개 빠짐(가중 재배분)`:''}`:`부문별 ${sig.lo}~${sig.hi}% · 정점 초과 ${sig.beyond}개 / ${sig.included}개`}</p></div>`
+    +`<div class="oh-hero"><div class="oh-score ${overheatTone(sig.pct)}"><span>현재</span><strong>${w&&hasNumeric(w.value_raw)?one(w.value_raw):sig.pct}<small>%</small></strong>${w?'':`<p>부문별 ${sig.lo}~${sig.hi}% · 정점 초과 ${sig.beyond}개 / ${sig.included}개</p>`}</div>`
     +`<div class="oh-gauge"><div class="oh-gauge-bar"><i class="oh-span" style="left:${X(sig.lo).toFixed(1)}%;width:${(X(sig.hi)-X(sig.lo)).toFixed(1)}%"></i><b class="oh-peak" style="left:${X(100).toFixed(1)}%"></b><b class="oh-pin" style="left:${X(sig.pct).toFixed(1)}%"></b></div>`
     +`<div class="oh-gauge-scale"><span style="left:0">0%</span><span style="left:${X(50).toFixed(1)}%">50%</span><span class="is-peak" style="left:${X(100).toFixed(1)}%">닷컴 정점 100%</span></div></div></div>`
     +`<div class="oh-grid"><div><h3>${w?`묶음별 가중 ${w.groups.length}개`:'부문별'}</h3><ul class="oh-list${w?' is-groups':''}">${w?groupRows:catRows}</ul></div><div><h3>지표별 ${rows.length+overheatSpeedCount(w)}개</h3><ul class="oh-list is-indicators">${indRows}${speedRows}</ul></div></div>`
     +(w?overheatRubricBlock(w):'')
-    +(overheatProfileBlock(DATA.dotcom_overheat_profile)||'<p class="oh-note">확률 아님 · 참고 의견</p>')
+    +overheatProfileBlock(DATA.dotcom_overheat_profile)
     +overheatInfluenceBlock(DATA.dotcom_overheat_influence)+`</section>`);
   node.querySelectorAll('[data-oh-jump]').forEach(button=>button.onclick=()=>{
     const card=document.querySelector(`[data-stat-id="${CSS.escape(button.dataset.ohJump)}"]`);
@@ -1576,19 +1541,19 @@ function renderStatistics(initialState){
   const deferredMeta=stats.deferred_data||{};
   if(deferredMeta.required&&!deferredMeta.loaded){
     // 조용한 빈 화면 금지 — 실패는 실패라고 말하고 재시도 버튼을 준다.
-    root.appendChild(el(`<section class="statistics-blocked"><strong>통계 데이터를 불러오지 못했습니다</strong><p>${esc(STATISTICS_ERROR||'네트워크 응답 대기 중')} · 캐시가 아닌 실데이터만 표시합니다.</p><button type="button" data-stat-retry>다시 시도</button></section>`));
+    root.appendChild(el(`<section class="statistics-blocked"><strong>통계 데이터를 불러오지 못했습니다</strong><p>${esc(STATISTICS_ERROR||'네트워크 응답 대기 중')}</p><button type="button" data-stat-retry>다시 시도</button></section>`));
     mount(root);
     const retry=$('[data-stat-retry]',root);
     if(retry)retry.onclick=()=>{STATISTICS_ERROR=null;FORECAST_SUMMARY_CHECKED_AT=0;route();};
     return;
   }
   if(stats.status!=='ok'){
-    root.appendChild(el('<section class="statistics-blocked"><strong>통계 DB 갱신 대기</strong><p>공개 원천 검증을 마친 뒤 이 화면에 표시합니다.</p></section>'));mount(root);return;
+    root.appendChild(el('<section class="statistics-blocked"><strong>통계 DB 갱신 대기</strong></section>'));mount(root);return;
   }
   const overheat=statisticsOverheatPanel(DATA.dotcom_overheat);
   if(overheat)root.appendChild(overheat);
   const waiting=stats.source_refresh?.waiting_series||[];
-  if(waiting.length)root.appendChild(el(`<p class="statistics-scope-note" role="status">원천 갱신 대기 ${waiting.length}개 · 각 지표의 실제 관측일을 확인해 주세요.</p>`));
+  if(waiting.length)root.appendChild(el(`<p class="statistics-scope-note" role="status">원천 갱신 대기 ${waiting.length}개</p>`));
   const alignment=stats.cycle_alignment||{},charts=stats.charts||[];
   const categories=[['all','전체'],['ipo','IPO·상장'],['liquidity','유동성'],['rates','금리'],['economy','경기·물가'],['valuation','기업가치'],['credit','신용']];
   root.appendChild(el(`<nav class="statistics-filters" aria-label="통계 그래프 분류">${categories.map(([key,label])=>`<button type="button" data-stat-filter="${key}" aria-pressed="${key==='all'}">${label}</button>`).join('')}</nav>`));
@@ -1596,13 +1561,11 @@ function renderStatistics(initialState){
   const appendCards=(target,rows,startIndex=0)=>rows.forEach((chart,index)=>{
     const latest=(chart.series||[]).map(row=>{const point=(row.points||[]).at(-1);return point?`<div><i style="background:${esc(row.color||'#111')}"></i><span>${esc(row.label)}</span><strong>${esc(statisticsValue(chart.unit,point.value))}</strong><small>${esc(row.latest_date||'최근 관측')}</small></div>`:'';}).join('');
     const profile=chart.chart_type==='profile_cards',liquidity=chart.chart_type==='liquidity_bars',era=chart.chart_type==='era_compare';
-    const archived=(chart.source_ids||[]).map(id=>(stats.sources||[]).find(source=>source.series_id===id&&source.refresh_status==='current_fred')?.history_coverage).find(Boolean);
-    const archiveNote=archived?`<p class="statistics-scope-note">최신 시세 자동 갱신 · 과거 ${esc(archived.archived_count)}개는 보존된 원본 이력입니다.</p>`:'';
-    const review=(chart.source_ids||[]).some(id=>(stats.sources||[]).some(source=>source.series_id===id&&source.refresh_reason==='fred_coverage_regressed'))?'<p class="statistics-scope-note" role="status">원천 자료 재검수 중 · 이전 검수본을 표시합니다.</p>':'';
-    const guide=chart.reading_guide?`<details class="statistics-reading-guide"><summary>읽는 법</summary><p>${esc(chart.reading_guide)}</p></details>`:'';
+    const review=(chart.source_ids||[]).some(id=>(stats.sources||[]).some(source=>source.series_id===id&&source.refresh_reason==='fred_coverage_regressed'))?'<p class="statistics-scope-note" role="status">원천 자료 재검수 중</p>':'';
+    const scope=String(chart.scope_note||'').replace(/\s*·\s*참고 통계$/,'');
     const visual=liquidity?statisticsLiquidityBars(chart):(profile?statisticsProfileCards(chart):(era?statisticsEraCompare(chart):`<div class="statistics-chart">${statisticsChartSvg(chart,alignment)}</div>`));
     const cardClass=`statistics-card${profile?' is-profile-card':''}${liquidity?' is-liquidity-map':''}${era?' is-era-compare':''}`;
-    target.appendChild(el(`<section class="${cardClass}" data-stat-category="${esc(chart.category)}" data-stat-id="${esc(chart.id)}"><div class="statistics-card-head"><div><span>${String(startIndex+index+1).padStart(2,'0')} · ${esc(chart.category.toUpperCase())}</span><h2>${esc(chart.title)}</h2>${chart.conclusion?`<p class="statistics-head-conclusion">${esc(firstSentenceOf(chart.conclusion))}</p>`:''}</div><b>${esc(chart.display_unit||(profile?'핵심 지표':chart.unit))}</b></div>${profile||liquidity||era?'':`<div class="statistics-legend">${latest}</div>`}${statisticsApproachAlert(chart)}${review}${archiveNote}${guide}${visual}<p class="statistics-scope-note">${esc(chart.scope_note||'')}</p>${(()=>{const rest=String(chart.conclusion||'').slice(firstSentenceOf(chart.conclusion||'').length).trim();return rest?`<p class="statistics-now-rest">${esc(rest)}</p>`:'';})()}${chart.caveat?`<div class="statistics-caveat-lead">${esc(firstSentenceOf(chart.caveat))}</div>`:''}</section>`));
+    target.appendChild(el(`<section class="${cardClass}" data-stat-category="${esc(chart.category)}" data-stat-id="${esc(chart.id)}"><div class="statistics-card-head"><div><span>${String(startIndex+index+1).padStart(2,'0')} · ${esc(chart.category.toUpperCase())}</span><h2>${esc(chart.title)}</h2>${chart.conclusion?`<p class="statistics-head-conclusion">${esc(firstSentenceOf(chart.conclusion))}</p>`:''}</div><b>${esc(chart.display_unit||(profile?'핵심 지표':chart.unit))}</b></div>${profile||liquidity||era?'':`<div class="statistics-legend">${latest}</div>`}${statisticsApproachAlert(chart)}${review}${visual}${scope?`<p class="statistics-scope-note">${esc(scope)}</p>`:''}${(()=>{const rest=String(chart.conclusion||'').slice(firstSentenceOf(chart.conclusion||'').length).trim();return rest?`<p class="statistics-now-rest">${esc(rest)}</p>`:'';})()}</section>`));
   });
   appendCards(grid,charts);
   root.appendChild(grid);
@@ -3404,7 +3367,7 @@ const VIX_PLAIN={
 };
 function renderVixCard(vix){
   if(!vix||vix.status==='absent')return `<article class="mood-card mood-empty"><h3>VIX</h3><p>아직 수집되지 않았습니다.</p></article>`;
-  if(vix.status==='stale')return `<article class="mood-card mood-empty"><h3>VIX</h3><p>마지막 관측 ${esc(vix.observed_date)} · ${num(vix.stale_days)}일 경과 — 신선하지 않아 숫자를 표시하지 않습니다.</p></article>`;
+  if(vix.status==='stale')return `<article class="mood-card mood-empty"><h3>VIX</h3><p>마지막 관측 ${esc(vix.observed_date)} · ${num(vix.stale_days)}일 경과</p></article>`;
   const bands=vix.bands||[],lvl=Number(vix.level),color=MOOD_BAND_COLOR[vix.band]||'#11110f';
   const top=Math.max(45,(bands[bands.length-1]||{}).lo+10||45);
   /* 구간 스트립 — 등록 질문의 임계(13·20·25·30·40)를 그대로 쓴다. 화면의 경계와
@@ -3427,7 +3390,7 @@ function renderVixCard(vix){
     ${spark}
     <dl class="mood-meta"><div><dt>1주 전</dt><dd>${hasNumeric(vix.week_ago)?vix.week_ago.toFixed(2):'—'}</dd></div><div><dt>1개월</dt><dd>${hasNumeric(vix.month_ago)?vix.month_ago.toFixed(2):'—'}</dd></div><div><dt>1년</dt><dd>${hasNumeric(vix.year_ago)?vix.year_ago.toFixed(2):'—'}</dd></div></dl>
     <p class="mood-note"><b>하루 ±${VIX_DAY(lvl).toFixed(1)}% 안팎 등락</b>
-      <span>${hr.breached?'EXIT 기준선 25 도달':`EXIT 기준선 25까지 ${hasNumeric(dist)?dist.toFixed(2):'—'} 남음`} · ${esc(vix.observed_date)} 종가 · Cboe VIX</span></p>
+      <span>${hr.breached?'EXIT 기준선 25 도달':`EXIT 기준선 25까지 ${hasNumeric(dist)?dist.toFixed(2):'—'} 남음`}</span></p>
   </article>`;
 }
 
@@ -3443,8 +3406,6 @@ function fngSector(from,to){const{rOut,rIn}=FNG_ARC;
 
 function renderFearGreedCard(fng){
   if(!fng||fng.status!=='live')return `<article class="mood-card mood-empty"><h3>공포 · 탐욕</h3><p>아직 수집되지 않았습니다.</p></article>`;
-  let provider=fng.source_label||fng.source_id||'공개 원천';
-  try{provider=new URL(fng.source_url).hostname.replace(/^www\./,'');}catch{}
   const v=Number(fng.value),raw=hasNumeric(fng.value_raw)?Number(fng.value_raw):v;
   const bands=fng.bands||[];
   const sectors=bands.map(b=>{const on=b.slug===fng.band,to=b.hi>=100?100:b.hi+1;
@@ -3455,7 +3416,6 @@ function renderFearGreedCard(fng){
   const ticks=[0,25,50,75,100].map(n=>{const[tx,ty]=fngPoint(n,FNG_ARC.rTick);
     return `<text class="fng-tick" x="${tx.toFixed(1)}" y="${ty.toFixed(1)}" text-anchor="middle" dominant-baseline="middle">${n}</text>`;}).join('');
   const[nx,ny]=fngPoint(raw,FNG_ARC.rIn-6);
-  const gate=fng.stability||{},seeded=Number(fng.seeded_days||0),hist=Number(fng.history_days||0);
   return `<article class="mood-card mood-fng">
     <header><h3>공포 · 탐욕 <small>주식시장</small></h3>${moodLagChip('fng')}<span class="mood-chip" style="--chip:${MOOD_BAND_COLOR[fng.band]||'#8a877e'}">${esc(fng.band_label)}</span></header>
     <svg class="mood-gauge" viewBox="0 0 300 178" role="img" aria-label="공포탐욕 지수 ${v}, ${esc(fng.band_label)}">
@@ -3467,7 +3427,6 @@ function renderFearGreedCard(fng){
     ${moodSpark(fng.trail,{lo:0,hi:100,w:264,h:52,stroke:MOOD_BAND_COLOR[fng.band]||'#8a877e',
       marks:[{v:75,c:'#247d78'},{v:55,c:'#8a877e'},{v:45,c:'#8a877e'},{v:25,c:'#c9002d'}]})}
     <dl class="mood-meta"><div><dt>전일</dt><dd>${hasNumeric(fng.previous_close)?fng.previous_close:'—'}</dd></div><div><dt>1주 전</dt><dd>${hasNumeric(fng.week_ago)?fng.week_ago:'—'}</dd></div><div><dt>1개월</dt><dd>${hasNumeric(fng.month_ago)?fng.month_ago:'—'}</dd></div></dl>
-    <p class="mood-note">${gate.gate_met?'':`일일 수집 <b>${num(gate.streak_days)}/${num(gate.gate_days)}일</b> · `}<span>${esc(fng.observed_date)} · ${esc(provider)} · 표시 전용</span></p>
   </article>`;
 }
 
