@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-11-17T23:59:59+00:00",
+  "generated_at": "2026-11-18T01:11:11+00:00",
   "market_cutoff": "2026-11-17",
   "summary": {
     "accumulating": 88,
@@ -1684,10 +1684,6 @@
       "reversed_timestamps": 0,
       "growth_last_30d": [
         {
-          "date": "2026-10-18",
-          "count": 72
-        },
-        {
           "date": "2026-10-19",
           "count": 73
         },
@@ -2258,7 +2254,7 @@
       "status": "accumulating",
       "file_count": 1,
       "row_count": null,
-      "latest_date": "2026-11-17",
+      "latest_date": "2026-11-18",
       "expected_date": null,
       "settle_hours": null,
       "missing_trading_days": [],
@@ -2268,7 +2264,7 @@
       "reversed_timestamps": 0,
       "growth_last_30d": [
         {
-          "date": "2026-11-17",
+          "date": "2026-11-18",
           "count": 1
         }
       ]
