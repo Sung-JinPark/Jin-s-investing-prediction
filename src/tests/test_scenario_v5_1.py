@@ -203,7 +203,8 @@ def test_correction_timing_is_distribution_not_exact_date() -> None:
     assert "2026-10-02" in timing["cdf_points"]
     script = (ROOT / "src/ai_fc/dashboard_parts/dashboard.js").read_text(encoding="utf-8")
     assert "10월 2일 저점 예측" not in script
-    assert "exact date forecast=false" in script
+    # 2026-11-18 소유자 지시: 화면 꼬리 'exact date forecast=false' 는 뺐다 — 계약은 위 payload 필드가 고정한다.
+    assert "exact date forecast=false" not in script
 
 
 def test_october_2_is_sampling_coordinate_not_baseline_exact_trough() -> None:
@@ -229,8 +230,10 @@ def test_p50_primary_member_secondary_and_2027_common_continuation() -> None:
     assert all(row["normalized_p50_level_correlation"] > .98
                for row in payload["distinctness_2027"]["pairs"])
     script = (ROOT / "src/ai_fc/dashboard_parts/dashboard.js").read_text(encoding="utf-8")
-    # 문구는 평이한 한국어로 바뀌었지만 "모의 경로 하나 · 날짜 예측 아님" 공시는 유지된다
-    assert "실제로 나온 경로 하나 · 날짜별 값을 맞히는 선이 아닙니다" in script
+    # 2026-11-18 소유자 지시: 팬 카드 아래 '날짜별 값을 맞히는 선이 아닙니다' 부정문은 뺐다 —
+    # 굵은 선/점선 구분은 섹션 범례('가는 점선 = 실제로 나온 경로 하나')가 싣는다.
+    assert "실제로 나온 경로 하나 · 날짜별 값을 맞히는 선이 아닙니다" not in script
+    assert "가는 점선 = 실제로 나온 경로 하나" in script
     # 라벨은 평이한 한국어로 바뀌었지만 '한가운데 경로 vs 실제 경로 하나' 구분은 유지된다
     assert "한가운데 경로" in script
     assert "2027년은 같은 모델로 이어 그립니다" in script
