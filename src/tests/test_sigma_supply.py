@@ -422,7 +422,9 @@ def test_every_prereg_question_declares_its_sigma_quantity_and_path() -> None:
 
     data = yaml.safe_load((ROOT / "questions/registry.yaml").read_text(encoding="utf-8"))
     prereg = [q for q in data["questions"] if isinstance(q.get("prereg"), dict)]
-    assert len(prereg) == 12, f"prereg 블록을 가진 질문이 12건이 아니다: {len(prereg)}"
+    contract = yaml.safe_load((ROOT / "questions/portfolio_prereg_v1.yaml").read_text(encoding="utf-8"))
+    missing = set(contract["new_registration"]["user_approved_list"]) - {q["id"] for q in prereg}
+    assert not missing, f"계약 승인 12건 중 prereg 블록이 없는 질문: {sorted(missing)}"
     for q in prereg:
         pre = q["prereg"]
         for key in ("sigma", "sigma_source", "sigma_quantity", "sigma_path"):
