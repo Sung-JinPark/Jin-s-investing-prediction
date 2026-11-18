@@ -38,7 +38,6 @@
     <button type="button" class="rail-status utility-open" data-action="utility" aria-label="데이터 상태 열기">
       <div class="rail-live"><span><i class="live-dot"></i><span class="freshness-label">자료 상태</span></span><b id="phase">—</b></div>
       <p class="rail-index" id="rail-index">NASDAQ —</p>
-      <p class="rail-asof" id="asof">갱신 시각 확인 중</p>
     </button>
   </aside>
 
@@ -68,7 +67,7 @@
       <button type="button" class="utility-action" data-action="share" aria-label="현재 화면 공유"><span>↗</span><small>공유</small></button>
       <button type="button" class="utility-action utility-open" data-action="utility" aria-label="보기 및 데이터 설정"><span>≡</span><small>보기</small></button>
     </div>
-    <button type="button" class="drawer-meta utility-open" data-action="utility" aria-label="데이터 상태 열기"><span class="live-dot"></span> <span class="freshness-label">자료 상태</span><br><span id="drawer-asof">갱신 시각 확인 중</span></button>
+    <button type="button" class="drawer-meta utility-open" data-action="utility" aria-label="데이터 상태 열기"><span class="live-dot"></span> <span class="freshness-label">자료 상태</span></button>
   </aside>
 
   <div class="content-shell">
@@ -76,8 +75,7 @@
     <main class="app-shell" id="app" tabindex="-1"><div class="loader-wrap"><div class="loader"></div>불러오는 중…</div></main>
     <footer class="site-footer">
       <div class="footer-brand"><span class="brand-mark"></span>JIN'S INVESTING</div>
-      <p>정보 제공 목적 · 투자 자문이나 매매 권유가 아닙니다 · 과거 기록은 미래 성과를 보장하지 않습니다</p>
-      <p>예측 확률과 실제 결과를 지속적으로 비교합니다</p>
+      <p>정보 제공 목적 · 투자 자문이나 매매 권유가 아닙니다</p>
     </footer>
   </div>
 </div>
@@ -136,8 +134,7 @@
       <a data-share-target="telegram" target="_blank" rel="noopener">Telegram</a>
       <a data-share-target="x" target="_blank" rel="noopener">X</a>
     </div>
-    <div class="share-qr"><div><strong>모바일에서 열기</strong><span>카메라로 QR을 스캔한 뒤 기기 공유 메뉴에서 카카오톡 등을 선택하세요.</span></div><canvas id="share-qr-canvas" width="188" height="188" aria-label="현재 화면 링크 QR 코드"></canvas></div>
-    <footer>외부 네트워크는 각 공유 대상을 직접 누를 때만 연결됩니다. 팝오버와 QR은 브라우저 안에서 생성됩니다.</footer>
+    <div class="share-qr"><div><strong>모바일에서 열기</strong></div><canvas id="share-qr-canvas" width="188" height="188" aria-label="현재 화면 링크 QR 코드"></canvas></div>
   </section>
 </div>
 <div class="route-progress" aria-hidden="true"><span id="route-progress-bar"></span></div>
@@ -158,7 +155,7 @@
     <div class="briefing-progress" id="briefing-progress" aria-hidden="true"><i></i><i></i><i></i></div>
     <div class="briefing-content" id="briefing-content" aria-live="polite"></div>
     <footer class="briefing-foot">
-      <small>← → 이동 · ESC 닫기 · 기존 예측 데이터를 요약한 보기입니다</small>
+      <small>← → 이동 · ESC 닫기</small>
       <div class="briefing-controls">
         <button type="button" id="briefing-prev">← 이전</button>
         <button type="button" id="briefing-next">다음 →</button>

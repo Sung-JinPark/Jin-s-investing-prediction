@@ -530,6 +530,9 @@ def test_five_section_information_architecture_contract() -> None:
     # 홈 자체 푸터를 없앤 뒤로 전역 푸터가 유일한 투자자문 고지 자리다 — 홈에서도 보인다.
     assert 'body[data-view="today"] .site-footer{display:none}' not in css
     assert "투자 자문이나 매매 권유가 아닙니다" in html, "고지가 어디에도 없으면 안 된다"
+    # 전역 푸터는 고지 한 줄만 남긴다(2026-11-18 소유자 지시)
+    assert "과거 기록은 미래 성과를 보장하지 않습니다" not in html
+    assert "예측 확률과 실제 결과를 지속적으로 비교합니다" not in html
     assert ".today-page{min-height:calc(100dvh - 48px)" in css
     assert "function renderTimeseries(initialState)" in script
     assert "numbers_visible===true" in script
@@ -703,8 +706,9 @@ def test_workspace_utility_contract() -> None:
     assert "gbm-daily-252d" in html
     assert "조건부 구간 p10–p90" in html
     assert "scenarioChangePanel" in html and "scenarioHistoryRows" in html
-    assert "SCENARIO CHANGE" in html and "MODEL RECEIPT" in html
-    assert "저장된 시나리오 수치의 차이만 요약" in html
+    # 모델 영수증 접기·'추론하지 않습니다' 설명줄은 화면 설명이라 제거됐다(2026-11-18 소유자 지시)
+    assert "SCENARIO CHANGE" in html and "MODEL RECEIPT" not in html
+    assert "저장된 시나리오 수치의 차이만 요약" not in html
     assert 'class="filter-insights"' in html and 'class="flow-focus"' in html
     assert "data-calendar-all" in html and "data-calendar-selected" in html
     assert "legibility layer v3" in html
@@ -821,9 +825,11 @@ def test_forecast_lookup_ui_contract() -> None:
         "선택 3시대 원형 → 목표", "기하 detrend 잔차", "공용 strength",
         "무드리프트 기계적 기준", "임계까지 ${num(proximity.threshold_distance_pct)}%",
         "trailing 252거래일 μ의 추세 지속 가정", "physicalEventContextMarkup",
-        "예측 확률과 합산하지 않습니다",
     ):
         assert required in html
+    # 근접도 카드의 '결합 금지'·'합산하지 않습니다' 부정문은 제거됐다(2026-11-18 소유자 지시)
+    assert "참고 보조값 — 예측 확률과 합산하지 않습니다" not in html
+    assert "판정 기준까지 거리 · 결합 금지" not in html
     assert "lookup-metrics" in html and "lookup-primary" in html
     assert "flowYear=Number(mapped.mapped.slice(0,4))" in html, "조회 날짜의 연도 차트로 전환해야 함"
     assert "실경로 오버레이" not in html, "모의 표본을 기본 대표선으로 복원하면 안 됨"

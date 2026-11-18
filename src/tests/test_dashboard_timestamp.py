@@ -32,7 +32,16 @@ def test_build_timestamp_is_kst_independent_of_browser_timezone(tmp_path, zone):
 
 
 def test_rail_drawer_and_data_status_use_the_same_timestamp_formatter():
+    """The build time is shown once, in the data-status panel, through the KST formatter.
+
+    The rail (#asof) and drawer (#drawer-asof) timestamp lines were removed as freshness
+    meta (owner instruction 2026-11-18); the freshness chip in the rail stays.
+    """
     source = dashboard.DASHBOARD_SCRIPT.read_text(encoding="utf-8")
-    assert "const generated='갱신 '+formatKstTimestamp(DATA.meta.generated)" in source
+    template = dashboard.load_template()
+    assert "const generated='갱신 '+formatKstTimestamp(DATA.meta.generated)" not in source
+    assert 'id="asof"' not in template and 'id="drawer-asof"' not in template
+    assert "getElementById('asof')" not in source and "'drawer-asof'" not in source
+    assert 'class="freshness-label"' in template
     assert "const generated=formatKstTimestamp(DATA?.meta?.generated)" in source
     assert "DATA.meta.generated.replace('T',' ').slice(0,16)+' KST'" not in source

@@ -17,8 +17,6 @@ function forecastSummaryCheckDue(){
   return !!(DATA&&!window.__DATA__&&window.__DATA_URL__&&(age<0||age>=60000));
 }
 function syncForecastChrome(){
-  const generated='갱신 '+formatKstTimestamp(DATA.meta.generated);
-  for(const id of ['asof','drawer-asof']){const node=document.getElementById(id);if(node)node.textContent=generated;}
   const phase=document.getElementById('phase');if(phase&&DATA.meta.phase)phase.textContent=DATA.meta.phase;
   updateFreshnessBadges();renderHeaderStrip();
 }
@@ -53,7 +51,7 @@ async function refreshForecastSummary(epoch){
 }
 function forecastRefreshNotice(root){
   if(!FORECAST_SUMMARY_ERROR||!['future','statistics'].includes(document.body.dataset.view))return;
-  const note=el(`<aside class="forecast-refresh-note" role="status"><p>최신 자료를 확인하지 못해 이전 조회본을 표시합니다. 조회본 기준: ${esc(formatKstTimestamp(DATA.meta.generated))}</p><button type="button" data-forecast-summary-retry>다시 확인</button></aside>`);
+  const note=el(`<aside class="forecast-refresh-note" role="status"><p>최신 자료 확인 실패 · 이전 조회본 ${esc(formatKstTimestamp(DATA.meta.generated))}</p><button type="button" data-forecast-summary-retry>다시 확인</button></aside>`);
   note.querySelector('[data-forecast-summary-retry]').onclick=()=>{FORECAST_SUMMARY_CHECKED_AT=0;route();};root.prepend(note);
 }
 async function ensureTrendlines(assetId){return globalThis.TrendlineUI.ensure(assetId);}
@@ -533,7 +531,7 @@ function scenarioDeltaBody(base,current){
   const anchor=current.anchor-base.anchor,anchorPct=base.anchor?anchor/base.anchor*100:null;
   const median=(current.bands?.eoy_median??0)-(base.bands?.eoy_median??0);
   const s1=current.paths.S1.prob-base.paths.S1.prob,s3=current.paths.S3.prob-base.paths.S3.prob;
-  return `<div class="scenario-change-copy"><span>달라진 점 · ${esc(base.asof)} → ${esc(current.asof)}</span><h2>${esc(scenarioDeltaNarrative(base,current))}</h2><p>저장된 시나리오 수치의 차이만 요약하며 뉴스나 이벤트를 원인으로 추론하지 않습니다.</p></div>
+  return `<div class="scenario-change-copy"><span>달라진 점 · ${esc(base.asof)} → ${esc(current.asof)}</span><h2>${esc(scenarioDeltaNarrative(base,current))}</h2></div>
     <div class="scenario-change-metrics">
       <div><span>NASDAQ 앵커</span><strong class="${anchor>=0?'up':'down'}">${signedDelta(anchor,0)}</strong><small>${signedDelta(anchorPct,1,'%')}</small></div>
       <div><span>연말 중앙값</span><strong class="${median>=0?'up':'down'}">${signedDelta(median,0)}</strong><small>${num(current.bands?.eoy_median)}</small></div>
@@ -544,11 +542,10 @@ function scenarioDeltaBody(base,current){
 }
 function scenarioChangePanel(interactive=false){
   const rows=scenarioHistoryRows();if(rows.length<2)return null;
-  const current=rows[rows.length-1],model=DATA?.scenario?.model||{};
+  const current=rows[rows.length-1];
   const panel=el(`<section class="scenario-change" aria-labelledby="scenario-change-title"><div class="scenario-change-head"><div><span>SCENARIO CHANGE</span><strong id="scenario-change-title">시장 경로 변화 추적</strong></div><b>${rows.length} SNAPSHOTS</b></div>
     <div class="scenario-change-body" data-scenario-delta aria-live="polite"></div>
-    ${interactive?`<div class="scenario-history-nav"><span>COMPARE FROM</span><div>${rows.slice(0,-1).map((row,index)=>`<button type="button" data-scenario-base="${index}" aria-pressed="${index===rows.length-2}">${esc(row.asof.slice(5))}</button>`).join('')}</div></div>
-    <details class="model-receipt"><summary>MODEL RECEIPT · 산식과 한계 보기</summary><div><span>METHOD <b>${esc(DATA.scenario.method||'기록 없음')}</b></span><span>LOOKBACK <b>${model.lookback_days??'기록 없음'}일</b></span><span>PATHS <b>${model.n_paths?num(model.n_paths):'기록 없음'}</b></span><span>SEED <b>${model.seed??'기록 없음'}</b></span></div><p>${esc(DATA.scenario.note||'모델 설명이 기록되지 않았습니다.')}</p><small>${esc(DATA.scenario.source||'출처 기록 없음')}</small></details>`:''}
+    ${interactive?`<div class="scenario-history-nav"><span>COMPARE FROM</span><div>${rows.slice(0,-1).map((row,index)=>`<button type="button" data-scenario-base="${index}" aria-pressed="${index===rows.length-2}">${esc(row.asof.slice(5))}</button>`).join('')}</div></div>`:''}
   </section>`);
   const output=panel.querySelector('[data-scenario-delta]');
   const render=index=>{output.innerHTML=scenarioDeltaBody(rows[index],current);panel.querySelectorAll('[data-scenario-base]').forEach(button=>button.setAttribute('aria-pressed',String(+button.dataset.scenarioBase===index)));};
@@ -574,9 +571,9 @@ function myRadarQuestions(){
 }
 function myRadarPanel(){
   const qs=myRadarQuestions();
-  return el(`<section class="my-radar" id="my-radar" aria-labelledby="my-radar-title"><div class="panel-head"><div><h2 id="my-radar-title">관심 질문</h2><p>이 기기에 고정한 질문을 빠르게 다시 봅니다.</p></div><a class="text-button" href="#records">질문 찾기</a></div>
+  return el(`<section class="my-radar" id="my-radar" aria-labelledby="my-radar-title"><div class="panel-head"><div><h2 id="my-radar-title">관심 질문</h2></div><a class="text-button" href="#records">질문 찾기</a></div>
     ${qs.length?`<div class="radar-pins">${qs.slice(0,6).map(q=>`<button type="button" class="radar-pin" data-open-q="${esc(q.id)}"><span>${p1(q.latest_prob)} · ${esc(humanDomain(q.domain))}</span><b>${esc(q.title)}</b><small>${q.deadline?esc(q.deadline):'수시 판정'} · ${roundLabel(q.n_rounds)}</small></button>`).join('')}</div>`:
-    '<div class="radar-empty">예측 상세 또는 목록의 ☆ 버튼으로 질문을 고정하면 여기에 표시됩니다.</div>'}</section>`);
+    '<div class="radar-empty">고정한 질문이 없습니다.</div>'}</section>`);
 }
 const REVIEW_DISMISSED_KEY='jin-review-dismissed-v1';
 function reviewDismissedIds(){
@@ -608,7 +605,7 @@ function reviewQueueData(){
 function reviewQueuePanel(){
   const items=reviewQueueData();
   return `<section class="utility-section"><div class="review-queue" role="region" aria-labelledby="review-queue-title">
-    <div class="review-queue-head"><div><span>확인할 질문</span><h3 id="review-queue-title">검토할 질문</h3><small>변화 · 판정 임박 · 관심 질문</small></div><b>${items.length}</b></div>
+    <div class="review-queue-head"><div><span>확인할 질문</span><h3 id="review-queue-title">검토할 질문</h3></div><b>${items.length}</b></div>
     ${items.length?`<div class="review-items">${items.map(({q,reasons})=>`<div class="review-item">
       <button type="button" class="review-open" data-open-q="${esc(q.id)}"><span>${esc(q.title)}<small>${esc(reasons.join(' · '))}</small></span><strong class="${hasNumeric(q.latest_prob)?'':'pending-value'}">${p1(q.latest_prob)}</strong></button>
       <button type="button" class="review-dismiss" data-review-dismiss="${esc(q.id)}" aria-label="${esc(q.title)} 이번 세션에서 숨기기">×</button>
@@ -742,7 +739,7 @@ function briefingScenes(){
   const next=upcoming(1)[0]||featured,d=featured?latestDelta(featured.id):null;
   const featuredReady=hasNumeric(featured?.latest_prob),nextReady=hasNumeric(next?.latest_prob);
   return [
-    {eyebrow:'01 · 시장 판단',lead:thesis.lead,accent:thesis.accent,metric:vintage.status==='stale'?'과거 자료':upProb,unit:vintage.status==='stale'?'':'%',pending:vintage.status==='stale',description:vintage.status==='stale'?`보관된 ${vintage.asof} 경로는 시장 맵에서 확인할 수 있지만 현재 판단에는 사용하지 않습니다.`:`상승 경로 ${upProb}%와 조정·횡보 ${rangeProb}%를 분리해 읽습니다. 두 체계는 질문별 확률과 합산하지 않습니다.`,visual:vintage.status==='stale'?0:upProb},
+    {eyebrow:'01 · 시장 판단',lead:thesis.lead,accent:thesis.accent,metric:vintage.status==='stale'?'과거 자료':upProb,unit:vintage.status==='stale'?'':'%',pending:vintage.status==='stale',description:vintage.status==='stale'?'':`상승 경로 ${upProb}% · 조정·횡보 ${rangeProb}%`,visual:vintage.status==='stale'?0:upProb},
     {eyebrow:'02 · 대표 예측',lead:'대표 예측의 현재 확률',accent:featured?.title||'진행 중인 질문',metric:featuredReady?featured.latest_prob:'산출 전',unit:featuredReady?'%':'',pending:!featuredReady,description:featuredReady?`${roundLabel(featured.n_rounds)} · ${d==null?'첫 예측':`직전 회차 대비 ${d>=0?'+':''}${d}%p`} · ${humanDomain(featured.domain)}`:'아직 등록된 예측 회차가 없습니다.',visual:featuredReady?featured.latest_prob:0,qid:featured?.id},
     {eyebrow:'03 · 다음 판정',lead:'다음 판정일을 먼저 확인하세요.',accent:next?.deadline||'예정된 판정 없음',metric:nextReady?next.latest_prob:'산출 전',unit:nextReady?'%':'',pending:!nextReady,description:next?`${next.title}${nextReady?'':' · 아직 등록된 예측 회차 없음'}`:'현재 등록된 판정 일정이 없습니다.',visual:nextReady?next.latest_prob:0,qid:next?.id}
   ];
@@ -754,7 +751,7 @@ function renderBriefingStep(){
   briefingPrev.disabled=briefingIndex===0;briefingNext.textContent=briefingIndex===total-1?'마침':'다음 →';
   briefingContent.innerHTML=`<div class="briefing-scene"><div class="briefing-copy">
     <p class="eyebrow">${esc(scene.eyebrow)}</p><h2>${esc(scene.lead)}<em>${esc(scene.accent)}</em></h2>
-    <p>${esc(scene.description)}</p>${scene.qid?`<button type="button" class="briefing-detail" data-brief-q="${esc(scene.qid)}">예측 상세 열기 ↗</button>`:''}
+    ${scene.description?`<p>${esc(scene.description)}</p>`:''}${scene.qid?`<button type="button" class="briefing-detail" data-brief-q="${esc(scene.qid)}">예측 상세 열기 ↗</button>`:''}
     </div><div class="briefing-visual${scene.pending?' is-pending':''}" style="--brief-signal:${Number(scene.visual)||0}"><b>${scene.metric}<small>${esc(scene.unit)}</small></b></div></div>`;
   animateNumbers(briefingContent);
 }
@@ -845,7 +842,7 @@ function honestSharePayload(){
   const primary=document.querySelector('.lookup-metrics .lookup-primary strong')?.textContent.trim(),median=document.querySelector('.lookup-metrics>div:nth-child(2) strong')?.textContent.trim();
   const distribution=primary?`10–90% 구간 ${primary}${median?` · 중앙값 ${median}`:''} (모델 조건부)\n`:'';
   const url=canonicalShareUrl();
-  return {title:`${screenTitle} — Jin's Investing Prediction`,url,text:`${distribution}${screenTitle} — Jin's Investing Prediction\n기준일 ${asof} · ${context?context.label:'조건부 시나리오이며 단일 가격 제시·투자자문이 아닙니다'}.\n${url}`};
+  return {title:`${screenTitle} — Jin's Investing Prediction`,url,distribution:distribution.trim(),text:`${distribution}${screenTitle} — Jin's Investing Prediction\n기준일 ${asof} · ${context?context.label:'조건부 시나리오이며 단일 가격 제시·투자자문이 아닙니다'}.\n${url}`};
 }
 function configureShareTargets(payload){
   const encodedUrl=encodeURIComponent(payload.url),encodedTitle=encodeURIComponent(payload.title),encodedText=encodeURIComponent(payload.text);
@@ -859,7 +856,7 @@ function configureShareTargets(payload){
     x:`https://twitter.com/intent/tweet?text=${encodedText}&url=${encodedUrl}`
   };
   Object.entries(targets).forEach(([target,href])=>{const link=shareLayer.querySelector(`[data-share-target="${target}"]`);if(link)link.href=href;});
-  shareSummary.innerHTML=`<strong>${esc(payload.title)}</strong><p>${esc(payload.text.replace(`\n${payload.url}`,''))}</p><code>${esc(payload.url)}</code>`;
+  shareSummary.innerHTML=`<strong>${esc(payload.title)}</strong>${payload.distribution?`<p>${esc(payload.distribution)}</p>`:''}<code>${esc(payload.url)}</code>`;
   if(self.QrCreator&&shareQrCanvas)QrCreator.render({text:payload.url,size:188,ecLevel:'M',fill:'#1d2925',background:'#ffffff',radius:.15,quiet:2},shareQrCanvas);
 }
 function setShare(open,restoreFocus=true){
@@ -912,29 +909,29 @@ function renderUtilityPanel(){
   const by=s=>questions.filter(q=>q.status===s).length,active=by('active'),resolved=by('resolved'),voided=by('void');
   const rounds=Object.values(history).reduce((n,x)=>n+(Array.isArray(x)?x.length:0),0);
   const generated=formatKstTimestamp(DATA?.meta?.generated),note=currentNote(),pinnedQs=myRadarQuestions();
-  utilityContent.innerHTML=`${reviewQueuePanel()}<section class="utility-section"><div class="utility-label"><b>데이터 상태</b><small>이 사이트가 언제 데이터로 만들어졌는지</small></div>
-    <div class="freshness-card ${f.cls}"><div><b>${FRESHNESS_LABELS[f.label]||f.label}</b><small>자기완결 스냅샷</small></div><strong>${esc(generated)}</strong></div>
+  utilityContent.innerHTML=`${reviewQueuePanel()}<section class="utility-section"><div class="utility-label"><b>데이터 상태</b></div>
+    <div class="freshness-card ${f.cls}"><div><b>${FRESHNESS_LABELS[f.label]||f.label}</b></div><strong>${esc(generated)}</strong></div>
     <div class="utility-stats"><div><span>질문</span><strong>${questions.length}</strong></div><div><span>진행 중</span><strong>${active}</strong></div><div><span>판정 완료</span><strong>${resolved}</strong></div><div><span>폐기</span><strong>${voided}</strong></div><div><span>기록된 예측 회차</span><strong>${rounds}</strong></div></div></section>
-    <section class="utility-section"><div class="utility-label"><b>보기 방식</b><small>글자 간격과 화면 움직임을 취향대로</small></div><div class="segmented-control">
+    <section class="utility-section"><div class="utility-label"><b>보기 방식</b></div><div class="segmented-control">
       <button type="button" data-util="density" data-value="comfortable" class="${UI_STATE.density==='comfortable'?'active':''}">여유 있게<small>Comfortable</small></button>
       <button type="button" data-util="density" data-value="compact" class="${UI_STATE.density==='compact'?'active':''}">빽빽하게<small>Compact</small></button></div>
     <div class="segmented-control" style="margin-top:8px">
       <button type="button" data-util="motion" data-value="adaptive" class="${UI_STATE.motion==='adaptive'?'active':''}">움직임 기본<small>Adaptive</small></button>
       <button type="button" data-util="motion" data-value="reduced" class="${UI_STATE.motion==='reduced'?'active':''}">움직임 줄이기<small>Reduced</small></button></div></section>
-    <section class="utility-section"><div class="utility-label"><b>빠른 작업</b><small>자주 쓰는 기능 모음</small></div><div class="utility-list">
+    <section class="utility-section"><div class="utility-label"><b>빠른 작업</b></div><div class="utility-list">
       <button type="button" data-util="pin">현재 화면 ${isCurrentPinned()?'고정 해제':'고정'}<span>${isCurrentPinned()?'★':'☆'}</span></button>
       <button type="button" data-util="briefing">3단계 시장 브리핑<span>B</span></button>
       <button type="button" data-util="focus">${document.body.classList.contains('focus-mode')?'집중 모드 종료':'집중 모드 시작'}<span>F</span></button>
       <button type="button" data-util="shortcuts">키보드 단축키<span>?</span></button></div></section>
-    <section class="utility-section"><div class="utility-label"><b>내 레이더</b><small>고정한 질문 ${pinnedQs.length}개 — 확률을 바로 확인</small></div><div class="utility-list">
+    <section class="utility-section"><div class="utility-label"><b>내 레이더</b><small>${pinnedQs.length}개</small></div><div class="utility-list">
       ${pinnedQs.length?pinnedQs.slice(0,5).map(q=>`<button type="button" data-open-q="${esc(q.id)}">${esc(q.title)}<span>${p1(q.latest_prob)}</span></button>`).join(''):
-      '<button type="button" data-util-route="#records">아직 없습니다 — 기록 화면에서 ☆을 눌러 추가<span>＋</span></button>'}</div></section>
-    <section class="utility-section"><div class="utility-label"><b>화면 메모</b><small>이 기기에만 저장 — 서버로 안 감</small></div><div class="note-editor">
+      '<button type="button" data-util-route="#records">고정한 질문 없음<span>＋</span></button>'}</div></section>
+    <section class="utility-section"><div class="utility-label"><b>화면 메모</b></div><div class="note-editor">
       <label for="workspace-note" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)">현재 화면 메모</label>
       <textarea id="workspace-note" maxlength="700" placeholder="이 화면에 대한 판단, 확인할 조건, 다음 행동을 기록하세요.">${esc(note)}</textarea>
       <div class="note-meta"><span id="note-save-state">현재 기기에 저장됨 · <b id="note-count">${note.length}</b>/700</span><button type="button" data-util="copy-note">메모 복사</button></div>
     </div></section>
-    <section class="utility-section"><div class="utility-label"><b>내보내기 · 공유</b><small>지금 보는 화면 그대로</small></div><div class="utility-list">
+    <section class="utility-section"><div class="utility-label"><b>내보내기 · 공유</b></div><div class="utility-list">
       <button type="button" data-util="share">현재 화면 공유<span>↗</span></button>
       <button type="button" data-util="copy">링크 복사<span>⌘C</span></button>
       <button type="button" data-util="summary">화면 요약 복사<span>TXT</span></button>
@@ -1107,11 +1104,10 @@ function commandCatalog(){
   const pins=UI_STATE.pins.filter(descriptorExists).map((x,i)=>({...x,id:'pin-'+i,code:'★',hint:x.type==='question'?'고정한 예측 질문':'고정한 화면',group:'고정',search:x.title.toLowerCase()}));
   const recent=UI_STATE.recent.filter(descriptorExists).map((x,i)=>({...x,id:'recent-'+i,code:'↺',hint:x.type==='question'?'최근 본 예측 질문':'최근 본 화면',group:'최근',search:x.title.toLowerCase()}));
   const routes=COMMAND_ROUTES.map(x=>({...x,group:'화면'}));
-  const qs=(DATA?.questions||[]).map(q=>({id:'q-'+q.id,hash:'#records/question/'+q.id,code:(hasNumeric(q.latest_prob)?q.latest_prob+'%':'대기'),title:q.title,hint:`${humanDomain(q.domain)} · ${questionStatusLabel(q).text}`,group:'예측 질문',search:[q.title,q.id,q.domain,humanDomain(q.domain),...(q.drivers||[]),(q.drivers||[]).map(humanDriver)].join(' ').toLowerCase()}));
+  const qs=(DATA?.questions||[]).map(q=>({id:'q-'+q.id,hash:'#records/question/'+q.id,code:(hasNumeric(q.latest_prob)?q.latest_prob+'%':'대기'),title:q.title,meta:`${humanDomain(q.domain)} · ${questionStatusLabel(q).text}`,group:'예측 질문',search:[q.title,q.id,q.domain,humanDomain(q.domain),questionStatusLabel(q).text,...(q.drivers||[]),(q.drivers||[]).map(humanDriver)].join(' ').toLowerCase()}));
   return actions.concat(pins,recent,routes,qs);
 }
 let activeCommandItems=[];
-const COMMAND_GROUP_HINTS={'화면':'번호를 눌러 바로 이동','고정':'별표로 즐겨찾기한 곳','최근':'최근에 본 곳','작업':'자주 쓰는 기능','예측 질문':'질문 제목·도메인으로 검색'};
 function renderCommandResults(query=''){
   const needle=query.trim().toLowerCase();
   const catalog=commandCatalog();
@@ -1133,12 +1129,12 @@ function renderCommandResults(query=''){
   let html='',group='',screenTiles=[];
   const flush=()=>{if(screenTiles.length){html+=`<div class="command-screens">${screenTiles.join('')}</div>`;screenTiles=[];}};
   items.forEach((x,i)=>{
-    if(x.group!==group){flush();group=x.group;html+=`<div class="command-group"><b>${esc(group)}</b><small>${esc(COMMAND_GROUP_HINTS[group]||'')}</small></div>`;}
+    if(x.group!==group){flush();group=x.group;html+=`<div class="command-group"><b>${esc(group)}</b></div>`;}
     if(emptyState&&group==='화면'&&!x.title.includes('·')){
-      screenTiles.push(`<button type="button" class="command-result command-screen${i===0?' is-active':''}" data-command-index="${i}"><i>${esc(x.code)}</i><b>${esc(x.title)}</b><small>${esc(x.hint)}</small></button>`);
+      screenTiles.push(`<button type="button" class="command-result command-screen${i===0?' is-active':''}" data-command-index="${i}"><i>${esc(x.code)}</i><b>${esc(x.title)}</b>${x.meta?`<small>${esc(x.meta)}</small>`:''}</button>`);
       return;
     }
-    html+=`<button type="button" class="command-result${i===0?' is-active':''}" data-command-index="${i}"><i>${esc(x.code)}</i><span><b>${esc(x.title)}</b><small>${esc(x.hint)}</small></span><kbd class="command-enter">열기 ↵</kbd></button>`;
+    html+=`<button type="button" class="command-result${i===0?' is-active':''}" data-command-index="${i}"><i>${esc(x.code)}</i><span><b>${esc(x.title)}</b>${x.meta?`<small>${esc(x.meta)}</small>`:''}</span><kbd class="command-enter">열기 ↵</kbd></button>`;
   });
   flush();
   commandResults.innerHTML=html;
@@ -5908,8 +5904,8 @@ function reasoningText(round){
   const text=decodeForecastBody(forecastBodyOf(round)).trim();
   if(text)return text;
   if(forecastBodyPending(round))return '근거 원문을 불러오는 중입니다…';
-  if(FORECAST_BODIES_ERROR&&round?.forecast_id)return `근거 원문을 불러오지 못했습니다 — ${FORECAST_BODIES_ERROR}. 구조화 기록(확률·신뢰구간·출처 수)은 위에 그대로 있고, 원문은 근거 문서 링크에서 확인할 수 있습니다.`;
-  return round?.source_uri?'원문은 근거 문서 링크에서 볼 수 있습니다.':'이 회차에는 저장된 근거 원문이 없습니다. 확률·신뢰구간·출처 수 등 구조화 기록은 위의 변화 요약에서 확인할 수 있습니다.';
+  if(FORECAST_BODIES_ERROR&&round?.forecast_id)return `근거 원문을 불러오지 못했습니다 — ${FORECAST_BODIES_ERROR}`;
+  return round?.source_uri?'원문은 근거 문서 링크에서 볼 수 있습니다.':'이 회차에는 저장된 근거 원문이 없습니다.';
 }
 function evidenceDeltaMarkup(current,previous){
   const method=current.method||current.model||'기록 없음';
@@ -5938,7 +5934,7 @@ function evidenceDeltaMarkup(current,previous){
 }
 function physicalEventContextMarkup(q){
   const context=q?.proximity_context||{};if(q?.probability_space!=='physical_event'||context.status!=='ok')return '';
-  return `<section class="question-proximity" aria-label="사전등록 사건 임계 근접도"><div><span>판정 기준까지 거리 · 결합 금지</span><strong>임계까지 ${num(context.threshold_distance_pct)}%</strong></div><div><span>남은 판정 구간</span><strong>${num(context.remaining_trading_sessions)}거래일</strong></div><div><span>${esc(context.label||'무드리프트 기계적 기준')}</span><strong>≈${num(context.driftless_mechanical_touch_pct)}%</strong></div><p>참고 보조값 — 예측 확률과 합산하지 않습니다.</p></section>`;
+  return `<section class="question-proximity" aria-label="사전등록 사건 임계 근접도"><div><span>판정 기준까지 거리</span><strong>임계까지 ${num(context.threshold_distance_pct)}%</strong></div><div><span>남은 판정 구간</span><strong>${num(context.remaining_trading_sessions)}거래일</strong></div><div><span>${esc(context.label||'무드리프트 기계적 기준')}</span><strong>≈${num(context.driftless_mechanical_touch_pct)}%</strong></div></section>`;
 }
 function renderDetail(qid){
   const q=DATA.questions.find(x=>x.id===qid);const hist=DATA.forecast_history[qid]||[];const res=DATA.resolutions[qid]||[];
@@ -5959,7 +5955,7 @@ function renderDetail(qid){
   const earningsNotice=earningsQuestionNotice(q);if(earningsNotice)root.appendChild(el(earningsNotice));
   /* 판정기준·판정출처는 질문의 정체성이다(첫 예측 이후 변경 금지). 확률만 있고 '무엇을 어떻게
      판정하는가'가 없으면 독자는 숫자를 검증할 수 없다. 레지스트리 원문 그대로 전재한다. */
-  if(q.resolution||q.resolution_source)root.appendChild(el(`<section class="question-criteria" aria-label="판정 기준과 출처"><div><span>판정 기준 · 첫 예측 이후 변경 금지</span><p>${esc(q.resolution||'기록 없음')}</p></div><div><span>판정 출처</span><p>${esc(q.resolution_source||'기록 없음')}</p></div></section>`));
+  if(q.resolution||q.resolution_source)root.appendChild(el(`<section class="question-criteria" aria-label="판정 기준과 출처"><div><span>판정 기준</span><p>${esc(q.resolution||'기록 없음')}</p></div><div><span>판정 출처</span><p>${esc(q.resolution_source||'기록 없음')}</p></div></section>`));
   const proximityMarkup=physicalEventContextMarkup(q);if(proximityMarkup)root.appendChild(el(proximityMarkup));
   /* 옵션 내재확률은 risk-neutral 측도의 프록시라 사건확률과 같은 축에서 차감할 수 있는 수가 아니다.
      범례와 주석에서 그 사실을 분리해 말한다 — edge 판독은 P3 게이트 뒤의 일이다. */
@@ -5967,12 +5963,9 @@ function renderDetail(qid){
   const marketLabel=marketSources.has('options_bl')
     ? (marketSources.size>1?'시장 반영 (옵션 위험중립 프록시 포함)':'시장 반영 (옵션 위험중립 프록시)')
     : '시장 반영';
-  const marketNote=marketSources.has('options_bl')
-    ? '<p class="chart-note">옵션 확률은 위험중립·프록시 가정 — AI 확률과 직접 비교 불가.</p>'
-    : '';
   const chartPanel=el(`<div class="chart-panel analysis-panel"><div class="panel-head"><h2>AI · 모델 · 시장 확률 추이</h2>
     <div class="band-inline"><span><b style="background:#ff4f17"></b>AI 예측</span><span><b style="background:#247d78"></b>모델 앙상블</span><span><b style="background:#706f68"></b>${esc(marketLabel)}</span></div></div>
-    <div class="chart-wrap"><div id="hist"></div></div>${marketNote}</div>`);
+    <div class="chart-wrap"><div id="hist"></div></div></div>`);
   root.appendChild(chartPanel);
   const layout=el(`<div class="detail-layout">
     <div class="round-sidebar"><p class="eyebrow">회차</p><div id="rnds"></div></div>
@@ -5994,7 +5987,7 @@ function renderDetail(qid){
     ${res.map(r=>{const excluded=eligibility.get(r.forecast_id)===0;return `<div><span>실제 결과</span><strong class="${r.outcome===1?'':'no'}">${r.outcome===1?'발생':'미발생'}</strong></div>
     <div><span>예측 오차</span><strong>${Number(r.brier).toFixed(3)}</strong>${excluded?'<em class="excluded-badge" title="research_status=failed — 리서치 전멸 상태에서 생산된 회차. 원장에는 전량 채점하되 대표 Brier·게이트 표본에서 제외">대표 산정 제외</em>':''}</div>
     <p>예측 확률 ${r.probability}% · 확정일 ${esc(r.resolved_date)}${excluded?' · 대표 Brier·게이트 표본 제외':''}</p>
-    ${r.notes?`<details class="resolution-note"><summary>판정 근거·출처 (원장 원문)</summary><p>${esc(r.notes)}</p></details>`:''}`;}).join('')}</div>`));}
+    ${r.notes?`<details class="resolution-note"><summary>판정 근거·출처</summary><p>${esc(r.notes)}</p></details>`:''}`;}).join('')}</div>`));}
   mount(root);
   drawHistory($('#hist',chartPanel),hist,DATA.ml_runs.filter(r=>r.question_id===qid),DATA.market_runs.filter(r=>r.question_id===qid));
   let activeRound=null;
@@ -6077,10 +6070,10 @@ function renderDecisionJournal(initial){
   const root=el('<div class="decision-journal-page"></div>');
   appendContextTabs(root,'research','journal');
   root.appendChild(el(`<div class="page-heading"><div><h1>변경 내역</h1></div></div>`));
-  if(methodEvents.length)root.appendChild(el(`<section class="method-change-feed" aria-label="방법론 변경 기록"><p class="eyebrow">예측 방식 변경</p>${methodEvents.map(item=>{const base=DATA.meta?.public_repository_url||'';const href=item.report&&base?`${base}/blob/main/${item.report}`:'';return `<article><time>${esc(item.date)}</time><div><strong>${esc(item.title)}</strong><p>${esc(item.reason)}</p><small>snapshot ${esc(item.snapshot_id)}</small>${href?`<a href="${esc(href)}" target="_blank" rel="noopener">구현 보고서 ↗</a>`:''}</div></article>`;}).join('')}</section>`));
+  if(methodEvents.length)root.appendChild(el(`<section class="method-change-feed" aria-label="방법론 변경 기록"><p class="eyebrow">예측 방식 변경</p>${methodEvents.map(item=>{const base=DATA.meta?.public_repository_url||'';const href=item.report&&base?`${base}/blob/main/${item.report}`:'';return `<article><time>${esc(item.date)}</time><div><strong>${esc(item.title)}</strong><p>${esc(item.reason)}</p>${href?`<a href="${esc(href)}" target="_blank" rel="noopener">구현 보고서 ↗</a>`:''}</div></article>`;}).join('')}</section>`));
   const mode=el(`<div class="journal-mode" role="group" aria-label="기록 보기 방식"><button type="button" data-journal-mode="feed" aria-pressed="true">변경 내역</button><button type="button" data-journal-mode="replay" aria-pressed="false">날짜별 비교</button><a class="journal-lookup-link" href="#future/lookup">기간 조회 ↗</a></div>`);
   root.appendChild(mode);
-  const feed=el(`<section class="journal-feed-panel" data-journal-panel="feed"><div class="journal-feed-intro"><strong>${selectedQuestion?esc(qMap[selectedQuestion]?.title||selectedQuestion):'전체 질문'} · 변경 ${events.length}건</strong></div><div class="decision-feed" role="feed" aria-label="예측 변경 기록">${events.length?Object.entries(grouped).sort((a,b)=>b[0].localeCompare(a[0])).map(([week,items])=>`<section class="journal-week"><h2>${esc(week)} 주간</h2>${items.map(event=>{const positive=event.delta>0,source=event.current.source_uri?`https://github.com/sung-jinpark/Jin-s-investing-prediction/blob/main/${event.current.source_uri}`:'';return `<article class="journal-event" tabindex="0" aria-label="${esc(event.q?.title||event.qid)} ${positive?'상향':'하향'} ${Math.abs(event.delta)} 퍼센트포인트"><time>${esc(event.date)}</time><div><a class="journal-question" href="#q/${esc(event.qid)}">${esc(event.q?.title||event.qid)}</a><p><span class="journal-prob">${event.previous.probability}%</span><i>→</i><span class="journal-prob">${event.current.probability}%</span><b class="${positive?'edge-pos':'edge-neg'}">${positive?'+':''}${event.delta}%p</b></p>${event.current.change_note?`<blockquote${event.current.change_note_fallback?' class="is-excerpt"':''}>${event.current.change_note_fallback?'<small>기록된 근거 요약</small>':'<small>변경 이유</small>'}${esc(event.current.change_note)}</blockquote>`:''}${source?`<a class="journal-source" href="${esc(source)}" target="_blank" rel="noopener">근거 보기 ↗</a>`:''}</div></article>`;}).join('')}</section>`).join(''):'<div class="journal-empty"><strong>바뀐 예측이 없습니다.</strong><p>값이 달라지면 이곳에 자동으로 기록됩니다.</p></div>'}</div></section>`);
+  const feed=el(`<section class="journal-feed-panel" data-journal-panel="feed"><div class="journal-feed-intro"><strong>${selectedQuestion?esc(qMap[selectedQuestion]?.title||selectedQuestion):'전체 질문'} · 변경 ${events.length}건</strong></div><div class="decision-feed" role="feed" aria-label="예측 변경 기록">${events.length?Object.entries(grouped).sort((a,b)=>b[0].localeCompare(a[0])).map(([week,items])=>`<section class="journal-week"><h2>${esc(week)} 주간</h2>${items.map(event=>{const positive=event.delta>0,source=event.current.source_uri?`https://github.com/sung-jinpark/Jin-s-investing-prediction/blob/main/${event.current.source_uri}`:'';return `<article class="journal-event" tabindex="0" aria-label="${esc(event.q?.title||event.qid)} ${positive?'상향':'하향'} ${Math.abs(event.delta)} 퍼센트포인트"><time>${esc(event.date)}</time><div><a class="journal-question" href="#q/${esc(event.qid)}">${esc(event.q?.title||event.qid)}</a><p><span class="journal-prob">${event.previous.probability}%</span><i>→</i><span class="journal-prob">${event.current.probability}%</span><b class="${positive?'edge-pos':'edge-neg'}">${positive?'+':''}${event.delta}%p</b></p>${event.current.change_note?`<blockquote${event.current.change_note_fallback?' class="is-excerpt"':''}>${event.current.change_note_fallback?'<small>기록된 근거 요약</small>':'<small>변경 이유</small>'}${esc(event.current.change_note)}</blockquote>`:''}${source?`<a class="journal-source" href="${esc(source)}" target="_blank" rel="noopener">근거 보기 ↗</a>`:''}</div></article>`;}).join('')}</section>`).join(''):'<div class="journal-empty"><strong>바뀐 예측이 없습니다.</strong></div>'}</div></section>`);
   const replay=el(`<section class="journal-replay-panel" data-journal-panel="replay" hidden><div class="replay-controls"><label for="journal-date">기준일<input type="date" id="journal-date" min="${first}" max="${maxd}" value="${state.date||maxd}"></label><div class="replay-presets"><button type="button" data-replay-date="${first}">최초 기록</button><button type="button" data-replay-offset="-30">1개월 전</button><button type="button" data-replay-offset="-7">1주 전</button><button type="button" data-replay-date="${maxd}">최신</button></div></div><div id="journal-replay-summary" class="journal-replay-summary"></div><div class="table-shell"><table id="journal-replay-table"></table></div></section>`);
   root.append(feed,replay);mount(root);
   const rowsAt=D=>questions.filter(q=>!selectedQuestion||q.id===selectedQuestion).map(q=>{const hist=(histories[q.id]||[]).filter(h=>String(h.forecast_ts||'').slice(0,10)<=D);if(!hist.length)return null;const then=hist.at(-1),latest=(histories[q.id]||[]).at(-1)||then,ml=(DATA.ml_runs||[]).filter(m=>m.question_id===q.id&&String(m.run_ts||'').slice(0,10)<=D).at(-1),market=(DATA.market_runs||[]).filter(m=>m.question_id===q.id&&String(m.run_ts||'').slice(0,10)<=D).at(-1);return {q,then,latest,ml,market,delta:Number(latest.probability)-Number(then.probability)};}).filter(Boolean);
@@ -6088,7 +6081,7 @@ function renderDecisionJournal(initial){
     /* 시장 참고값 열은 옵션 위험중립 프록시(options_bl)와 예측시장이 섞인다 — CLAUDE.md는 옵션 내재확률에
        risk-neutral 측도·프록시 가정을 항상 병기하라고 못박는다. 공식 확률 옆에 나란히 둘수록 더 그렇다. */
     const marketSources=new Set(rows.map(row=>row.market?.source).filter(Boolean)),hasOptions=marketSources.has('options_bl'),mixedMarket=marketSources.size>1;
-    $('#journal-replay-summary',replay).innerHTML=`<strong>${esc(D)} 이후 ${changed.length}개 질문의 판단이 바뀌었습니다.</strong><span>평균 변화 ${average.toFixed(1)}%p${hasOptions?' · 옵션 확률은 위험중립·프록시 가정 — AI 확률과 직접 비교 불가':''}</span>`;
+    $('#journal-replay-summary',replay).innerHTML=`<strong>${esc(D)} 이후 ${changed.length}개 질문의 판단이 바뀌었습니다.</strong><span>평균 변화 ${average.toFixed(1)}%p${hasOptions?' · 옵션 확률은 위험중립·프록시 가정':''}</span>`;
     $('#journal-replay-table',replay).innerHTML=`<caption class="sr-only">${esc(D)} 당시와 현재 공식 확률 비교</caption><thead><tr><th>질문</th><th class="r">그날의 공식 확률</th>${hasMl?'<th class="r">그날의 모델 참고값</th>':''}${hasMarket?`<th class="r">그날의 시장 참고값${hasOptions?(mixedMarket?' (측도 상이)':' (옵션 위험중립 프록시)'):''}</th>`:''}<th class="r">현재 공식 확률</th><th class="r">변화</th></tr></thead><tbody>${rows.map(row=>`<tr><td><a href="#q/${esc(row.q.id)}">${esc(row.q.title)}</a></td><td class="r"><span class="table-prob">${row.then.probability}%</span></td>${hasMl?`<td class="r num">${row.ml?pct(row.ml.prob):'—'}</td>`:''}${hasMarket?`<td class="r num">${row.market?`${pct(row.market.prob)}${row.market.source==='options_bl'?'<small> 위험중립</small>':''}`:'—'}</td>`:''}<td class="r"><span class="table-prob">${row.latest.probability}%</span></td><td class="r num ${row.delta>0?'edge-pos':row.delta<0?'edge-neg':''}">${row.delta>0?'+':''}${row.delta.toFixed(0)}%p</td></tr>`).join('')}</tbody>`;
   };
   const setMode=next=>{const replayOn=next==='replay';feed.hidden=replayOn;replay.hidden=!replayOn;mode.querySelectorAll('[data-journal-mode]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.journalMode===next)));if(replayOn)drawReplay($('#journal-date',replay).value);};
@@ -6135,25 +6128,25 @@ function renderTrack(initial){
   const gAll=c.gate_all||{};
   root.appendChild(el(`<div class="track-kpis records-kpis">
     <div><span>완료된 질문</span><strong>${unique}</strong></div>
-    <div><span>예측 오차</span><strong>${g.brier!=null?Number(g.brier).toFixed(3):'—'}</strong><small>0에 가까울수록 좋음</small></div>
+    <div><span>예측 오차</span><strong>${g.brier!=null?Number(g.brier).toFixed(3):'—'}</strong></div>
     <div><span>검증 상태</span><strong>${g.gate_p3?'충분':'표본 부족'}</strong><small>${g.gate_p3?'공개 기준 충족':`${g.n_questions!=null?g.n_questions:(g.n_resolved||0)} / 50 질문`}</small></div>
   </div>`));
   const cv=c.curve||[];
   const grid=el('<div class="section-grid"></div>');
-  if(cv.length&&unique>=30){grid.appendChild(el(`<div class="panel"><div class="panel-head"><h2>확률과 실제 결과</h2><span class="vintage-note">예측 대 실제</span></div>
+  if(cv.length&&unique>=30){grid.appendChild(el(`<div class="panel"><div class="panel-head"><h2>확률과 실제 결과</h2></div>
     <div class="table-shell" style="border:0"><table style="min-width:0"><caption class="sr-only">확률대별 예측 캘리브레이션</caption><thead><tr><th scope="col">확률대</th><th scope="col" class="r">표본</th><th scope="col" class="r">평균 예측</th><th scope="col" class="r">실제 적중</th></tr></thead>
     <tbody>${cv.map(r=>`<tr><td class="num">${r.decile*10}–${r.decile*10+10}%</td><td class="r num">${r.n}</td>
       <td class="r num">${pct(r.avg_forecast)}</td><td class="r num">${pct(r.avg_outcome)}</td></tr>`).join('')}</tbody></table></div>
 </div>`));}
-  else grid.appendChild(el(`<div class="panel insufficient-panel"><div class="panel-head"><h2>확률과 실제 결과</h2><span class="semantic-state">표본 부족</span></div><p>결과 30건부터 표시 · 현재 ${unique}건</p></div>`));
+  else grid.appendChild(el(`<div class="panel insufficient-panel"><div class="panel-head"><h2>확률과 실제 결과</h2><span class="semantic-state">표본 부족</span></div><p>현재 ${unique}건</p></div>`));
   const ds=(c.domain_skill||[]).filter(r=>r.n>0);
   /* Brier는 낮을수록 좋은 평균제곱오차다 — '정확도'라 부르면 높을수록 좋은 적중률로 읽힌다.
      무능 차단(Brier>0.22)은 n≥10에서만 발동하므로 소표본 행에는 단정 배지를 달지 않는다. */
-  if(ds.length){grid.appendChild(el(`<div class="panel"><div class="panel-head"><h2>분야별 예측 오차</h2><span class="vintage-note">낮을수록 좋음 · 0=완벽</span></div>
+  if(ds.length){grid.appendChild(el(`<div class="panel"><div class="panel-head"><h2>분야별 예측 오차</h2></div>
     <div class="deadline-list" style="border-top:1px solid var(--line)">${ds.map(r=>{const rep=Number(r.brier_primary??r.brier);const over=rep>0.22;return `<div style="padding:19px 0;display:grid;grid-template-columns:1fr auto;gap:6px;border-bottom:1px solid var(--line)">
       <span style="font-size:13px;font-weight:650">${esc(humanDomain(r.domain))}${r.blocked?' <span data-badge-type="state">정보 제공만 · 오차 기준 초과</span>':''}</span>
       <strong style="font-family:var(--mono);font-size:17px">${r.brier!=null?Number(r.brier).toFixed(3):'—'}</strong>
-      <small style="grid-column:1/3;color:var(--muted);font-family:var(--mono);font-size:var(--type-micro)">표본 ${r.n}건${r.brier_primary!=null&&Number(r.brier_primary)!==Number(r.brier)?` · 대표 ${Number(r.brier_primary).toFixed(3)} (${r.n_primary}건)`:''}${Number(r.n)<10?' · 표본 적음':over&&!r.blocked?' · 기준 초과':''}</small></div>`;}).join('')}</div></div>`));}
+      <small style="grid-column:1/3;color:var(--muted);font-family:var(--mono);font-size:var(--type-micro)">표본 ${r.n}건${r.brier_primary!=null&&Number(r.brier_primary)!==Number(r.brier)?` · 대표 ${Number(r.brier_primary).toFixed(3)} (${r.n_primary}건)`:''}${Number(r.n)>=10&&over&&!r.blocked?' · 기준 초과':''}</small></div>`;}).join('')}</div></div>`));}
   if(grid.children.length)root.appendChild(grid);
   }
   if(trackMode!=='performance'){
@@ -6167,15 +6160,14 @@ function renderTrack(initial){
       <div class="arena-list">${arena.map(m=>`<article><div><strong>${esc(m.name)}</strong><span class="lifecycle ${esc(m.lifecycle)}" data-badge-type="state">${esc(m.lifecycle)}</span></div><p>${esc(m.target)}</p><small>${m.n_insufficient?'paired 표본 부족':esc(JSON.stringify(m.metrics))}</small><details><summary>한계 보기</summary><p>${esc(m.limitations||'미산출')}</p></details></article>`).join('')}</div>
     </div>`:'';
   trustSources.appendChild(el(`<section class="intelligence-stack" aria-label="데이터 출처">
-    <details class="trust-center"><summary><span><b>출처 목록</b><small>${num(sourceRows.length)}곳</small></span><em>개별 상태 미계측</em></summary>
-      <div class="trust-grid">${(trust.sources||[]).length?(trust.sources||[]).map(s=>`<article><div><strong>${esc(s.name)}</strong><span class="source-state ${s.status}" data-badge-type="state">${esc(s.state_label||s.status)}</span></div><p>${esc(s.provider)} · ${esc(plainTerm(s.vintage_capability))}</p><small>SLA ${s.freshness_sla_hours??'—'}h · ${esc(s.license_status||'미산출')}</small></article>`).join(''):'<p class="empty-copy">등록된 출처가 없습니다.</p>'}</div>
-      <div class="index-receipt"><span>데이터 지문</span><code>${esc((trust.index?.source_fingerprint||'미산출').slice(0,16))}</code><small>${esc(trust.index?.branch||'미산출')}</small></div>
+    <details class="trust-center"><summary><span><b>출처 목록</b><small>${num(sourceRows.length)}곳</small></span></summary>
+      <div class="trust-grid">${(trust.sources||[]).length?(trust.sources||[]).map(s=>`<article><div><strong>${esc(s.name)}</strong><span class="source-state ${s.status}" data-badge-type="state">${esc(s.state_label||s.status)}</span></div><p>${esc(s.provider)} · ${esc(plainTerm(s.vintage_capability))}</p></article>`).join(''):'<p class="empty-copy">등록된 출처가 없습니다.</p>'}</div>
     </details>
   </section>`));
   trustAudit.appendChild(el(`<section class="intelligence-stack" aria-label="감사 기록 상세">
     ${arenaMarkup}
     <div class="audit-grid">
-      <details class="panel receipt-card"><summary>현재 전망 데이터 보기</summary><dl><div><dt>모델</dt><dd>${esc(receipt.model||'미산출')}</dd></div><div><dt>데이터</dt><dd>${esc(receipt.dataset||'미산출')}</dd></div><div><dt>출처</dt><dd>${esc(receipt.source||'미산출')}</dd></div><div><dt>버전</dt><dd>${esc((receipt.commit||'미산출').slice(0,12))}</dd></div></dl><p>${esc(receipt.limitation||'미산출')}</p></details>
+      <details class="panel receipt-card"><summary>현재 전망 데이터 보기</summary><dl><div><dt>모델</dt><dd>${esc(receipt.model||'미산출')}</dd></div><div><dt>데이터</dt><dd>${esc(receipt.dataset||'미산출')}</dd></div><div><dt>출처</dt><dd>${esc(receipt.source||'미산출')}</dd></div></dl></details>
       <details class="panel correction-card"><summary>수정 기록 ${corrections.length}건 보기</summary>${corrections.length?corrections.map(row=>`<article><span class="semantic-state" data-badge-type="state">${esc(row.status==='pending'?'확인 중':row.status)}</span><strong>${esc(row.field_name)} · ${esc(row.old_value||'미산출')}</strong><p>${esc(row.reason)}</p></article>`).join(''):'<p class="empty-copy">수정 기록이 없습니다.</p>'}</details>
     </div>
   </section>`));
@@ -6210,12 +6202,12 @@ function renderHeaderStrip(){
   if(latest){const vsAth=ath?((latest.value/ath-1)*100):null;
     const stale=latest.source==='scenario'&&vintage.status==='stale';
     const lagNote=lag&&lag.session&&!lag.ok?`지연 · ${lag.session}`:'';
-    items.push({k:'NASDAQ 종합',v:num(Math.round(latest.value)),sub:stale?`보관값 · ${latest.session}`:(lagNote||`${latest.session} · 전고점 대비 ${vsAth>=0?'+':''}${vsAth.toFixed(1)}%`),cls:stale||lagNote?'stale':vsAth!=null?(vsAth>=0?'up':'down'):''});}
+    items.push({k:'NASDAQ 종합',v:num(Math.round(latest.value)),sub:stale?'보관값':(lagNote||`전고점 대비 ${vsAth>=0?'+':''}${vsAth.toFixed(1)}%`),cls:stale||lagNote?'stale':vsAth!=null?(vsAth>=0?'up':'down'):''});}
   if(ath!=null)items.push({k:'전고점 ATH',v:num(Math.round(ath)),sub:'2023년 이후 최고 종가'});
-  if(corr!=null)items.push({k:'−10% 조정선',v:num(Math.round(corr)),sub:'지지 기준'});
-  if(br.pct_above_200dma!=null)items.push({k:'시장 폭 · 보관 '+(br.asof||'기준일 미확인'),v:br.pct_above_200dma+'%',sub:'200일선 상회',cls:'stale'});
-  if(rg.recession_flag!=null)items.push({k:'경기 국면 · 보관 '+(rg.recession_date||'기준일 미확인'),v:rg.recession_flag?'침체':'확장',sub:'NBER 기준',cls:'stale'});
-  else if(rg.hy_spread_pct!=null)items.push({k:'신용 스프레드 · 보관 '+(rg.hy_spread_date||'기준일 미확인'),v:rg.hy_spread_pct.toFixed(2)+'%',sub:'HY OAS',cls:'stale'});
+  if(corr!=null)items.push({k:'−10% 조정선',v:num(Math.round(corr))});
+  if(br.pct_above_200dma!=null)items.push({k:'시장 폭',v:br.pct_above_200dma+'%',sub:'200일선 상회',cls:'stale'});
+  if(rg.recession_flag!=null)items.push({k:'경기 국면',v:rg.recession_flag?'침체':'확장',cls:'stale'});
+  else if(rg.hy_spread_pct!=null)items.push({k:'신용 스프레드',v:rg.hy_spread_pct.toFixed(2)+'%',sub:'HY OAS',cls:'stale'});
   const strip=document.getElementById('mktstrip');
   if(!items.length){strip.style.display='none';return;}
   strip.innerHTML=items.map(it=>`<div><span>${esc(it.k)}</span>${it.sub?`<small>${esc(it.sub)}</small>`:''}<strong class="${it.cls||''}">${esc(it.v)}</strong></div>`).join('');
@@ -6233,9 +6225,6 @@ function renderHeaderStrip(){
   document.body.classList.toggle('density-compact',UI_STATE.density==='compact');
   document.body.classList.toggle('motion-reduced',UI_STATE.motion==='reduced');
   try{if(sessionStorage.getItem('jin-focus')==='1'){document.body.classList.add('focus-mode');focusExit.hidden=false;}}catch(_){}
-  const generated='갱신 '+formatKstTimestamp(DATA.meta.generated);
-  document.getElementById('asof').textContent=generated;
-  document.getElementById('drawer-asof').textContent=generated;
   const ph=document.getElementById('phase');if(ph&&DATA.meta.phase)ph.textContent=DATA.meta.phase;
   updateFreshnessBadges();updateUtilityButtons();renderCompareTray();
   renderHeaderStrip();
