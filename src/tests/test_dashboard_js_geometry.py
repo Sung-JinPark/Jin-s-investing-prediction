@@ -956,6 +956,7 @@ console.log(JSON.stringify({asml:questionStatusLabel(asml),tsmc:questionStatusLa
     assert "판정 대기" in result["notice"]
     assert "직접 비교하지 않습니다" not in result["notice"] and "판정합니다" not in result["notice"]
     assert 'href="#today/event/asml"' in result["notice"]
+    assert 'class="question-criteria"' not in result["notice"]  # 빈 칸이 남던 2단 격자 대신 한 줄 상태
     assert result["resolved"]["text"] == "완료" and result["unchanged"] is True
 
 

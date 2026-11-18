@@ -498,7 +498,9 @@ def test_published_ipo_chart_discloses_the_census_and_spac_rule() -> None:
     assert any(row["company"].startswith("DeepSeek") and row["decision"] == "committed"
                for row in chart["theme_listing_pipeline"])
     assert "SPAC은 닷컴기" in chart["caveat"] and "혼합 척도" in chart["caveat"]
-    assert "상장 대기" in chart["conclusion"] and "상장 달부터 집계" in chart["conclusion"]
+    # 2026-11-18 소유자 지시로 '상장 달부터 집계' 설명 절은 결론에서 뺐다 — 커밋된 스냅샷은 다음 갱신까지 옛 문장을 가질 수 있어
+    # 그 절의 유무는 여기서 고정하지 않는다(생성 코드 쪽은 test_statistics_lab 이 본다).
+    assert "상장 대기" in chart["conclusion"]
     assert "theme_listing_additions" not in chart, "회사 목록 전체는 페이로드 예산 때문에 싣지 않는다"
 
 

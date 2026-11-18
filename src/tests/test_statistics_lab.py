@@ -938,7 +938,7 @@ def test_dashboard_statistics_route_and_daily_workflow_are_wired() -> None:
     assert "is-diverging" in script
     assert "--bar-left" in script
     assert "--bar-width" in script
-    assert "statistics-scope-note" in script
+    assert "statistics-scope-note\">${esc(scope)}" not in script  # 2026-11-18 출처 기준 줄 제거
     assert "function statisticsSourceFooter" not in script
     assert "statistics-card-sources" not in script
     assert "사용한 데이터 출처" not in script

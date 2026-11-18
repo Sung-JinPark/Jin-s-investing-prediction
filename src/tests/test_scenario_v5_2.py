@@ -876,11 +876,15 @@ def test_repository_dashboard_routes_v5_2_with_correct_semantics() -> None:
     for retired in ("특정 날짜 확정 아님", "0.80은 cap 초과로 차단", "정의상 0", "C는 직접 입력하지 않습니다",
                     "같은 DB를 색만 바꾼 그래프가 아닙니다"):
         assert retired not in script, retired
-    assert "의존도 cap ${Number(dotcom.dependency_cap||0).toFixed(2)}" in script
     assert "Math.round(Number(value)*100)" in script
     assert "let rangeKey='quarter'" in script
-    assert "A · B · C 분리" in script
-    assert "C 연구 코호트 가중치 ${weightPct(weightSpaces.C_mixture_probability?.value?.S1)}" in script
+    # 2026-11-18 소유자 지시: '분석 방법과 세부 통계' 접기(연구 상태·가중 계약·분리 진단·승격 항목)를 화면에서 뺐다.
+    # 결과 비율(모의 경로 비율)과 조정 시점 범위 두 줄만 접기 없이 남는다.
+    for retired in ("분석 방법과 세부 통계", "A · B · C 분리", "의존도 cap", "<strong>시나리오 분리</strong>",
+                    "fixed_phase_template_active=", "구조 선택에 반영", "승격을 막는 항목", "에피소드가 겹치지 않는가"):
+        assert retired not in script, retired
+    assert "접촉 ${pct(full.first_touch_minus_10_by_october_end)} · 모의 경로 비율" in script
+    assert "<strong>조정 시점 범위</strong>" in script
     assert "이전 방식의 그래프로 자동 전환하지 않습니다" not in script  # 2026-11-18 설명 문장 제거
     assert "a candidate failure must never silently replace the requested chart" in script
     assert "stale_last_valid" in script
@@ -890,9 +894,6 @@ def test_repository_dashboard_routes_v5_2_with_correct_semantics() -> None:
     assert "modelView:'research'" in script
     assert "research_only_explicit_route" not in script
     assert "CONDITIONAL SMALL MULTIPLES" not in script
-    assert "<strong>시나리오 분리</strong>" in script
-    assert "fixed_phase_template_active" in script
-    assert "구조 선택에 반영" in script
     assert ".scenario-v52-range" in css
     assert ".scenario-v52-readout" in css
     assert "@media(max-width:620px)" in css

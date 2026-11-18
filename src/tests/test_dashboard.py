@@ -754,7 +754,7 @@ def test_workspace_utility_contract() -> None:
     assert "AI 조정 DB" in html and "닷컴 조정 DB" in html
     assert "data-flow-samples" not in html
     assert "표본 1/2회 미달·이전 β 유지" in html
-    assert "gate 경계(n=156)" in html
+    assert "' · gate 경계'" in html and "(n=156)" not in html  # 2026-11-18 n= 표기 제거
     assert "닷컴 앵커 분리" not in html
     assert "overlay_start ${esc(dotcomAnchor.overlay_start)}" not in html
     assert "model_anchor ${esc(dotcomAnchor.model_anchor)}" not in html
@@ -773,7 +773,7 @@ def test_workspace_utility_contract() -> None:
     assert "${esc(chart.description)}" not in html
     assert "원천·갱신일·재구성 상태 보기" not in html
     assert "사용한 데이터 출처" not in html
-    assert "statistics-scope-note" in html
+    assert "statistics-scope-note\">${esc(scope)}" not in html  # 2026-11-18 차트 아래 '*미국 … 기준' 줄 제거
     assert "function statisticsLiquidityBars" in html
     assert ".statistics-filters button{min-width:112px" in html
     assert "font-size:.8rem;line-height:1.25;word-break:keep-all" in html
@@ -1285,14 +1285,11 @@ def test_v5_2_future_view_uses_one_log_scale_and_restores_research_panels() -> N
         "${esc(v52Windows.touchEnd)}까지 −10%선 접촉",
         "세 시나리오 한눈에",
         "연구 코호트 가중치",
-        "적격 사건 ${num(hard.eligible_historical_event_count||0)}/${num(hard.preferred_minimum||60)}",
-        "band calibration ${num(promotionGates.band_calibration?.observations||0)}/${num(promotionGates.band_calibration?.minimum||60)}",
         "세 가지 시장 경로",
         "닷컴 + 완화 + AI 성장",
         "연착륙 + 중립 금융여건",
         "긴축 + 신용 위험 + 성장 둔화",
         "서로 다른 3개 군집",
-        "분석 방법과 세부 통계",
         "접촉 ${pct(full.first_touch_minus_10_by_october_end)} · 모의 경로 비율",
         "닷컴 조정 뒤 5년 · NASDAQ · Realty Income · D.R. Horton",
         "시장 자금 흐름",
@@ -1438,6 +1435,11 @@ def test_data_trust_pipeline_is_visual_plain_language_and_live() -> None:
         assert removed not in html, removed
     # 하드 규칙 라벨은 남는다: 옵션 위험중립·프록시 병기, P3 게이트 50문항, Brier>0.22 정보 제공만
     assert "위험중립·프록시" in html
+    # CLAUDE.md 하드 게이트는 옵션 확률이 나오는 화면마다 붙어야 한다 — 페이지 전체가 아니라 화면별로 고정한다.
+    detail = html[html.index("function renderDetail(qid){"):html.index("function renderDecisionJournal(")]
+    assert "옵션 위험중립 프록시" in detail
+    journal = html[html.index("function renderDecisionJournal("):]
+    assert "옵션 확률은 위험중립·프록시 가정" in journal[:journal.index("\nfunction ", 1)]
     assert "/ 50 질문" in html
     assert "정보 제공만 · 오차 기준 초과" in html
     assert "?mode=operator에서 열립니다" not in html
@@ -1481,7 +1483,7 @@ def test_round2_cross_asset_explanations_and_method_event_contract() -> None:
     html = dashboard.load_template()
     for required in (
         "realtyContext.condition_summary",
-        "gate 경계(n=156)", "DATA.method_changes", "public_repository_url",
+        "' · gate 경계'", "DATA.method_changes", "public_repository_url",
     ):
         assert required in html
     assert "모두 2001-03~2006-03 실측" not in html

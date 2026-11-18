@@ -1562,10 +1562,9 @@ function renderStatistics(initialState){
     const latest=(chart.series||[]).map(row=>{const point=(row.points||[]).at(-1);return point?`<div><i style="background:${esc(row.color||'#111')}"></i><span>${esc(row.label)}</span><strong>${esc(statisticsValue(chart.unit,point.value))}</strong><small>${esc(row.latest_date||'최근 관측')}</small></div>`:'';}).join('');
     const profile=chart.chart_type==='profile_cards',liquidity=chart.chart_type==='liquidity_bars',era=chart.chart_type==='era_compare';
     const review=(chart.source_ids||[]).some(id=>(stats.sources||[]).some(source=>source.series_id===id&&source.refresh_reason==='fred_coverage_regressed'))?'<p class="statistics-scope-note" role="status">원천 자료 재검수 중</p>':'';
-    const scope=String(chart.scope_note||'').replace(/\s*·\s*참고 통계$/,'');
     const visual=liquidity?statisticsLiquidityBars(chart):(profile?statisticsProfileCards(chart):(era?statisticsEraCompare(chart):`<div class="statistics-chart">${statisticsChartSvg(chart,alignment)}</div>`));
     const cardClass=`statistics-card${profile?' is-profile-card':''}${liquidity?' is-liquidity-map':''}${era?' is-era-compare':''}`;
-    target.appendChild(el(`<section class="${cardClass}" data-stat-category="${esc(chart.category)}" data-stat-id="${esc(chart.id)}"><div class="statistics-card-head"><div><span>${String(startIndex+index+1).padStart(2,'0')} · ${esc(chart.category.toUpperCase())}</span><h2>${esc(chart.title)}</h2>${chart.conclusion?`<p class="statistics-head-conclusion">${esc(firstSentenceOf(chart.conclusion))}</p>`:''}</div><b>${esc(chart.display_unit||(profile?'핵심 지표':chart.unit))}</b></div>${profile||liquidity||era?'':`<div class="statistics-legend">${latest}</div>`}${statisticsApproachAlert(chart)}${review}${visual}${scope?`<p class="statistics-scope-note">${esc(scope)}</p>`:''}${(()=>{const rest=String(chart.conclusion||'').slice(firstSentenceOf(chart.conclusion||'').length).trim();return rest?`<p class="statistics-now-rest">${esc(rest)}</p>`:'';})()}</section>`));
+    target.appendChild(el(`<section class="${cardClass}" data-stat-category="${esc(chart.category)}" data-stat-id="${esc(chart.id)}"><div class="statistics-card-head"><div><span>${String(startIndex+index+1).padStart(2,'0')} · ${esc(chart.category.toUpperCase())}</span><h2>${esc(chart.title)}</h2>${chart.conclusion?`<p class="statistics-head-conclusion">${esc(firstSentenceOf(chart.conclusion))}</p>`:''}</div><b>${esc(chart.display_unit||(profile?'핵심 지표':chart.unit))}</b></div>${profile||liquidity||era?'':`<div class="statistics-legend">${latest}</div>`}${statisticsApproachAlert(chart)}${review}${visual}${(()=>{const rest=String(chart.conclusion||'').slice(firstSentenceOf(chart.conclusion||'').length).trim();return rest?`<p class="statistics-now-rest">${esc(rest)}</p>`:'';})()}</section>`));
   });
   appendCards(grid,charts);
   root.appendChild(grid);
@@ -2976,7 +2975,7 @@ function earningsQuestionPending(q){
 function earningsQuestionNotice(q){
   if(!earningsQuestionPending(q))return '';
   const event=earningsQuestionEvent(q);
-  return `<section class="question-criteria" aria-label="실적 질문 판정 대기"><div><span>판정 대기</span></div>${event?`<div><span>실적 자료</span><p><a href="#today/event/${encodeURIComponent(event.event_id)}">발표값과 출처 확인 ↗</a></p></div>`:''}</section>`;
+  return `<p class="question-pending" role="status" aria-label="실적 질문 판정 대기"><b>판정 대기</b>${event?` · <a href="#today/event/${encodeURIComponent(event.event_id)}">발표값 확인 ↗</a>`:''}</p>`;
 }
 function questionStatusLabel(q){
   if(q.status==='void')return {cls:'status-void',text:'폐기',title:'폐기된 질문 — 기한까지 예측 미실행, 채점 대상 아님'};
@@ -4025,7 +4024,7 @@ function drawOriginalWeeklyFlow(host,sc,showSamples=false,scenarioKey='S1',horiz
   if(model.status!=='ok'){
     drawOriginalBaselineFlow(host,sc,showSamples,scenarioKey,horizon);
     host.dataset.dailyFlowStatus='blocked';
-    host.prepend(el(`<p class="daily-flow-status" role="status"><strong>일간 대표 경로 보류 · 기존 주간 기준선 표시</strong><span>${esc(model.reason)}</span></p>`));
+    host.prepend(el(`<p class="daily-flow-status" role="status"><strong>일간 대표 경로 보류 · 기존 주간 기준선 표시</strong></p>`));
     return;
   }
   drawOriginalDailyFlow(host,sc,model,showSamples);
@@ -4322,27 +4321,16 @@ function renderScenarioV52(candidate,initialState={}){
       <article style="--scenario-accent:${V52_SCENARIO_META.S3.color}"><span>S3 · 스트레스</span><strong>긴축 + 신용 위험 + 성장 둔화</strong><p>긴축·금융 스트레스 구간만</p></article>
       <article class="is-current-reading"><span>현재 읽기</span><strong>고용 ${pp(terminalAttr.labor_growth_risk_effect)} · 금리 ${pp(terminalAttr.policy_relief_effect)}</strong></article>
     </div></section>
-    <details class="scenario-v52-method"></details>
+    <section class="scenario-v52-method scenario-v52-outcomes" aria-label="결과 비율"></section>
     </div>
     <div data-future-graph-panel="original" hidden></div>
   </div>`);
-  const baselineAudit=distinctness.baseline_comparison||{},adapter=layerGate.structural_event_adapter||{};
   const legacyInsights=$('#scenario-v52-insights-title',outlook)?.closest('.scenario-v52-insights');
   if(legacyInsights)legacyInsights.classList.add('scenario-v52-core-insights');
   const methodDetails=$('.scenario-v52-method',outlook);
-  if(methodDetails)methodDetails.innerHTML=`<summary>분석 방법과 세부 통계</summary><div>
-    <article><strong>연구 상태</strong><p>${esc(candidate.banner)} · 적격 사건 ${num(hard.eligible_historical_event_count||0)}/${num(hard.preferred_minimum||60)} · band calibration ${num(promotionGates.band_calibration?.observations||0)}/${num(promotionGates.band_calibration?.minimum||60)}</p></article>
+  if(methodDetails)methodDetails.innerHTML=`<div>
     <article><strong>결과 비율</strong><p>${esc(v52Windows.yearEnd.slice(0,4))} 연말 기준점 상회 ${pct(full.terminal_above_anchor_2026)} · ${esc(v52Windows.horizonEnd.slice(0,4))} 연말 상회 ${pct(full.terminal_above_anchor_2027)} · ${esc(v52Windows.yearEnd.slice(0,4))} 최고치 ${pct(full.new_ath_by_2026)} · ${esc(v52Windows.touchEnd)}까지 −10%선 접촉 ${pct(full.first_touch_minus_10_by_october_end)} · 모의 경로 비율</p></article>
     <article><strong>조정 시점 범위</strong><p>${esc((touch.dates||[]).at(-1)||v52Windows.touchEnd)}까지 −10%선(${num(Math.round(Number(touch.barrier||0)))}) 접촉 경로 ${pct((touch.cdf||[]).at(-1)||0)} · 중앙 시점 ${esc(touch.conditional_on_touch_quantiles?.p50||'–')} · 빠른 25% ${esc(touch.conditional_on_touch_quantiles?.p25||'–')} · 늦은 25% ${esc(touch.conditional_on_touch_quantiles?.p75||'–')} · 미접촉 ${pct(touch.never_touched_by_october_end||0)}</p></article>
-    <article><strong>증거 효과 분리</strong><p>고용 성장위험 ${pp(terminalAttr.labor_growth_risk_effect)} · 금리 부담완화 ${pp(terminalAttr.policy_relief_effect)}</p></article>
-    <article><strong>닷컴 가중치 계약</strong><p>S1 닷컴 강도 ${Number(dotcom.scenario_strength?.S1||0).toFixed(2)} · 의존도 cap ${Number(dotcom.dependency_cap||0).toFixed(2)}</p></article>
-    <article><strong>A · B · C 분리</strong><p>A 증거 강도 ${Number(weightSpaces.A_evidence_strength?.value||0).toFixed(2)} · B S1 닷컴 블록 비중 ${Number(weightSpaces.B_generator_dotcom_block_share?.value||0).toFixed(2)} · C 연구 코호트 가중치 ${weightPct(weightSpaces.C_mixture_probability?.value?.S1)}</p></article>
-    <article><strong>시나리오 분리</strong><p>${baselineAudit.metric==='S1-S2_standardized_log_path_dtw'
-      ?`S1·S2 형태 거리(DTW) ${Number(baselineAudit.baseline||0).toFixed(3)} → ${Number(baselineAudit.redesigned_shadow||0).toFixed(3)} · ${baselineAudit.material_increase_gate_pass?`+${Number(baselineAudit.observed_increase||0).toFixed(3)} / 요구 +${Number(baselineAudit.minimum_material_increase||0).toFixed(3)} 통과`:`요구 +${Number(baselineAudit.minimum_material_increase||0).toFixed(3)} 미통과`}${baselineAudit.S2_S3_standardized_log_path_dtw!=null?` · S2·S3 ${Number(baselineAudit.S2_S3_standardized_log_path_dtw).toFixed(3)}`:''}`
-      :`S1·S2 로그레벨 상관 ${Number(baselineAudit.baseline||0).toFixed(3)} → ${Number(baselineAudit.redesigned_shadow||0).toFixed(3)}`} · 에피소드 S1 ${num(clusters.S1?.episode_count||0)}·S2 ${num(clusters.S2?.episode_count||0)}·S3 ${num(clusters.S3?.episode_count||0)}개 · 발표 근거 ${adapter.structural_update_applied?'구조 선택에 반영':'새 수치 없음'}</p></article>
-    <article><strong>에피소드가 겹치지 않는가</strong><p>교차 시나리오 날짜 겹침 ${num(layerGate.episode_interval_overlap_count||0)}건 · 독립 잔차 풀 ${num(layerGate.unique_residual_pool_count||0)}개 · 특징 스키마 분리 ${String(layerGate.feature_schemas_distinct===true)}.</p></article>
-    <article><strong>고정 꺾임을 썼는가</strong><p>fixed_phase_template_active=${String(layerGate.fixed_phase_template_active===true)}</p></article>
-    <article><strong>승격을 막는 항목</strong><p>직접 사건 ${num(promotionGates.direct_event_observations?.observations||0)}/${num(promotionGates.direct_event_observations?.minimum||60)} · 원천 표본 ${String(promotionGates.scenario_native_origin_minimums?.pass===true)} · 커널 ${String(promotionGates.empirical_kernel_calibration?.pass===true)} · band calibration ${num(promotionGates.band_calibration?.observations||0)}/${num(promotionGates.band_calibration?.minimum||60)} · 승인 run_id ${esc(promotionGates.human_approval?.approval_run_id||'없음')}.</p></article>
   </div>`;
   root.append(predictionSectionNav('graph'),outlook);mount(root);
   let rangeKey='quarter';const chartHost=$('#scenario-v52-unified-chart',outlook),readout=$('#scenario-v52-readout',outlook),chartTitle=$('#scenario-v52-chart-title',outlook);
@@ -4538,7 +4526,7 @@ function analogPanel(){
 }
 function betaGateNote(row){
   if(row.status==='hysteresis_hold_1_of_2')return ' · 표본 1/2회 미달·이전 β 유지';
-  return row.gate_proximity==='at_boundary'?' · gate 경계(n=156)':'';
+  return row.gate_proximity==='at_boundary'?' · gate 경계':'';
 }
 function crossAssetPanel(){
   const model=DATA.cross_asset;
@@ -4639,7 +4627,7 @@ function scenarioTrackerMarkup(model){
   stateLabel.rates_stay_high_support='고금리 지속 지지';
   const counts=model.summary?.counts||{};
   const monitor=DATA.source_monitoring?.defillama_stablecoins;
-  const unavailableReason=signal=>signal.id==='S5'&&monitor?`D0 안정성 ${num(monitor.consecutive_successful_days)}/${num(monitor.required_successful_days)}일`:esc(signal.reason||'원천 미확보');
+  const unavailableReason=signal=>signal.id==='S5'&&monitor?`D0 안정성 ${num(monitor.consecutive_successful_days)}/${num(monitor.required_successful_days)}일`:'원천 미확보';
   return `<section class="tracker-shell" aria-labelledby="tracker-title"><div class="panel-head"><div><p class="eyebrow">PREREGISTERED CHECKLIST</p><h3 id="tracker-title">Scenario Tracker</h3></div></div>
     <div class="tracker-summary"><strong>${num(counts.deleveraging_support||0)} 디레버리징 · ${num(counts.easing_rotation_support||0)} 완화 · ${num(counts.neutral||0)} 중립</strong><span>${num(model.summary?.available)}/${num(model.summary?.total)} 신호 가동</span></div>
     <div class="tracker-grid">${(model.signals||[]).map(signal=>`<article class="tracker-card state-${signal.state}"><div><span>${esc(signal.id)}</span><i aria-hidden="true"></i></div><strong>${esc(signal.name)}</strong><small>${esc(stateLabel[signal.state]||signal.state)}</small>${signal.state==='source_unavailable'?`<p>${unavailableReason(signal)}</p>`:`<p>${Object.entries(signal.metrics||{}).map(([key,value])=>`${esc(key.replaceAll('_',' '))} ${hasNumeric(value)?num(value):'–'}`).join(' · ')}</p>`}</article>`).join('')}</div>

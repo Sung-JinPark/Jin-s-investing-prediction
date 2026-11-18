@@ -2093,10 +2093,9 @@ def _build_ipo_count_chart(
         pending = int(watch_summary.get("pending_review") or 0)
         if pending:
             conclusion += (f" 해외 테마 상장 판정 대기 {pending}건"
-                           f"({watch_summary.get('oldest_pending_listing') or '-'}~) — 사업 설명 확보 후 반영.")
+                           f"({watch_summary.get('oldest_pending_listing') or '-'}~) .")
         auto_rule = theme_watch.get("auto_rule") or {}
         auto_counted = int(auto_rule.get("auto_counted") or 0)
-        agreement = (auto_rule.get("holdout") or {}).get("agreement")
         if auto_counted:
             conclusion += f" 해외 테마 상장 자동 판정 {auto_counted}건 포함."
         stale = int(watch_summary.get("venues_total") or 0) - int(watch_summary.get("venues_ok") or 0)
