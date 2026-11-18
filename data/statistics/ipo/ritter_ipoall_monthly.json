@@ -12,16 +12,16 @@
     "gross": "all IPOs including SPACs, direct listings, penny stocks, units and closed-end funds"
   },
   "revision_cadence": "author_revises_roughly_annually",
-  "raw_sha256": "00f2f3ae0badd4566e3f4f10ead1936c0a0e9e983d70c0eac52d77728ac1ce25",
-  "raw_path": "raw/ritter_ipoall_monthly/00f2f3ae0badd4566e3f4f10ead1936c0a0e9e983d70c0eac52d77728ac1ce25.bin",
-  "receipt_id": "1da391d5f2d89c2180d337305ea29aff0c05339ac31ef3544d22bb3fd1bcbaaa",
+  "raw_sha256": "6eadbb4371e1983cb4eb0405d43a30ccd7d5aa2409f7f3d25eca19cada97b57e",
+  "raw_path": "raw/ritter_ipoall_monthly/6eadbb4371e1983cb4eb0405d43a30ccd7d5aa2409f7f3d25eca19cada97b57e.bin",
+  "receipt_id": "d2432a83ff566520f4b237326dd185027f8de000be74219cd18710080afac9d8",
   "http_status": 200,
-  "last_modified": "Mon, 19 Jan 2026 16:37:49 GMT",
-  "fetched_at": "2026-10-06T11:28:28+00:00",
-  "available_at": "2026-10-06T11:28:28+00:00",
+  "last_modified": "Mon, 16 Nov 2026 18:32:59 GMT",
+  "fetched_at": "2026-11-18T08:22:42+00:00",
+  "available_at": "2026-11-18T08:22:42+00:00",
   "first_month": "1960-01",
-  "last_month": "2025-12",
-  "last_confirmed_month": "2025-12",
+  "last_month": "2026-12",
+  "last_confirmed_month": "2026-10",
   "months": [
     {
       "month": "1960-01",
@@ -3982,7 +3982,74 @@
       "month": "2025-12",
       "gross": 33,
       "net": 7
+    },
+    {
+      "month": "2026-01",
+      "gross": 34,
+      "net": 7
+    },
+    {
+      "month": "2026-02",
+      "gross": 45,
+      "net": 11
+    },
+    {
+      "month": "2026-03",
+      "gross": 16,
+      "net": 2
+    },
+    {
+      "month": "2026-04",
+      "gross": 31,
+      "net": 11
+    },
+    {
+      "month": "2026-05",
+      "gross": 39,
+      "net": 12
+    },
+    {
+      "month": "2026-06",
+      "gross": 35,
+      "net": 13
+    },
+    {
+      "month": "2026-07",
+      "gross": 31,
+      "net": 10
+    },
+    {
+      "month": "2026-08",
+      "gross": 23,
+      "net": 8
+    },
+    {
+      "month": "2026-09",
+      "gross": 8,
+      "net": 3
+    },
+    {
+      "month": "2026-10",
+      "gross": 15,
+      "net": 7
+    },
+    {
+      "month": "2026-11",
+      "gross": null,
+      "net": null
+    },
+    {
+      "month": "2026-12",
+      "gross": null,
+      "net": null
     }
   ],
-  "revisions": []
+  "revisions": [
+    {
+      "superseded_raw_sha256": "00f2f3ae0badd4566e3f4f10ead1936c0a0e9e983d70c0eac52d77728ac1ce25",
+      "superseded_fetched_at": "2026-10-06T11:28:28+00:00",
+      "superseded_last_confirmed_month": "2025-12",
+      "revised_existing_months": 0
+    }
+  ]
 }

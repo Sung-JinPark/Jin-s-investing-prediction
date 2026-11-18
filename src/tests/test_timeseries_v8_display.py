@@ -533,6 +533,9 @@ _ROOT = Path(_config.ROOT)
 _ARCHIVE_CUTOFF = "2026-11-11T00:00:00+00:00"
 _LAST_ORIGIN = "2026-11-06"
 _LAST_RESOLVED_SESSION = "2026-11-09"
+# 해소 원장은 append-only 이고 기록 시각이 없다. 고정 시점(2026-11-11)의 원장은 앞 29행이다.
+# 2026-11-06 h1(목표 11-09)은 그 뒤에 해소돼 날짜 필터만으로는 걸러지지 않는다.
+_ORACLE_RESOLUTION_ROWS = 29
 
 
 def _jsonl(relative: Path) -> list[dict]:
@@ -545,7 +548,7 @@ def _fixed_forecasts() -> list[dict]:
 
 
 def _fixed_resolutions() -> list[dict]:
-    return [row for row in _jsonl(display.FORWARD_LEDGER_RELATIVE)
+    return [row for row in _jsonl(display.FORWARD_LEDGER_RELATIVE)[:_ORACLE_RESOLUTION_ROWS]
             if row["origin"] <= _LAST_ORIGIN and row["resolved_session"] <= _LAST_RESOLVED_SESSION]
 
 

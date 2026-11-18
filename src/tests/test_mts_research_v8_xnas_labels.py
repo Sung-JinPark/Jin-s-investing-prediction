@@ -33,6 +33,8 @@ RESOLVED_ORIGINS = {
 }
 RESOLVED_ORIGINS[5] = set(RESOLVED_ORIGINS[1])
 FIRST_TWELVE = RESOLVED_ORIGINS[1] | {"2026-11-06"}
+# 해소 원장은 append-only 이고 행에 기록 시각이 없다. NOW 시점의 원장은 곧 앞 29행이다.
+ORACLE_RESOLUTION_ROWS = 29
 
 COPY_FOR_TMP = [
     "data/timeseries_v2/ledgers/market_observations.jsonl",
@@ -60,15 +62,31 @@ def _code_hashes() -> dict[str, str]:
     return {"v8": v8_hash(ROOT), "v2": v2_hash(ROOT), "daily6m": daily6m_hash(ROOT)}
 
 
+def _resolutions_known_at_now(rows):
+    """NOW 이후 append 된 해소 행을 제외한다 — 앞 29행이 고정 원점 집합과 정확히 같아야 한다."""
+    head = list(rows[:ORACLE_RESOLUTION_ROWS])
+    expected = {(h, origin) for h, origins in RESOLVED_ORIGINS.items() for origin in origins}
+    assert {(int(row["horizon"]), row["origin"]) for row in head} == expected
+    return head
+
+
 @pytest.fixture(scope="module")
 def real():
     before = {p: _sha(ROOT / p) for p in SHADOW_LEDGERS}
     code_before = _code_hashes()
-    context = X._load_context(ROOT, now=NOW, as_of=AS_OF)
-    pairs = X._pairs(context)
-    rows = [p["row"] for p in pairs if p["row"] is not None]
-    summary = X._summary(context, pairs)
-    integrity = X.integrity_checks(ROOT, _context=context, _pairs_cache=pairs)
+    original = X._read_jsonl
+
+    def known_at_now(root, relative):
+        rows = original(root, relative)
+        return _resolutions_known_at_now(rows) if Path(relative) == X.V8_RESOLUTION_LEDGER else rows
+
+    with pytest.MonkeyPatch.context() as patch:
+        patch.setattr(X, "_read_jsonl", known_at_now)
+        context = X._load_context(ROOT, now=NOW, as_of=AS_OF)
+        pairs = X._pairs(context)
+        rows = [p["row"] for p in pairs if p["row"] is not None]
+        summary = X._summary(context, pairs)
+        integrity = X.integrity_checks(ROOT, _context=context, _pairs_cache=pairs)
     after = {p: _sha(ROOT / p) for p in SHADOW_LEDGERS}
     return {"context": context, "pairs": pairs, "rows": rows, "summary": summary,
             "integrity": integrity, "before": before, "after": after,
@@ -307,14 +325,7 @@ def test_grid_dropped_sessions_projection():
 
 @pytest.fixture(scope="module")
 def tmp_repo(tmp_path_factory):
-    root = tmp_path_factory.mktemp("xnas") / "repo"
-    for relative in COPY_FOR_TMP:
-        source = ROOT / relative
-        if source.is_file():
-            target = root / relative
-            target.parent.mkdir(parents=True, exist_ok=True)
-            shutil.copyfile(source, target)
-    return root
+    return _make_repo(tmp_path_factory.mktemp("xnas"))
 
 
 def _args(append: bool) -> argparse.Namespace:
@@ -379,6 +390,10 @@ def _make_repo(base: Path) -> Path:
             target = root / relative
             target.parent.mkdir(parents=True, exist_ok=True)
             shutil.copyfile(source, target)
+    ledger = root / X.V8_RESOLUTION_LEDGER
+    lines = ledger.read_bytes().splitlines(keepends=True)
+    _resolutions_known_at_now([json.loads(line) for line in lines])
+    ledger.write_bytes(b"".join(lines[:ORACLE_RESOLUTION_ROWS]))  # tmp 사본만 NOW 시점 원장으로 되돌린다
     return root
 
 

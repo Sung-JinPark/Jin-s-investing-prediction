@@ -39,94 +39,14 @@
     }
   ],
   "stores": "monthly counts only; no deal lists",
-  "provisional_after": "2025-12",
+  "provisional_after": "2026-10",
   "status": "current",
   "months": {
-    "2026-01": {
-      "priced_total": 35,
-      "operating_approx": 10,
-      "fetched_at": "2026-10-06T11:28:28+00:00",
-      "response_sha256": "5092b6128734b5e739777401b97c94cb58ad0437842d55b93620e617e8796ed4",
-      "complete": true,
-      "stale": false
-    },
-    "2026-02": {
-      "priced_total": 45,
-      "operating_approx": 18,
-      "fetched_at": "2026-10-06T11:28:28+00:00",
-      "response_sha256": "baf5d6d6b6c548f52f5332021a2843c147e6800d1aaecfa6cd12e6294d00814a",
-      "complete": true,
-      "stale": false
-    },
-    "2026-03": {
-      "priced_total": 17,
-      "operating_approx": 6,
-      "fetched_at": "2026-10-06T11:28:28+00:00",
-      "response_sha256": "0ad653732626648009aa36822699948ecff53850a4da2d12935b6e33447b64e0",
-      "complete": true,
-      "stale": false
-    },
-    "2026-04": {
-      "priced_total": 32,
-      "operating_approx": 15,
-      "fetched_at": "2026-10-06T11:28:28+00:00",
-      "response_sha256": "b5cf1f5d5f41d54786751b4049c80f152514d672455146cfaf9244d4439cb5fc",
-      "complete": true,
-      "stale": false
-    },
-    "2026-05": {
-      "priced_total": 41,
-      "operating_approx": 20,
-      "fetched_at": "2026-10-06T11:28:28+00:00",
-      "response_sha256": "0bb558accaa7634d9c75523930ded25dce88afed974d69141c9cd513bba30cfd",
-      "complete": true,
-      "stale": false
-    },
-    "2026-06": {
-      "priced_total": 36,
-      "operating_approx": 18,
-      "fetched_at": "2026-10-06T11:28:28+00:00",
-      "response_sha256": "a534f9ad9ae6f27fa9795283676d857d95f5ef44ea8e6e0cafb027efc40b4406",
-      "complete": true,
-      "stale": false
-    },
-    "2026-07": {
-      "priced_total": 32,
-      "operating_approx": 15,
-      "fetched_at": "2026-10-06T11:28:28+00:00",
-      "response_sha256": "290f42d67124f98784ddbea07945f8516dc768be92611dc6e9378b2fbaf8a95d",
-      "complete": true,
-      "stale": false
-    },
-    "2026-08": {
-      "priced_total": 23,
-      "operating_approx": 11,
-      "fetched_at": "2026-10-06T11:28:28+00:00",
-      "response_sha256": "b7874fbcb29c38c2fea106c0d191e5f0bb58c142313d1c4063fc6f4422170aab",
-      "complete": true,
-      "stale": false
-    },
-    "2026-09": {
-      "priced_total": 11,
-      "operating_approx": 6,
-      "fetched_at": "2026-10-31T23:22:21+00:00",
-      "response_sha256": "89187e38bef74a485cf244955a47868b81f2a3ec5b1118cec1e376d3b081aff8",
-      "complete": true,
-      "stale": false
-    },
-    "2026-10": {
-      "priced_total": 17,
-      "operating_approx": 10,
-      "fetched_at": "2026-11-15T21:03:33+00:00",
-      "response_sha256": "0303163098d582f1d60b1afe57549558570517c028b1ee79fe7bfe4e8df4803c",
-      "complete": true,
-      "stale": false
-    },
     "2026-11": {
-      "priced_total": 1,
-      "operating_approx": 1,
-      "fetched_at": "2026-11-15T21:03:33+00:00",
-      "response_sha256": "13354ed5a48a5e1e0010becd7826547e1854d324ffd3bb25670c462d250fa275",
+      "priced_total": 4,
+      "operating_approx": 3,
+      "fetched_at": "2026-11-18T08:22:42+00:00",
+      "response_sha256": "15d83fa75c0d287992ab82d8c81e88f32447b1c6bdfb03d697c334f7af64dfa9",
       "complete": false,
       "stale": false
     }

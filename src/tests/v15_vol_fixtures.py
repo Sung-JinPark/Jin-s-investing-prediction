@@ -49,6 +49,8 @@ V13_RES = "data/timeseries_v13/ledgers/vol_live_resolutions.jsonl"
 V15_SHADOW = "data/timeseries_v15_vol/ledgers/vol15_shadow.jsonl"
 V15_RES = "data/timeseries_v15_vol/ledgers/vol15_shadow_resolutions.jsonl"
 ARMING = "data/timeseries_v15_vol/ledgers/arming.jsonl"
+# V15 테스트의 시계(NOW)는 이 날짜에 고정돼 있다. 실제 V13 원장은 계속 늘어난다.
+ORACLE_AS_OF = "2026-11-11"
 
 
 def protected_hashes() -> dict[str, str | None]:
@@ -70,7 +72,15 @@ def make_root(tmp_path: Path, *, v13_ledgers: bool = True) -> Path:
         target = root / PACKAGE / name
         target.parent.mkdir(parents=True, exist_ok=True)
         shutil.copyfile(ROOT / PACKAGE / name, target)
+    if v13_ledgers:
+        _freeze_v13_ledgers(root)
     return root
+
+
+def _freeze_v13_ledgers(root: Path) -> None:
+    """tmp 사본의 V13 원장을 테스트 시계 시점으로 되돌린다 — 그 뒤의 행은 NOW 에 알 수 없다."""
+    write_jsonl(root / V13_LIVE, [r for r in read_jsonl(root / V13_LIVE) if r["as_of"] <= ORACLE_AS_OF])
+    write_jsonl(root / V13_RES, [r for r in read_jsonl(root / V13_RES) if r["resolved_session"] <= ORACLE_AS_OF])
 
 
 def load_contract(root: Path) -> dict[str, Any]:
