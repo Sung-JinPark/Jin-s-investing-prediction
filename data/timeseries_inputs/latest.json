@@ -1,12 +1,12 @@
 {
-  "bundle_id": "ts-inputs-63a71f50e8c2b4998a0b72a3",
-  "capture_completed_at": "2026-11-17T20:57:04.951209+00:00",
+  "bundle_id": "ts-inputs-1046de38dbff6e14d61676bb",
+  "capture_completed_at": "2026-11-18T02:55:08.469217+00:00",
   "changed": true,
-  "checked_at": "2026-11-17T20:59:23.782453+00:00",
-  "content_hash": "82a221e8c9f7de36350780fbb9cbae57e05363a0199b63aa9e1001aeab959124",
+  "checked_at": "2026-11-18T02:56:34.656035+00:00",
+  "content_hash": "b6dbc84f76ff96ccc7279b06213c908def1e97f1911d7892c398ed3281392920",
   "contract_id": "timeseries_inputs_refresh_v1",
   "eligibility_changed": true,
-  "eligibility_hash": "6a35064387189e11c2d1056ae6e5d9feb7faef9ad9f60c3a3ac43475c19e0bc5",
+  "eligibility_hash": "f50bdf32d9a49074ffa8973f03cc5a76dcc1f87ddd3ea0fda938cfc8279f0b28",
   "eligibility_status": "hold",
   "eligible_native_latest": {
     "DGS2": {
@@ -50,26 +50,18 @@
       "vintage_start": "2026-11-17T04:59:59+00:00"
     }
   },
-  "expected_session": "2026-11-16",
+  "expected_session": "2026-11-17",
   "native_watermarks": {
-    "DGS2": "2026-11-17T20:57:01.227139+00:00",
-    "DTWEXBGS": "2026-11-17T20:57:03.382343+00:00",
-    "NASDAQCOM": "2026-11-17T20:56:58.612398+00:00",
-    "T10Y2Y": "2026-11-17T20:57:02.840129+00:00",
-    "VIXCLS": "2026-11-17T20:56:59.906034+00:00"
+    "DGS2": "2026-11-18T02:55:04.404401+00:00",
+    "DTWEXBGS": "2026-11-18T02:55:06.233912+00:00",
+    "NASDAQCOM": "2026-11-18T02:54:59.989423+00:00",
+    "T10Y2Y": "2026-11-18T02:55:05.518532+00:00",
+    "VIXCLS": "2026-11-18T02:55:03.447571+00:00"
   },
-  "publication_allowed": false,
+  "publication_allowed": true,
   "schema_version": 1,
-  "semantic_changed": false,
-  "source_failures": [
-    {
-      "http_status": null,
-      "reason": "TimeSeriesInputsError",
-      "series_id": "DGS2_DGS10",
-      "source_id": "us_treasury_yield_archive",
-      "stage": "market_treasury"
-    }
-  ],
+  "semantic_changed": true,
+  "source_failures": [],
   "source_status": [
     {
       "series_id": "NASDAQCOM",
@@ -92,5 +84,5 @@
       "status": "fresh"
     }
   ],
-  "status": "hold"
+  "status": "ready"
 }
