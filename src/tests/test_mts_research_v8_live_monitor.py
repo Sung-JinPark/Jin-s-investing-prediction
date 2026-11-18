@@ -221,7 +221,11 @@ def test_late_resolution_does_not_move_pinned_sample(monkeypatch):
 
     def grown(root, relative):
         rows = original(root, relative)
-        return rows + [dict(synthetic)] if Path(relative) == M.V8_RESOLUTION_LEDGER else rows
+        if Path(relative) != M.V8_RESOLUTION_LEDGER:
+            return rows
+        # 같은 쌍의 실제 행이 그 뒤 원장에 들어왔다. 재연에서는 합성 행 하나만 늦게 도착하게 둔다.
+        earlier = [r for r in rows if (r["forecast_id"], int(r["horizon"])) != (forecast["forecast_id"], 1)]
+        return earlier + [dict(synthetic)]
 
     monkeypatch.setattr(M, "_read_jsonl", grown)
     monkeypatch.setattr(X, "_read_jsonl", grown)
