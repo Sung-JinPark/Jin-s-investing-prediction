@@ -1278,8 +1278,7 @@ def _household_gap_conclusion(gaps: list[tuple[str, float]]) -> str:
     widest = max(gaps, key=lambda kv: abs(kv[1]))[0]
     return (
         "지금 가계의 " + ", ".join(parts) + ". "
-        f"예상에서 가장 멀리 벗어난 것은 {widest}입니다. "
-        "많다·적다는 예전 흐름과의 비교일 뿐 '적정하다·비싸다'는 판정이 아닙니다."
+        f"예상에서 가장 멀리 벗어난 것은 {widest}입니다."
     )
 
 
@@ -2085,7 +2084,7 @@ def _build_ipo_count_chart(
         )
     if theme_pipeline:
         names = [row["company"] for row in theme_pipeline[:2]]
-        conclusion += f" 상장 대기 {len(theme_pipeline)}건({' · '.join(names)} 등) — 상장 달부터 집계."
+        conclusion += f" 상장 대기 {len(theme_pipeline)}건({' · '.join(names)} 등)."
     # 전수조사 이후 상장은 감시가 모으고 자동 판정한다 — 판정 전(사업 설명 미확보) 건수는 아직 어느 합계에도 없다.
     theme_watch = ipo_monthly.get("theme_watch")
     if theme_watch:
@@ -2099,8 +2098,7 @@ def _build_ipo_count_chart(
         auto_counted = int(auto_rule.get("auto_counted") or 0)
         agreement = (auto_rule.get("holdout") or {}).get("agreement")
         if auto_counted:
-            conclusion += (f" 해외 테마 상장 자동 판정 {auto_counted}건 포함"
-                           + (f"(전수조사 대비 일치도 {agreement * 100:.0f}%)." if agreement else "."))
+            conclusion += f" 해외 테마 상장 자동 판정 {auto_counted}건 포함."
         stale = int(watch_summary.get("venues_total") or 0) - int(watch_summary.get("venues_ok") or 0)
         if stale > 0:
             conclusion += f" 상장 감시 지연 시장 {stale}곳."
@@ -2828,8 +2826,8 @@ def build_statistics_lab(
             f"현재 NASDAQ은 2023년 대비 {endpoint(cur_nasdaq) - 100.0:.0f}% 오르고 "
             f"M2는 {endpoint(cur_m2) - 100.0:.0f}% 늘었습니다. 닷컴 같은 시점에는 NASDAQ "
             f"{months_elapsed(cur_nasdaq)}개월차 {matched(dot_nasdaq, cur_nasdaq) - 100.0:.0f}%·M2 "
-            f"{months_elapsed(cur_m2)}개월차 {matched(dot_m2, cur_m2) - 100.0:.0f}%였고"
-            "(두 계열은 발표 주기가 달라 경과월이 한 달 어긋납니다), 닷컴 말기에는 NASDAQ이 "
+            f"{months_elapsed(cur_m2)}개월차 {matched(dot_m2, cur_m2) - 100.0:.0f}%였고, "
+            "닷컴 말기에는 NASDAQ이 "
             f"{endpoint(dot_nasdaq) - 100.0:.0f}%까지 벌어졌습니다."
         ),
         "nasdaq_per_m2": (
@@ -2862,7 +2860,7 @@ def build_statistics_lab(
             + (
                 f" 두 고점을 이은 저항 추세선은 현재 시점 {resistance_now:.0f}에 내려와 있고, "
                 f"현재 값은 그 {spx_debt_full[-1]['value'] / resistance_now * 100.0:.0f}% "
-                "수준입니다 — 파란 선이 빨간 선에 닿으면 과열 경고 참고 구간입니다."
+                "수준입니다."
                 if resistance_now else ""
             )
         ) if spx_debt_full else "관측 준비 중입니다.",
@@ -2932,9 +2930,9 @@ def build_statistics_lab(
             f"{endpoint(cur_comm):.0f}입니다. "
             + (
                 f"데이터센터 건설은 {data_centre_date} 기준 민간 오피스 건설의 "
-                f"{data_centre_share:.0f}%를 차지하지만 2014년부터만 집계돼 닷컴 비교선이 없습니다."
+                f"{data_centre_share:.0f}%를 차지합니다."
                 if data_centre_date else
-                "데이터센터 계열은 2014년부터만 집계돼 닷컴 비교선이 없습니다."
+                ""
             )
         ),
         "corporate_bond_issuance": (
@@ -2948,7 +2946,6 @@ def build_statistics_lab(
                 if endpoint(cur_bond_flow) > 0 else
                 "최근 분기에는 새로 빌린 것보다 갚은 것이 더 많았습니다. "
             )
-            + "이 통계에는 'AI 때문에 빌린 돈'을 따로 떼어 볼 수 있는 분류가 없습니다."
         ),
         "investment_share_of_gdp": (
             f"소프트웨어·연구개발까지 넣으면 지금은 경제 100달러당 {endpoint(cur_broad_share):.1f}달러로 "
@@ -3009,24 +3006,19 @@ def build_statistics_lab(
              if oil_now > 0 and copper_now > 0 else
              "유가와 구리 방향이 엇갈려 원자재발 물가 재가속 신호는 아직 일관되지 "
              "않습니다.")
-            + " 원자재의 물가 선행성은 시기에 따라 약해지는 것으로 연구돼 있어 "
-            "두 달 정렬은 참고용 배치일 뿐 예측 규칙이 아닙니다."
         ),
         "korea_semiconductor_cycle": (
             f"2023년 대비 한국 주가지수는 {endpoint(korea_index) - 100.0:.0f}%, 같은 "
             f"{months_elapsed(korea_index)}개월차 미국 반도체는 "
             f"{matched(sox_index, korea_index) - 100.0:.0f}% 상승했습니다"
-            f"(미국 반도체 최신치는 {endpoint(sox_index) - 100.0:.0f}%). 한국 지수는 "
-            "OECD 월간 집계라 미국 반도체보다 늦게 갱신되므로, 같은 경과월끼리 비교해야 "
-            "두 시장의 상대 위치가 뒤집히지 않습니다."
+            f"(미국 반도체 최신치는 {endpoint(sox_index) - 100.0:.0f}%)."
         ),
         "housing_manufacturing_warning": (
             f"주택착공은 {housing_now:+.1f}%로 약하지만 제조업지수는 최근 3개월 평균 "
             f"{manufacturing_trend:+.1f}(최신 단월 {manufacturing_now:+.1f})로 확장 쪽입니다. "
             + (f"단, 최신값은 현 사이클 표본의 상위 10% 안에 드는 단월 극단값입니다. "
                if manufacturing_extreme else "")
-            + "현재 침체 신호는 한 방향으로 모이지 않은 혼합 상태이며, 제조업 계열은 "
-            "전국이 아니라 필라델피아 연준 관할 지역 서베이입니다."
+            + "현재 침체 신호는 한 방향으로 모이지 않은 혼합 상태입니다."
             if housing_now < 0 < manufacturing_trend else
             "주택과 제조업 신호가 같은 방향으로 약해져 경기 둔화 경계가 커졌습니다."
         ),
