@@ -1,7 +1,7 @@
 # Ledger accumulation audit
 
-- Generated: `2026-11-17T17:55:00+00:00`
-- Latest completed NYSE day: `2026-11-16`
+- Generated: `2026-11-17T23:59:59+00:00`
+- Latest completed NYSE day: `2026-11-17`
 - Result: accumulating 88 · frozen 2 · stalled 2 · inactive 12 · violation 0 · planned 13
 
 | Ledger | Cadence | Files / rows | Latest | Status | Finding |
@@ -15,8 +15,8 @@
 | `benchmark_ledger` | event | 1 / 51 | — | **accumulating** | — |
 | `cost_ledger` | event | 1 / 137 | — | **accumulating** | — |
 | `provider_shadow_ledger` | event | 1 / 0 | — | **accumulating** | — |
-| `scenario_archive` | trading_daily | 76 | 2026-11-16 | **accumulating** | missing trading days: 2026-08-04, 2026-08-05, 2026-09-03, 2026-09-16, 2026-09-17, 2026-09-21, 2026-09-22, 2026-10-02, 2026-10-05 |
-| `scenario_latest` | trading_daily | 1 | 2026-11-16 | **accumulating** | — |
+| `scenario_archive` | trading_daily | 77 | 2026-11-17 | **accumulating** | missing trading days: 2026-08-04, 2026-08-05, 2026-09-03, 2026-09-16, 2026-09-17, 2026-09-21, 2026-09-22, 2026-10-02, 2026-10-05 |
+| `scenario_latest` | trading_daily | 1 | 2026-11-17 | **accumulating** | — |
 | `cross_asset_archive` | trading_daily | 71 | 2026-11-16 | **accumulating** | missing trading days: 2026-08-04, 2026-08-25, 2026-09-03, 2026-09-16, 2026-09-17, 2026-09-21, 2026-09-22, 2026-10-02, 2026-10-06, 2026-10-16, 2026-10-30; writer settles within 18h of the close; expects 2026-11-16 |
 | `cross_asset_latest` | trading_daily | 1 | 2026-11-16 | **accumulating** | writer settles within 18h of the close; expects 2026-11-16 |
 | `cross_asset_path_tracking` | trading_daily | 1 / 3 | — | **frozen** | — |
@@ -31,7 +31,7 @@
 | `timeseries_daily6m_v2_prereg` | event | 2 | — | **accumulating** | — |
 | `timeseries_daily6m_v2_scorecard` | weekly | 1 | — | **accumulating** | — |
 | `cross_asset_path_tracking_v2` | trading_daily | 1 / 192 | 2026-11-16 | **accumulating** | writer settles within 18h of the close; expects 2026-11-16 |
-| `scenario_band_calibration` | trading_daily | 1 / 2145 | 2026-11-16 | **accumulating** | — |
+| `scenario_band_calibration` | trading_daily | 1 / 2211 | 2026-11-17 | **accumulating** | — |
 | `market_event_calendar` | event | 1 / 107 | 2026-11-16 | **accumulating** | — |
 | `signal_archive` | weekly | 18 | 2026-11-13 | **accumulating** | — |
 | `liquidity_archive` | weekly | 16 | 2026-11-13 | **accumulating** | — |
@@ -109,8 +109,8 @@
 | `timeseries_v14_ladder_results` | event | 1 | — | **accumulating** | — |
 | `timeseries_v15_vol_approvals` | event | 1 | 2026-11-11 | **accumulating** | — |
 | `timeseries_v15_vol_arming` | event | 1 | 2026-11-11 | **accumulating** | — |
-| `timeseries_v15_vol_shadow` | trading_daily | 0 | — | **planned** | writer settles within 24h of the close; expects 2026-11-13 |
-| `timeseries_v15_vol_shadow_resolutions` | trading_daily | 0 | — | **planned** | writer settles within 24h of the close; expects 2026-11-13 |
+| `timeseries_v15_vol_shadow` | trading_daily | 0 | — | **planned** | writer settles within 24h of the close; expects 2026-11-16 |
+| `timeseries_v15_vol_shadow_resolutions` | trading_daily | 0 | — | **planned** | writer settles within 24h of the close; expects 2026-11-16 |
 | `timeseries_v15_vol_constants` | event | 1 | — | **accumulating** | — |
 | `timeseries_v15_vol_prereg` | event | 1 | — | **accumulating** | — |
 | `mts_research_events` | event | 0 | — | **planned** | — |
