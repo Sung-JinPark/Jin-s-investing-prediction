@@ -1603,18 +1603,29 @@ def test_ipo_count_cross_checks_ritter_gross_against_sec_totals() -> None:
 
 
 def test_projection_keeps_the_provisional_dash_for_the_browser(monkeypatch: pytest.MonkeyPatch) -> None:
-    """잠정 꼬리가 있으면 점선으로 전달된다.
+    """잠정 꼬리가 없어도 통과하고, 있으면 점선으로 전달된다.
 
-    실제 스냅샷에 의존하지 않는다 — Ritter 확정치가 최신 완결월까지 오면(2026-11 실측: 확정 2026-10) 잠정 구간은
-    정상적으로 비고, 그 상태를 실패로 잡으면 statistics-refresh 가 게시 전에 멈춘다.
+    실제 스냅샷에 의존하지 않는다 — Ritter 확정치가 최신 완결월까지 오면(2026-11 실측: 확정 2026-10) 잠정 구간과
+    그 원천 등록이 함께 비고, 그 상태를 실패로 잡으면 statistics-refresh 가 게시 전에 멈춘다.
     """
     root = Path(__file__).resolve().parents[2]
     payload = copy.deepcopy(statistics_lab.load_statistics_lab(root))
     source = next(c for c in payload["charts"] if c["id"] == "ipo_count_operating_12m")
     source["series"] = [row for row in source["series"] if not row.get("provisional")]
-    current = next(row for row in source["series"] if row["label"] == "현재")
-    source["series"].append({**copy.deepcopy(current), "label": "현재 잠정", "provisional": True, "dash": "2 5"})
+    source.pop("provisional_source_ids", None)
+    payload.pop("provisional_sources", None)
     monkeypatch.setattr(statistics_lab, "load_statistics_lab", lambda _root: payload)
+    empty = next(c for c in statistics_dashboard_projection(root)["charts"] if c["id"] == "ipo_count_operating_12m")
+    assert not [row for row in empty["series"] if row.get("provisional")]
+
+    current = next(row for row in source["series"] if row["label"] == "현재")
+    source["series"].append({**copy.deepcopy(current), "label": statistics_lab.IPO_PROVISIONAL_LABEL,
+                             "provisional": True, "dash": "2 5"})
+    source["provisional_source_ids"] = [statistics_lab.IPO_PROVISIONAL_SERIES_ID]
+    payload["provisional_sources"] = [{
+        "series_id": statistics_lab.IPO_PROVISIONAL_SERIES_ID, "policy_source_id": "nasdaq_ipo_calendar",
+        "usage_role": "provisional_display_only", "numeric_input_allowed": False, "index_input": False,
+    }]
     projected = statistics_dashboard_projection(root)
     chart = next(c for c in projected["charts"] if c["id"] == "ipo_count_operating_12m")
     assert "cross_check" not in chart
