@@ -734,8 +734,11 @@ def test_display_layer_reads_no_research_ledger_and_new_cards_skip_ts_chart_hook
     source = inspect.getsource(display)
     assert "mts_research/ledgers" not in source and "mts_research.artifacts" not in source
     script = (_ROOT / "src/ai_fc/dashboard_parts/dashboard.js").read_text(encoding="utf-8")
-    for name in ("tsPupBasisLabel", "tsPupFold", "tsInputStateChip", "tsInputStateFold",
-                 "tsHolidayFlag", "tsV8ForwardDisclosure"):
+    for name in ("tsPupBasisLabel", "tsInputStateChip", "tsInputStateFold", "tsHolidayFlag"):
         match = re.search(r"function " + name + r"\(.*?\n}\n", script, re.S)
         assert match, name
         assert "data-ts-chart" not in match.group(0), name
+    # 2026-11-18 소유자 지시: 설명 접기('상승확률 읽는 법'·'입력 상태 읽는 법'·발행 시점 공시)는 제거
+    for removed in ("function tsPupFold(", "function tsV8ForwardDisclosure(",
+                    "상승확률 읽는 법", "입력 상태 읽는 법", "발행 시점·휴장 라벨 읽는 법"):
+        assert removed not in script, removed

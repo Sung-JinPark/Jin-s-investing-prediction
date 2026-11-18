@@ -1122,7 +1122,7 @@ def _p_up_disclosure(
         else:
             row = (signal.get("horizons") or {}).get(key) or {}
             rows[key] = {
-                "kind": "engine_conditional", "label": "엔진 조건부(봉인 구간 예측력 미검출)",
+                "kind": "engine_conditional", "label": "엔진 조건부",
                 "sealed_spearman": row.get("spearman"), "sealed_p_value": row.get("p_value"),
                 "sealed_n": signal.get("n"), "recent_up": recent,
             }

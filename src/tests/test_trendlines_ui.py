@@ -516,6 +516,9 @@ const selectedKey='bitcoin:representative:current_structure:all';TREND_CHART_VIE
 TREND_CHART_VIEWS.set('bitcoin:representative:all:all',{factor:8,offset:42});TREND_CHART_VIEWS.set('sk-hynix:representative:all:all',{factor:2,offset:null});renderTrendlinePage({asset:'bitcoin'});const entered={...TREND_REPRESENTATIVE_VIEW_OPTIONS.get('bitcoin')},entryBars=(pieces['[data-trend-representative-chart]'].innerHTML.match(/data-trend-bar=/g)||[]).length,entryLines=(pieces['[data-trend-representative-chart]'].innerHTML.match(/data-trend-line=/g)||[]).length,entryZoom=TREND_CHART_VIEWS.get('bitcoin:representative:all:all'),otherZoom=TREND_CHART_VIEWS.get('sk-hynix:representative:all:all');stopTrendLocalSession();process.stdout.write(JSON.stringify({html,initial,current,allBars,selectedLog,view,restored,pollZoom,entered,entryBars,entryLines,entryZoom,otherZoom,priorZoomCleared:!TREND_CHART_VIEWS.has(selectedKey),snapshot:attrs['data-trend-representative-snapshot'],noCriticalFetch:!TREND_CRITICAL_DETAILS.size,unchanged:before===JSON.stringify(f)}));})();'''
     out = run(tmp_path, program)
     assert out['html'].count('class="trend-chart"') == 1 and 'data-trend-version="representative"' in out['html']
+    # Owner 2026-11-18: no source fold, bar-range meta, method fold or chart help on the page.
+    assert not any(token in out['html'] for token in ('trend-data-meta', 'data-trend-representative-coverage', 'trend-line-meta',
+                                                     '계산 · 기준점', '실제 종가를 비교', '장중 관측', ' 기준</span>'))
     assert 'data-trend-current-chart' not in out['html'] and 'data-trend-full-chart' not in out['html']
     assert out['initial'] == {'lines': 3, 'bars': 900, 'cards': 3}
     assert out['current'] == {'lines': 1, 'bars': 126} and out['allBars'] == 900
@@ -674,6 +677,7 @@ def test_representative_short_history_keeps_one_computable_slot_and_renders_hold
     assert out['lines'] == 1 and out['bars'] == 126 and out['slots'] == ['hold', 'ready', 'hold']
     assert out['cards'].count('data-trend-representative-card=') == 3
     assert out['cards'].count('확정 일봉이 더 필요합니다.') == 2
+    assert 'trend-insight-note' not in out['cards'] and '확정 종가 기준' not in out['cards'] and '구조 참고선' not in out['cards']
 
 
 def test_independent_route_keeps_future_data_failure_from_blocking_trendlines(tmp_path):
@@ -735,7 +739,7 @@ def test_real_engine_snapshot_equations_are_renderable_without_refitting(tmp_pat
 def test_research_keeps_gap_and_distinct_quote_without_making_a_candle(tmp_path):
     detail = research_detail_fixture()
     out = run(tmp_path, 'const d=' + json.dumps(detail) + r''';
-const before=JSON.stringify(d),m=trendChartModel(d,63,'linear',390),svg=trendSvg(d,m,{label:'TEST FIXTURE',currency:'KRW'}),markup=trendResearchMarkup(d,{currency:'KRW'});
+const before=JSON.stringify(d),m=trendChartModel(d,63,'linear',390),svg=trendSvg(d,m,{label:'TEST FIXTURE',currency:'KRW'});
 process.stdout.write(JSON.stringify({
  valid:trendValidateDetail(d)===d,same:before===JSON.stringify(d),
  gaps:(svg.match(/data-trend-gap=/g)||[]).length,
@@ -743,15 +747,13 @@ process.stdout.write(JSON.stringify({
  missingIsNotCandle:!svg.includes(`data-trend-bar="${d.gaps[0].session}"`),
  quote:(svg.match(/data-trend-quote-point=/g)||[]).length,
  quoteWithinAxis:m.y(m.quote.price)>m.T&&m.y(m.quote.price)<m.H-m.B,
- discloses:markup.includes('참고선 · 가격 조정 검증 전'),
- quoteSeparated:markup.includes('장중 관측')&&markup.includes('일봉'),
- folded:markup.startsWith('<details')&&!markup.includes('<details open'),
- noDateList:!markup.includes(d.gaps[0].session),
+ noSourceFold:typeof trendResearchMarkup==='undefined',
+ quoteTitleShort:!svg.includes('일봉 종가 아님'),
  unsafeLink:trendSourceUrl('javascript:alert(1)')
 }));''')
     assert out == {'valid': True, 'same': True, 'gaps': 1, 'candles': 63,
                    'missingIsNotCandle': True, 'quote': 1, 'quoteWithinAxis': True,
-                   'discloses': True, 'quoteSeparated': True, 'folded': True, 'noDateList': True, 'unsafeLink': None}
+                   'noSourceFold': True, 'quoteTitleShort': True, 'unsafeLink': None}
 
 
 def test_quote_date_borders_use_axis_formula_and_nearest_price_order(tmp_path):
@@ -808,7 +810,7 @@ process.stdout.write(JSON.stringify({m,unchanged:before===JSON.stringify(d),boun
 def test_clean_empty_loading_and_validation_states_never_claim_ready_or_show_technical_controls(tmp_path, asset, phase):
     out = run(tmp_path, 'process.stdout.write(JSON.stringify({markup:trendEmptyMarkup(' + json.dumps(asset) + ',' + json.dumps(phase) + ')}));')
     text = out['markup']
-    assert '<button' not in text and '<svg' not in text
+    assert '<button' not in text and '<svg' not in text and '<p>' not in text
     assert not any(term in text for term in ('로컬', '개인', '파일', '매수', '매도', '예측', '확정 이탈'))
     assert ('시세를 확인하고 있습니다' in text) == (phase == 'checking')
     if phase == 'invalid':
@@ -834,12 +836,12 @@ process.stdout.write(JSON.stringify({outer:rendered.outer,body:pieces['.trend-co
     assert not any(token in combined for token in ('data-trend-local-connect', 'data-trend-private', 'trend-research"', 'trend-gap-note', 'input type="file"'))
     body = out['body']
     assert body.index('class="trend-title"') < body.index('class="trend-controls trend-axis-controls"') < body.index('class="trend-chart"')
-    assert body.index('class="trend-chart"') < body.index('class="trend-explanation"') < body.index('data-trend-insights') < body.index('class="trend-data-meta"')
+    assert body.index('class="trend-chart"') < body.index('class="trend-explanation"') < body.index('data-trend-insights')
     assert '<svg' in out['chart'] and out['insights'].count('data-trend-insight=') == 2
     assert '전체 추세선을 확인하고 있습니다' in out['full']
     assert body.count('class="trend-chart"') == 2
     assert body.index('data-trend-version="full"') < body.index('data-trend-version="current"')
-    assert '<details class="trend-data-meta">' in body and '<details open' not in body
+    assert 'trend-data-meta' not in body and '<details open' not in body
     assert 'NaN' not in out['lines'] and 'undefined' not in out['lines']
 
 
@@ -1192,7 +1194,7 @@ const hit=trendHoverAt(m,m.x(quote.session_index),m.y(quote.price)),bar=trendHov
 process.stdout.write(JSON.stringify({quote:hit,quoteText:trendHoverText(hit,asset),expected:trendPrice(quote.price,asset),bar:bar,barText:trendHoverText(bar,asset),unchanged:before===JSON.stringify(d)}));''')
     assert out['quote']['kind'] == 'quote' and out['quote']['row'] == detail['intraday_quote']
     assert detail['intraday_quote']['date'] in out['quoteText'] and out['expected'] in out['quoteText']
-    assert '장중' in out['quoteText'] and '종가 아님' in out['quoteText']
+    assert '장중' in out['quoteText'] and '종가 아님' not in out['quoteText']
     assert out['bar']['kind'] == 'bar' and out['bar']['row'] == detail['bars'][-1]
     assert '종가' in out['barText'] and '장중' not in out['barText'] and out['unchanged']
 
@@ -1507,7 +1509,7 @@ def test_local_source_refresh_failure_uses_plain_reason_and_keeps_valid_chart(tm
     row.update(status='stale', stale=True, error='refresh_failed')
     program = local_browser_stub() + 'const envelope=' + json.dumps(private_import_envelope) + ';const status=' + json.dumps(status) + r''';
 globalThis.fetch=async url=>response(url.endsWith('/status')?JSON.stringify(status):JSON.stringify(envelope));
-(async()=>{TREND_LOCAL_ENABLED=false;const session=bindTrendLocalConnection(root,{asset:'bitcoin'});session.onData=()=>{};await Promise.resolve();TREND_LOCAL_ENABLED=true;await refreshTrendLocalSession(session);const notice=nodes['[data-trend-local-message]'].textContent;const out={phase:session.phase,chart:TREND_PRIVATE_DETAILS.has('bitcoin'),plain:notice.includes('마지막 확인 자료를 표시합니다'),noCode:!notice.includes('refresh_failed')};stopTrendLocalSession();process.stdout.write(JSON.stringify(out));})();'''
+(async()=>{TREND_LOCAL_ENABLED=false;const session=bindTrendLocalConnection(root,{asset:'bitcoin'});session.onData=()=>{};await Promise.resolve();TREND_LOCAL_ENABLED=true;await refreshTrendLocalSession(session);const notice=nodes['[data-trend-local-message]'].textContent;const out={phase:session.phase,chart:TREND_PRIVATE_DETAILS.has('bitcoin'),plain:notice.includes('갱신 지연')&&notice.includes('확인 자료 유지')&&!notice.includes('마지막 확인 자료를 표시합니다'),noCode:!notice.includes('refresh_failed')};stopTrendLocalSession();process.stdout.write(JSON.stringify(out));})();'''
     assert run(tmp_path, program) == {'phase': 'stale', 'chart': True, 'plain': True, 'noCode': True}
 
 

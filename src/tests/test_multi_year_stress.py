@@ -70,7 +70,10 @@ def test_multi_year_stress_is_added_to_the_btc_realty_category() -> None:
     contract = (ROOT / "data/contracts/multi_year_bubble_stress_v1.yaml").read_text(encoding="utf-8")
     assert "DATA.multi_year_stress?.presentation_html" in script
     payload = build_multi_year_stress(_cross_asset())
-    assert "가정 스트레스 · 발생확률 아님" in payload["presentation_html"]
+    assert "가정 스트레스" in payload["presentation_html"]
+    # 2026-11-18 소유자 지시: 카드별 부정 문구·표본/as_of 메타는 화면에서 뺀다.
+    for retired in ("발생확률 아님", "관측 아님", "확률 아님", "가격 전망 아님", "연도별 사례 n=", "as_of "):
+        assert retired not in payload["presentation_html"], retired
     assert "역사 낙폭 범위와 BTC 조건부 경로" in payload["presentation_html"]
     assert payload["presentation_html"].count("<svg") == 2
     domains = re.findall(r'data-domain="([^"]+)"', payload["presentation_html"])

@@ -378,7 +378,7 @@ def build_multi_year_stress(cross_asset: dict[str, Any]) -> dict[str, Any]:
         for row in payload["historical_episodes"]
     )
     payload["presentation_html"] = (
-        '<section class="scenario-v52-risk-banner"><div><span>가정 스트레스 · 발생확률 아님</span>'
+        '<section class="scenario-v52-risk-banner"><div><span>가정 스트레스</span>'
         '<strong>AI 버블 조정이 5년 사이클로 이어진다면</strong></div></section>'
         '<section class="scenario-v52-main"><div class="scenario-v52-section-title"><p class="eyebrow">TWO LAYERS · SAME LOG SCALE</p>'
         '<h2>역사 낙폭 범위와 BTC 조건부 경로</h2></div>'
@@ -386,14 +386,13 @@ def build_multi_year_stress(cross_asset: dict[str, Any]) -> dict[str, Any]:
         '<article class="multi-year-stress-panel"><header><span>HISTORY RANGE</span><h3>역사적 주식 낙폭</h3><p>사례 4개 중앙값·25~75% + 닷컴 NASDAQ 실측</p></header>'
         f'<div class="statistics-chart">{_svg(history_chart, "선택한 역사 낙폭 사례의 중앙값과 범위", shared_domain)}</div>'
         f'<div class="multi-year-stress-legend">{_legend(history_chart)}</div></article>'
-        '<article class="multi-year-stress-panel"><header><span>CONDITIONAL PATH</span><h3>BTC 자금이동 가정</h3><p>가정 경로 · 관측 아님</p></header>'
+        '<article class="multi-year-stress-panel"><header><span>CONDITIONAL PATH</span><h3>BTC 자금이동 가정</h3><p>가정 경로</p></header>'
         f'<div class="statistics-chart">{_svg(rotation_chart, "주식 스트레스와 Bitcoin 자금이동 조건부 경로", shared_domain)}</div>'
         f'<div class="multi-year-stress-legend">{_legend(rotation_chart)}</div></article></div>'
         '<div class="multi-year-stress-endpoints"><p><span>선택 사례별 5년 종점</span><small>시작=100 · 배당 포함 S&amp;P 계열</small></p>'
         f'<div>{episode_endpoints}</div></div>'
-        f'<div class="multi-year-stress-reading"><p><span>역사 범위</span><strong>중앙값 {composite["center_index"][-1]:.1f}</strong><small>4개 사례 요약 · 확률 아님</small></p>'
-        f'<p><span>BTC 조건부</span><strong>중심 {btc_rotation_center[-1]:.1f}</strong><small>이동비중 35%·흡수탄력성 1.60 가정 · 가격 전망 아님</small></p></div>'
-        f'<p class="chart-note">연도별 사례 n={"/".join(str(value) for value in composite["observations_by_horizon"])} · beta 관측 {payload["ai_bust_counterfactual"]["beta_observations"]}일 · as_of {html.escape(str(payload["as_of"]))}</p></section>'
+        f'<div class="multi-year-stress-reading"><p><span>역사 범위</span><strong>중앙값 {composite["center_index"][-1]:.1f}</strong><small>4개 사례 요약</small></p>'
+        f'<p><span>BTC 조건부</span><strong>중심 {btc_rotation_center[-1]:.1f}</strong><small>이동비중 35%·흡수탄력성 1.60 가정</small></p></div></section>'
     )
     validate_multi_year_stress(payload)
     return payload

@@ -23,6 +23,6 @@ console.log(JSON.stringify([
         ["node", "-e", script], capture_output=True, encoding="utf-8", check=True)
     assert json.loads(result.stdout) == [
         " · 표본 1/2회 미달·이전 β 유지",
-        " · gate 경계(n=156)",
+        " · gate 경계",
         "",
     ]

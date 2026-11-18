@@ -151,11 +151,12 @@ def test_workspace_markup_carries_every_editor_hook_and_preview_keeps_one_entry(
     out = run(tmp_path, SESSIONS + r'''
 const ws={context:{family:'all'},family:'all',hideAuto:false,panelOpen:true,helpOpen:true,assetMenu:true,confirmClose:false,assetId:'soxx',pendingAsset:null};
 const frame=trendWorkspaceFrame({asset_id:'soxx'},{label:'SOXX'},'linear',ws),preview=trendPreviewBar({asset_id:'soxx'});
-const hooks=['data-trend-manual-select','data-trend-manual-status','data-trend-manual-editor','data-trend-manual-form','data-trend-manual-list','data-trend-save-state','data-trend-recovery','data-trend-more','data-trend-import','data-trend-ws-span','data-trend-ws-goto'];
-process.stdout.write(JSON.stringify({missing:hooks.filter(hook=>!frame.includes(hook)),tools:Object.keys(TREND_TOOL_ACTIONS).filter(action=>!frame.includes('data-trend-manual-action="'+action+'"')),ranges:TREND_RANGE_PRESETS.every(([label])=>frame.includes('data-trend-range="'+label+'"')),menu:TREND_VISIBLE_ASSETS.every(([id])=>frame.includes('data-trend-ws-asset="'+id+'"')),help:frame.includes('Alt+H'),preview,legacyToolbar:preview.includes('data-trend-manual-action')}));
+const hooks=['data-trend-manual-select','data-trend-manual-status','data-trend-manual-editor','data-trend-manual-form','data-trend-manual-list','data-trend-save-state','data-trend-recovery','data-trend-more','data-trend-import','data-trend-ws-goto'];
+process.stdout.write(JSON.stringify({missing:hooks.filter(hook=>!frame.includes(hook)),tools:Object.keys(TREND_TOOL_ACTIONS).filter(action=>!frame.includes('data-trend-manual-action="'+action+'"')),ranges:TREND_RANGE_PRESETS.every(([label])=>frame.includes('data-trend-range="'+label+'"')),menu:TREND_VISIBLE_ASSETS.every(([id])=>frame.includes('data-trend-ws-asset="'+id+'"')),help:frame.includes('Alt+H'),noSpan:!frame.includes('data-trend-ws-span'),preview,legacyToolbar:preview.includes('data-trend-manual-action')}));
 ''', FIXTURE)
     assert out['missing'] == []
     assert out['tools'] == [] and out['ranges'] and out['menu'] and out['help']
+    assert out['noSpan']  # bar-range readout removed (owner 2026-11-18)
     assert 'data-trend-tool="expand"' in out['preview'] and not out['legacyToolbar']
 
 

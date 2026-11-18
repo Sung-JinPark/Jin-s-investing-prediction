@@ -292,7 +292,9 @@ def test_header_uses_the_newer_of_latest_close_and_scenario_anchor() -> None:
     header = script[script.index("function latestNasdaqClose()"):script.index("// ── 부트 ──")]
     assert "nasdaq_latest" in header and "String(q.session_date)>=String(sc.asof)" in header
     assert "Math.max(Number(sc.ath),latest.value)" in header
-    assert "`${latest.session} · 전고점 대비" in header
+    # 세션 날짜 부가줄은 제거됐다(2026-11-18 소유자 지시) — 늦은 세션은 아래 '지연' 칩이 말한다
+    assert "`${latest.session} · 전고점 대비" not in header
+    assert "`전고점 대비 ${vsAth>=0?'+':''}" in header
     assert "railIndex.textContent='NASDAQ '+num(Math.round(latest.value))" in header
     assert "지연 · ${lag.session}" in header
 

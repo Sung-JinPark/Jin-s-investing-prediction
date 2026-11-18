@@ -1155,7 +1155,8 @@ body:has(.track-page[data-track-mode="operator"]) .view-map{display:none}
 :where(h1,h2,h3,h4,p,summary,button){word-break:keep-all;overflow-wrap:break-word}
 
 /* Mobile presentation stability: layout-only repairs; copy, data, and chart logic stay unchanged. */
-.scenario-v52-method:not([open])>div{display:none}
+details.scenario-v52-method:not([open])>div{display:none}
+.scenario-v52-outcomes>div{padding-top:16px}
 @media(max-width:799px){
   /* 고정 헤더 64px + sticky 시장 스트립 58px = 122px가 실제로 가리는 높이다.
      110px면 앵커로 이동했을 때 제목 12px가 스트립 뒤로 들어간다. */
