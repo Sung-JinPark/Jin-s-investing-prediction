@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import copy
 import json
+import re
 from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 
@@ -183,8 +184,13 @@ def test_repository_profile_is_bound_to_the_frozen_admission_and_wired_without_a
 
     script = (ROOT / "src/ai_fc/dashboard_parts/dashboard.js").read_text(encoding="utf-8")
     block = script[script.index("function overheatProfileBlock"):script.index("function statisticsOverheatPanel")]
-    assert "합산 지수 아님" in block and "대표값 내역 아님" in block and "미측정" in block
-    assert "다른 척도" in block and "overheatTone" not in block and "max_age_days" in block
+    # 2026-11-18 사용자 지시: 주석 줄(합산 지수 아님 · 대표값 내역 아님 · …)과 '다른 척도'는 화면에서 뺐다(계약 never_labels).
+    shown = re.sub(r"/\*.*?\*/", "", block, flags=re.S)  # 화면 문구만 본다 — 코드 주석은 설명을 남겨도 된다
+    for label in PROFILE_CONTRACT["display"]["never_labels"]:
+        assert label not in shown, label
+    assert PROFILE_CONTRACT["display"]["required_labels"] == []
+    assert "미측정" in block and "2000년 3월 = 100" in block
+    assert "overheatTone" not in block and "max_age_days" in block
     assert "reduce(" not in block and "<svg" not in block  # 화면에서도 합치지 않고, 글자는 HTML 로만
     panel = script[script.index("function statisticsOverheatPanel"):script.index("function predictionSectionNav")]
     call = "overheatProfileBlock(DATA.dotcom_overheat_profile)"

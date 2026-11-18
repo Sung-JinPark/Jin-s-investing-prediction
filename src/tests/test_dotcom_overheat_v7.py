@@ -471,9 +471,11 @@ def test_recorded_verdict_is_a_failed_composite_with_a_published_ranking() -> No
 def test_ranking_is_shown_as_a_table_and_the_index_is_not_wired() -> None:
     script = (ROOT / "src/ai_fc/dashboard_parts/dashboard.js").read_text(encoding="utf-8")
     block = script[script.index("function overheatInfluenceBlock"):script.index("function statisticsOverheatPanel")]
-    assert "합산 지수 아님" in block and "대표값 가중치 아님" in block and "참고 의견" in block
-    assert "오늘 값 아님" in block and "매매 신호 아님" in block and "전진 검증은 없음" in block
-    assert "ohi-rank" not in block and "순위 번호를 매기지 않음" in block  # 인접 순위는 오차 범위 안
+    # 2026-11-18 사용자 지시: 주석 줄·'오늘 값 아님'·읽는 법·한계 접힘은 화면에서 뺐다. 순위 번호는 여전히 싣지 않는다.
+    for removed in ("합산 지수 아님", "대표값 가중치 아님", "참고 의견", "오늘 값 아님", "매매 신호 아님",
+                    "전진 검증은 없음", "순위 번호를 매기지 않음", "읽는 법", "ohi-how", "ohi-limits", "낮을수록"):
+        assert removed not in block, removed
+    assert "ohi-rank" not in block  # 인접 순위는 오차 범위 안
     assert "영향도" not in block  # 인과로 읽히는 말을 쓰지 않는다
     assert "reduce(" not in block and "<svg" not in block  # 화면에서도 합치지 않고, 글자는 HTML 로만
     panel = script[script.index("function statisticsOverheatPanel"):script.index("function predictionSectionNav")]

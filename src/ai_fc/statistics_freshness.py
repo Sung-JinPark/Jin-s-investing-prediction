@@ -200,7 +200,6 @@ def build_indicator_freshness(
                "status_label": STATUS_LABELS[status], "source_ids": source_ids, "sources": health}
         if spec.get("id") == "ipo_count_operating_12m":
             row["period_label"] += " 확정 · 최근 12개월 합"
-            row["note"] = "확정 원본은 약 연 1회 개정됩니다. 잠정치는 과열도 지수에 포함되지 않습니다."
             provisional = next((s for s in chart.get("series") or [] if s.get("provisional")), {})
             provisional_points = provisional.get("points") or []
             if provisional_points:
@@ -231,10 +230,6 @@ def build_indicator_freshness(
                                 if state.get("status") != "current")
         if int((theme_status.get("summary") or {}).get("pending_overdue") or 0):
             auxiliary_issues.append("ipo_theme_review_overdue")
-        for row in rows:
-            if row["id"] == "ipo_count_operating_12m":
-                summary = theme_status.get("summary") or {}
-                row["note"] += f" 해외 상장 감시 {summary.get('venues_ok', 0)}/{summary.get('venues_total', 0)}개 시장 확인."
     for row in rows:
         if (row["id"] == "ipo_count_operating_12m" and row["status"] == "current"
                 and any(issue.startswith("ipo_") for issue in auxiliary_issues)):

@@ -770,7 +770,7 @@ def test_workspace_utility_contract() -> None:
     assert ".statistics-filters button{min-width:112px" in html
     assert "font-size:.8rem;line-height:1.25;word-break:keep-all" in html
     assert "overflow-wrap:break-word;word-break:keep-all" in html
-    assert "statistics-reading-guide" in html
+    assert "statistics-reading-guide\"><summary>" not in html  # 2026-11-18 사용자 지시: 카드의 '읽는 법' 접힘은 뺐다
     assert "statistics-now" in html
     assert ".statistics-meaning>strong,.statistics-now>strong{font-size:13px" in html
     assert ".statistics-now{grid-column:1/-1;padding-top:13px;border-top:1px solid #b9d8d0;display:grid;grid-template-columns:1fr;gap:7px" in html
