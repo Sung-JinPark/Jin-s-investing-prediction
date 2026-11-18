@@ -45,7 +45,7 @@
     "2026-11": {
       "priced_total": 4,
       "operating_approx": 3,
-      "fetched_at": "2026-11-18T08:22:42+00:00",
+      "fetched_at": "2026-11-18T08:42:39+00:00",
       "response_sha256": "15d83fa75c0d287992ab82d8c81e88f32447b1c6bdfb03d697c334f7af64dfa9",
       "complete": false,
       "stale": false

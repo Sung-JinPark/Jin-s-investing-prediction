@@ -1,6 +1,6 @@
 # Ledger accumulation audit
 
-- Generated: `2026-11-18T07:59:02+00:00`
+- Generated: `2026-11-18T08:47:18+00:00`
 - Latest completed NYSE day: `2026-11-17`
 - Result: accumulating 88 · frozen 2 · stalled 2 · inactive 12 · violation 0 · planned 13
 
@@ -44,7 +44,7 @@
 | `source_monitoring` | trading_daily | 100 | 2026-11-17 | **stalled** | missing trading days: 2026-08-25, 2026-08-27, 2026-08-28, 2026-10-23, 2026-11-04; writer settles within 18h of the close; expects 2026-11-16 |
 | `source_monitoring_status` | trading_daily | 1 | 2026-11-17 | **accumulating** | writer settles within 18h of the close; expects 2026-11-16 |
 | `ipo_reference_batch_receipts` | event | 4 | 2026-08-19 | **accumulating** | — |
-| `ipo_reference_batch_status` | weekly | 1 | 2026-11-15 | **accumulating** | — |
+| `ipo_reference_batch_status` | weekly | 1 | 2026-11-18 | **accumulating** | — |
 | `ipo_edgar_candidates` | weekly | 1 | 2026-11-14 | **accumulating** | — |
 | `ipo_ai_classification_decisions` | biweekly | 1 | 2026-11-07 | **accumulating** | — |
 | `statistics_alert_notify_state` | event | 1 | 2026-11-14 | **accumulating** | — |
