@@ -536,7 +536,8 @@ def test_five_section_information_architecture_contract() -> None:
     assert ".today-page{min-height:calc(100dvh - 48px)" in css
     assert "function renderTimeseries(initialState)" in script
     assert "numbers_visible===true" in script
-    assert "기존 미래전망으로 자동 전환하지 않습니다" in script
+    # 보류 화면의 설명 꼬리는 2026-11-18 소유자 지시로 제거 — 다시 생기지 않게 부재를 고정
+    assert "기존 미래전망으로 자동 전환하지 않습니다" not in script
     assert ".timeseries-horizons{display:grid;grid-template-columns:repeat(4" in css
     assert "grid-template-columns:repeat(5,1fr)" in css
 

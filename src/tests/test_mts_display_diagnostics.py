@@ -547,7 +547,9 @@ def test_hero_and_live_section_call_sites() -> None:
     start = source.index("function renderTimeseriesV8(")
     body = source[start:source.index("\nfunction ", start + 10)]
     assert "${tsInputStateChip(ts)}${tsMonitorBadges(ts)}" in body
-    assert "${tsV8ForwardDisclosure(ts)}${tsMonitorFold(ts)}" in body
+    assert "${timeseriesLiveTiles(ts)}${tsMonitorFold(ts)}" in body
+    # 2026-11-18: 발행 시점·휴장 공시 줄과 '읽는 법' 접기는 소유자 지시로 제거
+    assert "tsV8ForwardDisclosure" not in source
     hidden_start = source.index("function renderTimeseries(")
     hidden = source[source.index("if(!visible){", hidden_start):source.index("const horizons=[1,5,21,63];", hidden_start)]
     assert "tsMonitorBadges" not in hidden and "tsMonitorFold" not in hidden
