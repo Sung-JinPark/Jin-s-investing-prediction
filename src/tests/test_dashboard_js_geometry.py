@@ -407,7 +407,11 @@ console.log(JSON.stringify({
 
 
 def test_home_timeseries_card_carries_the_daily_origin_and_provisional_flag() -> None:
-    """사용자 결정 2026-10-07: 홈 카드도 매일 갱신되는 표시 원점을 쓴다(잠정이면 표시)."""
+    """사용자 결정 2026-10-07: 홈 카드도 매일 갱신되는 표시 원점을 쓴다(잠정이면 표시).
+
+    2026-11-18 소유자 지시(설명 문구 전부 제거): 홈 카드 부제의 '<MM-DD> 종가 기준' 꼬리는 뺐다.
+    잠정 여부는 부제 대신 카드 칩('잠정')으로만 남는다. 다시 붙지 않게 부재를 고정한다.
+    """
     source = _dashboard_source()
     labels = re.search(
         r"function tsCadenceLabel\([\s\S]+?\n(?=function tsForecastSignal)", source)
@@ -432,9 +436,11 @@ console.log(JSON.stringify({
     assert result["dailyLabel"] == "2026-10-06 종가 기준 · 매일 갱신"
     assert result["weeklyLabel"] == "2026-10-02 종가 기준 · 주 1회 갱신"
     assert "DGS10·DGS2·VIX" in result["title"]
-    # 히어로는 잠정 배지를, 홈 카드는 원점 날짜를 싣는다. 채점 표면은 주간이라고 말한다.
+    assert "공식 시계열 확정 후" not in result["title"], "툴팁은 잠정 입력 목록만 싣는다"
+    # 히어로는 잠정 배지를 싣는다. 홈 카드는 원점 날짜 꼬리 없이 잠정 칩만 싣는다. 채점 표면은 주간이라고 말한다.
     assert "ts.input_state==='provisional'" in source and ">잠정</span>" in source
-    assert "종가 기준${tsf.provisional?' 잠정':''}" in source
+    assert "종가 기준${tsf.provisional" not in source
+    assert "tsf&&tsf.provisional?'잠정':null" in source
     assert "<span>주간 원점 · 배포 후 쌓인 실제 성적</span>" in source
     assert "검증 성적 · 100점 환산 · 주간 원점" in source
     assert "주 1회 갱신</p>" not in source, "히어로 주기 라벨은 cadence 에서 온다"
@@ -453,6 +459,7 @@ const hasNumeric=v=>v!==null&&v!==undefined&&Number.isFinite(Number(v));
 const num=v=>Number(v).toLocaleString();
 console.log(JSON.stringify({
   all:homeSignalSummary(78,{pct:72},{pct:61}),
+  decimal:homeSignalSummary(78,{pct:72},{pct:58,pctText:'58.3'}),
   noHeat:homeSignalSummary(78,{pct:72},null),
   onlyOne:homeSignalSummary(78,null,null),
   none:homeSignalSummary(null,null,null)
@@ -460,6 +467,8 @@ console.log(JSON.stringify({
 """
     result = _run_js(program)
     assert result["all"] == "연말 몬테카를로 예측 78%, 3개월 시계열 예측 72%, 닷컴 대비 과열도 61%입니다."
+    # 2026-11-18 소유자 지시: 과열도는 소수점 한 자리까지 (v8 value_raw).
+    assert result["decimal"] == "연말 몬테카를로 예측 78%, 3개월 시계열 예측 72%, 닷컴 대비 과열도 58.3%입니다."
     # 빠진 신호는 자리를 비우고 넘어간다 — 없는 숫자를 지어내지 않는다.
     assert result["noHeat"] == "연말 몬테카를로 예측 78%, 3개월 시계열 예측 72%입니다."
     # 한 장짜리는 요약이 아니다 — 빈 문자열을 돌려 시나리오 문장으로 되돌아가게 한다.
@@ -513,6 +522,9 @@ def test_home_overheat_card_never_shows_the_composite_without_its_spread() -> No
 
     2026-11-12 부터 대표값은 v8 판단 가중 평균이다(열려 있을 때). 그때 산포 자리에는 '가중을 달리 잡았을 때의 범위'가
     들어간다 — 부문 산포를 다른 것으로 바꾼 것이지 없앤 것이 아니다. v8 이 닫히면 아래 v5 경로(부문 산포) 그대로다.
+
+    2026-11-18 소유자 지시: 홈 카드는 v8 이 열려 있으면 value_raw 를 소수점 한 자리로 보이고(pctText), 부제는
+    '100 = 닷컴 정점' 만 남긴다(가중 범위 설명·빠짐 재배분 칩 제거). 가중 범위는 미니 그림의 띠와 통계 탭이 싣는다.
     """
     source = _dashboard_source()
     pattern = "function dotcomOverheatSignal" + r"\([\s\S]+?" + chr(10) + "}" + chr(10)
@@ -529,6 +541,7 @@ def test_home_overheat_card_never_shows_the_composite_without_its_spread() -> No
               "missing:dotcomOverheatSignal(null)}));")
     result = _run_js_file(match.group(0) + chr(10) + call + chr(10))
     assert result["ok"]["pct"] == live["overheat_pct"]
+    assert result["ok"]["pctText"] == str(live["overheat_pct"])
     assert result["ok"]["checkedAt"] == live["generated_at"]
     assert [result["ok"]["lo"], result["ok"]["hi"]] == live["category_span"]
     assert result["ok"]["beyond"] == live["beyond_peak_count"], "필드명이 모듈과 어긋났다"
@@ -545,6 +558,8 @@ def test_home_overheat_card_never_shows_the_composite_without_its_spread() -> No
             + ",null),dead:dotcomOverheatSignal({status:'unavailable'}," + json.dumps(weighted, default=str) + ")}));")
     result = _run_js_file(match.group(0) + chr(10) + call + chr(10))
     assert result["open"]["weighted"] is True and result["open"]["pct"] == weighted["overheat_pct"]
+    assert result["open"]["pctText"] == f"{float(weighted['value_raw']):.1f}"  # 소수점 한 자리
+    assert result["closed"]["pctText"] == str(live["overheat_pct"])
     assert [result["open"]["lo"], result["open"]["hi"]] == [weighted["range"]["low"], weighted["range"]["high"]]
     assert result["open"]["previous"] == live["overheat_pct"] and result["open"]["beyond"] == weighted["beyond_peak_count"]
     assert result["open"]["missing"] == len(weighted["missing"]) == 0
@@ -554,6 +569,10 @@ def test_home_overheat_card_never_shows_the_composite_without_its_spread() -> No
     card = source.split("'닷컴 대비 과열도'", 1)[1][:520]
     assert "100 = 닷컴 정점" in card, "축의 의미를 카드가 직접 말해야 한다"
     assert "분야별 ${heat.lo}~${heat.hi}" in card, "산포 없이 대표값만 내보내면 안 된다"
+    assert "heat.pctText||heat.pct" in card, "v8 대표값은 소수점 한 자리로 보인다"
+    assert "heat.weighted?'100 = 닷컴 정점'" in card
+    for gone in ("판단 가중", "빠짐(가중 재배분)", "heat.missing"):
+        assert gone not in card, gone
     assert "${heat.beyond}개 지표는 이미 정점 초과" in card
     assert "cycle.pct" not in card, "사이클 경과율을 과열도 값으로 대체하면 안 된다"
 
@@ -819,7 +838,8 @@ console.log(JSON.stringify({tone:evAfpTone({metric:'eps',actual:'$14',consensus:
     assert "is-beat" not in result["table"] and "is-miss" not in result["table"]
     assert "EUR · 보통주 · 기본 EPS · US GAAP" in result["table"]
     assert result["adr"] == "USD · ADR · 희석 EPS · 대만 IFRS"
-    assert "직접 비교하지 않습니다" in result["table"]
+    # 2026-11-18 소유자 지시: 행 아래 비교 불가 설명 문장은 뺐다 — 상회·하회 색을 칠하지 않는 것으로 충분하다.
+    assert "직접 비교하지 않습니다" not in result["table"] and "상회·하회를 비교하지 않습니다" not in result["table"]
     assert "https://asml.example/release" in result["table"] and "https://asml.example/statements" in result["table"]
     assert "&lt;bad&gt;" in result["table"]
 
@@ -848,7 +868,7 @@ console.log(JSON.stringify({eps,revenue,metrics:display.map(row=>row.metric),ton
     assert "원문 EUR 12.95" in eps["note"] and "원문 이전 EUR 7.59" in eps["note"]
     assert "ECB 2026-10-14 · 1 EUR = 1.1195 USD" in eps["note"]
     assert "예상·이전: Nasdaq 기준" in eps["note"]
-    assert "공식 기본 EPS와 제공업체 EPS는 산출 기준이 다를 수 있습니다." in eps["note"]
+    assert "산출 기준이 다를 수 있습니다" not in eps["note"]  # 2026-11-18 설명 문장 제거
     assert "변환 및 예상과의 직접 비교를 하지 않습니다" not in eps["note"]
     assert eps["comparison_allowed"] is False and result["tone"] == ""
     assert revenue["actual"] == "$13,056M" and revenue["currency"] == "USD"
@@ -864,15 +884,11 @@ console.log(JSON.stringify({table:evAfpTable(rows),projectedTable:evAfpTable(evD
     for key in ("table", "projectedTable", "detail"):
         html = result[key]
         assert all(url in html for url in ("https://asml.example/release", "https://nasdaq.example/asml", "https://ecb.example/eur-usd"))
-        assert "원문 EUR 12.95" in html and "1 EUR = 1.1195 USD" in html
-        assert "수집 2026-10-14 14:05 UTC" in html
+        # 2026-11-18 소유자 지시: 수집 시각·'외부 공개값 · 참고 의견' 꼬리와 '환산 기준·원문' 접기는 표에서 뺐다.
+        assert "수집 2026-10-14" not in html and "외부 공개값" not in html
         assert "is-beat" not in html and "is-miss" not in html
         assert "통화·주식 기준이 다른" not in html
-        details = re.findall(r'<tr class="afp-conversion-row"><td colspan="4" class="afp-conversion-note"><details><summary>환산 기준·원문</summary><p>(.*?)</p></details></td></tr>', html)
-        assert len(details) == 2
-        assert "원문 EUR 12.95" in details[0] and "보통주 · 기본 EPS · US GAAP" in details[0]
-        assert "금액 단위: 백만 USD" in details[1]
-        assert "<details open" not in html
+        assert "환산 기준·원문" not in html and "afp-conversion-row" not in html
         assert '<th scope="row">기본 EPS · USD 환산</th>' in html
         primary = re.findall(r'<td class="afp-actual">(.*?)</td>', html)
         assert "$14.50" in primary and "$13,056M" in primary
@@ -936,7 +952,9 @@ console.log(JSON.stringify({asml:questionStatusLabel(asml),tsmc:questionStatusLa
 """)
     assert result["asml"]["text"] == "판정 대기"
     assert result["tsmc"]["text"] == "진행 중" and result["futureNotice"] == ""
-    assert "USD ADR 컨센서스를 직접 비교하지 않습니다" in result["notice"]
+    # 2026-11-18 소유자 지시: '판정 대기' 라벨과 발표값 링크만 남기고 설명 문장은 뺐다.
+    assert "판정 대기" in result["notice"]
+    assert "직접 비교하지 않습니다" not in result["notice"] and "판정합니다" not in result["notice"]
     assert 'href="#today/event/asml"' in result["notice"]
     assert result["resolved"]["text"] == "완료" and result["unchanged"] is True
 

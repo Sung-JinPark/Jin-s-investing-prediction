@@ -300,9 +300,12 @@ def test_dashboard_shows_the_weighted_value_as_headline_and_says_the_weights_are
     assert "DATA" not in signal.split("*/")[-1]  # 신호 함수는 바깥을 읽지 않는다 — 게이트는 호출부가 건다
     assert "category_span" in signal  # 이전 산식 경로가 남아 있다
     home = script[script.index("${card('닷컴 대비 과열도'"):script.index("'닷컴 대비 과열도 상세 보기'")]
-    assert "heat.weighted?" in home and "판단 가중 · 가중에 따라" in home and "분야별 ${heat.lo}~${heat.hi}" in home
-    assert "heat.missing" in home and "빠짐(가중 재배분)" in home  # 홈 카드도 재배분된 값임을 말한다
+    assert "heat.weighted?" in home and "분야별 ${heat.lo}~${heat.hi}" in home
+    # 2026-11-18 소유자 지시: 홈 카드 부제는 '100 = 닷컴 정점' 만, 칩은 '정점 초과' 만 — 가중 설명·빠짐 재배분 문구는 뺐다.
+    assert "판단 가중 · 가중에 따라" not in home and "빠짐(가중 재배분)" not in home and "heat.missing" not in home
+    assert "heat.pctText||heat.pct" in home  # 대표값은 소수점 한 자리(value_raw)
     assert "missing:Array.isArray(w.missing)?w.missing.length:0" in signal
+    assert "raw.toFixed(1)" in signal and "w.value_raw" in signal
     assert "dotcomOverheatSignal(DATA.dotcom_overheat,overheatWeighted(DATA.dotcom_overheat_weighted))" in script
     blocks = script[script.index("function overheatProfileBlock"):script.index("function overheatWeighted")]
     assert "overheatSpeedCount(overheatWeighted(DATA.dotcom_overheat_weighted))" in blocks  # 실제로 들어간 속도 지표 수를 말한다

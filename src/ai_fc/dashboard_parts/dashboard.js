@@ -2848,7 +2848,7 @@ function gcTimeSeriesSvg(rows,options){
 }
 function renderAdminStats(arg){
   const days=Number(arg&&arg.days)||30;
-  const heading=`<div class="page-heading"><div><p class="eyebrow">관리자 전용</p><h1>사이트 방문 통계</h1><p class="page-lede">GoatCounter 집계를 사이트 안에서 직접 봅니다. 데이터는 관리자 API 토큰이 있어야만 열립니다.</p></div></div>`;
+  const heading=`<div class="page-heading"><div><p class="eyebrow">관리자 전용</p><h1>사이트 방문 통계</h1></div></div>`;
   if(!gcToken()){
     app().innerHTML=`${heading}<section class="admin-stats"><div class="admin-gate"><h2>관리자 인증</h2><p>GoatCounter API 토큰을 입력하세요. 토큰은 <strong>이 브라우저의 localStorage에만</strong> 저장되며, 사이트 코드나 저장소에는 포함되지 않고 goatcounter.com 외 어디로도 전송되지 않습니다.</p><p class="admin-hint">토큰 만들기: jin-investing.goatcounter.com 로그인 → 설정 → API에서 "Read statistics" 권한으로 생성해 붙여넣으세요.</p><p class="admin-hint">토큰을 저장하면 이 브라우저의 방문은 기본으로 통계에서 제외됩니다(관리자 화면에서 토글 가능).</p><form data-gc-gate><input type="password" placeholder="API 토큰" autocomplete="off" required><button type="submit">저장하고 열기</button></form></div></section>`;
     app().querySelector('[data-gc-gate]').addEventListener('submit',e=>{e.preventDefault();const value=e.target.querySelector('input').value.trim();if(!value)return;gcSetToken(value);renderAdminStats(arg);});
@@ -2893,17 +2893,17 @@ function renderAdminStats(arg){
     sections.push(`<div class="admin-card admin-chart-card"><div class="admin-card-head"><h2>방문 추이</h2><span>${chartCaption}</span></div>${gcTimeSeriesSvg(chartRows,{hourly:days===1,movingAverage:days>=30?7:0})}</div>`);
     if(days>1)sections.push(`<div class="admin-card"><div class="admin-card-head"><h2>시간대 분포</h2><span>기간 합산 · UTC 기준 (한국 시각 −9시간)</span></div>${gcTimeSeriesSvg(hourRows,{hourly:true})}</div>`);
     const panels=[
-      ['/stats/hits','화면별 방문',row=>gcDisplayPath(row.path||row.event),'어떤 화면을 봤는지'],
-      ['/stats/toprefs','유입 경로',row=>row.name||'직접 방문 · 링크 없음','어디서 타고 왔는지'],
-      ['/stats/locations','국가',row=>row.name||'','방문자 지역'],
+      ['/stats/hits','화면별 방문',row=>gcDisplayPath(row.path||row.event)],
+      ['/stats/toprefs','유입 경로',row=>row.name||'직접 방문 · 링크 없음'],
+      ['/stats/locations','국가',row=>row.name||''],
     ];
     const cards=[];
-    for(const [path,title,nameOf,hint] of panels){
+    for(const [path,title,nameOf] of panels){
       await wait();
       try{
         const data=await gcFetch(path,{limit:'12',...range});
         const rows=data.hits||data.stats||[];
-        cards.push(`<div class="admin-card"><div class="admin-card-head"><h2>${esc(title)}</h2><span>${esc(hint)}</span></div><ul class="admin-list">${gcShareRows(rows,nameOf)}</ul></div>`);
+        cards.push(`<div class="admin-card"><div class="admin-card-head"><h2>${esc(title)}</h2></div><ul class="admin-list">${gcShareRows(rows,nameOf)}</ul></div>`);
       }catch(error){
         if(String(error.message)==='401'||String(error.message)==='403')throw error;
         cards.push(`<div class="admin-card"><div class="admin-card-head"><h2>${esc(title)}</h2></div><p class="admin-empty">불러오기 실패 — ${esc(String(error.message))} (엔드포인트 ${esc(path)})</p></div>`);
@@ -2920,7 +2920,6 @@ function renderAdminStats(arg){
     }
     cards.push(`<div class="admin-card" data-env-card><div class="admin-card-head"><h2>접속 환경</h2><span class="admin-card-tabs"><button type="button" data-env="browsers" aria-selected="true">브라우저</button><button type="button" data-env="systems" aria-selected="false">OS</button></span></div><ul class="admin-list" data-env-list>${environment.browsers}</ul></div>`);
     sections.push(`<div class="admin-grid">${cards.join('')}</div>`);
-    sections.push('<p class="admin-note">집계는 GoatCounter(쿠키 없는 방문 통계) 기준입니다. 개인 식별 정보는 수집되지 않으며, 이 화면과 토큰은 관리자 브라우저에서만 동작합니다.</p>');
     body.innerHTML=sections.join('');
     const updated=app().querySelector('[data-gc-updated]');
     if(updated)updated.textContent='갱신 '+new Date().toTimeString().slice(0,5);
@@ -2979,7 +2978,6 @@ function chartZoomLayer(){
         <button type="button" data-chart-zoom="out" aria-label="축소">−</button><output class="chart-zoom-scale" aria-live="polite">100%</output><button type="button" data-chart-zoom="in" aria-label="확대">＋</button><button type="button" data-chart-zoom="reset">화면 맞춤</button>
       </div>
       <div class="chart-zoom-canvas"><div class="chart-zoom-content"></div></div>
-      <p class="chart-zoom-help">＋/− 또는 두 손가락으로 확대하고 밀어서 이동하세요.</p>
     </section>
   </div>`);
   document.body.appendChild(layer);CHART_ZOOM_LAYER=layer;
@@ -3101,7 +3099,7 @@ function parseCanonicalRoute(rawHash){
 }
 function renderFuturePathsLoadState(summary,error=null){
   const checkpoints=summary?.path_checkpoints||[],failed=!!error;
-  const root=el(`<div class="future-paths-load-state" data-future-paths-state="${failed?'failed':'loading'}"><div class="page-heading"><div><p class="eyebrow">미래 탐색</p><h1>${failed?'전망 데이터를 불러오지 못했습니다':'세 가지 시나리오를 준비하고 있습니다'}</h1><p class="page-lede">${failed?'잠시 뒤 다시 시도해 주세요. 이전 방식의 그래프로 자동 전환하지 않습니다.':'상승·균형·스트레스 경로와 각 경로의 독립 DB를 불러오고 있습니다.'}</p>${failed?`<p class="future-paths-reason">사유: ${esc(String(error?.message||error))}</p>`:''}</div></div><section class="future-paths-checkpoints" aria-label="시나리오 체크포인트 요약">${checkpoints.map(row=>`<article><span>${esc(row.label)} · ${esc(row.date)}</span><div>${Object.entries(row.return_from_anchor||{}).map(([key,value])=>`<strong>${esc(key)} ${Number(value)>=0?'+':''}${(Number(value)*100).toFixed(1)}%</strong>`).join('')}</div><small>조건부 p50 요약</small></article>`).join('')||'<p>표시할 체크포인트가 없습니다.</p>'}</section>${failed?'<div class="future-paths-actions"><button type="button" data-future-retry>다시 불러오기</button><button type="button" data-future-refresh>페이지 새로고침</button></div>':''}</div>`);
+  const root=el(`<div class="future-paths-load-state" data-future-paths-state="${failed?'failed':'loading'}"><div class="page-heading"><div><p class="eyebrow">미래 탐색</p><h1>${failed?'전망 데이터를 불러오지 못했습니다':'세 가지 시나리오를 준비하고 있습니다'}</h1><p class="page-lede">${failed?'잠시 뒤 다시 시도해 주세요.':'상승·균형·스트레스 경로를 불러오고 있습니다.'}</p>${failed?`<p class="future-paths-reason">사유: ${esc(String(error?.message||error))}</p>`:''}</div></div><section class="future-paths-checkpoints" aria-label="시나리오 체크포인트 요약">${checkpoints.map(row=>`<article><span>${esc(row.label)} · ${esc(row.date)}</span><div>${Object.entries(row.return_from_anchor||{}).map(([key,value])=>`<strong>${esc(key)} ${Number(value)>=0?'+':''}${(Number(value)*100).toFixed(1)}%</strong>`).join('')}</div><small>조건부 p50 요약</small></article>`).join('')||'<p>표시할 체크포인트가 없습니다.</p>'}</section>${failed?'<div class="future-paths-actions"><button type="button" data-future-retry>다시 불러오기</button><button type="button" data-future-refresh>페이지 새로고침</button></div>':''}</div>`);
   mount(root);
   root.querySelector('[data-future-retry]')?.addEventListener('click',()=>{FUTURE_PATHS_ERROR=null;FORECAST_SUMMARY_CHECKED_AT=0;route();});
   root.querySelector('[data-future-refresh]')?.addEventListener('click',()=>location.reload());
@@ -3123,8 +3121,7 @@ function earningsQuestionPending(q){
 function earningsQuestionNotice(q){
   if(!earningsQuestionPending(q))return '';
   const event=earningsQuestionEvent(q);
-  const native=event&&evConsensusRows(event.event_id).some(row=>row.comparison_allowed===false&&row.currency&&row.currency!=='USD'&&['ordinary_share','ordinary'].includes(row.share_basis));
-  return `<section class="question-criteria" aria-label="실적 질문 판정 대기"><div><span>판정 대기</span><p>발표 EPS와 사전 컨센서스의 통화·주식 단위를 같은 기준으로 확인한 뒤 판정합니다. 기존 예측 확률은 발표 전 기록입니다.</p></div><div><span>실적 자료</span><p>${native?'공식 보통주 EPS와 USD ADR 컨센서스를 직접 비교하지 않습니다.':'같은 통화와 주식 단위가 확인된 자료만 판정에 사용합니다.'}${event?` <a href="#today/event/${encodeURIComponent(event.event_id)}">발표값과 출처 확인 ↗</a>`:''}</p></div></section>`;
+  return `<section class="question-criteria" aria-label="실적 질문 판정 대기"><div><span>판정 대기</span></div>${event?`<div><span>실적 자료</span><p><a href="#today/event/${encodeURIComponent(event.event_id)}">발표값과 출처 확인 ↗</a></p></div>`:''}</section>`;
 }
 function questionStatusLabel(q){
   if(q.status==='void')return {cls:'status-void',text:'폐기',title:'폐기된 질문 — 기한까지 예측 미실행, 채점 대상 아님'};
@@ -3319,7 +3316,7 @@ function signalHeatViz(pct,lo,hi,label){
 }
 /* 화면 원점 주기 라벨 — 일일 표시(2026-10-07 사용자 결정)는 매일, 채점은 주간 원점이다. */
 function tsCadenceLabel(ts){return `${ts.as_of||''} 종가 기준 · ${ts.cadence==='daily'?'매일 갱신':'주 1회 갱신'}`;}
-function tsProvisionalTitle(ts){const s=(ts.provisional_series||[]).join('·');return `원천 발표치로 먼저 채운 입력${s?`: ${s}`:''} — 공식 시계열 확정 후 같은 원점으로 다시 계산`;}
+function tsProvisionalTitle(ts){const s=(ts.provisional_series||[]).join('·');return `잠정 입력${s?`: ${s}`:''}`;}
 function tsForecastSignal(ts){
   /* 시계열 탭과 **같은 공개 게이트**를 그대로 쓴다 — 홈이 탭보다 먼저 숫자를 흘리면
      게이트가 있나 마나다. 원점이 계약의 hold 임계를 넘기면 마지막 값으로 버티지 않고
@@ -3349,11 +3346,12 @@ function dotcomOverheatSignal(idx,weighted){
   /* 대표값은 v8 판단 가중 평균이다(열려 있을 때). 산포 자리에는 가중을 달리 잡았을 때의 범위를 싣는다 — 확률 구간이 아니다.
      닫히면 아래 v5(부문 중앙값·부문 산포)로 돌아간다. 홈과 통계 탭이 같은 함수·같은 게이트(overheatWeighted)를 쓴다. */
   const w=weighted||null;   // 호출부가 overheatWeighted() 로 게이트를 통과시킨 것만 넘긴다 — 이 함수는 바깥을 읽지 않는다
-  if(w)return {pct:w.overheat_pct,lo:w.range.low,hi:w.range.high,weighted:true,previous:idx.overheat_pct,
+  const raw=w&&w.value_raw!=null?Number(w.value_raw):NaN;
+  if(w)return {pct:w.overheat_pct,pctText:Number.isFinite(raw)?raw.toFixed(1):String(w.overheat_pct),lo:w.range.low,hi:w.range.high,weighted:true,previous:idx.overheat_pct,
                categories:w.groups.length,included:w.included??null,beyond:w.beyond_peak_count??0,
                missing:Array.isArray(w.missing)?w.missing.length:0,checkedAt:idx.generated_at??null};
   const span=idx.category_span||[];
-  return {pct:idx.overheat_pct,lo:span[0],hi:span[1],
+  return {pct:idx.overheat_pct,pctText:String(idx.overheat_pct),lo:span[0],hi:span[1],
           categories:Object.keys(idx.category_medians||{}).length,
           included:idx.included??null,beyond:idx.beyond_peak_count??0,checkedAt:idx.generated_at??null};
 }
@@ -3620,7 +3618,6 @@ function evDisplayRows(rows){
       display.consensus=forecast.consensus;display.previous=forecast.previous;display.display_sources.push(forecast);
       note.push(`예상·이전: ${forecast.source||'제공업체'} 기준${evRowBasis(forecast)?` (${evRowBasis(forecast)})`:''}`);
     }
-    if(row.metric==='eps_reported')note.push('공식 기본 EPS와 제공업체 EPS는 산출 기준이 다를 수 있습니다.');
     display.note=note.filter(Boolean).join(' · ');
     return display;
   });
@@ -3675,13 +3672,11 @@ function evAfpTable(rows){
   if(!rows.length)return '';
   const display=evDisplayRows(rows),evidence=display.flatMap(r=>[r,...(r.display_sources||[])]),src=[...new Map(evidence.filter(r=>r.source&&r.source_url).map(r=>[`${r.source}|${r.source_url}`,r])).values()];
   const body=display.map(r=>{
-    const meta=(r.display_projection?[r.period]:[r.period,evRowBasis(r),r.note]).filter(Boolean).join(' · ');
-    const detail=[evRowBasis(r),r.unit==='million_currency'?'금액 단위: 백만 USD':'',r.note].filter(Boolean).join(' · ');
-    return `<tr><th scope="row">${esc(r.label)}${meta?`<small>${esc(meta)}</small>`:''}${r.comparison_allowed===false&&!r.display_projection?`<small>${String(r.metric).includes('eps')?'통화·주식 기준이 다른 예상값과 직접 비교하지 않습니다.':'같은 지표·단위의 예상값이 없어 상회·하회를 비교하지 않습니다.'}</small>`:''}</th><td class="afp-actual${evAfpTone(r)}">${evAfpCell(r.actual)}</td><td>${evAfpCell(r.consensus)}</td><td>${evAfpCell(r.previous)}</td></tr>`
-      +(r.display_projection?`<tr class="afp-conversion-row"><td colspan="4" class="afp-conversion-note"><details><summary>환산 기준·원문</summary><p>${esc(detail)}</p></details></td></tr>`:'');
+    const meta=(r.display_projection?[r.period]:[r.period,evRowBasis(r)]).filter(Boolean).join(' · ');
+    return `<tr><th scope="row">${esc(r.label)}${meta?`<small>${esc(meta)}</small>`:''}</th><td class="afp-actual${evAfpTone(r)}">${evAfpCell(r.actual)}</td><td>${evAfpCell(r.consensus)}</td><td>${evAfpCell(r.previous)}</td></tr>`;
   }).join('');
   return `<div class="afp-table-wrap"><table class="afp-table${display.some(r=>r.display_projection)?' has-conversion':''}"><thead><tr><th scope="col">지표</th><th scope="col">실제</th><th scope="col">예상</th><th scope="col">이전</th></tr></thead><tbody>${body}</tbody></table></div>`
-    +`<p class="afp-source">${src.map(r=>`<a href="${esc(r.source_url)}" target="_blank" rel="noopener noreferrer">${esc(r.source)} ↗</a>`).join(' · ')} · 수집 ${esc(String(evidence.map(r=>r.captured_at).filter(Boolean).sort().at(-1)||'').slice(0,16).replace('T',' '))} UTC · 외부 공개값 · 참고 의견</p>`;
+    +(src.length?`<p class="afp-source">${src.map(r=>`<a href="${esc(r.source_url)}" target="_blank" rel="noopener noreferrer">${esc(r.source)} ↗</a>`).join(' · ')}</p>`:'');
 }
 const evMonthParts=iso=>({year:Number(String(iso).slice(0,4)),month:Number(String(iso).slice(5,7))});
 const evMonthKey=(year,month)=>`${year}-${String(month).padStart(2,'0')}`;
@@ -3753,7 +3748,7 @@ function renderEventEstimates(months,rows,today){
 }
 function renderEventCalendar(rows,today){
   const months=evVisibleMonths(today);
-  return `<div class="event-calendar-toolbar"><p>확정 일정은 실선, 추정 일정은 점선으로 표시합니다.</p><div class="event-month-nav" aria-label="달력 월 이동"><button type="button" data-action="event-month-prev" aria-label="이전 달">이전</button><button type="button" data-action="event-month-today"${homeCalendarOffset===0?' disabled':''}>오늘</button><button type="button" data-action="event-month-next" aria-label="다음 달">다음</button></div></div><div class="event-months${months.length>1?' is-dual':''}">${months.map(month=>renderEventMonth(month,rows,today)).join('')}</div><div class="event-estimate-groups">${renderEventEstimates(months,rows,today)}</div>`;
+  return `<div class="event-calendar-toolbar"><div class="event-month-nav" aria-label="달력 월 이동"><button type="button" data-action="event-month-prev" aria-label="이전 달">이전</button><button type="button" data-action="event-month-today"${homeCalendarOffset===0?' disabled':''}>오늘</button><button type="button" data-action="event-month-next" aria-label="다음 달">다음</button></div></div><div class="event-months${months.length>1?' is-dual':''}">${months.map(month=>renderEventMonth(month,rows,today)).join('')}</div><div class="event-estimate-groups">${renderEventEstimates(months,rows,today)}</div>`;
 }
 
 /* 히어로 요약줄 — 바로 아래 카드 세 장을 한 줄로 줄인다. 세 숫자는 재는 것이 서로
@@ -3765,7 +3760,7 @@ function homeSignalSummary(upProb,tsf,heat){
   const parts=[];
   if(hasNumeric(upProb))parts.push(`연말 몬테카를로 예측 ${num(upProb)}%`);
   if(tsf&&hasNumeric(tsf.pct))parts.push(`3개월 시계열 예측 ${num(tsf.pct)}%`);
-  if(heat&&hasNumeric(heat.pct))parts.push(`닷컴 대비 과열도 ${num(heat.pct)}%`);
+  if(heat&&hasNumeric(heat.pct))parts.push(`닷컴 대비 과열도 ${heat.pctText||num(heat.pct)}%`);
   /* 한 장짜리 요약은 요약이 아니다 — 그때는 시나리오 문장(marketThesis)으로 돌아간다. */
   return parts.length<2?'':`${parts.join(', ')}입니다.`;
 }
@@ -3786,7 +3781,7 @@ function renderOverview(){
     +`${viz||''}<small>${esc(note)}</small>${flag?`<em>${esc(flag)}</em>`:''}`
     +`<a class="card-link" href="${esc(href)}" aria-label="${esc(aria)}"></a></article>`;
   const root=el(`<div class="overview-page today-page"><section class="today-dashboard" data-home-core="true" aria-labelledby="market-thesis">
-    <header class="today-hero"><div><p class="eyebrow">TODAY · ${esc(sc.asof)}</p><h1 id="market-thesis">${esc(thesis.lead)}${thesis.accent?` <em>${esc(thesis.accent)}</em>`:''}</h1></div><div class="today-actions"><a href="#future">미래 경로 보기 <span>↗</span></a><button type="button" data-action="briefing">30초 브리핑</button></div></header>
+    <header class="today-hero"><div><p class="eyebrow">TODAY</p><h1 id="market-thesis">${esc(thesis.lead)}${thesis.accent?` <em>${esc(thesis.accent)}</em>`:''}</h1></div><div class="today-actions"><a href="#future">미래 경로 보기 <span>↗</span></a><button type="button" data-action="briefing">30초 브리핑</button></div></header>
     <div class="today-signals" aria-label="핵심 지표 3개">
       ${card('몬테카를로 예측 · 연말', stale?'판정 보류':`${num(upProb)}%`,
              stale?`마지막 기준 ${vintage.asof}`
@@ -3795,20 +3790,19 @@ function renderOverview(){
              stale?'':signalShareViz(upProb,CHART_COL.S1,`모의 경로 100개 중 ${num(upProb)}개`),
              '#future/original','몬테카를로 예측 상세 보기')}
       ${card('시계열 예측 · 3개월', tsf==null?'갱신 대기':`${tsf.pct}%`,
-             tsf==null?'원점 갱신을 기다립니다 · 시계열 탭에 전체 표시'
-                      :`3개월 뒤 ${num(tsf.now)} 위 마감${tsf.median==null?'':` · 중앙 ${num(tsf.median)}`}${tsf.origin?` · ${String(tsf.origin).slice(5)} 종가 기준${tsf.provisional?' 잠정':''}`:''}`,
-             tsf&&tsf.stale?`원점 ${tsf.age}일 경과`:null,
+             tsf==null?'원점 갱신을 기다립니다'
+                      :`3개월 뒤 ${num(tsf.now)} 위 마감${tsf.median==null?'':` · 중앙 ${num(tsf.median)}`}`,
+             tsf&&tsf.stale?`원점 ${tsf.age}일 경과`:tsf&&tsf.provisional?'잠정':null,
              tsf==null?'':signalRangeViz(tsf.lo,tsf.hi,tsf.median,tsf.now,
                `10번 중 8번 ${num(tsf.lo)}~${num(tsf.hi)} 범위, 중앙 ${num(tsf.median)}`),
              '#future/timeseries','시계열 예측 상세 보기')}
-      ${card('닷컴 대비 과열도', heat==null?'집계 대기':`${heat.pct}%`,
+      ${card('닷컴 대비 과열도', heat==null?'집계 대기':`${heat.pctText||heat.pct}%`,
              heat==null?'과열도 통계 집계 대기'
-                       :heat.weighted?`100 = 닷컴 정점 · 판단 가중 · 가중에 따라 ${heat.lo}~${heat.hi}`
+                       :heat.weighted?'100 = 닷컴 정점'
                        :`100 = 닷컴 정점 · 분야별 ${heat.lo}~${heat.hi}`,
-             heat&&heat.beyond?`${heat.beyond}개 지표는 이미 정점 초과${heat.missing?` · ${heat.missing}개 빠짐(가중 재배분)`:''}`
-               :heat&&heat.missing?`지표 ${heat.missing}개 빠짐(가중 재배분)`:null,
+             heat&&heat.beyond?`${heat.beyond}개 지표는 이미 정점 초과`:null,
              heat==null?'':signalHeatViz(heat.pct,heat.lo,heat.hi,
-               `닷컴 정점 100 기준 ${heat.pct}, ${heat.weighted?'가중에 따라':'분야별'} ${heat.lo}~${heat.hi}`),
+               `닷컴 정점 100 기준 ${heat.pctText||heat.pct}, ${heat.weighted?'가중에 따라':'분야별'} ${heat.lo}~${heat.hi}`),
              '#statistics','닷컴 대비 과열도 상세 보기')}
     </div>
     ${renderMarketMood()}
@@ -3840,13 +3834,13 @@ function renderEventForecast(eventId){
   const release=evReleaseState(event),scheduled=evScheduledAt(event);
   const earningsPanels=event.kind==='earnings'?peers.map(peer=>{
     const rows=evConsensusRows(peer.event_id),state=evReleaseState(peer),when=evKstTime(evScheduledAt(peer));
-    return `<section class="event-forecast-panel event-afp-panel" data-earnings-id="${esc(peer.event_id)}" aria-label="${esc(earningsCompanyName(peer))} 발표값"><h2>${esc(earningsCompanyName(peer))} · ${esc(state.label)}</h2><p class="event-forecast-note">발표 일정 · ${esc(when||`${peer.date} · 시각 미정`)}${state.code==='awaiting'?' · 예정 시각은 지났지만 공식 발표값 수집을 아직 확인하지 못했습니다.':''}</p>${rows.length?evAfpTable(rows):'<p class="event-forecast-empty">확인된 공개값이 아직 없습니다.</p>'}<a class="event-forecast-official" href="${esc(peer.source_url)}" target="_blank" rel="noopener noreferrer">${esc(earningsCompanyName(peer))} 공식 실적 자료 ↗</a></section>`;
+    return `<section class="event-forecast-panel event-afp-panel" data-earnings-id="${esc(peer.event_id)}" aria-label="${esc(earningsCompanyName(peer))} 발표값"><h2>${esc(earningsCompanyName(peer))} · ${esc(state.label)}</h2><p class="event-forecast-note">발표 일정 · ${esc(when||`${peer.date} · 시각 미정`)}</p>${rows.length?evAfpTable(rows):'<p class="event-forecast-empty">확인된 공개값이 아직 없습니다.</p>'}<a class="event-forecast-official" href="${esc(peer.source_url)}" target="_blank" rel="noopener noreferrer">${esc(earningsCompanyName(peer))} 공식 실적 자료 ↗</a></section>`;
   }).join(''):'';
   const cards=estimates.length?estimates.map(row=>`<article class="event-forecast-card">
     <span>${esc(row.label)}</span><strong>${esc(eventForecastValue(row))}</strong>
-    <small>${esc(row.source_name)} 전망 · ${esc(row.published_on)} 기준</small>
+    <small>${esc(row.source_name)} 전망</small>
     <a href="${esc(row.source_url)}" target="_blank" rel="noopener noreferrer">전망 근거 ↗</a>
-  </article>`).join(''):'<p class="event-forecast-empty">확인된 공개 예상값이 아직 없습니다. 값이 확인되면 출처와 기준일을 함께 표시합니다.</p>';
+  </article>`).join(''):'<p class="event-forecast-empty">확인된 공개 예상값이 아직 없습니다.</p>';
   const root=el(`<div class="event-forecast-page" data-event-id="${esc(eventId)}">
     <a class="event-forecast-back" href="#today">← 오늘로</a>
     <div class="page-heading"><div><p class="eyebrow">${event.kind==='earnings'?'실적 발표':past?'지난 이벤트':'다음 이벤트'} · ${esc(date)}</p><h1>${esc(heading)}</h1>
@@ -3854,7 +3848,6 @@ function renderEventForecast(eventId){
     ${earningsPanels|| (afp.length?`<section class="event-forecast-panel event-afp-panel" aria-label="${esc(evFullLabel(event))} 발표값"><h2>발표값</h2>${evAfpTable(afp)}</section>`:'')}
     ${estimates.length||(!afp.length&&event.kind!=='earnings')?`<section class="event-forecast-panel" aria-label="${esc(evFullLabel(event))} 예측치">
       <h2>${afp.length?'기관 전망':'발표 예상값'}</h2><div class="event-forecast-grid">${cards}</div>
-      <p class="event-forecast-note">${event.kind==='cpi'?'클리블랜드 연은의 물가 나우캐스트입니다. 시장 컨센서스나 확정 CPI가 아닙니다.':event.kind==='fomc'&&estimates.length?'점도표는 연준 참가자의 연말 적정금리 판단이며 10월 회의 확률이 아닙니다. 예측시장 수치는 거래 호가로, 공식 전망이나 확률 보장이 아닙니다.':estimates.length?'한 기관의 공개 전망입니다. 시장 컨센서스나 확정 발표값이 아닙니다.':'공식 발표 전 예상값을 임의로 만들지 않습니다.'}</p>
     </section>`:''}
     ${event.kind==='earnings'?'':`<a class="event-forecast-official" href="${esc(event.source_url)}" target="_blank" rel="noopener noreferrer">공식 발표 일정 확인 ↗</a>`}
   </div>`);
@@ -3906,7 +3899,7 @@ function lookupErrorMarkup(result){
     result.reason==='before_asof'?`기준일 ${result.asof} 이후 날짜를 선택해 주세요.`:
     result.reason==='blocked'?'이 스냅샷에는 날짜별 분포가 없습니다.':
     result.reason==='parse_failed'?'날짜를 이해하지 못했습니다. 달력 입력을 사용해 주세요.':'날짜 형식을 확인해 주세요.';
-  return `<div class="lookup-empty" role="status"><strong>${esc(copy)}</strong><span>달력 입력 또는 빠른 날짜를 사용해 다시 조회할 수 있습니다.</span></div>`;
+  return `<div class="lookup-empty" role="status"><strong>${esc(copy)}</strong></div>`;
 }
 function horizonCoverageForDay(sc,tradingDay){
   const buckets=sc?.horizon_coverage?.buckets||[];
@@ -3917,7 +3910,7 @@ function horizonCoverageForDay(sc,tradingDay){
   /* 80% 구간이 실제값을 100% 담았다는 것은 잘 맞혔다는 뜻이 아니라 구간이 설계보다 넓다는 뜻이다 —
      공칭 80% 대비 부호 있는 편차를 같이 적고, 5%p 넘게 벗어나면 초록 배지를 주지 않는다. */
   const rate=Number(selected.inside_p10_p90_rate_pct),dev=rate-80,wide=Math.abs(dev)>=5;
-  return {label:`${selected.label} 적중률 집계 완료`,detail:`p10–p90 적중률 ${rate}% · 공칭 80% 대비 ${dev>=0?'+':''}${dev.toFixed(1)}%p${wide?(dev>0?' · 구간이 설계보다 넓음 — 잘 맞혔다는 뜻이 아닙니다':' · 구간이 설계보다 좁음(과신)'):''} · n=${n}`,status:wide?'wide':'verified'};
+  return {label:`${selected.label} 적중률 집계 완료`,detail:`p10–p90 적중률 ${rate}% · 공칭 80% 대비 ${dev>=0?'+':''}${dev.toFixed(1)}%p${wide?(dev>0?' · 구간이 설계보다 넓음':' · 구간이 설계보다 좁음(과신)'):''}`,status:wide?'wide':'verified'};
 }
 const EVENT_KIND_META={fomc:['FOMC','◇'],cpi:['CPI','□'],ppi:['PPI','▱'],nfp:['고용','○'],jolts:['JOLTS','↗'],pmi:['PMI','◆'],hmi:['HMI','⌂'],gdp:['GDP','△'],earnings:['실적','⬡'],other:['기타','·']};
 function lookupEventSummary(sc,mapped){
@@ -3925,15 +3918,14 @@ function lookupEventSummary(sc,mapped){
   events.forEach(event=>{const key=event.kind==='earnings'?(event.ticker||'실적'):EVENT_KIND_META[event.kind]?.[0]||'기타';counts.set(key,(counts.get(key)||0)+1);});
   const body=counts.size?[...counts].map(([key,count])=>`${key} ${count}회`).join(' · '):'등록 일정 0회';
   const estimated=events.filter(event=>event.status==='estimated').length;
-  return `<p class="lookup-event-summary"><strong>등록 일정 · 정보 표식만</strong><span>asof→${esc(mapped.mapped)} 사이: ${esc(body)}${estimated?` · 이 중 추정 ${estimated}건`:''}</span><small>일정과 분포 확률을 연결하지 않습니다.</small></p>`;
+  return `<p class="lookup-event-summary"><strong>등록 일정</strong><span>asof→${esc(mapped.mapped)} 사이: ${esc(body)}${estimated?` · 이 중 추정 ${estimated}건`:''}</span></p>`;
 }
 function lookupCardMarkup(sc,mapped){
-  const table=sc.quantile_table,index=mapped.index,q=table.quantiles,model=sc.model||{};
+  const table=sc.quantile_table,index=mapped.index,q=table.quantiles;
   const coverage=horizonCoverageForDay(sc,mapped.tradingDay);
   const scenarioNames={S1:'S1 상승·ATH 돌파',S2:'S2 상승·ATH 미달',S3:'S3 조정·횡보'};
-  const shortNote=mapped.tradingDay<=5?'<p class="lookup-short-note">단기 구간일수록 모델 가정 민감도가 큽니다.</p>':'';
   const eventQuestions=(DATA.questions||[]).filter(question=>question.deadline===mapped.requested&&question.probability_space==='physical_event'&&hasNumeric(question.latest_prob));
-  const physicalEvents=eventQuestions.length?`<section class="lookup-physical-events" aria-label="별도 physical event 확률"><header><span>PHYSICAL EVENT · 별도 확률 공간</span><strong>시나리오 분포와 결합 금지</strong></header>${eventQuestions.map(question=>`<article><div><small>${esc(question.id)}</small><a href="#q/${esc(question.id)}">${esc(question.title)}</a></div><strong>p=${(Number(question.latest_prob)/100).toFixed(2)}</strong><small>${esc(question.probability_space)} · ${esc(String(question.latest_ts||'').slice(0,10)||'기준 미상')} 기준</small></article>`).join('')}</section>`:'';
+  const physicalEvents=eventQuestions.length?`<section class="lookup-physical-events" aria-label="별도 physical event 확률"><header><span>PHYSICAL EVENT · 별도 확률 공간</span></header>${eventQuestions.map(question=>`<article><div><small>${esc(question.id)}</small><a href="#q/${esc(question.id)}">${esc(question.title)}</a></div><strong>p=${(Number(question.latest_prob)/100).toFixed(2)}</strong></article>`).join('')}</section>`:'';
   return `<article class="lookup-card" data-lookup-date="${esc(mapped.mapped)}">
     <header><div class="horizon-coverage-badge is-${coverage.status}"><strong>${esc(coverage.label)}</strong><span>${esc(coverage.detail)}</span></div><p class="eyebrow">DATE DISTRIBUTION · MODEL CONDITIONAL</p><h3>${esc(lookupDateLabel(mapped))}</h3></header>
     <div class="lookup-metrics">
@@ -3943,20 +3935,17 @@ function lookupCardMarkup(sc,mapped){
       <div><span>현재가(${num(Math.round(sc.anchor))}) 상회</span><strong>${table.prob_above_anchor[index]}%</strong><small>모델 조건부 확률</small></div>
       <div><span>ATH 상회</span><strong>${table.prob_above_ath[index]}%</strong><small>모델 조건부 확률</small></div>
     </div>
-    ${shortNote}
     ${lookupEventSummary(sc,mapped)}
     <details class="lookup-scenarios"><summary>S1/S2/S3 조건부 중앙값 보기</summary><div>${['S1','S2','S3'].map(key=>`<p><span>${scenarioNames[key]}</span><strong>${num(table.per_scenario_p50[key][index])}</strong><small>${num(table.per_scenario_counts?.[key]||0)}경로</small></p>`).join('')}</div></details>
     ${physicalEvents}
-    <p class="lookup-warning">⚠ GBM 고정 가정의 조건부 분포입니다. 단일 가격 제시·사건확률·투자자문이 아닙니다.</p>
-    <footer>as_of ${esc(sc.asof)} 스냅샷 · seed ${esc(model.seed)} · ${num(model.n_paths)}경로 · ${esc(table.probability_space)}</footer>
   </article>`;
 }
 const FLOW_LAB_COPY={
-  future:['시장 전망 · Scenario Map','향후 12개월 시장 경로는 어떤 분포인가','나스닥 종합의 조건부 구간과 조정·회복 경로를 함께 봅니다.'],
-  history:['혁신 사이클 · Analog','과거 혁신 사이클은 현재와 얼마나 닮았나','닷컴·일본·크립토 등 과거 사례를 같은 시작점에서 비교합니다. 확률이 아닌 참고용 유사도입니다.'],
-  'cross-asset':['교차자산 비교 · Dotcom 이후','닷컴 조정 뒤 자산별 회복은 어떻게 달랐을까','2001-03~2006-03 NASDAQ·Realty Income·D.R. Horton의 실측 경로를 같은 기준점에서 비교합니다.'],
-  'ai-regime':['AI 자본 사이클 · Coverage Gate','AI 자본 사이클을 지금 판정할 수 있는가','필수 데이터 커버리지가 기준에 못 미치면 지도를 그리지 않고 판정을 보류합니다.'],
-  liquidity:['유동성 · Tide Map','유동성 조건은 위험 선호를 지지하는가','주간 유동성·금융여건과 위험자산의 시차 관계를 참고용으로 점검합니다.']
+  future:['시장 전망 · Scenario Map','향후 12개월 시장 경로는 어떤 분포인가'],
+  history:['혁신 사이클 · Analog','과거 혁신 사이클은 현재와 얼마나 닮았나'],
+  'cross-asset':['교차자산 비교 · Dotcom 이후','닷컴 조정 뒤 자산별 회복은 어떻게 달랐을까'],
+  'ai-regime':['AI 자본 사이클 · Coverage Gate','AI 자본 사이클을 지금 판정할 수 있는가'],
+  liquidity:['유동성 · Tide Map','유동성 조건은 위험 선호를 지지하는가']
 };
 function scenarioV5ConditionalFanMarkup(candidate){
   const scenarios=candidate?.conditional_distribution?.scenarios||{},keys=['S1','S2','S3'],allDates=candidate?.conditional_distribution?.dates||[];
@@ -3967,13 +3956,13 @@ function scenarioV5ConditionalFanMarkup(candidate){
   const all=keys.flatMap(key=>{const row=scenarios[key],visibility=row.band_visibility||{},bandKeys=visibility.p10_p90?['p10','p90']:(visibility.p25_p75?['p25','p75']:[]);return [...bandKeys.flatMap(name=>pick(row.bands[name])),...pick(row.bands.p50),...pick(row.representative_path_values)];});
   const low=Math.min(...all),high=Math.max(...all),W=320,H=132,P=10,X=index=>P+(W-P*2)*index/(indexes.length-1),Y=value=>P+(H-P*2)*(1-(value-low)/Math.max(1,high-low));
   const line=values=>values.map((value,index)=>`${index?'L':'M'}${X(index).toFixed(1)},${Y(value).toFixed(1)}`).join(' ');
-  return `<section class="scenario-v5-fans" aria-labelledby="scenario-v5-fans-title"><div class="scenario-v5-section-head"><div><span>CONDITIONAL DISTRIBUTIONS</span><h3 id="scenario-v5-fans-title">시나리오별 조건부 p50과 실제 모의 멤버</h3></div><small>굵은 실선 = 수천 번 돌린 결과의 한가운데 · 가는 점선 = 실제로 나온 경로 하나</small></div><div class="scenario-v5-fan-grid">${keys.map(key=>{const row=scenarios[key],p50=pick(row.bands.p50),member=pick(row.representative_path_values),visibility=row.band_visibility||{},bandKeys=visibility.p10_p90?['p10','p90']:(visibility.p25_p75?['p25','p75']:null),lower=bandKeys?pick(row.bands[bandKeys[0]]):null,upper=bandKeys?pick(row.bands[bandKeys[1]]):null;let band='';if(bandKeys){band=line(upper);for(let index=lower.length-1;index>=0;index--)band+=` L${X(index).toFixed(1)},${Y(lower[index]).toFixed(1)}`;}return `<article><header><div><strong style="color:${esc(row.color)}">${key}</strong><span>${esc(row.label)}</span></div><b>${(Number(row.probability)*100).toFixed(1)}%</b></header><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${key} 시나리오의 한가운데 경로와 실제로 나온 경로 하나">${bandKeys?`<path d="${band} Z" fill="${esc(row.color)}" opacity=".12"></path>`:''}<path d="${line(member)}" fill="none" stroke="${esc(row.color)}" stroke-width="1.2" stroke-dasharray="3 4" opacity=".62"></path><path d="${line(p50)}" fill="none" stroke="${esc(row.color)}" stroke-width="2.8" stroke-linejoin="round"></path></svg><footer><span>${bandKeys?`${bandKeys[0]} ${num(Math.round(lower.at(-1)))}`:'fan gated'}</span><span>p50 ${num(Math.round(p50.at(-1)))}</span><span>${bandKeys?`${bandKeys[1]} ${num(Math.round(upper.at(-1)))}`:'ESS < 500'}</span><span>ESS ${num(row.weighted_effective_sample_size)}</span></footer><p>실제로 나온 경로 하나 · 날짜별 값을 맞히는 선이 아닙니다</p></article>`;}).join('')}</div></section>`;
+  return `<section class="scenario-v5-fans" aria-labelledby="scenario-v5-fans-title"><div class="scenario-v5-section-head"><div><span>CONDITIONAL DISTRIBUTIONS</span><h3 id="scenario-v5-fans-title">시나리오별 조건부 p50과 실제 모의 멤버</h3></div><small>굵은 실선 = 수천 번 돌린 결과의 한가운데 · 가는 점선 = 실제로 나온 경로 하나</small></div><div class="scenario-v5-fan-grid">${keys.map(key=>{const row=scenarios[key],p50=pick(row.bands.p50),member=pick(row.representative_path_values),visibility=row.band_visibility||{},bandKeys=visibility.p10_p90?['p10','p90']:(visibility.p25_p75?['p25','p75']:null),lower=bandKeys?pick(row.bands[bandKeys[0]]):null,upper=bandKeys?pick(row.bands[bandKeys[1]]):null;let band='';if(bandKeys){band=line(upper);for(let index=lower.length-1;index>=0;index--)band+=` L${X(index).toFixed(1)},${Y(lower[index]).toFixed(1)}`;}return `<article><header><div><strong style="color:${esc(row.color)}">${key}</strong><span>${esc(row.label)}</span></div><b>${(Number(row.probability)*100).toFixed(1)}%</b></header><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${key} 시나리오의 한가운데 경로와 실제로 나온 경로 하나">${bandKeys?`<path d="${band} Z" fill="${esc(row.color)}" opacity=".12"></path>`:''}<path d="${line(member)}" fill="none" stroke="${esc(row.color)}" stroke-width="1.2" stroke-dasharray="3 4" opacity=".62"></path><path d="${line(p50)}" fill="none" stroke="${esc(row.color)}" stroke-width="2.8" stroke-linejoin="round"></path></svg><footer><span>${bandKeys?`${bandKeys[0]} ${num(Math.round(lower.at(-1)))}`:'fan gated'}</span><span>p50 ${num(Math.round(p50.at(-1)))}</span><span>${bandKeys?`${bandKeys[1]} ${num(Math.round(upper.at(-1)))}`:'ESS < 500'}</span><span>ESS ${num(row.weighted_effective_sample_size)}</span></footer></article>`;}).join('')}</div></section>`;
 }
-function scenarioV5TimingMarkup(candidate){const timing=candidate?.correction_timing_distribution;if(!timing?.dates?.length)return '';const points=Object.entries(timing.cdf_points||{});const maxDensity=Math.max(...timing.density,1e-12);const bars=timing.density.map((value,index)=>`<i title="${esc(timing.dates[index])}" style="height:${Math.max(1,Math.round(Number(value)/maxDensity*100))}%"></i>`).join('');return `<section class="scenario-v5-timing" aria-labelledby="scenario-v5-timing-title"><div class="scenario-v5-section-head"><div><span>FIRST-TOUCH DISTRIBUTION</span><h3 id="scenario-v5-timing-title">−10%선 조정 최초 터치 시점 분포</h3></div><strong>${(Number(timing.any_touch_probability)*100).toFixed(1)}% any touch</strong></div><div class="scenario-v5-density" aria-label="first-touch density histogram">${bars}</div><div class="scenario-v5-timing-points">${points.map(([day,value])=>`<span><b>${esc(day.slice(5))}</b>${(Number(value)*100).toFixed(1)}% CDF</span>`).join('')}</div><footer>조건부 p25 ${esc(timing.conditional_on_touch_quantiles?.p25||'–')} · median ${esc(timing.conditional_on_touch_quantiles?.p50||'–')} · p75 ${esc(timing.conditional_on_touch_quantiles?.p75||'–')} · exact date forecast=false</footer></section>`;}
+function scenarioV5TimingMarkup(candidate){const timing=candidate?.correction_timing_distribution;if(!timing?.dates?.length)return '';const points=Object.entries(timing.cdf_points||{});const maxDensity=Math.max(...timing.density,1e-12);const bars=timing.density.map((value,index)=>`<i title="${esc(timing.dates[index])}" style="height:${Math.max(1,Math.round(Number(value)/maxDensity*100))}%"></i>`).join('');return `<section class="scenario-v5-timing" aria-labelledby="scenario-v5-timing-title"><div class="scenario-v5-section-head"><div><span>FIRST-TOUCH DISTRIBUTION</span><h3 id="scenario-v5-timing-title">−10%선 조정 최초 터치 시점 분포</h3></div><strong>${(Number(timing.any_touch_probability)*100).toFixed(1)}% any touch</strong></div><div class="scenario-v5-density" aria-label="first-touch density histogram">${bars}</div><div class="scenario-v5-timing-points">${points.map(([day,value])=>`<span><b>${esc(day.slice(5))}</b>${(Number(value)*100).toFixed(1)}% CDF</span>`).join('')}</div><footer>조건부 p25 ${esc(timing.conditional_on_touch_quantiles?.p25||'–')} · median ${esc(timing.conditional_on_touch_quantiles?.p50||'–')} · p75 ${esc(timing.conditional_on_touch_quantiles?.p75||'–')}</footer></section>`;}
 function scenarioV5EvidenceMarkup(candidate){
   const views=candidate?.evidence_views||[];if(!views.length)return '';
   const state=row=>row.used_numerically?'USED':(String(row.numerical_status||'').startsWith('BLOCKED')||row.approval_status==='blocked'?'BLOCKED':(row.view_kind==='event_probability'&&row.origin_type==='registered_forecast'?'EVENT STATE ONLY':'REFERENCE'));
-  return `<section class="scenario-v5-evidence" aria-labelledby="scenario-v5-evidence-title"><div class="scenario-v5-section-head"><div><span>EVIDENCE VIEW REGISTRY</span><h3 id="scenario-v5-evidence-title">무엇이 경로를 움직였고 무엇이 참고값인가</h3></div><small>probability unit = fraction · PIT source hash recorded</small></div><div class="scenario-v5-evidence-grid">${views.map(row=>`<article class="is-${state(row).toLowerCase().replaceAll(' ','-')}"><header><span>${esc(state(row))}</span><b>${hasNumeric(row.target)?(Number(row.target)*100).toFixed(1)+'%':'–'}</b></header><strong>${esc(row.source_id)}</strong><small>${esc(row.probability_space)} · ${esc(row.view_kind)}</small><p>${esc(row.used_numerically?row.condition:(row.blocked_reason||'numerical use blocked'))}</p></article>`).join('')}</div><footer>승인된 report view: ${(views.filter(row=>['strategist_report','analyst_consensus','macro_consensus'].includes(row.origin_type)&&row.used_numerically)).length} · 보고서 문장을 임의 숫자로 변환하지 않았습니다.</footer></section>`;
+  return `<section class="scenario-v5-evidence" aria-labelledby="scenario-v5-evidence-title"><div class="scenario-v5-section-head"><div><span>EVIDENCE VIEW REGISTRY</span><h3 id="scenario-v5-evidence-title">무엇이 경로를 움직였고 무엇이 참고값인가</h3></div></div><div class="scenario-v5-evidence-grid">${views.map(row=>`<article class="is-${state(row).toLowerCase().replaceAll(' ','-')}"><header><span>${esc(state(row))}</span><b>${hasNumeric(row.target)?(Number(row.target)*100).toFixed(1)+'%':'–'}</b></header><strong>${esc(row.source_id)}</strong><small>${esc(row.probability_space)} · ${esc(row.view_kind)}</small><p>${esc(row.used_numerically?row.condition:(row.blocked_reason||'numerical use blocked'))}</p></article>`).join('')}</div><footer>승인된 report view: ${(views.filter(row=>['strategist_report','analyst_consensus','macro_consensus'].includes(row.origin_type)&&row.used_numerically)).length}</footer></section>`;
 }
 const V52_SCENARIO_META={
   S1:{title:'확장 경로',copy:'닷컴·완화·AI 확장 6개 등록 에피소드',color:'#147a5b'},
@@ -4419,7 +4408,7 @@ svg.appendChild(tx(ML,RY-6,'−10%선 누적 터치확률',{fill:'#5f5d57',fs:11
     const index=indexFromPointer(event);paintCursor(index);
     if(!finePointer)return;
     tip.style.display='block';tip.style.left=(event.clientX+14)+'px';tip.style.top=(event.clientY-10)+'px';
-    tip.innerHTML=`<b>${esc(weeks[index])}</b> · −10%선 누적 터치확률 ${esc(riskValues[index]||'—')}<br>${[activeKey].filter(key=>paths[key].length===n).map(key=>`<span style="color:${CHART_COL[key]}">${esc(sc.paths?.[key]?.label||key)} ${num(paths[key][index])}</span>`).join('<br>')}${analogValues[index]!=null?`<br><span style="color:#706f68">혁신사이클 참조 ${num(analogValues[index])} · 확률 아님</span>`:''}`;
+    tip.innerHTML=`<b>${esc(weeks[index])}</b> · −10%선 누적 터치확률 ${esc(riskValues[index]||'—')}<br>${[activeKey].filter(key=>paths[key].length===n).map(key=>`<span style="color:${CHART_COL[key]}">${esc(sc.paths?.[key]?.label||key)} ${num(paths[key][index])}</span>`).join('<br>')}${analogValues[index]!=null?`<br><span style="color:#706f68">혁신사이클 참조 ${num(analogValues[index])}</span>`:''}`;
   });
   hitArea.addEventListener('pointerdown',event=>{paintCursor(indexFromPointer(event));if(!finePointer)tip.style.display='none';svg.focus();});
   hitArea.addEventListener('pointerleave',()=>{tip.style.display='none';});
@@ -4439,31 +4428,21 @@ function originalFlowPanel(){
   if(!sc||!Array.isArray(sc.weeks)||sc.weeks.length<2||!sc.paths)return null;
   const track=DATA.scenario_track&&DATA.scenario_track.status==='ok'?DATA.scenario_track:null;
   const daily=buildOriginalDailyFlowModel(sc,DATA.daily_flow,track,ORIGINAL_FLOW_KEY,'six_months',DATA.calendar_events||[]),ready=daily.status==='ok';
-  const memberCount=(sc.path_realism?.S1?.sample_paths||[]).length,sixEnd=addFlowCalendarMonths(sc.asof);
+  const memberCount=(sc.path_realism?.S1?.sample_paths||[]).length;
   const actualLegend=track?.actual?.length>1?'<span><b style="background:#11110f"></b>실제 종가 (일간)</span>':'';
   const horizonControl=`<div class="flow-shape-controls" role="group" aria-label="가로축 기간"><span>기간</span>
     <button type="button" data-original-horizon="six_months" aria-pressed="true"><i></i>6개월 전망</button>
     ${track?'<button type="button" data-original-horizon="compare" aria-pressed="false"><i></i>대조 구간</button>':''}
-    <button type="button" data-original-horizon="full" aria-pressed="false"><i></i>전체 전망</button>
-    <small>기본 ${esc(sc.asof)} ~ ${esc(sixEnd||'—')} · 거래일별 표시</small></div>`;
+    <button type="button" data-original-horizon="full" aria-pressed="false"><i></i>전체 전망</button></div>`;
   const share=ready?Math.round(daily.scenarioProbability*100):sc.paths?.S1?.prob;
-  const memberControl=memberCount?`<div class="flow-shape-controls" role="group" aria-label="실제 모의 경로 표시"><span>참고 표본</span><button type="button" data-original-samples aria-pressed="false"><i></i>모의 경로 ${num(memberCount)}개 같이 보기</button><small>저장된 주간 표본 · 대표선 선정에는 전체 일별 경로를 사용</small></div>`:'';
+  const memberControl=memberCount?`<div class="flow-shape-controls" role="group" aria-label="실제 모의 경로 표시"><span>참고 표본</span><button type="button" data-original-samples aria-pressed="false"><i></i>모의 경로 ${num(memberCount)}개 같이 보기</button></div>`:'';
   const panel=el(`<section class="chart-panel original-flow-panel" aria-labelledby="original-flow-title">
-    <div class="panel-head"><div><p class="eyebrow">단일 시나리오 · 챔피언 GBM · 참고 의견</p>
-      <h2 id="original-flow-title">일간 시나리오 흐름 · 앵커 ${num(Math.round(Number(sc.anchor)))}</h2></div>
-      <span class="count-chip">기준 ${esc(sc.asof)}</span></div>
+    <div class="panel-head"><div><p class="eyebrow">단일 시나리오 · 챔피언 GBM</p>
+      <h2 id="original-flow-title">일간 시나리오 흐름 · 앵커 ${num(Math.round(Number(sc.anchor)))}</h2></div></div>
     ${horizonControl}
-    <div class="band-inline"><span><b style="background:${CHART_COL.S1}"></b>${ready?'최빈군 대표 경로':'기존 주간 기준선'}</span><span>S1 시나리오 비중 ${esc(share)}% · 모의 경로 비율</span>${actualLegend}${ready?'<span><b class="baseline-swatch"></b>조건부 중앙값 (p50)</span><span>조건부 일별 분포 p10–p90 · p25–p75</span>':sc.analog?.values?.length?'<span><b style="background:#706f68"></b>혁신사이클 참조선 — 시나리오 아님</span>':''}</div>
+    <div class="band-inline"><span><b style="background:${CHART_COL.S1}"></b>${ready?'최빈군 대표 경로':'기존 주간 기준선'}</span><span>S1 시나리오 비중 ${esc(share)}% · 모의 경로 비율</span>${actualLegend}${ready?'<span><b class="baseline-swatch"></b>조건부 중앙값 (p50)</span><span>조건부 일별 분포 p10–p90 · p25–p75</span>':sc.analog?.values?.length?'<span><b style="background:#706f68"></b>혁신사이클 참조선</span>':''}</div>
     ${memberControl}
     <div class="chart-wrap"><div id="original-flow-chart"></div></div>
-    <details class="chart-method"><summary>이 그래프는 어떻게 만들었나</summary><p>${ready?'기존 GBM 2만 경로·입력·seed·분류를 유지합니다. 시나리오별 1~6개월 로그수익률·변동성·최대낙폭·방향전환율의 9개 특징을 중앙값·IQR로 표준화합니다. k=ceil(√N) 최근접 이웃 밀도가 가장 높은 군에서, 적격 경로들의 일별 로그가격 거리 합을 최소화하는 실제 구성원을 선택합니다.':'일간 대표 경로 산출물이 검증되지 않아 기존에 기록된 주간 기준선을 표시합니다. 기존 구조 경로와 GBM 중앙값은 원본 스냅샷 값입니다.'}</p><p>굵은 선은 선택된 경로의 실제 값입니다. 시나리오 비중은 조건에 속한 모의 경로 비율이며, 선 하나의 실현확률이 아닙니다. 점선·음영은 일별 조건부 분포, 아래 띠는 전체 GBM 경로의 −10%선 누적 터치 비율입니다.</p></details>
-    ${chartGuide([
-      [GUIDE_SOLID(CHART_COL.S1),'굵은 선',ready?'최빈군 대표 경로 · 실제 모의 경로 한 개':'일간 대표 경로 보류 · 기존 주간 기준선'],
-      ready?[GUIDE_DASH(CHART_COL.S1),'얇은 점선','시나리오 조건부 중앙값 (p50)']:null,
-      ready?[GUIDE_BAND('rgba(255,79,23,.16)'),'옅은 음영','조건부 일별 분포 p10–p90 · 진한 영역 p25–p75']:null,
-      [GUIDE_BAND('rgba(255,157,25,.48)'),'아래 띠','전체 GBM 모의 경로의 −10%선 누적 터치 비율'],
-      memberCount?[GUIDE_DASH('#697078'),'참고 표본','켜면 보이는 저장된 주간 모의 경로']:null
-    ],'날짜별 가격 예측 아님 · 참고 의견이며 투자 자문이 아닙니다.')}
     ${memberCount?'<p class="chart-note chart-note-accent" data-original-sample-note hidden>얇은 회색 점선은 저장된 주간 표본입니다. 굵은 대표선은 전체 일별 모의 경로에서 수학적으로 선정합니다.</p>':''}
   </section>`);
   const chartHost=$('#original-flow-chart',panel),sampleNote=$('[data-original-sample-note]',panel),sampleButton=$('[data-original-samples]',panel);

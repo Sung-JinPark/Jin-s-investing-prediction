@@ -879,7 +879,7 @@ def test_repository_dashboard_routes_v5_2_with_correct_semantics() -> None:
     assert "let rangeKey='quarter'" in script
     assert "A · B · C 분리" in script
     assert "C는 직접 입력하지 않습니다" in script
-    assert "이전 방식의 그래프로 자동 전환하지 않습니다" in script
+    assert "이전 방식의 그래프로 자동 전환하지 않습니다" not in script  # 2026-11-18 설명 문장 제거 — 무대체 계약은 아래 문자열이 고정
     assert "a candidate failure must never silently replace the requested chart" in script
     assert "stale_last_valid" in script
     # 게이트 닫힘 배너 철회 (DECISIONS.md 2026-09-09, 사용자 결정): 최신 후보가 아니어도
