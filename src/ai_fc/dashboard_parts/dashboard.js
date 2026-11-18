@@ -3470,12 +3470,19 @@ function evDisplayRows(rows){
     }
     display.note=note.filter(Boolean).join(' · ');
     return display;
+  }).map(row=>{
+    /* NVIDIA: 공식 non-GAAP 실제값과 제공업체 예상·이전을 한 줄로. 기준이 달라 상회/하회 색은 칠하지 않는다. */
+    if(row.metric!=='eps_reported'||row.accounting_basis!=='non_GAAP'||row.currency!=='USD'||!row.period_end)return row;
+    const end=Date.parse(row.period_end),forecast=raw.find(c=>c.metric==='eps'&&c.currency==='USD'&&(c.actual==null||c.actual==='')&&!consumed.has(c)&&c.period_end&&Math.abs(Date.parse(c.period_end)-end)<=7*864e5);
+    if(!forecast)return row;
+    consumed.add(forecast);
+    return {...row,consensus:forecast.consensus,previous:forecast.previous,comparison_allowed:false,display_sources:[row,forecast]};
   });
   return projected.filter((row,index)=>!consumed.has(raw[index])).sort((a,b)=>Number(b.actual!=null&&b.actual!=='')-Number(a.actual!=null&&a.actual!=='')||Number(b.metric==='eps_reported')-Number(a.metric==='eps_reported'));
 }
 function evRowBasis(row){
   const share={ordinary_share:'보통주',ordinary:'보통주',ADR_unit:'ADR',ADR:'ADR',adr:'ADR',listed_share:'상장 주식',not_applicable:''};
-  const accounting={US_GAAP:'US GAAP',TIFRS:'대만 IFRS',vendor_reported:'제공업체 기준'};
+  const accounting={US_GAAP:'US GAAP',non_GAAP:'Non-GAAP',TIFRS:'대만 IFRS',vendor_reported:'제공업체 기준'};
   return [row.currency,share[row.share_basis]??row.share_basis,
     row.eps_basis==='basic'?'기본 EPS':row.eps_basis==='diluted'?'희석 EPS':row.eps_basis==='vendor_reported'?'제공업체 EPS':row.eps_basis,
     accounting[row.accounting_basis]||row.accounting_basis].filter(Boolean).join(' · ');
@@ -3497,7 +3504,7 @@ const EV_AFP_SHORT={headline_cpi_mom:'전월',headline_cpi_yoy:'전년',core_cpi
   payroll_change:'고용',unemployment_rate:'실업률',avg_hourly_earnings_mom:'임금 전월',
   headline_ppi_mom:'전월',headline_ppi_yoy:'전년',core_ppi_mom:'근원 전월',core_ppi_yoy:'근원 전년',
   job_openings:'구인건수',ism_manufacturing_pmi:'제조업',nahb_hmi:'주택심리',
-  real_gdp:'GDP',gdp_price_index:'물가지수',policy_rate:'기준금리',eps:'EPS',eps_reported:'공식 EPS',eps_reported_adr:'공식 ADR EPS',revenue_reported:'공식 매출',gross_margin_reported:'매출총이익률'};
+  real_gdp:'GDP',gdp_price_index:'물가지수',policy_rate:'기준금리',eps:'EPS',eps_reported:'공식 EPS',eps_reported_gaap:'GAAP EPS',eps_reported_adr:'공식 ADR EPS',revenue_reported:'공식 매출',gross_margin_reported:'매출총이익률'};
 function evAfpShortLabel(row){
   return row.display_projection&&row.metric==='eps_reported'?'EPS 환산':row.display_projection&&row.metric==='revenue_reported'?'매출 환산':EV_AFP_SHORT[row.metric]||row.label;
 }

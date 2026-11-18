@@ -1174,3 +1174,19 @@ console.log(JSON.stringify({dailyMobile:chartZoomInitialWidth(daily,366,true),
     assert result == {"dailyMobile": 1160, "otherMobile": 366, "desktop": 900}
     assert "events.map(event=>[event.index,event.short_label])" in source
     assert 'class="daily-flow-events"' in source and "esc(event.full_label)" in source
+
+
+def test_nvidia_official_actual_shares_a_row_with_vendor_forecast_without_beat_colour() -> None:
+    result = _run_earnings_js(r"""
+const rows=[
+ {metric:'eps',label:'주당순이익(EPS)',actual:null,consensus:'$2.49',previous:'$2.22',currency:'USD',period_end:'2026-10-31',comparison_allowed:true,source:'Nasdaq',source_url:'https://nasdaq.example/nvda'},
+ {metric:'eps_reported_gaap',label:'희석 EPS (GAAP)',actual:'$2.70',consensus:null,previous:null,currency:'USD',accounting_basis:'US_GAAP',period_end:'2026-10-25',comparison_allowed:false,source:'NVIDIA Newsroom',source_url:'https://nvidia.example/q3'},
+ {metric:'eps_reported',label:'희석 EPS (Non-GAAP)',actual:'$2.68',consensus:null,previous:null,currency:'USD',accounting_basis:'non_GAAP',period_end:'2026-10-25',comparison_allowed:false,source:'NVIDIA Newsroom',source_url:'https://nvidia.example/q3'}];
+const display=evDisplayRows(rows);
+console.log(JSON.stringify({metrics:display.map(r=>r.metric),first:display[0],gaap:display[1],tone:evAfpTone(display[0]),table:evAfpTable(rows)}));
+""")
+    assert result["metrics"] == ["eps_reported", "eps_reported_gaap"]
+    first = result["first"]
+    assert (first["actual"], first["consensus"], first["previous"]) == ("$2.68", "$2.49", "$2.22")
+    assert result["gaap"]["consensus"] is None and result["tone"] == ""
+    assert "is-beat" not in result["table"] and "https://nasdaq.example/nvda" in result["table"]

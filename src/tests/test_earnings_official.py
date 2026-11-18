@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import hashlib
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 import pytest
 
@@ -230,3 +230,63 @@ def test_unsupported_or_unidentified_event_is_rejected():
         official.official_urls(event("MSFT"))
     with pytest.raises(official.OfficialEarningsError, match="fiscal"):
         official.official_urls({"event_id": "asml_unknown", "ticker": "ASML"})
+
+
+NVDA_URL = "https://nvidianews.nvidia.com/news/nvidia-announces-financial-results-for-third-quarter-fiscal-2027"
+NVDA_LATEST = "https://nvidianews.nvidia.com/news/latest"
+NVDA_CAPTURE = datetime(2026, 11, 18, 8, 0, tzinfo=timezone.utc)
+NVDA_EVENT = {"event_id": "nvda_fy27_q3", "kind": "earnings", "ticker": "NVDA", "date": "2026-11-17"}
+
+
+def nvda_html(*, title="Third Quarter Fiscal 2027", column="Q3 FY27", unit="in billions"):
+    def table(name, margin, eps):
+        return f"""<table><tr><td>{name}</td></tr>
+        <tr><td>($ {unit}, except earnings per share)</td><td>{column}</td><td>Q2 FY27</td></tr>
+        <tr><td>Revenue</td><td>$115.8</td><td>$96.2</td></tr>
+        <tr><td>Gross margin</td><td>{margin} %</td><td>75.0 %</td></tr>
+        <tr><td>Diluted earnings per share</td><td>${eps}</td><td>$2.46</td></tr></table>"""
+    return f"""<html><title>NVIDIA Announces Financial Results for {title} | NVIDIA Newsroom</title>
+    <h1>NVIDIA Announces Financial Results for {title}</h1><p>November 17, 2026</p>
+    <p>NVIDIA today reported revenue for the third quarter ended October 25, 2026, of $115.8 billion.</p>
+    {table("GAAP", "74.8", "2.70")}{table("Non-GAAP", "74.9", "2.68")}</html>"""
+
+
+def nvda_latest(link=True):
+    item = (f'<a href="/news/nvidia-announces-financial-results-for-third-quarter-fiscal-2027">NVIDIA results</a>'
+            if link else '<a href="/news/some-other-story">Other</a>')
+    return f"<html><title>Latest News | NVIDIA Newsroom</title>{item}</html>"
+
+
+def test_nvidia_release_keeps_gaap_and_non_gaap_apart_without_consensus():
+    rows = {r["metric"]: r for r in official.parse_official(
+        NVDA_EVENT, nvda_html(), source_url=NVDA_URL, captured_at=NVDA_CAPTURE)}
+    assert rows["eps_reported"]["actual"] == "$2.68" and rows["eps_reported"]["accounting_basis"] == "non_GAAP"
+    assert rows["eps_reported_gaap"]["actual"] == "$2.70" and rows["eps_reported_gaap"]["accounting_basis"] == "US_GAAP"
+    assert rows["revenue_reported"]["actual_value"] == 115800 and rows["revenue_reported"]["currency"] == "USD"
+    assert rows["gross_margin_reported"]["actual_value"] == 74.8
+    for row in rows.values():
+        assert (row["fiscal_year"], row["fiscal_quarter"], row["period_end"]) == (2027, 3, "2026-10-25")
+        assert row["published_date"] == "2026-11-17"
+        assert row["consensus"] is None and row["comparison_allowed"] is False
+
+
+@pytest.mark.parametrize("kwargs", [
+    {"title": "Second Quarter Fiscal 2027"},
+    {"title": "Third Quarter Fiscal 2026"},
+    {"column": "Q2 FY26"},
+    {"unit": "in millions"},
+])
+def test_nvidia_release_rejects_other_periods_and_unverified_units(kwargs):
+    with pytest.raises(official.OfficialEarningsError):
+        official.parse_official(NVDA_EVENT, nvda_html(**kwargs), source_url=NVDA_URL, captured_at=NVDA_CAPTURE)
+
+
+def test_nvidia_listing_is_pending_until_the_quarter_release_is_linked():
+    assert official.parse_official(NVDA_EVENT, nvda_latest(), source_url=NVDA_LATEST, captured_at=NVDA_CAPTURE) == []
+    pending = official.discover_issuer_release(NVDA_EVENT, fetch_text=lambda url: {"text": nvda_latest(link=False), "captured_at": NVDA_CAPTURE}, now=NVDA_CAPTURE + timedelta(minutes=1))
+    assert pending["status"] == "pending" and pending["candidates"] == []
+    pages = {NVDA_LATEST: nvda_latest(), NVDA_URL: nvda_html()}
+    released = official.discover_issuer_release(
+        NVDA_EVENT, fetch_text=lambda url: {"text": pages[url], "captured_at": NVDA_CAPTURE}, now=NVDA_CAPTURE)
+    assert released["status"] == "released"
+    assert {r["metric"] for r in released["candidates"]} >= {"eps_reported", "eps_reported_gaap"}

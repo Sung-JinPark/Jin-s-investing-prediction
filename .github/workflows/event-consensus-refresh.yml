@@ -1,0 +1,88 @@
+name: event-consensus-refresh
+
+# 일정 표(실제·예상·이전)와 추정 실적일 확정을 **발표 직후** 따라간다 (2026-11-18).
+#
+# 왜 market-mood-refresh 에서 떼어냈나:
+# - 거기서는 하루 두 번(미국 마감 직후)만 돌아서 08:30 ET 지표·장마감 후 실적이 화면에
+#   6~10시간 늦게 올라왔다(NVIDIA Q3 실적 발표 10시간 뒤에도 칸이 비어 있었다).
+# - 그 잡은 마감을 기다리며 쓰기 잠금을 몇 시간 쥔다 — 10분 주기와 같은 잠금을 쓸 수 없다.
+#
+# 하는 일 (표시 전용, 어떤 예측·확률과도 결합하지 않는다):
+# 1. 추정(월 패턴) 실적일을 Nasdaq 이 확정한 날짜·구간으로 대체하는 새 행을 덧붙인다.
+# 2. 창 안의 일정마다 실제·예상·이전을 받아 바뀐 값만 append-only 원장에 덧붙인다.
+# 변경이 있을 때만 커밋하고 pages 를 다시 배포한다. GitHub 예약은 최선 노력이라 10분은
+# 요청 주기이지 게시 시간 보장이 아니다.
+on:
+  schedule:
+    - cron: "3-59/10 * * * 1-5"
+    - cron: "3-59/30 * * * 0,6"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: write
+
+# 쓰는 파일이 data/calendar 뿐이라 기다리는 배치(investing-data-writer)와 잠금을 나누고,
+# 같은 워크플로끼리만 줄을 세운다. 진행 중인 실행은 취소하지 않는다.
+concurrency:
+  group: event-consensus-refresh
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 1
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install lightweight dependencies
+        run: pip install typer pydantic pyyaml python-frontmatter numpy scipy
+      - name: Capture, commit and push against a fresh main
+        id: capture
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          echo "committed=false" >> "$GITHUB_OUTPUT"
+          failed=0
+          settled=false
+          for attempt in 1 2 3; do
+            # 푸시가 밀리면 최신 main 위에서 다시 받는다 — 수집은 멱등이고 변경분만 덧붙는다.
+            git fetch --no-tags --depth=1 origin main
+            git reset --hard origin/main
+            (cd src && python -m ai_fc consensus) || failed=1
+            git add data/calendar
+            if git diff --cached --quiet; then
+              echo "No new event value; nothing to commit."
+              settled=true
+              break
+            fi
+            git commit -m "data: refresh event consensus (actual · forecast · previous)"
+            if git push origin HEAD:main; then
+              echo "committed=true" >> "$GITHUB_OUTPUT"
+              settled=true
+              break
+            fi
+            echo "push raced with main (attempt $attempt)"
+          done
+          # 세 번 다 밀렸으면 값이 게시되지 않았다 — 성공으로 끝내지 않는다.
+          [ "$settled" = "true" ] || failed=1
+          echo "failed=$failed" >> "$GITHUB_OUTPUT"
+      - name: Publish verified committed event updates
+        if: ${{ steps.capture.outputs.committed == 'true' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run pages.yml --repo "$GITHUB_REPOSITORY" --ref main
+      # 받은 값은 위에서 이미 커밋·배포했다. 일부 원천이 실패했으면 여기서 실패로 남긴다.
+      - name: Report unavailable sources after publishing valid results
+        if: ${{ steps.capture.outputs.failed == '1' }}
+        run: |
+          echo "A calendar source failed; valid results were preserved and the next run retries."
+          exit 1

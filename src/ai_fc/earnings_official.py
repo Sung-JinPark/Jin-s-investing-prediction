@@ -1,4 +1,4 @@
-"""Read-only, point-in-time adapters for explicitly reported ASML/TSMC results.
+"""Read-only, point-in-time adapters for explicitly reported ASML/TSMC/NVIDIA results.
 
 Company-reported EPS is a separate metric from Nasdaq's USD consensus.  This
 module never converts currencies or share units and never writes a ledger.
@@ -24,12 +24,16 @@ class OfficialEarningsError(ValueError):
 _HOSTS = {
     "ASML": {"investor.asml.com", "www.investor.asml.com", "www.asml.com", "live.euronext.com"},
     "TSM": {"investor.tsmc.com", "pr.tsmc.com"},
+    "NVDA": {"nvidianews.nvidia.com"},
 }
 _QUARTERS = {"first": 1, "second": 2, "third": 3, "fourth": 4}
 _MONTHS = {name: index for index, name in enumerate(
     ("january", "february", "march", "april", "may", "june", "july", "august",
      "september", "october", "november", "december"), 1)}
 _MAX_FETCHES = 6
+_NVDA_TITLE = re.compile(
+    r"NVIDIA\s+Announces\s+Financial\s+Results\s+for\s+(First|Second|Third|Fourth)\s+Quarter"
+    r"(?:\s+and)?\s+Fiscal\s+(20\d{2})", re.I)
 
 
 def _clean(value: str) -> str:
@@ -59,10 +63,15 @@ def _identity(event: dict[str, Any]) -> tuple[str, int, int]:
         raise OfficialEarningsError("registered earnings event required")
     year, quarter = event.get("fiscal_year"), event.get("fiscal_quarter")
     if year is None or quarter is None:
-        match = re.search(r"(?:^|_)(20\d{2})_q([1-4])(?:_|$)", str(event["event_id"]), re.I)
+        # NVIDIA's fiscal year runs ahead of the calendar: nvda_fy27_q3 ends in October 2026.
+        pattern = (r"^nvda_fy(\d{2})_q([1-4])(?:_|$)" if ticker == "NVDA"
+                   else r"(?:^|_)(20\d{2})_q([1-4])(?:_|$)")
+        match = re.search(pattern, str(event["event_id"]), re.I)
         if not match:
             raise OfficialEarningsError("explicit fiscal year and quarter required")
         year, quarter = match.groups()
+        if ticker == "NVDA":
+            year = 2000 + int(year)
     try:
         year, quarter = int(year), int(quarter)
     except (TypeError, ValueError) as exc:
@@ -95,6 +104,8 @@ def official_urls(event: dict[str, Any]) -> list[str]:
         # issuer-distributed Euronext, never relabelled as an ASML-hosted page.
         return ["https://live.euronext.com/en/listview/company-press-release/058805",
                 "https://investor.asml.com/quarterly-results"]
+    if ticker == "NVDA":
+        return ["https://nvidianews.nvidia.com/news/latest"]
     return [f"https://investor.tsmc.com/english/quarterly-results/{year}/q{quarter}",
             "https://pr.tsmc.com/english"]
 
@@ -251,21 +262,22 @@ def parse_official(event: dict[str, Any], raw_text: str, *, source_url: str,
     period_end: str | None = None
 
     def row(metric: str, label: str, value: float, actual: str, unit: str,
-            currency: str | None, share_basis: str, eps_basis: str | None = None) -> None:
+            currency: str | None, share_basis: str, eps_basis: str | None = None,
+            accounting: str | None = None) -> None:
         rows.append({
             "event_id": str(event["event_id"]), "metric": metric, "label": label,
             "actual": actual, "actual_value": value, "consensus": None, "previous": None,
             "period": f"Q{quarter} {year}", "fiscal_year": year, "fiscal_quarter": quarter,
             "period_end": period_end, "unit": unit, "currency": currency,
             "share_basis": share_basis, "eps_basis": eps_basis,
-            "accounting_basis": "US_GAAP" if ticker == "ASML" else "TIFRS",
+            "accounting_basis": accounting or ("US_GAAP" if ticker == "ASML" else "TIFRS"),
             "comparison_allowed": False,
             "source": ("ASML issuer-distributed Euronext" if urlparse(source_url).hostname == "live.euronext.com"
-                       else f"{ticker} official IR"),
+                       else "NVIDIA Newsroom" if ticker == "NVDA" else f"{ticker} official IR"),
             "source_url": source_url, "source_hash": hashlib.sha256(raw_text.encode("utf-8")).hexdigest(),
             "published_at": published_at, "published_date": published_date,
             "captured_at": _iso(capture), "available_at": _iso(capture),
-            "note": "회사 발표 원단위. 통화·주당 단위 변환 및 USD 컨센서스 비교를 하지 않습니다.",
+            "note": "" if ticker == "NVDA" else "회사 발표 원단위. 통화·주당 단위 변환 및 USD 컨센서스 비교를 하지 않습니다.",
         })
 
     headline = " ".join(doc.headings)
@@ -321,6 +333,54 @@ def parse_official(event: dict[str, Any], raw_text: str, *, source_url: str,
                         "percent", None, "not_applicable")
         if not any(item["metric"] == "eps_reported" for item in rows):
             raise OfficialEarningsError("ASML basic EUR EPS missing or malformed")
+    elif ticker == "NVDA":
+        title = _NVDA_TITLE.search(headline)
+        if not title:
+            return []  # Every other newsroom page, including the listing itself.
+        if _QUARTERS[title[1].lower()] != quarter or int(title[2]) != year:
+            raise OfficialEarningsError("NVIDIA release fiscal period does not match event")
+        end = re.search(r"\b(first|second|third|fourth)\s+quarter\s+ended\s+([A-Za-z]+)\s+(\d{1,2}),\s+(20\d{2})", doc.text, re.I)
+        if not end or _QUARTERS[end[1].lower()] != quarter or end[2].lower() not in _MONTHS:
+            raise OfficialEarningsError("NVIDIA fiscal period end missing or mismatched")
+        period_end = datetime(int(end[4]), _MONTHS[end[2].lower()], int(end[3])).date().isoformat()
+        dated = re.search(_NVDA_TITLE.pattern + r"\s+([A-Za-z]+ \d{1,2}, 20\d{2})", doc.text, re.I)
+        if dated:
+            published_date = datetime.strptime(dated[3], "%B %d, %Y").date().isoformat()
+        column = f"Q{quarter} FY{year % 100:02d}"
+        summary: dict[str, dict[str, str]] = {}
+        for table in doc.tables:
+            basis = table[0][0] if table and table[0] else ""
+            if basis not in {"GAAP", "Non-GAAP"}:
+                continue
+            header = next((cells for cells in table if column in cells), None)
+            if header is None or "in billions" not in header[0].lower():
+                raise OfficialEarningsError("NVIDIA summary table period/unit not verified")
+            index = header.index(column)
+            summary[basis] = {cells[0].lower(): cells[index] for cells in table
+                              if len(cells) > index and cells[0]}
+        if set(summary) != {"GAAP", "Non-GAAP"}:
+            raise OfficialEarningsError("NVIDIA GAAP/non-GAAP summary tables missing")
+
+        def reported(basis: str, label: str, suffix: str = "") -> float:
+            text = summary[basis].get(label)
+            if text is None:
+                raise OfficialEarningsError(f"NVIDIA {basis} {label} missing")
+            return _number(text.replace("$", "").strip().removesuffix(suffix).strip())
+
+        value = reported("Non-GAAP", "diluted earnings per share")
+        row("eps_reported", "희석 EPS (Non-GAAP)", value, f"${value:.2f}",
+            "currency_per_share", "USD", "ordinary_share", "diluted", accounting="non_GAAP")
+        value = reported("GAAP", "diluted earnings per share")
+        row("eps_reported_gaap", "희석 EPS (GAAP)", value, f"${value:.2f}",
+            "currency_per_share", "USD", "ordinary_share", "diluted", accounting="US_GAAP")
+        value = reported("GAAP", "revenue")
+        row("revenue_reported", "매출", round(value * 1000, 6), f"${value:,.1f}B",
+            "million_currency", "USD", "not_applicable", accounting="US_GAAP")
+        value = reported("GAAP", "gross margin", "%")
+        if not 0 <= value <= 100:
+            raise OfficialEarningsError("gross margin percent out of bounds")
+        row("gross_margin_reported", "매출총이익률 (GAAP)", value, f"{value:g}%",
+            "percent", None, "not_applicable", accounting="US_GAAP")
     else:
         if not re.search(r"TSMC\s+Reports\s+(?:First|Second|Third|Fourth)\s+Quarter\s+EPS", headline, re.I):
             return []  # In particular, the 3Q guidance table is not an actual.
@@ -355,7 +415,7 @@ def parse_official(event: dict[str, Any], raw_text: str, *, source_url: str,
     if published_at is not None and _utc(published_at) > min(cutoff, capture):
         raise OfficialEarningsError("official publication is after capture/as_of")
     if published_at is None and published_date is not None:
-        issuer_zone = ZoneInfo("Europe/Amsterdam" if ticker == "ASML" else "Asia/Taipei")
+        issuer_zone = ZoneInfo({"ASML": "Europe/Amsterdam", "NVDA": "America/Los_Angeles"}.get(ticker, "Asia/Taipei"))
         # A date-only release cannot establish a publication instant, but a
         # future date in the issuer's local calendar is still not an actual.
         if published_date > min(capture, cutoff).astimezone(issuer_zone).date().isoformat():
@@ -378,7 +438,11 @@ def _release_links(event: dict[str, Any], text: str, base: str) -> list[str]:
             _url(ticker, url)
         except OfficialEarningsError:
             continue
-        if ticker == "ASML":
+        if ticker == "NVDA":
+            relevant = re.fullmatch(
+                fr"/news/nvidia-announces-financial-results-for-{words}-quarter(?:-and)?-fiscal-{year}/?",
+                urlparse(url).path, re.I)
+        elif ticker == "ASML":
             relevant = (re.search(fr"\bq{quarter}[- /]?{year}\b", f"{url} {label}", re.I)
                         and re.search(r"reports|press.release|news-release|financial.results", f"{url} {label}", re.I))
         else:
@@ -396,6 +460,9 @@ def _usable_discovery(event: dict[str, Any], text: str, source: str) -> bool:
     parsed = urlparse(source)
     doc = _Document(text)
     headline = " ".join(doc.headings)
+    if ticker == "NVDA":
+        return (parsed.path.rstrip("/") == "/news/latest" and bool(re.search(r"Latest News", headline, re.I))
+                and any(urlparse(urljoin(source, href)).path.startswith("/news/") for href, _ in doc.links))
     if ticker == "TSM":
         if parsed.path == f"/english/quarterly-results/{year}/q{quarter}":
             period = re.search(fr"(?:{year}\s*Q{quarter}|Q{quarter}\s*{year})", headline, re.I)
