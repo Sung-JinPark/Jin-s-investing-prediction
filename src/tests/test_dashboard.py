@@ -700,7 +700,8 @@ def test_workspace_utility_contract() -> None:
     assert "businessDayDiff" in html and "is-stale" in html
     assert "answer(25)" not in html
     assert "확률은 예측 모델 앙상블 산출값" not in html
-    assert "gbm-daily-252d" in html
+    # 2026-11-18 소유자 지시: 방법별 설명 문단(gbm-daily-252d 분기 methodCopy)은 화면에서 뺐다.
+    assert "fat tail과 돌발 이벤트를 직접 모형화하지 않습니다" not in html
     assert "조건부 구간 p10–p90" in html
     assert "scenarioChangePanel" in html and "scenarioHistoryRows" in html
     assert "SCENARIO CHANGE" in html and "MODEL RECEIPT" in html
@@ -727,7 +728,9 @@ def test_workspace_utility_contract() -> None:
     assert "tip-series" in html and "--tip-series" in html
     assert "크립토 2019 시작" in html
     assert "<h2>과거 혁신 사이클 비교</h2>" in html
-    assert "다우 1929-09 정점 = M+56" in html
+    # 2026-11-18 소유자 지시: 차트 아래 설명 문장은 화면에서 뺀다.
+    assert "다우 1929-09 정점 = M+56" not in html
+    assert "정점 정렬 아님" not in html
     assert "crypto2021:['크립토 2019 시작','#1f6feb'" in html
     assert "biotech2015:['바이오 2013','#a43c82'" in html
     assert "dow1929:['다우 1925','#6b5845'" in html
@@ -783,14 +786,16 @@ def test_workspace_utility_contract() -> None:
     assert "model.history.period" in html and "label.endsWith('-06')" in html
     assert 'data-lab-tab="ai-regime"' not in html and "hash:'#statistics/market-liquidity'" in html
     assert "aiRegime.id='lab-ai-regime'" in html and 'href="#future/ai-regime">상태 상세' in html
-    assert "Scenario Tracker" in html and "가중 합산 없음" in html
-    assert "이 체크리스트는 사전 등록된 방향 규칙이며 확률이 아닙니다" in html
+    assert "Scenario Tracker" in html
+    for retired in ("가중 합산 없음", "이 체크리스트는 사전 등록된 방향 규칙이며 확률이 아닙니다", 'class="tracker-warning"'):
+        assert retired not in html, retired
     assert "데이터 커버리지 부족" in html and "MAP WITHHELD" in html
     assert "표본 축적 중 ${num(row.observations)}/${num(row.minimum_observations)}" in html
-    assert "유동성 확장이 곧 상승을 뜻하지 않습니다" in html
+    assert "유동성 확장이 곧 상승을 뜻하지 않습니다" not in html
     assert "function drawLiquidity" in html and "liquidity_zone" in html
     assert "monitor.consecutive_successful_days" in html
-    assert "자동 반영하지 않음" in html
+    for retired in ("자동 반영하지 않음", 'class="liquidity-source-grid"', "liquidity-vintage-note", "재계산값(실시간 기록 아님)", "다시 계산한 구간"):
+        assert retired not in html, retired
 
 
 def test_forecast_lookup_ui_contract() -> None:
@@ -798,32 +803,39 @@ def test_forecast_lookup_ui_contract() -> None:
     for required in (
         'type="date"', 'aria-live="polite"', "#lookup=", "10–90% 구간",
         "25–75% 구간", "중앙값", "모델 조건부 확률",
-        "단일 가격 제시·사건확률·투자자문이 아닙니다", "NO API · NO STORAGE",
-        "8월 30일 · 3개월 뒤 · 연말", "정규식 규칙 파서 · LLM 호출 없음",
+        "단일 가격 제시·사건확률·투자자문이 아닙니다",
+        "8월 30일 · 3개월 뒤 · 연말",
         "PHYSICAL EVENT · 별도 확률 공간", "시나리오 분포와 결합 금지",
-        "현재 기준 미래 분포 조회", "미래 날짜에 새로 만든 전망이 아니라",
+        "현재 기준 미래 분포 조회",
         'data-flow-year="${row.year}"', "2026년 과거 조정 모양을 입힌 경로",
         "2027년까지", "flowYearRange", "flowAxisTickIndexes",
-        "2027년까지 주요 일정", "확정·추정 분리 · 전망성 해석 제외",
+        "2027년까지 주요 일정",
         "flowEventLayout", "조회 · ",
         "DB-CONDITIONED PATH · MONTHLY RISK WINDOW", "과거 조정 모양을 입힌 경로",
         "월 단위 위험창",
-        "특정 9월 하락일이나 저점 거래일을 지정하지 않습니다", "AI 버블 붕괴일이 아니라", "flowDisplayPath", "flowPathStats",
+        "flowDisplayPath", "flowPathStats",
         "선택일을 100으로 재기준", "현재 원점 유지", "buildRebasedFlowModel",
         "D = 100 · CURRENT SNAPSHOT REINDEXED", "#future/lookup/${mapped.requested}/${lookupMode}",
-        "선택일 이후의 분포와 S1/S2/S3 경로를 각각 100으로 맞춰", "D일 스냅샷에서 반영됩니다",
         "horizonCoverageForDay", "미검증 구간", "적중 기록 축적 중",
         "inside_p10_p90_rate_pct", "0일 · 0/60",
         "lookupEventSummary", "일정과 분포 확률을 연결하지 않습니다",
-        "EVENT_KIND_META", "월 패턴 또는 연준의 공식 잠정 일정",
-        "굴곡=역사 중앙 형태 가정", "발생 여부의 확률 진술이 아닙니다",
+        "EVENT_KIND_META",
         "굴곡 전 GBM 같이 보기", "data-flow-baseline", "baseline-swatch",
         "선택 3시대 원형 → 목표", "기하 detrend 잔차", "공용 strength",
         "무드리프트 기계적 기준", "임계까지 ${num(proximity.threshold_distance_pct)}%",
-        "trailing 252거래일 μ의 추세 지속 가정", "physicalEventContextMarkup",
+        "physicalEventContextMarkup",
         "예측 확률과 합산하지 않습니다",
     ):
         assert required in html
+    # 2026-11-18 소유자 지시: 조회·구조 경로 부록의 설명·부정 문구는 화면에서 뺀다.
+    for retired in (
+        "NO API · NO STORAGE", "정규식 규칙 파서 · LLM 호출 없음", "미래 날짜에 새로 만든 전망이 아니라",
+        "확정·추정 분리 · 전망성 해석 제외", "특정 9월 하락일이나 저점 거래일을 지정하지 않습니다",
+        "AI 버블 붕괴일이 아니라", "선택일 이후의 분포와 S1/S2/S3 경로를 각각 100으로 맞춰",
+        "D일 스냅샷에서 반영됩니다", "월 패턴 또는 연준의 공식 잠정 일정", "굴곡=역사 중앙 형태 가정",
+        "발생 여부의 확률 진술이 아닙니다", "trailing 252거래일 μ의 추세 지속 가정",
+    ):
+        assert retired not in html, retired
     assert "lookup-metrics" in html and "lookup-primary" in html
     assert "flowYear=Number(mapped.mapped.slice(0,4))" in html, "조회 날짜의 연도 차트로 전환해야 함"
     assert "실경로 오버레이" not in html, "모의 표본을 기본 대표선으로 복원하면 안 됨"
@@ -959,8 +971,8 @@ def test_chart_notes_use_one_scannable_guide_block() -> None:
     for helper in ("const GUIDE_SOLID=", "const GUIDE_DASH=", "const GUIDE_BAND="):
         assert helper in html, helper
 
-    # 두 전망 차트가 같은 컴포넌트를 쓴다
-    assert html.count("${chartGuide([") >= 2
+    # 2026-11-18 소유자 지시: 세 시나리오(V5.2) 차트의 '읽는 법' 가이드는 뺐다.
+    assert "'같은 색 점선','수천 번 돌린 결과의 한가운데'" not in html
 
     # 스타일이 실제로 실려 있고 좁은 화면에서도 접힌다
     assert ".chart-guide{margin:12px 0 0;padding:12px 14px;display:grid" in css
@@ -1026,10 +1038,11 @@ def test_forecast_chart_primary_line_is_the_actual_medoid() -> None:
     assert "Y(medoids[key].at(-1))" in body
     assert "const endpointLabel=key=>{const values=medoids[key]" in body
 
-    # 주선이 모의 멤버 한 개라는 사실을 반드시 함께 밝힌다
-    assert "그 시나리오에서 실제로 나온 경로 하나" in html
+    # 주선이 모의 멤버 한 개라는 사실은 범례 라벨로 밝힌다.
+    # 2026-11-18 소유자 지시: 설명 가이드와 '(평균 아님)' 꼬리는 화면에서 뺀다.
     assert "굵은 선=실제 모의 경로 하나" in html
-    assert "굵은 선=실제 모의 경로 하나(평균 아님)" in html
+    assert "그 시나리오에서 실제로 나온 경로 하나" not in html
+    assert "(평균 아님)" not in html
 
 
 def test_single_scenario_chart_draws_only_the_upside_path() -> None:
@@ -1169,7 +1182,7 @@ def test_original_daily_chart_selects_member_and_preserves_labelled_baseline() -
     # 공시는 사라지지 않고 접힌 방법 설명으로 자리를 옮겼다
     assert "전체 일별 경로를 사용" in html
     assert "최빈군 대표 경로" in html
-    assert "굵은 대표선은 전체 일별 모의 경로에서 수학적으로 선정" in html
+    assert "굵은 대표선은 전체 일별 모의 경로에서 수학적으로 선정" not in html, "표본 설명 문단은 2026-11-18 제거"
     assert "일간 대표 경로 보류 · 기존 주간 기준선 표시" in html
     assert "data-path-role':'daily-representative" in body
     assert "data-daily-p50" in body
@@ -1260,11 +1273,8 @@ def test_v5_2_future_view_uses_one_log_scale_and_restores_research_panels() -> N
         "function scenarioV52Windows(candidate)",
         "scenarioV52RangeLabel(candidate,key)",
         "${esc(v52Windows.touchEnd)}까지 −10%선 접촉",
-        "${esc(v52Windows.touchEnd)} 이후 최초 접촉",
         "세 시나리오 한눈에",
         "연구 코호트 가중치",
-        "0.80은 cap 초과로 차단",
-        "정의상 0",
         "적격 사건 ${num(hard.eligible_historical_event_count||0)}/${num(hard.preferred_minimum||60)}",
         "band calibration ${num(promotionGates.band_calibration?.observations||0)}/${num(promotionGates.band_calibration?.minimum||60)}",
         "세 가지 시장 경로",
@@ -1273,7 +1283,7 @@ def test_v5_2_future_view_uses_one_log_scale_and_restores_research_panels() -> N
         "긴축 + 신용 위험 + 성장 둔화",
         "서로 다른 3개 군집",
         "분석 방법과 세부 통계",
-        "모두 보정되지 않은 모의 경로 비율입니다",
+        "접촉 ${pct(full.first_touch_minus_10_by_october_end)} · 모의 경로 비율",
         "닷컴 조정 뒤 5년 · NASDAQ · Realty Income · D.R. Horton",
         "시장 자금 흐름",
         "bindCrossAsset(panel,initialState.scenario)",
@@ -1282,6 +1292,13 @@ def test_v5_2_future_view_uses_one_log_scale_and_restores_research_panels() -> N
         assert required in html
     assert "scenarioCustomerViewNav" not in html
     assert "CONDITIONAL SMALL MULTIPLES" not in html
+    # 2026-11-18 소유자 지시: 세부 통계 접기 안의 설명 문장은 빼고 숫자만 남긴다.
+    for retired in (
+        "이후 최초 접촉", "0.80은 cap 초과로 차단", "정의상 0", "모두 보정되지 않은 모의 경로 비율입니다",
+        "champion이 아닌 참고 경로입니다", "두 그래프의 %는 서로 다른 값", "발생확률 아님", "참고 의견 · 투자 자문 아님",
+        "특정 날짜 확정 아님", '<section class="scenario-v52-timing">', "왜 굵은 선을 실제 모의 경로로 바꿨나", "재현 식별값",
+    ):
+        assert retired not in html, retired
     assert "compareTray.hidden=!ids.length||!location.hash.startsWith('#records')" in html
 
 
@@ -1465,9 +1482,8 @@ def test_round2_cross_asset_explanations_and_method_event_contract() -> None:
 def test_future_chart_restores_innovation_reference_and_cross_asset_five_year_view() -> None:
     html = dashboard.load_template()
     for required in (
-        "혁신사이클 대표 참조선 · 확률 아님",
+        "혁신사이클 대표 참조선",
         "data-reference-path':'innovation-cycle'",
-        "특정 9월 하락일이나 저점 거래일을 지정하지 않습니다",
         "닷컴 조정 뒤 5년 · NASDAQ · Realty Income · D.R. Horton",
         "keys:['nasdaq_price','realty_income_total_return','dr_horton_total_return']",
     ):
@@ -1477,19 +1493,23 @@ def test_future_chart_restores_innovation_reference_and_cross_asset_five_year_vi
     assert 'id="cross-chart"' not in panel
     assert "data-cross-scenario" not in panel
     assert "function drawCrossAsset(host" not in html
+    # 2026-11-18 소유자 지시: 카드별 부정 꼬리·한계 접기는 화면에서 뺀다.
+    for retired in ("혁신사이클 대표 참조선 · 확률 아님", "모델 영수증과 한계", "인과 추정 아님", "LIVE CHECKLIST · 확률 아님", "별도 anchor"):
+        assert retired not in html, retired
 
 
 def test_structural_calibration_selection_invariance_is_visible() -> None:
     html = dashboard.load_template()
     for required in (
-        "시대 선택은 위치, base rate는 깊이를 정합니다",
-        "시대를 교체하면 위험창 중심월은 움직이지만",
         "시대 교체별 native·calibrated 낙폭 비교",
         "Native · 보정 전",
         "Calibrated · 화면",
         "origin_window_calibrated_s1_mdd_pct",
     ):
         assert required in html
+    # 2026-11-18 소유자 지시: 표는 남기고 설명 문장은 화면에서 뺀다.
+    for retired in ("시대 선택은 위치, base rate는 깊이를 정합니다", "시대를 교체하면 위험창 중심월은 움직이지만", "Native는 시대 선택의 원형 차이"):
+        assert retired not in html, retired
 
 
 def test_render_embed_vs_fetch(repo: Path) -> None:
@@ -1548,14 +1568,14 @@ def test_estimated_schedule_rows_stay_visually_distinct_from_confirmed() -> None
     ).read_text(encoding="utf-8")
     assert "border-style:dashed" in css.split(".month-event.is-estimated")[1][:100]
 
-    # 정의와 확률 비연결 고지는 전체 달력 쪽에 살아 있어야 한다.
-    ribbon = script[script.index("market-event-note"):][:400]
-    assert "기관·기업이 날짜를 공개한 일정" in ribbon
-    assert "이벤트와 분포 확률을 연결하지 않습니다" in ribbon
+    # 2026-11-18 소유자 지시: 전체 달력 아래 정의·비연결 설명 문단은 화면에서 뺀다
+    # (추정 표시는 칩·점선 테두리·화면 낭독기 라벨로 유지된다).
+    assert "market-event-note" not in script
+    assert "기관·기업이 날짜를 공개한 일정" not in script
 
 
 def test_home_event_calendar_keeps_detail_in_the_full_schedule() -> None:
-    """홈은 간결한 달력·예상치만 싣고 출처와 상세 설명은 전체 일정에 보존한다."""
+    """홈은 간결한 달력·예상치만 싣는다 — 카드별 출처 링크·설명은 2026-11-18부터 전체 일정에서도 뺐다."""
     script = (
         dashboard.config.ROOT / "src/ai_fc/dashboard_parts/dashboard.js"
     ).read_text(encoding="utf-8")
@@ -1563,8 +1583,8 @@ def test_home_event_calendar_keeps_detail_in_the_full_schedule() -> None:
     calendar = calendar[:calendar.index("function homeSignalSummary")]
     for gone in ("ev-note", "ev-src", "evCountChip", "근거 ↗"):
         assert gone not in calendar, f"홈 달력에 남으면 안 되는 것: {gone}"
-    # 전체 달력 쪽에는 그대로 있어야 한다 — 옮긴 것이지 지운 것이 아니다.
-    assert "공식 근거 ↗" in script
+    # 2026-11-18 소유자 지시: 카드별 출처 링크도 전체 달력에서 뺐다.
+    assert "공식 근거 ↗" not in script
     assert "event-summary-chip" in script
 
 
@@ -1944,12 +1964,17 @@ def test_presentation_copy_normalization_preserves_source_and_nested_shape() -> 
 def test_o_entry_cohort_ui_is_evidence_only() -> None:
     html = dashboard.load_template()
     for required in (
-        "O 월별 진입 cohort", "PREREGISTERED · REFERENCE ONLY",
-        "진입 시점·가격을 추천하지 않습니다", "현재 진입상태 규칙은 아직 등록하지 않았습니다",
-        "월말 신호 → 익월 첫 거래일 체결", "cohortResultsMarkup(DATA.o_entry_cohort)",
-        "표본 n=${num(row.n||0)}", "아직 기간이 안 끝난 사례는 계산에서 빼고",
+        "O 월별 진입 cohort", "PREREGISTERED", "cohortResultsMarkup(DATA.o_entry_cohort)",
+        "<td>n=${num(row.n||0)}</td>",
     ):
         assert required in html
+    # 2026-11-18 소유자 지시: 카드별 고지·방법 설명·표본 메타는 화면에서 뺀다 (표의 표본 열은 유지).
+    for retired in (
+        "PREREGISTERED · REFERENCE ONLY", "진입 시점·가격을 추천하지 않습니다",
+        "현재 진입상태 규칙은 아직 등록하지 않았습니다", "월말 신호 → 익월 첫 거래일 체결",
+        "표본 n=${num(row.n||0)}", "아직 기간이 안 끝난 사례는 계산에서 빼고", 'class="cohort-guard"',
+    ):
+        assert retired not in html, retired
     assert "O_ENTRY_ATTRACTIVE" not in html
 
 

@@ -872,13 +872,15 @@ def test_repository_dashboard_routes_v5_2_with_correct_semantics() -> None:
     assert 'data-scenario-p50="${key}"' in script
     assert 'data-path-role="${key}-actual-medoid"' in script
     assert "연구 코호트 가중치" in script
-    assert "특정 날짜 확정 아님" in script
-    assert "0.80은 cap 초과로 차단" in script
-    assert "정의상 0" in script
+    # 2026-11-18 소유자 지시: 세부 통계의 설명·부정 문장은 화면에서 빼고 숫자만 남긴다.
+    for retired in ("특정 날짜 확정 아님", "0.80은 cap 초과로 차단", "정의상 0", "C는 직접 입력하지 않습니다",
+                    "같은 DB를 색만 바꾼 그래프가 아닙니다"):
+        assert retired not in script, retired
+    assert "의존도 cap ${Number(dotcom.dependency_cap||0).toFixed(2)}" in script
     assert "Math.round(Number(value)*100)" in script
     assert "let rangeKey='quarter'" in script
     assert "A · B · C 분리" in script
-    assert "C는 직접 입력하지 않습니다" in script
+    assert "C 연구 코호트 가중치 ${weightPct(weightSpaces.C_mixture_probability?.value?.S1)}" in script
     assert "이전 방식의 그래프로 자동 전환하지 않습니다" in script
     assert "a candidate failure must never silently replace the requested chart" in script
     assert "stale_last_valid" in script
@@ -888,7 +890,7 @@ def test_repository_dashboard_routes_v5_2_with_correct_semantics() -> None:
     assert "modelView:'research'" in script
     assert "research_only_explicit_route" not in script
     assert "CONDITIONAL SMALL MULTIPLES" not in script
-    assert "같은 DB를 색만 바꾼 그래프가 아닙니다" in script
+    assert "<strong>시나리오 분리</strong>" in script
     assert "fixed_phase_template_active" in script
     assert "구조 선택에 반영" in script
     assert ".scenario-v52-range" in css
