@@ -1,8 +1,8 @@
 # Ledger accumulation audit
 
-- Generated: `2026-11-18T23:35:28+00:00`
+- Generated: `2026-11-19T00:42:18+00:00`
 - Latest completed NYSE day: `2026-11-18`
-- Result: accumulating 90 · frozen 2 · stalled 1 · inactive 12 · violation 0 · planned 12
+- Result: accumulating 91 · frozen 2 · stalled 0 · inactive 12 · violation 0 · planned 12
 
 | Ledger | Cadence | Files / rows | Latest | Status | Finding |
 |---|---:|---:|---:|---:|---|
@@ -41,7 +41,7 @@
 | `realty_o_entry_cohort_archive` | monthly | 5 | 2026-11-03 | **accumulating** | — |
 | `ai_capital_archives` | monthly | 9 | 2026-11-05 | **accumulating** | — |
 | `dualdb_model_runs` | weekly | 0 | — | **inactive** | — |
-| `source_monitoring` | trading_daily | 101 | 2026-11-18 | **stalled** | missing trading days: 2026-08-25, 2026-08-27, 2026-08-28, 2026-10-23, 2026-11-04; writer settles within 18h of the close; expects 2026-11-17 |
+| `source_monitoring` | trading_daily | 101 | 2026-11-18 | **accumulating** | missing trading days: 2026-08-25, 2026-08-27, 2026-08-28, 2026-10-23, 2026-11-04; writer settles within 18h of the close; expects 2026-11-17 |
 | `source_monitoring_status` | trading_daily | 1 | 2026-11-18 | **accumulating** | writer settles within 18h of the close; expects 2026-11-17 |
 | `ipo_reference_batch_receipts` | event | 4 | 2026-08-19 | **accumulating** | — |
 | `ipo_reference_batch_status` | weekly | 1 | 2026-11-18 | **accumulating** | — |
@@ -60,7 +60,7 @@
 | `raw_receipts` | event | 0 | — | **planned** | — |
 | `quarantine` | event | 0 | — | **planned** | — |
 | `bitemporal_facts` | event | 0 | — | **planned** | — |
-| `forecast_timestamp_proof` | weekly | 1 | 2026-11-18 | **accumulating** | — |
+| `forecast_timestamp_proof` | weekly | 1 | 2026-11-19 | **accumulating** | — |
 | `research_pack` | monthly | 5 | — | **accumulating** | — |
 | `scenario_v5_2_distinctness_shadow` | trading_daily | 1 | — | **accumulating** | — |
 | `scenario_v5_2_sensitivity_grid` | event | 1 | — | **accumulating** | — |
