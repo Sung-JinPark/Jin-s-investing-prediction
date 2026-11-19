@@ -1,6 +1,6 @@
 {
   "as_of": "2026-11-13",
-  "content_hash": "3942eced0b6cc91472a10dc79ac35a025362f84b6a0b181c039ec25259ff6777",
+  "content_hash": "edd996e66e4b58bf6a3986646d61a5f6399bb8e6439638582933658a7819b444",
   "data_summary": {
     "candidate": "C1",
     "data_grades": [
@@ -21,7 +21,7 @@
     "required_market_freshness": {
       "groups": [
         {
-          "age_hours": 17.60388888888889,
+          "age_hours": 18.965555555555557,
           "available_at": "2026-11-19T09:31:22.799657+00:00",
           "group": "NASDAQCOM",
           "observation_time": "2026-11-18",
@@ -29,7 +29,7 @@
           "status": "fresh"
         },
         {
-          "age_hours": 17.60388888888889,
+          "age_hours": 18.965555555555557,
           "available_at": "2026-11-19T02:53:12+00:00",
           "group": "VIX",
           "observation_time": "2026-11-18",
@@ -37,7 +37,7 @@
           "status": "fresh"
         },
         {
-          "age_hours": 19.8925,
+          "age_hours": 21.254166666666666,
           "available_at": "2026-11-18T21:42:40+00:00",
           "group": "DGS2",
           "observation_time": "2026-11-18",
@@ -45,7 +45,7 @@
           "status": "fresh"
         },
         {
-          "age_hours": 19.8925,
+          "age_hours": 21.254166666666666,
           "available_at": "2026-11-18T21:42:40+00:00",
           "group": "DGS10",
           "observation_time": "2026-11-18",
@@ -53,7 +53,7 @@
           "status": "fresh"
         },
         {
-          "age_hours": 137.6038888888889,
+          "age_hours": 138.96555555555557,
           "available_at": "2026-11-16T22:04:54+00:00",
           "group": "DTWEXBGS_or_DTWEXB",
           "observation_time": "2026-11-13",
@@ -86,7 +86,7 @@
       "필수 시장 입력 48시간 SLA 초과: DTWEXBGS_or_DTWEXB"
     ]
   },
-  "knowledge_cutoff": "2026-11-19T17:36:13+00:00",
+  "knowledge_cutoff": "2026-11-19T18:57:55+00:00",
   "model_id": "shadow.mf_dfm_ridge_varx_v2",
   "model_version": 2,
   "probability_space": "research_timeseries_v2_conditional",
