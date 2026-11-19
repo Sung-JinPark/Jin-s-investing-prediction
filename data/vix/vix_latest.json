@@ -5,7 +5,7 @@
   "source_url": "https://cdn.cboe.com/api/global/us_indices/daily_prices/VIX_History.csv",
   "source_field": "CLOSE",
   "observed_date": "2026-11-18",
-  "generated_at": "2026-11-18T23:31:19+00:00",
+  "generated_at": "2026-11-19T23:45:31+00:00",
   "level": 24.56,
   "band": "watch",
   "band_label": "경계",
@@ -588,7 +588,5 @@
     "distance": 0.44,
     "breached": false
   },
-  "stale_days": 1,
-  "latest_source": "cboe_delayed_quote",
-  "latest_source_url": "https://cdn.cboe.com/api/global/delayed_quotes/quotes/_VIX.json"
+  "stale_days": 2
 }
