@@ -1,6 +1,6 @@
 {
   "as_of": "2026-11-13",
-  "content_hash": "edd996e66e4b58bf6a3986646d61a5f6399bb8e6439638582933658a7819b444",
+  "content_hash": "504582b488b50364534b3ff386a8d8b8e1f5a58bc69aa708e0ccf0b2de799de7",
   "data_summary": {
     "candidate": "C1",
     "data_grades": [
@@ -21,7 +21,7 @@
     "required_market_freshness": {
       "groups": [
         {
-          "age_hours": 18.965555555555557,
+          "age_hours": 25.21,
           "available_at": "2026-11-19T09:31:22.799657+00:00",
           "group": "NASDAQCOM",
           "observation_time": "2026-11-18",
@@ -29,7 +29,7 @@
           "status": "fresh"
         },
         {
-          "age_hours": 18.965555555555557,
+          "age_hours": 25.21,
           "available_at": "2026-11-19T02:53:12+00:00",
           "group": "VIX",
           "observation_time": "2026-11-18",
@@ -37,23 +37,23 @@
           "status": "fresh"
         },
         {
-          "age_hours": 21.254166666666666,
-          "available_at": "2026-11-18T21:42:40+00:00",
+          "age_hours": 1.21,
+          "available_at": "2026-11-20T00:57:09.189741+00:00",
           "group": "DGS2",
-          "observation_time": "2026-11-18",
+          "observation_time": "2026-11-19",
           "selected_series": "DGS2",
           "status": "fresh"
         },
         {
-          "age_hours": 21.254166666666666,
-          "available_at": "2026-11-18T21:42:40+00:00",
+          "age_hours": 1.21,
+          "available_at": "2026-11-20T00:57:09.189741+00:00",
           "group": "DGS10",
-          "observation_time": "2026-11-18",
+          "observation_time": "2026-11-19",
           "selected_series": "DGS10",
           "status": "fresh"
         },
         {
-          "age_hours": 138.96555555555557,
+          "age_hours": 145.21,
           "available_at": "2026-11-16T22:04:54+00:00",
           "group": "DTWEXBGS_or_DTWEXB",
           "observation_time": "2026-11-13",
@@ -86,7 +86,7 @@
       "필수 시장 입력 48시간 SLA 초과: DTWEXBGS_or_DTWEXB"
     ]
   },
-  "knowledge_cutoff": "2026-11-19T18:57:55+00:00",
+  "knowledge_cutoff": "2026-11-20T01:12:35+00:00",
   "model_id": "shadow.mf_dfm_ridge_varx_v2",
   "model_version": 2,
   "probability_space": "research_timeseries_v2_conditional",
