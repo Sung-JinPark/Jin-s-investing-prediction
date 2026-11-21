@@ -5,7 +5,7 @@
   "source_url": "https://cdn.cboe.com/api/global/us_indices/daily_prices/VIX_History.csv",
   "source_field": "CLOSE",
   "observed_date": "2026-11-20",
-  "generated_at": "2026-11-21T05:32:04+00:00",
+  "generated_at": "2026-11-21T23:29:29+00:00",
   "level": 35.89,
   "band": "stress",
   "band_label": "스트레스",
@@ -588,5 +588,5 @@
     "distance": -10.89,
     "breached": true
   },
-  "stale_days": 1
+  "stale_days": 2
 }
