@@ -25101,12 +25101,12 @@
     "archive": "not_opened_for_write"
   },
   "model_content_sha256": "adedf05e8efb74f7ea2d6d3342d3a1212ae11fd19f7ed69b3185477dd533ca19",
-  "generated_at": "2026-11-21T00:08:18+00:00",
+  "generated_at": "2026-11-21T01:20:19+00:00",
   "build_receipt": {
     "artifact_type": "scenario_v5_2_research_candidate",
     "candidate_id": "scenario_v5_2_scenario_clustered_db_v4",
     "model_content_sha256": "adedf05e8efb74f7ea2d6d3342d3a1212ae11fd19f7ed69b3185477dd533ca19",
-    "generated_at": "2026-11-21T00:08:18+00:00",
+    "generated_at": "2026-11-21T01:20:19+00:00",
     "source_hashes": {
       "data/raw/macro/bls_empsit_2026_07_20260807_browser_capture.txt": "9277c5da5507eda6689f9ae5a7d41063a105c3f5f03e84a33e31fc6b55b5dc79",
       "data/normalized/macro/bls_empsit_2026_07_20260807.json": "a86bd117ccb90081ae95cb59f1be7c51c59fa9061ef5023d8a11fdb0d3d0b035",
@@ -25396,7 +25396,7 @@
         "calibration/provider_shadow_ledger.csv": "15d54640c1f436466d6bc7110e19ea3622d1d92fc19c15f4a37a9cf2118a2fce",
         "calibration/research_status_overrides.csv": "8bc6e87d8a062840758d7db554a56b4cf58fe083d386e05e57d76efc3aa5735e",
         "questions/registry.yaml": "f0c7061b8f062a477171e09821a31d66d7b8a752f462623a8d50c7950a5df1f0",
-        "data/ml_history/2026.jsonl": "1311c416fd2385fb398a10d82ca0bb9707d8da1965d78f575a629c4df08152cb",
+        "data/ml_history/2026.jsonl": "11c61de2a9640a6a2eb5830aa6da1f1a81251a3f47a57db3b34ec4deba88e1ae",
         "data/signals/archive/2026-07-31.json": "96eec5903e54ee466bfdf020f3a142a2410874a1537de6cb6c6ce281e9430d41",
         "data/signals/archive/2026-07-31_CORR-260804-004.json": "8990e577a219783ae329b14bc2d40b13ee565e91e68b2e79b31f93ef8b043a30",
         "data/signals/archive/2026-07-31_CORR-260804-005.json": "ac336155115089bef7d1d0678921feb834dbabcd375dc5e8d3d9b088a03577a4",
@@ -25606,15 +25606,15 @@
         "data/ai_capital_cycle/segment_filing_accessions_latest.json": "58ff8900157d2230406f6d3a79e99a32988bcf83db31452f499531ec059456e3"
       },
       "missing_roots": [],
-      "manifest_sha256": "16ac3081c16d44ab9ca49b11608e9b57ebbbbfa631ce79c19a6c2f3b96b56946"
+      "manifest_sha256": "7d229903bdf44fb87ee3d1f005ce653b91c133f174e177b80ff65b81d94c1533"
     },
     "build_context": {
-      "head": "54ca3cf3fb57d524a5ec09724b86ba797ed472f4",
-      "branch": "claude/weekly-refresh-20261121",
+      "head": "4d3effb8698c290b59c188eb33f378d5a950d5dc",
+      "branch": "claude/weekly-ml-20261121",
       "dirty": true,
-      "status_entry_count": 5,
+      "status_entry_count": 2,
       "python": "3.12.10"
     }
   },
-  "build_receipt_sha256": "4c619dd92150af987dc8e9bd10c6f04abce474ae641239b5d6d558355e7a05e8"
+  "build_receipt_sha256": "9816ace7fd4d363c6f20d7e94f10587069bf483ff2ad3a8470f38d7ccf9e393e"
 }
