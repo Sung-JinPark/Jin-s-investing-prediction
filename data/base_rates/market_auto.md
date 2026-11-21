@@ -5,9 +5,10 @@
 
 | 질문 | 시장내재확률 | 소스 | 구성 정의 |
 |---|---|---|---|
-| (수집 성공 항목 없음) | — | — | — |
+| fomc-2026-07-29-hike | **0%** | polymarket | P(해당 회의에서 ≥25bp 인상) |
+| fomc-2026-10-28-hike | **0%** | polymarket | P(해당 회의에서 ≥25bp 인상) |
 
-- 수집 실패(생략): fomc-2026-07-29-hike, fomc-2026-10-28-hike, nasdaq-eoy-above-jul9-2026, nasdaq-ath-eoy-2026
+- 수집 실패(생략): nasdaq-eoy-above-jul9-2026, nasdaq-ath-eoy-2026
 - **구성 정의 (D-4)**: FOMC 행은 Polymarket 이벤트의 인상 버킷 합산 = P(해당 회의 ≥25bp 인상).
   버킷 = [increase-25bps, increase-50bps] (상호배타 가정, >50bp 버킷 미상장 시 미포함).
   base_rates/macro.md의 "첫 인상 타이밍 분포"(P(첫 인상=해당 월))와는 **다른 구성물** —
