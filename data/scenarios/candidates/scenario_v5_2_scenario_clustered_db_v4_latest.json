@@ -25101,12 +25101,12 @@
     "archive": "not_opened_for_write"
   },
   "model_content_sha256": "bdbe74e88b28e3bc0d1837783176b1f0bbe88b70e047363cbcd6f6c8075e6e1c",
-  "generated_at": "2026-11-21T15:39:12+00:00",
+  "generated_at": "2026-11-21T23:34:40+00:00",
   "build_receipt": {
     "artifact_type": "scenario_v5_2_research_candidate",
     "candidate_id": "scenario_v5_2_scenario_clustered_db_v4",
     "model_content_sha256": "bdbe74e88b28e3bc0d1837783176b1f0bbe88b70e047363cbcd6f6c8075e6e1c",
-    "generated_at": "2026-11-21T15:39:12+00:00",
+    "generated_at": "2026-11-21T23:34:40+00:00",
     "source_hashes": {
       "data/raw/macro/bls_empsit_2026_07_20260807_browser_capture.txt": "9277c5da5507eda6689f9ae5a7d41063a105c3f5f03e84a33e31fc6b55b5dc79",
       "data/normalized/macro/bls_empsit_2026_07_20260807.json": "a86bd117ccb90081ae95cb59f1be7c51c59fa9061ef5023d8a11fdb0d3d0b035",
@@ -25609,12 +25609,12 @@
       "manifest_sha256": "94b58625e7d43c7af37c99699ef83e6b91d139ca089bf0daf825dd081c2f3c22"
     },
     "build_context": {
-      "head": "73be2b0918d5e2df415febb59e30b807742d08b3",
+      "head": "72e953adaac2042a710627c4db7b8129eb7eaf11",
       "branch": "main",
       "dirty": false,
       "status_entry_count": 0,
       "python": "3.12.16"
     }
   },
-  "build_receipt_sha256": "0a3e02f5a2aa1440cdd1c119b88e815d586315f12efb321582131d17494f005b"
+  "build_receipt_sha256": "5de151f589cba56fe4d1e997665fb947364a72364495ec9a74e684258a460586"
 }

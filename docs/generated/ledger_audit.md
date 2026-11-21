@@ -1,8 +1,8 @@
 # Ledger accumulation audit
 
-- Generated: `2026-11-21T15:39:34+00:00`
+- Generated: `2026-11-21T23:35:06+00:00`
 - Latest completed NYSE day: `2026-11-20`
-- Result: accumulating 87 · frozen 2 · stalled 5 · inactive 12 · violation 0 · planned 11
+- Result: accumulating 86 · frozen 2 · stalled 6 · inactive 12 · violation 0 · planned 11
 
 | Ledger | Cadence | Files / rows | Latest | Status | Finding |
 |---|---:|---:|---:|---:|---|
@@ -109,8 +109,8 @@
 | `timeseries_v14_ladder_results` | event | 1 | — | **accumulating** | — |
 | `timeseries_v15_vol_approvals` | event | 1 | 2026-11-11 | **accumulating** | — |
 | `timeseries_v15_vol_arming` | event | 1 | 2026-11-11 | **accumulating** | — |
-| `timeseries_v15_vol_shadow` | trading_daily | 1 | 2026-11-20 | **accumulating** | writer settles within 24h of the close; expects 2026-11-19 |
-| `timeseries_v15_vol_shadow_resolutions` | trading_daily | 1 | 2026-11-19 | **accumulating** | writer settles within 24h of the close; expects 2026-11-19 |
+| `timeseries_v15_vol_shadow` | trading_daily | 1 | 2026-11-20 | **accumulating** | writer settles within 24h of the close; expects 2026-11-20 |
+| `timeseries_v15_vol_shadow_resolutions` | trading_daily | 1 | 2026-11-19 | **stalled** | writer settles within 24h of the close; expects 2026-11-20 |
 | `timeseries_v15_vol_constants` | event | 1 | — | **accumulating** | — |
 | `timeseries_v15_vol_prereg` | event | 1 | — | **accumulating** | — |
 | `mts_research_events` | event | 0 | — | **planned** | — |

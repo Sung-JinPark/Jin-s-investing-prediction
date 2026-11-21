@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "baseline_at": "2026-11-21T15:39:34+00:00",
+  "baseline_at": "2026-11-21T23:35:06+00:00",
   "files": {
     "calibration/benchmark_ledger.csv": "6a23056eeca872c5a9a07b985d953c32bf768b5eed390719588e5d0385aef7fb",
     "calibration/corrections.csv": "cf777217ef95d01838e8b636fc35dcea4373ed49c155dab59ea87368bccd6bb3",
@@ -480,7 +480,7 @@
     "data/statistics/ipo/reference_batch_status.json": "8f690dde0ca6d830bfc12721f1989ff179143abcf8663406de08f497f3acd323",
     "data/timeseries/ledgers/forecasts.jsonl": "2f374cf514f1df554761a9bb5dc55c441aa36d667aae4a653f25a4eff4bbe839",
     "data/timeseries/ledgers/observation_chunks.jsonl": "a171dda18f05bef92c297d3890b806c03196e6134cbd1d38ab2ac60bcb95f914",
-    "data/timeseries/ledgers/raw_receipts.jsonl": "223415312e2b72f5b1887c18a03ebf6d72577b459f87d889ade67c4d735a2fa6",
+    "data/timeseries/ledgers/raw_receipts.jsonl": "c488eb8e5bfc41226a242dc58b59ef1133a1789d12a2d53ba22fffa42fe8b3be",
     "data/timeseries/models/ts-fit-hold-01dead0338262acc3f7e184a.json": "a64c19de045ecb07627d87a297ebe4c9b7f960a28df810a7b661c8276354418b",
     "data/timeseries/models/ts-fit-hold-44ab18b49d779cf14b09efb0.json": "0288b42ef2d61e229a414d0c792ba9759ea59392c76c08efb534878f4b7c4b7e",
     "data/timeseries/models/ts-fit-hold-44fb8706a963cc9edc235b97.json": "2768f88daf853c77614cfba6036b29482ed610146b36f6a141b0d7369aad74c8",
