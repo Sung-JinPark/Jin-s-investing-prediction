@@ -106,3 +106,4 @@ jolts_2027_06_29,jolts,2027-06-29,10:00,confirmed,,JOLTS 구인건수 (5월),bls
 ppi_2027_07,ppi,2027-07-15,08:30,confirmed,,PPI (6월),bls_ppi,https://www.bls.gov/schedule/news_release/ppi.htm,2026-11-09T00:00:00Z,2026-11-16T00:00:00Z,,
 pmi_2027_07_est,pmi,2027-07-01,10:00,estimated,,ISM 제조업 PMI (6월·첫 영업일 추정),ism_pmi,https://www.ismworld.org/supply-management-news-and-reports/reports/rob-report-calendar/,2026-11-16T00:00:00Z,2026-11-16T00:00:00Z,,
 hmi_2027_07,hmi,2027-07-19,10:00,confirmed,,NAHB 주택시장지수 HMI (7월),nahb_hmi,https://www.nahb.org/News-and-Economics/Housing-Economics/Indices/NAHB-Wells-Fargo-Housing-Market-Index-Release-Dates,2026-11-16T00:00:00Z,2026-11-16T00:00:00Z,,
+nvda_fy27_q3,earnings,2026-11-17,16:30,confirmed,NVDA,NVIDIA FY27 Q3 실적 (Nasdaq 캘린더 확정),nvidia_ir,https://www.nasdaq.com/market-activity/earnings,2026-11-18T08:01:52Z,2026-11-18T08:01:52Z,nvda_fy27_q3_est,
