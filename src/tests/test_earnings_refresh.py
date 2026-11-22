@@ -322,3 +322,29 @@ def test_challenge_body_cannot_use_transport_diagnostic_to_claim_pending(tmp_pat
     with pytest.raises(R.EarningsRefreshError, match="replay"):
         R.apply_earnings(root, bundle_dir=bundle, now=NOW + timedelta(minutes=1))
     assert _snapshot(root) == before
+
+
+def test_nvidia_official_release_reaches_the_ledger_while_nasdaq_lags(tmp_path):
+    from test_earnings_official import NVDA_LATEST, NVDA_URL, nvda_html, nvda_latest
+
+    root = _root(tmp_path)
+    now = datetime.fromisoformat("2026-11-18T08:05:00+00:00")
+    tick = [now]
+    def advance():
+        tick[0] += timedelta(seconds=1)
+    def json_fetch(url):
+        advance()
+        if "earnings-surprise" in url:  # 발표 뒤에도 Nasdaq 표에는 지난 분기뿐이다.
+            return {"data": {"earningsSurpriseTable": {"rows": [{"dateReported": "8/26/2026", "fiscalQtrEnd": "Jul 2026", "eps": 2.22, "consensusForecast": "2.09"}]}}}
+        return {"data": {"quarterlyForecast": {"rows": [{"fiscalEnd": "Oct 2026", "consensusEPSForecast": 2.49, "noOfEstimates": 14}]}}}
+    def text_fetch(url):
+        advance()
+        return {NVDA_LATEST: nvda_latest(), NVDA_URL: nvda_html()}.get(url, "<html></html>")
+    captured = R.capture_earnings(root, output_dir=tmp_path / "nvda", now=now, fetch_json=json_fetch, fetch_text=text_fetch, clock=lambda: tick[0])
+    assert captured["changed_hint"] is True
+    applied = R.apply_earnings(root, bundle_dir=captured["bundle_path"], now=now + timedelta(minutes=1))
+    assert applied["changed"]
+    rows = {r["metric"]: r for r in E.load_event_consensus(root, now + timedelta(minutes=1))["nvda_fy27_q3"]}
+    assert rows["eps_reported"]["actual"] == "$2.68" and rows["eps_reported"]["comparison_allowed"] is False
+    assert rows["eps_reported_gaap"]["actual"] == "$2.70"
+    assert rows["eps"]["actual"] is None and rows["eps"]["consensus"] == "$2.49" and rows["eps"]["previous"] == "$2.22"

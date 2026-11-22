@@ -27,6 +27,7 @@ CONTRACT_ID = "earnings_capture_v1"
 MAX_REPORT_BYTES = 16384
 _AUTH = {"api_key", "apikey", "token", "access_token", "authorization", "key", "signature"}
 NASDAQ_SOURCE_IDS = {"issuer_ir", "nvidia_ir", "micron_ir", "asml_ir", "tsmc_ir"}
+OFFICIAL_TICKERS = {"ASML", "TSM", "NVDA"}
 MAX_TEXT_BYTES = 8_000_000
 TEXT_HEADERS = {"User-Agent": E.USER_AGENT, "Accept": "text/html,application/xhtml+xml;q=0.9,*/*;q=0.8", "Accept-Encoding": "identity"}
 
@@ -92,7 +93,7 @@ def _url(event: dict[str, Any], kind: str, url: str) -> None:
         if url not in {E.EPS_SURPRISE_URL.format(ticker=event["ticker"]), E.EPS_FORECAST_URL.format(ticker=event["ticker"])}:
             raise EarningsRefreshError("unregistered Nasdaq earnings endpoint")
     else:
-        allowed = {"ASML": {"investor.asml.com", "www.investor.asml.com", "www.asml.com", "asml.com", "live.euronext.com"}, "TSM": {"investor.tsmc.com", "pr.tsmc.com"}}
+        allowed = {"ASML": {"investor.asml.com", "www.investor.asml.com", "www.asml.com", "asml.com", "live.euronext.com"}, "TSM": {"investor.tsmc.com", "pr.tsmc.com"}, "NVDA": {"nvidianews.nvidia.com"}}
         if parts.hostname not in allowed.get(event["ticker"], set()):
             raise EarningsRefreshError("unregistered official issuer host")
 
@@ -229,7 +230,7 @@ def _nasdaq(event: dict[str, Any], fetch: Callable[[str], dict[str, Any]], cutof
 
 
 def _official(event: dict[str, Any], fetch: Callable[[str], Any], cutoff: datetime | None) -> dict[str, Any]:
-    if event["ticker"] not in {"ASML", "TSM"}:
+    if event["ticker"] not in OFFICIAL_TICKERS:
         return {"candidates": [], "errors": []}
     from .earnings_official import discover_issuer_release
     value = discover_issuer_release(event, fetch_text=fetch, now=cutoff)
@@ -249,7 +250,7 @@ def _attach(rows: list[dict[str, Any]], receipts: list[dict[str, Any]]) -> list[
 
 def _validate_rows(event: dict[str, Any], rows: list[dict[str, Any]], cutoff: datetime) -> None:
     for row in rows:
-        if row.get("event_id") != event["event_id"] or row.get("metric") not in {"eps", "eps_reported", "eps_reported_adr", "revenue_reported", "gross_margin_reported"}:
+        if row.get("event_id") != event["event_id"] or row.get("metric") not in {"eps", "eps_reported", "eps_reported_gaap", "eps_reported_adr", "revenue_reported", "gross_margin_reported"}:
             raise EarningsRefreshError("earnings candidate identity mismatch")
         stamp = _time(row["captured_at"])
         if stamp > cutoff or _time(row["available_at"]) != stamp or (row.get("published_at") and _time(row["published_at"]) > stamp):
@@ -259,7 +260,14 @@ def _validate_rows(event: dict[str, Any], rows: list[dict[str, Any]], cutoff: da
                 raise EarningsRefreshError("Nasdaq earnings period/currency mismatch")
         else:
             target = E.expected_period(event)
-            if (not target or row.get("fiscal_year") != target.year or row.get("fiscal_quarter") != (target.month - 1) // 3 + 1
+            if event["ticker"] == "NVDA":
+                # 회계연도가 달력과 어긋난다 — 분기 정체는 이벤트 ID(nvda_fy27_q3)가 정한다.
+                from .earnings_official import _identity
+                _, fiscal_year, fiscal_quarter = _identity(event)
+            else:
+                fiscal_year = target.year if target else None
+                fiscal_quarter = (target.month - 1) // 3 + 1 if target else None
+            if (fiscal_year is None or row.get("fiscal_year") != fiscal_year or row.get("fiscal_quarter") != fiscal_quarter
                     or row.get("comparison_allowed") is not False or row.get("consensus") is not None):
                 raise EarningsRefreshError("official earnings quarter/comparison mismatch")
             value = row.get("actual_value")
@@ -269,13 +277,15 @@ def _validate_rows(event: dict[str, Any], rows: list[dict[str, Any]], cutoff: da
                 if row.get("unit") != "percent" or row.get("currency") is not None or not 0 <= value <= 100:
                     raise EarningsRefreshError("official margin unit/range mismatch")
             elif row["metric"] == "revenue_reported":
-                if row.get("unit") != "million_currency" or row.get("currency") != "EUR" or event["ticker"] != "ASML":
+                if row.get("unit") != "million_currency" or (event["ticker"], row.get("currency")) not in {("ASML", "EUR"), ("NVDA", "USD")}:
                     raise EarningsRefreshError("official revenue unit/currency mismatch")
             else:
                 if event["ticker"] == "ASML" and (row.get("currency") != "EUR" or row.get("share_basis") != "ordinary_share"):
                     raise EarningsRefreshError("ASML official currency/share basis mismatch")
                 if event["ticker"] == "TSM" and (row.get("currency"), row.get("share_basis"), row.get("unit")) not in {("TWD", "ordinary_share", "currency_per_share"), ("USD", "ADR_unit", "currency_per_adr")}:
                     raise EarningsRefreshError("TSMC official currency/share basis mismatch")
+                if event["ticker"] == "NVDA" and (row.get("currency"), row.get("share_basis"), row.get("unit")) != ("USD", "ordinary_share", "currency_per_share"):
+                    raise EarningsRefreshError("NVIDIA official currency/share basis mismatch")
                 if row.get("eps_basis") not in {"basic", "diluted"} or row.get("unit") not in {"currency_per_share", "currency_per_adr"}:
                     raise EarningsRefreshError("official EPS basis/unit missing")
         if not row.get("source_receipts") or not any(r["source_hash"] == row.get("source_hash") for r in row["source_receipts"]):
@@ -298,7 +308,7 @@ def capture_earnings(root: Path, *, output_dir: Path | str, now: datetime | str 
     events, receipts, failures, candidates, statuses, diagnostics = _events(root, start), [], [], [], [], []
     for event in events:
         for kind in ("nasdaq", "official"):
-            if kind == "official" and event["ticker"] not in {"ASML", "TSM"}:
+            if kind == "official" and event["ticker"] not in OFFICIAL_TICKERS:
                 continue
             event_receipts = []
             def fetch(url, *, _kind=kind):
@@ -404,7 +414,7 @@ def _load_bundle(root: Path, bundle: Path, now: datetime) -> tuple[dict[str, Any
                 or failure.get("kind") not in {"nasdaq", "official"} or not isinstance(failure.get("reason"), str) or len(failure["reason"]) > 128):
             raise EarningsRefreshError("earnings source failure metadata invalid")
     statuses = manifest["event_status"]
-    expected_sources = {(e["event_id"], kind) for e in events for kind in ("nasdaq", "official") if kind == "nasdaq" or e["ticker"] in {"ASML", "TSM"}}
+    expected_sources = {(e["event_id"], kind) for e in events for kind in ("nasdaq", "official") if kind == "nasdaq" or e["ticker"] in OFFICIAL_TICKERS}
     if len(statuses) != len(expected_sources) or {(s["event_id"], s["kind"]) for s in statuses} != expected_sources:
         raise EarningsRefreshError("earnings bundle silently omits a source status")
     replayed = []
