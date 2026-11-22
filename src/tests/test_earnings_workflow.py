@@ -107,9 +107,16 @@ def test_changed_results_deploy_before_partial_failure_is_reported():
     assert "status == 'partial'" in failure["if"]
     alert = _workflow("ops-failure-alert.yml")
     assert "earnings-refresh" in (alert.get(True) or alert.get("on"))["workflow_run"]["workflows"]
+    consensus = _workflow("event-consensus-refresh.yml")
+    steps = consensus["jobs"]["refresh"]["steps"]
+    report = next(s for s in steps if s.get("name") == "Report unavailable sources after publishing valid results")
+    publish_step = next(s for s in steps if s.get("name") == "Publish verified committed event updates")
+    assert steps.index(publish_step) < steps.index(report)
+    assert "failed == '1'" in report["if"]
+    capture_script = next(s for s in steps if s.get("id") == "capture")["run"]
+    assert '[ "$settled" = "true" ] || failed=1' in capture_script
     mood = _workflow("market-mood-refresh.yml")
-    last = next(s for s in mood["jobs"]["refresh"]["steps"] if s.get("name") == "Report refresh failure")
-    assert "steps.consensus.outcome == 'failure'" in last["if"]
+    assert not any(s.get("id") == "consensus" for s in mood["jobs"]["refresh"]["steps"])
 
 
 def test_completed_publication_and_budget_limit_rearm_the_remaining_window():

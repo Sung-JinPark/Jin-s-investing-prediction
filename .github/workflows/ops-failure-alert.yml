@@ -30,6 +30,7 @@ on:
       - statistics-refresh
       - source-monitoring
       - market-mood-refresh
+      - event-consensus-refresh # 일정 발표값 10분 수집(2026-11-18)
       - investing-refresh
       - ipo-edgar-watch
       - monthly-research-pack

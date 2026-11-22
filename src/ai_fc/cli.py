@@ -2042,13 +2042,19 @@ def cmd_consensus() -> None:
     표시 전용 — 어떤 예측·확률과도 결합하지 않는다. 일부 이벤트 수집이 실패해도 받은 행은
     남기고 종료코드 1 로 실패를 드러낸다.
     """
+    from .earnings_date_sync import sync_estimated_earnings
     from .event_consensus import refresh
 
+    # 추정 실적일을 먼저 확정일로 대체한다 — 그래야 아래 수집이 실제 발표일 창을 본다.
+    sync = sync_estimated_earnings(config.ROOT)
+    for line in sync["promoted"]:
+        typer.echo(f"[일정 확정] {line}")
     result = refresh(config.ROOT)
     typer.echo(f"이벤트 {result['events']}개 · 값 {result['rows_seen']}행 · 새 행 {result['appended']}")
-    for failure in result["failures"]:
+    failures = [*sync["failures"], *result["failures"]]
+    for failure in failures:
         typer.echo(f"[실패] {failure}", err=True)
-    if result["failures"]:
+    if failures:
         raise typer.Exit(1)
 
 

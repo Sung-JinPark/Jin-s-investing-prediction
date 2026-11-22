@@ -74,13 +74,7 @@ jobs:
         if: ${{ always() && steps.wait.outputs.already_recorded != 'true' }}
         continue-on-error: true
         run: cd src && python -m ai_fc freshness-check
-      # 이벤트 발표값 표(실제·예상·이전) — 경제지표·실적 컨센서스. 표시 전용, append-only.
-      # 이미 그 세션을 실은 두 번째 실행에서도 돈다(발표값은 장 마감과 무관하게 바뀐다).
-      - name: Capture event consensus (actual · forecast · previous)
-        id: consensus
-        if: ${{ always() }}
-        continue-on-error: true
-        run: cd src && python -m ai_fc consensus
+      # 이벤트 발표값 표(실제·예상·이전)는 event-consensus-refresh 가 10분 간격으로 받는다(2026-11-18).
       # Independent of the headline/VIX/NASDAQ already-recorded gate. A retry
       # must still recover the seven indicators when those three are current.
       - name: Refresh all seven fear and greed components
@@ -106,7 +100,7 @@ jobs:
             exit 0
           fi
           observed="$(python -c "import json; print(json.load(open('data/fear_greed/fng_latest.json', encoding='utf-8')).get('observed_date', 'unknown'))")"
-          git commit -m "data: refresh market mood ${observed} (+event consensus)"
+          git commit -m "data: refresh market mood ${observed}"
           # 체크아웃과 푸시 사이에 main 은 늘 움직인다 — 추가·재생성형 산출물이라 재생은 안전하다.
           git pull --rebase origin main
           git push
@@ -117,11 +111,10 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: gh workflow run pages.yml --repo "$GITHUB_REPOSITORY" --ref main
       - name: Report refresh failure
-        if: ${{ always() && (steps.mood.outcome == 'failure' || steps.consensus.outcome == 'failure' || steps.components.outcome == 'failure') }}
+        if: ${{ always() && (steps.mood.outcome == 'failure' || steps.components.outcome == 'failure') }}
         shell: bash
         run: |
           echo "signals=${{ steps.mood.outcome }}"
-          echo "consensus=${{ steps.consensus.outcome }}"
           echo "components=${{ steps.components.outcome }}"
           echo "A market or event source failed; valid results were preserved and the failure requires retry."
           exit 1
