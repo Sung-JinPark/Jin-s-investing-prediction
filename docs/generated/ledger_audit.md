@@ -1,6 +1,6 @@
 # Ledger accumulation audit
 
-- Generated: `2026-11-21T23:35:06+00:00`
+- Generated: `2026-11-22T23:45:45+00:00`
 - Latest completed NYSE day: `2026-11-20`
 - Result: accumulating 86 · frozen 2 · stalled 6 · inactive 12 · violation 0 · planned 11
 
@@ -32,7 +32,7 @@
 | `timeseries_daily6m_v2_scorecard` | weekly | 1 | — | **accumulating** | — |
 | `cross_asset_path_tracking_v2` | trading_daily | 1 / 201 | 2026-11-19 | **stalled** | writer settles within 18h of the close; expects 2026-11-20 |
 | `scenario_band_calibration` | trading_daily | 1 / 2415 | 2026-11-20 | **accumulating** | — |
-| `market_event_calendar` | event | 1 / 107 | 2026-11-16 | **accumulating** | — |
+| `market_event_calendar` | event | 1 / 108 | 2026-11-18 | **accumulating** | — |
 | `signal_archive` | weekly | 19 | 2026-11-20 | **accumulating** | — |
 | `liquidity_archive` | weekly | 17 | 2026-11-20 | **accumulating** | — |
 | `rate_event_archive` | monthly | 69 | 2026-11-19 | **accumulating** | — |
@@ -41,8 +41,8 @@
 | `realty_o_entry_cohort_archive` | monthly | 5 | 2026-11-03 | **accumulating** | — |
 | `ai_capital_archives` | monthly | 9 | 2026-11-05 | **accumulating** | — |
 | `dualdb_model_runs` | weekly | 0 | — | **inactive** | — |
-| `source_monitoring` | trading_daily | 104 | 2026-11-21 | **accumulating** | missing trading days: 2026-08-25, 2026-08-27, 2026-08-28, 2026-10-23, 2026-11-04; writer settles within 18h of the close; expects 2026-11-20 |
-| `source_monitoring_status` | trading_daily | 1 | 2026-11-21 | **accumulating** | writer settles within 18h of the close; expects 2026-11-20 |
+| `source_monitoring` | trading_daily | 105 | 2026-11-22 | **accumulating** | missing trading days: 2026-08-25, 2026-08-27, 2026-08-28, 2026-10-23, 2026-11-04; writer settles within 18h of the close; expects 2026-11-20 |
+| `source_monitoring_status` | trading_daily | 1 | 2026-11-22 | **accumulating** | writer settles within 18h of the close; expects 2026-11-20 |
 | `ipo_reference_batch_receipts` | event | 4 | 2026-08-19 | **accumulating** | — |
 | `ipo_reference_batch_status` | weekly | 1 | 2026-11-21 | **accumulating** | — |
 | `ipo_edgar_candidates` | weekly | 1 | 2026-11-14 | **accumulating** | — |
@@ -60,7 +60,7 @@
 | `raw_receipts` | event | 0 | — | **planned** | — |
 | `quarantine` | event | 0 | — | **planned** | — |
 | `bitemporal_facts` | event | 0 | — | **planned** | — |
-| `forecast_timestamp_proof` | weekly | 1 | 2026-11-21 | **accumulating** | — |
+| `forecast_timestamp_proof` | weekly | 1 | 2026-11-22 | **accumulating** | — |
 | `research_pack` | monthly | 5 | — | **accumulating** | — |
 | `scenario_v5_2_distinctness_shadow` | trading_daily | 1 | — | **accumulating** | — |
 | `scenario_v5_2_sensitivity_grid` | event | 1 | — | **accumulating** | — |

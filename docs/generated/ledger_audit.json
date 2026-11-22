@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-11-21T23:35:06+00:00",
+  "generated_at": "2026-11-22T23:45:45+00:00",
   "market_cutoff": "2026-11-20",
   "summary": {
     "accumulating": 86,
@@ -101,10 +101,6 @@
       "duplicate_rows": 0,
       "reversed_timestamps": 0,
       "growth_last_30d": [
-        {
-          "date": "2026-10-22",
-          "count": 17
-        },
         {
           "date": "2026-10-26",
           "count": 18
@@ -291,10 +287,6 @@
       "reversed_timestamps": 0,
       "growth_last_30d": [
         {
-          "date": "2026-10-22",
-          "count": 51
-        },
-        {
           "date": "2026-10-23",
           "count": 52
         },
@@ -435,10 +427,6 @@
       "reversed_timestamps": 0,
       "growth_last_30d": [
         {
-          "date": "2026-10-22",
-          "count": 49
-        },
-        {
           "date": "2026-10-23",
           "count": 50
         },
@@ -578,10 +566,6 @@
       "reversed_timestamps": 0,
       "growth_last_30d": [
         {
-          "date": "2026-10-22",
-          "count": 4
-        },
-        {
           "date": "2026-10-23",
           "count": 5
         },
@@ -686,10 +670,6 @@
       "reversed_timestamps": 0,
       "growth_last_30d": [
         {
-          "date": "2026-10-22",
-          "count": 4
-        },
-        {
           "date": "2026-10-23",
           "count": 5
         },
@@ -789,10 +769,6 @@
       "duplicate_rows": 0,
       "reversed_timestamps": 0,
       "growth_last_30d": [
-        {
-          "date": "2026-10-22",
-          "count": 4
-        },
         {
           "date": "2026-10-23",
           "count": 5
@@ -1139,10 +1115,6 @@
       "reversed_timestamps": 0,
       "growth_last_30d": [
         {
-          "date": "2026-10-22",
-          "count": 48
-        },
-        {
           "date": "2026-10-23",
           "count": 49
         },
@@ -1239,10 +1211,6 @@
       "reversed_timestamps": 0,
       "growth_last_30d": [
         {
-          "date": "2026-10-22",
-          "count": 48
-        },
-        {
           "date": "2026-10-23",
           "count": 49
         },
@@ -1336,8 +1304,8 @@
       "criticality": "medium",
       "status": "accumulating",
       "file_count": 1,
-      "row_count": 107,
-      "latest_date": "2026-11-16",
+      "row_count": 108,
+      "latest_date": "2026-11-18",
       "expected_date": null,
       "settle_hours": null,
       "missing_trading_days": [],
@@ -1349,6 +1317,10 @@
         {
           "date": "2026-11-16",
           "count": 5
+        },
+        {
+          "date": "2026-11-18",
+          "count": 6
         }
       ]
     },
@@ -1451,10 +1423,6 @@
       "reversed_timestamps": 0,
       "growth_last_30d": [
         {
-          "date": "2026-10-22",
-          "count": 49
-        },
-        {
           "date": "2026-10-23",
           "count": 50
         },
@@ -1550,10 +1518,6 @@
       "duplicate_rows": 0,
       "reversed_timestamps": 0,
       "growth_last_30d": [
-        {
-          "date": "2026-10-22",
-          "count": 49
-        },
         {
           "date": "2026-10-23",
           "count": 50
@@ -1734,9 +1698,9 @@
       "cadence": "trading_daily",
       "criticality": "low",
       "status": "accumulating",
-      "file_count": 104,
+      "file_count": 105,
       "row_count": null,
-      "latest_date": "2026-11-21",
+      "latest_date": "2026-11-22",
       "expected_date": "2026-11-20",
       "settle_hours": 18,
       "missing_trading_days": [
@@ -1751,10 +1715,6 @@
       "duplicate_rows": 0,
       "reversed_timestamps": 0,
       "growth_last_30d": [
-        {
-          "date": "2026-10-22",
-          "count": 76
-        },
         {
           "date": "2026-10-24",
           "count": 77
@@ -1866,6 +1826,10 @@
         {
           "date": "2026-11-21",
           "count": 104
+        },
+        {
+          "date": "2026-11-22",
+          "count": 105
         }
       ]
     },
@@ -1878,7 +1842,7 @@
       "status": "accumulating",
       "file_count": 1,
       "row_count": null,
-      "latest_date": "2026-11-21",
+      "latest_date": "2026-11-22",
       "expected_date": "2026-11-20",
       "settle_hours": 18,
       "missing_trading_days": [],
@@ -1888,7 +1852,7 @@
       "reversed_timestamps": 0,
       "growth_last_30d": [
         {
-          "date": "2026-11-21",
+          "date": "2026-11-22",
           "count": 1
         }
       ]
@@ -2110,10 +2074,6 @@
       "duplicate_rows": 0,
       "reversed_timestamps": 0,
       "growth_last_30d": [
-        {
-          "date": "2026-10-22",
-          "count": 38
-        },
         {
           "date": "2026-10-23",
           "count": 39
@@ -2338,7 +2298,7 @@
       "status": "accumulating",
       "file_count": 1,
       "row_count": null,
-      "latest_date": "2026-11-21",
+      "latest_date": "2026-11-22",
       "expected_date": null,
       "settle_hours": null,
       "missing_trading_days": [],
@@ -2348,7 +2308,7 @@
       "reversed_timestamps": 0,
       "growth_last_30d": [
         {
-          "date": "2026-11-21",
+          "date": "2026-11-22",
           "count": 1
         }
       ]
@@ -2755,10 +2715,6 @@
       "reversed_timestamps": 0,
       "growth_last_30d": [
         {
-          "date": "2026-10-22",
-          "count": 4
-        },
-        {
           "date": "2026-11-11",
           "count": 5
         }
@@ -2782,10 +2738,6 @@
       "duplicate_rows": 0,
       "reversed_timestamps": 0,
       "growth_last_30d": [
-        {
-          "date": "2026-10-22",
-          "count": 30
-        },
         {
           "date": "2026-10-23",
           "count": 31
@@ -2925,10 +2877,6 @@
       "reversed_timestamps": 0,
       "growth_last_30d": [
         {
-          "date": "2026-10-22",
-          "count": 4
-        },
-        {
           "date": "2026-10-26",
           "count": 5
         }
@@ -2951,12 +2899,7 @@
       "schema_errors": [],
       "duplicate_rows": 0,
       "reversed_timestamps": 0,
-      "growth_last_30d": [
-        {
-          "date": "2026-10-22",
-          "count": 1
-        }
-      ]
+      "growth_last_30d": []
     },
     {
       "id": "timeseries_v13_exog_scheduled_events",
@@ -3052,10 +2995,6 @@
       "duplicate_rows": 0,
       "reversed_timestamps": 0,
       "growth_last_30d": [
-        {
-          "date": "2026-10-22",
-          "count": 27
-        },
         {
           "date": "2026-10-26",
           "count": 28
@@ -3398,12 +3337,7 @@
       "schema_errors": [],
       "duplicate_rows": 0,
       "reversed_timestamps": 0,
-      "growth_last_30d": [
-        {
-          "date": "2026-10-22",
-          "count": 1
-        }
-      ]
+      "growth_last_30d": []
     },
     {
       "id": "timeseries_v14_experiments",
