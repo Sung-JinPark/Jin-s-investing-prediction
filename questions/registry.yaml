@@ -1,5 +1,5 @@
 version: 1
-updated: '2026-09-10'
+updated: '2026-11-22'
 questions:
 - id: nvda-dc-beat-2026aug
   drivers:
@@ -2022,6 +2022,53 @@ questions:
     · 예상확률 17% (첫 예측 전 고정)]'
   status: active
   created: '2026-09-10'
+  schedule:
+  - once: true
+  - from: D-3
+    once: true
+- id: nasdaq-comp-new-ath-by-2027-01-22
+  tier: standard
+  drivers:
+  - ai-capex-cycle
+  - fed-path
+  title: 나스닥 종합 종가 27,599.79 초과 — 2026-11-23 ~ 2027-01-22
+  question: 2026-11-23부터 2027-01-22까지의 미국 거래일 중, 나스닥 종합지수 종가가 27,599.79를 초과하는 날이 1일 이상 존재할 확률은?
+  deadline: '2027-01-22'
+  resolution: YES = 2026-11-23 이후 2027-01-22 까지의 어느 미국 거래일이든 FRED NASDAQCOM 일간 값 > 27599.79. 임계는 등록 시점에 고정하며 이후의 고점 갱신이나 지수 개정과 무관하다. 창 시작 이전 값과 장중가는 판정에 쓰지 않는다.
+    FRED 값이 없는 거래일은 Nasdaq 공식 종가로 보충한다. 조건을 충족한 날 YES 로 판정할 수 있고, 창 마지막 거래일까지 충족이 없으면 NO 다. 지수 산출이 중단되면 void. 단일 계열의 수치 비교이므로 문구 형태와 무관하다.
+  resolution_source: FRED NASDAQCOM + Nasdaq 공식 종가
+  domain: market-regime
+  cadence: r1 + D-3
+  action_link: 드로다운 조기경보 해제 판단의 참고 — 1997-10 조정(고점 후 92거래일 회복)보다 빠른 V자 회복인지 본다
+  preflight:
+    not_yet_occurred: 창이 2026-11-23(월)에 시작하므로 등록일 2026-11-22(일) 기준 창 안에 거래일이 없다. 직전 종가는 2026-11-20 22,617.73 (Yahoo 일봉, FRED 는 11-19 까지 게시 — 11-19 값 일치 확인)이고 임계까지
+      +22.0% 남았다. 임계는 2026-10-06 사상 최고 종가(Yahoo·AP 표기 27,599.79)이며 FRED 값은 27,599.89 라서 0.10 차이가 있다.
+    window_start: 2026-11-23 (question·resolution 양쪽에 명시)
+    resolution_wording_checked: 2026-11-22 확인 — FRED 공식 API 로 NASDAQCOM 계열과 최근 값을 조회했다. 판정은 단일 계열의 부등호 비교이고 리터럴 문자열에 의존하지 않는다.
+  prereg:
+    sigma_quantity: window_max_log_return
+    sigma_path: manual_reference_class
+    sigma_reproduce: docs/p3_gate_path/candidates/DOTCOM_PARALLEL_20261118.md 3절 절차로 재현
+    contract: questions/portfolio_prereg_v1.yaml (9337f183)
+    z: 2.77
+    sigma: 0.0499
+    sigma_source: dualdb price_daily ^IXIC + Yahoo 연장(2026-11-20까지), 41거래일 창의 window_max_log_return 분포, 고점 대비 -22%~-14% 출발 조건, n=490, IQR/1.349
+    center_estimate: +0.0608 (로그수익률 중앙값)
+    threshold_log_distance: 0.1991
+    cross_check: '전체 표본(1990-01-02~2026-11-20): n=9250 · σ 0.0449 · 중앙값 +0.0536 · z 3.24 · 빈도 2.6%'
+    conditioning_note: 두 표본을 모두 계산해 z 가 낮은 쪽을 등록값으로 삼고, 정직확률은 두 빈도 중 큰 값을 1% 단위로 올렸다.
+    honest_probability_estimate: 0.05
+    expected_brier_floor: 0.0475
+    exception_slot: false
+    correlated_with:
+    - nasdaq-comp-30000-close-2027-01-15
+    - nasdaq-eoy-above-jul9-2026
+    correlation_note: 같은 AI·기술주 드라이버를 공유해 독립 표본이 아니다.
+    source_doc: docs/p3_gate_path/candidates/DOTCOM_PARALLEL_20261118.md
+  notes: '등록필터: (a) base rate 극단 — 같은 창 역사적 빈도 2.6%~4.3%, 정직확률 5% 는 [35,65] 밖이고 사구간 [23.5,76.5] 밖이다. z=2.77. [닷컴 평행 후속 · 2026-11-22 재판정 1건 · 분류 market_regime_threshold
+    · 예상확률 5% (첫 예측 전 고정)]'
+  status: active
+  created: '2026-11-22'
   schedule:
   - once: true
   - from: D-3
