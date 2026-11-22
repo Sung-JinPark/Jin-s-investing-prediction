@@ -4,28 +4,16 @@
   "source": "Cboe Global Markets official VIX daily prices",
   "source_url": "https://cdn.cboe.com/api/global/us_indices/daily_prices/VIX_History.csv",
   "source_field": "CLOSE",
-  "observed_date": "2026-11-17",
-  "generated_at": "2026-11-17T23:56:36+00:00",
-  "level": 25.46,
-  "band": "hard_rule",
-  "band_label": "하드룰 구간",
-  "change_1d": 2.55,
-  "week_ago": 19.46,
-  "month_ago": 19.99,
-  "year_ago": 22.38,
+  "observed_date": "2026-11-20",
+  "generated_at": "2026-11-21T23:31:50+00:00",
+  "level": 35.89,
+  "band": "stress",
+  "band_label": "스트레스",
+  "change_1d": 7.45,
+  "week_ago": 19.3,
+  "month_ago": 16.68,
+  "year_ago": 26.42,
   "trail": [
-    {
-      "d": "2026-05-18",
-      "v": 17.82
-    },
-    {
-      "d": "2026-05-19",
-      "v": 18.06
-    },
-    {
-      "d": "2026-05-20",
-      "v": 17.44
-    },
     {
       "d": "2026-05-21",
       "v": 16.76
@@ -541,10 +529,22 @@
     {
       "d": "2026-11-17",
       "v": 25.46
+    },
+    {
+      "d": "2026-11-18",
+      "v": 24.56
+    },
+    {
+      "d": "2026-11-19",
+      "v": 28.44
+    },
+    {
+      "d": "2026-11-20",
+      "v": 35.89
     }
   ],
   "trail_min": 14.21,
-  "trail_max": 28.18,
+  "trail_max": 35.89,
   "bands": [
     {
       "lo": 0.0,
@@ -585,10 +585,8 @@
   ],
   "hard_rule": {
     "level": 25.0,
-    "distance": -0.46,
+    "distance": -10.89,
     "breached": true
   },
-  "stale_days": 1,
-  "latest_source": "cboe_delayed_quote",
-  "latest_source_url": "https://cdn.cboe.com/api/global/delayed_quotes/quotes/_VIX.json"
+  "stale_days": 2
 }

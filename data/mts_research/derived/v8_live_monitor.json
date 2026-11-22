@@ -9,7 +9,7 @@
       "h5": "normal"
     }
   },
-  "as_of_session": "2026-11-16",
+  "as_of_session": "2026-11-19",
   "bases": {
     "ledger_grid": {
       "cohort": "resolved_ledger_rows",
@@ -2046,7 +2046,7 @@
     }
   },
   "display_only": true,
-  "input_fingerprint": "cf1de630b2cb95056dd90ca4de3d61bbea79203b47091f29d13fe0cfb567b377",
+  "input_fingerprint": "6cddd08cda9b9ed9ecff84f5d10c4f13e8254cf3aed3b12a276a2c8059959a30",
   "label_bases": [
     "ledger_grid",
     "xnas_diagnostic_v1"
