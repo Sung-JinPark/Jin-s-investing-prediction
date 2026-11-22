@@ -17,7 +17,7 @@
 
 | Table | Rows |
 |---|---:|
-| `questions` | 82 |
+| `questions` | 80 |
 | `forecasts` | 90 |
 | `resolutions` | 51 |
 | `benchmark_scores` | 51 |
