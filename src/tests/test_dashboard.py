@@ -2153,7 +2153,9 @@ def test_event_estimates_use_one_primary_metric_without_fallback_values() -> Non
     script = dashboard.DASHBOARD_SCRIPT.read_text(encoding="utf-8")
     primary = script[script.index("function evPrimaryMetric"):script.index("function renderEventMonth")]
     for metric in ("headline_cpi_yoy", "headline_ppi_yoy", "real_gdp", "payroll_change",
-                   "job_openings", "ism_manufacturing_pmi", "nahb_hmi", "policy_rate", "eps"):
+                   "job_openings", "ism_manufacturing_pmi", "ism_services_pmi",
+                   "headline_pce_yoy", "consumer_confidence", "nahb_hmi",
+                   "policy_rate", "eps"):
         assert metric in primary
     assert "candidate.actual!=null" in primary
     estimates = script[script.index("function renderEventEstimates"):script.index("function renderEventCalendar")]

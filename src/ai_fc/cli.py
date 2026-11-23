@@ -2058,6 +2058,34 @@ def cmd_consensus() -> None:
         raise typer.Exit(1)
 
 
+@app.command("calendar-refresh")
+def cmd_calendar_refresh(
+    asof: str | None = typer.Option(
+        None, "--asof", help="경제 캘린더 갱신 기준일 (YYYY-MM-DD)"
+    ),
+    horizon_days: int = typer.Option(
+        400, "--horizon-days", min=31, max=730, help="앞으로 유지할 일정 일수"
+    ),
+) -> None:
+    """PCE·소비자신뢰·ISM 제조업/서비스업 PMI 일정을 append-only 갱신한다."""
+    from .event_calendar import CalendarError, refresh_calendar
+
+    try:
+        cutoff = date.fromisoformat(asof) if asof else None
+    except ValueError as exc:
+        raise typer.BadParameter("--asof는 YYYY-MM-DD 형식이어야 합니다.") from exc
+    try:
+        result = refresh_calendar(
+            config.ROOT, as_of=cutoff, horizon_days=horizon_days
+        )
+    except CalendarError as exc:
+        typer.echo(f"경제 캘린더 갱신 중단: {exc}", err=True)
+        raise typer.Exit(code=1) from exc
+    typer.echo(json.dumps(result, ensure_ascii=False, indent=2))
+    if result["failures"]:
+        raise typer.Exit(code=1)
+
+
 @app.command("admin-traffic")
 def cmd_admin_traffic(
     render_only: bool = typer.Option(

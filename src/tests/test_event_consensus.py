@@ -84,6 +84,18 @@ def test_added_calendar_metrics_match_provider_names_and_aliases() -> None:
         "pmi": ("pmi_x", "2026-11-02", "10:00", [
             {"gmt": "10:00", "eventName": "ISM Manufacturing", "actual": "55.5", "consensus": "54.5", "previous": "54.5"},
         ], {"ism_manufacturing_pmi"}),
+        "services_pmi": ("services_x", "2026-11-04", "10:00", [
+            {"gmt": "10:00", "eventName": "ISM Non-Manufacturing PMI", "actual": "52.4", "consensus": "51.8", "previous": "52.0"},
+        ], {"ism_services_pmi"}),
+        "consumer_confidence": ("confidence_x", "2026-11-24", "10:00", [
+            {"gmt": "10:00", "eventName": "CB Consumer Confidence", "actual": "98.2", "consensus": "96.0", "previous": "97.8"},
+        ], {"consumer_confidence"}),
+        "pce": ("pce_x", "2026-11-25", "08:30", [
+            {"gmt": "08:30", "eventName": "PCE price index", "actual": "0.3%", "consensus": "0.2%", "previous": "0.2%"},
+            {"gmt": "08:30", "eventName": "PCE Price Index", "actual": "2.7%", "consensus": "2.6%", "previous": "2.6%"},
+            {"gmt": "08:30", "eventName": "Core PCE Price Index", "actual": "0.2%", "consensus": "0.2%", "previous": "0.1%"},
+            {"gmt": "08:30", "eventName": "Core PCE Price Index", "actual": "2.9%", "consensus": "2.9%", "previous": "2.8%"},
+        ], {"headline_pce_mom", "headline_pce_yoy", "core_pce_mom", "core_pce_yoy"}),
         "hmi": ("hmi_x", "2026-11-17", "10:00", [
             {"gmt": "10:00", "eventName": "Housing Market Index", "actual": "", "consensus": "29", "previous": "29"},
         ], {"nahb_hmi"}),

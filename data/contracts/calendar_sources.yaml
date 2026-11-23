@@ -44,12 +44,13 @@ sources:
     cadence: monthly_schedule
   - id: ism_pmi
     authority: Institute for Supply Management
-    kinds: [pmi]
+    kinds: [pmi, services_pmi]
     url: https://www.ismworld.org/supply-management-news-and-reports/reports/rob-report-calendar/
     official: true
     access: free
     cadence: monthly_schedule
-    note: Manufacturing PMI is normally released on the first business day at 10:00 ET.
+    confirmed_through: 2026-12-31
+    note: Manufacturing and Services PMI are released at 10:00 ET; unpublished future dates use the disclosed business-day cadence.
   - id: nahb_hmi
     authority: National Association of Home Builders
     kinds: [hmi]
@@ -64,6 +65,22 @@ sources:
     official: true
     access: free
     cadence: release_schedule
+  - id: bea_pce
+    authority: U.S. Bureau of Economic Analysis
+    kinds: [pce]
+    url: https://www.bea.gov/news/schedule/ics/online-calendar-subscription.ics
+    official: true
+    access: free
+    cadence: release_schedule_subscription
+    note: Personal Income and Outlays includes headline and core PCE price indexes.
+  - id: conference_board_consumer_confidence
+    authority: The Conference Board
+    kinds: [consumer_confidence]
+    url: https://www.conference-board.org/topics/consumer-confidence/
+    official: true
+    access: free
+    cadence: last_tuesday_monthly
+    note: The latest release states the exact next release; later months remain estimates.
   - id: nvidia_ir
     authority: NVIDIA Investor Relations
     kinds: [earnings]

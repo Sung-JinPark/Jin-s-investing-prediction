@@ -82,6 +82,22 @@ MACRO_METRICS: dict[str, list[tuple[str, str, str | tuple[str, ...], int]]] = {
     "pmi": [
         ("ism_manufacturing_pmi", "ISM 제조업 PMI", ("ISM Manufacturing", "ISM Manufacturing PMI"), 0),
     ],
+    "services_pmi": [
+        ("ism_services_pmi", "ISM 서비스업 PMI",
+         ("ISM Non-Manufacturing PMI", "ISM Services PMI"), 0),
+    ],
+    "consumer_confidence": [
+        ("consumer_confidence", "소비자신뢰지수",
+         ("CB Consumer Confidence", "Consumer Confidence"), 0),
+    ],
+    "pce": [
+        ("headline_pce_mom", "PCE 물가지수 전월 대비",
+         ("PCE price index", "PCE Price Index"), 0),
+        ("headline_pce_yoy", "PCE 물가지수 전년 대비",
+         ("PCE price index", "PCE Price Index"), 1),
+        ("core_pce_mom", "근원 PCE 전월 대비", "Core PCE Price Index", 0),
+        ("core_pce_yoy", "근원 PCE 전년 대비", "Core PCE Price Index", 1),
+    ],
     "hmi": [
         ("nahb_hmi", "NAHB 주택시장지수", ("NAHB Housing Market Index", "Housing Market Index"), 0),
     ],
