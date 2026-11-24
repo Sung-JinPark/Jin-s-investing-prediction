@@ -1,6 +1,6 @@
 {
   "as_of": "2026-11-19",
-  "content_hash": "a686f0b92288d4d8e16adc442e65f59d4ccf5ea8ab2bbd1b89e8eb4f3aed1eeb",
+  "content_hash": "b6234faf1fa321e2d108aef2dc786041f615843618bfc6211a16da563009606d",
   "data_summary": {
     "candidate": "C1",
     "data_grades": [
@@ -21,7 +21,7 @@
     "required_market_freshness": {
       "groups": [
         {
-          "age_hours": 102.42472222222223,
+          "age_hours": 114.0775,
           "available_at": "2026-11-20T08:34:43.797730+00:00",
           "group": "NASDAQCOM",
           "observation_time": "2026-11-19",
@@ -29,7 +29,7 @@
           "status": "stale"
         },
         {
-          "age_hours": 6.424722222222222,
+          "age_hours": 18.0775,
           "available_at": "2026-11-24T05:04:07+00:00",
           "group": "VIX",
           "observation_time": "2026-11-23",
@@ -37,7 +37,7 @@
           "status": "fresh"
         },
         {
-          "age_hours": 8.14027054111111,
+          "age_hours": 19.79304831888889,
           "available_at": "2026-11-23T22:17:03.026052+00:00",
           "group": "DGS2",
           "observation_time": "2026-11-23",
@@ -45,7 +45,7 @@
           "status": "fresh"
         },
         {
-          "age_hours": 8.14027054111111,
+          "age_hours": 19.79304831888889,
           "available_at": "2026-11-23T22:17:03.026052+00:00",
           "group": "DGS10",
           "observation_time": "2026-11-23",
@@ -53,7 +53,7 @@
           "status": "fresh"
         },
         {
-          "age_hours": 78.42472222222223,
+          "age_hours": 90.0775,
           "available_at": "2026-11-23T22:17:03.466197+00:00",
           "group": "DTWEXBGS_or_DTWEXB",
           "observation_time": "2026-11-20",
@@ -88,7 +88,7 @@
       "필수 시장 입력 48시간 SLA 초과: DTWEXBGS_or_DTWEXB"
     ]
   },
-  "knowledge_cutoff": "2026-11-24T06:25:28+00:00",
+  "knowledge_cutoff": "2026-11-24T18:04:38+00:00",
   "model_id": "shadow.mf_dfm_ridge_varx_v2",
   "model_version": 2,
   "probability_space": "research_timeseries_v2_conditional",
