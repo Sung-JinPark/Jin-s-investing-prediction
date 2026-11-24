@@ -6,7 +6,7 @@
       "a5_origin_unavailable": 1
     },
     "issuance_forecasts": 1,
-    "shadow_forecasts": 5,
+    "shadow_forecasts": 10,
     "shadow_resolutions": 6,
     "verdicts": 0
   },
