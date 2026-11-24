@@ -4,9 +4,9 @@
   "source_url": "https://feargreedmeter.com/",
   "source_label": "Stock Market Fear and Greed Index",
   "observed_date": "2026-11-24",
-  "value": 18,
-  "value_raw": 18,
-  "history_days": 322,
+  "value": 17,
+  "value_raw": 17,
+  "history_days": 323,
   "seeded_days": 250,
   "band": "extreme_fear",
   "band_label": "극단적 공포",
@@ -1084,7 +1084,7 @@
     },
     {
       "d": "2026-11-24",
-      "v": 18
+      "v": 17
     }
   ],
   "stability": {
