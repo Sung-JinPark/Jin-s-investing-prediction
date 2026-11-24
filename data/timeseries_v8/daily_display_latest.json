@@ -1,6 +1,6 @@
 {
   "as_of": "2026-11-20",
-  "content_hash": "1b5074d735b8971041da51383a682f3e5151958870962a5a60377a6dad9a80a3",
+  "content_hash": "5f9e50b948c0088d922b55af927f093abb9a038d7a5f7e8c20d79b7781ada805",
   "daily": {
     "anchor": {
       "provisional": true,
@@ -69,13 +69,13 @@
       "probability_up": 0.695
     }
   },
-  "knowledge_cutoff": "2026-11-23T23:27:38+00:00",
+  "knowledge_cutoff": "2026-11-24T06:17:31+00:00",
   "model_id": "shadow.mf_dfm_varx_calibrated_v8",
   "model_version": 8,
   "operational": {
     "freshness": [
       {
-        "age_hours": 71.461008,
+        "age_hours": 78.292458,
         "expected_observation": "2026-11-20",
         "group": "NASDAQCOM",
         "next_publication_deadline": "2026-11-24T15:00:00+00:00",
@@ -89,11 +89,11 @@
         "status": "fresh"
       },
       {
-        "age_hours": 71.461008,
+        "age_hours": 6.292458,
         "expected_observation": "2026-11-20",
         "group": "VIX",
         "next_publication_deadline": "2026-11-24T15:00:00+00:00",
-        "observation_time": "2026-11-20",
+        "observation_time": "2026-11-23",
         "policy_id": "forecast-source-freshness-v1",
         "policy_sha256": "fa15e7be79bc7da593b310f6e04b92e6aab6d350b8129cda36f5c39eab32fb56",
         "provisional": false,
@@ -103,7 +103,7 @@
         "status": "fresh"
       },
       {
-        "age_hours": 0.0,
+        "age_hours": 6.292458,
         "expected_observation": "2026-11-20",
         "group": "DGS2",
         "next_publication_deadline": "2026-11-24T23:15:00+00:00",
@@ -117,7 +117,7 @@
         "status": "fresh"
       },
       {
-        "age_hours": 0.0,
+        "age_hours": 6.292458,
         "expected_observation": "2026-11-20",
         "group": "DGS10",
         "next_publication_deadline": "2026-11-24T23:15:00+00:00",
@@ -131,7 +131,7 @@
         "status": "fresh"
       },
       {
-        "age_hours": 71.461008,
+        "age_hours": 78.292458,
         "expected_observation": "2026-11-20",
         "group": "DTWEXBGS_or_DTWEXB",
         "next_publication_deadline": "2026-11-30T23:15:00+00:00",
