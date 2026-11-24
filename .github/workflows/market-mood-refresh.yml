@@ -16,7 +16,7 @@ name: market-mood-refresh
 #   2~5시간 늦게 뜬다(종전 22:40 UTC 예약이 실제로 00:42~02:27 UTC 에 떠서 늘 08시를 넘김,
 #   2026-10-07 실측) — 일찍 걸어 두면 늦게 떠도 마감(EDT 20:00 · EST 21:00 UTC) 전후에 뜬다.
 # - wait-for-close 가 원천(Cboe 지연 시세 · Nasdaq 시세)에 그 세션 종가가 실릴 때까지 5분
-#   간격으로 기다리고, 23:30 UTC(KST 08:30)를 넘기면 있는 값으로 갱신한다(화면은 '지연').
+#   간격으로 기다리고, 23:00 UTC(KST 08:00)를 넘기면 있는 값으로 갱신한다(화면은 '지연').
 # - 두 번째 예약(또는 수동 실행)은 세 표면이 이미 그 세션을 싣고 있으면 무변경으로 끝난다.
 # - 수동 workflow_dispatch 는 예비 경로다.
 on:
@@ -57,7 +57,7 @@ jobs:
         id: wait
         # 대기 자체가 죽어도 갱신은 한다 — 출력이 비면 아래 단계가 그대로 돈다.
         continue-on-error: true
-        run: cd src && python -m ai_fc wait-for-close --deadline-utc 23:30 --interval 300
+        run: cd src && python -m ai_fc wait-for-close --deadline-utc 23:00 --interval 300
       # 기다리는 동안 main 이 움직였다 — 갱신은 최신 위에서 한다.
       - name: Sync to latest main
         if: ${{ steps.wait.outputs.already_recorded != 'true' }}

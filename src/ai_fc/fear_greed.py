@@ -170,19 +170,39 @@ def load_history(root: Path) -> list[dict[str, Any]]:
 
 
 def append_reading(root: Path, reading: FearGreedReading) -> bool:
-    """오늘 행이 이미 있으면 **덮어쓰지 않고 건너뛴다**. 원장은 append-only 다.
+    """관측을 append-only로 기록하고, 변경된 값은 명시적 정정 리비전으로 남긴다.
 
-    하루 여러 번 돌아도 첫 값이 그날의 값이다. 나중 값으로 덮으면 "그때 무엇을 보고
-    있었는가"가 지워진다.
+    같은 값의 재시도는 건너뛰지만, 원천이 같은 날 값을 정정하면 기존 행을 바꾸지 않고
+    ``supersedes``가 달린 새 행을 추가한다. 대시보드는 날짜별 최신 리비전만 읽는다.
     """
     history = load_history(root)
-    if any(row.get("observed_date") == reading.observed_date for row in history):
+    same_day = [row for row in history if row.get("observed_date") == reading.observed_date]
+    if same_day and same_day[-1].get("value") == reading.value:
         return False
+    record = reading.as_record()
+    if same_day:
+        prior = same_day[-1]
+        record["supersedes"] = {
+            "observed_date": prior["observed_date"],
+            "fetched_at": prior.get("fetched_at"),
+            "value": prior["value"],
+        }
+        record["revision"] = len(same_day) + 1
     path = root / HISTORY_RELATIVE
     path.parent.mkdir(parents=True, exist_ok=True)
     with open(path, "a", encoding="utf-8", newline="\n") as handle:
-        handle.write(json.dumps(reading.as_record(), ensure_ascii=False) + "\n")
+        handle.write(json.dumps(record, ensure_ascii=False) + "\n")
     return True
+
+
+def _latest_by_date(history: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Return the approved latest append-only revision for each observation date."""
+    latest: dict[str, dict[str, Any]] = {}
+    for row in history:
+        observed_date = row.get("observed_date")
+        if observed_date:
+            latest[observed_date] = row
+    return [latest[key] for key in sorted(latest)]
 
 
 def consecutive_successful_days(root: Path, *, today: Optional[date] = None) -> int:
@@ -217,15 +237,16 @@ def projection(root: Path, *, today: Optional[date] = None) -> dict[str, Any]:
     history = load_history(root)
     if not history:
         return {"status": "absent", "source_id": SOURCE_ID, "source_url": ENDPOINT}
-    latest = history[-1]
+    approved = _latest_by_date(history)
+    latest = approved[-1]
     streak = consecutive_successful_days(root, today=today)
     # 통계 그래프가 1년을 그릴 수 있도록 260영업일까지 싣는다(약 6.5KB).
     trail = [{"d": row["observed_date"],
-              "v": row.get("value_raw", row["value"])} for row in history[-260:]]
+              "v": row.get("value_raw", row["value"])} for row in approved[-260:]]
 
     def _ago(days: int) -> Optional[int]:
         target = date.fromisoformat(latest["observed_date"]).toordinal() - days
-        for row in reversed(history):
+        for row in reversed(approved):
             if date.fromisoformat(row["observed_date"]).toordinal() <= target:
                 return row["value"]
         return None

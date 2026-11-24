@@ -253,8 +253,8 @@ def load_freshness_status(root: Path) -> Optional[dict[str, Any]]:
 
 # ── 일찍 띄우고 잡 안에서 기다리기 (2026-10-07) ──────────────────────
 # GitHub 예약은 2~5시간 늦게 뜬다(실측). 그래서 KST 02:30·03:30 에 일찍 띄우고, 원천이
-# 그날 미국 세션 종가를 싣는 순간까지 잡 안에서 기다린 뒤 갱신한다. 마감 23:30 UTC
-# (KST 08:30)를 넘기면 있는 값으로 갱신하고, 최신성 검사가 '지연'을 표시한다.
+# 그날 미국 세션 종가를 싣는 순간까지 잡 안에서 기다린 뒤 갱신한다. 마감 23:00 UTC
+# (KST 08:00)를 넘기면 있는 값으로 갱신하고, 최신성 검사가 '지연'을 표시한다.
 
 def already_recorded(root: Path, target: date, *, today_kst: Optional[date] = None) -> bool:
     """세 표면이 모두 target 세션 이상을 이미 싣고 있는가(두 번째 실행은 무변경 종료).
@@ -296,7 +296,7 @@ def resolve_deadline(start: datetime, hhmm: str) -> datetime:
     return deadline if deadline > current else current
 
 
-def wait_for_close(root: Path, *, deadline_utc: str = "23:30", interval: int = 300,
+def wait_for_close(root: Path, *, deadline_utc: str = "23:00", interval: int = 300,
                    max_wait_minutes: int = 330,
                    now_fn: Optional[Callable[[], datetime]] = None,
                    sleep_fn: Optional[Callable[[float], None]] = None,

@@ -1995,7 +1995,7 @@ def cmd_fear_greed_components_refresh() -> None:
 
 @app.command("wait-for-close")
 def cmd_wait_for_close(
-    deadline_utc: str = typer.Option("23:30", "--deadline-utc", help="이 시각(UTC)까지만 기다린다"),
+    deadline_utc: str = typer.Option("23:00", "--deadline-utc", help="이 시각(UTC)까지만 기다린다"),
     interval: int = typer.Option(300, "--interval", help="원천 재확인 간격(초)"),
     max_wait_minutes: int = typer.Option(330, "--max-wait-minutes", help="최대 대기(분)"),
 ) -> None:

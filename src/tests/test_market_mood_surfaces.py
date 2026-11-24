@@ -47,17 +47,29 @@ def test_band_boundaries_match_the_published_scale(value: int, slug: str) -> Non
     assert fg.band_of(value)[0] == slug
 
 
-def test_the_ledger_never_overwrites_a_day(tmp_path: Path) -> None:
-    """하루 여러 번 돌아도 **첫 값이 그날의 값**이다. 나중 값으로 덮으면 그때 무엇을
-    보고 있었는지가 지워진다."""
+def test_a_changed_same_day_reading_is_an_append_only_correction(tmp_path: Path) -> None:
+    """원천의 당일 정정도 원본을 지우지 않고 명시적 리비전으로 기록한다."""
     first = fg.FearGreedReading("2026-09-15", "2026-09-15T00:00:00+00:00", 31, "fear",
                                 "공포", fg.SCHEMA_NAME, fg.ENDPOINT, 200)
     later = fg.FearGreedReading("2026-09-15", "2026-09-15T09:00:00+00:00", 44, "fear",
                                 "공포", fg.SCHEMA_NAME, fg.ENDPOINT, 200)
     assert fg.append_reading(tmp_path, first) is True
-    assert fg.append_reading(tmp_path, later) is False
+    assert fg.append_reading(tmp_path, later) is True
     rows = fg.load_history(tmp_path)
-    assert len(rows) == 1 and rows[0]["value"] == 31
+    assert len(rows) == 2
+    assert rows[0]["value"] == 31
+    assert rows[1]["value"] == 44
+    assert rows[1]["supersedes"] == {
+        "observed_date": "2026-09-15", "fetched_at": "2026-09-15T00:00:00+00:00", "value": 31,
+    }
+    assert fg.projection(tmp_path)["value"] == 44
+
+
+def test_a_same_value_retry_is_not_a_new_revision(tmp_path: Path) -> None:
+    reading = fg.FearGreedReading("2026-09-15", "2026-09-15T00:00:00+00:00", 31, "fear",
+                                  "공포", fg.SCHEMA_NAME, fg.ENDPOINT, 200)
+    assert fg.append_reading(tmp_path, reading) is True
+    assert fg.append_reading(tmp_path, reading) is False
 
 
 def test_streak_breaks_on_a_missing_day(tmp_path: Path) -> None:
@@ -180,7 +192,7 @@ def test_mood_refresh_runs_after_the_us_close_and_deploys() -> None:
         # 미국 정규장 마감(EDT 20:00 · EST 21:00 UTC) 전이어야 기다릴 의미가 있다.
         assert hour * 60 + minute < 20 * 60, cron
     assert "workflow_dispatch" in on
-    assert "python -m ai_fc wait-for-close --deadline-utc 23:30 --interval 300" in text
+    assert "python -m ai_fc wait-for-close --deadline-utc 23:00 --interval 300" in text
     assert text.index("wait-for-close") < text.index("python -m ai_fc signals")
     assert "steps.wait.outputs.already_recorded != 'true'" in text
     job = document["jobs"]["refresh"]

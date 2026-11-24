@@ -55,9 +55,9 @@ triggers:
   workflow: .github/workflows/market-mood-refresh.yml
   crons_utc: ["30 17 * * *", "30 18 * * *"]   # KST 02:30 · 03:30 — 예약 지연 2~5시간 실측
   wait:
-    command: python -m ai_fc wait-for-close --deadline-utc 23:30 --interval 300
+    command: python -m ai_fc wait-for-close --deadline-utc 23:00 --interval 300
     ready_when: cboe_delayed_quote AND nasdaq_quote_api report the target session closed
-    give_up_utc: "23:30"                      # KST 08:30 — 이후 있는 값으로 갱신, 화면은 '지연'
+    give_up_utc: "23:00"                      # KST 08:00 — 이후 있는 값으로 갱신, 화면은 '지연'
     already_recorded: exit_without_changes
   job_timeout_minutes: 360
   concurrency_group: investing-data-writer

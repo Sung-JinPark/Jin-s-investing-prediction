@@ -264,7 +264,7 @@ def test_contract_and_constitution_pin_the_rule() -> None:
     assert contract["triggers"]["primary"] == "github_schedule_early_start_with_wait"
     assert contract["triggers"]["fallback"] == "workflow_dispatch_manual"
     assert contract["triggers"]["crons_utc"] == ["30 17 * * *", "30 18 * * *"]
-    assert contract["triggers"]["wait"]["give_up_utc"] == "23:30"
+    assert contract["triggers"]["wait"]["give_up_utc"] == "23:00"
     assert contract["guard"]["intraday_values_never_recorded"] is True
     urls = json.dumps(contract["sources"])
     assert vs.QUOTE_URL in urls and mq.NASDAQ_URL in urls and "feargreedmeter" in urls
