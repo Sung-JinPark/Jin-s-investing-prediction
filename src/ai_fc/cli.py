@@ -2036,7 +2036,14 @@ def cmd_freshness_check() -> None:
 
 
 @app.command("consensus")
-def cmd_consensus() -> None:
+def cmd_consensus(
+    on_date: str | None = typer.Option(
+        None, "--on-date", help="이 미국 날짜의 이벤트만 수집 (YYYY-MM-DD)"
+    ),
+    previous_us_session: bool = typer.Option(
+        False, "--previous-us-session", help="KST 오늘 기준 직전 미국 정규장 세션만 수집"
+    ),
+) -> None:
     """이벤트 발표값 표(실제·예상·이전)를 공개 캘린더에서 받아 append-only 원장에 덧붙인다.
 
     표시 전용 — 어떤 예측·확률과도 결합하지 않는다. 일부 이벤트 수집이 실패해도 받은 행은
@@ -2044,12 +2051,22 @@ def cmd_consensus() -> None:
     """
     from .earnings_date_sync import sync_estimated_earnings
     from .event_consensus import refresh
+    from .market_session import session_reflected_by
+
+    if on_date and previous_us_session:
+        raise typer.BadParameter("--on-date와 --previous-us-session은 함께 쓸 수 없습니다")
+    try:
+        target_date = date.fromisoformat(on_date) if on_date else None
+    except ValueError as exc:
+        raise typer.BadParameter("--on-date는 YYYY-MM-DD 형식이어야 합니다.") from exc
+    if previous_us_session:
+        target_date = session_reflected_by(datetime.now(ZoneInfo(config.TZ_NAME)).date(), root=config.ROOT)
 
     # 추정 실적일을 먼저 확정일로 대체한다 — 그래야 아래 수집이 실제 발표일 창을 본다.
     sync = sync_estimated_earnings(config.ROOT)
     for line in sync["promoted"]:
         typer.echo(f"[일정 확정] {line}")
-    result = refresh(config.ROOT)
+    result = refresh(config.ROOT, on_date=target_date)
     typer.echo(f"이벤트 {result['events']}개 · 값 {result['rows_seen']}행 · 새 행 {result['appended']}")
     failures = [*sync["failures"], *result["failures"]]
     for failure in failures:

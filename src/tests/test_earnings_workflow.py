@@ -116,7 +116,11 @@ def test_changed_results_deploy_before_partial_failure_is_reported():
     capture_script = next(s for s in steps if s.get("id") == "capture")["run"]
     assert '[ "$settled" = "true" ] || failed=1' in capture_script
     mood = _workflow("market-mood-refresh.yml")
-    assert not any(s.get("id") == "consensus" for s in mood["jobs"]["refresh"]["steps"])
+    steps = mood["jobs"]["refresh"]["steps"]
+    catchup = next(s for s in steps if s.get("id") == "calendar")
+    assert catchup["if"] == "${{ always() }}"
+    assert "python -m ai_fc calendar-refresh" in catchup["run"]
+    assert "python -m ai_fc consensus --previous-us-session" in catchup["run"]
 
 
 def test_completed_publication_and_budget_limit_rearm_the_remaining_window():

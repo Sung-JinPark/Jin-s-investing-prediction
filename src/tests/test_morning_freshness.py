@@ -265,6 +265,11 @@ def test_contract_and_constitution_pin_the_rule() -> None:
     assert contract["triggers"]["fallback"] == "workflow_dispatch_manual"
     assert contract["triggers"]["crons_utc"] == ["30 17 * * *", "30 18 * * *"]
     assert contract["triggers"]["wait"]["give_up_utc"] == "23:00"
+    assert contract["triggers"]["calendar_catchup"] == {
+        "command": "python -m ai_fc calendar-refresh && python -m ai_fc consensus --previous-us-session",
+        "scope": "previous_us_session_with_14_day_lookback",
+        "purpose": "KST 08:00 마감 회차에서 전일 미국 날짜의 경제지표·실적 Actual/Forecast/Previous를 다시 수집해 예약 지연 또는 원천 게시 지연을 복구한다.",
+    }
     assert contract["guard"]["intraday_values_never_recorded"] is True
     urls = json.dumps(contract["sources"])
     assert vs.QUOTE_URL in urls and mq.NASDAQ_URL in urls and "feargreedmeter" in urls

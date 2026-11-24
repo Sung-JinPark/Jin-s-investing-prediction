@@ -82,6 +82,17 @@ jobs:
         if: ${{ always() }}
         continue-on-error: true
         run: cd src && python -m ai_fc fear-greed-components-refresh
+      # 오전 8시에는 표시값 세 개뿐 아니라, 전일 미국 날짜에 발표됐거나 장 마감 뒤
+      # 확정된 경제지표·실적 Actual/Forecast/Previous도 다시 읽는다. 10분 폴링이
+      # 놓친 원천 지연은 이 마감 회차에서 14일 lookback으로 복구한다.
+      - name: Catch up prior US-session economic and earnings calendar
+        id: calendar
+        if: ${{ always() }}
+        continue-on-error: true
+        run: |
+          cd src
+          python -m ai_fc calendar-refresh
+          python -m ai_fc consensus --previous-us-session
       - name: Commit refreshed mood surfaces
         id: commit
         shell: bash
@@ -111,10 +122,11 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: gh workflow run pages.yml --repo "$GITHUB_REPOSITORY" --ref main
       - name: Report refresh failure
-        if: ${{ always() && (steps.mood.outcome == 'failure' || steps.components.outcome == 'failure') }}
+        if: ${{ always() && (steps.mood.outcome == 'failure' || steps.components.outcome == 'failure' || steps.calendar.outcome == 'failure') }}
         shell: bash
         run: |
           echo "signals=${{ steps.mood.outcome }}"
           echo "components=${{ steps.components.outcome }}"
-          echo "A market or event source failed; valid results were preserved and the failure requires retry."
+          echo "calendar=${{ steps.calendar.outcome }}"
+          echo "A market, calendar, or event source failed; valid results were preserved and the failure requires retry."
           exit 1

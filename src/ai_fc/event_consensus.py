@@ -413,15 +413,17 @@ def append_consensus_rows(root: Path, rows: list[dict[str, Any]], *,
 
 def refresh(root: Path, *, now: Optional[datetime] = None,
             fetch: Callable[[str], dict[str, Any]] = _get_json,
-            earnings_only: bool = False, clock: Optional[Callable[[], datetime]] = None) -> dict[str, Any]:
+            earnings_only: bool = False, clock: Optional[Callable[[], datetime]] = None,
+            on_date: Optional[date] = None) -> dict[str, Any]:
     """창 안의 이벤트마다 세 값을 받아, 바뀐 행만 원장에 덧붙인다."""
     from .event_calendar import load_events
 
     now = now or datetime.now(timezone.utc)
     today = now.date()
     events = [row for row in load_events(root) if (not earnings_only or row.get("kind") == "earnings")
-              if today - timedelta(days=LOOKBACK_DAYS) <= date.fromisoformat(row["date"])
-              <= today + timedelta(days=LOOKAHEAD_DAYS)]
+              if (date.fromisoformat(row["date"]) == on_date if on_date is not None else
+                  today - timedelta(days=LOOKBACK_DAYS) <= date.fromisoformat(row["date"])
+                  <= today + timedelta(days=LOOKAHEAD_DAYS))]
     cache: dict[str, dict[str, Any]] = {}
 
     def cached(url: str) -> dict[str, Any]:

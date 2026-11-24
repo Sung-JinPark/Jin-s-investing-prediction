@@ -205,6 +205,9 @@ def test_mood_refresh_runs_after_the_us_close_and_deploys() -> None:
     assert "cloud routine" not in text.lower() and "클라우드 루틴" not in text
     assert "python -m ai_fc signals" in text
     assert "data/fear_greed" in text and "data/vix" in text
+    assert "python -m ai_fc calendar-refresh" in text
+    assert "python -m ai_fc consensus --previous-us-session" in text
+    assert "steps.calendar.outcome == 'failure'" in text
     assert vs.CBOE_URL in (ROOT / "src/ai_fc/vix_surface.py").read_text(encoding="utf-8")
     assert "group: investing-data-writer" in text
     assert "steps.mood.outcome == 'failure'" in text, "부분 실패도 감시에 걸려야 한다"

@@ -4,10 +4,11 @@ from __future__ import annotations
 
 import json
 import shutil
-from datetime import datetime, timedelta, timezone
+from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 
 from ai_fc import event_consensus as ec
+from ai_fc import event_calendar
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -157,6 +158,23 @@ def test_refresh_appends_only_changes_and_loader_respects_cutoff(tmp_path: Path)
     shown = ec.load_event_consensus(root, now)["nfp_2026_10"]
     assert shown[0]["actual"] == "29K", "as_of 뒤에 수집된 정정은 그 시점 화면에 없다"
     assert ec.load_event_consensus(root, later)["nfp_2026_10"][0]["actual"] == "31K"
+
+
+def test_refresh_on_date_limits_the_morning_catchup_to_one_us_session(tmp_path: Path, monkeypatch) -> None:
+    root = _root(tmp_path)
+    target = date(2026, 10, 2)
+    monkeypatch.setattr(event_calendar, "load_events", lambda _: [
+        {"event_id": "target", "kind": "nfp", "date": "2026-10-02", "time_et": "08:30"},
+        {"event_id": "other", "kind": "nfp", "date": "2026-10-09", "time_et": "08:30"},
+    ])
+    fetch, calls = _stub({"date=2026-10-03": _econ([
+        {"gmt": "08:30", "eventName": "Nonfarm Payrolls", "actual": "29K", "consensus": "89K", "previous": "133K"},
+    ])})
+    result = ec.refresh(root, now=datetime(2026, 10, 3, 1, tzinfo=timezone.utc),
+                        fetch=fetch, on_date=target)
+    assert result["events"] == 1 and result["appended"] >= 1
+    assert calls and all("date=2026-10-09" not in url and "date=2026-10-10" not in url
+                        for url in calls)
 
 
 def test_failures_do_not_erase_other_rows(tmp_path: Path) -> None:
