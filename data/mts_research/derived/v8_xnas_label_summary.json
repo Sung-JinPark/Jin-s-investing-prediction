@@ -139,12 +139,12 @@
     "policy": "아카이브 날짜를 달력으로 쓰지 않는다 — 비세션 행은 무시하고 목록으로만 보고",
     "window": [
       "1995-01-03",
-      "2026-11-19"
+      "2026-11-24"
     ],
     "xnas_sessions_missing_nasdaqcom": [],
     "xnas_sessions_missing_nasdaqcom_since_first_origin": []
   },
-  "as_of_session": "2026-11-19",
+  "as_of_session": "2026-11-24",
   "bootstrap": {
     "caveats": [
       "serial overlap ignored — 주간 원점의 h21 창은 약 16/21 세션이 겹친다. 원점 i.i.d. 복원추출이라 CI 가 좁게 나올 수 있다(설계 §1.1 은 h21 에 블록 부트스트랩)",
@@ -288,6 +288,20 @@
       "xnas_target_session": "2026-11-16",
       "y_ledger": -0.08766881593084008,
       "y_xnas": -0.0643964502914136
+    },
+    {
+      "dropped_sessions_confirmed": [
+        "2026-11-11"
+      ],
+      "grid_target_session": "2026-11-24",
+      "h": 21,
+      "origin": "2026-10-23",
+      "pit": 0.065,
+      "pit_ledger": null,
+      "stage": "provisional",
+      "xnas_target_session": "2026-11-23",
+      "y_ledger": null,
+      "y_xnas": -0.07459881716905388
     },
     {
       "dropped_sessions_confirmed": [
@@ -504,7 +518,7 @@
       "2026-10-12",
       "2026-11-11"
     ],
-    "observed_through": "2026-11-19",
+    "observed_through": "2026-11-20",
     "projected_closure_rule": "미관측 미래 날짜: 미국 연방휴일(pandas USFederalHolidayCalendar)이면 국채 휴장·H.10 미발표로 grid 에서 빠진다고 투영한다. 2026년 행정명령 추가 휴장 여부는 [미검증].",
     "projected_dropped_next_120d": []
   },
@@ -517,38 +531,38 @@
       "status": "checked",
       "window": [
         "2025-01-01",
-        "2028-01-13"
+        "2028-01-18"
       ]
     },
     "daily6m": {
       "mismatches": [],
-      "n_dates": 26,
-      "n_forecasts": 23,
-      "n_rows": 288,
+      "n_dates": 29,
+      "n_forecasts": 25,
+      "n_rows": 362,
       "status": "checked"
     },
     "diagnostics_chain": {
       "error": null,
       "ok": true,
-      "rows": 41
+      "rows": 44
     },
     "failed_checks": [],
     "status": "PASS",
     "v13": {
       "mismatches": [],
-      "n": 234,
+      "n": 252,
       "status": "checked"
     },
     "v8": {
       "crps_bit_reproduction": {
         "failures": [],
         "max_abs_diff": 0.0,
-        "n": 35
+        "n": 37
       },
       "forecast_id_derivation_mismatch": [],
       "ledger_flag_reproduction_failures": [],
       "n_forecasts": 14,
-      "n_resolutions": 35,
+      "n_resolutions": 37,
       "orphan_resolutions": [],
       "resolution_duplicates": [],
       "resolution_field_mismatch": [],
@@ -626,7 +640,7 @@
       "identity_resid_unexplained": [],
       "identity_resid_violations": 0,
       "ledger_vs_predicted_grid_mismatch": [],
-      "n_resolved": 35
+      "n_resolved": 37
     }
   },
   "label_bases": [
@@ -637,26 +651,26 @@
   "ledger": {
     "fresh_rows_covered": true,
     "path": "data/mts_research/ledgers/v8_xnas_label_diagnostics.jsonl",
-    "rows": 41,
+    "rows": 44,
     "rows_by_stage": {
-      "provisional": 6,
-      "reconciled": 35
+      "provisional": 7,
+      "reconciled": 37
     }
   },
-  "n": 35,
-  "n_dates": 28,
-  "n_origins": 13,
+  "n": 38,
+  "n_dates": 30,
+  "n_origins": 14,
   "network_fetch_enabled": false,
   "notice": "참고 의견, 매매 신호 아님",
   "pairs": {
     "pending_archive": [],
-    "resolved": 35,
+    "resolved": 37,
     "rows_by_stage": {
-      "provisional": 0,
-      "reconciled": 35
+      "provisional": 1,
+      "reconciled": 37
     },
     "total": 56,
-    "unresolved": 21,
+    "unresolved": 19,
     "unresolved_any_dropped_nonempty": 14,
     "unresolved_list": [
       {
@@ -778,9 +792,9 @@
         "grid_target_session": "2026-11-24",
         "h": 21,
         "ledger_resolution_eta": "2026-12-01T03:10:00+00:00",
-        "official_resolution_status": "pending_grid",
+        "official_resolution_status": "pending_h10",
         "origin": "2026-10-23",
-        "state": "target_open",
+        "state": "provisional",
         "xnas_target_session": "2026-11-23"
       },
       {
@@ -851,17 +865,6 @@
       {
         "dropped_sessions_confirmed": [],
         "dropped_sessions_projected": [],
-        "grid_target_session": "2026-11-20",
-        "h": 5,
-        "ledger_resolution_eta": "2026-11-24T03:10:00+00:00",
-        "official_resolution_status": "pending_grid",
-        "origin": "2026-11-13",
-        "state": "target_open",
-        "xnas_target_session": "2026-11-20"
-      },
-      {
-        "dropped_sessions_confirmed": [],
-        "dropped_sessions_projected": [],
         "grid_target_session": "2026-12-15",
         "h": 21,
         "ledger_resolution_eta": "2026-12-22T03:10:00+00:00",
@@ -880,17 +883,6 @@
         "origin": "2026-11-13",
         "state": "target_open",
         "xnas_target_session": "2027-02-17"
-      },
-      {
-        "dropped_sessions_confirmed": [],
-        "dropped_sessions_projected": [],
-        "grid_target_session": "2026-11-20",
-        "h": 1,
-        "ledger_resolution_eta": "2026-11-24T03:10:00+00:00",
-        "official_resolution_status": "pending_grid",
-        "origin": "2026-11-19",
-        "state": "target_open",
-        "xnas_target_session": "2026-11-20"
       },
       {
         "dropped_sessions_confirmed": [],
@@ -946,16 +938,16 @@
       "h1": {
         "bootstrap_valid_draws": 5000,
         "ci90": [
-          -0.09385318460753309,
-          0.024845745945154294
+          -0.07716412677959981,
+          0.007916990433451464
         ],
-        "cov80": 0.6923076923076923,
-        "n": 13,
-        "n_origins": 13,
-        "pit_mean": 0.49769230769230777,
-        "skill": -0.03153740032275398,
+        "cov80": 0.6428571428571429,
+        "n": 14,
+        "n_origins": 14,
+        "pit_mean": 0.4628571428571429,
+        "skill": -0.035276478092258756,
         "sufficiency": "ok",
-        "up_brier_mean": 0.2887096153846154,
+        "up_brier_mean": 0.29554464285714294,
         "wins": 7
       },
       "h21": {
@@ -976,35 +968,35 @@
       "h5": {
         "bootstrap_valid_draws": 5000,
         "ci90": [
-          -0.030279802900877485,
-          0.05674780654314233
+          -0.018940792711950174,
+          0.04899495865870413
         ],
-        "cov80": 0.8333333333333334,
-        "n": 12,
-        "n_origins": 12,
-        "pit_mean": 0.3529166666666666,
-        "skill": 0.005865300776846216,
+        "cov80": 0.7692307692307693,
+        "n": 13,
+        "n_origins": 13,
+        "pit_mean": 0.3265384615384615,
+        "skill": 0.019505635541628985,
         "sufficiency": "ok",
-        "up_brier_mean": 0.275025,
-        "wins": 7
+        "up_brier_mean": 0.2797461538461538,
+        "wins": 8
       },
       "label": "원장 grid 라벨(공식 basis) — 원장 model_crps·baseline_crps 그대로",
       "mean_h1_h5_h21": {
         "bootstrap_valid_draws": 5000,
         "ci90": [
-          -0.05045251795122516,
-          0.016271641895455848
+          -0.044730982950784794,
+          0.014007020330271649
         ],
         "insufficient_horizons": [],
-        "n": 34,
+        "n": 36,
         "n_by_h": {
-          "h1": 13,
+          "h1": 14,
           "h21": 9,
-          "h5": 12
+          "h5": 13
         },
-        "n_origins": 13,
+        "n_origins": 14,
         "note": "같은 basis 안의 지평 단순 평균 — basis 간 평균은 금지",
-        "skill": -0.022448688728994415,
+        "skill": -0.019148269730568417,
         "sufficiency": "ok"
       }
     },
@@ -1014,65 +1006,65 @@
         "h1": {
           "bootstrap_valid_draws": 5000,
           "ci90": [
-            -0.09528039053238928,
-            0.02090235699608326
+            -0.07838811095658105,
+            0.005087935925414133
           ],
-          "cov80": 0.6923076923076923,
-          "n": 13,
-          "n_origins": 13,
-          "pit_mean": 0.48807692307692313,
-          "skill": -0.033587438457175045,
+          "cov80": 0.6428571428571429,
+          "n": 14,
+          "n_origins": 14,
+          "pit_mean": 0.45392857142857146,
+          "skill": -0.03666236535704703,
           "sufficiency": "ok",
-          "up_brier_mean": 0.2887096153846154,
+          "up_brier_mean": 0.29554464285714294,
           "wins": 7
         },
         "h21": {
           "bootstrap_valid_draws": 5000,
           "ci90": [
-            -0.07833065564672034,
-            0.021214390664773267
+            -0.07543687015793031,
+            0.005236615199505579
           ],
-          "cov80": 0.6666666666666666,
-          "n": 9,
-          "n_origins": 9,
-          "pit_mean": 0.3005555555555556,
-          "skill": -0.04237293147938925,
+          "cov80": 0.6,
+          "n": 10,
+          "n_origins": 10,
+          "pit_mean": 0.277,
+          "skill": -0.045129632933620156,
           "sufficiency": "ok",
-          "up_brier_mean": 0.32605833333333334,
+          "up_brier_mean": 0.3357025,
           "wins": 4
         },
         "h5": {
           "bootstrap_valid_draws": 5000,
           "ci90": [
-            -0.05107849709886155,
-            0.053737959516128815
+            -0.03776218511510732,
+            0.047606969068828414
           ],
-          "cov80": 0.8333333333333334,
-          "n": 12,
-          "n_origins": 12,
-          "pit_mean": 0.38916666666666666,
-          "skill": -0.008906421759133032,
+          "cov80": 0.7692307692307693,
+          "n": 13,
+          "n_origins": 13,
+          "pit_mean": 0.36,
+          "skill": 0.009629150418802523,
           "sufficiency": "ok",
-          "up_brier_mean": 0.26669166666666666,
-          "wins": 7
+          "up_brier_mean": 0.27205384615384615,
+          "wins": 8
         },
         "label": "XNAS 목표 종가가 확정된 모든 쌍(원장 미해소 잠정 포함)",
         "mean_h1_h5_h21": {
           "bootstrap_valid_draws": 5000,
           "ci90": [
-            -0.05760818608907599,
-            0.012806441622576482
+            -0.05113537481109745,
+            0.0068354338274368934
           ],
           "insufficient_horizons": [],
-          "n": 34,
+          "n": 37,
           "n_by_h": {
-            "h1": 13,
-            "h21": 9,
-            "h5": 12
+            "h1": 14,
+            "h21": 10,
+            "h5": 13
           },
-          "n_origins": 13,
+          "n_origins": 14,
           "note": "같은 basis 안의 지평 단순 평균 — basis 간 평균은 금지",
-          "skill": -0.028288930565232445,
+          "skill": -0.024054282623954888,
           "sufficiency": "ok"
         }
       },
@@ -1081,16 +1073,16 @@
         "h1": {
           "bootstrap_valid_draws": 5000,
           "ci90": [
-            -0.09528039053238928,
-            0.02090235699608326
+            -0.07838811095658105,
+            0.005087935925414133
           ],
-          "cov80": 0.6923076923076923,
-          "n": 13,
-          "n_origins": 13,
-          "pit_mean": 0.48807692307692313,
-          "skill": -0.033587438457175045,
+          "cov80": 0.6428571428571429,
+          "n": 14,
+          "n_origins": 14,
+          "pit_mean": 0.45392857142857146,
+          "skill": -0.03666236535704703,
           "sufficiency": "ok",
-          "up_brier_mean": 0.2887096153846154,
+          "up_brier_mean": 0.29554464285714294,
           "wins": 7
         },
         "h21": {
@@ -1111,35 +1103,35 @@
         "h5": {
           "bootstrap_valid_draws": 5000,
           "ci90": [
-            -0.05107849709886155,
-            0.053737959516128815
+            -0.03776218511510732,
+            0.047606969068828414
           ],
-          "cov80": 0.8333333333333334,
-          "n": 12,
-          "n_origins": 12,
-          "pit_mean": 0.38916666666666666,
-          "skill": -0.008906421759133032,
+          "cov80": 0.7692307692307693,
+          "n": 13,
+          "n_origins": 13,
+          "pit_mean": 0.36,
+          "skill": 0.009629150418802523,
           "sufficiency": "ok",
-          "up_brier_mean": 0.26669166666666666,
-          "wins": 7
+          "up_brier_mean": 0.27205384615384615,
+          "wins": 8
         },
         "label": "원장 해소 행과 같은 쌍을 XNAS 라벨로 재채점",
         "mean_h1_h5_h21": {
           "bootstrap_valid_draws": 5000,
           "ci90": [
-            -0.05760818608907599,
-            0.012806441622576482
+            -0.051237409028246375,
+            0.010777043226207409
           ],
           "insufficient_horizons": [],
-          "n": 34,
+          "n": 36,
           "n_by_h": {
-            "h1": 13,
+            "h1": 14,
             "h21": 9,
-            "h5": 12
+            "h5": 13
           },
-          "n_origins": 13,
+          "n_origins": 14,
           "note": "같은 basis 안의 지평 단순 평균 — basis 간 평균은 금지",
-          "skill": -0.028288930565232445,
+          "skill": -0.023135382139211253,
           "sufficiency": "ok"
         }
       }
