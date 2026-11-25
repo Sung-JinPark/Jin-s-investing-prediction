@@ -7,7 +7,7 @@
     },
     "issuance_forecasts": 1,
     "shadow_forecasts": 10,
-    "shadow_resolutions": 6,
+    "shadow_resolutions": 17,
     "verdicts": 0
   },
   "display": "none — 화면 없음(scoring_excluded_from_official). d̄·CI 는 이 파일에 두지 않는다",
@@ -20,7 +20,7 @@
           "required": 26
         },
         "A5:h5": {
-          "pairs": 0,
+          "pairs": 1,
           "reached": false,
           "required": 26
         },
@@ -40,7 +40,7 @@
           "required": 26
         },
         "A1:h5": {
-          "pairs": 0,
+          "pairs": 1,
           "reached": false,
           "required": 26
         },
@@ -55,7 +55,7 @@
           "required": 26
         },
         "A2:h5": {
-          "pairs": 0,
+          "pairs": 1,
           "reached": false,
           "required": 26
         },
@@ -70,7 +70,7 @@
           "required": 26
         },
         "A3:h5": {
-          "pairs": 0,
+          "pairs": 1,
           "reached": false,
           "required": 26
         },
@@ -85,7 +85,7 @@
           "required": 26
         },
         "A4:h5": {
-          "pairs": 0,
+          "pairs": 1,
           "reached": false,
           "required": 26
         },
