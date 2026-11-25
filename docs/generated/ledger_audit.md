@@ -1,8 +1,8 @@
 # Ledger accumulation audit
 
-- Generated: `2026-11-25T09:12:33+00:00`
+- Generated: `2026-11-25T10:06:53+00:00`
 - Latest completed NYSE day: `2026-11-24`
-- Result: accumulating 84 · frozen 2 · stalled 9 · inactive 12 · violation 0 · planned 10
+- Result: accumulating 86 · frozen 2 · stalled 7 · inactive 12 · violation 0 · planned 10
 
 | Ledger | Cadence | Files / rows | Latest | Status | Finding |
 |---|---:|---:|---:|---:|---|
@@ -44,7 +44,7 @@
 | `source_monitoring` | trading_daily | 107 | 2026-11-24 | **accumulating** | missing trading days: 2026-08-25, 2026-08-27, 2026-08-28, 2026-10-23, 2026-11-04; writer settles within 18h of the close; expects 2026-11-23 |
 | `source_monitoring_status` | trading_daily | 1 | 2026-11-24 | **accumulating** | writer settles within 18h of the close; expects 2026-11-23 |
 | `ipo_reference_batch_receipts` | event | 4 | 2026-08-19 | **accumulating** | — |
-| `ipo_reference_batch_status` | weekly | 1 | 2026-11-21 | **accumulating** | — |
+| `ipo_reference_batch_status` | weekly | 1 | 2026-11-25 | **accumulating** | — |
 | `ipo_edgar_candidates` | weekly | 1 | 2026-11-14 | **stalled** | — |
 | `ipo_ai_classification_decisions` | biweekly | 1 | 2026-11-07 | **stalled** | — |
 | `statistics_alert_notify_state` | event | 1 | 2026-11-14 | **accumulating** | — |
@@ -66,7 +66,7 @@
 | `scenario_v5_2_sensitivity_grid` | event | 1 | — | **accumulating** | — |
 | `timeseries_v8_sealed_evaluations` | event | 1 | — | **accumulating** | — |
 | `timeseries_v8_shadow_forecasts` | weekly | 1 | 2026-11-19 | **accumulating** | — |
-| `timeseries_v8_shadow_resolutions` | weekly | 1 | 2026-11-17 | **accumulating** | — |
+| `timeseries_v8_shadow_resolutions` | weekly | 1 | 2026-11-20 | **accumulating** | — |
 | `timeseries_v8_holdout_scorings` | event | 1 | — | **accumulating** | — |
 | `timeseries_v8_development_experiments` | event | 1 | — | **accumulating** | — |
 | `timeseries_v15_shadow_forecasts` | weekly | 1 | 2026-11-24 | **accumulating** | — |
@@ -78,7 +78,7 @@
 | `timeseries_v13_vol_experiments` | event | 1 | 2026-10-21 | **accumulating** | — |
 | `timeseries_v13_holdout_scorings` | event | 1 | — | **accumulating** | — |
 | `timeseries_v13_approvals` | event | 1 | 2026-11-11 | **accumulating** | — |
-| `timeseries_v13_vol_live` | trading_daily | 1 | 2026-11-20 | **stalled** | writer settles within 18h of the close; expects 2026-11-23 |
+| `timeseries_v13_vol_live` | trading_daily | 1 | 2026-11-25 | **accumulating** | writer settles within 18h of the close; expects 2026-11-23 |
 | `timeseries_v13_exog_vxn_observations` | event | 1 | 2014-12-31 | **accumulating** | — |
 | `timeseries_v13_exog_raw_receipts` | event | 1 | 2026-10-21 | **accumulating** | — |
 | `ml_reference_scores` | event | 1 | 2026-10-26 | **accumulating** | — |
@@ -87,7 +87,7 @@
 | `timeseries_v13_exog_cftc_tff` | event | 1 | — | **accumulating** | — |
 | `timeseries_v13_exog_raw_blobs` | event | 15 | 2014-04-17 | **accumulating** | — |
 | `timeseries_v13_prereg_diagnostics` | event | 9 | — | **accumulating** | — |
-| `timeseries_v13_vol_live_resolutions` | trading_daily | 1 | 2026-11-19 | **stalled** | writer settles within 18h of the close; expects 2026-11-23 |
+| `timeseries_v13_vol_live_resolutions` | trading_daily | 1 | 2026-11-24 | **accumulating** | writer settles within 18h of the close; expects 2026-11-23 |
 | `timeseries_v13_live_verdict_applications` | event | 0 | — | **planned** | — |
 | `timeseries_v13_vol_ladder_results` | event | 8 | — | **accumulating** | — |
 | `timeseries_v13_vol_coefficients` | event | 1 | — | **frozen** | — |
