@@ -139,12 +139,12 @@
     "policy": "아카이브 날짜를 달력으로 쓰지 않는다 — 비세션 행은 무시하고 목록으로만 보고",
     "window": [
       "1995-01-03",
-      "2026-11-24"
+      "2026-11-25"
     ],
     "xnas_sessions_missing_nasdaqcom": [],
     "xnas_sessions_missing_nasdaqcom_since_first_origin": []
   },
-  "as_of_session": "2026-11-24",
+  "as_of_session": "2026-11-25",
   "bootstrap": {
     "caveats": [
       "serial overlap ignored — 주간 원점의 h21 창은 약 16/21 세션이 겹친다. 원점 i.i.d. 복원추출이라 CI 가 좁게 나올 수 있다(설계 §1.1 은 h21 에 블록 부트스트랩)",
@@ -531,14 +531,14 @@
       "status": "checked",
       "window": [
         "2025-01-01",
-        "2028-01-18"
+        "2028-01-19"
       ]
     },
     "daily6m": {
       "mismatches": [],
-      "n_dates": 29,
-      "n_forecasts": 25,
-      "n_rows": 362,
+      "n_dates": 30,
+      "n_forecasts": 26,
+      "n_rows": 388,
       "status": "checked"
     },
     "diagnostics_chain": {
@@ -550,7 +550,7 @@
     "status": "PASS",
     "v13": {
       "mismatches": [],
-      "n": 252,
+      "n": 258,
       "status": "checked"
     },
     "v8": {
