@@ -12,6 +12,10 @@ def test_investing_refresh_scopes_secret_and_caps_paid_work() -> None:
     assert "OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}" in workflow
     # C5-A4 (2026-09-11): 자동 경로의 유료 호출은 키 생존 smoke 하나뿐이다.
     assert "python -m ai_fc openai-smoke" in workflow
+    assert "python -m ai_fc calendar-refresh" in workflow
+    assert "id: calendar" in workflow
+    assert "data/calendar" in workflow
+    assert '"calendar:${{ steps.calendar.outcome }}"' in workflow
     assert 'AI_FC_OPENAI_MONTHLY_BUDGET: "2.00"' in workflow
     assert "gpt-5.6-terra" in workflow
     assert "cancel-in-progress: false" in workflow
@@ -85,13 +89,29 @@ def test_bot_data_commits_trigger_pages_and_verification() -> None:
     # gate flip stayed invisible on the live site (observed 2026-09-01).
     # timeseries-v13-vol-live (2026-09-08): V13-VOL 포인터 커밋도 GITHUB_TOKEN 푸시라 같은 이유로 등록.
     expected = (
-        'workflows: ["investing-refresh", "scenario-refresh", "ai-regime-refresh", '
+        'workflows: ["investing-refresh", "economic-calendar-refresh", "scenario-refresh", "ai-regime-refresh", '
         '"statistics-refresh", "timeseries-refresh", "timeseries-v5-refresh", '
         '"timeseries-v2-refresh", "timeseries-v8-shadow", "timeseries-v13-vol-live", "timeseries-daily6m", "market-context-daily"]'
     )
     for workflow in (pages, verify):
         assert expected in workflow
         assert "types: [completed]" in workflow
+
+
+def test_economic_calendar_refresh_runs_before_0800_kst_and_is_deployed() -> None:
+    workflow = (
+        ROOT / ".github" / "workflows" / "economic-calendar-refresh.yml"
+    ).read_text(encoding="utf-8")
+    alerts = (ROOT / ".github" / "workflows" / "ops-failure-alert.yml").read_text(
+        encoding="utf-8"
+    )
+
+    # Actions cron uses UTC: 22:50 is 07:50 KST the following calendar day.
+    assert 'cron: "50 22 * * *"' in workflow
+    assert "python -m ai_fc calendar-refresh" in workflow
+    assert "git add data/calendar" in workflow
+    assert "group: investing-data-writer" in workflow
+    assert "economic-calendar-refresh" in alerts
 
     ots = (ROOT / ".github" / "workflows" / "ots-stamp.yml").read_text(
         encoding="utf-8"

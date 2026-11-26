@@ -41,6 +41,12 @@ jobs:
       - name: Rebuild the derived index from durable ledgers
         run: python -m ai_fc sync --rebuild
 
+      - name: Refresh the official economic calendar
+        id: calendar
+        if: env.RUN_MODE == 'full'
+        continue-on-error: true
+        run: python -m ai_fc calendar-refresh
+
       - name: Refresh Yahoo and FRED quantitative base rates
         id: quant
         if: env.RUN_MODE == 'full'
@@ -116,7 +122,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/base_rates data/ml_history data/scenarios data/cross_asset forecasts \
+          git add data/base_rates data/ml_history data/scenarios data/cross_asset data/calendar forecasts \
             calibration/cost_log.csv docs/generated
           if git diff --cached --quiet; then
             echo "No investing data changes to commit."
@@ -132,6 +138,7 @@ jobs:
         run: |
           failed=0
           for outcome in \
+            "calendar:${{ steps.calendar.outcome }}" \
             "quant:${{ steps.quant.outcome }}" \
             "market:${{ steps.market.outcome }}" \
             "scenario:${{ steps.scenario.outcome }}" \

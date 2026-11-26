@@ -1,0 +1,45 @@
+name: economic-calendar-refresh
+
+on:
+  schedule:
+    # GitHub Actions cron is UTC. 22:50 UTC is 07:50 KST the following day,
+    # leaving a ten-minute margin before the 08:00 KST calendar SLA.
+    - cron: "50 22 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  # Share the durable-data writer lock with all other ledger writers.
+  group: investing-data-writer
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install calendar dependencies
+        run: pip install -e "."
+      - name: Refresh official economic calendar
+        run: python -m ai_fc calendar-refresh
+      - name: Commit calendar updates
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/calendar
+          if git diff --cached --quiet; then
+            echo "No economic calendar changes to commit."
+            exit 0
+          fi
+          git commit -m "data: refresh economic calendar $(date -u +%F)"
+          git pull --rebase origin main
+          git push origin HEAD:main

@@ -35,6 +35,31 @@ sources:
     official: true
     access: free
     cadence: release_schedule
+  - id: bea_pce
+    authority: U.S. Bureau of Economic Analysis
+    kinds: [pce]
+    url: https://www.bea.gov/news/schedule/ics/online-calendar-subscription.ics
+    official: true
+    access: free
+    cadence: release_schedule_subscription
+    note: Personal Income and Outlays includes headline and core PCE price indexes.
+  - id: conference_board_consumer_confidence
+    authority: The Conference Board
+    kinds: [consumer_confidence]
+    url: https://www.conference-board.org/topics/consumer-confidence/
+    official: true
+    access: free
+    cadence: last_tuesday_monthly
+    note: The latest release states the exact next release; later months remain estimates.
+  - id: ism_pmi
+    authority: Institute for Supply Management
+    kinds: [manufacturing_pmi, services_pmi]
+    url: https://www.ismworld.org/supply-management-news-and-reports/reports/rob-report-calendar/
+    official: true
+    access: free
+    cadence: first_and_third_business_day_monthly
+    confirmed_through: 2026-12-31
+    note: The 2026 table is published; later dates use ISM cadence and NYSE closures until published.
   - id: nvidia_ir
     authority: NVIDIA Investor Relations
     kinds: [earnings]

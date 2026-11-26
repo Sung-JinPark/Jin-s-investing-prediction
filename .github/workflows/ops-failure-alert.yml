@@ -24,6 +24,7 @@ on:
       - statistics-refresh
       - source-monitoring
       - investing-refresh
+      - economic-calendar-refresh
       - ipo-edgar-watch
       - monthly-research-pack
       - ots-stamp
