@@ -1,6 +1,6 @@
 # Ledger accumulation audit
 
-- Generated: `2026-11-27T09:50:41+00:00`
+- Generated: `2026-11-27T19:12:59+00:00`
 - Latest completed NYSE day: `2026-11-25`
 - Result: accumulating 89 · frozen 2 · stalled 4 · inactive 12 · violation 0 · planned 10
 
@@ -41,18 +41,18 @@
 | `realty_o_entry_cohort_archive` | monthly | 5 | 2026-11-03 | **accumulating** | — |
 | `ai_capital_archives` | monthly | 9 | 2026-11-05 | **accumulating** | — |
 | `dualdb_model_runs` | weekly | 0 | — | **inactive** | — |
-| `source_monitoring` | trading_daily | 109 | 2026-11-26 | **accumulating** | missing trading days: 2026-08-25, 2026-08-27, 2026-08-28, 2026-10-23, 2026-11-04; writer settles within 18h of the close; expects 2026-11-25 |
-| `source_monitoring_status` | trading_daily | 1 | 2026-11-26 | **accumulating** | writer settles within 18h of the close; expects 2026-11-25 |
+| `source_monitoring` | trading_daily | 110 | 2026-11-27 | **accumulating** | missing trading days: 2026-08-25, 2026-08-27, 2026-08-28, 2026-10-23, 2026-11-04; writer settles within 18h of the close; expects 2026-11-25 |
+| `source_monitoring_status` | trading_daily | 1 | 2026-11-27 | **accumulating** | writer settles within 18h of the close; expects 2026-11-25 |
 | `ipo_reference_batch_receipts` | event | 4 | 2026-08-19 | **accumulating** | — |
-| `ipo_reference_batch_status` | weekly | 1 | 2026-11-26 | **accumulating** | — |
+| `ipo_reference_batch_status` | weekly | 1 | 2026-11-27 | **accumulating** | — |
 | `ipo_edgar_candidates` | weekly | 1 | 2026-11-14 | **stalled** | — |
 | `ipo_ai_classification_decisions` | biweekly | 1 | 2026-11-07 | **stalled** | — |
-| `statistics_alert_notify_state` | event | 1 | 2026-11-26 | **accumulating** | — |
+| `statistics_alert_notify_state` | event | 1 | 2026-11-27 | **accumulating** | — |
 | `timeseries_raw_receipts` | trading_daily | 1 | — | **accumulating** | — |
 | `timeseries_observation_facts` | trading_daily | 1 | — | **accumulating** | — |
 | `timeseries_event_facts` | event | 0 | — | **inactive** | — |
 | `timeseries_event_raw_receipts` | event | 0 | — | **inactive** | — |
-| `timeseries_shadow_forecasts` | trading_daily | 1 | 2026-11-26 | **accumulating** | writer settles within 18h of the close; expects 2026-11-25 |
+| `timeseries_shadow_forecasts` | trading_daily | 1 | 2026-11-27 | **accumulating** | writer settles within 18h of the close; expects 2026-11-25 |
 | `timeseries_shadow_resolutions` | trading_daily | 0 | — | **inactive** | — |
 | `timeseries_shadow_corrections` | event | 0 | — | **inactive** | — |
 | `timeseries_model_runs` | weekly | 16 | — | **accumulating** | — |

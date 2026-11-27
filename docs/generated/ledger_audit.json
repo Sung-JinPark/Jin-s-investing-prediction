@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-11-27T09:50:41+00:00",
+  "generated_at": "2026-11-27T19:12:59+00:00",
   "market_cutoff": "2026-11-25",
   "summary": {
     "accumulating": 89,
@@ -1680,9 +1680,9 @@
       "cadence": "trading_daily",
       "criticality": "low",
       "status": "accumulating",
-      "file_count": 109,
+      "file_count": 110,
       "row_count": null,
-      "latest_date": "2026-11-26",
+      "latest_date": "2026-11-27",
       "expected_date": "2026-11-25",
       "settle_hours": 18,
       "missing_trading_days": [
@@ -1812,6 +1812,10 @@
         {
           "date": "2026-11-26",
           "count": 109
+        },
+        {
+          "date": "2026-11-27",
+          "count": 110
         }
       ]
     },
@@ -1824,7 +1828,7 @@
       "status": "accumulating",
       "file_count": 1,
       "row_count": null,
-      "latest_date": "2026-11-26",
+      "latest_date": "2026-11-27",
       "expected_date": "2026-11-25",
       "settle_hours": 18,
       "missing_trading_days": [],
@@ -1834,7 +1838,7 @@
       "reversed_timestamps": 0,
       "growth_last_30d": [
         {
-          "date": "2026-11-26",
+          "date": "2026-11-27",
           "count": 1
         }
       ]
@@ -1867,7 +1871,7 @@
       "status": "accumulating",
       "file_count": 1,
       "row_count": null,
-      "latest_date": "2026-11-26",
+      "latest_date": "2026-11-27",
       "expected_date": null,
       "settle_hours": null,
       "missing_trading_days": [],
@@ -1877,7 +1881,7 @@
       "reversed_timestamps": 0,
       "growth_last_30d": [
         {
-          "date": "2026-11-26",
+          "date": "2026-11-27",
           "count": 1
         }
       ]
@@ -1947,7 +1951,7 @@
       "status": "accumulating",
       "file_count": 1,
       "row_count": null,
-      "latest_date": "2026-11-26",
+      "latest_date": "2026-11-27",
       "expected_date": null,
       "settle_hours": null,
       "missing_trading_days": [],
@@ -1957,7 +1961,7 @@
       "reversed_timestamps": 0,
       "growth_last_30d": [
         {
-          "date": "2026-11-26",
+          "date": "2026-11-27",
           "count": 1
         }
       ]
@@ -2047,7 +2051,7 @@
       "status": "accumulating",
       "file_count": 1,
       "row_count": null,
-      "latest_date": "2026-11-26",
+      "latest_date": "2026-11-27",
       "expected_date": "2026-11-25",
       "settle_hours": 18,
       "missing_trading_days": [],
@@ -2131,6 +2135,10 @@
         {
           "date": "2026-11-26",
           "count": 60
+        },
+        {
+          "date": "2026-11-27",
+          "count": 61
         }
       ]
     },
