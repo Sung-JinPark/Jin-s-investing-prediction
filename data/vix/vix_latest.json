@@ -5,7 +5,7 @@
   "source_url": "https://cdn.cboe.com/api/global/us_indices/daily_prices/VIX_History.csv",
   "source_field": "CLOSE",
   "observed_date": "2026-11-25",
-  "generated_at": "2026-11-26T06:32:32+00:00",
+  "generated_at": "2026-11-27T06:34:07+00:00",
   "level": 28.29,
   "band": "hard_rule",
   "band_label": "하드룰 구간",
@@ -588,5 +588,5 @@
     "distance": -3.29,
     "breached": true
   },
-  "stale_days": 1
+  "stale_days": 2
 }
