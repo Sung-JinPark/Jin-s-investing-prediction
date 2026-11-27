@@ -1,8 +1,8 @@
 # Ledger accumulation audit
 
-- Generated: `2026-11-26T19:18:20+00:00`
+- Generated: `2026-11-27T06:38:11+00:00`
 - Latest completed NYSE day: `2026-11-25`
-- Result: accumulating 90 · frozen 2 · stalled 3 · inactive 12 · violation 0 · planned 10
+- Result: accumulating 89 · frozen 2 · stalled 4 · inactive 12 · violation 0 · planned 10
 
 | Ledger | Cadence | Files / rows | Latest | Status | Finding |
 |---|---:|---:|---:|---:|---|
@@ -60,7 +60,7 @@
 | `raw_receipts` | event | 0 | — | **planned** | — |
 | `quarantine` | event | 0 | — | **planned** | — |
 | `bitemporal_facts` | event | 0 | — | **planned** | — |
-| `forecast_timestamp_proof` | weekly | 1 | 2026-11-26 | **accumulating** | — |
+| `forecast_timestamp_proof` | weekly | 1 | 2026-11-27 | **accumulating** | — |
 | `research_pack` | monthly | 5 | — | **accumulating** | — |
 | `scenario_v5_2_distinctness_shadow` | trading_daily | 1 | — | **accumulating** | — |
 | `scenario_v5_2_sensitivity_grid` | event | 1 | — | **accumulating** | — |
@@ -70,7 +70,7 @@
 | `timeseries_v8_holdout_scorings` | event | 1 | — | **accumulating** | — |
 | `timeseries_v8_development_experiments` | event | 1 | — | **accumulating** | — |
 | `timeseries_v15_shadow_forecasts` | weekly | 1 | 2026-11-24 | **accumulating** | — |
-| `timeseries_v15_issuance_forecasts` | weekly | 1 | 2026-11-16 | **accumulating** | — |
+| `timeseries_v15_issuance_forecasts` | weekly | 1 | 2026-11-16 | **stalled** | — |
 | `timeseries_v15_shadow_resolutions` | weekly | 1 | 2026-11-25 | **accumulating** | — |
 | `timeseries_v15_attempts` | event | 1 | 2026-11-23 | **accumulating** | — |
 | `timeseries_v15_approvals` | event | 1 | 2026-11-11 | **accumulating** | — |
@@ -109,8 +109,8 @@
 | `timeseries_v14_ladder_results` | event | 1 | — | **accumulating** | — |
 | `timeseries_v15_vol_approvals` | event | 1 | 2026-11-11 | **accumulating** | — |
 | `timeseries_v15_vol_arming` | event | 1 | 2026-11-11 | **accumulating** | — |
-| `timeseries_v15_vol_shadow` | trading_daily | 1 | 2026-11-25 | **accumulating** | writer settles within 24h of the close; expects 2026-11-24 |
-| `timeseries_v15_vol_shadow_resolutions` | trading_daily | 1 | 2026-11-24 | **accumulating** | writer settles within 24h of the close; expects 2026-11-24 |
+| `timeseries_v15_vol_shadow` | trading_daily | 1 | 2026-11-26 | **accumulating** | writer settles within 24h of the close; expects 2026-11-25 |
+| `timeseries_v15_vol_shadow_resolutions` | trading_daily | 1 | 2026-11-25 | **accumulating** | writer settles within 24h of the close; expects 2026-11-25 |
 | `timeseries_v15_vol_constants` | event | 1 | — | **accumulating** | — |
 | `timeseries_v15_vol_prereg` | event | 1 | — | **accumulating** | — |
 | `mts_research_events` | event | 0 | — | **planned** | — |
