@@ -43,10 +43,10 @@
   "status": "current",
   "months": {
     "2026-11": {
-      "priced_total": 5,
+      "priced_total": 6,
       "operating_approx": 4,
-      "fetched_at": "2026-11-27T09:51:49+00:00",
-      "response_sha256": "b17c40518905958df1b976439149e1f28ebc30a03318235bd78550099ea54376",
+      "fetched_at": "2026-11-27T16:41:49+00:00",
+      "response_sha256": "b39a2cc07b9b5f6db519a0cbedec8f76517d4d0bdec2c6b98e7788f16c7bfcc5",
       "complete": false,
       "stale": false
     }
