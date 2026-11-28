@@ -1,6 +1,6 @@
 # 시장내재확률 — 자동 수집 (참조 전용, 재생성 가능)
 
-> `python -m ai_fc market` — Kalshi·Polymarket·CBOE 옵션(무료·무인증). 생성: 2026-11-21
+> `python -m ai_fc market` — Kalshi·Polymarket·CBOE 옵션(무료·무인증). 생성: 2026-11-28
 > **기록·표시 전용** — edge 시그널 발행은 P3 게이트(해소 50+, Brier<0.18) 통과 후.
 
 | 질문 | 시장내재확률 | 소스 | 구성 정의 |
